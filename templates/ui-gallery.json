@@ -1,0 +1,242 @@
+{
+ "ui-shell": [
+  {
+   "label": "App bar",
+   "html": "<header class=\"ui-shell__header\"><div class=\"ui-shell__brand\"><span class=\"ui-shell__name\">Planner</span><span class=\"ui-shell__tagline\">Your week, in one place</span></div><nav class=\"ui-shell__nav\" aria-label=\"Main\"><a class=\"ui-shell__link\" href=\"#/calendar\" aria-current=\"page\">Calendar</a><a class=\"ui-shell__link\" href=\"#/tasks\">Tasks</a><a class=\"ui-shell__link\" href=\"#/settings\">Settings</a></nav></header>"
+  },
+  {
+   "label": "With an action",
+   "html": "<header class=\"ui-shell__header\"><div class=\"ui-shell__brand\"><span class=\"ui-shell__name\">Planner</span><span class=\"ui-shell__tagline\">Your week, in one place</span></div><nav class=\"ui-shell__nav\" aria-label=\"Main\"><a class=\"ui-shell__link\" href=\"#/calendar\" aria-current=\"page\">Calendar</a><a class=\"ui-shell__link\" href=\"#/tasks\">Tasks</a><a class=\"ui-shell__link\" href=\"#/settings\">Settings</a></nav><div class=\"ui-shell__actions\"><button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--sm\">New event</button></div></header>"
+  }
+ ],
+ "ui-btn": [
+  {
+   "label": "Primary",
+   "html": "<button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\">Save changes</button>"
+  },
+  {
+   "label": "Secondary",
+   "html": "<button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--md\">Cancel</button>"
+  },
+  {
+   "label": "Ghost",
+   "html": "<button type=\"button\" class=\"ui-btn ui-btn--ghost ui-btn--md\">More options</button>"
+  },
+  {
+   "label": "Danger",
+   "html": "<button type=\"button\" class=\"ui-btn ui-btn--danger ui-btn--md\">Delete</button>"
+  },
+  {
+   "label": "Small",
+   "html": "<button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--sm\">Small</button>"
+  },
+  {
+   "label": "Large",
+   "html": "<button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--lg\">Get started</button>"
+  },
+  {
+   "label": "Disabled",
+   "html": "<button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\" disabled=\"\">Saving…</button>"
+  }
+ ],
+ "ui-card": [
+  {
+   "label": "Card",
+   "html": "<div class=\"ui-card\"><h3 class=\"ui-card__title\">Weekly summary</h3><div class=\"ui-card__body\"><p>4 events this week, 2 of them today.</p></div><div class=\"ui-card__footer\"><button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--sm\">View all</button></div></div>"
+  },
+  {
+   "label": "Interactive card",
+   "html": "<div class=\"ui-card ui-card--interactive\"><h3 class=\"ui-card__title\">Team planning</h3><div class=\"ui-card__body\"><p>Thursday, 10:00 to 11:00</p></div></div>"
+  }
+ ],
+ "ui-field": [
+  {
+   "label": "Field",
+   "html": "<div class=\"ui-field\"><label class=\"ui-field__label\" for=\"_R_0_\">Event title<span class=\"ui-field__req\"> (required)</span></label><input id=\"_R_0_\" aria-describedby=\"_R_0_-hint\" required=\"\" class=\"ui-input\" placeholder=\"Team standup\"/><p id=\"_R_0_-hint\" class=\"ui-field__hint\">Shown on the calendar.</p></div>"
+  },
+  {
+   "label": "With an error",
+   "html": "<div class=\"ui-field ui-field--error\"><label class=\"ui-field__label\" for=\"_R_0_\">Email</label><input id=\"_R_0_\" aria-describedby=\"_R_0_-error\" aria-invalid=\"true\" class=\"ui-input\" value=\"sam@\"/><p id=\"_R_0_-error\" class=\"ui-field__error\" role=\"alert\">Enter an email address like name@example.com.</p></div>"
+  },
+  {
+   "label": "Select",
+   "html": "<div class=\"ui-field\"><label class=\"ui-field__label\" for=\"_R_0_\">Repeat</label><select id=\"_R_0_\" class=\"ui-input\"><option value=\"none\">Never</option><option value=\"weekly\" selected=\"\">Every week</option></select></div>"
+  }
+ ],
+ "ui-badge": [
+  {
+   "label": "Neutral",
+   "html": "<span class=\"ui-badge ui-badge--neutral\">Draft</span>"
+  },
+  {
+   "label": "Accent",
+   "html": "<span class=\"ui-badge ui-badge--accent\">New</span>"
+  },
+  {
+   "label": "Success",
+   "html": "<span class=\"ui-badge ui-badge--success\">Confirmed</span>"
+  },
+  {
+   "label": "Danger",
+   "html": "<span class=\"ui-badge ui-badge--danger\">Cancelled</span>"
+  }
+ ],
+ "ui-notice": [
+  {
+   "label": "Info",
+   "html": "<div class=\"ui-notice ui-notice--info\" role=\"status\"><strong class=\"ui-notice__title\">Heads up</strong><div>Changes save automatically.</div></div>"
+  },
+  {
+   "label": "Success",
+   "html": "<div class=\"ui-notice ui-notice--success\" role=\"status\"><div>Event created.</div></div>"
+  },
+  {
+   "label": "Warning",
+   "html": "<div class=\"ui-notice ui-notice--warning\" role=\"status\"><div>This overlaps another event.</div></div>"
+  },
+  {
+   "label": "Error",
+   "html": "<div class=\"ui-notice ui-notice--error\" role=\"alert\"><strong class=\"ui-notice__title\">Couldn&#x27;t save</strong><div>Check your connection and try again.</div></div>"
+  },
+  {
+   "label": "Error with retry",
+   "html": "<div class=\"ui-notice ui-notice--error\" role=\"alert\"><strong class=\"ui-notice__title\">Couldn&#x27;t load this</strong><div>Check your connection. Nothing you typed was lost.</div><div class=\"ui-notice__actions\"><button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--sm\">Try again</button></div></div>"
+  }
+ ],
+ "ui-tabs": [
+  {
+   "label": "Tabs",
+   "html": "<div class=\"ui-tabs ui-tabs--horizontal\"><div class=\"ui-tabs__list\" role=\"tablist\" aria-label=\"Calendar view\" aria-orientation=\"horizontal\"><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-m\" aria-controls=\"_R_0_-panel\" aria-selected=\"false\" tabindex=\"-1\" class=\"ui-tabs__tab\">Month</button><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-w\" aria-controls=\"_R_0_-panel\" aria-selected=\"true\" tabindex=\"0\" class=\"ui-tabs__tab\">Week</button><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-d\" aria-controls=\"_R_0_-panel\" aria-selected=\"false\" tabindex=\"-1\" class=\"ui-tabs__tab\">Day</button></div><div class=\"ui-tabs__panel\" role=\"tabpanel\" id=\"_R_0_-panel\" aria-labelledby=\"_R_0_-tab-w\" tabindex=\"0\"><p>Week view</p></div></div>"
+  },
+  {
+   "label": "Vertical tabs",
+   "html": "<div class=\"ui-tabs ui-tabs--vertical\"><div class=\"ui-tabs__list\" role=\"tablist\" aria-label=\"Settings\" aria-orientation=\"vertical\"><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-g\" aria-controls=\"_R_0_-panel\" aria-selected=\"true\" tabindex=\"0\" class=\"ui-tabs__tab\">General</button><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-n\" aria-controls=\"_R_0_-panel\" aria-selected=\"false\" tabindex=\"-1\" class=\"ui-tabs__tab\">Notifications</button><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-p\" aria-controls=\"_R_0_-panel\" aria-selected=\"false\" tabindex=\"-1\" class=\"ui-tabs__tab\">Privacy</button></div><div class=\"ui-tabs__panel\" role=\"tabpanel\" id=\"_R_0_-panel\" aria-labelledby=\"_R_0_-tab-g\" tabindex=\"0\"><p>General settings</p></div></div>"
+  }
+ ],
+ "ui-switch": [
+  {
+   "label": "On",
+   "html": "<button type=\"button\" role=\"switch\" aria-checked=\"true\" class=\"ui-switch\" aria-label=\"Email reminders\"><span class=\"ui-switch__thumb\" aria-hidden=\"true\"></span><span class=\"ui-switch__text\">On</span></button>"
+  },
+  {
+   "label": "Off",
+   "html": "<button type=\"button\" role=\"switch\" aria-checked=\"false\" class=\"ui-switch\" aria-label=\"Weekly digest\"><span class=\"ui-switch__thumb\" aria-hidden=\"true\"></span><span class=\"ui-switch__text\">Off</span></button>"
+  }
+ ],
+ "ui-settings": [
+  {
+   "label": "Settings list",
+   "html": "<div class=\"ui-settings\"><div class=\"ui-setting\"><div class=\"ui-setting__text\"><label class=\"ui-setting__label\" for=\"_R_1_\">Start week on Monday</label><p id=\"_R_1_-desc\" class=\"ui-setting__desc\">Changes the first column of the month view.</p></div><div class=\"ui-setting__control\"><button type=\"button\" role=\"switch\" id=\"_R_1_\" aria-checked=\"true\" class=\"ui-switch\" aria-describedby=\"_R_1_-desc\"><span class=\"ui-switch__thumb\" aria-hidden=\"true\"></span><span class=\"ui-switch__text\">On</span></button></div></div><div class=\"ui-setting\"><div class=\"ui-setting__text\"><label class=\"ui-setting__label\" for=\"_R_2_\">Show weekends</label></div><div class=\"ui-setting__control\"><button type=\"button\" role=\"switch\" id=\"_R_2_\" aria-checked=\"false\" class=\"ui-switch\"><span class=\"ui-switch__thumb\" aria-hidden=\"true\"></span><span class=\"ui-switch__text\">Off</span></button></div></div></div>"
+  }
+ ],
+ "ui-stat": [
+  {
+   "label": "Stat",
+   "html": "<div class=\"ui-stat\"><span class=\"ui-stat__label\">Events this week</span><span class=\"ui-stat__value\">12</span><span class=\"ui-stat__note\">3 more than last week</span></div>"
+  }
+ ],
+ "ui-trend": [
+  {
+   "label": "Good",
+   "html": "<span class=\"ui-trend ui-trend--good\"><span aria-hidden=\"true\">▲</span><span>Up 12%</span><span class=\"ui-trend__label\">vs last week</span></span>"
+  },
+  {
+   "label": "Bad",
+   "html": "<span class=\"ui-trend ui-trend--bad\"><span aria-hidden=\"true\">▼</span><span>Down 8%</span><span class=\"ui-trend__label\">vs last week</span></span>"
+  }
+ ],
+ "ui-progress": [
+  {
+   "label": "Progress",
+   "html": "<div class=\"ui-progress\"><div class=\"ui-progress__head\"><span id=\"_R_0_\" class=\"ui-progress__label\">Profile set up</span><span class=\"ui-progress__value\">60%</span></div><div class=\"ui-progress__track\" role=\"progressbar\" aria-labelledby=\"_R_0_\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"60\" aria-valuetext=\"60%\"><span class=\"ui-progress__fill\" style=\"width:60%\"></span></div></div>"
+  }
+ ],
+ "ui-avatar": [
+  {
+   "label": "Small",
+   "html": "<span class=\"ui-avatar ui-avatar--sm\" aria-hidden=\"true\">SL</span>"
+  },
+  {
+   "label": "Medium",
+   "html": "<span class=\"ui-avatar ui-avatar--md\" aria-hidden=\"true\">AR</span>"
+  },
+  {
+   "label": "Large",
+   "html": "<span class=\"ui-avatar ui-avatar--lg\" aria-hidden=\"true\">JP</span>"
+  }
+ ],
+ "ui-empty": [
+  {
+   "label": "Empty state",
+   "html": "<div class=\"ui-empty\"><h3 class=\"ui-empty__title\">No events yet</h3><p class=\"ui-empty__message\">Add your first event to see it on the calendar.</p><div class=\"ui-empty__action\"><button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\">New event</button></div></div>"
+  },
+  {
+   "label": "No results",
+   "html": "<div class=\"ui-empty\"><h3 class=\"ui-empty__title\">No matches</h3><p class=\"ui-empty__message\">Nothing matches your search. Try fewer words or clear the filters.</p><div class=\"ui-empty__action\"><button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--md\">Clear search</button></div></div>"
+  }
+ ],
+ "ui-skeleton": [
+  {
+   "label": "Lines",
+   "html": "<div class=\"ui-skeleton\" role=\"status\" aria-label=\"Loading\"><span class=\"ui-skeleton__line\" style=\"width:100%\"></span><span class=\"ui-skeleton__line\" style=\"width:100%\"></span><span class=\"ui-skeleton__line\" style=\"width:60%\"></span></div>"
+  },
+  {
+   "label": "Card",
+   "html": "<div class=\"ui-skeleton ui-skeleton--card\" role=\"status\" aria-label=\"Loading\"><span class=\"ui-skeleton__line\" style=\"width:100%\"></span><span class=\"ui-skeleton__line\" style=\"width:100%\"></span><span class=\"ui-skeleton__line\" style=\"width:60%\"></span></div>"
+  }
+ ],
+ "ui-page-header": [
+  {
+   "label": "Page header",
+   "html": "<div class=\"ui-page-header\"><div class=\"ui-page-header__text\"><h1 class=\"ui-page-header__title\">Calendar</h1><p class=\"ui-page-header__desc\">Plan your week and keep track of what&#x27;s next.</p></div><div class=\"ui-page-header__action\"><button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\">New event</button></div></div>"
+  }
+ ],
+ "ui-section": [
+  {
+   "label": "Section",
+   "html": "<section class=\"ui-section\" aria-labelledby=\"_R_0_\"><div class=\"ui-section__head\"><div><h2 id=\"_R_0_\" class=\"ui-section__title\">Upcoming</h2><p class=\"ui-section__desc\">The next seven days.</p></div></div><p>3 events</p></section>"
+  }
+ ],
+ "ui-checklist": [
+  {
+   "label": "Checklist",
+   "html": "<ul class=\"ui-checklist\" aria-label=\"Getting started\"><li class=\"ui-checklist__item ui-checklist__item--done\"><span class=\"ui-checklist__mark\" aria-hidden=\"true\">✓</span><span class=\"ui-checklist__text\"><span class=\"ui-checklist__title\">Create an account<span class=\"ui-checklist__state ui-sr-only\"> (done)</span></span></span></li><li class=\"ui-checklist__item\"><span class=\"ui-checklist__mark\" aria-hidden=\"true\"></span><span class=\"ui-checklist__text\"><span class=\"ui-checklist__title\">Add your first event</span><span class=\"ui-checklist__meta\">About a minute</span></span></li><li class=\"ui-checklist__item\"><span class=\"ui-checklist__mark\" aria-hidden=\"true\"></span><span class=\"ui-checklist__text\"><span class=\"ui-checklist__title\">Invite your team</span></span></li></ul>"
+  }
+ ],
+ "ui-activity": [
+  {
+   "label": "Activity",
+   "html": "<ul class=\"ui-activity\" aria-label=\"Recent activity\"><li class=\"ui-activity__item\"><span class=\"ui-avatar ui-avatar--sm\" aria-hidden=\"true\">SL</span><div class=\"ui-activity__text\"><span><strong>Sam Lee</strong> moved Team planning to Thursday</span><span class=\"ui-activity__when\">2 min ago</span></div></li><li class=\"ui-activity__item\"><span class=\"ui-avatar ui-avatar--sm\" aria-hidden=\"true\">AR</span><div class=\"ui-activity__text\"><span><strong>Ana Ruiz</strong> added Design review</span><span class=\"ui-activity__when\">1 hour ago</span></div></li></ul>"
+  }
+ ],
+ "ui-table": [
+  {
+   "label": "Table",
+   "html": "<div class=\"ui-table-wrap\" role=\"region\" aria-label=\"Upcoming events\" tabindex=\"0\"><table class=\"ui-table\"><caption class=\"ui-table__caption\">Upcoming events</caption><thead><tr><th scope=\"col\"></th><th scope=\"col\"></th><th scope=\"col\"></th></tr></thead><tbody><tr><td>Team standup</td><td>Mon 09:00</td><td>6</td></tr><tr><td>Design review</td><td>Wed 14:00</td><td>3</td></tr></tbody></table></div>"
+  }
+ ],
+ "ui-chart": [
+  {
+   "label": "Bar chart",
+   "html": "<figure class=\"ui-chart\"><figcaption class=\"ui-chart__title\">Events per day</figcaption><ol class=\"ui-chart__bars\"><li class=\"ui-chart__item\"><span class=\"ui-chart__value\">4</span><span class=\"ui-chart__bar\" style=\"height:80%\" aria-hidden=\"true\"></span><span class=\"ui-chart__label\">Mon</span></li><li class=\"ui-chart__item\"><span class=\"ui-chart__value\">2</span><span class=\"ui-chart__bar\" style=\"height:40%\" aria-hidden=\"true\"></span><span class=\"ui-chart__label\">Tue</span></li><li class=\"ui-chart__item\"><span class=\"ui-chart__value\">5</span><span class=\"ui-chart__bar\" style=\"height:100%\" aria-hidden=\"true\"></span><span class=\"ui-chart__label\">Wed</span></li><li class=\"ui-chart__item\"><span class=\"ui-chart__value\">3</span><span class=\"ui-chart__bar\" style=\"height:60%\" aria-hidden=\"true\"></span><span class=\"ui-chart__label\">Thu</span></li><li class=\"ui-chart__item\"><span class=\"ui-chart__value\">1</span><span class=\"ui-chart__bar\" style=\"height:20%\" aria-hidden=\"true\"></span><span class=\"ui-chart__label\">Fri</span></li></ol></figure>"
+  }
+ ],
+ "ui-hero": [
+  {
+   "label": "Hero",
+   "html": "<div class=\"ui-hero\"><div class=\"ui-hero__copy\"><span class=\"ui-hero__eyebrow\">Welcome back</span><h1 class=\"ui-hero__title\">Your week at a glance</h1><p class=\"ui-hero__desc\">Three events today, the first at 09:00.</p><div class=\"ui-hero__actions\"><button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\">Open calendar</button></div></div></div>"
+  }
+ ],
+ "ui-tile": [
+  {
+   "label": "Action tile",
+   "html": "<button type=\"button\" class=\"ui-tile\"><span class=\"ui-tile__title\">New event</span><span class=\"ui-tile__desc\">Add something to your calendar.</span></button>"
+  }
+ ],
+ "ui-grid": [
+  {
+   "label": "Stats grid",
+   "html": "<div class=\"ui-grid ui-grid--stats\"><div class=\"ui-stat\"><span class=\"ui-stat__label\">Today</span><span class=\"ui-stat__value\">3</span></div><div class=\"ui-stat\"><span class=\"ui-stat__label\">This week</span><span class=\"ui-stat__value\">12</span></div><div class=\"ui-stat\"><span class=\"ui-stat__label\">Overdue</span><span class=\"ui-stat__value\">0</span></div></div>"
+  }
+ ]
+}

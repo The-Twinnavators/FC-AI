@@ -1,0 +1,30 @@
+{
+  "name": "@flowcode/daemon",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "flowcode-daemon": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node --disable-warning=ExperimentalWarning dist/index.js"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@flowcode/contracts": "0.1.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "diff": "^8.0.2",
+    "parse5": "^8.0.0",
+    "playwright": "^1.55.0",
+    "smol-toml": "^1.4.2",
+    "typescript": "^5.9.2",
+    "web-push": "^3.6.7",
+    "yaml": "^2.8.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/web-push": "^3.6.4"
+  }
+}

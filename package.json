@@ -1,0 +1,31 @@
+{
+  "name": "flowcode",
+  "private": true,
+  "version": "0.1.0",
+  "description": "FlowCode — local-first, AI-native IDE with a governed multi-agent runtime",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -b packages/contracts packages/daemon && npm run build -w @flowcode/ui && npm run build -w @flowcode/desktop",
+    "typecheck": "tsc -b packages/contracts packages/daemon && npm run typecheck -w @flowcode/ui && npm run typecheck -w @flowcode/desktop",
+    "test": "vitest run",
+    "start": "npm run build && npm run start -w @flowcode/desktop",
+    "dev:daemon": "node --disable-warning=ExperimentalWarning scripts/dev-daemon.mjs",
+    "dev:ui": "npm run dev -w @flowcode/ui",
+    "dev:empty": "node --disable-warning=ExperimentalWarning scripts/dev-empty.mjs",
+    "benchmark": "node --disable-warning=ExperimentalWarning packages/daemon/dist/bench/goldenPath.js",
+    "audit:ui": "node scripts/audit-ui.mjs",
+    "build:ui-gallery": "node scripts/ui-gallery/build.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "@types/node": "^24.3.0"
+  }
+}

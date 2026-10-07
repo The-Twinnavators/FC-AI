@@ -1,0 +1,53 @@
+/*
+ * Surface styles for apps made before the building blocks read the surface tokens. FlowCode adds this file (and its
+ * import in src/main.tsx) when you change the surface style of an older app. Tokens only: the look lives in tokens.css.
+ */
+.ui-shell {
+  background-image: var(--page-backdrop, none);
+  background-attachment: fixed;
+}
+.ui-shell__header {
+  background: var(--header-bg, var(--color-surface));
+  backdrop-filter: var(--surface-blur, none);
+  -webkit-backdrop-filter: var(--surface-blur, none);
+}
+.ui-card,
+.ui-stat,
+.ui-settings,
+.ui-table-wrap,
+.ui-tile {
+  background: var(--surface-bg, var(--color-surface));
+  border: var(--surface-border, var(--border-width) solid var(--color-border));
+  border-radius: var(--surface-radius, var(--radius-lg));
+  box-shadow: var(--surface-shadow, none);
+  backdrop-filter: var(--surface-blur, none);
+  -webkit-backdrop-filter: var(--surface-blur, none);
+}
+.ui-card--interactive:hover,
+.ui-tile:hover {
+  box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none));
+}
+.ui-dialog,
+.ui-skeleton--card {
+  border: var(--surface-border, var(--border-width) solid var(--color-border));
+  border-radius: var(--surface-radius, var(--radius-lg));
+}
+.ui-btn {
+  border-radius: var(--control-radius, var(--radius-md));
+  box-shadow: var(--control-shadow, none);
+}
+.ui-btn--secondary {
+  border: var(--control-border, var(--border-width) solid var(--color-border-strong));
+}
+.ui-btn--primary:hover:not(:disabled),
+.ui-btn--secondary:hover:not(:disabled) {
+  box-shadow: var(--control-shadow-hover, var(--control-shadow, none));
+}
+.ui-input {
+  border: var(--control-border, var(--border-width) solid var(--color-border-strong));
+  border-radius: var(--control-radius, var(--radius-sm));
+}
+.ui-page-header__title,
+.ui-hero__title {
+  font-weight: var(--heading-weight, var(--weight-bold));
+}

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-electron/
+*.tsbuildinfo
+.flowcode-data/
+.flowcode-data-empty/
+benchmarks/runs/*/workspace/node_modules/
+test-results/
+.env*
+!.env.example
+apps/desktop/stage/
+apps/desktop/release/
+
+# Local working files and runtime data (not source)
+.scratch/
+data/*.sqlite*

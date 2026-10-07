@@ -1,0 +1,1555 @@
+/* Discover ("Let's solve a problem"): Light and Deep Research. Spacing on the 8px rhythm; radius at most 10px. */
+
+.disc-page {
+  display: grid;
+  gap: 24px;
+  max-width: 1200px;
+}
+.disc-hero {
+  display: grid;
+  gap: 8px;
+  max-width: 72ch;
+}
+.disc-hero--row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  max-width: none;
+}
+.disc-hero--row > div {
+  display: grid;
+  gap: 8px;
+  max-width: 72ch;
+}
+.disc-lede {
+  margin: 0;
+  max-width: 68ch;
+  line-height: 1.6;
+  color: var(--text-1);
+}
+.disc-foot {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* Mode choice: two columns that stack on phones. */
+.disc-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 24px;
+}
+.disc-mode {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-1);
+}
+.disc-mode h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.disc-mode__lede {
+  margin: 0 0 8px;
+  color: var(--text-1);
+}
+.disc-mode__h {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.disc-mode__effort {
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--text-1);
+}
+.disc-mode .btn--primary {
+  justify-self: start;
+  margin-top: 8px;
+}
+.disc-compare-toggle {
+  justify-self: start;
+}
+
+.disc-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+  line-height: 1.5;
+}
+
+/* Research list. */
+.disc-projects {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.disc-project {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.disc-project__open {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.disc-project__open:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.disc-project__title {
+  font-size: 16px;
+  font-weight: 650;
+}
+.disc-project__open:hover .disc-project__title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.disc-project__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.disc-project__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.disc-progress {
+  display: block;
+  height: 4px;
+  max-width: 320px;
+  border-radius: 999px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+.disc-progress > span {
+  display: block;
+  height: 100%;
+  background: #3b82f6;
+}
+.disc-mode-tag {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+.disc-mode-tag--deep {
+  background: color-mix(in srgb, var(--brand) 18%, transparent);
+  color: var(--brand-ink);
+}
+
+/* Workspace: steps on the left, the current step on the right; stacked on narrow screens. */
+.disc-ws__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.disc-ws__title {
+  margin: 8px 0 4px;
+  font-size: 24px;
+  line-height: 1.25;
+}
+.disc-ws__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.disc-ws__body {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .disc-ws__body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .disc-steps ol {
+    display: flex;
+    overflow-x: auto;
+    gap: 4px;
+    padding-bottom: 8px;
+  }
+  .disc-step {
+    white-space: nowrap;
+  }
+}
+.disc-steps {
+  position: sticky;
+  top: 16px;
+  display: grid;
+  gap: 8px;
+}
+.disc-steps ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.disc-steps__count,
+.disc-steps__note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.disc-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text-1);
+  text-align: left;
+  cursor: pointer;
+}
+.disc-step:hover {
+  background: rgba(127, 127, 127, 0.08);
+  color: var(--text-0);
+}
+.disc-step:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+.disc-step.is-current {
+  background: rgba(59, 130, 246, 0.14);
+  color: var(--text-0);
+  font-weight: 600;
+}
+.disc-step__n {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 11.5px;
+  background: var(--bg-3);
+}
+.disc-step--done .disc-step__n,
+.disc-step--approved .disc-step__n {
+  background: var(--sig-ok-bg);
+  color: var(--sig-ok);
+}
+.disc-step--stale .disc-step__n {
+  background: color-mix(in srgb, var(--brand) 18%, transparent);
+  color: var(--brand-ink);
+}
+.disc-step__name {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+/* "May need review" sits under the stage name. */
+.disc-step__flag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+
+.disc-main {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.disc-step-panel {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+.disc-step-panel__head {
+  display: grid;
+  gap: 8px;
+}
+.disc-step-panel__head h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.3;
+}
+.disc-step-panel__head h2:focus {
+  outline: none;
+}
+.disc-stale {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  color: var(--text-0);
+}
+
+/* Answers. */
+.disc-form {
+  display: grid;
+  gap: 24px;
+  max-width: 680px;
+}
+.disc-field {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.disc-field__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-0);
+}
+.disc-field__req {
+  font-weight: 400;
+  color: var(--text-2);
+}
+.disc-field__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.disc-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.disc-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.disc-choice.is-on {
+  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.12);
+}
+.disc-choice:focus-within {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+.disc-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.disc-suggest__label {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.disc-suggest__chip {
+  padding: 4px 8px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text-1);
+  cursor: pointer;
+}
+.disc-suggest__chip:hover {
+  color: var(--text-0);
+  border-style: solid;
+}
+.disc-save {
+  margin: 0;
+  min-height: 20px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.disc-generate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.disc-wait {
+  font-size: 13px;
+  color: var(--text-1);
+}
+.disc-details {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+
+/* Generated parts. */
+.disc-blocks {
+  display: grid;
+  gap: 24px;
+}
+.disc-confirm {
+  margin: 0;
+  font-weight: 600;
+}
+.disc-block {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.disc-block__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.disc-block__head h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.disc-block__head h3:focus {
+  outline: none;
+}
+.disc-block__edit {
+  margin-left: auto;
+}
+.disc-block__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.disc-text {
+  margin: 0;
+  max-width: 72ch;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.disc-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.disc-dl {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+}
+.disc-dl div {
+  display: grid;
+  gap: 4px;
+}
+.disc-dl dt {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.disc-dl dd {
+  margin: 0;
+  max-width: 72ch;
+  line-height: 1.55;
+}
+.disc-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.disc-table-wrap:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.disc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.disc-table th,
+.disc-table td {
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+.disc-table th {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-1);
+  white-space: nowrap;
+}
+.disc-table th.is-wide {
+  min-width: 200px;
+  white-space: normal;
+}
+.disc-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.disc-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--brand) 16%, transparent);
+  color: var(--brand-ink);
+}
+
+/* Evidence labels: each source type keeps one colour across the app. */
+.disc-tag {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+.disc-tag--user {
+  background: rgba(59, 130, 246, 0.14);
+  color: var(--text-0);
+}
+.disc-tag--real,
+.disc-tag--sourced {
+  background: var(--sig-ok-bg);
+  color: var(--sig-ok);
+}
+.disc-tag--ai_hypothesis,
+.disc-tag--ai_perspective {
+  background: color-mix(in srgb, var(--brand) 16%, transparent);
+  color: var(--brand-ink);
+}
+.disc-tag--needs_testing {
+  background: var(--sig-warn-bg);
+  color: var(--sig-warn);
+}
+:root[data-theme="light"] .disc-tag--needs_testing {
+  color: #7a4700;
+}
+
+.disc-disclosure {
+  margin: 0;
+  max-width: 76ch;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  background: color-mix(in srgb, var(--brand) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 22%, transparent);
+  color: var(--text-0);
+}
+.disc-disclosure--compact {
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+.disc-disclosure__tag {
+  font-weight: 650;
+  color: var(--brand-ink);
+}
+
+/* Editing. */
+.disc-block__editor,
+.disc-edit-rows,
+.disc-edit-fields {
+  display: grid;
+  gap: 16px;
+}
+.disc-edit-row {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.disc-edit-row legend {
+  padding: 0 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.disc-edit-row__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+}
+.disc-edit-row__grid .is-wide {
+  grid-column: 1 / -1;
+}
+.disc-edit-row > .btn {
+  justify-self: start;
+}
+
+.disc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Gates, notices and the redirect. */
+.disc-gate,
+.disc-gate-note,
+.disc-redirect,
+.disc-notice {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--bg-1);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.disc-gate p,
+.disc-gate-note p,
+.disc-redirect p,
+.disc-notice p {
+  margin: 0;
+  line-height: 1.55;
+}
+.disc-notice {
+  background: color-mix(in srgb, var(--brand) 9%, var(--bg-1));
+}
+.disc-notice__err {
+  color: var(--sig-bad);
+}
+.disc-approved {
+  margin: 0;
+  color: var(--sig-ok);
+  font-weight: 600;
+}
+
+/* Documents: summary, report, PRD. */
+.disc-doc {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.disc-doc .markdown {
+  max-width: 80ch;
+}
+.disc-doc__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+}
+.disc-doc__versions {
+  max-width: 360px;
+}
+.disc-doc__ver {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.disc-doc__edit {
+  min-height: 420px;
+  font-family: "Roboto Mono", var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.disc-doc__actions {
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.disc-status {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+.disc-status--approved {
+  background: var(--sig-ok-bg);
+  color: var(--sig-ok);
+}
+.disc-status--draft {
+  background: rgba(59, 130, 246, 0.14);
+  color: var(--text-0);
+}
+.disc-build {
+  display: grid;
+  gap: 16px;
+  max-width: 76ch;
+}
+
+.disc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.disc-nav__next {
+  margin-left: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disc-step,
+  .disc-choice,
+  .disc-suggest__chip {
+    transition: none;
+  }
+}
+/* Wide PRD and report tables scroll inside the document instead of widening the page. */
+.disc-doc .markdown {
+  min-width: 0;
+}
+.disc-doc .markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.disc-compare-toggle {
+  text-align: left;
+  width: fit-content;
+}
+
+/* Follow-up questions with suggested answers. */
+.disc-fu {
+  display: grid;
+  gap: 16px;
+  max-width: 680px;
+}
+.disc-fu__q {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--bg-1);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.disc-fu__q.is-open {
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.55);
+}
+.disc-fu__ask {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.disc-fu__n {
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.disc-fu__why,
+.disc-fu__a {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-1);
+  line-height: 1.5;
+}
+.disc-fu__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.disc-fu__chip {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text-0);
+  text-align: left;
+  cursor: pointer;
+}
+.disc-fu__chip:hover {
+  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.1);
+}
+.disc-fu__chip:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.disc-fu__own {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.disc-fu__own .input {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.disc-fu__start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.disc-fu__done {
+  margin: 0;
+  color: var(--sig-ok);
+  font-weight: 600;
+}
+/* "Add more detail": one tinted box, no outline. Opened, the extra fields sit inside it, so it is clear where they came from. */
+.disc-more {
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--brand-ink) 5%, transparent);
+}
+.disc-more > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--brand-ink) 8%, transparent);
+  color: var(--brand-ink);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+  transition: background 0.15s ease;
+}
+.disc-more > summary::-webkit-details-marker { display: none; }
+.disc-more > summary::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+  flex: none;
+}
+.disc-more[open] > summary { border-radius: 7px 7px 0 0; border-bottom: 1px solid color-mix(in srgb, var(--brand-ink) 35%, transparent); }
+.disc-more[open] > summary::before { transform: rotate(45deg); }
+.disc-more > summary:hover { background: color-mix(in srgb, var(--brand-ink) 15%, transparent); }
+.disc-more > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.disc-more__body {
+  display: grid;
+  gap: 20px;
+  padding: 18px 16px 20px;
+}
+.disc-more__body > * + * { border-top: 1px solid var(--line); padding-top: 20px; }
+@media (max-width: 640px) {
+  .disc-more__body { padding: 14px 12px 16px; }
+}
+.disc-section-title {
+  margin: 0;
+  font-size: 18px;
+}
+.disc-step-panel .disc-step-panel + .disc-step-panel {
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+/* The Planner agent beside the draft button, and the AI icon on AI actions. */
+.disc-agent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.disc-agent__head {
+  position: relative;
+  display: inline-flex;
+}
+/* Indeterminate sweep over the head, matching the Agents map's WorkBar (46×5 track, 18px teal block, 1.3s). */
+.disc-agent__bar {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 3px);
+  width: 30px;
+  height: 4px;
+  margin-left: -15px;
+  border-radius: 2px;
+  background: var(--bot-track);
+  overflow: hidden;
+}
+.disc-agent__bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -12px;
+  width: 12px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--sig-ok);
+  animation: disc-agent-sweep 1.3s linear infinite;
+}
+@keyframes disc-agent-sweep {
+  to { transform: translateX(42px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .disc-agent__bar::after { left: 0; width: 100%; animation: none; }
+}
+.disc-agent__name {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.disc-ai-btn {
+  gap: 8px;
+}
+
+/* Documents as white pages on a grey desk, like a word processor. Always light, in both themes. */
+.doc-desk {
+  display: grid;
+  justify-items: center;
+  gap: 24px;
+  padding: 32px 16px;
+  border-radius: 10px;
+  background: #d9dde5;
+}
+:root:not([data-theme="light"]) .doc-desk {
+  background: #2a3140;
+}
+.doc-page {
+  position: relative;
+  width: 100%;
+  max-width: 816px;
+  min-height: 320px;
+  padding: 56px 64px 48px;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1d2433;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12), 0 8px 24px -8px rgba(15, 23, 42, 0.28);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.doc-page--cover {
+  min-height: 0;
+  padding-top: 72px;
+}
+.doc-page .markdown {
+  color: #1d2433;
+  max-width: none;
+}
+.doc-page .markdown h2 {
+  margin: 0 0 16px;
+  font-size: 28px;
+  line-height: 1.2;
+  color: #0f172a;
+}
+.doc-page .markdown h3 {
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e6ee;
+  font-size: 20px;
+  line-height: 1.3;
+  color: #0f172a;
+}
+.doc-page .markdown h4 {
+  margin: 24px 0 8px;
+  font-size: 16px;
+  color: #0f172a;
+}
+.doc-page .markdown p,
+.doc-page .markdown li {
+  color: #1d2433;
+}
+.doc-page .markdown em {
+  color: #4b5568;
+}
+.doc-page .markdown strong {
+  color: #0f172a;
+}
+.doc-page .markdown a {
+  color: #2547c5;
+}
+.doc-page .markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.doc-page .markdown th,
+.doc-page .markdown td {
+  padding: 8px 12px;
+  border: 1px solid #dfe3eb;
+  color: #1d2433;
+  background: #ffffff;
+  vertical-align: top;
+  text-align: left;
+}
+.doc-page .markdown th {
+  background: #f3f5f9;
+  font-weight: 650;
+}
+.doc-page .markdown code {
+  background: #f3f5f9;
+  color: #1d2433;
+}
+.doc-page__n {
+  position: absolute;
+  right: 24px;
+  bottom: 16px;
+  font-size: 11px;
+  color: #8a93a6;
+}
+@media (max-width: 640px) {
+  .doc-desk {
+    padding: 16px 8px;
+  }
+  .doc-page {
+    padding: 32px 20px 40px;
+  }
+}
+
+/* Stage badges: solid fills with strong text so state reads at a glance in both themes. */
+.disc-step__n {
+  background: var(--bg-3);
+  color: var(--text-0);
+  font-weight: 650;
+}
+.disc-step--done .disc-step__n,
+.disc-step--approved .disc-step__n {
+  background: #2fc4b2;
+  color: #04231f;
+}
+.disc-step--stale .disc-step__n {
+  background: #a78bfa;
+  color: #1c0f33;
+}
+.disc-step__flag {
+  color: #c4b5fd;
+  font-weight: 600;
+}
+:root[data-theme="light"] .disc-step__n {
+  background: #dfe3eb;
+  color: #1d2433;
+}
+:root[data-theme="light"] .disc-step--done .disc-step__n,
+:root[data-theme="light"] .disc-step--approved .disc-step__n {
+  /* Light teal (not too light) with a white check. */
+  background: #2dd4bf;
+  color: #ffffff;
+}
+.disc-step--done .disc-step__n svg,
+.disc-step--approved .disc-step__n svg {
+  stroke-width: 2.6;
+}
+:root[data-theme="light"] .disc-step--stale .disc-step__n {
+  background: #6d28d9;
+  color: #ffffff;
+}
+:root[data-theme="light"] .disc-step__flag {
+  color: #5b21b6;
+}
+:root[data-theme="light"] .disc-step {
+  color: #1d2433;
+}
+:root[data-theme="light"] .disc-step.is-current {
+  background: rgba(59, 130, 246, 0.16);
+}
+
+/* Research list: the status as a solid badge above the title (grey draft, blue in progress, purple needs your OK, teal done). */
+.disc-status-badge {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #4b5568;
+  color: #f1f4f9;
+}
+.disc-status-badge--in_progress { background: #60a5fa; color: #071a3a; }
+.disc-status-badge--report_ready,
+.disc-status-badge--prd_draft { background: #a78bfa; color: #1c0f33; }
+.disc-status-badge--prd_approved,
+.disc-status-badge--handed_off { background: #2fc4b2; color: #04231f; }
+:root[data-theme="light"] .disc-status-badge { background: #475569; color: #fff; }
+:root[data-theme="light"] .disc-status-badge--in_progress { background: #1d4ed8; color: #fff; }
+:root[data-theme="light"] .disc-status-badge--report_ready,
+:root[data-theme="light"] .disc-status-badge--prd_draft { background: #6d28d9; color: #fff; }
+:root[data-theme="light"] .disc-status-badge--prd_approved,
+:root[data-theme="light"] .disc-status-badge--handed_off { background: #0f766e; color: #fff; }
+
+/* Stage sections as document pages: each section of a multi-section stage sits on its own page with a shadow,
+   numbered, so sections are easy to tell apart and read. Theme-aware (white page in light, raised panel in dark). */
+:root {
+  --sheet-bg: #1a2030;
+  --sheet-line: rgba(255, 255, 255, 0.08);
+  --sheet-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -10px rgba(0, 0, 0, 0.6);
+}
+:root[data-theme="light"] {
+  --sheet-bg: #ffffff;
+  --sheet-line: rgba(15, 23, 42, 0.06);
+  --sheet-shadow: 0 1px 2px rgba(15, 23, 42, 0.1), 0 10px 28px -10px rgba(15, 23, 42, 0.25);
+}
+.disc-main > .disc-step-panel {
+  counter-reset: disc-sheet;
+}
+.disc-step-panel > .disc-step-panel {
+  counter-increment: disc-sheet;
+  min-width: 0;
+  padding: 40px 48px 44px;
+  border: 1px solid var(--sheet-line);
+  border-radius: 6px;
+  background: var(--sheet-bg);
+  box-shadow: var(--sheet-shadow);
+}
+.disc-step-panel > .disc-step-panel > .disc-step-panel__head::before {
+  content: "Section " counter(disc-sheet);
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.disc-step-panel > .disc-step-panel > .disc-step-panel__head {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.disc-step-panel > .disc-step-panel .disc-section-title {
+  font-size: 22px;
+  line-height: 1.25;
+}
+@media (max-width: 720px) {
+  .disc-step-panel > .disc-step-panel {
+    padding: 24px 16px 28px;
+  }
+}
+
+/* Virtual interviews and virtual user testing: a tinted band inside the section page, clearly apart from real findings. */
+.disc-virtual {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+  border-radius: 8px;
+  background: color-mix(in srgb, #8b5cf6 6%, transparent);
+}
+.disc-virtual__title {
+  margin: 0;
+  font-size: 17px;
+}
+.disc-virtual__lede {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--text-1);
+}
+.disc-virtual__note {
+  margin: 0;
+  max-width: 76ch;
+  font-size: 13px;
+  color: var(--text-1);
+}
+.disc-virtual__stale {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+.disc-virtual__summary,
+.disc-virtual__people {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.disc-virtual h4 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-size: 15px;
+}
+.disc-virtual h5 {
+  margin: 0 0 4px;
+  font-size: 13.5px;
+}
+.disc-virtual__when {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.disc-virtual__themes {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.disc-virtual__themes li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+}
+.disc-virtual__themes li > span:last-child {
+  grid-column: 1 / -1;
+  color: var(--text-1);
+}
+.disc-virtual__count,
+.disc-virtual__num {
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.disc-virtual__list ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.disc-virtual__person {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--sheet-bg, transparent);
+}
+.disc-virtual__person > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.disc-virtual__name {
+  font-weight: 600;
+}
+.disc-virtual__angle,
+.disc-virtual__score {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.disc-virtual__score {
+  margin-left: auto;
+}
+.disc-virtual__profile {
+  margin: 0;
+  padding: 0 14px 10px;
+  font-size: 13.5px;
+  color: var(--text-1);
+}
+.disc-virtual__qa,
+.disc-virtual__tasks {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0 14px 14px 14px;
+}
+.disc-virtual__tasks {
+  padding-left: 34px;
+}
+.disc-virtual__qa dt {
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.disc-virtual__qa dd {
+  margin: 2px 0 0;
+}
+.disc-virtual__tasks p {
+  margin: 2px 0;
+}
+.disc-virtual__tasks blockquote {
+  margin: 4px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+  color: var(--text-1);
+  font-style: italic;
+}
+.disc-virtual__hesitation {
+  color: var(--text-1);
+}
+.disc-virtual__outcome {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.disc-virtual__outcome--completed { background: #0f766e; color: #fff; }
+.disc-virtual__outcome--struggled { background: #a16207; color: #fff; }
+.disc-virtual__outcome--gave-up { background: #b91c1c; color: #fff; }
+.disc-virtual__conf {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+@media (max-width: 720px) {
+  .disc-virtual { padding: 16px; }
+  .disc-virtual__score { margin-left: 0; }
+}
+
+/* "What you'll get here": the parts of a section that hasn't been drafted yet. */
+.disc-preview {
+  display: grid;
+  gap: 10px;
+}
+.disc-preview__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.disc-preview__list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.disc-preview__list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding-left: 16px;
+  position: relative;
+  max-width: 76ch;
+}
+.disc-preview__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-ink);
+}
+.disc-preview__list strong {
+  font-weight: 600;
+}
+.disc-preview__yours {
+  justify-self: start;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+.disc-preview__detail {
+  grid-column: 1 / -1;
+  font-size: 13.5px;
+  color: var(--text-1);
+}
+
+/* One flow: the start screen. */
+.disc-start {
+  display: grid;
+  gap: 20px;
+  max-width: 720px;
+}
+.disc-start .textarea {
+  font-size: 15px;
+}
+.disc-start__thorough {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 68ch;
+  cursor: pointer;
+}
+.disc-start__thorough input {
+  margin-top: 3px;
+}
+.disc-start__thorough > span {
+  display: grid;
+  gap: 2px;
+}
+.disc-start__thorough > span > span {
+  font-size: 13.5px;
+  color: var(--text-1);
+}
+
+/* Optional stages in the stage list: a dashed outline instead of a number fill, and a grey note. */
+.disc-step--optional .disc-step__n {
+  background: transparent !important;
+  border: 1.5px dashed var(--text-2);
+  color: var(--text-2) !important;
+}
+.disc-step__flag--optional {
+  color: var(--text-2) !important;
+  font-weight: 500 !important;
+}
+
+/* Add research: a tinted card of optional sections with checkboxes. */
+.disc-addr {
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--brand-ink) 5%, transparent);
+}
+.disc-addr__title {
+  margin: 0;
+  font-size: 17px;
+}
+.disc-addr__lede {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--text-1);
+}
+.disc-addr__list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.disc-addr__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.disc-addr__item:hover {
+  background: color-mix(in srgb, var(--brand-ink) 6%, transparent);
+}
+.disc-addr__item input {
+  margin-top: 3px;
+  flex: none;
+}
+.disc-addr__item > span {
+  display: grid;
+  gap: 2px;
+  max-width: 76ch;
+}
+.disc-addr__item > span > span {
+  font-size: 13.5px;
+  color: var(--text-1);
+}
+
+/* A section header with its "Remove section" button. */
+.disc-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.disc-section-remove {
+  flex: none;
+}
+
+/* Research list: count + Cards/List toggle, and the card layout. */
+.disc-projects__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.disc-projects--cards {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+  border-top: 0;
+}
+.disc-projects--cards .disc-project {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  transition: border-color 0.15s ease;
+}
+:root[data-theme="light"] .disc-projects--cards .disc-project {
+  background: #ffffff;
+}
+.disc-projects--cards .disc-project:hover,
+.disc-projects--cards .disc-project:focus-within {
+  border-color: var(--line-strong);
+}
+.disc-projects--cards .disc-project__open {
+  flex: 1 1 auto;
+  align-content: start;
+  gap: 8px;
+}
+.disc-projects--cards .disc-status-badge {
+  justify-self: start;
+}
+.disc-projects--cards .disc-project__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+}
+.disc-projects--cards .disc-progress {
+  max-width: none;
+}
+.disc-projects--cards .disc-project__actions {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  margin: 0 -6px -6px;
+}
+
+/* Card actions live in a "⋯" menu: top right on cards, at the row's end in the list. */
+.disc-project {
+  position: relative;
+}
+.disc-menu {
+  position: relative;
+}
+.disc-projects--cards .disc-menu {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.disc-projects--cards .disc-project__open {
+  padding-right: 28px;
+}
+.disc-menu .proj-actions__menu {
+  z-index: 20;
+  min-width: 170px;
+}
+/* More room between badge, title, meta and progress on cards. */
+.disc-projects--cards .disc-project {
+  padding: 18px;
+}
+.disc-projects--cards .disc-project__open {
+  gap: 12px;
+}
+.disc-projects--cards .disc-project__meta {
+  margin-top: 2px;
+}

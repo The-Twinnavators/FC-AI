@@ -1,0 +1,71 @@
+{
+  "name": "@flowcode/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FlowCode desktop shell (Electron)",
+  "author": "FlowCode",
+  "main": "dist/main.cjs",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "start": "electron .",
+    "stage": "node scripts/stage.mjs",
+    "dist:mac": "node build.mjs && node scripts/stage.mjs && electron-builder --mac dmg --arm64 --x64 --publish never",
+    "dist:dir": "node build.mjs && node scripts/stage.mjs && electron-builder --dir --publish never"
+  },
+  "devDependencies": {
+    "electron": "^38.1.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.25.9"
+  },
+  "build": {
+    "appId": "dev.flowcode.desktop",
+    "productName": "FlowCode",
+    "copyright": "FlowCode",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "dist/**",
+      "assets/**",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "stage/daemon",
+        "to": "daemon"
+      },
+      {
+        "from": "stage/ui",
+        "to": "ui"
+      },
+      {
+        "from": "stage/templates",
+        "to": "templates"
+      }
+    ],
+    "asar": true,
+    "npmRebuild": false,
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "assets/icon.png",
+      "target": [
+        "dmg"
+      ],
+      "identity": null,
+      "hardenedRuntime": false
+    },
+    "dmg": {
+      "title": "FlowCode ${version}",
+      "artifactName": "FlowCode-${version}-${arch}.${ext}"
+    },
+    "win": {
+      "icon": "assets/icon.png",
+      "target": [
+        "dir"
+      ]
+    },
+    "electronVersion": "38.8.6"
+  }
+}

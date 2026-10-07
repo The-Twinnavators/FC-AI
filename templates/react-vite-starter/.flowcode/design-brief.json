@@ -1,0 +1,8 @@
+{
+  "subject": "Personal schedule",
+  "audience": "One person planning their own week on phone or laptop",
+  "primaryJob": "Capture, adjust and remove upcoming events quickly, without an account",
+  "vernacular": ["event", "schedule", "date", "time", "notes"],
+  "requiredStates": ["empty", "loading", "error"],
+  "maxRadiusPx": 10
+}

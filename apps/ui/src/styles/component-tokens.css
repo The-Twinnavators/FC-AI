@@ -1,0 +1,67 @@
+/*
+ * Component attribute tokens (Primitives → Attributes). Each component reads its own custom properties, with
+ * defaults equal to the current design, so overrides saved from the Primitives page restyle the whole app
+ * without touching component code. Loaded last.
+ */
+:root {
+  --btn-radius: 4px;
+  --btn-height: 38px;
+  --btn-font-size: 14px;
+  --btn-pad-x: 18px;
+  --btn-primary-bg: var(--brand-1);
+  --chip-radius: 4px;
+  --chip-font-size: 11.5px;
+  --chip-case: uppercase;
+  --input-radius: 4px;
+  --input-font-size: 14.5px;
+  --card-radius: 10px;
+  --notice-radius: 6px;
+  --notice-font-size: 14px;
+  --tab-font-size: 14px;
+}
+
+:root .btn {
+  border-radius: var(--btn-radius);
+  height: var(--btn-height);
+  font-size: var(--btn-font-size);
+  padding-left: var(--btn-pad-x);
+  padding-right: var(--btn-pad-x);
+}
+:root .btn.btn--sm {
+  height: calc(var(--btn-height) - 8px);
+  padding-left: calc(var(--btn-pad-x) - 6px);
+  padding-right: calc(var(--btn-pad-x) - 6px);
+  font-size: calc(var(--btn-font-size) - 1px);
+}
+:root .btn.btn--primary:not(:disabled) {
+  background-color: var(--btn-primary-bg);
+  background-image: none;
+}
+:root .chip {
+  border-radius: var(--chip-radius);
+  font-size: var(--chip-font-size);
+  text-transform: var(--chip-case);
+}
+:root .input,
+:root .textarea,
+:root select.select {
+  border-radius: var(--input-radius);
+  font-size: var(--input-font-size);
+}
+:root .section,
+:root .lrc-cat,
+:root .lrc-card,
+:root .ba-card,
+:root .ba-sec {
+  border-radius: var(--card-radius);
+}
+:root .notice {
+  border-radius: var(--notice-radius);
+  font-size: var(--notice-font-size);
+}
+:root .tab {
+  font-size: var(--tab-font-size);
+}
+:root .ws .tab {
+  font-size: min(var(--tab-font-size), 12px);
+}

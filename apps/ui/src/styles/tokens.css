@@ -1,0 +1,140 @@
+/*
+ * FlowCode design tokens — Supernova.io style.
+ * Navy (#151b26) hero surfaces, cool light page (#f1f2f6), white cards with #dde0e7 borders, slate text
+ * (#687083), blue accent (#3a60c4 → #5f7fd0 → #84a0db), Manrope type. Radius capped at 10px (product rule).
+ */
+:root,
+:root[data-theme="dark"] {
+  --bg-0: #0d1119;
+  --bg-1: rgba(24, 30, 43, 0.66);
+  --bg-2: rgba(31, 38, 54, 0.6);
+  --bg-3: rgba(50, 60, 82, 0.5);
+  --bg-hover: rgba(132, 160, 219, 0.07);
+  --bg-active: rgba(132, 160, 219, 0.14);
+  --line: rgba(190, 200, 222, 0.11);
+  --line-strong: rgba(190, 200, 222, 0.22);
+  --text-0: #ffffff;
+  --text-1: #c3c7d0;
+  --text-2: #8f96a6;
+  --text-inverse: #151b26;
+
+  --brand-1: #3a60c4;
+  --brand-2: #5f7fd0;
+  --brand-3: #84a0db;
+  --brand-ink: #a2b6e6;
+  --brand-glow: rgba(58, 96, 196, 0.45);
+  --brand-soft: rgba(95, 127, 208, 0.16);
+  --teal-1: #3a60c4;
+  --teal-2: #5f7fd0;
+  --teal-ink: #84a0db;
+  --focus: #a2b6e6;
+
+  --sig-ok: #2fc4b2;
+  --sig-warn: #f2b33d;
+  --sig-bad: #ff6b6b;
+  --sig-run: #84a0db;
+  --sig-off: #545c70;
+  --teal-color: #2fc4b2;
+  --sig-ok-bg: rgba(47, 196, 178, 0.13);
+  --teal-100: #2fc4b2; /* Teal color for 100% state in RadialGauge */
+  --sig-warn-bg: rgba(242, 179, 61, 0.13);
+  --sig-bad-bg: rgba(255, 107, 107, 0.13);
+  --sig-run-bg: rgba(132, 160, 219, 0.13);
+
+  --diff-add: rgba(47, 196, 178, 0.14);
+  --diff-del: rgba(255, 107, 107, 0.14);
+
+  --font-ui: "Manrope Variable", Manrope, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Martian Mono", "Cascadia Mono", Consolas, monospace;
+
+  --fs-micro: 10px;
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-md: 14px;
+  --fs-lg: 17px;
+  --fs-xl: 32px;
+  --fs-display: 60px;
+
+  /* Semantic type roles (docs/flowcode-ui-type-and-spacing.md). Use these, not raw sizes, for new UI.
+     Anything a person reads to decide or act is at least --type-body. */
+  --type-page: 650 28px/34px var(--font-ui);
+  --type-section: 650 20px/28px var(--font-ui);
+  --type-item: 600 15px/22px var(--font-ui);
+  --type-body: 400 14px/22px var(--font-ui);
+  --type-support: 400 13px/20px var(--font-ui);
+  --type-meta: 500 12px/16px var(--font-ui);
+  --type-status: 650 12px/16px var(--font-ui);
+  --type-code: 400 12.5px/18px var(--font-mono);
+  /* Spacing roles: inside a group, between groups, between sections. Reading width for explanations. */
+  --gap-in: var(--s-2);
+  --gap-group: var(--s-5);
+  --gap-section: var(--s-6);
+  --read-width: 65ch;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 36px;
+  --s-7: 56px;
+  --s-8: 80px;
+
+  --r-1: 4px;
+  --r-2: 6px;
+  --r-3: 8px;
+  --r-4: 10px;
+
+  --rail-w: 60px;
+  --topbar-h: 56px;
+  --strip-h: 60px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 140ms;
+  --t-med: 280ms;
+  --t-slow: 520ms;
+
+  --glass-blur: blur(18px) saturate(140%);
+  --glass-edge: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 0 0 1px rgba(190, 200, 222, 0.11);
+  --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 36px -18px rgba(0, 0, 0, 0.75);
+  --glass-shadow-lg: 0 28px 64px -28px rgba(0, 0, 0, 0.85);
+  --solid-1: #171d29;
+  --solid-2: #1d2431;
+  --bg-gradient: radial-gradient(1200px 640px at 50% -18%, rgba(58, 96, 196, 0.4), transparent 64%), radial-gradient(900px 600px at 105% 40%, rgba(95, 127, 208, 0.1), transparent 60%), linear-gradient(180deg, #151b26 0%, #111620 55%, #0d1119 100%);
+  --grid-line: rgba(255, 255, 255, 0.05);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg-0: #f1f2f6;
+  --bg-1: #ffffff;
+  --bg-2: #f7f8fa;
+  --bg-3: #eaecf1;
+  --bg-hover: rgba(58, 96, 196, 0.05);
+  --bg-active: rgba(58, 96, 196, 0.09);
+  --line: #dde0e7;
+  --line-strong: #cbd0da;
+  --text-0: #151b26;
+  --text-1: #424a5c;
+  --text-2: #5a6274;
+  --text-inverse: #ffffff;
+  --brand-ink: #3a60c4;
+  --brand-glow: rgba(58, 96, 196, 0.3);
+  --brand-soft: rgba(58, 96, 196, 0.08);
+  --teal-ink: #3a60c4;
+  --focus: #3a60c4;
+  --sig-ok: #0f766e;
+  --sig-warn: #a86400;
+  --sig-bad: #d0342c;
+  --sig-run: #3a60c4;
+  --sig-off: #aab1bf;
+  --teal-color: #2fc4b2;
+  --glass-blur: none;
+  --glass-edge: inset 0 0 0 1px #dde0e7;
+  --glass-shadow: 0 1px 2px rgba(18, 23, 34, 0.04), 0 10px 30px -18px rgba(18, 23, 34, 0.18);
+  --glass-shadow-lg: 0 24px 60px -28px rgba(18, 23, 34, 0.28);
+  --solid-1: #ffffff;
+  --solid-2: #ffffff;
+  --bg-gradient: radial-gradient(1200px 520px at 50% -22%, rgba(58, 96, 196, 0.1), transparent 62%), linear-gradient(180deg, #f5f6f9 0%, #f1f2f6 40%, #f1f2f6 100%);
+  --grid-line: rgba(18, 23, 34, 0.035);
+  color-scheme: light;
+}

@@ -1,0 +1,40 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "daemon-dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--disable-warning=ExperimentalWarning",
+        "scripts/dev-daemon.mjs"
+      ],
+      "port": 7457
+    },
+    {
+      "name": "ui-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "@flowcode/ui"
+      ],
+      "port": 5199
+    },
+    {
+      "name": "pda-companion",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        ".flowcode-data/workspaces/rebuild-the-companion-d3abe2",
+        "run",
+        "preview",
+        "--",
+        "--port",
+        "4174",
+        "--strictPort"
+      ],
+      "port": 4174
+    }
+  ]
+}

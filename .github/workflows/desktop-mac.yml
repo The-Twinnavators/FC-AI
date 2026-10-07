@@ -1,0 +1,46 @@
+# Builds the FlowCode Mac app (.dmg) on a macOS runner: a .dmg can only be made on a Mac.
+# Run it from the Actions tab ("Run workflow"), or push a tag like v0.1.0. The .dmg files (Apple silicon and Intel)
+# are attached to the run as an artifact to download.
+# The app is unsigned: on first open, right-click FlowCode → Open (or allow it in System Settings → Privacy & Security).
+name: Desktop (macOS .dmg)
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  dmg:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build daemon, contracts and UI
+        run: |
+          npx tsc -b packages/contracts packages/daemon
+          npm run build -w @flowcode/ui
+
+      - name: Test
+        run: npx vitest run
+        env:
+          FLOWCODE_SKIP_BROWSER: "1"
+
+      - name: Package the .dmg
+        run: npm run dist:mac -w @flowcode/desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FlowCode-mac-dmg
+          path: apps/desktop/release/*.dmg
+          if-no-files-found: error

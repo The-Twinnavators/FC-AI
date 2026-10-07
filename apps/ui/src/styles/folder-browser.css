@@ -1,0 +1,204 @@
+/* Folder browser (FolderBrowser.tsx, after FlowAgent's FlowReport): a solid dialog, folder rows with dividers. Imported by the component itself. */
+.fbrowse {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: rgba(0, 0, 0, 0.7);
+}
+.fbrowse__dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 42rem;
+  max-height: 80vh;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--bg-1);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+}
+.fbrowse__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.fbrowse__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.fbrowse__note {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.fbrowse__icon {
+  display: inline-flex;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.fbrowse__icon:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text-2) 14%, transparent);
+  color: var(--text-1);
+}
+.fbrowse__icon:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.fbrowse__roots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.fbrowse__root {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: none;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+}
+.fbrowse__root:hover {
+  color: var(--text-1);
+  border-color: var(--text-2);
+}
+.fbrowse__where {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.fbrowse__path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.fbrowse__list {
+  flex: 1;
+  min-height: 220px;
+  overflow-y: auto;
+}
+.fbrowse__msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 22px 20px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.fbrowse__msg--bad {
+  color: var(--sig-bad);
+}
+.fbrowse__entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 20px;
+  border: 0;
+  background: none;
+  color: var(--text-1);
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+.fbrowse__entry:hover,
+.fbrowse__entry:focus-visible {
+  background: color-mix(in srgb, var(--text-2) 10%, transparent);
+}
+.fbrowse__repo {
+  flex: none;
+  color: var(--brand-ink);
+}
+.fbrowse__folder {
+  flex: none;
+  color: var(--text-2);
+}
+.fbrowse__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fbrowse__hint {
+  flex: none;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.fbrowse__chev {
+  flex: none;
+  color: var(--text-2);
+  opacity: 0.5;
+}
+.fbrowse__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+}
+.fbrowse__target {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.fbrowse__target strong {
+  color: var(--text-1);
+}
+.fbrowse__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Repositories in the folder browser wear the logo's purple (the "AI" in FlowCode AI). */
+.fbrowse {
+  --fb-purple: #a78bfa;
+}
+:root[data-theme="light"] .fbrowse {
+  --fb-purple: #6d28d9;
+}
+.fbrowse__repo,
+.fbrowse__entry:has(.fbrowse__repo) .fbrowse__hint {
+  color: var(--fb-purple);
+}
+.fbrowse__entry:hover,
+.fbrowse__entry:focus-visible {
+  background: color-mix(in srgb, var(--fb-purple) 14%, transparent);
+}
+.fbrowse__entry:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--fb-purple) 60%, transparent);
+  outline-offset: -1px;
+}
+
