@@ -125,7 +125,7 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
         {!projects ? (
           <SkeletonBlock rows={2} label="Loading projects" />
         ) : projects.length === 0 ? (
-          <Empty title="No projects yet" illustration="welcome" action={<button className="btn btn--primary" onClick={() => window.dispatchEvent(new Event("fc:new-build"))}>Start a prototype</button>}>Bring a PRD, or describe what you want in your own words. FlowCode plans a clickable prototype, builds it and checks its design.</Empty>
+          <Empty title="No projects yet" illustration="server-down" action={<button className="btn btn--primary" onClick={() => window.dispatchEvent(new Event("fc:new-build"))}>Start a prototype</button>}>Bring a PRD, or describe what you want in your own words. FlowCode plans a clickable prototype, builds it and checks its design.</Empty>
         ) : (
           <ProjectCards compact reload={reload} projects={[...projects].sort((a, b) => (b.latestRun?.createdAt ?? b.updatedAt).localeCompare(a.latestRun?.createdAt ?? a.updatedAt)).slice(0, 3)} />
         )}

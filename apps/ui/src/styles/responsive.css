@@ -15287,3 +15287,27 @@ body.cp-driving #copilot-panel { z-index: 80; }
 @media (max-width: 1100px) {
   .models-grid { grid-template-columns: minmax(0, 1fr) !important; grid-template-areas: "side" "main" !important; }
 }
+/* Setup card: the brand's blue band (as "Start with what you have"), so it's the first thing seen until set up. */
+.setup:not(.setup--compact),
+:root[data-theme="light"] .setup:not(.setup--compact) { background: linear-gradient(135deg, #3a60c4 0%, #4b4fd6 100%); border: 0; color: rgba(255, 255, 255, 0.88); box-shadow: 0 18px 40px -18px rgba(75, 79, 214, 0.65); padding: 24px 26px; gap: 16px; }
+.setup:not(.setup--compact) .setup__head h2 { color: #fff; font-size: 21px; letter-spacing: -0.01em; }
+.setup:not(.setup--compact) .setup__lede { color: rgba(255, 255, 255, 0.85); font-size: 15px; }
+.setup:not(.setup--compact) .setup__steps li { color: rgba(255, 255, 255, 0.7); }
+.setup:not(.setup--compact) .setup__steps li.is-done { color: #fff; }
+.setup:not(.setup--compact) .setup__tick { border-color: rgba(255, 255, 255, 0.55); }
+.setup:not(.setup--compact) .setup__steps li.is-done .setup__tick { background: #fff; border-color: #fff; color: #3a60c4; }
+.setup:not(.setup--compact) .setup__now { background: rgba(10, 14, 40, 0.38); border: 1px solid rgba(255, 255, 255, 0.16); padding: 14px 16px; }
+.setup:not(.setup--compact) .setup__now strong { color: #fff; font-size: 15.5px; }
+.setup:not(.setup--compact) .setup__now p { color: rgba(255, 255, 255, 0.86); }
+.setup:not(.setup--compact) .setup__now .btn--primary { background: #fff; color: #2f3fae; border-color: #fff; }
+.setup:not(.setup--compact) .setup__now .btn--primary:hover { background: #eef1ff; }
+.setup:not(.setup--compact) .setup__cmd code { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.setup:not(.setup--compact) .setup__cmd .btn { color: #fff; }
+.setup:not(.setup--compact) .setup__alt,
+.setup:not(.setup--compact) .setup__foot { color: rgba(255, 255, 255, 0.72); }
+.setup:not(.setup--compact) .setup__error { color: #ffd1d1; }
+/* Setup card: no glow. */
+.setup:not(.setup--compact), :root[data-theme="light"] .setup:not(.setup--compact) { box-shadow: none; }
+/* Setup card: a larger heading. */
+.setup:not(.setup--compact) .setup__head h2 { font-size: 28px; line-height: 1.2; letter-spacing: -0.02em; }
+@media (max-width: 640px) { .setup:not(.setup--compact) .setup__head h2 { font-size: 22px; } }
