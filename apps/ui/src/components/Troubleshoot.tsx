@@ -58,21 +58,23 @@ export function TroubleshootPanel({ runId, taskId, onClose, onChanged, onFollowU
       const text = edit[f.id] ?? f.text;
       if (f.kind === "retry_with_guidance" && taskId) {
         await post(`/runs/${runId}/tasks/${taskId}/retry`, { guidance: text });
-        setDone("Retrying the task with that fix. The agent sees your guidance first.");
+        // The fix has started: close, so the step's progress shows in the builder.
         onChanged();
+        onClose();
       } else if (f.kind === "follow_up") {
         onFollowUp(text ?? "");
         onClose();
       } else if (f.kind === "rerun_check" && f.check) {
         await post(`/runs/${runId}/checks/${f.check}/rerun`);
-        setDone("Checks re-ran. See the strip at the bottom.");
         onChanged();
+        onClose();
       } else if (f.kind === "open_models") {
+        onClose();
         navigate("/system/models");
       } else if (f.kind === "rollback" && taskId) {
         await post(`/runs/${runId}/tasks/${taskId}/rollback`);
-        setDone("This task's changes were undone. You can retry it from a clean state.");
         onChanged();
+        onClose();
       }
     } catch (e) {
       setError((e as Error).message);
