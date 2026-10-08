@@ -69,7 +69,7 @@ const parse = <T>(text: string | null | undefined, fallback: T): T => {
 /**
  * Open the store on a database file of its own. The daemon does not use this —
  * it hands the store FlowCode's own database, where migration 4 created the
- * tables — but a script or a test that wants FlowReport alone can.
+ * tables — but a script or a test that wants Repo Report alone can.
  *
  * The constructor takes a connection, because a test wants an in-memory one
  * and should not have to invent a path to get it.
@@ -82,7 +82,7 @@ export class FlowReportStore {
   private readonly db: DatabaseSync
   private readonly owner: Db
 
-  /** FlowCode's database wrapper. Its migrations create FlowReport's tables,
+  /** FlowCode's database wrapper. Its migrations create Repo Report's tables,
    *  so by the time a store exists the schema does too. */
   constructor(db: Db) {
     this.owner = db

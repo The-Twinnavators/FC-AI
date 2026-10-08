@@ -68,7 +68,7 @@ const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; icon: str
   {
     label: "Repo tools",
     // Reports on any repo folder on this computer (not only FlowCode projects).
-    items: [{ path: "/flowreport", icon: "reports", label: "FlowReport" }],
+    items: [{ path: "/flowreport", icon: "reports", label: "Repo Report" }],
   },
   {
     label: "Intelligence",
@@ -211,7 +211,7 @@ export function App() {
     if (section === "improvements") location.replace("#/system/problems");
     // Models & capability lab is a System tab now.
     if (section === "models") location.replace("#/system/models");
-    // Build analysis and Compliance report are one page now: FlowReport.
+    // Build analysis and Compliance report are one page now: Repo Report.
     if (section === "analysis" || section === "compliance") location.replace("#/flowreport");
   }, [section]);
   const [theme, setThemeState] = useState(() => document.documentElement.dataset.theme ?? "dark");
@@ -258,7 +258,7 @@ export function App() {
   }, [projectId]);
 
   useEffect(() => {
-    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Research Topics", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "FlowReport" };
+    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Research Topics", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
     document.title = `${project ? project.name : titles[section] ?? "FlowCode"} · FlowCode`;
   }, [section, project]);
 

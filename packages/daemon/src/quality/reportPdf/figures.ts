@@ -16,7 +16,7 @@ const GLYPHS: Record<string, string> = {
   quality: "M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6zM8.5 12l2.5 2.5 4.5-5",
   layers: "M12 3 3 8l9 5 9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5",
   server: "M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01",
-  // FlowReport's sections that have no screen of their own in the app (its glyphs, on the same grid).
+  // Repo Report's sections that have no screen of their own in the app (its glyphs, on the same grid).
   warning: "M12 3 2 21h20L12 3Zm0 6v5m0 3.2v.1",
   bars: "M4 20V9m5 11V4m5 16v-7m5 7V7",
   money: "M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
@@ -42,7 +42,7 @@ const SECTION_GLYPH: Record<string, string> = {
   privacy: "quality",
   design: "layers",
   data: "server",
-  // FlowReport's categories.
+  // Repo Report's categories.
   error_log: "warning",
   product_intel: "bars",
   engineering_quality: "code",

@@ -478,13 +478,13 @@ export function renderReportMarkdown(run: FlowReportRun, meta: MarkdownMeta): st
     (a, b) => REPORT_CATEGORIES.indexOf(a.category) - REPORT_CATEGORIES.indexOf(b.category))
 
   // ── Cover ──
-  out.push(`# ${meta.projectName} — FlowReport`)
+  out.push(`# ${meta.projectName} — Repo Report`)
   out.push('')
   out.push(`- **Generated** ${meta.generatedAt}`)
   out.push(`- **Analysis mode** ${meta.analysisMode}`)
   out.push(`- **Repository** ${meta.repositoryDisplayName}`)
   out.push(`- **Run status** ${STATUS_LABEL[run.status] ?? run.status}`)
-  out.push(`- **FlowReport analysis version** ${run.analysisVersion}`)
+  out.push(`- **Repo Report analysis version** ${run.analysisVersion}`)
   out.push('')
   out.push('> This report is produced by reading files. Nothing in the repository was executed, '
     + 'no dependency was installed, and no request was made to any host.')

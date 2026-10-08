@@ -1,0 +1,147 @@
+/* Auth: sign-in, sign-up, split sign-in, forgot password and one-time code components (classes start with "fl-auth-"). */
+
+/* ── Frame ── */
+.fl-auth { display: grid; place-items: center; min-height: 100%; }
+.fl-auth-card { width: 100%; max-width: 27rem; margin-inline: auto; gap: var(--space-5); padding: var(--space-7); }
+.fl-auth-brand { display: inline-flex; align-items: center; gap: var(--space-2); font: var(--weight-bold) var(--text-md) / 1 var(--font-display); color: var(--color-text); }
+.fl-auth-brand__mark { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: var(--radius-md); background: var(--color-accent); color: var(--color-on-accent); }
+.fl-auth-brand__mark svg { width: 1.1rem; height: 1.1rem; }
+.fl-auth-head { display: grid; gap: var(--space-2); }
+.fl-auth-head h1, .fl-auth-head h2 { margin: 0; font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: var(--leading-snug); letter-spacing: var(--tracking-tight); }
+.fl-auth-head p { margin: 0; color: var(--color-text-muted); line-height: var(--leading-normal); }
+.fl-auth-head--center { text-align: center; justify-items: center; }
+
+/* ── Fields ── */
+.fl-auth-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.fl-auth-row .fl-link { font-size: var(--text-sm); }
+.fl-auth-error { display: flex; gap: var(--space-2); align-items: flex-start; margin: 0; font-size: var(--text-sm); line-height: var(--leading-normal); color: var(--color-danger); }
+.fl-auth-error svg { flex: none; width: 1rem; height: 1rem; margin-top: 0.15em; }
+.fl-auth .fl-input[aria-invalid="true"], .fl-auth-split .fl-input[aria-invalid="true"] { border-color: var(--color-danger); background: color-mix(in srgb, var(--color-danger-surface) 60%, var(--color-surface)); }
+.fl-auth-alert { margin: 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-danger-surface); color: var(--color-danger); font-size: var(--text-sm); font-weight: var(--weight-semibold); line-height: var(--leading-normal); }
+.fl-auth-full { width: 100%; }
+.fl-auth .fl-btn:disabled, .fl-auth-split .fl-btn:disabled { opacity: var(--disabled-opacity, 0.5); cursor: not-allowed; transform: none; }
+.fl-auth .fl-btn svg, .fl-auth-split .fl-btn svg { width: 1.125rem; height: 1.125rem; flex: none; }
+.fl-auth-btn-busy { cursor: progress !important; }
+
+/* Password with show/hide */
+.fl-auth-pass { position: relative; }
+.fl-auth-pass .fl-input { padding-right: 4.75rem; }
+.fl-auth-reveal {
+  position: absolute; top: 50%; right: var(--space-2); transform: translateY(-50%);
+  min-height: var(--control-sm); padding-inline: var(--space-3); border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--color-accent); font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); cursor: pointer;
+}
+.fl-auth-reveal:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.fl-auth-reveal:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Checkbox */
+.fl-auth-check { display: inline-flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-sm); line-height: var(--leading-normal); cursor: pointer; }
+.fl-auth-check input { width: 1.1rem; height: 1.1rem; margin: 0.15em 0 0; accent-color: var(--color-accent); flex: none; }
+.fl-auth-check input:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Divider and "continue with" */
+.fl-auth-divider { display: flex; align-items: center; gap: var(--space-3); margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-auth-divider::before, .fl-auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--color-border); }
+.fl-auth-alt { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.fl-auth-alt .fl-btn { min-height: var(--control-md); font-size: var(--text-sm); }
+.fl-auth-foot { margin: 0; text-align: center; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* Spinner */
+.fl-auth-spin { width: 1rem; height: 1rem; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: fl-auth-spin 0.8s linear infinite; }
+@keyframes fl-auth-spin { to { transform: rotate(360deg); } }
+
+/* Success */
+.fl-auth-done { display: grid; gap: var(--space-4); justify-items: center; text-align: center; }
+.fl-auth-done__icon { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: color-mix(in srgb, var(--color-success) 14%, transparent); color: var(--color-success); }
+.fl-auth-done__icon svg { width: 1.6rem; height: 1.6rem; }
+.fl-auth-done h2 { margin: 0; font: var(--weight-bold) var(--text-xl) / var(--leading-snug) var(--font-display); }
+.fl-auth-done p { margin: 0; color: var(--color-text-muted); line-height: var(--leading-normal); }
+.fl-auth-done--mail .fl-auth-done__icon { background: color-mix(in srgb, var(--color-accent) 14%, transparent); color: var(--color-accent); }
+
+/* ── Sign up: strength and rules ── */
+.fl-auth-meter { display: grid; gap: var(--space-2); }
+.fl-auth-meter__bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-1); }
+.fl-auth-meter__bars span { height: 0.3rem; border-radius: 999px; background: var(--color-border); transition: background-color var(--duration-base) var(--easing); }
+.fl-auth-meter[data-level="1"] .fl-auth-meter__bars span:nth-child(-n + 1) { background: var(--color-danger); }
+.fl-auth-meter[data-level="2"] .fl-auth-meter__bars span:nth-child(-n + 2) { background: color-mix(in srgb, var(--color-danger) 50%, var(--color-success)); }
+.fl-auth-meter[data-level="3"] .fl-auth-meter__bars span:nth-child(-n + 3) { background: color-mix(in srgb, var(--color-success) 75%, var(--color-accent)); }
+.fl-auth-meter[data-level="4"] .fl-auth-meter__bars span { background: var(--color-success); }
+.fl-auth-meter__label { margin: 0; font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-auth-meter__label strong { color: var(--color-text); }
+.fl-auth-rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; font-size: var(--text-sm); }
+.fl-auth-rules li { display: flex; gap: var(--space-2); align-items: center; color: var(--color-text-muted); }
+.fl-auth-rules li svg { flex: none; width: 1rem; height: 1rem; }
+.fl-auth-rules li[data-met="true"] { color: var(--color-success); }
+
+/* ── Split layout ── */
+.fl-auth-split {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); min-height: 36rem; overflow: hidden;
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius, var(--radius-xl));
+  background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none);
+}
+.fl-auth-split__form { display: grid; align-content: center; gap: var(--space-5); padding: var(--space-8) var(--space-7); }
+.fl-auth-split__form > * { width: 100%; max-width: 24rem; margin-inline: auto; }
+.fl-auth-split__picture {
+  position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--space-4);
+  padding: var(--space-8) var(--space-7); color: var(--color-on-accent);
+  background:
+    radial-gradient(80% 60% at 85% 10%, color-mix(in srgb, var(--color-on-accent) 22%, transparent), transparent 70%),
+    radial-gradient(70% 70% at 0% 100%, color-mix(in srgb, var(--color-accent-hover) 90%, transparent), transparent 75%),
+    linear-gradient(150deg, var(--color-accent), var(--color-accent-hover));
+}
+.fl-auth-split__picture::before {
+  content: ""; position: absolute; inset: var(--space-6); border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in srgb, var(--color-on-accent) 22%, transparent); pointer-events: none;
+}
+.fl-auth-split__quote { position: relative; margin: 0; font: var(--weight-semibold) var(--text-xl) / var(--leading-snug) var(--font-display); text-wrap: balance; }
+.fl-auth-split__who { position: relative; display: flex; gap: var(--space-3); align-items: center; font-size: var(--text-sm); }
+.fl-auth-split__who span:first-child { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: color-mix(in srgb, var(--color-on-accent) 20%, transparent); font-weight: var(--weight-bold); }
+.fl-auth-split__who small { display: block; opacity: 0.8; font-size: var(--text-xs); }
+.fl-auth-split__tag { position: relative; align-self: flex-start; margin-bottom: auto; padding: var(--space-1) var(--space-3); border-radius: 999px; background: color-mix(in srgb, var(--color-on-accent) 16%, transparent); font: var(--weight-semibold) var(--text-xs) / 1.4 var(--font-sans); }
+
+/* ── Forgot password: cooldown ── */
+.fl-auth-mailbox { margin: 0; padding: var(--space-2) var(--space-4); border-radius: 999px; background: var(--color-surface-sunken); font-weight: var(--weight-semibold); overflow-wrap: anywhere; }
+.fl-auth-steps { display: grid; gap: var(--space-2); margin: 0; padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-sunken); text-align: left; font-size: var(--text-sm); color: var(--color-text-muted); line-height: var(--leading-normal); width: 100%; }
+.fl-auth-steps li { margin-left: var(--space-4); }
+.fl-auth-timer { font-variant-numeric: tabular-nums; }
+
+/* ── One-time code ── */
+.fl-auth-otp { border: 0; margin: 0; padding: 0; display: grid; gap: var(--space-3); min-width: 0; }
+.fl-auth-otp legend { padding: 0; margin-bottom: var(--space-3); font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+.fl-auth-otp__boxes { display: flex; gap: var(--space-2); align-items: center; }
+.fl-auth-otp__dash { flex: none; width: 0.6rem; height: 2px; background: var(--color-border-strong); border-radius: 999px; }
+.fl-auth-otp__box {
+  flex: 1 1 0; width: 100%; min-width: 0; aspect-ratio: 5 / 6; max-height: 4rem; padding: 0; text-align: center;
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text);
+  font: var(--weight-bold) var(--text-xl) / 1 var(--font-mono); caret-color: var(--color-accent);
+  transition: border-color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing);
+}
+.fl-auth-otp__box:focus-visible { outline: none; border-color: var(--color-accent); box-shadow: var(--focus-ring); }
+.fl-auth-otp__box:not(:placeholder-shown) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface)); }
+.fl-auth-otp[data-state="error"] .fl-auth-otp__box { border-color: var(--color-danger); background: color-mix(in srgb, var(--color-danger-surface) 60%, var(--color-surface)); animation: fl-auth-shake 0.32s var(--easing); }
+.fl-auth-otp[data-state="ok"] .fl-auth-otp__box { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface)); }
+@keyframes fl-auth-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+.fl-auth-hint { margin: 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); border: 1px dashed var(--color-border); font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-auth-hint code { font-family: var(--font-mono); color: var(--color-text); }
+
+/* ── Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .fl-auth-spin { animation-duration: 2.4s; }
+  .fl-auth-otp[data-state="error"] .fl-auth-otp__box { animation: none; }
+  .fl-auth-otp__box, .fl-auth-meter__bars span { transition: none; }
+}
+
+/* ── Phones ── */
+@media (max-width: 860px) {
+  .fl-auth-split { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .fl-auth-split__picture { order: -1; min-height: 13rem; padding: var(--space-7) var(--space-6); }
+  .fl-auth-split__picture::before { inset: var(--space-4); }
+  .fl-auth-split__form { padding: var(--space-7) var(--space-5); }
+}
+@media (max-width: 480px) {
+  .fl-auth-card { padding: var(--space-6) var(--space-5); }
+  .fl-auth-alt, .fl-auth-rules { grid-template-columns: minmax(0, 1fr); }
+  .fl-auth-otp__boxes { gap: var(--space-1); }
+  .fl-auth-otp__box { font-size: var(--text-lg); }
+  .fl-auth-split__quote { font-size: var(--text-lg); }
+}

@@ -1,7 +1,7 @@
 /**
- * The report charts, drawn as SVG strings before the browser opens (ported from FlowReport's charts.ts).
+ * The report charts, drawn as SVG strings before the browser opens (ported from Repo Report's charts.ts).
  *
- * FlowReport renders these with ECharts' server-side SVG renderer; FlowCode has no charting dependency, so they are
+ * Repo Report renders these with ECharts' server-side SVG renderer; FlowCode has no charting dependency, so they are
  * drawn by hand to the same specification instead. The reasons for SVG hold either way: a chart still drawing when
  * page.pdf() runs is a blank rectangle, a canvas chart prints as a soft bitmap, and an SVG arrives as vector art with
  * selectable text. Every chart repeats a number the Markdown states in words; none introduces one.

@@ -166,7 +166,7 @@ function metaFor(): PdfMeta {
 
 describe('the markdown', () => {
   it('carries a cover, a summary and an appendix', () => {
-    expect(markdown).toMatch(/^# Demo App — FlowReport/m)
+    expect(markdown).toMatch(/^# Demo App — Repo Report/m)
     expect(markdown).toMatch(/## Executive Summary/)
     expect(markdown).toMatch(/## Appendix/)
     expect(markdown).toMatch(/### Methodology/)
@@ -375,7 +375,7 @@ describe('the pdf', () => {
 
   // ── FlowCode's palette, not FlowAgent's ───────────────────────────────────
   //
-  // In FlowAgent this pinned the magenta and teal duotone. FlowReport now prints
+  // In FlowAgent this pinned the magenta and teal duotone. Repo Report now prints
   // in FlowCode's style guide (`quality/reportBrand.ts`), so what is pinned is
   // that: FlowCode's tokens are present, none of FlowAgent's survived the port,
   // and no box carries a thick accent bar down its left edge.

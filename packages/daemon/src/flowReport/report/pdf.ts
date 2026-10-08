@@ -18,11 +18,11 @@
 // very document for its printed reports (`quality/reportPdf/document.ts`) —
 // FlowCode's brand, its embedded faces, hand-drawn SVG charts, no accent bars
 // down the left of boxes, and the code-span placeholder fix. So this builds
-// FlowCode's report meta from FlowReport's and hands it to that shell, adding
-// the two things only FlowReport has: the description of the product on the
+// FlowCode's report meta from Repo Report's and hands it to that shell, adding
+// the two things only Repo Report has: the description of the product on the
 // glance page, and the map of the codebase on a page of its own.
 //
-// The rules the shell keeps are FlowReport's rules: nothing set bolder than
+// The rules the shell keeps are Repo Report's rules: nothing set bolder than
 // semibold, one dark page and the rest print, two columns with charts and
 // prompts spanning both, and a document that flows rather than being paginated
 // sheet by sheet.
@@ -88,7 +88,7 @@ export interface RenderedPdf {
   missingFonts: string[]
 }
 
-/** FlowReport says `info`; FlowCode's shell says `informational`. Same count. */
+/** Repo Report says `info`; FlowCode's shell says `informational`. Same count. */
 const toShellCounts = (c: Record<Severity, number>): Record<FcSeverity, number> => ({
   critical: c.critical ?? 0, high: c.high ?? 0, medium: c.medium ?? 0, low: c.low ?? 0,
   informational: c.info ?? 0,
@@ -101,7 +101,7 @@ const STANDFIRST = 'A reading of one repository: what was found, where it was fo
   + 'installed, and the code was not run.'
 
 /**
- * FlowReport's meta, as FlowCode's shell reads it.
+ * Repo Report's meta, as FlowCode's shell reads it.
  *
  * Every figure is passed through, not recomputed. The section heading is the
  * label the Markdown writes (`## Security QA`), which is how the shell finds
@@ -138,10 +138,10 @@ export function shellMeta(markdown: string, meta: PdfMeta): ReportMeta {
     kind: 'Repository report',
     title: meta.projectName,
     standfirst: STANDFIRST,
-    credit: 'FlowCode AI · FlowReport',
+    credit: 'FlowCode AI · Repo Report',
     scoreLabel: 'Overall health',
     overallScore: meta.overallScoreValue,
-    // The shell prints the number; FlowReport's own score text says what a
+    // The shell prints the number; Repo Report's own score text says what a
     // missing one means, so it is what goes under the gauge.
     verdict: meta.overallScoreValue === null ? meta.overallScore : scoreWord(meta.overallScoreValue),
     counts: toShellCounts(meta.severityCounts),

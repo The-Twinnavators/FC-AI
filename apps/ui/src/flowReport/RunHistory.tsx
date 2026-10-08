@@ -1,5 +1,5 @@
 /**
- * The runs of one FlowReport project, three ways: a line (RunTrend), a list (RunHistoryList) and a row of buttons
+ * The runs of one Repo Report project, three ways: a line (RunTrend), a list (RunHistoryList) and a row of buttons
  * (RunPicker). Together because they all answer "which run am I looking at, and how did the score get here", and the
  * line and the list sit side by side and must never disagree about which runs exist.
  */

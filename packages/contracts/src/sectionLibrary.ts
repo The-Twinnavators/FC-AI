@@ -3,7 +3,7 @@
  * design-token CSS (templates/library/library.css). Each takes on a project's colours, fonts, spacing and corners
  * from its tokens. The Components page browses them; builds copy the ones a screen needs.
  */
-export type SectionCategory = "navigation" | "hero" | "features" | "stats" | "pricing" | "testimonials" | "faq" | "cta" | "team" | "contact" | "newsletter" | "blog" | "footer" | "forms" | "tables" | "cards" | "dialogs" | "alerts" | "backgrounds" | "data" | "sidenav";
+export type SectionCategory = "navigation" | "hero" | "features" | "stats" | "pricing" | "testimonials" | "faq" | "cta" | "team" | "contact" | "newsletter" | "blog" | "footer" | "forms" | "tables" | "cards" | "dialogs" | "alerts" | "backgrounds" | "data" | "sidenav" | "auth" | "wayfinding" | "homepages" | "landings" | "sites";
 
 export interface LibrarySection {
   /** File stem in templates/library/sections. */
@@ -15,10 +15,14 @@ export interface LibrarySection {
   tags: string[];
 }
 
-/** "page": marketing and website sections. "app": the pieces an app's own screens are made of. */
-export type SectionGroup = "page" | "app";
+/** "template": whole pages, built from the library's own pieces. "page": marketing and website sections. "app": the
+ * pieces an app's own screens are made of. */
+export type SectionGroup = "template" | "page" | "app";
 
 export const SECTION_CATEGORIES: Array<{ id: SectionCategory; label: string; group: SectionGroup }> = [
+  { id: "homepages", label: "Homepages", group: "template" },
+  { id: "landings", label: "Landing pages", group: "template" },
+  { id: "sites", label: "Industry sites", group: "template" },
   { id: "navigation", label: "Navigation", group: "page" },
   { id: "hero", label: "Heroes", group: "page" },
   { id: "features", label: "Features", group: "page" },
@@ -34,6 +38,8 @@ export const SECTION_CATEGORIES: Array<{ id: SectionCategory; label: string; gro
   { id: "footer", label: "Footers", group: "page" },
   { id: "backgrounds", label: "Page backgrounds", group: "page" },
   { id: "sidenav", label: "Side navigation", group: "app" },
+  { id: "auth", label: "Sign-in and sign-up", group: "app" },
+  { id: "wayfinding", label: "Tabs, breadcrumbs and paging", group: "app" },
   { id: "forms", label: "Forms", group: "app" },
   { id: "tables", label: "Tables and lists", group: "app" },
   { id: "cards", label: "Cards", group: "app" },
@@ -113,6 +119,14 @@ export const LIBRARY_SECTIONS: LibrarySection[] = [
   { id: "sidebar-app", name: "App sidebar", category: "sidenav", description: "Classic app frame: a sidebar with the product mark, page search, grouped pages with icons and a count badge, a New booking button and the signed-in person's menu. It collapses to icons with tooltips, remembers that choice, and becomes a top bar with a drawer on phones.", tags: ["sidebar","navigation","app shell","dashboard","collapsible","search","account menu","drawer","responsive"] },
   { id: "sidebar-rail", name: "Icon rail and panel", category: "sidenav", description: "A slim rail of section icons with tooltips next to a wider panel that lists the chosen section's pages, like an email or chat app. Choosing a page opens it in the main area, and on phones both become a drawer.", tags: ["sidebar","navigation","icon rail","secondary panel","inbox","app shell","tooltips","drawer","responsive"] },
   { id: "sidebar-nested", name: "Nested sidebar with pins", category: "sidenav", description: "A two-level sidebar tree (Projects, then each project, then its pages) with expandable groups and turning chevrons, plus a Pinned list at the top where pages can be pinned and unpinned. Open groups and pins are both remembered, and on phones it becomes a drawer.", tags: ["sidebar","navigation","tree","nested","expandable","pinned","favorites","app shell","drawer","responsive"] },
+  { id: "auth-sign-in", name: "Sign in", category: "auth", description: "Email and password sign-in with show/hide password, remember me, a forgot-password link, inline errors, a signing-in state and plain-text continue-with options.", tags: ["auth","sign in","login","form","password"] },
+  { id: "auth-sign-up", name: "Sign up", category: "auth", description: "Create-account form with name, email, a password strength meter and live rules checklist, a terms checkbox and a check-your-email success state.", tags: ["auth","sign up","register","form","password strength"] },
+  { id: "auth-split", name: "Sign in, split", category: "auth", description: "Sign-in form beside an accent-gradient picture panel with a member quote that becomes a banner above the form on phones.", tags: ["auth","sign in","login","split","quote"] },
+  { id: "auth-forgot-password", name: "Forgot password", category: "auth", description: "Ask for an email to send a reset link, then a check-your-email screen with next steps and a resend button behind a cooldown timer.", tags: ["auth","password reset","forgot password","email","cooldown"] },
+  { id: "auth-verify-code", name: "Verify code", category: "auth", description: "Six-digit one-time code boxes that auto-advance, fill from a paste and step back on Backspace, with wrong-code errors, an attempt limit and resend.", tags: ["auth","otp","verification","two-step","code input"] },
+  { id: "page-server-error", name: "Server error (500)", category: "alerts", description: "A 500 page with a server illustration, a retry button with a progress state, a copyable reference code and a support link.", tags: ["error","500","server error","retry","page"] },
+  { id: "page-maintenance", name: "Planned maintenance", category: "alerts", description: "Planned maintenance page with start time, expected return time and countdown, a filterable service status list and a notify-me form.", tags: ["maintenance","downtime","status","page","notify"] },
+  { id: "page-offline", name: "Offline", category: "alerts", description: "You're-offline page that lists what still works and what waits, shows changes saved on the device, and retries or detects when the connection returns.", tags: ["offline","connection","retry","error","page"] },
 ];
 
 /** The sections whose tags appear in some text (a request or a screen's spec), best matches first. */

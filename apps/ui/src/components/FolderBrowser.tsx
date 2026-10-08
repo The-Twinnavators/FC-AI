@@ -1,10 +1,10 @@
 /**
- * Choosing a folder by browsing it (after FlowAgent's FlowReport). A typed path is easy to get wrong, and a report about
+ * Choosing a folder by browsing it (after FlowAgent's Repo Report). A typed path is easy to get wrong, and a report about
  * the wrong folder reads exactly like one about the right one; browsing means the path is never typed, and the daemon
  * checks it before anything is read. The daemon lists folder names only (GET /system/folders): it never opens a file.
  * Folders with a manifest or .git are marked as likely repositories, as a hint, not a rule.
  *
- * `routes` points it at another listing with the same shapes (FlowReport uses its own /flow-reports/browse and /roots,
+ * `routes` points it at another listing with the same shapes (Repo Report uses its own /flow-reports/browse and /roots,
  * so the folders offered are the ones its daemon routes accept).
  *
  * Rendered into the body, so a transformed ancestor (page transitions) can't pull the fixed overlay off-centre.

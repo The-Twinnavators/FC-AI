@@ -44,7 +44,7 @@ export const LANGUAGE_SUPPORT: LanguageSupport[] = [
   {
     language: "Backends: Node servers, SQL, PostgreSQL, Python",
     writes: "No: a prototype simulates anything that needs a server. Launch readiness lists what the real app needs, each item with a prompt for a coding agent.",
-    checks: "Not in prototypes. Once the real app exists, FlowReport reads its repo (security, data, engineering quality and more).",
+    checks: "Not in prototypes. Once the real app exists, Repo Report reads its repo (security, data, engineering quality and more).",
     level: "weak",
   },
 ];

@@ -26,7 +26,7 @@ export const THEMED_PAGES: Array<{ section: string; label: string }> = [
   { section: "quality", label: "My Projects" },
   { section: "approvals", label: "Approvals" },
   { section: "discover", label: "Create PRD" },
-  { section: "flowreport", label: "FlowReport" },
+  { section: "flowreport", label: "Repo Report" },
   { section: "library", label: "Prompts & Skills" },
   { section: "knowledge", label: "Knowledge Hub" },
   { section: "topics", label: "Research Topics" },

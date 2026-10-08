@@ -1,7 +1,7 @@
 // packages/daemon/src/flowReport/scanner/pathPolicy.ts
 //
 // "Is this path inside one of these roots?" — FlowAgent's sandbox path policy,
-// brought across for FlowReport's boundary, which is its only user here.
+// brought across for Repo Report's boundary, which is its only user here.
 //
 // It gets right the two things a hand-rolled check gets wrong: it resolves
 // symlinks with realpath before comparing, and it appends a separator before

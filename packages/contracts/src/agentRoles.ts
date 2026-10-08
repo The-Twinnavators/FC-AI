@@ -2,7 +2,7 @@
  * Which agent roles actually run, and who does the work of the ones that don't.
  *
  * AgentRole lists twelve roles, but only some of them are ever given a model call: Planner, Coder, Debugger, Visual
- * critic, Researcher and Documenter in builds, and Repository analyst for FlowReport. Design steps are done by the
+ * critic, Researcher and Documenter in builds, and Repository analyst for Repo Report. Design steps are done by the
  * Coder; security, accessibility and compliance are automatic scans whose findings the Debugger fixes; nothing runs
  * as "reviewer" or "designer". Skills and tools name those roles anyway, so guidance written for them would reach no
  * one. `roleStandsIn` maps each one to the agent that does that work, for picking skills and for showing who uses

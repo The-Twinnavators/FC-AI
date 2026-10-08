@@ -1,6 +1,6 @@
 // packages/daemon/src/flowReport/comprehend/model.ts
 //
-// The model FlowReport reads a repository through, for the daemon.
+// The model Repo Report reads a repository through, for the daemon.
 //
 // ── FlowCode's router, not a client of its own ───────────────────────────────
 //
@@ -9,19 +9,19 @@
 // ModelRouter, which holds the provider registry and the role → model
 // assignments, logs every request, and enforces hosted-model consent. Going
 // round it would mean a second set of model settings that the Models page does
-// not show and the Performance view does not count. So FlowReport asks the
+// not show and the Performance view does not count. So Repo Report asks the
 // router for the model assigned to the `repository_analyst` role and talks to
 // it through `router.chat`, exactly as the critique and style capture do.
 //
 // ── Local means local, unless research is on ─────────────────────────────────
 //
-// FlowReport's promise is that nothing a report reads leaves the machine
+// Repo Report's promise is that nothing a report reads leaves the machine
 // unless external research was turned on for that project. FlowAgent kept it
 // by hard-coding 127.0.0.1. Here the assignment may point at a hosted provider,
 // so the promise is kept by refusing one: a hosted model is used only when the
 // run's `networkResearch` setting is on AND the provider is enabled (FlowCode's
 // own consent). Otherwise the run is told no model is available, says so in
-// the report, and carries on measuring — which is what FlowReport always did
+// the report, and carries on measuring — which is what Repo Report always did
 // when the local model was asleep.
 //
 // ── No quiet substitutes ─────────────────────────────────────────────────────
@@ -48,7 +48,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import type { AgentRole, ModelAssignment } from '@flowcode/contracts'
 import type { ModelRouter } from '../../models/router.js'
 
-/** The FlowCode role FlowReport's model work runs under. Its assignment is
+/** The FlowCode role Repo Report's model work runs under. Its assignment is
  *  whatever the Models page says, global or overridden. */
 export const FLOW_REPORT_ROLE: AgentRole = 'repository_analyst'
 
@@ -99,7 +99,7 @@ export function withModel<T>(gateway: ModelGateway | null, fn: () => Promise<T>)
 export async function modelStatus(): Promise<ModelStatus> {
   const g = scope.getStore()
   if (!g) {
-    return { available: false, models: [], reason: 'No model is set up for FlowReport, so the product was not read — only measured.' }
+    return { available: false, models: [], reason: 'No model is set up for Repo Report, so the product was not read — only measured.' }
   }
   try {
     return await g.status()
@@ -153,7 +153,7 @@ function stripFence(s: string): string {
  * The gateway for one run, through FlowCode's router.
  *
  * `allowHosted` is the run's `networkResearch` setting and nothing else: it is
- * the one switch FlowReport's user turned on to let anything leave the machine.
+ * the one switch Repo Report's user turned on to let anything leave the machine.
  */
 export function routerModel(router: ModelRouter, o: { allowHosted: boolean; role?: AgentRole }): ModelGateway {
   const role = o.role ?? FLOW_REPORT_ROLE

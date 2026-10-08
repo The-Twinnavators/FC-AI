@@ -1,5 +1,5 @@
 /**
- * FlowReport's list (#/flowreport): every repository you analyse, as a card with its last reading.
+ * Repo Report's list (#/flowreport): every repository you analyse, as a card with its last reading.
  *  - A project is a folder you keep coming back to: the second run is comparable to the first (same settings, same
  *    analysis version) and the history is somewhere you can find it.
  *  - The card shows the last run, not the project: whether the last reading was clean, when, and whether it's still
@@ -84,12 +84,11 @@ export function FlowReportsPage() {
 
   return (
     <div className="page fr-page">
-      <div className="fr-head">
-        <div className="fr-head__text">
-          <h1 className="fr-title">
-            <FileSearch size={20} aria-hidden="true" /> FlowReport
-          </h1>
-          <p className="fr-intro">Point FlowCode at a folder on this computer and it reads the code: fifteen sections, from error handling to security. Nothing is run, no dependency is installed, and no request leaves this computer.</p>
+      <header className="page__head">
+        <div>
+          <span className="label">Repo tools</span>
+          <h1 className="page__title">Repo Report</h1>
+          <p className="lrc__meta">Point FlowCode at a folder on this computer and it reads the code: fifteen sections, from error handling to security. Nothing is run, no dependency is installed, and no request leaves this computer.</p>
         </div>
         <div className="fr-head__actions">
           <button type="button" className="btn btn--sm" onClick={() => void load()}>
@@ -99,7 +98,7 @@ export function FlowReportsPage() {
             <Plus size={13} aria-hidden="true" /> New report
           </button>
         </div>
-      </div>
+      </header>
 
       {error ? (
         <p className="fr-alert fr-alert--bad" role="alert">

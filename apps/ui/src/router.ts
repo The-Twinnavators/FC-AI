@@ -69,7 +69,7 @@ const PAGE_NAMES: Record<string, string> = {
   primitives: "Branding",
   guide: "About FlowCode",
   discover: "Create PRD",
-  flowreport: "FlowReport",
+  flowreport: "Repo Report",
 };
 
 /** Human name for a route, for "Back to …" labels. */

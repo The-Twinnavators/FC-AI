@@ -115,7 +115,7 @@ export const MIGRATIONS: Migration[] = [
   },
   {
     id: 4,
-    // FlowReport (ported from FlowAgent): report projects, runs, sections, artifacts, the run log, and the
+    // Repo Report (ported from FlowAgent): report projects, runs, sections, artifacts, the run log, and the
     // resolutions and responses people record against findings. See flowReport/db.ts.
     name: "flow_report",
     sql: FLOW_REPORT_SCHEMA,

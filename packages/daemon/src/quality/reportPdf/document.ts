@@ -1,5 +1,5 @@
 /**
- * The repo reports' PDF, rendered from the report's Markdown (a port of FlowMap's FlowReport pdf.ts).
+ * The repo reports' PDF, rendered from the report's Markdown (a port of FlowMap's Repo Report pdf.ts).
  *
  * Why it converts a string instead of reading the report: walking the report object would be a second
  * implementation of it, and the two would disagree the first time one changed. Converting the exact Markdown the
@@ -97,10 +97,10 @@ export interface ReportMeta {
   /** In report order. Drives the contents page, the charts and the dividers. */
   sections: ReportSectionMeta[];
   /**
-   * FlowReport's additions (both optional, so the repo tools' reports are unchanged without them):
-   * - `glanceIntro`: HTML set on the glance page above the gauge. FlowReport puts the description of the product
+   * Repo Report's additions (both optional, so the repo tools' reports are unchanged without them):
+   * - `glanceIntro`: HTML set on the glance page above the gauge. Repo Report puts the description of the product
    *   there, because a reader who does not know the project cannot judge a score about it.
-   * - `extraPages`: whole pages after the glance page (FlowReport's map of the codebase).
+   * - `extraPages`: whole pages after the glance page (Repo Report's map of the codebase).
    * - `omitFrontMatter`: `## ` headings that are not printed as front matter because a hook above already placed them.
    */
   glanceIntro?: string;
@@ -425,7 +425,7 @@ ${appendix ? `<div style="break-before:page"><h2>Appendix</h2><div class="body">
 const cssString = (s: string) => `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\s+/g, " ")}"`;
 
 /**
- * The running header and footer, as @page margin boxes. FlowReport draws these with page.pdf()'s header and footer
+ * The running header and footer, as @page margin boxes. Repo Report draws these with page.pdf()'s header and footer
  * templates, but Chromium paints those on every page, the full-bleed cover included, and they cannot be turned off
  * for one page. Margin boxes belong to the page box, so the cover's named page (margin 0) simply has none; they also
  * set in the document's own embedded face and keep the page counters.
@@ -445,7 +445,7 @@ const PAGE_VIEWPORT = { width: Math.round(297 * (96 / 25.4)), height: Math.round
 
 /**
  * Prints the report with an already-open browser session. Landscape A4, running header and footer, backgrounds on.
- * The first render in a fresh browser can lay out before the embedded face is parsed (FlowReport measured this), so
+ * The first render in a fresh browser can lay out before the embedded face is parsed (Repo Report measured this), so
  * a throwaway render on its own page warms the browser first, and the real page waits for document.fonts.ready.
  */
 export async function renderReportPdf(session: BrowserSession, markdown: string, meta: ReportMeta): Promise<{ bytes: Buffer; missingFonts: string[] }> {

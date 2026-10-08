@@ -409,7 +409,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     if (!r) throw new HttpError(404, "Run Build analysis first");
     return { markdown: buildAnalysisMarkdown(r), filename: `${r.projectName.replace(/[^\w-]+/g, "-")}-build-analysis-${r.generatedAt.slice(0, 10)}.md` };
   });
-  // Choosing a folder by browsing it (FlowReport, New build): folder names only, never file contents.
+  // Choosing a folder by browsing it (Repo Report, New build): folder names only, never file contents.
   add("GET /system/folders", ({ query }) => {
     try {
       return browseFolder(query.get("path") ?? undefined);
@@ -418,7 +418,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     }
   });
   add("GET /system/folders/roots", () => ({ roots: folderRoots() }));
-  // FlowReport: projects, runs, findings, responses, downloads and live progress, under /flow-reports/*.
+  // Repo Report: projects, runs, findings, responses, downloads and live progress, under /flow-reports/*.
   registerFlowReportRoutes(add, { store: app.flowReports, manager: app.flowReportJobs, processes: app.processes });
   // Theme overrides edited on Primitives → Attributes (CSS custom properties; colours per theme).
   const ThemeBucket = z.record(z.string().regex(/^--[\w-]{1,60}$/), z.string().max(120).regex(/^[^;{}<>]*$/));
@@ -1471,7 +1471,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       res.setHeader("access-control-allow-origin", origin);
       res.setHeader("access-control-allow-headers", "authorization, content-type, last-event-id");
       res.setHeader("access-control-allow-methods", "GET, POST, PATCH, DELETE, OPTIONS");
-      // So a download read with fetch can name its file and check its hash (FlowReport's downloads send both).
+      // So a download read with fetch can name its file and check its hash (Repo Report's downloads send both).
       res.setHeader("access-control-expose-headers", "content-disposition, x-content-sha256");
       res.setHeader("vary", "origin");
     }

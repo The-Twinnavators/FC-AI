@@ -1,5 +1,5 @@
 /**
- * Choosing a folder by browsing, not typing (after FlowAgent's FlowReport): a typed path is easy to get wrong, and a
+ * Choosing a folder by browsing, not typing (after FlowAgent's Repo Report): a typed path is easy to get wrong, and a
  * report about the wrong folder reads exactly like one about the right one. The browser lists folder names and
  * nothing else: it never opens a file, reports a size or descends on its own. Whether a folder looks like a repository
  * (it has a manifest or .git) is a hint for the picker, not a rule.

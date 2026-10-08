@@ -1,6 +1,6 @@
 // packages/daemon/src/flowReport/brand.ts
 //
-// FlowReport's style tokens, now FlowCode's.
+// Repo Report's style tokens, now FlowCode's.
 //
 // ── Why this is an adapter rather than a palette ─────────────────────────────
 //
@@ -10,20 +10,20 @@
 // (`quality/reportBrand.ts`), transcribed from FlowCode's tokens.css, with the
 // app's own faces embedded offline. Two style guides in one daemon is two
 // answers to "what colour is a critical finding", and one of them is always the
-// one that did not get updated — so FlowReport reads FlowCode's, and this file
-// only maps the names FlowReport's renderers already use onto it.
+// one that did not get updated — so Repo Report reads FlowCode's, and this file
+// only maps the names Repo Report's renderers already use onto it.
 //
 // ── The one real difference: `info` ─────────────────────────────────────────
 //
-// FlowReport calls its lowest severity `info`; FlowCode's reports call it
+// Repo Report calls its lowest severity `info`; FlowCode's reports call it
 // `informational`. The colour is the same token either way, so the mapping is
 // done once here rather than at every call site.
 //
 // ── What did not come across ─────────────────────────────────────────────────
 //
-// FlowReport's teal structural accent. It mostly drew the thick bar down the
+// Repo Report's teal structural accent. It mostly drew the thick bar down the
 // left of quotes, reasons and prompts, which FlowCode's reports do not use
-// (they set those apart with a fill and a hairline). Where FlowReport put teal
+// (they set those apart with a fill and a hairline). Where Repo Report put teal
 // on type — the contents icons, the repository map's lane labels — FlowCode's
 // one accent on paper is used instead.
 
@@ -48,11 +48,11 @@ export const HEADING_STACK = FC.HEADING_STACK
 export const BODY_STACK = FC.BODY_STACK
 export const MONO_STACK = FC.MONO_STACK
 
-/** FlowReport's structural accent on paper. FlowCode has one accent on type,
+/** Repo Report's structural accent on paper. FlowCode has one accent on type,
  *  so this is it rather than a second hue. */
 export const TEAL_ON_LIGHT = FC.ACCENT_ON_LIGHT
 
-/** Severity colours under FlowReport's names. */
+/** Severity colours under Repo Report's names. */
 export const SEVERITY_COLOUR: Record<Severity, { dark: string; light: string }> = {
   critical: FC.SEVERITY_COLOUR.critical,
   high: FC.SEVERITY_COLOUR.high,

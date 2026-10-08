@@ -105,10 +105,10 @@ const STAGES: Stage[] = [
     summary: "Everything the real app still needs",
     title: "When the design is right, plan the real app",
     lede: "Launch readiness lists everything the real app needs that the prototype simulates or leaves out: backend, data, accounts, security, privacy, accessibility, SEO and deployment, each with a prompt for a coding agent.",
-    youDo: ["Open Launch readiness for your project and download it as Markdown.", "Give each item's prompt to a coding agent to build the real version, keeping the prototype's screens and design.", "Point FlowReport at the real repo to check its health as it grows."],
+    youDo: ["Open Launch readiness for your project and download it as Markdown.", "Give each item's prompt to a coding agent to build the real version, keeping the prototype's screens and design.", "Point Repo Report at the real repo to check its health as it grows."],
     where: [
       { label: "My Projects → Launch readiness", to: "/quality" },
-      { label: "FlowReport", to: "/flowreport" },
+      { label: "Repo Report", to: "/flowreport" },
     ],
     agents: [],
     tip: "Keep the prototype: it's the reference the real app is built to match.",

@@ -59,7 +59,7 @@ export function createApp(opts: AppOptions = {}) {
   const orchestratorDeps: OrchestratorDeps = { store, bus, router, lab, projects, snapshots, ops, runner, processes, approvals, verifier, knowledge, mcp };
   const orchestrator = new Orchestrator(orchestratorDeps);
 
-  // FlowReport (ported from FlowAgent): its tables live in this database (migration 4), its files beside it, and it
+  // Repo Report (ported from FlowAgent): its tables live in this database (migration 4), its files beside it, and it
   // reads products through the router under the repository_analyst role. A hosted model is used only for a run whose
   // "external research" setting is on. Creating the manager closes off runs a previous daemon left mid-flight: they
   // are recorded as failed with the reason, rather than left looking as if they were still going.

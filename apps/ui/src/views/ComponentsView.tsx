@@ -98,9 +98,9 @@ export function ComponentsView() {
             <span className="lib-shelf__label">All sections</span>
             <span className="lib-shelf__count">{LIBRARY_SECTIONS.length}</span>
           </button>
-          {(["page", "app"] as const).map((g) => (
+          {(["template", "page", "app"] as const).filter((g) => SECTION_CATEGORIES.some((c) => c.group === g && counts.get(c.id))).map((g) => (
             <div key={g} className="cl-group">
-              <p className="lib-shelves__heading">{g === "page" ? "Page sections" : "App components"}</p>
+              <p className="lib-shelves__heading">{g === "template" ? "Page templates" : g === "page" ? "Page sections" : "App components"}</p>
               {SECTION_CATEGORIES.filter((c) => c.group === g && counts.get(c.id)).map((c) => (
                 <button key={c.id} type="button" className="lib-shelf" aria-current={cat === c.id} onClick={() => setCat(c.id)}>
                   <span className="lib-shelf__label">{c.label}</span>

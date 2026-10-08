@@ -116,7 +116,7 @@ function liveState(app: App, ask: CopilotAsk): string {
 /** Plain page names for routes, so the Copilot never guesses where the user is. */
 function pageName(route: string): string {
   const part = route.replace(/^\/+/, "").split("/");
-  const names: Record<string, string> = { "": "Dashboard", projects: "a project's workspace (chat, preview, files)", quality: "My Projects", discover: "Create PRD", flowreport: "FlowReport", knowledge: "Knowledge Hub", topics: "Research Topics", search: "Search", network: "Network Graph", library: "Prompts & Skills", agents: "Agents", system: "System Health", models: "System Health · Models & capability lab", settings: "Settings", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project Journal", primitives: "Branding", reports: "My Projects · Run reports" };
+  const names: Record<string, string> = { "": "Dashboard", projects: "a project's workspace (chat, preview, files)", quality: "My Projects", discover: "Create PRD", flowreport: "Repo Report", knowledge: "Knowledge Hub", topics: "Research Topics", search: "Search", network: "Network Graph", library: "Prompts & Skills", agents: "Agents", system: "System Health", models: "System Health · Models & capability lab", settings: "Settings", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project Journal", primitives: "Branding", reports: "My Projects · Run reports" };
   return names[part[0]] ?? route;
 }
 
@@ -137,9 +137,9 @@ WHEN THE USER ASKS ABOUT THEIR BUILD
 - FlowCode builds clickable prototypes: simulated data, no backend, real navigation and in-app search, and the
   best UX and design it can. The PRD describes the real product. Builds check code, tests, package, preview,
   screenshots and Design QA (Styles palette, contrast, touch targets). The Launch readiness checklist is for building
-  the real app later (downloadable as Markdown). FlowReport scans any real repo on this computer.
+  the real app later (downloadable as Markdown). Repo Report scans any real repo on this computer.
 - FlowCode's pages, by their names in the left menu: Dashboard; Work: My Projects, Create PRD (research a problem
-  and write the PRD); Repo tools: FlowReport; Intelligence: Prompts & Skills, Knowledge Hub, Research Topics; Data
+  and write the PRD); Repo tools: Repo Report; Intelligence: Prompts & Skills, Knowledge Hub, Research Topics; Data
   process: Agents (with Agent tools), Network Graph; System: Settings, System Health, About FlowCode, Branding.
   Use these exact names. Starting a new prototype is "Start a prototype" on the Dashboard; a PRD is added there in
   step 1 (drop the .md file or choose files), never through the builder chat or Global search. The only keyboard

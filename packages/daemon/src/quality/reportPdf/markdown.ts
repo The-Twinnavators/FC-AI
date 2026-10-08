@@ -1,5 +1,5 @@
 /**
- * The Markdown subset the repo reports write, converted to HTML for the PDF (ported from FlowMap's FlowReport
+ * The Markdown subset the repo reports write, converted to HTML for the PDF (ported from FlowMap's Repo Report
  * pipeline). The PDF is rendered from the report's own Markdown rather than from the report object, so the PDF cannot
  * claim a different count from the .md: there is no second path through which a number could be computed differently.
  */

@@ -1,5 +1,5 @@
 /**
- * A finished FlowReport run, on screen.
+ * A finished Repo Report run, on screen.
  *  - All fifteen sections, always: one that found nothing, failed or doesn't apply still gets a row saying which, so a
  *    failed analyser never looks like a clean result.
  *  - Severity has the colour; confidence is set in words. Two colour scales and nobody can tell which means urgent.
@@ -332,7 +332,7 @@ function renderLeadIn(text: string): ReactNode {
 /** One labelled part of a finding. Always shown, even when its content is an absence. */
 /**
  * Who produced a part of a finding: the Repository analyst agent (the local model, writing for this finding) or
- * FlowReport's own checks (fixed rules that measure the code; not an agent).
+ * Repo Report's own checks (fixed rules that measure the code; not an agent).
  */
 type By = "analyst" | "checks";
 function ByLine({ by }: { by: By[] }) {
@@ -346,9 +346,9 @@ function ByLine({ by }: { by: By[] }) {
             Repository analyst
           </span>
         ) : (
-          <span key={b} className="fr-by fr-by--checks" title="Measured by FlowReport's checks: fixed rules run on the code, not an AI agent">
+          <span key={b} className="fr-by fr-by--checks" title="Measured by Repo Report's checks: fixed rules run on the code, not an AI agent">
             <ScanSearch size={13} aria-hidden="true" />
-            FlowReport checks
+            Repo Report checks
           </span>
         ),
       )}

@@ -1,6 +1,6 @@
 // packages/daemon/src/flowReport/report/charts.ts
 //
-// FlowReport's charts, drawn as SVG strings before the browser opens.
+// Repo Report's charts, drawn as SVG strings before the browser opens.
 //
 // ── ECharts did not come across ──────────────────────────────────────────────
 //
@@ -8,10 +8,10 @@
 // has no charting dependency and already draws the same charts by hand, to the
 // same specification, for its printed reports (`quality/reportPdf/charts.ts`):
 // the score gauge, the severity bar, the section ranking and the findings by
-// section. FlowReport's document is built on that shell, so those four come
+// section. Repo Report's document is built on that shell, so those four come
 // from there and are not repeated here.
 //
-// What is left is FlowReport's own: the word under a score, and the findings
+// What is left is Repo Report's own: the word under a score, and the findings
 // by area of the codebase, which is the companion to the repository map and
 // has no equivalent in FlowCode's other reports.
 //
@@ -34,7 +34,7 @@ import type { Severity } from '../types.js'
  *  bar drawn here agree about what colour a score is. */
 export const scoreColour = fcScoreColour
 
-/** The word under a score. FlowReport's own words: "Insufficient evidence" is
+/** The word under a score. Repo Report's own words: "Insufficient evidence" is
  *  a legitimate reading and must never become a number. */
 export function scoreWord(score: number | null): string {
   if (score === null) return 'Insufficient evidence'

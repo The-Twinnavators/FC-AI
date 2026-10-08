@@ -1,5 +1,5 @@
 /**
- * One FlowReport repository (#/flowreport/<projectId>): its settings, its runs, live progress, and the report from
+ * One Repo Report repository (#/flowreport/<projectId>): its settings, its runs, live progress, and the report from
  * whichever run is selected, with exports, per-domain reports, imported responses and the run's diagnostic log.
  *  - Progress is followed over the event stream and also polled every 4 s: a stream that dies silently (the daemon
  *    restarting) would otherwise leave a bar frozen at 40% with no way to tell whether the run is still going.

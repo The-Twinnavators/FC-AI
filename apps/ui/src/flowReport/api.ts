@@ -1,5 +1,5 @@
 /**
- * FlowReport's client (after FlowAgent's Flow Reports): the daemon routes under /flow-reports, their JSON shapes, and
+ * Repo Report's client (after FlowAgent's Flow Reports): the daemon routes under /flow-reports, their JSON shapes, and
  * the shared vocabulary (labels, severity order, score bands). Every route and shape here matches FlowAgent's, so the
  * daemon port can be checked against this file line by line.
  *
@@ -7,7 +7,7 @@
  * list and every export carry the display name and repository-relative paths, so a screenshot or a report never gives
  * away the folder layout.
  *
- * FlowCode's own `api()` speaks GET and POST; FlowReport also needs PATCH, DELETE and file downloads, so requests go
+ * FlowCode's own `api()` speaks GET and POST; Repo Report also needs PATCH, DELETE and file downloads, so requests go
  * through `call()` below with the same base URL and bearer token (`conn`).
  */
 import { ApiError, conn } from "../api";
@@ -199,7 +199,7 @@ async function call(path: string, init: { method?: "GET" | "POST" | "PATCH" | "D
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
     });
   } catch {
-    throw new ApiError(0, "The FlowCode daemon isn't reachable. FlowReport runs inside it, so nothing here works until it's running.");
+    throw new ApiError(0, "The FlowCode daemon isn't reachable. Repo Report runs inside it, so nothing here works until it's running.");
   }
   if (!res.ok) {
     let message = `The daemon returned ${res.status}.`;

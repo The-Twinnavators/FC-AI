@@ -1,6 +1,6 @@
 // packages/daemon/src/flowReport/routes.ts
 //
-// The HTTP surface for FlowReport.
+// The HTTP surface for Repo Report.
 //
 // ── Same paths, same shapes, FlowCode's server ───────────────────────────────
 //
@@ -73,7 +73,7 @@ const TERMINAL_RUN_STATUSES: ReadonlySet<string> = new Set([
 /**
  * Answer with a status other than 200.
  *
- * FlowCode's router sends whatever a handler returns as a 200. FlowReport's
+ * FlowCode's router sends whatever a handler returns as a 200. Repo Report's
  * contract has 201s, 202s, 404s and 409s, so those are written here directly;
  * the router sees the headers already sent and leaves the response alone.
  */

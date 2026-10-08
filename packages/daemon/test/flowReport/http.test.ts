@@ -1,4 +1,4 @@
-// FlowReport over FlowCode's HTTP server: the contract the UI's api.ts was written against (paths, status codes,
+// Repo Report over FlowCode's HTTP server: the contract the UI's api.ts was written against (paths, status codes,
 // JSON shapes, PATCH/DELETE, CORS, the SSE progress stream), and the model rule that nothing leaves the machine
 // unless the run's external research is on.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -40,7 +40,7 @@ afterAll(async () => {
   await server?.close()
 })
 
-describe('the FlowReport routes', () => {
+describe('the Repo Report routes', () => {
   it('lists folders and roots', async () => {
     const b = await call('GET', `/flow-reports/browse?path=${encodeURIComponent(repo)}`)
     expect(b.status).toBe(200)
@@ -96,7 +96,7 @@ describe('the FlowReport routes', () => {
     const md = await call('GET', `/flow-reports/runs/${runId}/download/markdown`)
     expect(md.status).toBe(200)
     expect(md.headers.get('content-disposition')).toMatch(/demo-flowreport\.md/)
-    expect(await md.res.text()).toMatch(/^# Demo — FlowReport/m)
+    expect(await md.res.text()).toMatch(/^# Demo — Repo Report/m)
     const section = run.json.run.artifacts.find((a: any) => a.format.startsWith('markdown:')).format
     expect((await call('GET', `/flow-reports/runs/${runId}/download/${encodeURIComponent(section)}`)).status).toBe(200)
     expect((await call('GET', `/flow-reports/runs/${runId}/download/nonsense`)).status).toBe(404)

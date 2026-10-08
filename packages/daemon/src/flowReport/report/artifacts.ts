@@ -57,7 +57,7 @@ function insideArtifactRoot(runId: string, filename: string): string {
   const target = resolve(join(ARTIFACT_ROOT, runId, filename))
   const root = resolve(ARTIFACT_ROOT) + sep
   if (!target.startsWith(root)) {
-    throw new Error('Refusing to write an artifact outside the FlowReport directory.')
+    throw new Error('Refusing to write an artifact outside the Repo Report directory.')
   }
   return target
 }

@@ -1,6 +1,6 @@
 // packages/daemon/src/flowReport/db.ts
 //
-// FlowReport's schema, as one of FlowCode's migrations.
+// Repo Report's schema, as one of FlowCode's migrations.
 //
 // ── In FlowCode's database, not a file of its own ────────────────────────────
 //
@@ -8,15 +8,15 @@
 // `flowtask.db`) and ran its own idempotent ALTERs on every boot. FlowCode has
 // one database (`flowcode.sqlite`) with ordered, append-only migrations that
 // run once inside a transaction and are recorded in `schema_migrations`
-// (ADR-0004). FlowReport joins that: its tables are created by migration 4 in
+// (ADR-0004). Repo Report joins that: its tables are created by migration 4 in
 // `db/migrations.ts`, which reads the SQL below. One file means one backup,
-// one retention story, and the Settings page's migration list says FlowReport
+// one retention story, and the Settings page's migration list says Repo Report
 // is installed.
 //
 // This SQL is a shipped migration. Never edit it; a later change to the schema
 // is a new migration in `db/migrations.ts`.
 //
-// ── The table shape is FlowReport's latest ───────────────────────────────────
+// ── The table shape is Repo Report's latest ───────────────────────────────────
 //
 // FlowAgent's file reached this shape through an ALTER (the comprehension
 // column) and three one-off data migrations: documentation stopped being read
