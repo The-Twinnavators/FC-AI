@@ -35,6 +35,7 @@ const ProjectSettingsView = lazy(() => import("./views/SettingsView").then((m) =
 const SystemView = lazy(() => import("./views/SystemView").then((m) => ({ default: m.SystemView })));
 const AgentsView = lazy(() => import("./views/AgentsView").then((m) => ({ default: m.AgentsView })));
 const NetworkView = lazy(() => import("./views/NetworkView").then((m) => ({ default: m.NetworkView })));
+const PipelineView = lazy(() => import("./views/PipelineView").then((m) => ({ default: m.PipelineView })));
 const SearchView = lazy(() => import("./views/SearchView").then((m) => ({ default: m.SearchView })));
 const TopicsView = lazy(() => import("./views/TopicsView").then((m) => ({ default: m.TopicsView })));
 const QualityOverview = lazy(() => import("./views/QualityOverview").then((m) => ({ default: m.QualityOverview })));
@@ -57,10 +58,10 @@ const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; icon: str
     label: "Work",
     items: [
       { path: "/quality", icon: "checklist", label: "My Projects" },
-      // Everything waiting on you, and the decision log.
-      { path: "/approvals", icon: "flag", label: "Approvals" },
       // Create PRD: research a problem and write the PRD a build starts from.
       { path: "/discover", icon: "compass", label: "Create PRD" },
+      // Everything waiting on you, and the decision log.
+      { path: "/approvals", icon: "flag", label: "Approvals" },
     ],
   },
   {
@@ -82,6 +83,7 @@ const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; icon: str
     items: [
       { path: "/agents", icon: "agents", label: "Agents" },
       { path: "/network", icon: "network", label: "Network Graph" },
+      { path: "/pipeline", icon: "diagnostics", label: "Skill pipeline" },
     ],
   },
   {
@@ -168,6 +170,8 @@ export function App() {
   const health = useResource<{ ok: boolean; providers: { ollama: { ok: boolean; detail: string } } }>("/health", [], healthMs);
   useEffect(() => setHealthMs(health.data && !health.data.providers.ollama.ok ? 5_000 : 30_000), [health.data]);
   const approvals = useResource<Approval[]>("/approvals", [], 0);
+  // Skills FlowCode drafted from repeated failures, waiting for you to turn them on or dismiss them.
+  const proposals = useResource<{ items: Array<{ status: string }> }>("/skill-proposals", [], 30_000);
   // The page you're on and the projects' names, for notifications about builds you aren't looking at.
   const nav = useRef<{ projectId?: string; names: Map<string, string> }>({ names: new Map() });
   useEventStream("/events?after=999999999", (e) => {
@@ -252,7 +256,7 @@ export function App() {
   }, [projectId]);
 
   useEffect(() => {
-    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Research Topics", quality: "My Projects", reports: "Reports", models: "Models", settings: "System Settings", system: "System Health", agents: "Agents", network: "Network Graph", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "FlowReport" };
+    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Research Topics", quality: "My Projects", reports: "Reports", models: "Models", settings: "System Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "FlowReport" };
     document.title = `${project ? project.name : titles[section] ?? "FlowCode"} · FlowCode`;
   }, [section, project]);
 
@@ -269,7 +273,9 @@ export function App() {
   // Requests that hold up a build; FlowCode's optional suggestions are counted separately.
   const blockingApprovals = (approvals.data ?? []).filter((a) => a.kind !== "enhancement_idea");
   const pending = blockingApprovals.length;
-  const ideasPending = (approvals.data?.length ?? 0) - pending;
+  // New ideas only: one saved for later already has your answer (it lives on its project's Suggestions tab).
+  const ideasPending = (approvals.data ?? []).filter((a) => a.kind === "enhancement_idea" && !a.savedForLater).length;
+  const proposed = (proposals.data?.items ?? []).filter((i) => i.status === "proposed").length;
   // Reminder: a request that has waited over 5 minutes turns the counter amber-red.
   const oldestWaitMin = blockingApprovals.length ? Math.round((Date.now() - Math.min(...blockingApprovals.map((a) => Date.parse(a.createdAt)))) / 60000) : 0;
 
@@ -296,7 +302,12 @@ export function App() {
                 <button key={n.path} data-guide={`nav.${n.path === "/" ? "projects" : n.path.slice(1)}`} className="rail__item" aria-label={n.label} title={n.label} aria-current={active ? "page" : undefined} onClick={() => navigate(n.path)}>
                   <Icon name={n.icon} size={18} />
                   <span className="rail__label">{n.label}</span>
-                  {n.path === "/approvals" && pending ? <span className="rail__badge" aria-label={`${pending} approvals waiting`}>{pending}</span> : null}
+                  {n.path === "/approvals" && pending + proposed ? (
+                    <span className="rail__badge" aria-label={[pending ? `${pending} approval${pending === 1 ? "" : "s"} waiting` : "", proposed ? `${proposed} skill${proposed === 1 ? "" : "s"} proposed by FlowCode` : ""].filter(Boolean).join(", ")}>
+                      {pending + proposed}
+                    </span>
+                  ) : null}
+                  {n.path === "/library" && proposed ? <span className="rail__badge" aria-label={`${proposed} skill${proposed === 1 ? "" : "s"} proposed by FlowCode`}>{proposed}</span> : null}
                 </button>
               );
             })}
@@ -392,6 +403,7 @@ export function App() {
 
         {section === "journal" && <JournalView key={route.parts[1] ?? "first"} projectId={route.parts[1]} runId={route.parts[2]} projects={projects.data ?? []} />}
         {section === "network" && <NetworkView projects={projects.data ?? []} query={route.query} />}
+        {section === "pipeline" && <PipelineView />}
         {section === "primitives" && <PrimitivesView />}
         {section === "discover" && <DiscoverView id={route.parts[1]} />}
         {section === "flowreport" && <FlowReportView projectId={route.parts[1]} />}

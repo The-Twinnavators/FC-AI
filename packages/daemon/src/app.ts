@@ -1,4 +1,5 @@
 /** Composition root: wires every daemon service together. */
+import { DEFAULT_SKILLS } from "./knowledge/defaultSkills.js";
 import path from "node:path";
 import { Db } from "./db/db.js";
 import { Store } from "./db/store.js";
@@ -90,12 +91,16 @@ export function createApp(opts: AppOptions = {}) {
     for (let i = 0; i < 3; i++) if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) > (y[i] ?? 0);
     return false;
   };
+  // Changing a built-in's text needs a new version number: the library refuses one version with two texts, and an
+  // install only takes a built-in with a newer version (Coder and Planner were once improved without a bump, and
+  // installs kept the older text; test/builtin-versions.test.ts now guards this).
   for (const p of ROLE_PROMPTS) {
     const stored = store.prompts.get(p.id);
     const editedByYou = stored?.changelog.some((c) => /edited in library/i.test(c.note));
     if (!stored || (!editedByYou && newer(p.version, stored.version))) knowledge.savePrompt(p);
   }
-  for (const s of BUILTIN_SKILLS) {
+  // The core built-ins, then the default skills (proposed skills that were needed, and the owner's additions).
+  for (const s of [...BUILTIN_SKILLS, ...DEFAULT_SKILLS]) {
     const stored = store.skills.get(s.id);
     if (!stored) knowledge.saveSkill(s);
     // A newer built-in replaces the stored copy, unless you made it your own or edited it in the library.

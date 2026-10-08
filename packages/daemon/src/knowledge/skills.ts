@@ -5,7 +5,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import type { SkillSpec } from "@flowcode/contracts";
+import { appliesToRole, type SkillSpec } from "@flowcode/contracts";
 import type { PathJail } from "../security/pathJail.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { detectPreflight } from "../workspace/preflight.js";
@@ -717,7 +717,7 @@ export const BUILTIN_SKILLS: SkillSpec[] = [
     // Condensed from docs/design/ui-ux-pro-max.md (UI/UX Pro Max, MIT, nextlevelbuilder/ui-ux-pro-max-skill). Its
     // tables live as data in knowledge/designDirection.ts, which picks the product's row from the PRD.
     id: "skill.ui-ux-pro-max",
-    version: "1.0.0",
+    version: "1.0.1",
     roles: ["planner", "coder", "designer", "critic", "reviewer"],
     triggers: ["polish", "ux review", "design review", "pre-delivery", "accessibility review", "design system", "ui/ux"],
     enabled: true,
@@ -747,13 +747,13 @@ Pre-delivery checklist (fix failures; say what you couldn't verify):
       "The pre-delivery checklist passes, or what couldn't be verified is stated",
     ],
     tests: [],
-    changelog: [{ version: "1.0.0", date: "2026-10-06", note: "From the UI/UX Pro Max design intelligence the user supplied (docs/design/ui-ux-pro-max.md); its tables are data in designDirection.ts" }],
+    changelog: [{ version: "1.0.0", date: "2026-10-06", note: "From the UI/UX Pro Max design intelligence the user supplied (docs/design/ui-ux-pro-max.md); its tables are data in designDirection.ts" }, { version: "1.0.1", date: "2026-10-07", note: "Expanded guidance (shipped without a version bump before)" }],
   },
   {
     // The user wants designs a senior designer would put in a portfolio (the level of the best work on Dribbble and
     // Behance), still usable: one strong, considered design, not several mock-ups.
     id: "skill.art-direction",
-    version: "1.0.0",
+    version: "1.0.1",
     roles: ["planner", "coder", "designer", "critic"],
     // Narrow on purpose: screen steps get it from designSkillIds; a one-value colour change or a table fix shouldn't.
     triggers: ["redesign", "landing page", "hero", "art direction", "portfolio", "visual design", "make it beautiful"],
@@ -804,7 +804,7 @@ Then ask: one clear focal point? Real type contrast? Nothing boxed that doesn't 
       "Still usable: contrast, 44px touch targets, an obvious primary action, a composition rethought for phone width",
     ],
     tests: [],
-    changelog: [{ version: "1.0.0", date: "2026-10-06", note: "Aspirational, portfolio-level design: concept first, then craft (the user asked for designs like the best of Dribbble and Behance)" }],
+    changelog: [{ version: "1.0.0", date: "2026-10-06", note: "Aspirational, portfolio-level design: concept first, then craft (the user asked for designs like the best of Dribbble and Behance)" }, { version: "1.0.1", date: "2026-10-07", note: "Expanded guidance (shipped without a version bump before)" }],
   },
   {
     // Condensed from docs/design/avoid-ai-slop.md (the full guide); short enough for local models' context.
@@ -1048,7 +1048,8 @@ const words = (s: string) => new Set(s.toLowerCase().split(/[^a-z0-9#]+/).filter
 export function selectSkills(skills: SkillSpec[], role: string, taskText: string, max = 3): SkillSpec[] {
   const text = taskText.toLowerCase();
   const tw = words(taskText);
-  const usable = skills.filter((s) => s.enabled !== false && (!s.roles?.length || s.roles.includes(role)));
+  // A skill for a role that never runs (designer, reviewer, the scans) reaches the agent that does that work.
+  const usable = skills.filter((s) => s.enabled !== false && appliesToRole(s.roles, role));
   // Skills with the "*" trigger always apply to their roles, after the best matches: built-in ones first (project
   // rules, exact patching), then learned fixes, the ones closest to this task first.
   const always = usable.filter(isAlways).sort((a, b) => Number(a.source === "user") - Number(b.source === "user") || relevance(b, tw) - relevance(a, tw));

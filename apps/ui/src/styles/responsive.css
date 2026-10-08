@@ -15311,3 +15311,279 @@ body.cp-driving #copilot-panel { z-index: 80; }
 /* Setup card: a larger heading. */
 .setup:not(.setup--compact) .setup__head h2 { font-size: 28px; line-height: 1.2; letter-spacing: -0.02em; }
 @media (max-width: 640px) { .setup:not(.setup--compact) .setup__head h2 { font-size: 22px; } }
+
+/* Proposed-skill cards: one clear order of reading. The failure is the heading; the skill and its result are small
+   labelled sections; counts, agents and triggers are quiet meta. */
+.sprop-item { gap: 12px; padding: 16px 18px; }
+.sprop-item__head { font-size: 12px; color: var(--text-2); }
+.sprop-item__title { font-size: 17px; font-weight: 650; line-height: 1.35; letter-spacing: -0.005em; color: var(--text-0); text-wrap: balance; }
+.sprop-item__label { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.sprop-item__skill { display: grid; gap: 6px; }
+.sprop-item__skill .sprop-item__purpose { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.5; color: var(--text-1); }
+.sprop-item__instr { margin: 4px 0 0; font-size: 12px; line-height: 1.6; color: var(--text-1); }
+.sprop-item__agents { margin-top: 4px; font-size: 12px; color: var(--text-2); }
+.sprop-item__agents strong { font-weight: 600; color: var(--text-1); }
+.sprop-item__agents .sprop-item__meta { font-size: 12px; color: var(--text-2); }
+.sprop-item__evidence summary { font-size: 12.5px; color: var(--text-2); }
+.sprop-item__effect { display: grid; gap: 4px; padding-top: 12px; border-top: 1px solid var(--line); }
+.sprop-item__effect p { margin: 0; }
+.sprop-item__verdict { font-size: 14px; font-weight: 600; line-height: 1.45; color: var(--text-0); }
+.sprop-item__numbers { font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+/* Proposals list view: a row opens in place to show everything its card shows. */
+.sprop__list--rows .sprop-item:not(.is-open) .sprop-item__label { display: none; }
+.sprop__list--rows .sprop-item.is-open .sprop-item__label { display: inline-flex; }
+.sprop__list--rows > .sprop-item.is-open { align-items: start; row-gap: 10px; }
+.sprop__list--rows > .sprop-item.is-open > .sprop-item__evidence,
+.sprop__list--rows > .sprop-item.is-open > .sprop-item__effect,
+.sprop__list--rows > .sprop-item.is-open > .notice { grid-column: 2; }
+.sprop__list--rows .sprop-item.is-open .sprop-item__skill p { white-space: normal; overflow: visible; }
+.sprop__list--rows .sprop-item.is-open .sprop-item__actions { flex-direction: column; align-items: stretch; align-self: start; grid-row: 1 / span 2; }
+.sprop-item__toggle svg { transition: transform 0.15s ease; }
+.sprop-item__toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+@media (max-width: 760px) {
+  .sprop__list--rows > .sprop-item.is-open > * { grid-column: 1; }
+}
+
+/* Proposals: the details block. Cards show it in place; list rows slide it open and closed. */
+.sprop-item__more { display: contents; }
+.sprop-item__more-inner { display: contents; }
+.sprop__list--rows .sprop-item__more { display: grid; grid-column: 2; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.28s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.2s ease; }
+.sprop__list--rows .sprop-item__more[data-open="true"] { grid-template-rows: 1fr; opacity: 1; }
+.sprop__list--rows .sprop-item__more-inner { display: grid; gap: 12px; min-height: 0; overflow: hidden; }
+.sprop__list--rows .sprop-item__more[data-open="true"] .sprop-item__more-inner { padding-top: 10px; }
+.sprop__list--rows .sprop-item__more-inner { transition: padding-top 0.28s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.sprop__list--rows > .sprop-item.is-open { row-gap: 2px; }
+.sprop__list--rows .sprop-item .sprop-item__label { display: none; }
+.sprop__list--rows .sprop-item__more .sprop-item__label { display: inline-flex; }
+.sprop__list--rows > .sprop-item { transition: background-color 0.2s ease; }
+.sprop__list--rows > .sprop-item.is-open { background-color: color-mix(in srgb, var(--text-0) 2.5%, transparent); }
+.sprop__list--rows .sprop-item__purpose { transition: color 0.2s ease; }
+/* The failures behind a skill: quiet supporting evidence, not the loudest thing on the card. */
+.sprop-item__evidence summary { list-style-position: inside; transition: color 0.15s ease; }
+.sprop-item__evidence summary:hover { color: var(--text-1); }
+.sprop-item__evidence ul { margin: 8px 0 0; padding: 10px 12px 10px 28px; border-radius: 6px; background: color-mix(in srgb, var(--text-0) 3%, transparent); gap: 6px; }
+.sprop-item__evidence li.mono { font: 400 12px/1.55 var(--font-mono); color: var(--text-2); overflow-wrap: anywhere; }
+@supports (interpolate-size: allow-keywords) {
+  .sprop-item__evidence { interpolate-size: allow-keywords; }
+  .sprop-item__evidence::details-content { height: 0; overflow: clip; transition: height 0.25s ease, content-visibility 0.25s allow-discrete; }
+  .sprop-item__evidence[open]::details-content { height: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sprop__list--rows .sprop-item__more, .sprop__list--rows .sprop-item__more-inner, .sprop-item__evidence::details-content { transition: none; }
+}
+/* Proposal cards: a column whose actions sit at the bottom, however much each card holds. */
+.sprop__list:not(.sprop__list--rows) > .sprop-item { display: flex; flex-direction: column; gap: 12px; }
+.sprop__list:not(.sprop__list--rows) > .sprop-item > .sprop-item__actions { margin-top: auto; }
+/* An open proposal row: the details use the row's full width under its header, not the narrow middle column. */
+.sprop__list--rows .sprop-item__more { grid-column: 1 / -1; }
+.sprop__list--rows .sprop-item__head { min-width: 96px; }
+
+/* "What happened" is shown, not folded away: one click (Show details) is enough. */
+.sprop-item__evidence { display: grid; gap: 6px; }
+.sprop-item__evidence ul { margin: 0; }
+
+/* Prompts & Skills: the agents that use each prompt or skill, shown by their robot heads. */
+.lib-titled { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.lib-card__used { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.lib-agents { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.lib-agent { display: inline-flex; align-items: center; gap: 4px; color: var(--text-1); }
+/* Proposal rows, one left edge: status and count sit as a small line above the title (not a column of their own), so
+   the header lines up with the details below it; the buttons stay in one row, top right. */
+.sprop__list--rows > .sprop-item,
+.sprop__list--rows > .sprop-item.is-open {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "head actions" "title actions" "skill actions";
+  align-items: start;
+  row-gap: 4px;
+  column-gap: 24px;
+  padding: 14px 18px;
+}
+.sprop__list--rows .sprop-item__head { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 12px; }
+.sprop__list--rows .sprop-item__title { font-size: 15px; line-height: 1.35; }
+.sprop__list--rows .sprop-item__actions,
+.sprop__list--rows .sprop-item.is-open .sprop-item__actions { grid-row: 1 / span 3; flex-direction: row; align-items: center; align-self: center; gap: 6px; }
+.sprop__list--rows .sprop-item.is-open .sprop-item__actions { align-self: start; }
+.sprop__list--rows .sprop-item__more { grid-column: 1 / -1; }
+.sprop__list--rows .sprop-item__more[data-open="true"] .sprop-item__more-inner { padding-top: 14px; }
+@media (max-width: 760px) {
+  .sprop__list--rows > .sprop-item, .sprop__list--rows > .sprop-item.is-open { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "title" "skill" "actions"; }
+  .sprop__list--rows .sprop-item__actions, .sprop__list--rows .sprop-item.is-open .sprop-item__actions { grid-row: auto; flex-wrap: wrap; }
+}
+.sprop__list--rows .sprop-item__head { justify-content: flex-start; color: var(--text-2); }
+.sprop__list--rows .sprop-item .sprop-item__skill > .sprop-item__label { display: none; }
+.sprop__list--rows .sprop-item__skill .sprop-item__purpose { font-size: 13.5px; color: var(--text-1); }
+/* Prompts & Skills: every tab opens with the same bar. The description takes the room it needs; the tab's
+   actions keep to its right and only drop below it on narrow screens. */
+.library-grid__bar { align-items: center; min-height: 32px; }
+.library-grid__bar > :first-child { flex: 1 1 320px; min-width: 0; }
+.library-grid__bar p { max-width: 82ch; line-height: 1.5; }
+.library-grid__bar > :not(:first-child) { flex: 0 0 auto; }
+.library-grid__actions { align-items: center; flex-wrap: wrap; }
+
+/* Prompts & Skills: a prompt or skill opens in a modal over the cards. */
+.lib-modal { position: relative; width: min(860px, calc(100vw - 32px)); max-height: calc(100vh - 64px); display: grid; grid-template-rows: minmax(0, 1fr); padding: 0; }
+.lib-modal__body { overflow: auto; padding: 24px 28px; min-height: 0; }
+.lib-modal__close { position: absolute; top: 12px; right: 12px; z-index: 1; width: 32px; height: 32px; padding: 0; justify-content: center; }
+.lib-modal__body > :first-child h2, .lib-modal__body > :first-child > :first-child { padding-right: 40px; }
+
+/* The prompt / skill modal: a solid panel (no glass), a header strip with the close button, the body scrolls. */
+.modal-box.lib-modal {
+  width: min(860px, 100%);
+  max-height: min(88vh, 960px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 0;
+  background: #151a24;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+}
+:root[data-theme="light"] .modal-box.lib-modal { background: #ffffff; box-shadow: 0 24px 60px -24px rgba(20, 30, 60, 0.35); }
+.lib-modal__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 28px; border-bottom: 1px solid var(--line); }
+.lib-modal__bar .label { margin: 0; }
+.lib-modal .lib-modal__close { position: static; width: 32px; height: 32px; padding: 0; justify-content: center; }
+.lib-modal__body { overflow: auto; padding: 22px 28px 24px; min-height: 0; }
+.lib-modal__body > :first-child h2, .lib-modal__body > :first-child > :first-child { padding-right: 0; }
+.lib-modal .lib-modal__close svg { flex: 0 0 auto; width: 16px; height: 16px; }
+.lib-modal .detail-actions { background: #151a24; margin-inline: -28px; padding-inline: 28px; border-top: 1px solid var(--line); }
+:root[data-theme="light"] .lib-modal .detail-actions { background: #ffffff; }
+/* The modal's action bar sits flush on its bottom edge: no body padding below it for text to scroll through, and on
+   short content it is pushed down to the bottom. */
+.lib-modal__body { display: flex; flex-direction: column; padding-bottom: 0; }
+.lib-modal__body > :has(> .detail-actions) { display: flex !important; flex-direction: column; flex: 1 0 auto; }
+.lib-modal__body > :has(> .detail-actions) > * { flex: none; }
+.lib-modal .detail-actions { margin-top: auto; bottom: 0; padding-block: 14px; }
+.lib-modal__body > :not(:has(> .detail-actions)):last-child { padding-bottom: 24px; }
+
+/* Built-in tools: the Skills cards, grouped by kind of access. */
+.lib-tools { display: grid; gap: 22px; }
+.lib-tools__group { display: grid; gap: 10px; }
+.lib-tools__group .skill-sort__heading { margin: 0; }
+.lib-card__title.mono { font-size: 13.5px; }
+.lib-card__top .sprop-item__status { flex: 0 0 auto; }
+.tool-example { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-2); }
+/* The modal's content: a column whose action bar (its own, or the detail's) sits flush on the bottom edge. */
+.lib-modal__content { display: flex; flex-direction: column; gap: 14px; flex: 1 0 auto; min-height: 0; }
+.lib-modal__content > :has(> .detail-actions) { display: flex !important; flex-direction: column; flex: 1 0 auto; }
+.lib-modal__content > :has(> .detail-actions) > * { flex: none; }
+.lib-modal__content > :not(.detail-actions):not(:has(> .detail-actions)):last-child { padding-bottom: 24px; }
+.lib-modal__content > .detail-actions { position: sticky; }
+/* Proposal detail in the modal. */
+.sprop-detail { display: grid; gap: 16px; }
+.sprop-detail__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.sprop-detail__head p { margin: 4px 0 0; font-size: 12.5px; }
+.sprop-detail__title { margin: 0; font-size: 18px; font-weight: 650; line-height: 1.35; text-wrap: balance; }
+.sprop-detail__section { display: grid; gap: 6px; }
+.sprop-detail .sprop-item__purpose { margin: 0; font-size: 14px; color: var(--text-1); }
+.lib-agents__more { font-size: 12px; color: var(--text-2); }
+.lib-card__used { flex-wrap: nowrap; align-items: center; min-width: 0; } .lib-card__used > .lib-agents { min-width: 0; }
+/* Cards: "Used by" on its own line, the heads (two, then "+N more") on one line under it, the same on every card. */
+.lib-card .lib-card__used { display: grid; gap: 4px; justify-items: start; }
+.lib-card .lib-card__used > .lib-agents { flex-wrap: nowrap; white-space: nowrap; max-width: 100%; overflow: hidden; }
+
+/* Connected servers: Skills-style cards; a server's settings open in the modal. */
+.mcp-card__cmd { font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
+.mcp-detail { display: grid; gap: 16px; }
+.mcp-detail__head { display: flex; align-items: flex-start; gap: 12px; }
+.mcp-detail__head .mcp-server__name { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.mcp-detail__title { margin: 0; font-size: 18px; font-weight: 650; }
+.mcp-detail__tools { display: grid; gap: 8px; }
+.lib-modal .mcp-form { border: 0; padding: 0; background: none; }
+.lib-modal .mcp-server__confirm { display: inline-flex; align-items: center; gap: 8px; }
+/* Skill group header: the category colour is a small dot beside the title (as in the category list), not a bar
+   stretched to the header height. */
+.skill-browse__head > .lib-shelf__spine { width: 8px; height: 8px; border-radius: 50%; align-self: start; margin-top: 9px; flex: 0 0 auto; }
+
+.mcp-detail__connection { display: grid; gap: 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+/* A server switched on: teal, the same "on / ok" colour as the On badges. */
+.mcp-switch input:checked + span { background: var(--sig-ok); }
+
+/* Server cards: a small on/off switch in the card's bottom-right corner. */
+.mcp .lib-cards > li { position: relative; }
+.lib-card__switch { position: absolute; right: 16px; bottom: 16px; z-index: 1; }
+.mcp-switch--sm { width: 28px; height: 16px; }
+.mcp-switch--sm span { width: 28px; height: 16px; border-radius: 8px; }
+.mcp-switch--sm span::after { width: 12px; height: 12px; top: 2px; left: 2px; }
+.mcp-switch--sm input:checked + span::after { transform: translateX(12px); }
+/* Server roles: a chosen agent is filled teal (the "on" colour), with no outline. */
+.mcp-role.is-on { background: color-mix(in srgb, var(--sig-ok) 26%, transparent); border-color: transparent; color: var(--text-0); }
+
+/* Version history inside the prompt / skill modal. */
+.lib-history { display: grid; gap: 8px; }
+.lib-history__list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.lib-history__list li { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding: 9px 14px; font-size: 13px; }
+.lib-history__list li + li { border-top: 1px solid var(--line); }
+.lib-history__list li.is-current { background: color-mix(in srgb, var(--sig-ok) 8%, transparent); }
+.lib-history__ver { font-size: 12px; color: var(--text-0); }
+.lib-history__note { color: var(--text-1); }
+.lib-history__date { font-size: 11.5px; }
+.lib-history__list li.is-current .lib-history__date { color: var(--sig-ok); }
+
+/* Cards that can be switched on or off: the switch is always in the bottom-right corner, and the card's bottom
+   line leaves room for it. */
+.lib-cards > li.has-switch { position: relative; }
+.lib-cards > li.has-switch > .lib-card .lib-card__meta { padding-right: 40px; }
+.lib-cards > li.has-switch > .lib-card__switch { position: absolute; right: 16px; bottom: 16px; z-index: 1; }
+/* Group headings (skill categories, tool groups): the colour is a small round dot, centred on the title line. */
+.skill-browse__head > .lib-shelf__spine { grid-row: 1; align-self: center; height: 8px; min-height: 0; width: 8px; margin: 0; border-radius: 50%; }
+.skill-sort__heading .lib-shelf__spine { width: 8px; height: 8px; border-radius: 50%; }
+.skill-browse__head > .skill-browse__title, .skill-browse__head > .skill-browse__hint { grid-column: 2; }
+#skill-room-top { scroll-margin-top: 76px; }
+
+.sprop-detail__state { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+/* Prompts & Skills cards (every tab): more room inside each card and between them. */
+.lib-cards { gap: 16px !important; }
+.lib-card { padding: 20px 22px !important; row-gap: 10px; }
+.lib-cards > li.has-switch > .lib-card__switch { right: 22px; bottom: 20px; }
+
+/* Copy buttons: teal with a check for a moment once the copy worked. */
+.copy-btn { gap: 6px; transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; }
+.copy-btn.is-copied { background: color-mix(in srgb, var(--sig-ok) 22%, transparent); color: var(--sig-ok); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sig-ok) 45%, transparent); }
+/* Tool modal: example requests as plain quoted text. */
+.tool-asks { display: grid; gap: 8px; }
+.tool-asks ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--text-1); font-style: italic; }
+
+/* Build prompts: clickable like every other card; the modal is read-only (they're built in). */
+.req-tpl-card { text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.tpl-detail { display: grid; gap: 16px; }
+.tpl-detail__title { margin: 0 0 4px; font-size: 18px; font-weight: 650; }
+.tpl-detail p { margin: 0; }
+.tpl-detail__how { font-size: 13px; }
+.tpl-detail__section { display: grid; gap: 8px; }
+.tpl-detail__skills { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tpl-skill { display: grid; gap: 2px; width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: none; color: inherit; font: inherit; font-size: 13.5px; cursor: pointer; transition: border-color 0.15s ease, background-color 0.15s ease; }
+.tpl-skill:hover { border-color: var(--line-strong); background: color-mix(in srgb, var(--text-0) 3%, transparent); }
+.tpl-skill .muted { font-size: 12.5px; }
+.tpl-detail__body { margin: 0; padding: 12px 14px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); font: 400 12px/1.6 var(--font-mono); color: var(--text-1); white-space: pre-wrap; overflow-wrap: anywhere; }
+:root[data-theme="light"] .tpl-detail__body { background: var(--bg-3); }
+.lib-group-title { margin: 4px 0 12px; }
+/* Data process → Skill pipeline: the page's own content, full width like the other pages (no tab padding). */
+.pipeline-page { padding: 0; display: grid; gap: 16px; }
+
+/* Skill pipeline cards: isometric columns instead of rings. */
+.lib-card__iso .iso-track { stroke: var(--line-strong); stroke-width: 0.75; stroke-linejoin: round; }
+.lib-card__iso .iso-track--l { fill: color-mix(in srgb, var(--text-0) 5%, transparent); }
+.lib-card__iso .iso-track--r { fill: color-mix(in srgb, var(--text-0) 2.5%, transparent); }
+.lib-card__iso .iso-track--t { fill: color-mix(in srgb, var(--text-0) 7%, transparent); }
+/* Skill pipeline stat tiles: compact, four across (two full rows of four), the note right under the number and the
+   isometric column beside it, so no tile stretches over empty space. */
+.lib-overview .lib-cards { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 12px !important; align-items: stretch; }
+.lib-overview .lib-card {
+  padding: 16px 18px !important;
+  min-height: 0 !important;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "top top" "value iso" "sub iso";
+  grid-template-rows: auto auto 1fr;
+  align-content: start;
+  column-gap: 10px;
+  row-gap: 4px;
+}
+.lib-overview .lib-card > .lib-card__top { grid-area: top; margin-bottom: 4px; }
+.lib-overview .lib-card > .lib-card__value { grid-area: value; margin: 0; }
+.lib-overview .lib-card > .lib-card__sub { grid-area: sub; margin: 0; align-self: start; }
+.lib-overview .lib-card > .lib-card__ring { grid-area: iso; align-self: center; margin: 0; width: 48px; height: 48px; position: static; }
+@media (max-width: 1100px) { .lib-overview .lib-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 560px) { .lib-overview .lib-cards { grid-template-columns: minmax(0, 1fr) !important; } }

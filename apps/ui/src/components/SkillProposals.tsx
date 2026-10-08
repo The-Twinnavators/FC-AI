@@ -4,12 +4,12 @@
  * Failures a prompt can't fix (model crashes, time-outs) are on System Health → Model problems.
  */
 import { useState } from "react";
-import { Check, RefreshCw, RotateCcw, Sparkles, X } from "lucide-react";
+import { RefreshCw, RotateCcw, Sparkles, X } from "lucide-react";
 import { post, useResource } from "../api";
 import { Empty } from "./ui";
 import { SkeletonBlock } from "./motion";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { RobotHead, ROLE_COLOR, ROLE_LABEL } from "./RobotHead";
+import { RobotHead, ROLE_COLOR } from "./RobotHead";
+import { AgentHeads, CardSwitch, LibModal } from "./LibModal";
 
 interface Pattern {
   id: string;
@@ -41,12 +41,13 @@ interface View {
 
 const STATUS: Record<Item["status"], string> = { drafting: "Drafting…", proposed: "Waiting for your review", enabled: "On", dismissed: "Dismissed", failed: "Couldn't draft" };
 
-export function SkillProposals({ onOpenSkill, layout = "cards", layoutToggle }: { onOpenSkill: (id: string) => void; layout?: "cards" | "list"; layoutToggle?: React.ReactNode }) {
+/** `waitingOnly` (Approvals): just the drafts that need your answer, without the scan controls or the ones already on. */
+export function SkillProposals({ onOpenSkill, waitingOnly = false }: { onOpenSkill: (id: string) => void; waitingOnly?: boolean }) {
   const { data, error, reload, loading } = useResource<View>("/skill-proposals", [], 6000);
   const [msg, setMsg] = useState<string>();
   const [busy, setBusy] = useState<string>();
-  // The proposal waiting for "Are you sure?" before it is dismissed.
-  const [confirming, setConfirming] = useState<Item>();
+  // The proposal open in the modal.
+  const [openId, setOpenId] = useState<string>();
   const act = async (path: string, id: string, done: string) => {
     setBusy(id);
     try {
@@ -66,21 +67,34 @@ export function SkillProposals({ onOpenSkill, layout = "cards", layoutToggle }: 
   };
 
   if (!data) return <div style={{ padding: 16 }}>{error ? <p className="notice notice--bad" role="alert">{error}</p> : <SkeletonBlock rows={4} label="Reading FlowCode's run history" />}</div>;
-  const live = data.items.filter((i) => i.status !== "dismissed");
+  const live = data.items.filter((i) => (waitingOnly ? i.status === "proposed" : i.status !== "dismissed"));
+  const opened = data.items.find((i) => i.patternId === openId);
+  const toggleSkill = (i: Item, on: boolean) =>
+    void act(on ? "/skill-proposals/enable" : "/skill-proposals/disable", i.patternId, on ? `Turned on ${i.skill!.id}. FlowCode will compare how often this happens from now on.` : `Turned off ${i.skill?.id ?? "the skill"}. It stays in the list; turn it on again any time.`);
+  const actionsFor = (i: Item) => (
+    <>
+      {i.skill ? (
+        <button type="button" className="btn btn--primary" onClick={() => (setOpenId(undefined), onOpenSkill(i.skill!.id))}>
+          Review or edit
+        </button>
+      ) : null}
+    </>
+  );
 
   return (
     <div className="sprop">
-      <div className="sprop__bar">
+      {waitingOnly ? null : (
+      <div className="library-grid__bar">
         <p className="muted">
           FlowCode reads its own last two weeks of runs for failures that keep happening (3 or more times, in 2 or more runs) and drafts a skill for each. Drafts stay off until you turn them on.
         </p>
-        <div className="sprop__bar-actions">
-          {layoutToggle}
+        <div className="library-grid__actions">
           <button type="button" className="btn btn--sm" onClick={() => void scan()} disabled={data.scanning || loading}>
             <RefreshCw size={14} aria-hidden="true" className={data.scanning ? "spin" : undefined} /> {data.scanning ? "Looking…" : "Look for patterns now"}
           </button>
         </div>
       </div>
+      )}
       {msg ? (
         <p className="notice" role="status" style={{ margin: 0 }}>
           {msg}
@@ -88,96 +102,44 @@ export function SkillProposals({ onOpenSkill, layout = "cards", layoutToggle }: 
       ) : null}
 
       {live.length ? (
-        <ul className={`sprop__list${layout === "list" ? " sprop__list--rows" : ""}`}>
+        <ul className="lib-cards" aria-label="Proposed skills">
           {live.map((i) => (
-            <li key={i.patternId} className={`sprop-item sprop-item--${i.status}`}>
-              <div className="sprop-item__head">
-                <span className={`sprop-item__status is-${i.status}`}>{STATUS[i.status]}</span>
-                {i.pattern ? (
-                  <span className="muted">
-                    {i.pattern.count} times in {i.pattern.runs.length} runs
-                  </span>
-                ) : null}
-              </div>
-              <h3 className="sprop-item__title">{i.pattern?.title ?? i.patternId}</h3>
-              {i.skill ? (
-                <div className="sprop-item__skill">
-                  <p>
-                    <Sparkles size={13} aria-hidden="true" /> <strong>{i.skill.purpose}</strong>
-                  </p>
-                  {layout === "list" ? null : <pre className="sprop-item__instr">{i.skill.instructions}</pre>}
-                  {layout === "list" ? null : (
-                    <div className="sprop-item__agents">
-                      {/* Who wrote this skill, and which agents follow it. */}
-                      <span className="sprop-agent" title="The Documenter agent drafted this skill from the failures below">
-                        <RobotHead color={ROLE_COLOR.documenter!} id={`sp-doc-${i.patternId}`} size={20} />
-                        <span>
-                          Drafted by <strong>Documenter</strong>
-                        </span>
-                      </span>
-                      <span className="sprop-agent">
-                        <span>Followed by</span>
-                        {(i.skill.roles.length ? i.skill.roles : ["coder"]).map((r) => (
-                          <span key={r} className="sprop-agent__who" title={ROLE_LABEL[r] ?? r}>
-                            <RobotHead color={ROLE_COLOR[r] ?? "#9a9fd6"} id={`sp-${r}-${i.patternId}`} size={20} />
-                            <strong>{ROLE_LABEL[r] ?? r}</strong>
-                          </span>
-                        ))}
-                      </span>
-                      <span className="muted sprop-item__meta">applies {i.skill.triggers.includes("*") ? "to every step" : `when a task mentions ${i.skill.triggers.join(", ")}`}</span>
-                    </div>
-                  )}
-                </div>
+            <li key={i.patternId} className={i.skill && (i.status === "enabled" || i.status === "proposed") ? "has-switch" : undefined}>
+              <button type="button" className={`lib-card${i.status === "enabled" ? "" : " is-off"}`} onClick={() => setOpenId(i.patternId)}>
+                <span className="lib-card__top">
+                  <strong className="lib-card__title">{proposalTitle(i)}</strong>
+                  {i.status === "enabled" ? null : <span className={`sprop-item__status is-${i.status}`}>{STATUS[i.status]}</span>}
+                </span>
+                <span className="lib-card__purpose">{i.skill?.purpose ?? (i.status === "failed" ? i.error : "Drafting a skill for this failure…")}</span>
+                <span className="lib-card__meta">
+                  {i.skill ? (
+                    <span className="lib-card__used">
+                      Used by <AgentHeads roles={i.skill.roles.length ? i.skill.roles : ["coder"]} id={`sp-${i.patternId}`} max={2} />
+                    </span>
+                  ) : null}
+                  {i.pattern ? <span>{i.pattern.count} times in {i.pattern.runs.length} runs</span> : null}
+                </span>
+              </button>
+              {i.skill && (i.status === "enabled" || i.status === "proposed") ? (
+                <CardSwitch
+                  on={i.status === "enabled"}
+                  disabled={busy === i.patternId}
+                  label={`Use the skill for ${proposalTitle(i)}`}
+                  onChange={(v) => toggleSkill(i, v)}
+                />
               ) : null}
-              {i.status === "failed" ? <p className="notice notice--bad" style={{ margin: 0 }}>{i.error}</p> : null}
-              {layout !== "list" && i.pattern?.examples.length ? (
-                <details className="sprop-item__evidence">
-                  <summary>What happened ({i.pattern.examples.length} example{i.pattern.examples.length === 1 ? "" : "s"})</summary>
-                  <ul>
-                    {i.pattern.examples.map((x) => (
-                      <li key={x} className="mono">
-                        {x}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              ) : null}
-              {layout !== "list" && i.effect ? (
-                <p className="sprop-item__effect">
-                  Before: {i.effect.before} per run · Since you turned it on: {i.effect.after} per run over {i.effect.runsAfter} run{i.effect.runsAfter === 1 ? "" : "s"}. {i.effect.verdict}
-                </p>
-              ) : null}
-              <div className="sprop-item__actions">
-                {i.status === "proposed" && i.skill ? (
-                  <button type="button" className="btn btn--sm btn--primary" disabled={busy === i.patternId} onClick={() => void act("/skill-proposals/enable", i.patternId, `Turned on ${i.skill!.id}. FlowCode will compare how often this happens from now on.`)}>
-                    <Check size={14} aria-hidden="true" /> Turn it on
-                  </button>
-                ) : null}
-                {i.skill ? (
-                  <button type="button" className="btn btn--sm" onClick={() => onOpenSkill(i.skill!.id)}>
-                    Review or edit
-                  </button>
-                ) : null}
-                {i.status === "enabled" ? (
-                  <button type="button" className="btn btn--sm btn--ghost" disabled={busy === i.patternId} onClick={() => void act("/skill-proposals/disable", i.patternId, `Turned off ${i.skill?.id ?? "the skill"}. It stays in the list; turn it on again any time.`)}>
-                    <X size={14} aria-hidden="true" /> Turn off
-                  </button>
-                ) : i.status !== "drafting" ? (
-                  <button type="button" className="btn btn--sm btn--ghost" disabled={busy === i.patternId} onClick={() => setConfirming(i)}>
-                    <X size={14} aria-hidden="true" /> Dismiss
-                  </button>
-                ) : null}
-              </div>
             </li>
           ))}
         </ul>
+      ) : waitingOnly ? (
+        <p className="apv-empty">No skills waiting for your review. FlowCode drafts one when the same failure keeps happening; it shows up here.</p>
       ) : (
         <Empty title="No proposals yet">
           {data.open.length ? `${data.open.length} repeated failure${data.open.length === 1 ? "" : "s"} found; use "Look for patterns now" to draft skills for them.` : "Nothing has failed often enough to need a skill. FlowCode checks again after each run."}
         </Empty>
       )}
 
-      {data.open.length && live.length ? (
+      {!waitingOnly && data.open.length && live.length ? (
         <p className="muted" style={{ margin: 0, fontSize: 12.5 }}>
           {data.open.length} more repeated failure{data.open.length === 1 ? "" : "s"} without a draft yet. FlowCode drafts up to two per look.
         </p>
@@ -208,26 +170,74 @@ export function SkillProposals({ onOpenSkill, layout = "cards", layoutToggle }: 
         </section>
       ) : null}
 
-      {confirming ? (
-        <ConfirmDialog
-          title={confirming.status === "enabled" ? "Turn off and dismiss this skill?" : "Dismiss this proposal?"}
-          confirmLabel={confirming.status === "enabled" ? "Turn off and dismiss" : "Dismiss"}
-          busy={busy === confirming.patternId}
-          onCancel={() => setConfirming(undefined)}
-          onConfirm={() => {
-            const i = confirming;
-            void act("/skill-proposals/dismiss", i.patternId, "Dismissed. You can restore it from the Dismissed list below.").then(() => setConfirming(undefined));
-          }}
-        >
-          <p>
-            <strong>{proposalTitle(confirming)}</strong>
-          </p>
-          <p>
-            {confirming.status === "enabled" ? "The skill stops being used in builds, and " : "The drafted skill stays off, and "}
-            FlowCode won&apos;t propose it again. You can restore it later from the Dismissed list at the bottom of this page.
-          </p>
-        </ConfirmDialog>
+      {opened ? (
+        <LibModal label={opened.status === "proposed" ? "Proposed skill · waiting for you" : "Proposed skill"} onClose={() => setOpenId(undefined)} actions={actionsFor(opened)}>
+          <div className="sprop-detail">
+            <div className="sprop-detail__head">
+              <div>
+                <h2 className="sprop-detail__title">{proposalTitle(opened)}</h2>
+                {opened.pattern ? <p className="muted">{opened.pattern.count} times in {opened.pattern.runs.length} runs</p> : null}
+              </div>
+              <span className="sprop-detail__state">
+                {opened.status === "enabled" ? null : <span className={`sprop-item__status is-${opened.status}`}>{STATUS[opened.status]}</span>}
+                {/* On or off, the same switch as skills and servers. */}
+                {opened.skill && (opened.status === "enabled" || opened.status === "proposed") ? (
+                  <label className="mcp-switch" title={opened.status === "enabled" ? "On: agents use this skill" : "Off: turn it on to start using it"}>
+                    <input type="checkbox" checked={opened.status === "enabled"} disabled={busy === opened.patternId} onChange={(e) => toggleSkill(opened, e.target.checked)} aria-label={`Use the skill for ${proposalTitle(opened)}`} />
+                    <span aria-hidden="true" />
+                  </label>
+                ) : null}
+              </span>
+            </div>
+            {opened.status === "failed" ? <p className="notice notice--bad" style={{ margin: 0 }}>{opened.error}</p> : null}
+            {opened.skill ? (
+              <section className="sprop-detail__section">
+                <span className="sprop-item__label">
+                  <Sparkles size={12} aria-hidden="true" /> The skill
+                </span>
+                <p className="sprop-item__purpose">{opened.skill.purpose}</p>
+                <pre className="sprop-item__instr">{opened.skill.instructions}</pre>
+                <div className="sprop-item__agents">
+                  {/* Who wrote this skill, and which agents follow it. */}
+                  <span className="sprop-agent" title="The Documenter agent drafted this skill from the failures below">
+                    <RobotHead color={ROLE_COLOR.documenter!} id={`sp-doc-${opened.patternId}`} size={20} />
+                    <span>
+                      Drafted by <strong>Documenter</strong>
+                    </span>
+                  </span>
+                  <span className="sprop-agent">
+                    <span>Followed by</span>
+                    <AgentHeads roles={opened.skill.roles.length ? opened.skill.roles : ["coder"]} id={`spd-${opened.patternId}`} />
+                  </span>
+                  <span className="muted sprop-item__meta">applies {opened.skill.triggers.includes("*") ? "to every step" : `when a task mentions ${opened.skill.triggers.join(", ")}`}</span>
+                </div>
+              </section>
+            ) : null}
+            {opened.pattern?.examples.length ? (
+              <section className="sprop-item__evidence">
+                <span className="sprop-item__label">What happened</span>
+                <ul>
+                  {opened.pattern.examples.map((x) => (
+                    <li key={x} className="mono">
+                      {x}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            {opened.effect ? (
+              <section className="sprop-item__effect">
+                <span className="sprop-item__label">Result</span>
+                <p className="sprop-item__verdict">{opened.effect.verdict}</p>
+                <p className="sprop-item__numbers">
+                  Before: {opened.effect.before} per run · Since you turned it on: {opened.effect.after} per run over {opened.effect.runsAfter} run{opened.effect.runsAfter === 1 ? "" : "s"}
+                </p>
+              </section>
+            ) : null}
+          </div>
+        </LibModal>
       ) : null}
+
     </div>
   );
 }

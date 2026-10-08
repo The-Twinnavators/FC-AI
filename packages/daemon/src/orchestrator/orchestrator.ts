@@ -3,7 +3,7 @@
  * executes the task DAG with checkpoints, routes failures to bounded repair, runs verification and
  * computes Done deterministically. Agents never transition phases themselves.
  */
-import { isFinishedRun } from "@flowcode/contracts";
+import { appliesToRole, isFinishedRun } from "@flowcode/contracts";
 import fs from "node:fs";
 import { z } from "zod";
 import path from "node:path";
@@ -1539,7 +1539,7 @@ export class Orchestrator {
     const selected = selectSkills(library, role, `${task.title}\n${task.objective}`);
     // The project's stack (Angular, Python, Postgres) brings its skill to every step, not only when the task names it.
     const runSkills = [...stackSkillIds(this.d.projects.latestPreflight(project.id)?.detectedTypes ?? []), ...(this.d.store.runs.require(run.id).plan?.classification?.skills ?? [])];
-    const stack = [...new Set(runSkills)].map((id) => library.find((x) => x.id === id)).filter((s): s is NonNullable<typeof s> => !!s && s.enabled !== false && (!s.roles?.length || s.roles.includes(role)));
+    const stack = [...new Set(runSkills)].map((id) => library.find((x) => x.id === id)).filter((s): s is NonNullable<typeof s> => !!s && s.enabled !== false && appliesToRole(s.roles, role));
     // At most MAX_SKILLS_PER_STEP: design skills for interface work, best matches, then the stack, then always-on skills.
     // Repair skills learned from failed edits come first on a retry and last on a first attempt.
     // The step's workflow skill (tests first, root-cause debugging, simplify, verify) leads; design skills follow.

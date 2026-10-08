@@ -2,14 +2,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { REQUEST_TEMPLATES, type PromptSpec, type SkillSpec } from "@flowcode/contracts";
 import { get, post, useResource } from "../api";
-import { LayoutGrid, Plus, Search } from "lucide-react";
-import { ViewLayoutToggle, useViewLayout, type ViewLayout } from "../components/ViewLayoutToggle";
+import { Plus, Search } from "lucide-react";
 import { SKILL_CATEGORIES, categoryOf, skillMatches, type SkillCategory } from "../skillCategories";
 import { Tabs } from "../components/ui";
-import { LibraryOverview } from "../components/LibraryOverview";
+import { navigate } from "../router";
 import { AgentTools } from "../components/AgentTools";
 import { McpServers } from "../components/McpServers";
 import { SkillProposals } from "../components/SkillProposals";
+import { AgentHeads, CardSwitch, LibModal, VersionHistory } from "../components/LibModal";
 import { PromptForm, PromptImportButton, blankPrompt } from "../components/PromptEditor";
 import { SkillDetail, SkillForm, SkillImportButton, blankSkill } from "../components/SkillEditor";
 
@@ -25,64 +25,12 @@ const skillTitle = (id: string) => {
   return t.charAt(0).toUpperCase() + t.slice(1);
 };
 
-/**
- * Sizes the library panel to the window: from its top edge down to the sticky footer, so the page itself doesn't
- * scroll and the list and details scroll inside their own columns. Re-measured on resize.
- */
-function useFitToWindow(deps: unknown[]) {
-  const ref = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    const main = document.getElementById("main");
-    if (!el || !main) return;
-    const fit = () => {
-      const top = el.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop;
-      const foot = main.querySelector(".app-footer") as HTMLElement | null;
-      const footer = foot ? foot.offsetHeight + parseFloat(getComputedStyle(foot).marginTop) : 0;
-      // Space below the panel inside the page: bottom padding, borders and margins of its containers.
-      let below = 0;
-      for (let n: HTMLElement | null = el; n && n !== main; n = n.parentElement) {
-        const cs = getComputedStyle(n);
-        below += parseFloat(cs.marginBottom) + (n === el ? 0 : parseFloat(cs.paddingBottom) + parseFloat(cs.borderBottomWidth));
-      }
-      el.style.height = `${Math.max(520, main.clientHeight - top - footer - below)}px`;
-    };
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(main);
-    return () => {
-      ro.disconnect();
-      // The height is set by script; clear it so a view reusing this element (the card grid) isn't stuck at it.
-      el.style.height = "";
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-  return ref;
-}
 
 /** Skills as searchable cards, grouped by what they help with; a category chip narrows the grid to one group. */
-type SkillLayout = ViewLayout;
 
-function SkillGrid({ skills, onOpen, usedBy, layout }: { skills: SkillSpec[]; onOpen: (id: string) => void; usedBy: (roles?: string[]) => string; layout: SkillLayout }) {
+function SkillGrid({ skills, onOpen, onToggle }: { skills: SkillSpec[]; onOpen: (id: string) => void; onToggle: (s: SkillSpec, on: boolean) => void }) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<SkillCategory | "all">("all");
-  const row = (x: SkillSpec) => {
-    const on = x.enabled !== false;
-    return (
-      <li key={x.id}>
-        <button type="button" className={`skill-row${on ? "" : " is-off"}`} onClick={() => onOpen(x.id)}>
-          <strong className="skill-row__title">{skillTitle(x.id)}</strong>
-          <span className="skill-row__purpose">{x.purpose}</span>
-          <span className="skill-row__meta">
-            {x.source === "user" ? <span className="chip">yours</span> : null}
-            {on ? null : <span className="chip">off</span>}
-            <span className="skill-row__roles">{usedBy(x.roles)}</span>
-            <span className="mono skill-row__ver">v{x.version}</span>
-          </span>
-        </button>
-      </li>
-    );
-  };
   const matching = skills.filter((s) => skillMatches(s, q));
   const counts = new Map<SkillCategory, number>();
   for (const s of matching) counts.set(categoryOf(s), (counts.get(categoryOf(s)) ?? 0) + 1);
@@ -90,7 +38,7 @@ function SkillGrid({ skills, onOpen, usedBy, layout }: { skills: SkillSpec[]; on
   const card = (x: SkillSpec) => {
     const on = x.enabled !== false;
     return (
-      <li key={x.id}>
+      <li key={x.id} className="has-switch">
         <button type="button" className={`lib-card${on ? "" : " is-off"}`} onClick={() => onOpen(x.id)}>
           <span className="lib-card__top">
             <strong className="lib-card__title">{skillTitle(x.id)}</strong>
@@ -98,11 +46,11 @@ function SkillGrid({ skills, onOpen, usedBy, layout }: { skills: SkillSpec[]; on
           </span>
           <span className="lib-card__purpose">{x.purpose}</span>
           <span className="lib-card__meta">
-            <span>Used by {usedBy(x.roles)}</span>
+            <span className="lib-card__used">Used by <AgentHeads roles={x.roles} id={`sc-${x.id}`} max={2} /></span>
             {x.source === "user" ? <span className="chip">yours</span> : null}
-            {on ? null : <span className="chip">off</span>}
           </span>
         </button>
+        <CardSwitch on={on} label={`Use ${skillTitle(x.id)}`} onChange={(v) => onToggle(x, v)} />
       </li>
     );
   };
@@ -110,7 +58,9 @@ function SkillGrid({ skills, onOpen, usedBy, layout }: { skills: SkillSpec[]; on
   const pick = (id: SkillCategory | "all") => {
     setCat(id);
     // Back to the top of the catalogue, like choosing a shelf in the Knowledge hub.
-    document.getElementById("skill-room-top")?.scrollIntoView({ block: "nearest" });
+    // Scrolled down into the list: go back up to its top (just under the top bar); already above it: stay put.
+    const top = document.getElementById("skill-room-top");
+    if (top && top.getBoundingClientRect().top < 72) top.scrollIntoView({ block: "start", behavior: "smooth" });
   };
   return (
     <div className="skill-room">
@@ -148,8 +98,8 @@ function SkillGrid({ skills, onOpen, usedBy, layout }: { skills: SkillSpec[]; on
                 </h3>
                 <p className="muted skill-browse__hint">{g.hint}</p>
               </header>
-              <ul className={layout === "list" ? "skill-rows" : "lib-cards"} aria-label={g.label}>
-                {matching.filter((s) => categoryOf(s) === g.id).map(layout === "list" ? row : card)}
+              <ul className="lib-cards" aria-label={g.label}>
+                {matching.filter((s) => categoryOf(s) === g.id).map(card)}
               </ul>
             </section>
           ))
@@ -180,7 +130,7 @@ export const CAT_COLOR: Record<SkillCategory, string> = {
 };
 
 export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
-  const [tab, setTab] = useState<"prompts" | "skills" | "tools" | "servers" | "proposals" | "pipeline">("prompts");
+  const [tab, setTab] = useState<"prompts" | "skills" | "tools" | "servers" | "proposals">("prompts");
   const [skillSort, setSkillSort] = useState<"recent" | "category" | "name">(() => {
     try {
       const v = localStorage.getItem("flowcode.skillSort");
@@ -196,19 +146,24 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
       /* private mode */
     }
   }, [skillSort]);
-  const proposalCount = useResource<{ items: Array<{ status: string }> }>("/skill-proposals", [], 30_000).data?.items.filter((i) => i.status === "proposed").length;
+  // Every list tab shows how many it holds (proposals waiting for you are flagged by the sidebar and Approvals badges).
+  const proposalCount = useResource<{ items: Array<{ status: string }> }>("/skill-proposals", [], 30_000).data?.items.filter((i) => i.status !== "dismissed").length;
+  const toolCount = useResource<unknown[]>("/system/tools", [], 0).data?.length;
+  const serverCount = useResource<{ servers: unknown[] }>("/mcp/servers", [], 30_000).data?.servers.length;
   const prompts = useResource<PromptSpec[]>("/prompts");
   // Polled so skills added elsewhere (API, another window) appear without a reload.
   const skills = useResource<SkillSpec[]>("/skills", [], 15_000);
   const [selected, setSelected] = useState<string>();
-  const [skillLayout, setSkillLayout] = useViewLayout("skills");
-  const [promptLayout, setPromptLayout] = useViewLayout("prompts");
-  const [proposalLayout, setProposalLayout] = useViewLayout("proposals");
+  // The build prompt open in the modal (built in, so read-only).
+  const [tplId, setTplId] = useState<string>();
+  const tpl = REQUEST_TEMPLATES.find((t) => t.id === tplId);
   // Deep links from search (?tab=skills&open=skill.x): open that tab and that item.
   const linkTab = query?.get("tab");
   const linkOpen = query?.get("open");
   useEffect(() => {
-    if (linkTab === "skills" || linkTab === "tools" || linkTab === "servers" || linkTab === "prompts" || linkTab === "proposals" || linkTab === "pipeline") setTab(linkTab);
+    if (linkTab === "skills" || linkTab === "tools" || linkTab === "servers" || linkTab === "prompts" || linkTab === "proposals") setTab(linkTab);
+    // The skill pipeline moved to Data process → Skill pipeline; old links go there.
+    if (linkTab === "pipeline") navigate("/pipeline");
     if (linkOpen) (setDraft(undefined), setPromptDraft(undefined), setSelected(linkOpen));
   }, [linkTab, linkOpen]); // eslint-disable-line react-hooks/exhaustive-deps
   /** Skill editor: a draft being created (new/imported) or the selected skill being edited. */
@@ -218,22 +173,20 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
   const startPrompt = (spec = blankPrompt()) => (setSelected(undefined), setDraft(undefined), setPromptDraft(spec));
   const prompt = prompts.data?.find((p) => p.id === selected);
   const skill = skills.data?.find((s) => s.id === selected);
-  // Nothing open: the tab opens on a full-width grid of cards. Picking one switches to the list + details split.
+  // Nothing open: just the cards. Picking one (or New / Import) opens it in a modal over them.
   const landing = !selected && !draft && !promptDraft;
-  const panelRef = useFitToWindow([tab, landing]);
   const showAll = () => (setSelected(undefined), setDraft(undefined), setPromptDraft(undefined));
-  const usedBy = (roles?: string[]) => (roles?.length ? roles.map((r) => r.replace(/_/g, " ")).join(", ") : "any agent");
   return (
     <div className="page">
       <header className="page__head">
         <div>
           <span className="label">Intelligence</span>
           <h1 className="page__title">Prompts &amp; Skills</h1>
-          <p className="lrc__meta">How FlowCode's agents think and act: the versioned prompts for each role, the skills they follow (design, UX, testing and more), the tools they're allowed to use, and the skills FlowCode proposes from what went wrong in past builds.</p>
+          <p className="lrc__meta">How FlowCode's agents think and act: the versioned prompts for each role, the skills they follow (design, UX, testing and more) including the ones FlowCode proposes from what went wrong in past builds, and the tools they're allowed to use.</p>
         </div>
       </header>
       <div className="page-tabs">
-        <Tabs label="library" value={tab} onChange={(t) => (setTab(t), setSelected(undefined), setDraft(undefined), setPromptDraft(undefined))} tabs={[{ id: "prompts", label: "Prompts", count: prompts.data?.length }, { id: "skills", label: "Skills", count: skills.data?.length }, { id: "tools", label: "Built-in tools" }, { id: "servers", label: "Connected servers" }, { id: "proposals", label: "Proposed by FlowCode", count: proposalCount || undefined }, { id: "pipeline", label: "Skill pipeline" }]} />
+        <Tabs label="library" value={tab} onChange={(t) => (setTab(t), setSelected(undefined), setDraft(undefined), setPromptDraft(undefined))} tabs={[{ id: "prompts", label: "Prompts", count: prompts.data ? prompts.data.length + REQUEST_TEMPLATES.length : undefined }, { id: "skills", label: "Skills", count: skills.data?.length }, { id: "proposals", label: "Proposed by FlowCode", count: proposalCount }, { id: "tools", label: "Built-in tools", count: toolCount }, { id: "servers", label: "Connected servers", count: serverCount }]} />
         {tab === "tools" ? (
           <div role="tabpanel" id="panel-library-tools" aria-labelledby="tab-library-tools" className="library-tools">
             <AgentTools />
@@ -244,24 +197,19 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
           </div>
         ) : tab === "proposals" ? (
           <div role="tabpanel" id="panel-library-proposals" aria-labelledby="tab-library-proposals" className="library-grid">
-            <SkillProposals onOpenSkill={(id) => (setTab("skills"), setSelected(id))} layout={proposalLayout} layoutToggle={<ViewLayoutToggle layout={proposalLayout} setLayout={setProposalLayout} label="Show proposals as" />} />
+            <SkillProposals onOpenSkill={(id) => (setTab("skills"), setSelected(id))} />
           </div>
-        ) : tab === "pipeline" ? (
-          <div role="tabpanel" id="panel-library-pipeline" aria-labelledby="tab-library-pipeline" className="library-pipeline">
-            <LibraryOverview embedded />
-          </div>
-        ) : landing ? (
+        ) : (
           <div key="grid" role="tabpanel" id={`panel-library-${tab}`} aria-labelledby={`tab-library-${tab}`} className="library-grid">
             <div className="library-grid__bar">
               <p className="muted">
                 {tab === "skills"
                   ? `${skills.data?.length ?? 0} skills. Agents use the ones that match their role and the task in front of them.`
-                  : `${prompts.data?.length ?? 0} prompts. Each agent role starts from one of these; your edits are versioned.`}
+                  : `${(prompts.data?.length ?? 0) + REQUEST_TEMPLATES.length} prompts: ${prompts.data?.length ?? 0} that each agent starts from (yours to edit, every edit versioned) and ${REQUEST_TEMPLATES.length} build prompts FlowCode applies on its own.`}
               </p>
               <div className="library-grid__actions">
                 {tab === "skills" ? (
                   <>
-                    <ViewLayoutToggle layout={skillLayout} setLayout={setSkillLayout} label="Show skills as" />
                     <SkillImportButton onImport={(spec) => startNew(spec)} />
                     <button className="btn btn--sm btn--primary" data-cp="lib-new-skill" onClick={() => startNew()}>
                       <Plus size={14} strokeWidth={2.25} aria-hidden="true" />
@@ -270,7 +218,6 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
                   </>
                 ) : (
                   <>
-                    <ViewLayoutToggle layout={promptLayout} setLayout={setPromptLayout} label="Show prompts as" />
                     <PromptImportButton onImport={(spec) => startPrompt(spec)} />
                     <button className="btn btn--sm btn--primary" data-cp="lib-new-prompt" onClick={() => startPrompt()}>
                       <Plus size={14} strokeWidth={2.25} aria-hidden="true" />
@@ -281,25 +228,13 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
               </div>
             </div>
             {tab === "skills" ? (
-              <SkillGrid skills={skills.data ?? []} onOpen={setSelected} usedBy={usedBy} layout={skillLayout} />
-            ) : promptLayout === "list" ? (
-              <ul className="skill-rows" aria-label="Prompts">
-                {prompts.data?.map((x) => (
-                  <li key={x.id}>
-                    <button type="button" className="skill-row" onClick={() => setSelected(x.id)}>
-                      <strong className="skill-row__title">{x.title}</strong>
-                      <span className="skill-row__purpose">{x.purpose}</span>
-                      <span className="skill-row__meta">
-                        {x.scope !== "global" ? <span className="chip">{x.scope}</span> : null}
-                        <span>{usedBy(x.roles)}</span>
-                        <span className="mono">v{x.version}</span>
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <SkillGrid skills={skills.data ?? []} onOpen={setSelected} onToggle={(s, on) => void post("/skills", { ...s, enabled: on }).then(skills.reload)} />
             ) : (
-            <ul className="lib-cards" aria-label={tab}>
+            <>
+            <h3 className="styles-group__title lib-group-title">
+              Agent prompts <span className="muted">{prompts.data?.length ?? 0}</span>
+            </h3>
+            <ul className="lib-cards" aria-label="Agent prompts">
               {prompts.data?.map((x) => (
                     <li key={x.id}>
                       <button type="button" className="lib-card" onClick={() => setSelected(x.id)}>
@@ -309,13 +244,14 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
                         </span>
                         <span className="lib-card__purpose">{x.purpose}</span>
                         <span className="lib-card__meta">
-                          <span>Used by {usedBy(x.roles)}</span>
+                          <span className="lib-card__used">Used by <AgentHeads roles={x.roles} id={`pc-${x.id}`} max={2} /></span>
                           {x.scope !== "global" ? <span className="chip">{x.scope}</span> : null}
                         </span>
                       </button>
                     </li>
                   ))}
             </ul>
+            </>
             )}
             {tab === "prompts" ? (
               <section className="req-tpls" aria-labelledby="req-tpls-title">
@@ -326,15 +262,18 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
                 <ul className="lib-cards" aria-label="Build prompts">
                   {REQUEST_TEMPLATES.map((t) => (
                     <li key={t.id}>
-                      <div className="lib-card req-tpl-card">
+                      <button type="button" className="lib-card req-tpl-card" onClick={() => setTplId(t.id)}>
                         <span className="lib-card__top">
                           <strong className="lib-card__title">{t.label}</strong>
+                          <span className="chip">built in</span>
                         </span>
                         <span className="lib-card__purpose">{t.description}</span>
                         <span className="lib-card__meta">
-                          <span>Skills: {t.skills.map((s) => s.replace(/^skill\./, "")).join(", ")}</span>
+                          <span>
+                            {t.skills.length} skill{t.skills.length === 1 ? "" : "s"}: {t.skills.map((id) => skillTitle(id)).join(", ")}
+                          </span>
                         </span>
-                      </div>
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -344,131 +283,74 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
               <p className="muted">{tab === "skills" ? "No skills yet. Create one, or import a Markdown file." : "No prompts yet. Create one, or import a Markdown file."}</p>
             ) : null}
           </div>
-        ) : (
-        <div key="split" ref={panelRef} role="tabpanel" id={`panel-library-${tab}`} aria-labelledby={`tab-library-${tab}`} className="library-panel">
-          <div className="library-panel__list" tabIndex={-1}>
-          <button type="button" className="btn btn--sm btn--ghost library-panel__back" onClick={showAll}>
-            <LayoutGrid size={14} aria-hidden="true" />
-            {tab === "skills" ? "All skills" : "All prompts"}
-          </button>
-          {tab === "prompts" ? (
-            <div className="skill-toolbar">
-              <button className="btn btn--sm btn--primary" onClick={() => startPrompt()}>
-                <Plus size={14} strokeWidth={2.25} aria-hidden="true" />
-                New prompt
-              </button>
-              <PromptImportButton onImport={(spec) => startPrompt(spec)} />
-            </div>
-          ) : null}
-          {tab === "skills" ? (
-            <div className="skill-toolbar">
-              <button className="btn btn--sm btn--primary" onClick={() => startNew()}>
-                <Plus size={14} strokeWidth={2.25} aria-hidden="true" />
-                New skill
-              </button>
-              <SkillImportButton onImport={(spec) => startNew(spec)} />
-            </div>
-          ) : null}
-          {tab === "skills" ? (
-            <>
-              <label className="skill-sort">
-                <span>Sort</span>
-                <select className="select" value={skillSort} onChange={(e) => setSkillSort(e.target.value as typeof skillSort)} aria-label="Sort skills">
-                  <option value="recent">Recently updated</option>
-                  <option value="category">By category</option>
-                  <option value="name">By name</option>
-                </select>
-              </label>
-              {(skillSort === "category"
-                ? SKILL_CATEGORIES.map((c) => ({ id: c.id, label: c.label, items: (skills.data ?? []).filter((x) => categoryOf(x) === c.id) })).filter((g) => g.items.length)
-                : [{ id: "all", label: "", items: skillSort === "name" ? [...(skills.data ?? [])].sort((p, q) => skillTitle(p.id).localeCompare(skillTitle(q.id))) : skills.data ?? [] }]
-              ).map((g) => (
-                <div key={g.id} className="skill-sort__group">
-                  {g.label ? (
-                    <p className="skill-sort__heading">
-                      <i className="lib-shelf__spine" style={{ background: CAT_COLOR[g.id as SkillCategory] }} aria-hidden="true" />
-                      {g.label} <span className="skill-browse__n">{g.items.length}</span>
-                    </p>
-                  ) : null}
-                  <ul className="skill-cards" aria-label={g.label || "skills"}>
-                    {g.items.map((x) => {
-                const on = x.enabled !== false;
-                return (
-                  <li key={x.id}>
-                    <button className={`skill-card${on ? "" : " is-off"}`} title={`Used by: ${x.roles?.length ? x.roles.map((r) => r.replace(/_/g, " ")).join(", ") : "any agent"}`} aria-current={selected === x.id} onClick={() => (setSelected(x.id), setDraft(undefined))}>
-                      <span className="skill-card__top">
-                        <strong>{skillTitle(x.id)}</strong>
-                        {x.source === "user" ? <span className="chip">yours</span> : null}
-                        {on ? null : <span className="chip">off</span>}
-                        <span className="skill-card__ver mono">v{x.version}</span>
-                      </span>
-                      <span className="skill-card__purpose" title={x.purpose}>
-                        {x.purpose}
-                      </span>
-                    </button>
-                  </li>
-                );
-                    })}
-                  </ul>
-                </div>
-              ))}
-            </>
-          ) : (
-          // Prompts use the same card treatment as skills.
-          <ul className="skill-cards" aria-label="prompts">
-            {prompts.data?.map((x) => (
-              <li key={x.id}>
-                <button className="skill-card" title={`${x.id} · used by: ${x.roles.map((r) => r.replace(/_/g, " ")).join(", ") || "any agent"}`} aria-current={selected === x.id} onClick={() => (setSelected(x.id), setPromptDraft(undefined))}>
-                  <span className="skill-card__top">
-                    <strong>{x.title}</strong>
-                    {x.scope !== "global" ? <span className="chip">{x.scope}</span> : null}
-                    <span className="skill-card__ver mono">v{x.version}</span>
-                  </span>
-                  <span className="skill-card__purpose" title={x.purpose}>
-                    {x.purpose}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          )}
-          </div>
-          <div className="library-panel__detail" tabIndex={0} aria-label="Details">
-            {promptDraft ? (
-              <PromptForm
-                key={promptDraft.title + promptDraft.template.length}
-                initial={promptDraft}
-                existingIds={(prompts.data ?? []).map((x) => x.id)}
-                onSaved={(id) => (setPromptDraft(undefined), setSelected(id), prompts.reload())}
-                onCancel={() => setPromptDraft(undefined)}
-              />
-            ) : draft ? (
-              <SkillForm
-                key={draft.spec.id + draft.spec.version + draft.isNew}
-                initial={draft.spec}
-                isNew={draft.isNew}
-                existingIds={(skills.data ?? []).map((x) => x.id)}
-                onSaved={(id) => (setDraft(undefined), setSelected(id), skills.reload())}
-                onCancel={() => setDraft(undefined)}
-              />
-            ) : prompt ? (
-              <PromptDetail prompt={prompt} onSaved={prompts.reload} />
-            ) : skill ? (
-              <SkillDetail key={skill.id + skill.version} skill={skill} onChanged={skills.reload} onEdit={() => setDraft({ spec: skill, isNew: false })} onDeleted={() => (setSelected(undefined), skills.reload())} />
-            ) : (
-              <p className="muted">{tab === "skills" ? "Select a skill, or create one. Agents automatically use the skills that match their role and task." : "Select an item to inspect its specification."}</p>
-            )}
-          </div>
-        </div>
         )}
       </div>
+      {tpl ? (
+        <LibModal label="Build prompt · built in" onClose={() => setTplId(undefined)}>
+          <div className="tpl-detail">
+            <div>
+              <h2 className="tpl-detail__title">{tpl.label}</h2>
+              <p className="dim">{tpl.description}</p>
+            </div>
+            <p className="muted tpl-detail__how">FlowCode applies this on its own: when your request or PRD describes this kind of feature, the planner gets this outline and the coding steps get its skills.</p>
+            <section className="tpl-detail__section">
+              <span className="label">Skills it brings in</span>
+              <ul className="tpl-detail__skills">
+                {tpl.skills.map((id) => {
+                  const sk = skills.data?.find((x) => x.id === id);
+                  return (
+                    <li key={id}>
+                      <button type="button" className="tpl-skill" onClick={() => (setTplId(undefined), setTab("skills"), setSelected(id))}>
+                        <strong>{skillTitle(id)}</strong>
+                        {sk ? <span className="muted">{sk.purpose}</span> : null}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+            <section className="tpl-detail__section">
+              <span className="label">The outline the planner works from</span>
+              <pre className="tpl-detail__body">{tpl.body}</pre>
+            </section>
+          </div>
+        </LibModal>
+      ) : null}
+      {!landing ? (
+        // A prompt or skill opens in a modal over the cards, so the page behind it stays where it was.
+        <LibModal onClose={showAll} label={promptDraft ? "New prompt" : draft ? (draft.isNew ? "New skill" : "Edit skill") : prompt ? "Prompt" : "Skill"}>
+              {promptDraft ? (
+                <PromptForm
+                  key={promptDraft.title + promptDraft.template.length}
+                  initial={promptDraft}
+                  existingIds={(prompts.data ?? []).map((x) => x.id)}
+                  onSaved={(id) => (setPromptDraft(undefined), setSelected(id), prompts.reload())}
+                  onCancel={() => setPromptDraft(undefined)}
+                />
+              ) : draft ? (
+                <SkillForm
+                  key={draft.spec.id + draft.spec.version + draft.isNew}
+                  initial={draft.spec}
+                  isNew={draft.isNew}
+                  existingIds={(skills.data ?? []).map((x) => x.id)}
+                  onSaved={(id) => (setDraft(undefined), setSelected(id), skills.reload())}
+                  onCancel={() => setDraft(undefined)}
+                />
+              ) : prompt ? (
+                <PromptDetail prompt={prompt} onSaved={prompts.reload} />
+              ) : skill ? (
+                <SkillDetail key={skill.id + skill.version} skill={skill} onChanged={skills.reload} onEdit={() => setDraft({ spec: skill, isNew: false })} onDeleted={() => (setSelected(undefined), skills.reload())} />
+              ) : (
+                null
+              )}
+        </LibModal>
+      ) : null}
     </div>
   );
 }
 
 function PromptDetail({ prompt, onSaved }: { prompt: PromptSpec; onSaved: () => void }) {
   const [template, setTemplate] = useState(prompt.template);
-  const [versions, setVersions] = useState<PromptSpec[]>();
   const [error, setError] = useState<string>();
   const bump = (v: string) => {
     const [a, b] = v.split(".").map(Number);
@@ -513,30 +395,10 @@ function PromptDetail({ prompt, onSaved }: { prompt: PromptSpec; onSaved: () => 
         <textarea id="tpl" className="textarea mono" style={{ minHeight: 260, fontSize: 11 }} value={template} onChange={(e) => setTemplate(e.target.value)} />
       </div>
       {error ? <p role="alert" className="notice notice--bad">{error}</p> : null}
-      {versions ? (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Version</th>
-              <th>Changelog</th>
-            </tr>
-          </thead>
-          <tbody>
-            {versions.map((v) => (
-              <tr key={v.version}>
-                <td className="mono">{v.version}</td>
-                <td>{v.changelog.at(-1)?.note}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : null}
+      <VersionHistory path={`/prompts/${prompt.id}/versions`} current={prompt.version} />
       <div className="detail-actions">
         <button className="btn btn--primary" disabled={template === prompt.template} onClick={save}>
           Save as v{bump(prompt.version)}
-        </button>
-        <button className="btn" onClick={() => get<PromptSpec[]>(`/prompts/${prompt.id}/versions`).then(setVersions)}>
-          Version history
         </button>
       </div>
     </div>

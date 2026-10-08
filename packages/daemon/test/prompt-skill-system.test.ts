@@ -161,7 +161,7 @@ describe("project rules, role prompts and request templates", () => {
     expect(selectSkills(BUILTIN_SKILLS, "planner", "Rename a variable").map((s) => s.id)).not.toContain("skill.project-rules");
     const { ROLE_PROMPTS } = await import("../src/orchestrator/prompts.js");
     const v = Object.fromEntries(ROLE_PROMPTS.map((p) => [p.id, p]));
-    expect(v["role.planner"].version).toBe("1.6.0");
+    expect(v["role.planner"].version).toBe("1.7.0");
     // Builds are prototypes: planner and coder both get the rules.
     for (const id of ["role.planner", "role.coder"]) expect(v[id].template).toMatch(/clickable PROTOTYPE[\s\S]*src\/sim/);
     expect(v["role.planner"].template).toMatch(/Not in this build/);

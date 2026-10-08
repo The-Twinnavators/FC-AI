@@ -3,11 +3,13 @@
  * plus summary cards. Built from the event log and the versioned library; nothing is sampled or estimated.
  */
 import type { App } from "../app.js";
+import { ACTIVE_ROLES, appliesToRole } from "@flowcode/contracts";
 
 export type LibWindow = "24h" | "7d" | "30d";
 
 const PROMPT_ROLES = new Set(["planner", "coder", "debugger", "critic", "researcher", "documenter"]);
-const ALL_ROLES = ["planner", "researcher", "repository_analyst", "coder", "debugger", "reviewer", "designer", "critic", "security_qa", "accessibility_qa", "compliance_triage", "documenter"];
+// Only the agents that run: a skill for "designer" counts for the Coder, and so on (agentRoles.ts).
+const ALL_ROLES = [...ACTIVE_ROLES];
 
 export function libraryStats(app: App, window: LibWindow) {
   const DAY = 86_400_000;
@@ -62,7 +64,7 @@ export function libraryStats(app: App, window: LibWindow) {
   const skills = app.store.skills.list("updated_at DESC", 500);
   const totalVersions = Number((db.get<{ n: number }>("SELECT (SELECT COUNT(*) FROM prompt_versions) + (SELECT COUNT(*) FROM skill_versions) AS n") ?? { n: 0 }).n);
   const enabled = skills.filter((s) => s.enabled !== false);
-  const covered = ALL_ROLES.filter((role) => enabled.some((s) => !s.roles?.length || s.roles.includes(role)));
+  const covered = ALL_ROLES.filter((role) => enabled.some((s) => appliesToRole(s.roles, role)));
   const top = [...skillUse.entries()].sort((a, b) => b[1] - a[1])[0];
   const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
 

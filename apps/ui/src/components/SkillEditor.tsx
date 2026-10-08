@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { AgentRole, TOOL_NAMES, type SkillSpec } from "@flowcode/contracts";
 import { ConfirmButton } from "./ConfirmButton";
+import { VersionHistory } from "./LibModal";
 import { get, post } from "../api";
 
 const ROLES = AgentRole.options;
@@ -91,7 +92,6 @@ export function SkillImportButton({ onImport }: { onImport: (s: SkillSpec) => vo
 }
 
 export function SkillDetail({ skill, onChanged, onEdit, onDeleted }: { skill: SkillSpec; onChanged: () => void; onEdit: () => void; onDeleted: () => void }) {
-  const [versions, setVersions] = useState<SkillSpec[]>();
   const [error, setError] = useState<string>();
   const enabled = skill.enabled !== false;
   const act = async (fn: () => Promise<unknown>) => {
@@ -111,8 +111,12 @@ export function SkillDetail({ skill, onChanged, onEdit, onDeleted }: { skill: Sk
           </h2>
           <p className="dim" style={{ margin: "4px 0 0" }}>{skill.purpose}</p>
         </div>
-        <span style={{ marginLeft: "auto", display: "flex", gap: 6, flex: "none" }}>
-          <span className={`chip ${enabled ? "chip--ok" : ""}`}>{enabled ? "on" : "off"}</span>
+        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
+          {/* On or off for every build, the same switch as connected servers. */}
+          <label className="mcp-switch" title={enabled ? "On: agents use this skill" : "Off: no agent uses it"}>
+            <input type="checkbox" checked={enabled} onChange={() => act(async () => (await post("/skills", { ...skill, enabled: !enabled }), onChanged()))} aria-label={`Use ${skill.id}`} />
+            <span aria-hidden="true" />
+          </label>
           <span className="chip">{skill.source === "user" ? "yours" : "built-in"}</span>
         </span>
       </div>
@@ -145,35 +149,10 @@ export function SkillDetail({ skill, onChanged, onEdit, onDeleted }: { skill: Sk
         <p style={{ marginTop: 6, whiteSpace: "pre-wrap" }}>{skill.instructions}</p>
       </div>
       {error ? <p role="alert" className="notice notice--bad">{error}</p> : null}
-      {versions ? (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Version</th>
-              <th>Date</th>
-              <th>Changelog</th>
-            </tr>
-          </thead>
-          <tbody>
-            {versions.map((v) => (
-              <tr key={v.version}>
-                <td className="mono">{v.version}</td>
-                <td className="mono">{v.changelog.at(-1)?.date ?? "—"}</td>
-                <td>{v.changelog.at(-1)?.note ?? "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : null}
+      <VersionHistory path={`/skills/${encodeURIComponent(skill.id)}/versions`} current={skill.version} />
       <div className="detail-actions">
         <button className="btn btn--primary" onClick={onEdit}>
           Edit
-        </button>
-        <button className="btn" onClick={() => act(async () => (await post("/skills", { ...skill, enabled: !enabled }), onChanged()))}>
-          {enabled ? "Turn off" : "Turn on"}
-        </button>
-        <button className="btn" onClick={() => act(async () => setVersions(await get<SkillSpec[]>(`/skills/${encodeURIComponent(skill.id)}/versions`)))}>
-          Version history
         </button>
         {skill.source === "user" ? (
           <span style={{ marginLeft: "auto" }}>

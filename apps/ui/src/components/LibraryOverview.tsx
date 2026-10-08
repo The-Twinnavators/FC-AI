@@ -38,13 +38,32 @@ const nice = (id: string) => {
   return t.charAt(0).toUpperCase() + t.slice(1);
 };
 
-function Ring({ value, color }: { value: number; color: string }) {
-  const r = 22;
-  const c = 2 * Math.PI * r;
+/**
+ * An isometric column for a share (0–1): a 3D block filled from the bottom in the card's colour (lit top, mid left,
+ * shaded right), with an empty glass track above it showing what's left.
+ */
+function IsoColumn({ value, color }: { value: number; color: string }) {
+  const v = Math.max(0, Math.min(1, value));
+  const cx = 28, w = 14, d = 7, base = 44, H = 34;
+  const top = base - H;
+  const y = base - H * v; // the top of the filled part
+  const left = (lo: number, hi: number) => `${cx - w},${hi} ${cx},${hi + d} ${cx},${lo + d} ${cx - w},${lo}`;
+  const right = (lo: number, hi: number) => `${cx},${hi + d} ${cx + w},${hi} ${cx + w},${lo} ${cx},${lo + d}`;
+  const lid = (at: number) => `${cx - w},${at} ${cx},${at - d} ${cx + w},${at} ${cx},${at + d}`;
+  const shade = (pct: number, to: string) => ({ fill: `color-mix(in srgb, ${color} ${pct}%, ${to})` });
   return (
-    <svg className="lib-card__ring" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
-      <circle cx="28" cy="28" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5" />
-      <circle cx="28" cy="28" r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${Math.max(0.02, Math.min(1, value)) * c} ${c}`} transform="rotate(-90 28 28)" />
+    <svg className="lib-card__ring lib-card__iso" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+      {/* The empty track: the whole column, faint. */}
+      <polygon points={left(base, top)} className="iso-track iso-track--l" />
+      <polygon points={right(base, top)} className="iso-track iso-track--r" />
+      <polygon points={lid(top)} className="iso-track iso-track--t" />
+      {v > 0 ? (
+        <>
+          <polygon points={left(base, y)} style={shade(88, "black")} />
+          <polygon points={right(base, y)} style={shade(62, "black")} />
+          <polygon points={lid(y)} style={shade(70, "white")} />
+        </>
+      ) : null}
     </svg>
   );
 }
@@ -85,11 +104,10 @@ export function LibraryOverview({ embedded = false }: { embedded?: boolean } = {
 
   return (
     <section className={`lib-overview${embedded ? " lib-overview--embedded" : ""}`} aria-label="Skill pipeline">
-      <header className="lib-overview__head">
+      <header className={embedded ? "library-grid__bar" : "lib-overview__head"}>
         {embedded ? (
-          <span className="lib-overview__toggle">
-            <Logo size={14} /> How skills flow into your builds
-          </span>
+          // On its own page the page header already explains it; the bar just holds the time window.
+          <span className="muted">Time window</span>
         ) : (
           <button className="lib-overview__toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
             <ChevronDown size={14} aria-hidden="true" style={{ transform: open ? "none" : "rotate(-90deg)", transition: "transform .15s" }} />
@@ -145,7 +163,7 @@ export function LibraryOverview({ embedded = false }: { embedded?: boolean } = {
                 </div>
                 <strong className={`lib-card__value${k.small ? " is-small" : ""}`}>{k.value}</strong>
                 <span className="lib-card__sub muted">{k.sub}</span>
-                {k.ring !== undefined ? <Ring value={k.ring} color={k.color} /> : null}
+                {k.ring !== undefined ? <IsoColumn value={k.ring} color={k.color} /> : null}
               </div>
             ))}
           </div>

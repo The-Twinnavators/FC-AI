@@ -5,7 +5,8 @@
  */
 import { useState } from "react";
 import { useResource } from "../api";
-import { Icon } from "./ui";
+import { AgentHeads, LibModal } from "./LibModal";
+import { SkeletonBlock } from "./motion";
 
 interface Tool {
   name: string;
@@ -16,53 +17,14 @@ interface Tool {
   examples: string[];
 }
 
+const RISKY = (a: Tool["access"]) => a === "write" || a === "execute";
+
 export function AgentTools() {
   const { data } = useResource<Tool[]>("/system/tools");
   const [selected, setSelected] = useState<string>();
-  if (!data) return null;
+  if (!data) return <SkeletonBlock rows={4} label="Loading the tools agents can use" />;
   const tool = data.find((t) => t.name === selected);
-  if (tool)
-    return (
-      <div style={{ display: "grid", gap: 16, maxWidth: 820 }}>
-        <button className="btn btn--ghost btn--sm" style={{ justifySelf: "start" }} onClick={() => setSelected(undefined)}>
-          ← Back to all tools
-        </button>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <h2 className="mono" style={{ margin: 0, fontSize: 22 }}>
-            {tool.name}
-          </h2>
-          <span className={`chip ${tool.access === "write" || tool.access === "execute" ? "chip--warn" : "chip--ok"}`} style={{ marginLeft: "auto" }}>
-            {tool.access}
-          </span>
-        </div>
-        <p className="dim" style={{ margin: 0 }}>
-          {tool.description}
-        </p>
-        <dl className="kv">
-          <dt>Execution policy</dt>
-          <dd>{tool.policy}</dd>
-          <dt>Agents allowed</dt>
-          <dd>{tool.roles.join(", ")}</dd>
-        </dl>
-        <div style={{ display: "grid", gap: 8 }}>
-          <span className="label">example requests</span>
-          {tool.examples.map((e) => (
-            <div key={e} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", border: "1px solid var(--line)", borderRadius: 8, background: "var(--bg-2)" }}>
-              <Icon name="chevron" size={13} />
-              <em style={{ flex: 1 }}>"{e}"</em>
-              <button
-                className="btn btn--sm"
-                onClick={() => {
-                  void navigator.clipboard?.writeText(e);
-                }}
-              >
-                Copy
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+  const requests = (tool?.examples ?? []).filter((e) => !e.trim().startsWith("("));
   const groups: Array<[string, Tool[]]> = [
     ["Read", data.filter((t) => t.access === "read")],
     ["Write", data.filter((t) => t.access === "write")],
@@ -70,37 +32,76 @@ export function AgentTools() {
     ["Control", data.filter((t) => t.access === "control")],
   ];
   return (
-    <div style={{ display: "grid", gap: 16 }}>
-      <p className="muted" style={{ margin: 0 }}>
-        Agents act only through these governed tools. Every call is validated, policy-checked, logged and — for writes — snapshotted first.
-      </p>
-      {groups.map(([g, tools]) => (
-        <section key={g}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <span className="label" style={{ color: g === "Write" || g === "Execute" ? "var(--sig-warn)" : "var(--sig-ok)" }}>
-              {g}
-            </span>
-            <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
-            <span className="mono muted">{tools.length}</span>
-          </div>
-          <div style={{ border: "1px solid var(--line)", borderRadius: 8, overflow: "hidden" }}>
+    <div className="lib-tools">
+      <div className="library-grid__bar">
+        <p className="muted">Agents act only through these governed tools. Every call is validated, policy-checked, logged and — for writes — snapshotted first.</p>
+      </div>
+      {/* The same cards as Skills, one group per kind of access; a card opens the tool in the modal. */}
+      {groups.filter(([, tools]) => tools.length).map(([g, tools]) => (
+        <section key={g} className="lib-tools__group" aria-label={`${g} tools`}>
+          <p className="skill-sort__heading">
+            <i className="lib-shelf__spine" style={{ background: RISKY(tools[0]!.access) ? "var(--sig-warn)" : "var(--sig-ok)" }} aria-hidden="true" />
+            {g} <span className="skill-browse__n">{tools.length}</span>
+          </p>
+          <ul className="lib-cards">
             {tools.map((t) => (
-              <button key={t.name} onClick={() => setSelected(t.name)} className="tool-row">
-                <span className={`chip ${g === "Write" || g === "Execute" ? "chip--warn" : "chip--ok"}`}>{t.access}</span>
-                <strong className="mono" style={{ fontSize: 12.5 }}>
-                  {t.name}
-                </strong>
-                <span className="muted" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  — {t.description}
-                </span>
-                <span className="mono muted" style={{ fontSize: 11 }}>
-                  {t.roles.slice(0, 3).map((r) => `#${r}`).join(" ")}
-                </span>
-              </button>
+              <li key={t.name}>
+                <button type="button" className="lib-card" onClick={() => setSelected(t.name)}>
+                  <span className="lib-card__top">
+                    <strong className="lib-card__title mono">{t.name}</strong>
+                    <span className={`chip ${RISKY(t.access) ? "chip--warn" : "chip--ok"}`}>{t.access}</span>
+                  </span>
+                  <span className="lib-card__purpose">{t.description}</span>
+                  <span className="lib-card__meta">
+                    <span className="lib-card__used">
+                      Used by <AgentHeads roles={t.roles} id={`tool-${t.name}`} max={2} />
+                    </span>
+                  </span>
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       ))}
+      {tool ? (
+        <LibModal label="Built-in tool" onClose={() => setSelected(undefined)}>
+          <div style={{ display: "grid", gap: 14 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div style={{ minWidth: 0 }}>
+                <h2 className="mono" style={{ margin: 0, fontSize: 18 }}>
+                  {tool.name}
+                </h2>
+                <p className="dim" style={{ margin: "4px 0 0" }}>
+                  {tool.description}
+                </p>
+              </div>
+              <span className={`chip ${RISKY(tool.access) ? "chip--warn" : "chip--ok"}`} style={{ marginLeft: "auto", flex: "0 0 auto" }}>
+                {tool.access}
+              </span>
+            </div>
+            <dl className="kv">
+              <dt>Execution policy</dt>
+              <dd>{tool.policy}</dd>
+              <dt>Agents allowed</dt>
+              <dd>
+                <AgentHeads roles={tool.roles} id={`toold-${tool.name}`} />
+              </dd>
+            </dl>
+            {/* What you'd ask in a project's chat for an agent to use this tool. Read-only: an explanation, not an action.
+                Notes in brackets ("used by agents to claim completion") aren't requests anyone types, so they're left out. */}
+            {requests.length ? (
+              <div className="tool-asks">
+                <span className="label">Agents use it when you ask, for example</span>
+                <ul>
+                  {requests.map((e) => (
+                    <li key={e}>“{e}”</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        </LibModal>
+      ) : null}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { ApprovalCard } from "../components/ApprovalCard";
 import { Tabs, ago } from "../components/ui";
 import { navigate } from "../router";
 import { DecisionCalendar, type LogEntry } from "../components/DecisionCalendar";
+import { SkillProposals } from "../components/SkillProposals";
 
 interface Decision {
   id: string;
@@ -40,7 +41,9 @@ export function ApprovalsView({ projects }: { projects: Project[] }) {
   const pending = useResource<Approval[]>("/approvals", [], 10_000);
   const history = useResource<Approval[]>("/approvals/history?limit=500", [], 0);
   const decisions = useResource<Decision[]>("/decisions?limit=5000", [], 0);
-  const [tab, setTab] = useState<"waiting" | "ideas" | "log">("waiting");
+  const [tab, setTab] = useState<"waiting" | "ideas" | "proposed" | "log">("waiting");
+  const proposals = useResource<{ items: Array<{ status: string }> }>("/skill-proposals", [], 30_000);
+  const proposed = (proposals.data?.items ?? []).filter((i) => i.status === "proposed").length;
   const [kind, setKind] = useState("");
   const name = useMemo(() => new Map(projects.map((p) => [p.id, p.name.replace(/\s+/g, " ")])), [projects]);
   const reload = () => {
@@ -79,8 +82,9 @@ export function ApprovalsView({ projects }: { projects: Project[] }) {
         value={tab}
         onChange={(v) => setTab(v as typeof tab)}
         tabs={[
-          { id: "waiting", label: `Waiting on you${blocking.length ? ` (${blocking.length})` : ""}` },
-          { id: "ideas", label: `Suggestions${ideas.length ? ` (${ideas.length})` : ""}` },
+          { id: "waiting", label: "Waiting on you", count: blocking.length },
+          { id: "ideas", label: "Suggestions", count: ideas.length },
+          { id: "proposed", label: "Proposed by FlowCode", count: proposed },
           { id: "log", label: "Decision log" },
         ]}
       />
@@ -143,6 +147,12 @@ export function ApprovalsView({ projects }: { projects: Project[] }) {
         ) : (
           <p className="apv-empty">No suggestions right now.</p>
         )
+      ) : null}
+      {tab === "proposed" ? (
+        <>
+          <p className="muted apv-note">Skills FlowCode drafted after the same failure kept happening in its own builds, waiting for you to turn them on or dismiss them. The ones already on are under Prompts &amp; Skills → Proposed by FlowCode.</p>
+          <SkillProposals waitingOnly onOpenSkill={(id) => navigate(`/library?tab=skills&open=${encodeURIComponent(id)}`)} />
+        </>
       ) : null}
       {tab === "log" ? (
         <section className="apv-log" aria-label="Decision log">

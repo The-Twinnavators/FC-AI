@@ -46,7 +46,7 @@ for (let i = 0; i < 60; i++) {
   await new Promise((r) => setTimeout(r, 500));
   const up = await fetch(`http://127.0.0.1:${PORT}/health`, { headers: { authorization: `Bearer ${TOKEN}` } }).then((r) => r.ok, () => false);
   if (up) {
-    console.log(`\nEmpty FlowCode is running${keep ? " (kept from last time)" : ""}. Open:\n\n  http://127.0.0.1:5199/?port=${PORT}&token=${TOKEN}\n\nYour real FlowCode stays on http://localhost:5199. Ctrl+C stops the empty one.\n`);
+    console.log(`\nEmpty FlowCode is running${keep ? " (kept from last time)" : ""}. Open:\n\n  http://127.0.0.1:5199/?port=${PORT}&token=${TOKEN}&temp=1\n\nYour real FlowCode stays on http://localhost:5199. Ctrl+C stops the empty one; it's remembered in that tab only.\n`);
     break;
   }
 }

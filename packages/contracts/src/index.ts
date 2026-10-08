@@ -15,3 +15,4 @@ export * from "./palette.js";
 export * from "./componentStyles.js";
 export * from "./plainLanguage.js";
 export * from "./discovery.js";
+export * from "./agentRoles.js";

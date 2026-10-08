@@ -18,12 +18,24 @@ declare global {
 function connection(): { base: string; token: string } {
   if (window.flowcode) return { base: `http://127.0.0.1:${window.flowcode.port}`, token: window.flowcode.token };
   const q = new URLSearchParams(location.search);
-  const port = q.get("port") ?? localStorage.getItem("fc.port") ?? "";
-  const token = q.get("token") ?? localStorage.getItem("fc.token") ?? "";
+  // A temporary copy (npm run dev:empty opens with ?temp=1) is remembered for this tab only, so it never replaces
+  // your real FlowCode on later visits.
+  const temp = q.get("temp") === "1";
+  const read = (k: string) => {
+    try {
+      return sessionStorage.getItem(k) ?? localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  };
+  const port = q.get("port") ?? read("fc.port") ?? "";
+  const token = q.get("token") ?? read("fc.token") ?? "";
   if (q.get("port")) {
     try {
-      localStorage.setItem("fc.port", port);
-      localStorage.setItem("fc.token", token);
+      const store = temp ? sessionStorage : localStorage;
+      store.setItem("fc.port", port);
+      store.setItem("fc.token", token);
+      if (!temp) (sessionStorage.removeItem("fc.port"), sessionStorage.removeItem("fc.token"));
     } catch {
       /* storage unavailable */
     }
