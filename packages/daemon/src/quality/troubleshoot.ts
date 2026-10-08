@@ -127,7 +127,10 @@ export async function troubleshoot(app: App, runId: string, taskId?: string, exp
     if (findings.length) parts.push(`Previous failure notes:\n${findings.slice(-6).join("\n---\n").slice(-4000)}`);
   }
   const cmds = app.store.commands.where("run_id = ? ORDER BY created_at DESC", runId).filter((c) => !task || c.taskId === task.id || !c.taskId);
-  const failedCmds = cmds.filter((c) => c.status === "failed" || c.status === "blocked").slice(0, 4);
+  // Only failures that still stand: a command that failed and later passed (the same command line) is history, not a
+  // cause. Kids cash app: the stop report blamed `any` types and a file that were fixed and gone hours earlier.
+  const passedLater = (c: (typeof cmds)[number]) => cmds.some((d) => d.status === "succeeded" && d.createdAt > c.createdAt && d.argv.join(" ") === c.argv.join(" "));
+  const failedCmds = cmds.filter((c) => (c.status === "failed" || c.status === "blocked") && !passedLater(c)).slice(0, 4);
   for (const c of failedCmds) parts.push(`Command failed: ${c.argv.join(" ")} (exit ${c.exitCode ?? "?"})\n${(c.outputPreview ?? "").split("\n").filter((l) => !/ExperimentalWarning|trace-warnings/.test(l)).join("\n").slice(-1800)}`);
   const calls = app.store.toolCalls.where("run_id = ? ORDER BY created_at DESC", runId).filter((c) => !task || c.taskId === task.id);
   const badCalls = calls.filter((c) => c.status === "failed" || c.status === "rejected").slice(0, 6);

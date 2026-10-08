@@ -28,8 +28,12 @@ function connection(): { base: string; token: string } {
       return null;
     }
   };
-  const port = q.get("port") ?? read("fc.port") ?? "";
-  const token = q.get("token") ?? read("fc.token") ?? "";
+  // Development only (the dev server, never a built FlowCode): a tab with no saved connection, such as a new browser or
+  // 127.0.0.1 instead of localhost, uses the development service's port and key (scripts/dev-daemon.mjs) instead of
+  // showing "Daemon connection missing".
+  const dev = import.meta.env.DEV ? { port: "7457", token: "dev-token-flowcode" } : undefined;
+  const port = q.get("port") ?? read("fc.port") ?? dev?.port ?? "";
+  const token = q.get("token") ?? read("fc.token") ?? dev?.token ?? "";
   if (q.get("port")) {
     try {
       const store = temp ? sessionStorage : localStorage;

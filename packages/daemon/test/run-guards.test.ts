@@ -77,4 +77,12 @@ describe("tokens still in use", () => {
     expect(undefinedTokens(after).map((t) => t.name).sort()).toEqual(["--color-accent", "--color-border"]);
     expect(undefinedTokens(usage())).toEqual([]);
   });
+  it("counts tokens a component sets inline, and leaves out the library's own rules", () => {
+    const u = tokenUsage([
+      { rel: "src/styles/library.css", text: ".fl-in-dual { background: linear-gradient(var(--fl-in-lo), var(--fl-in-hi)); }" },
+      { rel: "src/styles/app.css", text: ".bar { width: var(--fill); left: var(--x); top: var(--y); }" },
+      { rel: "src/Bar.tsx", text: `<div style={{ ["--fill" as string]: "40%", "--x": 2 }} />; el.style.setProperty('--y', "3px");` },
+    ]);
+    expect(undefinedTokens(u)).toEqual([]);
+  });
 });

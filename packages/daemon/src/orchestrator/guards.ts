@@ -461,9 +461,15 @@ export function tokenUsage(files: Array<{ rel: string; text: string }>): TokenUs
   const defined = new Map<string, string[]>();
   const add = (m: Map<string, string[]>, k: string, rel: string) => m.set(k, [...(m.get(k) ?? []), rel]);
   for (const { rel, text } of files) {
-    // A var() with a fallback still renders when the token is missing, so only bare uses count.
-    for (const m of text.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)) add(uses, m[1], rel);
+    // A var() with a fallback still renders when the token is missing, so only bare uses count. FlowCode's copy of the
+    // component library (src/styles/library.css) is left out: its rules read tokens their own components set inline,
+    // and a rule whose component isn't in the app never draws (No BIO & GMO build: the range slider's --fl-in-lo).
+    if (!/(^|\/)src\/styles\/library\.css$/.test(rel)) for (const m of text.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)) add(uses, m[1], rel);
     if (/\.(css|scss|pcss)$/i.test(rel)) for (const d of parseCustomProperties(text)) add(defined, d.name, rel);
+    // Set inline by a component: style={{ "--x": … }} (also ["--x" as string]), style="--x: …", or setProperty("--x", …).
+    else
+      for (const m of text.matchAll(/["'`](--[\w-]+)["'`](?:\s+as\s+\w+)?\s*\]?\s*:|setProperty\(\s*["'`](--[\w-]+)|style="[^"]*?(--[\w-]+)\s*:/g))
+        add(defined, (m[1] ?? m[2] ?? m[3])!, rel);
   }
   return { uses, defined };
 }

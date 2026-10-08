@@ -394,7 +394,7 @@ export function App() {
         {section === "library" && <LibraryView query={route.query} />}
         {section === "search" && <SearchView query={route.query} />}
         {section === "topics" && <TopicsView topicId={route.parts[1]} />}
-        {section === "quality" && (route.parts[1] ? <QualityView key={route.parts[1]} projectId={route.parts[1]} view={route.parts[2]} runId={route.parts[3]} projects={projects.data ?? []} /> : <QualityOverview projects={projects.data ?? []} reload={projects.reload} />)}
+        {section === "quality" && (route.parts[1] ? <QualityView key={route.parts[1]} projectId={route.parts[1]} view={route.parts[2]} runId={route.parts[3]} projects={projects.data ?? []} /> : <QualityOverview projects={projects.data ?? []} reload={projects.reload} loaded={projects.data !== undefined || !!projects.error} />)}
         {section === "reports" && <ReportsRedirect runId={route.parts[1]} />}
         {section === "settings" && <SettingsView projects={projects.data ?? []} />}
         {section === "guide" && <GuideView />}

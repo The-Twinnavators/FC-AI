@@ -9,6 +9,7 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { Boxes, Layers, Palette, RefreshCw, Sparkles, Undo2, Wand2 } from "lucide-react";
 import { ExtrasPanel } from "./ExtrasPanel";
+import { DESIGN_TEMPLATES } from "@flowcode/contracts";
 import { ComponentSheet, stylesChanged } from "./ComponentSheet";
 import { SurfacePanel } from "./SurfacePanel";
 import { StyleCapture } from "./StyleCapture";
@@ -48,6 +49,46 @@ const GROUPS: Array<{ id: Group; label: string }> = [
 const keyOf = (t: Token) => `${t.file}|${t.selector}|${t.name}`;
 const HEX = /^#([0-9a-f]{6})$/i;
 
+/**
+ * The design option this app uses: one of the visual styles, or Custom (captured, edited by hand, or from the PRD).
+ * It records who set it (FlowCode on New build, or you). Picking a style writes its colours, fonts and corners into
+ * the app's tokens, which can be undone in Changes.
+ */
+function DesignChoice({ projectId }: { projectId: string }) {
+  const choice = useResource<{ id: string; by?: "you" | "flowcode"; at?: string }>(`/projects/${projectId}/design/choice`, [projectId]);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string>();
+  const pick = async (id: string) => {
+    setBusy(true);
+    setMsg(undefined);
+    try {
+      await post(`/projects/${projectId}/design/choice`, { id });
+      choice.reload();
+      stylesChanged();
+      setMsg(id === "custom" ? "Recorded as Custom." : `Applied ${DESIGN_TEMPLATES.find((t) => t.id === id)?.name}. Undo it in Changes.`);
+    } catch (e) {
+      setMsg((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const by = choice.data?.by === "flowcode" ? "Set by FlowCode" : choice.data?.by === "you" ? "Set by you" : "";
+  return (
+    <label className="design-choice" title={by || "The design option this app uses"}>
+      <span className="sr-only">Design style</span>
+      <select className="select" value={choice.data?.id ?? "custom"} disabled={busy || !choice.data} onChange={(e) => void pick(e.target.value)}>
+        <option value="custom">Custom</option>
+        {DESIGN_TEMPLATES.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.name}
+          </option>
+        ))}
+      </select>
+      {msg ? <span className="design-choice__msg" role="status">{msg}</span> : by ? <span className="design-choice__by">{by}</span> : null}
+    </label>
+  );
+}
+
 export function StylesPanel({ projectId }: { projectId: string }) {
   const [view, setView] = useState<"tokens" | "surface" | "components" | "extras">("components");
   const [capturing, setCapturing] = useState(false);
@@ -68,9 +109,12 @@ export function StylesPanel({ projectId }: { projectId: string }) {
           <Sparkles size={14} aria-hidden="true" /> Extras
         </button>
       </div>
-        <button type="button" className="btn btn--sm" data-cp="capture-open" data-cp-safe aria-expanded={capturing} onClick={() => setCapturing((c) => !c)}>
-          <Wand2 size={14} aria-hidden="true" /> Capture a style
-        </button>
+        <div className="styles-top__actions">
+          <DesignChoice projectId={projectId} />
+          <button type="button" className="btn btn--sm" data-cp="capture-open" data-cp-safe aria-expanded={capturing} onClick={() => setCapturing((c) => !c)}>
+            <Wand2 size={14} aria-hidden="true" /> Capture a style
+          </button>
+        </div>
       </div>
       {capturing ? <StyleCapture projectId={projectId} onClose={() => setCapturing(false)} /> : null}
       {view === "extras" ? <ExtrasPanel projectId={projectId} /> : view === "tokens" ? <TokensView projectId={projectId} /> : view === "surface" ? <SurfacePanel projectId={projectId} /> : <ComponentSheet projectId={projectId} />}

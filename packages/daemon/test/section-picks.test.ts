@@ -43,3 +43,17 @@ describe("library section picks", () => {
     expect(sectionFile("hero-split")).toBe("src/sections/HeroSplit.tsx");
   });
 });
+
+describe("library styles in an app", () => {
+  it("are the base, the page backgrounds and only the categories the app's pieces use", async () => {
+    const { libraryStyles } = await import("../src/orchestrator/sectionRecipes.js");
+    const all = libraryStyles();
+    const cart = libraryStyles(`<aside className="fl-shop-drawer"><div className="fl-shop-line" /></aside>`);
+    const none = libraryStyles("");
+    expect(cart).toContain(".fl-shop-");
+    expect(cart).not.toContain(".fl-nb-");
+    expect(cart).toContain(".fl-bg-mesh");
+    expect(none.length).toBeLessThan(all.length / 3);
+    expect(cart.length).toBeLessThan(all.length / 2);
+  });
+});

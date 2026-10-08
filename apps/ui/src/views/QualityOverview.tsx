@@ -126,7 +126,7 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
   );
 }
 
-export function QualityOverview({ projects, reload }: { projects: Project[]; reload: () => void }) {
+export function QualityOverview({ projects, reload, loaded = true }: { projects: Project[]; reload: () => void; loaded?: boolean }) {
   return (
     <div className="page">
       <header className="page__head">
@@ -136,7 +136,7 @@ export function QualityOverview({ projects, reload }: { projects: Project[]; rel
           <p className="lrc__meta">Every prototype you've built, each with its Prototype plan and its Launch readiness checklist for the real app. Open one in the builder to keep iterating on the design.</p>
         </div>
       </header>
-      {!projects.length ? (
+      {loaded && !projects.length ? (
         <Empty title="No projects yet" action={<button className="btn btn--primary" onClick={() => navigate("/")}>Start a prototype</button>}>
           Each prototype gets its own Prototype plan and a Launch readiness checklist for the real app.
         </Empty>

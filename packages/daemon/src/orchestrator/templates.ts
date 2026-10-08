@@ -83,6 +83,8 @@ function scaffoldStep(templateId: string): (a: RuntimeStepArgs) => Promise<Agent
     const refs = deps.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []);
     const prdText = refs.filter((r) => r.role === "prd" || r.role === "text").map((r) => r.content).join("\n");
     const identity = withVibe(withTemplate(starterIdentity(refs, deps.store.projects.require(run.projectId).name, run.objective), designTemplate(look?.template)), look, `${run.objective}\n${prdText}`);
+    // The design option the app now has, shown on its Design tab: the style FlowCode applied, or Custom (the PRD's colours).
+    deps.store.setSetting(`designChoice:${run.projectId}`, { id: identity.template ? identity.template.id : "custom", by: "flowcode", at: new Date().toISOString() });
     for (const rel of files) {
       if (fs.existsSync(path.join(jail.root, rel))) continue;
       const content = personalizeStarterFile(rel, fs.readFileSync(path.join(dir, rel), "utf8"), identity);

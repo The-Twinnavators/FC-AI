@@ -15,6 +15,7 @@ import { setupStatus, testAndUse, useAsCoder } from "./setup.js";
 import { externalChanges, watchStops } from "../workspace/stamp.js";
 import { briefIdea } from "../orchestrator/ideaScout.js";
 import { isFinishedRun } from "@flowcode/contracts";
+import { designTemplate } from "@flowcode/contracts";
 import { execFileSync } from "node:child_process";
 import { createMobileApprovals } from "./mobile.js";
 import * as D from "../discovery/discovery.js";
@@ -541,12 +542,41 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       throw new HttpError(400, (e as Error).message);
     }
   });
+  // Styles → the design option this app uses: one of the visual styles (picked by you, or applied by FlowCode on New
+  // build) or Custom (captured, edited by hand, or set from the PRD). Picking a style writes its colours, fonts and
+  // corners into the tokens (snapshotted, so it can be undone).
+  const markCustomDesign = (projectId: string) => app.store.setSetting(`designChoice:${projectId}`, { id: "custom", by: "you", at: new Date().toISOString() });
+  add("GET /projects/:id/design/choice", ({ params }) => app.store.getSetting(`designChoice:${params.id}`, { id: "custom" }));
+  add("POST /projects/:id/design/choice", ({ params, body }) => {
+    const b = parse(z.object({ id: z.string().max(60) }), body);
+    const record = { id: b.id, by: "you", at: new Date().toISOString() };
+    if (b.id === "custom") return (app.store.setSetting(`designChoice:${params.id}`, record), { ...record, changed: [] });
+    const t = designTemplate(b.id);
+    if (!t) throw new HttpError(400, `Unknown design style "${b.id}"`);
+    const c = t.colors;
+    const values: Record<string, string> = {
+      "--color-bg": c.bg, "--color-surface": c.surface, "--color-surface-sunken": c.surfaceSunken, "--color-text": c.text, "--color-text-muted": c.textMuted,
+      "--color-border": c.border, "--color-border-strong": c.borderStrong, "--color-accent": c.accent, "--color-accent-hover": c.accentHover, "--color-on-accent": c.onAccent,
+      "--color-focus": c.focus, "--color-success": c.success, "--color-danger": c.danger, "--color-danger-surface": c.dangerSurface,
+      "--font-sans": t.fonts.sans, "--font-display": t.fonts.display,
+      "--radius-sm": `${t.radii[0]}px`, "--radius-md": `${t.radii[1]}px`, "--radius-lg": `${t.radii[2]}px`, "--radius-xl": `${t.radii[3]}px`,
+    };
+    try {
+      const out = applyDesign(app.projects.jail(params.id), app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, { theme: "default", values });
+      app.store.setSetting(`designChoice:${params.id}`, record);
+      return { ...record, changed: out.changed };
+    } catch (e) {
+      throw new HttpError(400, (e as Error).message);
+    }
+  });
   // Styles → Design: several token values for one theme in one write (plus the web fonts to load), and the
   // building blocks picked for the app.
   add("POST /projects/:id/design", ({ params, body }) => {
     const b = parse(z.object({ theme: z.enum(["default", "dark"]), values: z.record(z.string(), z.string().max(400)), googleFonts: z.array(z.string().max(40)).max(6).optional() }), body);
     try {
-      return applyDesign(app.projects.jail(params.id), app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, b);
+      const out = applyDesign(app.projects.jail(params.id), app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, b);
+      if (out.changed.length) markCustomDesign(params.id);
+      return out;
     } catch (e) {
       throw new HttpError(400, (e as Error).message);
     }
@@ -564,7 +594,9 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       body,
     );
     try {
-      return applyPalette(app.projects.jail(params.id), app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, b);
+      const out = applyPalette(app.projects.jail(params.id), app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, b);
+      if (out.changed.length) markCustomDesign(params.id);
+      return out;
     } catch (e) {
       throw new HttpError(400, (e as Error).message);
     }
@@ -596,6 +628,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     }
     const last = { at: new Date().toISOString(), sources: style.sources, applied, notes, style, origins: style.origins ?? [] };
     app.store.setSetting(`styleCapture:${params.id}`, last);
+    markCustomDesign(params.id);
     return last;
   });
   // A component's Configure: its saved choices, and saving them (CSS written into components.css).

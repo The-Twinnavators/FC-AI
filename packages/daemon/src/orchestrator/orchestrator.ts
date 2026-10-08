@@ -56,8 +56,10 @@ import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
-import { SECTION_STEPS } from "./sectionRecipes.js";
-import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit } from "./stepRecovery.js";
+import { SECTION_STEPS, keptSection, pickSections, sectionFile } from "./sectionRecipes.js";
+import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
+import { flattenFiles } from "../workspace/fileService.js";
+import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
 import { lookGuidance, visualDirection, type BuildLook } from "./starterIdentity.js";
 import { designTemplate } from "@flowcode/contracts";
@@ -882,6 +884,28 @@ export class Orchestrator {
     this.d.bus.emit({ type: "phase.started", projectId: project.id, runId, message: "Phase: verification", data: { phase: "verification" } });
     await this.d.verifier.runRequired(this.d.store.runs.require(runId), { signal, skipRuntime: anyDead });
     if (signal.aborted) return;
+    // Every step passed but the final design check wants a screen state no step planned: add one repair step and carry
+    // on, once per build, instead of stopping with nothing left to retry (Kids cash app: no error state anywhere).
+    if (!anyDead && !this.d.store.getSetting<boolean>(`stateRepair:${runId}`, false)) {
+      const qa = this.d.store.checks.where("run_id = ? ORDER BY updated_at DESC", runId).find((c) => c.kind === "design_qa" && !c.taskId);
+      if (qa?.status === "failed" && /state-coverage/.test(qa.summary)) {
+        const screens = flattenFiles(jail, 5000)
+          .filter((f) => /^src\/(screens|pages|views)\/[^/]+\.(tsx|jsx)$/.test(f))
+          .map((f) => ({ path: f, text: fs.readFileSync(jail.resolve(f).abs, "utf8") }));
+        const corpus = screens.map((s) => s.text).join("\n");
+        const missing = Object.entries(STATE_DETECTORS).filter(([, re]) => !re.test(corpus)).map(([s]) => s);
+        const all = this.graph.tasks(runId);
+        const last = [...all].sort((a, b) => b.ordinal - a.ordinal)[0];
+        const repair = stateRepairTask(screens, missing, { id: runId }, last, (last?.ordinal ?? 0) + 1, () => newId("task"));
+        if (repair) {
+          this.d.store.setSetting(`stateRepair:${runId}`, true);
+          this.graph.save(repair);
+          this.d.bus.emit({ type: "recovery.action", projectId: project.id, runId, taskId: repair.id, message: `Every step passed, but no screen has a designed ${missing.join(" or ")} state, which the final design check requires. Added a step to add ${missing.length === 1 ? "it" : "them"} to ${repair.expectedPaths[0]}, and carrying on.` });
+          await this.execute(runId, signal);
+          return;
+        }
+      }
+    }
     this.d.bus.emit({ type: "phase.completed", projectId: project.id, runId, message: "Verification phase finished", data: { phase: "verification" } });
     await this.finalize(runId);
     if (signal.aborted) return;
@@ -1131,6 +1155,38 @@ export class Orchestrator {
       for (const d of duplicateScreens(jail)) {
         const res = this.d.ops.delete_file({ jail, projectId: project.id, runId: run.id, taskId: task.id, toolCallId: `fc_dupscreen_${task.id}`, approved: true }, { path: d.file, reason: `Leftover copy of ${d.twin}` } as never);
         if (res.ok) this.d.bus.emit({ ...ev, type: "recovery.action", message: `Removed ${d.file}: a leftover copy of ${d.twin}, the screen the app uses. It can be undone in Changes.` });
+      }
+    }
+    // Before the screens are designed: count the screens the layout step made (the spec often doesn't name them; Kids
+    // cash app: "a simple money learning app" became four screens). With four or more, a side navigation from the
+    // library is put in src/sections/ as a starting point, chosen by what the app is; the design step may use or delete it.
+    if (task.title === DESIGN_SCREENS || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_SCREENS) {
+      let app = "";
+      try {
+        app = fs.readFileSync(jail.resolve("src/App.tsx").abs, "utf8");
+      } catch {
+        app = "";
+      }
+      const labels = [...app.matchAll(/label:\s*["'`]([^"'`]+)["'`]/g)].map((m) => m[1]);
+      const sectionsHere = path.join(jail.root, "src/sections");
+      const hasSidebar = fs.existsSync(sectionsHere) && fs.readdirSync(sectionsHere).some((f) => /^Sidebar/.test(f));
+      if (labels.length >= 4 && !hasSidebar) {
+        const pick = pickSections(`${run.objective}\n${labels.join(", ")}\n${"screen ".repeat(labels.length)}`, run.id).find((p) => p.id.startsWith("sidebar-"));
+        const id = pick?.id ?? "sidebar-app";
+        let kept = "";
+        try {
+          kept = fs.readFileSync(jail.resolve(keptSection(id)).abs, "utf8");
+        } catch {
+          kept = "";
+        }
+        if (kept) {
+          const res = this.d.ops.create_file({ jail, projectId: project.id, runId: run.id, taskId: task.id, toolCallId: `fc_sidenav_${task.id}`, approved: true }, { path: sectionFile(id), content: kept } as never);
+          if (res.ok) {
+            const note = `This app has ${labels.length} screens (${labels.join(", ")}). A side navigation from the library is in ${sectionFile(id)} as a starting point${pick ? ` (${pick.reason})` : ""}: use it in place of the top navigation if it suits the app, with the real screen names and icons, or delete it.`;
+            this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), note].slice(-12));
+            this.d.bus.emit({ ...ev, type: "recovery.action", message: `Added a side navigation as a starting point (${sectionFile(id)}): the app has ${labels.length} screens` });
+          }
+        }
       }
     }
     let openErrors = "";

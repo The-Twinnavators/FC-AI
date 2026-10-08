@@ -3,9 +3,10 @@
  * prototype starter's tokens and FlowCode's bundled fonts, in any visual style. Each preview runs in its own frame so
  * the section's styles never mix with FlowCode's. Read-only: builds copy the sections they need.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, SECTION_CATEGORIES, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
+import { Search } from "lucide-react";
 
 
 const sources = import.meta.glob<string>("../../../../templates/library/sections/*.tsx", { query: "?raw", import: "default" });
@@ -40,6 +41,30 @@ function SectionFrame({ id, styleId, title }: { id: string; styleId: string; tit
   );
 }
 
+/** A tile's picture: the section drawn at desktop width (1280px) and scaled down to fit the tile, not interactive. */
+function SectionThumb({ id, styleId, title }: { id: string; styleId: string; title: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.2);
+  // Each thumbnail is a whole page, so it starts only when its tile comes near the screen (the browser's own lazy
+  // loading starts frames a couple of screens away, which on a long shelf is most of them) and then stays.
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setScale(el.clientWidth / 1280));
+    ro.observe(el);
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && (setNear(true), io.disconnect()), { rootMargin: "300px 0px" });
+    io.observe(el);
+    return () => (ro.disconnect(), io.disconnect());
+  }, []);
+  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&style=${encodeURIComponent(styleId)}`, document.baseURI).href;
+  return (
+    <div ref={box} className="cl-thumb" aria-hidden="true">
+      {near ? <iframe className="cl-thumb__frame" title={`${title} thumbnail`} src={src} tabIndex={-1} style={{ transform: `scale(${scale})` }} /> : null}
+    </div>
+  );
+}
+
 export function ComponentsView() {
   const [cat, setCat] = useState<SectionCategory | "all">("all");
   const [styleId, setStyleId] = useState(() => {
@@ -52,6 +77,7 @@ export function ComponentsView() {
   });
   const [open, setOpen] = useState<LibrarySection>();
   const [code, setCode] = useState<string>();
+  const [showCode, setShowCode] = useState(false);
   useEffect(() => {
     try {
       localStorage.setItem("flowcode.componentsStyle", styleId);
@@ -64,7 +90,30 @@ export function ComponentsView() {
     if (open) void sources[key(open.id)]?.().then(setCode);
   }, [open]);
   const counts = useMemo(() => new Map(SECTION_CATEGORIES.map((c) => [c.id, LIBRARY_SECTIONS.filter((s) => s.category === c.id).length])), []);
-  const shown = LIBRARY_SECTIONS.filter((s) => cat === "all" || s.category === cat);
+  // Search: every word must appear in the piece's name, description, tags or shelf (within the shelf you're on).
+  const [q, setQ] = useState("");
+  const words = q.toLowerCase().split(/s+/).filter(Boolean);
+  const label = (c: string) => SECTION_CATEGORIES.find((x) => x.id === c)?.label ?? c;
+  const matches = (x: LibrarySection) => !words.length || words.every((w) => `${x.name} ${x.description} ${x.tags.join(" ")} ${label(x.category)}`.toLowerCase().includes(w));
+  const shown = LIBRARY_SECTIONS.filter((s) => (cat === "all" || s.category === cat) && matches(s));
+  // Previous and next in the details modal, through the pieces on the current shelf (← and → keys too).
+  const at = open ? shown.findIndex((x) => x.id === open.id) : -1;
+  const step = (d: number) => {
+    if (at < 0 || !shown.length) return;
+    setShowCode(false);
+    setOpen(shown[(at + d + shown.length) % shown.length]);
+  };
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.altKey || e.ctrlKey || e.metaKey || (t instanceof Element && t.closest("input, textarea, select, [contenteditable=true]"))) return;
+      if (e.key === "ArrowRight") (e.preventDefault(), step(1));
+      else if (e.key === "ArrowLeft") (e.preventDefault(), step(-1));
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  });
   // Choosing a shelf goes back up to the top of the list (just under the top bar); already above it, it stays put.
   const pick = (id: SectionCategory | "all") => {
     setCat(id);
@@ -87,6 +136,11 @@ export function ComponentsView() {
         <p className="muted">
           {LIBRARY_SECTIONS.length} sections, components and page templates written for FlowCode. Sources and credits are in the Third-party notices.
         </p>
+        <label className="cl-search">
+          <Search size={14} aria-hidden="true" />
+          <input className="input" type="search" placeholder="Search the library: cart, pricing, dark, table…" aria-label="Search the library" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Escape" && setQ("")} />
+          {q ? <span className="muted cl-search__n" aria-live="polite">{shown.length} found</span> : null}
+        </label>
         <label className="cl-style">
           <span className="muted">Preview in</span>
           <select className="select" value={styleId} onChange={(e) => setStyleId(e.target.value)}>
@@ -117,34 +171,70 @@ export function ComponentsView() {
             </div>
           ))}
         </nav>
-        <ul className="cl-list">
-          {shown.map((s) => (
-            <li key={s.id} className="cl-item">
-              <div className="cl-item__head">
-                <div>
-                  <strong>{s.name}</strong>
-                  <p className="muted">{s.description}</p>
-                </div>
-                <button type="button" className="btn btn--sm" onClick={() => setOpen(s)}>
-                  View code
+        {!shown.length ? (
+          <div className="cl-none" role="status">
+            <p>
+              Nothing matches “{q}”{cat !== "all" ? ` in ${label(cat)}` : ""}.
+            </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              {cat !== "all" ? (
+                <button type="button" className="btn btn--sm" onClick={() => setCat("all")}>
+                  Search every shelf
                 </button>
-              </div>
-              <SectionFrame id={s.id} styleId={styleId} title={s.name} />
+              ) : null}
+              <button type="button" className="btn btn--sm" onClick={() => setQ("")}>
+                Clear search
+              </button>
+            </div>
+          </div>
+        ) : null}
+        <ul className="cl-grid">
+          {shown.map((s) => (
+            <li key={s.id}>
+              <button type="button" className="cl-tile" onClick={() => (setShowCode(false), setOpen(s))} aria-label={`${s.name}: open details`}>
+                <SectionThumb id={s.id} styleId={styleId} title={s.name} />
+                <span className="cl-tile__text">
+                  <strong>{s.name}</strong>
+                  <span className="muted">{s.description}</span>
+                </span>
+              </button>
             </li>
           ))}
         </ul>
       </div>
 
       {open ? (
-        <LibModal label="Section · code" onClose={() => setOpen(undefined)} actions={code ? <CopyButton text={code} label="Copy code" /> : undefined}>
-          <div style={{ display: "grid", gap: 12 }}>
+        <LibModal
+          label={`${SECTION_CATEGORIES.find((c) => c.id === open.category)?.label ?? "Section"} · ${showCode ? "code" : "preview"}`}
+          onClose={() => setOpen(undefined)}
+          actions={
+            <>
+              <span className="cl-detail__nav">
+                <button type="button" className="btn btn--sm" onClick={() => step(-1)} aria-label="Previous piece" title="Previous (←)">
+                  ← Previous
+                </button>
+                <span className="muted" aria-live="polite">
+                  {at + 1} of {shown.length}
+                </span>
+                <button type="button" className="btn btn--sm" onClick={() => step(1)} aria-label="Next piece" title="Next (→)">
+                  Next →
+                </button>
+              </span>
+              <button type="button" className="btn btn--sm" aria-pressed={showCode} onClick={() => setShowCode((v) => !v)}>
+                {showCode ? "Show preview" : "View code"}
+              </button>
+              {showCode && code ? <CopyButton text={code} label="Copy code" /> : null}
+            </>
+          }
+        >
+          <div className="cl-detail">
             <div>
               <h2 style={{ margin: 0, fontSize: 18 }}>{open.name}</h2>
               <p className="dim" style={{ margin: "4px 0 0" }}>
                 {open.description} File: <span className="mono">templates/library/sections/{open.id}.tsx</span>
               </p>
             </div>
-            <pre className="cl-code">{code ?? "Loading…"}</pre>
+            {showCode ? <pre className="cl-code">{code ?? "Loading…"}</pre> : <SectionFrame id={open.id} styleId={styleId} title={open.name} />}
           </div>
         </LibModal>
       ) : null}

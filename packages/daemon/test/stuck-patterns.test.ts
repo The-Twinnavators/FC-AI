@@ -70,3 +70,19 @@ describe("a planned step whose whole job is reading", () => {
     expect(foldReadOnlySteps(tasks).folded).toEqual([]);
   });
 });
+
+describe("a screen state no step planned", () => {
+  it("becomes one repair step on the screen that shows data, checked by what the design check looks for", async () => {
+    const { stateRepairTask } = await import("../src/orchestrator/stepRecovery.js");
+    const screens = [
+      { path: "src/screens/GamesScreen.tsx", text: "export default function GamesScreen() { return <PageHeader title=\"Games\" />; }" },
+      { path: "src/screens/LearnCoinsScreen.tsx", text: "if (loading) return <Skeleton />; if (coins.length === 0) return <EmptyState />;" },
+    ];
+    const t = stateRepairTask(screens, ["error"], { id: "run_1" }, undefined, 9, () => "task_x")!;
+    expect(t.title).toBe("Add the missing screen states");
+    expect(t.expectedPaths).toEqual(["src/screens/LearnCoinsScreen.tsx"]);
+    expect(t.objective).toMatch(/role="alert"/);
+    expect(t.acceptanceCriteria[0].check).toEqual({ type: "file_contains", path: "src/screens/LearnCoinsScreen.tsx", text: 'role="alert"' });
+    expect(stateRepairTask(screens, [], { id: "run_1" }, undefined, 9, () => "task_y")).toBeUndefined();
+  });
+});

@@ -332,8 +332,10 @@ describe("design quality in builds", () => {
     const runtime = specRuntimeTasks([], undefined);
     const layout = runtime.find((t) => t.key === "layout")!;
     expect(layout.title).toBe("App layout and navigation");
-    // The layout waits for the person to approve the prototype plan and the design (the review step after the imports).
-    expect(layout.dependsOn).toEqual(["review"]);
+    // The layout waits for the person to approve the prototype plan and the design (the review step after the imports),
+    // then for the library step, which every React build has: it keeps the component library and its index in the app.
+    expect(layout.dependsOn).toEqual(["fc_sections"]);
+    expect(runtime.find((t) => t.key === "fc_sections")?.dependsOn).toEqual(["review"]);
     // Every spec build sets its look first: captured from the user's sources, or from the product's design direction.
     expect(runtime.find((t) => t.key === "style")?.dependsOn).toEqual(["refs"]);
     expect(runtime.find((t) => t.key === "review")?.dependsOn).toEqual(["style"]);

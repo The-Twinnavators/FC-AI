@@ -32,6 +32,10 @@
   border: var(--control-border, 1px solid transparent); box-shadow: var(--control-shadow, none);
   transition: background-color var(--duration-fast) var(--easing), transform var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
 }
+/* An icon in a button keeps its size, and the label stays on one line (an unsized svg grew and squeezed "Start free trial" onto three). */
+.fl-btn { white-space: nowrap; }
+@media (max-width: 420px) { .fl-btn { white-space: normal; } }
+.fl-btn svg { width: 1.15em; height: 1.15em; flex: none; }
 .fl-btn:hover { transform: translateY(var(--hover-lift, -1px)); box-shadow: var(--control-shadow-hover, none); }
 .fl-btn:active { transform: scale(var(--press-scale, 0.98)); }
 .fl-btn:focus-visible, .fl-link:focus-visible, .fl-nav a:focus-visible, .fl-faq summary:focus-visible, .fl-input:focus-visible { outline: none; box-shadow: var(--focus-ring); }

@@ -282,3 +282,48 @@ export function parsePartTests(kind: string): { file: string; titles?: string[] 
 export function nearlyPassing(t: { failed: number; passed: number }): boolean {
   return t.failed > 0 && t.failed <= 3 && t.passed / (t.passed + t.failed) >= 0.85;
 }
+
+/** What a repair step adds for each missing state, and the text that proves it is there. */
+const STATE_MARKERS: Record<string, { text: string; how: string }> = {
+  error: { text: `role="alert"`, how: `an error state: a message that says what went wrong in plain words, in an element with role="alert", and a Try again button` },
+  loading: { text: "aria-busy", how: `a loading state: the Skeleton from src/components/ui shaped like the content, in a container with aria-busy="true" while it loads` },
+  empty: { text: "EmptyState", how: "an empty state: the EmptyState from src/components/ui with what to do first" },
+};
+
+/**
+ * A screen state the final design check requires but no step planned (Kids cash app: every step passed, then the build
+ * stopped at the very end because no screen had an error state, with nothing left to retry). FlowCode adds one step
+ * that adds the missing states to the screen that shows data, checked by the exact text the design check looks for.
+ */
+export function stateRepairTask(
+  screens: Array<{ path: string; text: string }>,
+  missing: string[],
+  run: { id: string },
+  after: Task | undefined,
+  ordinal: number,
+  newId: () => string,
+): Task | undefined {
+  const states = missing.filter((s) => STATE_MARKERS[s]);
+  if (!states.length || !screens.length) return undefined;
+  // The screen that already has the other states (it shows data), else the one with the most code.
+  const target = [...screens].sort((a, b) => (/aria-busy|Skeleton|EmptyState|length === 0/.test(b.text) ? 1 : 0) - (/aria-busy|Skeleton|EmptyState|length === 0/.test(a.text) ? 1 : 0) || b.text.length - a.text.length)[0]!;
+  const id = newId();
+  return {
+    id,
+    runId: run.id,
+    title: "Add the missing screen states",
+    objective: `The final design check found no designed ${states.join(" or ")} state in the app's screens. In ${target.path}, add ${states.map((s) => STATE_MARKERS[s]!.how).join("; and ")}. Show each state only when it applies (for example, the error state when the data can't be shown), keep the screen's real content, and use the design tokens.`,
+    status: "pending",
+    dependsOn: after ? [after.id] : [],
+    expectedPaths: [target.path],
+    actualPaths: [],
+    acceptanceCriteria: [
+      ...states.map((s, i) => ({ id: `${id}-s${i}`, description: `${target.path} has a designed ${s} state`, check: { type: "file_contains" as const, path: target.path, text: STATE_MARKERS[s]!.text }, evidenceRefs: [] })),
+      { id: `${id}-tc`, description: "The project still type-checks after this step", check: { type: "verification" as const, kind: "typecheck" }, evidenceRefs: [] },
+    ],
+    validationPlan: after?.validationPlan ?? ({ checks: [] } as unknown as Task["validationPlan"]),
+    role: "coder",
+    ordinal,
+    attempts: 0,
+  } as Task;
+}

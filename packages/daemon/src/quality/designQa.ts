@@ -160,14 +160,17 @@ export function designQa(jail: PathJail, opts: { requiredStates?: string[]; maxR
   // State coverage (designed empty/loading/error states).
   const corpus = allSource.join("\n");
   const states = opts.requiredStates ?? inv.brief?.requiredStates ?? ["empty", "loading", "error"];
-  const detectors: Record<string, RegExp> = {
-    empty: /no [\w ]{0,20}yet|nothing (here|scheduled)|empty[-_ ]?state|length === 0/i,
-    loading: /loading|aria-busy|role=["']status["']/i,
-    error: /role=["']alert["']|error[-_ ]?state|something went wrong|couldn.t/i,
-  };
+  const detectors = STATE_DETECTORS;
   for (const s of states) {
     const re = detectors[s];
     if (re && sourceFiles.length && !re.test(corpus)) findings.push(f({ rule: "state-coverage", severity: "serious", confidence: "medium", message: `No designed ${s} state found in the UI source`, recommendation: `Design and render a ${s} state.` }));
   }
   return findings;
 }
+
+/** How the design check recognises a designed state in a screen's source (also used to plan a repair step). */
+export const STATE_DETECTORS: Record<string, RegExp> = {
+  empty: /no [\w ]{0,20}yet|nothing (here|scheduled)|empty[-_ ]?state|length === 0/i,
+  loading: /loading|aria-busy|role=["']status["']/i,
+  error: /role=["']alert["']|error[-_ ]?state|something went wrong|couldn.t/i,
+};

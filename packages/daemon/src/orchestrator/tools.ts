@@ -20,6 +20,7 @@ import { isRootScratch } from "../quality/cleanupScan.js";
 import { findOpenImage } from "../workspace/openImages.js";
 import { errorFile } from "../quality/verification.js";
 import { screenKey } from "../quality/appWiring.js";
+import { syncedLibraryCss } from "./sectionRecipes.js";
 import { renderLoopNote } from "./renderLoops.js";
 import { afterEdit, syntaxGuard, testFailureDigest, buildingBlockImports, coverUpEdit, editGuard, nativeInWebApp, toTsPath, removesTokenInUse, workspaceTokenUsage, unredactLines } from "./guards.js";
 
@@ -338,6 +339,11 @@ export function createDispatcher(ctx: DispatchContext) {
     if (res.ok) {
       ctx.onPathsChanged(res.paths);
       if (name === "edit_package_manifest") ctx.refreshPreflight();
+      // A library piece added to src/sections/: the app's library.css gains just the styles it needs.
+      if (res.paths.some((p) => /^src[\\/]sections[\\/][^\\/]+\.(tsx|jsx)$/.test(p)) && fs.existsSync(path.join(ctx.jail.root, "src/styles/library.css"))) {
+        const css = syncedLibraryCss(ctx.jail.root);
+        if (css !== undefined) ctx.ops.replaceContent({ ...opCtx, toolCallId: `fc_libcss_${toolCallId}`, approved: true }, "src/styles/library.css", css);
+      }
     }
     let typeNote = "";
     let autoNote = "";

@@ -30,6 +30,7 @@ committed, not shipped); every converted item keeps its source's licence notice,
 | Preline UI and templates | Its Fair Use License forbids general-purpose reusable component systems and competing products. A person may connect Preline's own MCP or import its skills into their own FlowCode with their own Preline licence, but FlowCode must not ship them |
 | Meraki UI templates (site) | Paid, or no licence stated (so all rights reserved) |
 | MagicPattern (`magicpattern.design`: CSS patterns and generators) | Terms: no copying or reuse for commercial purposes without written permission, and no use of its assets to train AI models |
+| 21st.dev (marketplace) | Its terms: content belongs to the authors and 21st Labs; no redistribution without authorisation, no scraping or automated collection, and no use to train AI, without written consent. Use the open-source (MIT) repositories behind individual components instead, each checked on its own |
 
 Checked 2026-10-08 against each site's licence page or repository. Not legal advice; re-check a source before adding
 more of it if its terms may have changed.
