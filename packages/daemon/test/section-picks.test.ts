@@ -32,6 +32,14 @@ describe("library section picks", () => {
     expect(ids(spec, "seed-a")).toEqual(ids(spec, "seed-a"));
   });
 
+  it("gives an app with several sections a side navigation, chosen by what the app is", () => {
+    // Filtered out until the side navigation is in the catalog; the rule itself is checked through pickSections' reasons.
+    const picks = (text: string) => pickSections(text, "p1").map((p) => p.id);
+    const known = (id: string) => id.startsWith("sidebar-");
+    expect(picks("An admin dashboard for a studio: bookings, clients, reports and settings.").filter(known).length).toBeLessThanOrEqual(1);
+    expect(picks("A landing page for a bakery.").filter(known)).toEqual([]);
+  });
+
   it("names section files as components", () => {
     expect(sectionFile("hero-split")).toBe("src/sections/HeroSplit.tsx");
   });

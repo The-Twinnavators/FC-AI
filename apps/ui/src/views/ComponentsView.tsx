@@ -3,64 +3,40 @@
  * prototype starter's tokens and FlowCode's bundled fonts, in any visual style. Each preview runs in its own frame so
  * the section's styles never mix with FlowCode's. Read-only: builds copy the sections they need.
  */
-import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { BUNDLED_FONTS, DESIGN_TEMPLATES, LIBRARY_SECTIONS, SECTION_CATEGORIES, fontFaceCss, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
+import { useEffect, useMemo, useState } from "react";
+import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, SECTION_CATEGORIES, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
-import tokensCss from "../../../../templates/react-vite-starter/src/styles/tokens.css?raw";
-import baseCss from "../../../../templates/library/library.css?raw";
 
-/** The shared sheet plus each category's stylesheet, as builds get them. */
-const categoryCss = import.meta.glob<string>("../../../../templates/library/css/*.css", { query: "?raw", import: "default", eager: true });
-const libraryCss = [baseCss, ...Object.keys(categoryCss).sort().map((k) => categoryCss[k])].join("\n\n");
-
-const modules = import.meta.glob<{ default: ComponentType }>("../../../../templates/library/sections/*.tsx");
 const sources = import.meta.glob<string>("../../../../templates/library/sections/*.tsx", { query: "?raw", import: "default" });
 const key = (id: string) => `../../../../templates/library/sections/${id}.tsx`;
 
-/** The CSS a preview frame gets: fonts, the starter's tokens, an optional visual style on top, and the library. */
-function frameCss(styleId: string): string {
-  const fonts = fontFaceCss(BUNDLED_FONTS, (file) => new URL(`fonts/${file}.woff2`, document.baseURI).href);
-  const t = DESIGN_TEMPLATES.find((x) => x.id === styleId);
-  const style = t
-    ? `:root{--color-bg:${t.colors.bg};--color-surface:${t.colors.surface};--color-surface-sunken:${t.colors.surfaceSunken};--color-text:${t.colors.text};--color-text-muted:${t.colors.textMuted};--color-border:${t.colors.border};--color-border-strong:${t.colors.borderStrong};--color-accent:${t.colors.accent};--color-accent-hover:${t.colors.accentHover};--color-on-accent:${t.colors.onAccent};--color-focus:${t.colors.focus};--color-success:${t.colors.success};--color-danger:${t.colors.danger};--font-sans:${t.fonts.sans};--font-display:${t.fonts.display};--radius-sm:${t.radii[0]}px;--radius-md:${t.radii[1]}px;--radius-lg:${t.radii[2]}px;--radius-xl:${t.radii[3]}px;color-scheme:${t.dark ? "dark" : "light"}}`
-    : "";
-  return `${fonts}\n${tokensCss}\n${style}\nhtml,body{margin:0;overflow:hidden;background:var(--color-bg);color:var(--color-text);font-family:var(--font-sans);font-size:var(--text-md);-webkit-font-smoothing:antialiased}*,*::before,*::after{box-sizing:border-box}a{color:inherit}\n${libraryCss}`;
-}
-
-/** One section rendered live in its own frame, sized to its content. */
+/**
+ * One section, live, in its own window (section-preview.html), so it behaves exactly as in a built app: its dialogs,
+ * focus and Escape act on that window, never on FlowCode's page. The preview page reports its height.
+ */
 function SectionFrame({ id, styleId, title }: { id: string; styleId: string; title: string }) {
-  const frame = useRef<HTMLIFrameElement>(null);
-  const root = useRef<Root | undefined>(undefined);
   const [height, setHeight] = useState(360);
+  // Until the section has drawn, the frame shows the loading bar (never an empty white box).
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const f = frame.current;
-    if (!f) return;
-    const doc = f.contentDocument;
-    if (!doc) return;
-    doc.open();
-    doc.write(`<!doctype html><html><head><meta charset="utf-8"><style id="fl-css"></style></head><body><div id="root"></div></body></html>`);
-    doc.close();
-    const host = doc.getElementById("root")!;
-    root.current = createRoot(host);
-    let alive = true;
-    void modules[key(id)]?.().then((m) => alive && root.current?.render(<m.default />));
-    const ro = new ResizeObserver(() => setHeight(Math.max(120, doc.documentElement.scrollHeight)));
-    ro.observe(doc.body);
-    ro.observe(host);
-    return () => {
-      alive = false;
-      ro.disconnect();
-      const r = root.current;
-      root.current = undefined;
-      setTimeout(() => r?.unmount(), 0);
+    const onMessage = (e: MessageEvent) => {
+      const m = e.data as { type?: string; id?: string; height?: number };
+      if (m?.type === "fl-section-height" && m.id === id && typeof m.height === "number") (setHeight(Math.max(120, Math.ceil(m.height))), setReady(true));
     };
+    addEventListener("message", onMessage);
+    return () => removeEventListener("message", onMessage);
   }, [id]);
-  useEffect(() => {
-    const el = frame.current?.contentDocument?.getElementById("fl-css");
-    if (el) el.textContent = frameCss(styleId);
-  }, [styleId, id]);
-  return <iframe ref={frame} className="cl-frame" title={`${title} preview`} style={{ height }} />;
+  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&style=${encodeURIComponent(styleId)}`, document.baseURI).href;
+  return (
+    <div className={`cl-frame-wrap${ready ? "" : " is-loading"}`}>
+      {ready ? null : (
+        <span className="cl-frame-load sug-progress__bar" role="progressbar" aria-label={`Loading the ${title} preview`}>
+          <span className="is-indeterminate" />
+        </span>
+      )}
+      <iframe className="cl-frame" title={`${title} preview`} src={src} loading="lazy" style={{ height }} />
+    </div>
+  );
 }
 
 export function ComponentsView() {

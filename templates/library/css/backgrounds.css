@@ -1,0 +1,78 @@
+/* Page backgrounds: gradients and patterns as one class on any section or page (fl-bg-*). Tokens only, so each one
+   re-colours with the app's style. Patterns are drawn with CSS or masked SVG filled with a token colour. Content sits
+   above the decoration (position: relative; isolation). Motion stops for people who ask for less. */
+
+[class*="fl-bg-"] { position: relative; isolation: isolate; }
+[class*="fl-bg-"]::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+
+/* ── Gradients ── */
+.fl-bg-soft { background: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 10%, var(--color-bg)) 0%, var(--color-bg) 70%); }
+
+.fl-bg-mesh {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(40% 50% at 12% 18%, color-mix(in srgb, var(--color-accent) 28%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 88% 12%, color-mix(in srgb, var(--color-success) 22%, transparent), transparent 70%),
+    radial-gradient(45% 55% at 70% 92%, color-mix(in srgb, var(--color-focus) 18%, transparent), transparent 70%),
+    radial-gradient(40% 50% at 20% 88%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 70%);
+}
+
+.fl-bg-glow { background: radial-gradient(70% 60% at 50% -10%, color-mix(in srgb, var(--color-accent) 30%, transparent), transparent 70%), var(--color-bg); }
+
+.fl-bg-aurora { background-color: var(--color-bg); overflow: hidden; }
+.fl-bg-aurora::before {
+  inset: -30%;
+  background: conic-gradient(from 200deg at 50% 50%, color-mix(in srgb, var(--color-accent) 30%, transparent), color-mix(in srgb, var(--color-success) 24%, transparent), color-mix(in srgb, var(--color-focus) 22%, transparent), color-mix(in srgb, var(--color-accent) 30%, transparent));
+  filter: blur(60px);
+  opacity: 0.7;
+  animation: fl-bg-drift 24s linear infinite;
+}
+@keyframes fl-bg-drift { to { transform: rotate(1turn); } }
+
+.fl-bg-split { background: linear-gradient(165deg, color-mix(in srgb, var(--color-accent) 14%, var(--color-bg)) 0 48%, var(--color-bg) 48% 100%); }
+
+.fl-bg-ink { background: radial-gradient(60% 80% at 85% 20%, color-mix(in srgb, var(--color-on-accent) 14%, transparent), transparent 70%), var(--color-accent); color: var(--color-on-accent); }
+.fl-bg-ink .fl-lede, .fl-bg-ink .fl-text, .fl-bg-ink .fl-eyebrow { color: var(--color-on-accent); opacity: 0.88; }
+
+/* ── Patterns ── */
+.fl-bg-dots { background-color: var(--color-bg); background-image: radial-gradient(color-mix(in srgb, var(--color-text) 16%, transparent) 1px, transparent 1.6px); background-size: 20px 20px; }
+
+.fl-bg-grid {
+  background-color: var(--color-bg);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-text) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-text) 7%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+/* The grid fades out towards the edges, so it frames the content instead of filling the page. */
+.fl-bg-grid::before { background: radial-gradient(70% 70% at 50% 40%, transparent 40%, var(--color-bg) 100%); }
+
+.fl-bg-stripes { background-color: var(--color-bg); background-image: repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 7%, transparent) 0 2px, transparent 2px 14px); }
+
+.fl-bg-waves { background-color: var(--color-bg); }
+.fl-bg-waves::before {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40' viewBox='0 0 120 40'%3E%3Cpath d='M0 20 Q30 0 60 20 T120 20' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") 0 0 / 120px 40px repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40' viewBox='0 0 120 40'%3E%3Cpath d='M0 20 Q30 0 60 20 T120 20' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") 0 0 / 120px 40px repeat;
+}
+
+.fl-bg-topo { background-color: var(--color-bg); }
+.fl-bg-topo::before {
+  background: color-mix(in srgb, var(--color-text) 12%, transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240' fill='none' stroke='black' stroke-width='1'%3E%3Cpath d='M120 30c50 0 90 40 90 90s-40 90-90 90-90-40-90-90 40-90 90-90z'/%3E%3Cpath d='M120 55c36 0 65 29 65 65s-29 65-65 65-65-29-65-65 29-65 65-65z'/%3E%3Cpath d='M118 82c22 0 40 16 40 38s-18 40-40 40-38-18-38-40 16-38 38-38z'/%3E%3Cpath d='M0 0c40 20 60 10 90-5M150 240c30-20 60-25 90-10M0 200c20-10 30-30 25-60'/%3E%3C/svg%3E") 0 0 / 240px 240px repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240' fill='none' stroke='black' stroke-width='1'%3E%3Cpath d='M120 30c50 0 90 40 90 90s-40 90-90 90-90-40-90-90 40-90 90-90z'/%3E%3Cpath d='M120 55c36 0 65 29 65 65s-29 65-65 65-65-29-65-65 29-65 65-65z'/%3E%3Cpath d='M118 82c22 0 40 16 40 38s-18 40-40 40-38-18-38-40 16-38 38-38z'/%3E%3Cpath d='M0 0c40 20 60 10 90-5M150 240c30-20 60-25 90-10M0 200c20-10 30-30 25-60'/%3E%3C/svg%3E") 0 0 / 240px 240px repeat;
+}
+
+.fl-bg-grain { background-color: var(--color-bg); }
+.fl-bg-grain::before {
+  background: var(--color-text);
+  opacity: 0.08;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 200px 200px repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 200px 200px repeat;
+}
+
+/* Combine: a soft gradient under a pattern (e.g. class="fl-bg-glow fl-bg-dots" keeps the dots' colour; prefer one of each). */
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-bg-aurora::before { animation: none; }
+}

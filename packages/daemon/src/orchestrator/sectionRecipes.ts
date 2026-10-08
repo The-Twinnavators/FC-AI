@@ -51,6 +51,16 @@ export function pickSections(text: string, seed = ""): SectionPick[] {
     else if (has(t, /\b(app|tool)\b/i) && !has(t, /\b(services?|clients?|agency|studio)\b/i)) add("hero-centered", "A product with one clear job: one bold promise over a wide picture of it.");
     else add(seeded(`${seed}:hero`, ["hero-split", "hero-centered"]), "A website's opening: its promise and main action (variant fixed for this project).");
   }
+  // An app (not a website) with several sections gets a side navigation to start from; its kind follows the product.
+  if (!pitch) {
+    const screens = count(t, /\b(screens?|pages?|views?|tabs?|sections?)\b/gi);
+    const tool = has(t, /\b(dashboard|admin|back ?office|workspace|crm|inventory|portal|console|management|manager)\b/i);
+    if (tool || screens >= 4) {
+      if (has(t, /\b(inbox|messages|mail|email client|chat|conversations|threads)\b/i)) add("sidebar-rail", "An app built around a list of conversations or messages: an icon rail beside a list panel.");
+      else if (has(t, /\b(projects?|folders?|workspaces|nested|sub-?pages|tree)\b/i) && has(t, /\b(each|per|within|inside|under)\b/i)) add("sidebar-nested", "An app whose content nests (projects with their own pages): a sidebar with expandable groups.");
+      else add("sidebar-app", tool ? "A tool with several sections: a sidebar, grouped, that can collapse to icons." : `An app with several screens (${screens} named): a sidebar to move between them.`);
+    }
+  }
   if (has(t, /\b(features?|benefits|what it does|services|how it works|what you get|what's included)\b/i)) {
     if (has(t, /\b(how it works|steps?|step by step|walkthrough)\b/i)) add("features-alternating", "The spec explains how it works in steps: alternating rows with a picture each.");
     else if (has(t, /\b(included|what you get|checklist|every plan)\b/i)) add("features-checklist", "The spec lists what's included: a compact checklist.");
@@ -95,7 +105,7 @@ export const keptSection = (id: string) => `.flowcode/sections/${id}.tsx.txt`;
 /** What the coder is told: a starting point it reshapes, never a template to fill in. */
 export function sectionGuidance(picks: SectionPick[]): string {
   if (!picks.length) return "";
-  return `Library sections are in src/sections/ (${picks.map((p) => `${sectionFile(p.id).replace("src/sections/", "")}: ${p.reason}`).join("; ")}). They are starting points, not the design: use one only where it fits the screen, replace every value in its SAMPLE object with the spec's real content (then delete the "${SAMPLE_MARKER}" comment), reshape it for this product, and delete any you don't use. Compose your own where none fits. They style themselves from src/styles/library.css, which reads the design tokens; restyle through the tokens, not by editing library.css. Every other library section is kept in .flowcode/sections/ if a screen needs one.`;
+  return `Library sections are in src/sections/ (${picks.map((p) => `${sectionFile(p.id).replace("src/sections/", "")}: ${p.reason}`).join("; ")}). They are starting points, not the design: use one only where it fits the screen, replace every value in its SAMPLE object with the spec's real content (then delete the "${SAMPLE_MARKER}" comment), reshape it for this product, and delete any you don't use. Compose your own where none fits. They style themselves from src/styles/library.css, which reads the design tokens; restyle through the tokens, not by editing library.css. Every other library section is kept in .flowcode/sections/ if a screen needs one. Page backgrounds are one class on a section or the page (fl-bg-soft, -mesh, -glow, -aurora, -split, -ink for gradients; fl-bg-dots, -grid, -stripes, -waves, -topo, -grain for patterns); use at most one or two where the design calls for atmosphere, never on every section.`;
 }
 
 /** The runtime step, for a React spec build. Undefined when the spec calls for no section. */
