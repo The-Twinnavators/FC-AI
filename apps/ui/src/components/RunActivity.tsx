@@ -79,7 +79,7 @@ export function RunActivity({ runId, taskId, onChanged }: { runId: string; taskI
             <strong>First look ready:</strong> screens designed with sample data
           </span>
           <button type="button" className="btn btn--sm btn--primary" onClick={() => window.dispatchEvent(new CustomEvent("fc:show-tab", { detail: "preview" }))}>
-            Open Preview
+            Preview/Screenshots
           </button>
         </div>
       ) : null}

@@ -465,7 +465,7 @@
 }
 
 /* System setup as a table: zebra rows, the part names on the left, the tested setup's column tinted. */
-.ab2__setup-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.ab2__setup-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-1); }
 .ab2__setup-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
 .ab2__setup-table th, .ab2__setup-table td { text-align: left; vertical-align: top; padding: 14px 18px; line-height: 1.5; }
 .ab2__setup-table thead th { padding-top: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
