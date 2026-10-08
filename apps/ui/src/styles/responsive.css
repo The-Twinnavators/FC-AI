@@ -15636,3 +15636,5 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .cl-frame { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #fff; display: block; }
 .cl-code { margin: 0; padding: 14px 16px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); font: 400 12px/1.6 var(--font-mono); white-space: pre; overflow: auto; max-height: 60vh; }
 :root[data-theme="light"] .cl-code { background: var(--bg-3); }
+.cl-group { display: grid; gap: 2px; }
+.cl-group + .cl-group { margin-top: 12px; }

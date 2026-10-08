@@ -54,6 +54,7 @@ import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
+import { SECTION_STEPS } from "./sectionRecipes.js";
 import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit } from "./stepRecovery.js";
 import { salvagePlan } from "./planSalvage.js";
 import { lookGuidance, visualDirection, type BuildLook } from "./starterIdentity.js";
@@ -935,7 +936,7 @@ export class Orchestrator {
    */
   private async splitStep(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>, signal: AbortSignal): Promise<boolean> {
     if (task.role !== "coder" || this.d.store.getSetting(`splitPart:${task.id}`, false)) return false;
-    const runtime = (!!run.strategy?.templateId && task.title in (TEMPLATES[run.strategy.templateId]?.runtimeSteps ?? {})) || task.title in UPGRADE_STEPS || task.title in LAYOUT_STEPS;
+    const runtime = (!!run.strategy?.templateId && task.title in (TEMPLATES[run.strategy.templateId]?.runtimeSteps ?? {})) || task.title in UPGRADE_STEPS || task.title in LAYOUT_STEPS || task.title in SECTION_STEPS;
     if (runtime) return false;
     const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
     const files = listTree(jail, "src", 4, 200).children ?? [];
@@ -1143,7 +1144,7 @@ export class Orchestrator {
     }
 
     // Runtime-executed tasks (deterministic steps such as scaffolding from a verified template or installs).
-    const runtimeStep = (run.strategy?.templateId && TEMPLATES[run.strategy.templateId]?.runtimeSteps[task.title]) || UPGRADE_STEPS[task.title] || LAYOUT_STEPS[task.title] || undefined;
+    const runtimeStep = (run.strategy?.templateId && TEMPLATES[run.strategy.templateId]?.runtimeSteps[task.title]) || UPGRADE_STEPS[task.title] || LAYOUT_STEPS[task.title] || SECTION_STEPS[task.title] || undefined;
     let outcome: AgentOutcome;
     const changed = new Set<string>(task.actualPaths);
     if (runtimeStep) {

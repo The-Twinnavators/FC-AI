@@ -8,7 +8,11 @@ import { createRoot, type Root } from "react-dom/client";
 import { BUNDLED_FONTS, DESIGN_TEMPLATES, LIBRARY_SECTIONS, SECTION_CATEGORIES, fontFaceCss, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
 import tokensCss from "../../../../templates/react-vite-starter/src/styles/tokens.css?raw";
-import libraryCss from "../../../../templates/library/library.css?raw";
+import baseCss from "../../../../templates/library/library.css?raw";
+
+/** The shared sheet plus each category's stylesheet, as builds get them. */
+const categoryCss = import.meta.glob<string>("../../../../templates/library/css/*.css", { query: "?raw", import: "default", eager: true });
+const libraryCss = [baseCss, ...Object.keys(categoryCss).sort().map((k) => categoryCss[k])].join("\n\n");
 
 const modules = import.meta.glob<{ default: ComponentType }>("../../../../templates/library/sections/*.tsx");
 const sources = import.meta.glob<string>("../../../../templates/library/sections/*.tsx", { query: "?raw", import: "default" });
@@ -63,9 +67,10 @@ export function ComponentsView() {
   const [cat, setCat] = useState<SectionCategory | "all">("all");
   const [styleId, setStyleId] = useState(() => {
     try {
-      return localStorage.getItem("flowcode.componentsStyle") ?? "";
+      const saved = localStorage.getItem("flowcode.componentsStyle");
+      return DESIGN_TEMPLATES.some((t) => t.id === saved) ? saved! : DESIGN_TEMPLATES[0]!.id;
     } catch {
-      return "";
+      return DESIGN_TEMPLATES[0]!.id;
     }
   });
   const [open, setOpen] = useState<LibrarySection>();
@@ -97,12 +102,11 @@ export function ComponentsView() {
 
       <div className="library-grid__bar cl-bar">
         <p className="muted">
-          {LIBRARY_SECTIONS.length} sections in {SECTION_CATEGORIES.length} categories. Written for FlowCode; patterns informed by open-source libraries (see Third-party notices).
+          {LIBRARY_SECTIONS.length} sections and components in {SECTION_CATEGORIES.filter((c) => counts.get(c.id)).length} categories. Written for FlowCode; patterns informed by open-source libraries (see Third-party notices).
         </p>
         <label className="cl-style">
           <span className="muted">Preview in</span>
           <select className="select" value={styleId} onChange={(e) => setStyleId(e.target.value)}>
-            <option value="">The starter&apos;s default style</option>
             {DESIGN_TEMPLATES.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -118,12 +122,16 @@ export function ComponentsView() {
             <span className="lib-shelf__label">All sections</span>
             <span className="lib-shelf__count">{LIBRARY_SECTIONS.length}</span>
           </button>
-          <p className="lib-shelves__heading">Categories</p>
-          {SECTION_CATEGORIES.map((c) => (
-            <button key={c.id} type="button" className="lib-shelf" aria-current={cat === c.id} onClick={() => setCat(c.id)}>
-              <span className="lib-shelf__label">{c.label}</span>
-              <span className="lib-shelf__count">{counts.get(c.id)}</span>
-            </button>
+          {(["page", "app"] as const).map((g) => (
+            <div key={g} className="cl-group">
+              <p className="lib-shelves__heading">{g === "page" ? "Page sections" : "App components"}</p>
+              {SECTION_CATEGORIES.filter((c) => c.group === g && counts.get(c.id)).map((c) => (
+                <button key={c.id} type="button" className="lib-shelf" aria-current={cat === c.id} onClick={() => setCat(c.id)}>
+                  <span className="lib-shelf__label">{c.label}</span>
+                  <span className="lib-shelf__count">{counts.get(c.id)}</span>
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
         <ul className="cl-list">

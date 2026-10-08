@@ -3,7 +3,7 @@
  * design-token CSS (templates/library/library.css). Each takes on a project's colours, fonts, spacing and corners
  * from its tokens. The Components page browses them; builds copy the ones a screen needs.
  */
-export type SectionCategory = "navigation" | "hero" | "features" | "stats" | "pricing" | "testimonials" | "faq" | "cta" | "team" | "contact" | "newsletter" | "blog" | "footer";
+export type SectionCategory = "navigation" | "hero" | "features" | "stats" | "pricing" | "testimonials" | "faq" | "cta" | "team" | "contact" | "newsletter" | "blog" | "footer" | "forms" | "tables" | "cards" | "dialogs" | "alerts";
 
 export interface LibrarySection {
   /** File stem in templates/library/sections. */
@@ -15,20 +15,28 @@ export interface LibrarySection {
   tags: string[];
 }
 
-export const SECTION_CATEGORIES: Array<{ id: SectionCategory; label: string }> = [
-  { id: "navigation", label: "Navigation" },
-  { id: "hero", label: "Heroes" },
-  { id: "features", label: "Features" },
-  { id: "stats", label: "Stats" },
-  { id: "pricing", label: "Pricing" },
-  { id: "testimonials", label: "Testimonials" },
-  { id: "faq", label: "FAQ" },
-  { id: "cta", label: "Calls to action" },
-  { id: "team", label: "Team" },
-  { id: "contact", label: "Contact" },
-  { id: "newsletter", label: "Newsletter" },
-  { id: "blog", label: "Blog" },
-  { id: "footer", label: "Footers" },
+/** "page": marketing and website sections. "app": the pieces an app's own screens are made of. */
+export type SectionGroup = "page" | "app";
+
+export const SECTION_CATEGORIES: Array<{ id: SectionCategory; label: string; group: SectionGroup }> = [
+  { id: "navigation", label: "Navigation", group: "page" },
+  { id: "hero", label: "Heroes", group: "page" },
+  { id: "features", label: "Features", group: "page" },
+  { id: "stats", label: "Stats", group: "page" },
+  { id: "pricing", label: "Pricing", group: "page" },
+  { id: "testimonials", label: "Testimonials", group: "page" },
+  { id: "faq", label: "FAQ", group: "page" },
+  { id: "cta", label: "Calls to action", group: "page" },
+  { id: "team", label: "Team", group: "page" },
+  { id: "contact", label: "Contact", group: "page" },
+  { id: "newsletter", label: "Newsletter", group: "page" },
+  { id: "blog", label: "Blog", group: "page" },
+  { id: "footer", label: "Footers", group: "page" },
+  { id: "forms", label: "Forms", group: "app" },
+  { id: "tables", label: "Tables and lists", group: "app" },
+  { id: "cards", label: "Cards", group: "app" },
+  { id: "dialogs", label: "Dialogs and drawers", group: "app" },
+  { id: "alerts", label: "Alerts and states", group: "app" },
 ];
 
 export const LIBRARY_SECTIONS: LibrarySection[] = [

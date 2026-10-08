@@ -14,6 +14,7 @@ import type { OrchestratorDeps } from "./orchestrator.js";
 import { personalizeStarterFile, starterIdentity, withTemplate, withVibe, type BuildLook } from "./starterIdentity.js";
 import type { PathJail } from "../security/pathJail.js";
 import { layoutGuidance, layoutsTask, pickLayouts } from "./layoutRecipes.js";
+import { pickSections, sectionGuidance, sectionsTask } from "./sectionRecipes.js";
 import { brandTrio, designDirection } from "../knowledge/designDirection.js";
 import { applyCapturedStyle, captureStyle } from "../workspace/styleCapture.js";
 import { BrowserSession } from "../quality/preview.js";
@@ -381,7 +382,9 @@ export function specRuntimeTasks(refs: ReferenceFile[], templateId?: string, loo
   // React builds whose spec asks for a home, dashboard or settings screen start those screens from ready-made layouts.
   const specText = refs.filter((r) => r.role === "prd" || r.role === "text").map((r) => r.content).join("\n");
   const layouts = t.starter.framework === "React" ? layoutsTask(undefined, specText, ["review"]) : undefined;
-  const ready = layouts ? ` ${layoutGuidance(pickLayouts(specText))}` : "";
+  // Library sections the spec clearly calls for (a website, or a section it names), as starting points with reasons.
+  const sections = t.starter.framework === "React" ? sectionsTask(specText, specText.slice(0, 400), [layouts ? layouts.key : "review"]) : undefined;
+  const ready = `${layouts ? ` ${layoutGuidance(pickLayouts(specText))}` : ""}${sections ? ` ${sectionGuidance(pickSections(specText, specText.slice(0, 400)))}` : ""}`;
   const tasks: PlanTask[] = [
     {
       key: "scaffold",
@@ -446,7 +449,7 @@ export function specRuntimeTasks(refs: ReferenceFile[], templateId?: string, loo
         t.starter.framework === "React"
           ? `Build the app's structure before any feature (follow the app-layout-navigation and ux-design-principles skills): in src/App.tsx use the ready-made <AppShell> from src/components/ui (it renders the header with the product name from the spec, a <nav> to each main screen the spec describes, and a <main> showing ONE screen at a time) with useScreen() from src/lib/screens.ts for the current screen. App takes no props (src/main.tsx renders <App />), and AppShell draws the header and nav itself, so write no header, nav or links of your own. Screens: exactly the screens the spec names, no others (no Settings, Home, Profile or Sign-in screen unless the spec asks for one; a one-screen app has one entry). Follow the spec's own layout for each screen; a layout drawn in the spec is followed exactly (order, grouping, positions). A single-screen tool (a calculator, a timer, a converter, a game) is the tool itself filling the page: no PageHeader, sections or helper text around it, and no navigation tabs (with one screen in SCREENS, AppShell shows none). The shape, with the spec's own screen names in place of the <angle-bracket> parts: const SCREENS = [{ id: "<first-screen-id>", label: "<First screen name>" }]; const SCREEN_IDS = SCREENS.map((s) => s.id); export default function App() { const [current, go] = useScreen(SCREEN_IDS); return <AppShell name="<Product name>" screens={SCREENS} current={current} onNavigate={go}><FirstScreen /></AppShell>; } (with more than one screen, render the one whose id is current). Each screen starts with <PageHeader> (its one h1, a short description and its main action) and uses Section, Card, Button, Field, EmptyState and Skeleton from src/components/ui rather than new one-off markup. Create one component per screen in src/screens/ with its real title and a short, real description of what the user does there (from the spec, no placeholder wording), and a first screen that tells a new user what to do first. Style everything with the design tokens in src/styles/tokens.css.${layouts ? ` Ready-made screens from FlowCode's layouts are already in src/screens/: wire the ones the spec needs into the app shell as they are (the next step, "${DESIGN_SCREENS}", replaces their sample content) and delete the ones it doesn't use.` : ""}`
           : "Build the app's structure before any feature (follow the app-layout-navigation and ux-design-principles skills): in the root component (src/app/app.html and app.ts) an app shell with a header showing the product name from the spec, a <nav> to each main screen the spec describes, and a <main> area that shows ONE screen at a time (a signal for the current screen, or the router if present). One standalone component per screen with its real title and a short, real description of what the user does there (from the spec, no placeholder wording), and a first screen that tells a new user what to do first. Style with the design tokens in src/styles/tokens.css.",
-      dependsOn: [layouts ? layouts.key : "review"],
+      dependsOn: [sections ? sections.key : layouts ? layouts.key : "review"],
       expectedPaths: t.starter.framework === "React" ? ["src/App.tsx", "src/screens/", "src/styles/"] : ["src/app/", "src/styles/"],
       acceptanceCriteria:
         t.starter.framework === "React"
@@ -482,7 +485,7 @@ Later steps add behaviour into this design, so give each feature a place (a dial
       role: "coder",
     },
   ];
-  return tasks.flatMap((task) => (task.key === "layout" && layouts ? [layouts, task] : [task]));
+  return tasks.flatMap((task) => (task.key === "layout" ? [...(layouts ? [layouts] : []), ...(sections ? [sections] : []), task] : [task]));
 }
 
 /** Feature steps start after this one: the screens are designed whole first (Calendar prototype: ten feature steps
