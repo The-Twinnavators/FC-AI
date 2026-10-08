@@ -32,5 +32,9 @@ copied from them; if a future section adapts their code, its file will carry the
 
 Industry templates based on HTML5 UP designs (Creative Commons Attribution 3.0) credit "HTML5 UP" (html5up.net) in
 FlowCode and in each prototype built from them.
+Layouts adapted (templates/library/sections): Arcana (site-cafe), Forty (site-agency), Big Picture
+(site-photographer), Editorial (site-magazine), Dopetrope (site-real-estate), Escape Velocity (site-fitness), Alpha
+(site-nonprofit), Fractal (site-event), Directive (site-clinic), Eventually (site-coming-soon). Each keeps the credit
+in its header comment and a visible "Design: HTML5 UP" line in its footer.
 
 See `docs/component-library-sources.md` for which sources may be used and on what conditions.
