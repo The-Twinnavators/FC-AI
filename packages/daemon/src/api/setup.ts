@@ -102,7 +102,7 @@ export function testAndUse(app: App, model: string): { started: boolean; waiting
     .probeWhenFree(assignment, () => app.orchestrator.hasActiveBuild())
     .then(() => {
       const e = app.lab.coderEligibility(assignment);
-      if (e.eligible) app.router.setRoleAssignment("coder", assignment);
+      if (e.eligible) (app.router.setRoleAssignment("coder", assignment), app.orchestrator.switchRoleModel("coder", assignment));
       else lastError = `${model} didn't pass the coder test: ${e.reason}. Try another model.`;
     })
     .catch((err: Error) => {
@@ -117,6 +117,6 @@ export function useAsCoder(app: App, model: string): { ok: boolean; reason?: str
   const assignment = { ...app.router.roleAssignments().coder!, model };
   const e = app.lab.coderEligibility(assignment);
   if (!e.eligible) return { ok: false, reason: e.reason };
-  app.router.setRoleAssignment("coder", assignment);
+  (app.router.setRoleAssignment("coder", assignment), app.orchestrator.switchRoleModel("coder", assignment));
   return { ok: true };
 }

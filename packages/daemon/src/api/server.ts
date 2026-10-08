@@ -1122,7 +1122,9 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       if (!e.eligible) throw new HttpError(409, `Cannot make ${b.assignment.model} the default Coder: ${e.reason}`);
     }
     app.router.setRoleAssignment(b.role, b.assignment);
-    return { ok: true };
+    // Builds still going switch too (the agents use what the person just chose).
+    const switched = app.orchestrator.switchRoleModel(b.role, b.assignment);
+    return { ok: true, switched: switched.length };
   });
   // First-run setup: the one next step before a first build (Ollama, a model, its coder test, using it as the coder).
   add("GET /setup/status", () => setupStatus(app));

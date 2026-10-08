@@ -20,7 +20,7 @@ import { isRootScratch } from "../quality/cleanupScan.js";
 import { findOpenImage } from "../workspace/openImages.js";
 import { errorFile } from "../quality/verification.js";
 import { renderLoopNote } from "./renderLoops.js";
-import { afterEdit, testFailureDigest, buildingBlockImports, coverUpEdit, editGuard, nativeInWebApp, toTsPath, removesTokenInUse, workspaceTokenUsage, unredactLines } from "./guards.js";
+import { afterEdit, syntaxGuard, testFailureDigest, buildingBlockImports, coverUpEdit, editGuard, nativeInWebApp, toTsPath, removesTokenInUse, workspaceTokenUsage, unredactLines } from "./guards.js";
 
 export interface DispatchContext {
   project: Project;
@@ -152,6 +152,8 @@ export function createDispatcher(ctx: DispatchContext) {
   const patchMisses = new Map<string, number>();
   /** The type errors after each edit in this attempt, to notice when they start repeating. */
   const errorSets: string[] = [];
+  /** Edits refused for leaving a file unable to parse, per file in this attempt. */
+  const syntaxRefusals = new Map<string, number>();
   const mutate = async (name: ToolName, args: Record<string, unknown>, toolCallId: string): Promise<ToolExecution> => {
     // Scratch files (test results, logs, dumps) don't belong in the project root.
     if (name === "create_file" && typeof args.path === "string" && isRootScratch(args.path))
@@ -250,6 +252,30 @@ export function createDispatcher(ctx: DispatchContext) {
         /* missing file: the operation reports it */
       }
       if ((patchMisses.get(rel) ?? 0) >= 2 && lines <= MAX_REWRITE_LINES) approved = true;
+    }
+    // An edit that leaves a TS/JS file unable to parse is not kept (see syntaxGuard); three in a row on one file end the
+    // attempt, so a stronger model or the debugger takes the step instead of the same mistake coming back.
+    if ((name === "apply_patch" || name === "replace_file" || name === "create_file") && typeof args.path === "string") {
+      const target = ctx.jail.resolve(String(args.path));
+      let before: string | undefined;
+      try {
+        before = fs.readFileSync(target.abs, "utf8");
+      } catch {
+        before = undefined;
+      }
+      const after = name === "create_file" ? String(args.content ?? "") : before === undefined && name === "apply_patch" ? undefined : afterEdit(name, before ?? "", args);
+      const refusal = after === undefined ? undefined : syntaxGuard(target.rel, before, after);
+      if (refusal) {
+        const n = (syntaxRefusals.get(target.rel) ?? 0) + 1;
+        syntaxRefusals.set(target.rel, n);
+        if (n >= 3) {
+          const reason = `No progress: ${n} edits in a row would have left ${target.rel} unable to parse. Stopping this attempt.`;
+          ctx.onNoProgress?.(reason);
+          return { ok: false, content: `ERROR: ${refusal}\n${reason}`, terminal: { kind: "no_action", reason } };
+        }
+        return { ok: false, content: `ERROR: ${refusal}` };
+      }
+      syntaxRefusals.delete(target.rel);
     }
     const opCtx = { jail: ctx.jail, projectId: ctx.project.id, runId: ctx.run.id, taskId: ctx.task.id, toolCallId, approved };
     const call = (c: typeof opCtx): OpResult => (ctx.ops as unknown as Record<string, (c: unknown, a: unknown) => OpResult>)[name].call(ctx.ops, c, args);

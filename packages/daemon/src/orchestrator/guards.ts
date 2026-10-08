@@ -7,6 +7,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 import { parseCustomProperties } from "../workspace/styleTokens.js";
 import { locatePatch } from "../workspace/operations.js";
 import { flattenFiles } from "../workspace/fileService.js";
@@ -572,3 +573,41 @@ export function planTooBig(plan: { tasks: Array<{ expectedPaths: string[] }> }, 
 }
 
 export { testFailureDigest } from "../quality/testDigest.js";
+
+/** Syntax errors in a TypeScript/JavaScript file's text (it doesn't parse), first ones first, one per line. */
+export function syntaxErrors(file: string, text: string): Array<{ line: number; col: number; message: string; source: string }> {
+  const kind = /\.tsx$/i.test(file) ? ts.ScriptKind.TSX : /\.jsx$/i.test(file) ? ts.ScriptKind.JSX : /\.(m|c)?js$/i.test(file) ? ts.ScriptKind.JS : ts.ScriptKind.TS;
+  const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, kind);
+  const diags = (sf as unknown as { parseDiagnostics?: ts.DiagnosticWithLocation[] }).parseDiagnostics ?? [];
+  const lines = text.split(/\r?\n/);
+  const out: Array<{ line: number; col: number; message: string; source: string }> = [];
+  for (const d of diags) {
+    const { line, character } = sf.getLineAndCharacterOfPosition(d.start ?? 0);
+    if (out.some((o) => o.line === line + 1)) continue;
+    out.push({ line: line + 1, col: character + 1, message: ts.flattenDiagnosticMessageText(d.messageText, " "), source: lines[line] ?? "" });
+  }
+  return out;
+}
+
+/**
+ * Refuses an edit that leaves a TS/JS file unable to parse, unless the file already didn't parse and the edit makes it
+ * better. A file that doesn't parse gives the type check dozens of vague follow-on errors ("Expression expected"), and
+ * small models answer those by rewriting the file with the same mistake (Kids cash app: `onClick={</Button>}` written
+ * again round after round, 2-3 minutes each). The file stays as it was, and the agent sees the exact broken lines.
+ */
+export function syntaxGuard(file: string, before: string | undefined, after: string): string | undefined {
+  if (!/\.(tsx?|jsx?|mts|cts|mjs|cjs)$/i.test(file)) return undefined;
+  const now = syntaxErrors(file, after);
+  if (!now.length) return undefined;
+  const was = before === undefined ? 0 : syntaxErrors(file, before).length;
+  if (was && now.length < was) return undefined;
+  const shown = now.slice(0, 3).map((e) => {
+    const src = e.source.length > 160 ? e.source.slice(Math.max(0, e.col - 80), e.col + 60).trim() : e.source.trim();
+    return `line ${e.line}: ${e.message}\n  ${src}`;
+  });
+  const jsx = /\.(tsx|jsx)$/i.test(file)
+    ? '\nIn JSX: a value in { } must be a JavaScript expression (onClick={() => go("games")}, not onClick={</Button>}); every tag is closed (<PageHeader … /> or <PageHeader>…</PageHeader>); text with > or { goes in a string.'
+    : "";
+  const already = was ? ` (it already had ${was}; an edit must reduce them)` : "";
+  return `Not applied: this edit leaves ${file} unable to parse (${now.length} syntax error${now.length === 1 ? "" : "s"}), so the file is unchanged${already}. Fix these lines and send the edit again:\n${shown.join("\n")}${jsx}`;
+}

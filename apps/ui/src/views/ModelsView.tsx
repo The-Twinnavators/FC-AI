@@ -36,8 +36,10 @@ export function ModelsView() {
   const assign = async (role: string, model: string) => {
     setError(undefined);
     try {
-      await post("/models/roles", { role, assignment: { providerId: "ollama", model, temperature: role === "planner" ? 0.2 : 0.1 } });
+      const r = await post<{ switched?: number }>("/models/roles", { role, assignment: { providerId: "ollama", model, temperature: role === "planner" ? 0.2 : 0.1 } });
       roles.reload();
+      // Builds still going switch too: say so, so the change is never silent.
+      setAutoDone(r.switched ? `${model} is the ${role.replace(/_/g, " ")} now, and ${r.switched === 1 ? "the build that's running uses" : `${r.switched} running builds use`} it from the next model call.` : undefined);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -59,9 +61,10 @@ export function ModelsView() {
     setError(undefined);
     try {
       const changes = auto.plan.filter((p) => p.to !== p.from);
-      for (const p of changes) await post("/models/roles", { role: p.role, assignment: { providerId: "ollama", model: p.to, temperature: p.role === "planner" ? 0.2 : 0.1 } });
+      let switched = 0;
+      for (const p of changes) switched = Math.max(switched, (await post<{ switched?: number }>("/models/roles", { role: p.role, assignment: { providerId: "ollama", model: p.to, temperature: p.role === "planner" ? 0.2 : 0.1 } })).switched ?? 0);
       roles.reload();
-      setAutoDone(changes.length ? `Updated ${changes.length} role${changes.length === 1 ? "" : "s"}.` : "Everything was already set this way.");
+      setAutoDone(changes.length ? `Updated ${changes.length} role${changes.length === 1 ? "" : "s"}${switched ? `; ${switched === 1 ? "the running build uses" : `${switched} running builds use`} them from the next model call` : ""}.` : "Everything was already set this way.");
       setAuto(undefined);
     } catch (e) {
       setError((e as Error).message);

@@ -45,6 +45,7 @@ export const EVENT_TYPES = [
   "knowledge.updated",
   "agent.message",
   "model.tier",
+  "model.switched",
   "recovery.action",
   // Design research: inspiration from Dribbble, Behance and real products, studied before the screens are designed.
   "research.started",

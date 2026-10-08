@@ -11,6 +11,7 @@ import {
   ImplementationPlan,
   TERMINAL_RUN_STATUSES,
   type AgentRole,
+  type ModelAssignment,
   type CreateRunInput,
   type ExecutionStrategy,
   type PlanTask,
@@ -113,6 +114,29 @@ export class Orchestrator {
   /** True while any build is running (lab tests wait for it, so they don't evict its model from memory). */
   hasActiveBuild() {
     return this.active.size > 0;
+  }
+
+  /**
+   * A model switched on the Models page reaches the builds still going (running, paused, waiting): from the agent's next
+   * model call they use it. Kept as they are: a build whose model for that role was chosen per change on the cloud
+   * ("Use the cloud for this change"), and a project with its own model for that role. A cloud model only reaches a
+   * project that allows hosted models. Returns the builds switched.
+   */
+  switchRoleModel(role: AgentRole, assignment: ModelAssignment): string[] {
+    const switched: string[] = [];
+    for (const run of this.d.store.runs.list()) {
+      if (TERMINAL_RUN_STATUSES.includes(run.status)) continue;
+      const current = run.modelAssignments[role];
+      if (current?.providerId === assignment.providerId && current.model === assignment.model) continue;
+      if (current?.providerId.startsWith("hosted")) continue;
+      const project = this.d.store.projects.get(run.projectId);
+      if (!project || project.settings.modelOverrides?.[role]) continue;
+      if (assignment.providerId.startsWith("hosted") && !project.settings.allowHostedModels) continue;
+      this.d.store.runs.upsert({ ...run, modelAssignments: { ...run.modelAssignments, [role]: assignment } });
+      this.d.bus.emit({ projectId: run.projectId, runId: run.id, type: "model.switched", message: `You switched the ${role.replace(/_/g, " ")} to ${assignment.model} on the Models page: this build uses it from the next model call (was ${current?.model ?? "none"})`, data: { role, from: current?.model, to: assignment.model } });
+      switched.push(run.id);
+    }
+    return switched;
   }
 
   /** True while the automatic Coder capability test runs for this run. */
@@ -1385,7 +1409,9 @@ export class Orchestrator {
     const designStep = designTitles.includes(task.title) || designTitles.includes(this.d.store.getSetting<string>(`splitParent:${task.id}`, ""));
     // Design steps use the build's own coder, like every other step: a Local build never sends design work to the
     // cloud (VUS-01). A build that should design on the cloud picks the cloud coder on New build.
-    const roleBase = run.modelAssignments[role] ?? run.modelAssignments.coder;
+    // Read fresh: a model switched on the Models page during the build applies from this attempt (switchRoleModel).
+    const models = this.d.store.runs.get(run.id)?.modelAssignments ?? run.modelAssignments;
+    const roleBase = models[role] ?? models.coder;
     const base = modelOverride ? { ...roleBase, model: modelOverride, version: undefined } : roleBase;
     // A small context window (a local model's 16k) also gets the lean packet. No BIO & GMO build: qwen3-coder:30b's first
     // prompt was 9,400 of its ~12,000 input tokens, so every file it read was trimmed away by its next turn; it read the
