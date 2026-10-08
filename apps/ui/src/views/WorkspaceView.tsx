@@ -376,7 +376,7 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
         )}
         {right === "activity" && (
           <TabPanel label="right" id="activity">
-            <ActivityFeed events={events} />
+            <ActivityFeed events={events} working={view?.active ? workingAgent?.role ?? "planner" : undefined} />
           </TabPanel>
         )}
         {right === "terminal" && (
@@ -1310,7 +1310,34 @@ function agentOf(e: FlowEvent): string | undefined {
  * Everything FlowCode and its agents did for this request, newest first. Consecutive work by one agent is one block,
  * headed by that agent's robot head, name and start time, so a hand-over (Coder → Debugger) is easy to see.
  */
-function ActivityFeed({ events }: { events: FlowEvent[] }) {
+/**
+ * While a run is working: the agent's head moves, the row says what it is waiting on, and a clock counts the seconds
+ * since the last event, so a long model call never looks frozen.
+ */
+function FeedWorking({ role, last }: { role: string; last?: FlowEvent }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const since = last ? Math.max(0, Math.floor((now - new Date(last.createdAt).getTime()) / 1000)) : 0;
+  const clock = `${Math.floor(since / 60)}:${String(since % 60).padStart(2, "0")}`;
+  const model = last?.type === "model.requested" ? last.message.split("→").pop()?.trim() : undefined;
+  const doing = model ? `waiting for ${model} to answer` : last?.type.startsWith("command.") ? "running a command" : last?.type.startsWith("tool.") ? "working in the files" : last?.type.startsWith("verification.") ? "checking the work" : "working";
+  return (
+    <div className="feed__live" role="status">
+      <RobotHead color={ROLE_COLOR[role] ?? "#9a9fd6"} id="feed-live" size={26} className="robot-head--working" />
+      <span className="feed__agent-name">{ROLE_LABEL[role] ?? role}</span>
+      <span className="feed__live-doing">is {doing}</span>
+      <span className="feed__live-clock" aria-label={`${since} seconds since the last update`}>{clock}</span>
+      <span className="feed__live-bar sug-progress__bar" aria-hidden="true">
+        <span className="is-indeterminate" />
+      </span>
+    </div>
+  );
+}
+
+function ActivityFeed({ events, working }: { events: FlowEvent[]; working?: string }) {
   const items = events.filter((e) => e.type !== "command.output").slice(-400);
   if (!items.length) return <div style={{ padding: 12 }}><Empty title="Nothing has happened yet">Each thing FlowCode and its agents do for this request is listed here as it happens.</Empty></div>;
   // Oldest first, events without a role belong to whoever is working; a task start or a new role opens a block.
@@ -1324,14 +1351,16 @@ function ActivityFeed({ events }: { events: FlowEvent[] }) {
     else blocks[blocks.length - 1].events.push(e);
   }
   return (
+    <>
+    {working ? <FeedWorking role={working} last={items[items.length - 1]} /> : null}
     <ol className="feed feed--agents" aria-live="off">
-      {blocks.reverse().map((blk) => {
+      {blocks.reverse().map((blk, bi) => {
         const first = blk.events[0];
         return (
           <li key={first.seq} className="feed__block">
             {blk.agent ? (
               <div className="feed__agent">
-                <RobotHead color={ROLE_COLOR[blk.agent] ?? "#9a9fd6"} id={`feed-${first.seq}`} size={26} />
+                <RobotHead color={ROLE_COLOR[blk.agent] ?? "#9a9fd6"} id={`feed-${first.seq}`} size={26} className={working && bi === 0 ? "robot-head--working" : undefined} />
                 <span className="feed__agent-name">{ROLE_LABEL[blk.agent] ?? blk.agent}</span>
                 <span className="feed__agent-time">started {time(first.createdAt)}</span>
               </div>
@@ -1349,6 +1378,7 @@ function ActivityFeed({ events }: { events: FlowEvent[] }) {
         );
       })}
     </ol>
+    </>
   );
 }
 

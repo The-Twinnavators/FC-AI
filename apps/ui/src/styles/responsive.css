@@ -15650,3 +15650,9 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .network__keys dd { margin: 0; color: var(--text-1); }
 @media (max-width: 760px) { .network__keys { display: none; } }
 #cl-room-top { scroll-margin-top: 76px; }
+
+/* Activity feed: the live row while a run works (moving head, what it waits on, seconds since the last update). */
+.feed__live { position: relative; display: flex; align-items: center; gap: 8px; padding: 10px 16px 12px; border-bottom: 1px solid var(--line); }
+.feed__live-doing { color: var(--text-1); font-size: 13px; }
+.feed__live-clock { margin-left: auto; font: 500 12px/1 var(--font-mono); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.feed__live-bar { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; height: 2px; border-radius: 0; }
