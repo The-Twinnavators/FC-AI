@@ -19,6 +19,7 @@ import { exporterFile, importFixes, nearestFile, typeErrorHints } from "../quali
 import { isRootScratch } from "../quality/cleanupScan.js";
 import { findOpenImage } from "../workspace/openImages.js";
 import { errorFile } from "../quality/verification.js";
+import { screenKey } from "../quality/appWiring.js";
 import { renderLoopNote } from "./renderLoops.js";
 import { afterEdit, syntaxGuard, testFailureDigest, buildingBlockImports, coverUpEdit, editGuard, nativeInWebApp, toTsPath, removesTokenInUse, workspaceTokenUsage, unredactLines } from "./guards.js";
 
@@ -158,6 +159,19 @@ export function createDispatcher(ctx: DispatchContext) {
     // Scratch files (test results, logs, dumps) don't belong in the project root.
     if (name === "create_file" && typeof args.path === "string" && isRootScratch(args.path))
       return { ok: false, content: `${args.path} looks like scratch output, which doesn't belong in the project. Read test results from run_script's result instead of saving them, and keep notes in your reply.` };
+    // A new screen file that is the same screen as one already there (LearnCoinsScreen.tsx next to learn-coins.tsx) is
+    // refused: two copies of a screen left one unreachable, which then blocked the clean-up and the assembly (Kids cash app).
+    if (name === "create_file" && typeof args.path === "string" && /^src\/(pages|views|screens|routes)\/[^/]+\.(tsx|jsx)$/.test(ctx.jail.resolve(args.path).rel.replace(/\\/g, "/"))) {
+      const target = ctx.jail.resolve(args.path);
+      if (!fs.existsSync(target.abs)) {
+        const dir = path.dirname(target.abs);
+        const twin = fs.existsSync(dir) ? fs.readdirSync(dir).find((f) => /\.(tsx|jsx)$/.test(f) && screenKey(f) === screenKey(target.abs)) : undefined;
+        if (twin) {
+          const rel = path.posix.join(path.posix.dirname(target.rel.replace(/\\/g, "/")), twin);
+          return { ok: false, content: `Not created: ${rel} is already this screen. Edit ${rel} instead of making a second copy (a copy nothing uses is left behind and blocks the build). To rename it, use move_file.` };
+        }
+      }
+    }
     // create_file on a file that exists is a request to write the whole file: do it as replace_file, with that tool's
     // checks (Calculator app: gpt-5.6-sol kept rewriting its test file with create_file and was refused each time).
     if (name === "create_file" && typeof args.path === "string" && fs.existsSync(ctx.jail.resolve(args.path).abs)) {

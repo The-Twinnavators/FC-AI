@@ -85,3 +85,27 @@ export function analyzeAppWiring(jail: PathJail): AppWiring {
     summary: parts.length ? parts.join("; ") : `All ${ui.length} pages/components are reachable from ${entry}`,
   };
 }
+
+/** The same screen under two file names (learn-coins.tsx and LearnCoinsScreen.tsx): kebab or Pascal, with or without "Screen". */
+export const screenKey = (file: string) =>
+  path.basename(file).replace(/\.(tsx|jsx|ts|js)$/i, "").toLowerCase().replace(/[^a-z0-9]/g, "").replace(/(screen|page|view)$/, "");
+
+/**
+ * Leftover copies of a screen: a page file nothing reaches whose twin in the same folder (the same screen under another
+ * name) is the one the app uses. Kids cash app: the plan made learn-coins.tsx, a later step made and wired
+ * LearnCoinsScreen.tsx, and the leftover blocked the clean-up and the final assembly for hours.
+ */
+export function duplicateScreens(jail: PathJail): Array<{ file: string; twin: string }> {
+  const root = jail.root;
+  const entry = entryOf(root);
+  if (!entry) return [];
+  const seen = reachableFrom(root, entry);
+  const pages = flattenFiles(jail, 5000).filter((f) => /^src\/(pages|views|screens|routes)\/[^/]+\.(tsx|jsx)$/.test(f) && !/\.(test|spec|stories)\./.test(f));
+  const out: Array<{ file: string; twin: string }> = [];
+  for (const f of pages) {
+    if (seen.has(f)) continue;
+    const twin = pages.find((o) => o !== f && seen.has(o) && path.posix.dirname(o) === path.posix.dirname(f) && screenKey(o) === screenKey(f));
+    if (twin) out.push({ file: f, twin });
+  }
+  return out;
+}

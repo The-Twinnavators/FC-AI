@@ -42,6 +42,23 @@ export interface ContentProblem {
 /** `samples: false` skips the ready-made layouts' sample content (App layout wires them; Design the main screens fills them). */
 export function contentProblems(jail: PathJail, changed: Iterable<string>, owned?: Iterable<string>, samples = true): ContentProblem[] {
   const out: ContentProblem[] = [];
+  // Content data that names pictures the app doesn't have (Kids cash app: coins.json listed penny.jpg and three more,
+  // none of them in public/, so every coin showed a broken image until the very end of the build).
+  for (const rel of changed) {
+    if (!/^src\/(content|data|sim)\/.+\.(json|ts)$/.test(rel.replace(/\\/g, "/"))) continue;
+    let src = "";
+    try {
+      src = fs.readFileSync(path.join(jail.root, rel), "utf8");
+    } catch {
+      continue;
+    }
+    const missing = [...new Set([...src.matchAll(/["'`]((?:\/|\.\/)?[\w./-]+\.(?:png|jpe?g|webp|gif|avif|svg))["'`]/gi)].map((m) => m[1]))].filter((p) => {
+      if (/^https?:/i.test(p)) return false;
+      const clean = p.replace(/^\.?\//, "");
+      return ![path.join(jail.root, "public", clean), path.join(jail.root, "public", "images", clean), path.join(jail.root, clean), path.join(jail.root, path.dirname(rel), clean)].some((f) => fs.existsSync(f));
+    });
+    if (missing.length) out.push({ file: rel, message: `${rel} names ${missing.length} picture(s) the app doesn't have (e.g. "${missing[0]}"). Add each to public/images (find_image saves one), draw it as an inline SVG, or leave the picture out.` });
+  }
   for (const rel of changed) {
     if (!UI_FILE.test(rel) || /(^|\/)(node_modules|dist|spec|tests?|__tests__)\//.test(rel) || /\.(test|spec)\.\w+$/.test(rel)) continue;
     let src: string;

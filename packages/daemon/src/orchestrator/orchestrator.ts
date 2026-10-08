@@ -45,6 +45,7 @@ import { autoApprovalReason, ROLE_TOOLS, type ToolName } from "@flowcode/contrac
 import { listTree, readFile } from "../workspace/fileService.js";
 import { newId, nowIso } from "../util/ids.js";
 import { ProviderError } from "../models/types.js";
+import { duplicateScreens } from "../quality/appWiring.js";
 import { CAPTURE_STYLE, TEMPLATES, templatePlan, specRuntimeTasks, specFallbackTasks, specRequiredChecks, assembleTask, polishTask, cleanupTask, CLEAN_UP, FEATURES_AFTER, DESIGN_SCREENS, DESIGN_POLISH, starterOf } from "./templates.js";
 import { buildGuidance, classifyRequest } from "./classify.js";
 import { cleanupReport, scanCleanup } from "../quality/cleanupScan.js";
@@ -68,7 +69,7 @@ import { protectedPolicyFor } from "../workspace/protectedFiles.js";
 import { capSkills, designSkillIds, renderSkills, selectSkills, stackSkillIds, workflowSkillIds } from "../knowledge/skills.js";
 import { scanComponentLibrary } from "../workspace/componentLibrary.js";
 import { scanStyles } from "../workspace/styleTokens.js";
-import { alignCheckNames, isTsReact, jsxInJsFiles, kitFacts, withoutBadChecks, planTooBig, snippetToName, tsTask, typesFirst, undefinedTokens, workspaceTokenUsage } from "./guards.js";
+import { alignCheckNames, foldReadOnlySteps, isTsReact, jsxInJsFiles, kitFacts, withoutBadChecks, planTooBig, snippetToName, tsTask, typesFirst, undefinedTokens, workspaceTokenUsage } from "./guards.js";
 import { findPrd, matchSections, relatesToPrd, repoInstructions, sectionIndex, sectionText } from "./prd.js";
 import { AUTO_RETRY_MARK, runtimeOptions } from "./runtimeOptions.js";
 import type { McpManager } from "../mcp/manager.js";
@@ -371,6 +372,15 @@ export class Orchestrator {
       // A TypeScript React project gets .tsx/.ts files, not .js: a planned "CalendarMonth.js" led the model to put JSX in a
       // .js file the linter can't parse (Calendar test 6, four failed attempts).
       if (isTsReact(jail)) for (const t of plan.tasks) Object.assign(t, tsTask(t));
+      // A step that only reads is folded into the step that uses what it read: on its own it could never pass.
+      {
+        const tpl = this.d.store.runs.require(runId).strategy?.templateId;
+        const f = foldReadOnlySteps(plan.tasks, (t) => !!((tpl && TEMPLATES[tpl]?.runtimeSteps[t.title]) || UPGRADE_STEPS[t.title] || LAYOUT_STEPS[t.title] || SECTION_STEPS[t.title]));
+        if (f.folded.length) {
+          plan.tasks = f.tasks;
+          this.d.bus.emit({ type: "plan.proposed", projectId: project.id, runId, message: `Folded ${f.folded.length} reading-only step(s) into the step that uses what they read: ${f.folded.map((x) => `"${x}"`).join(", ")}` });
+        }
+      }
       for (const t of plan.tasks) t.acceptanceCriteria = withoutBadChecks(t.acceptanceCriteria);
       {
         const planned = plan.tasks.flatMap((x) => x.expectedPaths.map((p) => p.replace(/\\/g, "/").replace(/\/$/, "")));
@@ -1114,6 +1124,15 @@ export class Orchestrator {
     // attempts never moved Field to the right import, although the hint spelled it out).
     // The step's open type errors and FlowCode's exact fixes for them go into the attempt's brief: a model that only
     // reads never runs the check, so it never saw the hints (Calendar test 8: three attempts of 15 reads, no edit).
+    // Before assembling or cleaning up: a leftover copy of a screen (learn-coins.tsx next to the LearnCoinsScreen.tsx the
+    // app uses) is removed by FlowCode, snapshotted so it can be undone. Left to the agent, it read the files 24 times
+    // and couldn't decide whether to wire the copy or delete it (Kids cash app).
+    if (task.acceptanceCriteria.some((c) => c.check.type === "verification" && (c.check.kind === "app_wiring" || c.check.kind === "code_cleanup"))) {
+      for (const d of duplicateScreens(jail)) {
+        const res = this.d.ops.delete_file({ jail, projectId: project.id, runId: run.id, taskId: task.id, toolCallId: `fc_dupscreen_${task.id}`, approved: true }, { path: d.file, reason: `Leftover copy of ${d.twin}` } as never);
+        if (res.ok) this.d.bus.emit({ ...ev, type: "recovery.action", message: `Removed ${d.file}: a leftover copy of ${d.twin}, the screen the app uses. It can be undone in Changes.` });
+      }
+    }
     let openErrors = "";
     // Any attempt on a step that already changed files: a retry restarts the count at 1.
     if (touched && task.role !== "planner") {

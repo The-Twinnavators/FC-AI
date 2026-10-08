@@ -611,3 +611,30 @@ export function syntaxGuard(file: string, before: string | undefined, after: str
   const already = was ? ` (it already had ${was}; an edit must reduce them)` : "";
   return `Not applied: this edit leaves ${file} unable to parse (${now.length} syntax error${now.length === 1 ? "" : "s"}), so the file is unchanged${already}. Fix these lines and send the edit again:\n${shown.join("\n")}${jsx}`;
 }
+
+/**
+ * A planned step whose whole job is reading ("Read the HTML file to extract the glassmorphism styles") can never pass:
+ * it changes nothing, so it loops until it's blocked (Calculator app, three attempts each on two such steps). The
+ * planner is told not to plan these; small models still do. Each one is folded into the step that uses what it read
+ * (the first step that depends on it, or the next step), as that step's first instruction. Returns the titles folded.
+ */
+export function foldReadOnlySteps<T extends { key: string; title: string; objective: string; dependsOn: string[]; expectedPaths: string[] }>(tasks: T[], fixed: (t: T) => boolean = () => false): { tasks: T[]; folded: string[] } {
+  const reading = /^(read|review|inspect|study|analy[sz]e|understand|examine|look (at|through|over)|explore|investigate|identify|extract|gather|research)\b/i;
+  const writes = /\b(create|add|write|update|change|implement|apply|replace|modify|edit|build|make|remove|delete|rename|wire|style|refactor|fix)\b/i;
+  const folded: string[] = [];
+  let list = [...tasks];
+  for (const t of tasks) {
+    // FlowCode's own steps (Review the plan, Capture the style…) are never folded.
+    if (fixed(t) || !reading.test(t.title.trim()) || writes.test(t.title)) continue;
+    const i = list.indexOf(t);
+    if (i < 0) continue;
+    const next = list.find((x) => x !== t && x.dependsOn.includes(t.key)) ?? list[i + 1];
+    if (!next) continue;
+    next.objective = `First, ${t.objective.replace(/^\s*[A-Z]/, (c) => c.toLowerCase()).replace(/\.?\s*$/, ".")} Then:\n${next.objective}`;
+    next.expectedPaths = [...new Set([...next.expectedPaths, ...t.expectedPaths])];
+    for (const x of list) if (x.dependsOn.includes(t.key)) x.dependsOn = [...new Set([...x.dependsOn.filter((k) => k !== t.key), ...t.dependsOn.filter((k) => k !== x.key)])];
+    list = list.filter((x) => x !== t);
+    folded.push(t.title);
+  }
+  return { tasks: list, folded };
+}
