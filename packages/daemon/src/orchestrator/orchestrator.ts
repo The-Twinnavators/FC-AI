@@ -1141,7 +1141,10 @@ export class Orchestrator {
     // ring" read 15 files, changed nothing, and was verified).
     // file_exists doesn't count either: other steps make those files ("text scaling" passed on CalculatorScreen.tsx and
     // app.css existing).
-    const ownCheck = task.acceptanceCriteria.some((c) => c.check.type === "file_contains" || c.check.type === "file_not_contains");
+    // The cleanup scan counts too: it checks the result itself (nothing unused left), so a clean-up part that found
+    // nothing to remove is done when it passes (Kids cash app: "Remove unused CSS classes" was blocked after three
+    // attempts that each found nothing to remove, while its scan already passed).
+    const ownCheck = task.acceptanceCriteria.some((c) => c.check.type === "file_contains" || c.check.type === "file_not_contains" || (c.check.type === "verification" && c.check.kind === "code_cleanup"));
     // Or the kit does the job, as FlowCode checked in the app's own CSS (the focus ring): the coder read, found nothing
     // to change, and never called task_complete in five attempts.
     const kitDone = kitFacts(jail, `${task.title}\n${task.objective}`).length > 0;

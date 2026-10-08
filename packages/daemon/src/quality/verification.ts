@@ -462,7 +462,16 @@ export class Verifier {
 
   /** The clean-up step's check: nothing left that nothing uses (files, root scratch files, debug calls). */
   cleanupCheck(run: Run, taskId?: string): VerificationCheck {
-    const scan = scanCleanup(this.projects.jail(this.store.projects.require(run.projectId)));
+    const full = scanCleanup(this.projects.jail(this.store.projects.require(run.projectId)));
+    // A part of the clean-up step (split by files) is judged only on what's left in its own files; the other parts,
+    // and the run's own final scan, cover the rest. Kids cash app: the CSS part was blocked three times on an unused
+    // screen file it wasn't allowed to delete.
+    const task = taskId ? this.store.tasks.get(taskId) : undefined;
+    const part = !!task && !!this.store.getSetting<string>(`splitParent:${task.id}`, "") && task.expectedPaths.length > 0 && task.expectedPaths.every((p) => /\.[a-z0-9]+$/i.test(p));
+    const own = (f: string) => !part || task!.expectedPaths.some((p) => p.replace(/\\/g, "/") === f.replace(/\\/g, "/"));
+    const scan: typeof full = part
+      ? { unusedFiles: full.unusedFiles.filter(own), strayFiles: full.strayFiles.filter(own), debugCalls: full.debugCalls.filter((d) => own(d.file)), unusedClasses: full.unusedClasses.filter((c) => own(c.file)), unusedImages: full.unusedImages.filter(own), badCredits: full.badCredits.filter((b) => own(b.file)) }
+      : full;
     const art = this.artifacts.save({ runId: run.id, kind: "other", label: "Clean-up scan", mime: "application/json", content: JSON.stringify(scan, null, 2) });
     const left = cleanupBlocking(scan);
     const summary = left ? cleanupReport({ ...scan, unusedClasses: [] }).replace(/^FlowCode's clean-up scan found:\n/, "Still to remove: ").slice(0, 900) : scan.unusedClasses.length ? `Clean: nothing unused left; ${scan.unusedClasses.length} CSS class(es) look unused` : "Clean: nothing unused left";
