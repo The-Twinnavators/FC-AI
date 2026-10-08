@@ -89,8 +89,8 @@ const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; icon: str
   {
     label: "System",
     items: [
-      { path: "/settings", icon: "settings", label: "System Settings" },
       { path: "/about", icon: "help", label: "About FlowCode" },
+      { path: "/settings", icon: "settings", label: "System Settings" },
       { path: "/guide", icon: "library", label: "Feature guide" },
       { path: "/primitives", icon: "layers", label: "Branding" },
       { path: "/system", icon: "server", label: "System Health" },
