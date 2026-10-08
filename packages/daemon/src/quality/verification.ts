@@ -727,9 +727,23 @@ export class Verifier {
       if (opts.structureOnly) {
         for (const f of result.findings) if (VISUAL_RULES.has(f.rule)) f.serious = false;
       }
+      // A problem with a screen's content (a missing image, a title-only screen, placeholder text) blocks only a step
+      // that may edit that screen. Kids cash app: a polish part limited to GamesScreen.tsx looped for an hour on
+      // Learn Coins' broken images, which it wasn't allowed to fix, while the fix waited in the chat for the build to end.
       // A screen that is still only its title is the design steps' to fill: it blocks them, so a build can't finish
       // with placeholder screens, but a feature step working on another screen isn't held up by it.
-      if (opts.designStep) for (const f of result.findings) if (f.rule === "title-only") f.serious = true;
+      if (opts.designStep) for (const f of result.findings) if (f.rule === "title-only" || f.rule === "empty-screen") f.serious = true;
+      // A step scoped to a folder (or the whole app) owns every screen; one scoped to files owns the screens they are.
+      const ownsAll = task.expectedPaths.some((p) => p === "." || p === "src" || p.endsWith("/") || !/\.[a-z0-9]+$/i.test(p));
+      const screenFiles = task.expectedPaths.filter((p) => /\.(tsx|jsx|vue|svelte)$/i.test(p));
+      const stem = (s: string) => s.replace(/^.*[\\/]/, "").replace(/\.[a-z0-9]+$/i, "").toLowerCase().replace(/[^a-z0-9]/g, "").replace(/(screen|page|view)$/, "");
+      const mine = (screen: string) => ownsAll || screenFiles.some((p) => stem(p) === stem(screen));
+      for (const f of result.findings) {
+        if (f.serious && CONTENT_RULES.has(f.rule) && !mine(f.screen)) {
+          f.serious = false;
+          f.message = `${f.message} (for the step that owns this screen)`;
+        }
+      }
       const review = opts.structureOnly ? { findings: [], model: undefined, limitation: undefined } : await lookReview(this.router, [run.modelAssignments.coder, run.modelAssignments.coder?.providerId.startsWith("hosted") ? run.modelAssignments.critic : run.modelAssignments.critic?.providerId.startsWith("hosted") ? this.router.roleAssignments(project.id).critic : run.modelAssignments.critic], result.screens, `${run.objective}\nThis step: ${task.title}`, { projectId: project.id, runId: run.id, signal });
       // The look review's taste ("reads like a landing page") is the design steps' to act on. On a feature step it's advice:
       // with a cloud reviewer it blocked Sort Controls and Responsive three times each on a design they couldn't change.
@@ -914,6 +928,9 @@ function testReport(output: string): string {
   const clean = output.replace(/\x1b\[[0-9;]*m/g, "");
   return `${testFailureDigest(clean)}${clean.slice(-1500)}`;
 }
+
+/** Look-check rules about what a screen shows (fixed in that screen's own files), as opposed to how it's styled. */
+const CONTENT_RULES = new Set(["broken-image", "title-only", "empty-screen", "placeholder-text", "sample-data-hidden", "repeated-controls", "repeated-empty-text", "repeated-section", "contradictory-controls", "several-h1"]);
 
 /** Screen files in the same folder that are the same screen under another name (learn-coins.tsx ↔ LearnCoinsScreen.tsx). */
 export function sameScreenFiles(abs: string): string[] {

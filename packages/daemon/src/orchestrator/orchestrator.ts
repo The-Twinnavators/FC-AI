@@ -1145,8 +1145,12 @@ export class Orchestrator {
     // Or the kit does the job, as FlowCode checked in the app's own CSS (the focus ring): the coder read, found nothing
     // to change, and never called task_complete in five attempts.
     const kitDone = kitFacts(jail, `${task.title}\n${task.objective}`).length > 0;
+    // A part of Design polish that found nothing to change is judged by the look check (contrast, styling, title-only
+    // screens, broken images), which runs on it below even though it changed nothing. Kids cash app: "Improve hierarchy
+    // and consistency" read 25 files three times, found nothing to change, and blocked the build on a type check alone.
+    const polishPart = task.title === DESIGN_POLISH || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_POLISH;
     // onlyRead comes from earlier attempts' notes, which a retry keeps (it resets the attempt count): check right away.
-    if ((task.attempts >= 2 || onlyRead) && (touched || (onlyRead && (ownCheck || kitDone))) && task.acceptanceCriteria.some((c) => c.check.type !== "manual")) {
+    if ((task.attempts >= 2 || onlyRead) && (touched || (onlyRead && (ownCheck || kitDone || polishPart))) && task.acceptanceCriteria.some((c) => c.check.type !== "manual")) {
       const pre = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), this.d.store.tasks.require(task.id), { signal });
       // The same real-content check a finished step gets: template sample text or placeholders left in the step's own
       // screens mean it isn't done, whatever the type check says.
@@ -1156,8 +1160,8 @@ export class Orchestrator {
       // And the same look check: Calendar design rebuild, a step failed it with 5 serious problems (two h1s, a template
       // headline), then passed here 18 seconds later on its tests alone.
       let looksWrong = false;
-      if (pre.allMet && !leftovers.length && !signal.aborted && task.role === "coder" && task.title !== CAPTURE_STYLE && task.actualPaths.some((p) => /\.(tsx|jsx|html|vue|svelte|css)$/i.test(p))) {
-        const serious = ((await this.d.verifier.lookCheckTask(this.d.store.runs.require(run.id), task, signal)) ?? []).filter((f) => f.serious);
+      if (pre.allMet && !leftovers.length && !signal.aborted && task.role === "coder" && task.title !== CAPTURE_STYLE && (polishPart || task.actualPaths.some((p) => /\.(tsx|jsx|html|vue|svelte|css)$/i.test(p)))) {
+        const serious = ((await this.d.verifier.lookCheckTask(this.d.store.runs.require(run.id), task, signal, polishPart ? { designStep: true } : {})) ?? []).filter((f) => f.serious);
         if (serious.length) {
           looksWrong = true;
           this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), ...serious.slice(0, 5).map((f) => `Look check (${f.screen}): ${f.message}`)].slice(-12));
