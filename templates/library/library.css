@@ -124,13 +124,16 @@
 
 /* ── Forms ── */
 .fl-form { display: grid; gap: var(--space-4); }
-.fl-field { display: grid; gap: var(--space-2); }
+/* Fields keep their natural height: in a row, a field without a hint never stretches its input to match a neighbour. */
+.fl-field { display: grid; gap: var(--space-2); align-content: start; }
 .fl-field label { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
 .fl-input {
   width: 100%; min-height: var(--control-md); padding: var(--space-3) var(--control-pad-md); border-radius: var(--control-radius, var(--radius-sm));
   border: 1px solid var(--color-border-strong); background: var(--color-surface); color: var(--color-text); font: inherit;
 }
 textarea.fl-input { min-height: 8rem; resize: vertical; }
+/* One height for every single-line field, so a date picker or select sits level with the text box beside it. */
+input.fl-input:where(:not([type="checkbox"], [type="radio"], [type="range"])), select.fl-input { height: var(--control-md); padding-block: 0; }
 .fl-inline-form { display: flex; gap: var(--space-3); flex-wrap: wrap; }
 .fl-inline-form .fl-input { flex: 1 1 16rem; width: auto; }
 .fl-note { font-size: var(--text-sm); color: var(--color-text-muted); }

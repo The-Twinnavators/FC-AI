@@ -38,3 +38,9 @@ Layouts adapted (templates/library/sections): Arcana (site-cafe), Forty (site-ag
 in its header comment and a visible "Design: HTML5 UP" line in its footer.
 
 See `docs/component-library-sources.md` for which sources may be used and on what conditions.
+
+## HyperUI
+
+Some library sections (shop, inputs, display pieces, app screens and the neobrutalism kit) follow the structure of
+HyperUI components (https://github.com/markmead/hyperui), MIT License, Copyright (c) Mark Mead. They were rewritten in
+FlowCode's own React and design-token CSS.

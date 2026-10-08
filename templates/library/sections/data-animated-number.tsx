@@ -71,10 +71,13 @@ function CountUp({ value, prefix, suffix, active, reduced }: { value: number; pr
       return;
     }
     const a = from.current;
-    const start = performance.now();
+    // Timed from the first frame: a frame's timestamp can be earlier than performance.now(), which would make the
+    // progress negative and swing the count far below zero.
+    let start = -1;
     let raf = 0;
     const tick = (t: number) => {
-      const p = Math.min(1, (t - start) / DURATION);
+      if (start < 0) start = t;
+      const p = Math.max(0, Math.min(1, (t - start) / DURATION));
       const eased = 1 - Math.pow(1 - p, 3);
       const now = a + (value - a) * eased;
       from.current = now;

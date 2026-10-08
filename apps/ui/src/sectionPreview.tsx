@@ -6,8 +6,7 @@
  */
 import { createRoot } from "react-dom/client";
 import type { ComponentType } from "react";
-import { BUNDLED_FONTS, DESIGN_TEMPLATES, fontFaceCss } from "@flowcode/contracts";
-import tokensCss from "../../../templates/react-vite-starter/src/styles/tokens.css?raw";
+import { previewBaseCss } from "./libraryStyle";
 import baseCss from "../../../templates/library/library.css?raw";
 
 const modules = import.meta.glob<{ default: ComponentType }>("../../../templates/library/sections/*.tsx");
@@ -17,18 +16,9 @@ const params = new URLSearchParams(location.search);
 const id = params.get("id") ?? "";
 const styleId = params.get("style") ?? "";
 
-function styleCss(): string {
-  const t = DESIGN_TEMPLATES.find((x) => x.id === styleId);
-  if (!t) return "";
-  const c = t.colors;
-  return `:root{--color-bg:${c.bg};--color-surface:${c.surface};--color-surface-sunken:${c.surfaceSunken};--color-text:${c.text};--color-text-muted:${c.textMuted};--color-border:${c.border};--color-border-strong:${c.borderStrong};--color-accent:${c.accent};--color-accent-hover:${c.accentHover};--color-on-accent:${c.onAccent};--color-focus:${c.focus};--color-success:${c.success};--color-danger:${c.danger};--color-danger-surface:${c.dangerSurface};--font-sans:${t.fonts.sans};--font-display:${t.fonts.display};--radius-sm:${t.radii[0]}px;--radius-md:${t.radii[1]}px;--radius-lg:${t.radii[2]}px;--radius-xl:${t.radii[3]}px;color-scheme:${t.dark ? "dark" : "light"}}`;
-}
-
 const style = document.createElement("style");
 style.textContent = [
-  fontFaceCss(BUNDLED_FONTS, (file) => new URL(`fonts/${file}.woff2`, document.baseURI).href),
-  tokensCss,
-  styleCss(),
+  previewBaseCss(styleId),
   "html,body{margin:0;overflow:hidden;background:var(--color-bg);color:var(--color-text);font-family:var(--font-sans);font-size:var(--text-md);-webkit-font-smoothing:antialiased}*,*::before,*::after{box-sizing:border-box}",
   baseCss,
   ...Object.keys(categoryCss).sort().map((k) => categoryCss[k]),

@@ -37,7 +37,7 @@
 /* Search */
 .fl-snv-search { position: relative; display: block; }
 .fl-snv-search svg { position: absolute; left: var(--space-3); top: 50%; width: 1rem; height: 1rem; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none; }
-.fl-snv-search .fl-input { min-height: var(--control-sm); padding: var(--space-1) var(--space-3) var(--space-1) calc(var(--space-3) + 1.5rem); font-size: var(--text-sm); background: var(--color-bg); border-color: var(--color-border); }
+.fl-snv-search .fl-input { min-height: var(--control-sm); height: var(--control-sm); padding: var(--space-1) var(--space-3) var(--space-1) calc(var(--space-3) + 1.5rem); font-size: var(--text-sm); background: var(--color-bg); border-color: var(--color-border); }
 
 /* Groups and items */
 .fl-snv-group { display: grid; gap: var(--space-1); }

@@ -15649,3 +15649,4 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .network__keys dt { margin: 0; font: 600 11px/1.4 var(--font-mono); color: var(--text-0); padding: 1px 6px; border-radius: 4px; background: color-mix(in srgb, var(--text-0) 8%, transparent); }
 .network__keys dd { margin: 0; color: var(--text-1); }
 @media (max-width: 760px) { .network__keys { display: none; } }
+#cl-room-top { scroll-margin-top: 76px; }

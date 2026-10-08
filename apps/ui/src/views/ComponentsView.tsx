@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, SECTION_CATEGORIES, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
 
+
 const sources = import.meta.glob<string>("../../../../templates/library/sections/*.tsx", { query: "?raw", import: "default" });
 const key = (id: string) => `../../../../templates/library/sections/${id}.tsx`;
 
@@ -64,6 +65,12 @@ export function ComponentsView() {
   }, [open]);
   const counts = useMemo(() => new Map(SECTION_CATEGORIES.map((c) => [c.id, LIBRARY_SECTIONS.filter((s) => s.category === c.id).length])), []);
   const shown = LIBRARY_SECTIONS.filter((s) => cat === "all" || s.category === cat);
+  // Choosing a shelf goes back up to the top of the list (just under the top bar); already above it, it stays put.
+  const pick = (id: SectionCategory | "all") => {
+    setCat(id);
+    const top = document.getElementById("cl-room-top");
+    if (top && top.getBoundingClientRect().top < 72) top.scrollIntoView({ block: "start", behavior: "smooth" });
+  };
   return (
     <div className="page page-enter cl-page">
       <header className="page__head">
@@ -78,7 +85,7 @@ export function ComponentsView() {
 
       <div className="library-grid__bar cl-bar">
         <p className="muted">
-          {LIBRARY_SECTIONS.length} sections and components in {SECTION_CATEGORIES.filter((c) => counts.get(c.id)).length} categories. Written for FlowCode; patterns informed by open-source libraries (see Third-party notices).
+          {LIBRARY_SECTIONS.length} sections, components and page templates written for FlowCode. Sources and credits are in the Third-party notices.
         </p>
         <label className="cl-style">
           <span className="muted">Preview in</span>
@@ -92,9 +99,9 @@ export function ComponentsView() {
         </label>
       </div>
 
-      <div className="skill-room cl-room">
+      <div id="cl-room-top" className="skill-room cl-room">
         <nav className="lib-shelves skill-room__nav" aria-label="Section categories">
-          <button type="button" className="lib-shelf" aria-current={cat === "all"} onClick={() => setCat("all")}>
+          <button type="button" className="lib-shelf" aria-current={cat === "all"} onClick={() => pick("all")}>
             <span className="lib-shelf__label">All sections</span>
             <span className="lib-shelf__count">{LIBRARY_SECTIONS.length}</span>
           </button>
@@ -102,7 +109,7 @@ export function ComponentsView() {
             <div key={g} className="cl-group">
               <p className="lib-shelves__heading">{g === "template" ? "Page templates" : g === "page" ? "Page sections" : "App components"}</p>
               {SECTION_CATEGORIES.filter((c) => c.group === g && counts.get(c.id)).map((c) => (
-                <button key={c.id} type="button" className="lib-shelf" aria-current={cat === c.id} onClick={() => setCat(c.id)}>
+                <button key={c.id} type="button" className="lib-shelf" aria-current={cat === c.id} onClick={() => pick(c.id)}>
                   <span className="lib-shelf__label">{c.label}</span>
                   <span className="lib-shelf__count">{counts.get(c.id)}</span>
                 </button>
