@@ -68,6 +68,46 @@ function IsoColumn({ value, color }: { value: number; color: string }) {
   );
 }
 
+/** One isometric box: left, right and top faces in shades of `color`. */
+function IsoBox({ x, base, h, w, d, color }: { x: number; base: number; h: number; w: number; d: number; color: string }) {
+  const t = base - h;
+  const f = (pct: number, to: string) => `color-mix(in srgb, ${color} ${pct}%, ${to})`;
+  return (
+    <>
+      <polygon points={`${x - w},${t} ${x},${t + d} ${x},${base + d} ${x - w},${base}`} style={{ fill: f(88, "black") }} />
+      <polygon points={`${x},${t + d} ${x + w},${t} ${x + w},${base} ${x},${base + d}`} style={{ fill: f(62, "black") }} />
+      <polygon points={`${x - w},${t} ${x},${t - d} ${x + w},${t} ${x},${t + d}`} style={{ fill: f(70, "white") }} />
+    </>
+  );
+}
+
+/** Isometric bars for activity over the window: the series folded into 6 buckets, each bar as tall as its share of the busiest. */
+function IsoBars({ series, color }: { series: number[]; color: string }) {
+  const n = 6;
+  const size = Math.ceil(series.length / n) || 1;
+  const sums = Array.from({ length: n }, (_, i) => series.slice(i * size, (i + 1) * size).reduce((a, b) => a + b, 0));
+  const max = Math.max(1, ...sums);
+  return (
+    <svg className="lib-card__ring lib-card__iso" width="72" height="56" viewBox="0 0 72 56" aria-hidden="true">
+      {sums.map((v, i) => (
+        <IsoBox key={i} x={10 + i * 10.5} base={46 - i * 2.5} h={v ? 4 + (v / max) * 28 : 1.5} w={4.5} d={2.3} color={color} />
+      ))}
+    </svg>
+  );
+}
+
+/** A stack of isometric slabs, one per item (up to 8). */
+function IsoStack({ count, color }: { count: number; color: string }) {
+  const k = Math.max(1, Math.min(8, count));
+  return (
+    <svg className="lib-card__ring lib-card__iso" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+      {Array.from({ length: k }, (_, i) => (
+        <IsoBox key={i} x={28} base={46 - i * 5.2} h={3.2} w={13} d={6.5} color={color} />
+      ))}
+    </svg>
+  );
+}
+
 /** `embedded`: shown as its own tab, so always expanded and without the collapse toggle. */
 export function LibraryOverview({ embedded = false }: { embedded?: boolean } = {}) {
   const [win, setWin] = useState<Win>("24h");
@@ -91,13 +131,13 @@ export function LibraryOverview({ embedded = false }: { embedded?: boolean } = {
   const c = data?.cards;
   const cards = c
     ? [
-        { label: "Prompts", Icon: BookOpen, value: c.prompts.total, sub: c.prompts.yours ? `${c.prompts.yours} yours` : c.prompts.edited ? `${c.prompts.edited} edited by you` : "built-in role prompts", ring: undefined, color: "#5f7fd0" },
+        { label: "Prompts", Icon: BookOpen, value: c.prompts.total, sub: c.prompts.yours ? `${c.prompts.yours} yours` : c.prompts.edited ? `${c.prompts.edited} edited by you` : "built-in role prompts", ring: undefined, viz: { stack: c.prompts.total }, color: "#5f7fd0" },
         { label: "Skills", Icon: Sparkles, value: c.skills.total, sub: `${c.skills.on} on · ${c.skills.yours} yours`, ring: c.skills.total ? c.skills.on / c.skills.total : 0, color: "#8b5cf6", live: true },
-        { label: "Skills used by agents", Icon: Target, value: c.applied, sub: `on ${c.tasksWithSkills} build task${c.tasksWithSkills === 1 ? "" : "s"}`, ring: undefined, color: "#5f7fd0", live: true },
+        { label: "Skills used by agents", Icon: Target, value: c.applied, sub: `on ${c.tasksWithSkills} build task${c.tasksWithSkills === 1 ? "" : "s"}`, ring: undefined, viz: { bars: "match" as const }, color: "#5f7fd0", live: true },
         { label: "Passed FlowCode checks", Icon: ListChecks, value: `${Math.round(c.verifiedRate * 100)}%`, sub: "of tasks that used a skill", ring: c.verifiedRate, color: "#22c55e", live: true },
-        { label: "Agent turns", Icon: Cpu, value: c.promptRuns, sub: "planner, coder & debugger on local models", ring: undefined, color: "#8b5cf6", live: true },
-        { label: "Most used skill", Icon: Wand2, value: c.topSkill ? nice(c.topSkill.id) : "—", sub: c.topSkill ? `${c.topSkill.count} time${c.topSkill.count === 1 ? "" : "s"}` : "no skills used yet", ring: undefined, color: "#2fc4b2", small: true },
-        { label: "Versions", Icon: GitBranch, value: c.versions.total, sub: c.versions.recent ? `+${c.versions.recent} in ${win}` : "no changes in this window", ring: undefined, color: "#2fc4b2" },
+        { label: "Agent turns", Icon: Cpu, value: c.promptRuns, sub: "planner, coder & debugger on local models", ring: undefined, viz: { bars: "run" as const }, color: "#8b5cf6", live: true },
+        { label: "Most used skill", Icon: Wand2, value: c.topSkill ? nice(c.topSkill.id) : "—", sub: c.topSkill ? `${c.topSkill.count} time${c.topSkill.count === 1 ? "" : "s"}` : "no skills used yet", ring: c.topSkill && c.applied ? c.topSkill.count / c.applied : undefined, color: "#2fc4b2", small: true },
+        { label: "Versions", Icon: GitBranch, value: c.versions.total, sub: c.versions.recent ? `+${c.versions.recent} in ${win}` : "no changes in this window", ring: undefined, viz: { bars: "define" as const }, color: "#2fc4b2" },
         { label: "Agents with skills", Icon: Users, value: `${c.roles.covered} of ${c.roles.total}`, sub: "FlowCode agent roles covered", ring: c.roles.total ? c.roles.covered / c.roles.total : 0, color: "#c4b5fd" },
       ]
     : [];
@@ -163,7 +203,13 @@ export function LibraryOverview({ embedded = false }: { embedded?: boolean } = {
                 </div>
                 <strong className={`lib-card__value${k.small ? " is-small" : ""}`}>{k.value}</strong>
                 <span className="lib-card__sub muted">{k.sub}</span>
-                {k.ring !== undefined ? <IsoColumn value={k.ring} color={k.color} /> : null}
+                {k.ring !== undefined ? (
+                  <IsoColumn value={k.ring} color={k.color} />
+                ) : "viz" in k && k.viz && "stack" in k.viz ? (
+                  <IsoStack count={k.viz.stack ?? 0} color={k.color} />
+                ) : "viz" in k && k.viz && "bars" in k.viz ? (
+                  <IsoBars series={data?.stages.find((st) => st.id === (k.viz as { bars: string }).bars)?.series ?? []} color={k.color} />
+                ) : null}
               </div>
             ))}
           </div>

@@ -15589,3 +15589,4 @@ body.cp-driving #copilot-panel { z-index: 80; }
 @media (max-width: 560px) { .lib-overview .lib-cards { grid-template-columns: minmax(0, 1fr) !important; } }
 .lib-history__loading { display: flex; align-items: center; min-height: 40px; padding: 4px 2px; }
 .lib-history__loading.sug-progress__bar { display: block; min-height: 0; padding: 0; margin: 8px 0; }
+.lib-overview .lib-card > svg.lib-card__iso[width="72"] { width: 72px; }

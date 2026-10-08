@@ -158,7 +158,9 @@ body::after {
 }
 
 .page-enter {
-  animation: vt-in 420ms var(--ease) both;
+  /* "backwards", not "both": once the page has slid in, no transform is left on the wrapper. A leftover transform
+     stopped the sticky footer's backdrop blur from seeing the content scrolling under it. */
+  animation: vt-in 420ms var(--ease) backwards;
 }
 
 /* Scroll reveal */
