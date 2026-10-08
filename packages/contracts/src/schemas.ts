@@ -398,6 +398,8 @@ export const Run = z.object({
   constraints: z.array(z.string()).default([]),
   createdAt: IsoDate,
   parentRunId: z.string().optional(),
+  /** Who asked for this change: "you" when the person typed it (taste memory learns only from these), absent otherwise. */
+  origin: z.enum(["you", "flowcode"]).optional(),
   attachedKnowledgeIds: z.array(z.string()).default([]),
   /** Workspace-relative paths of imported reference files (spec/…, src/content/…). */
   referencePaths: z.array(z.string()).default([]),
@@ -420,6 +422,7 @@ export const CreateRunInput = z.object({
   kind: ExecutionStrategy.shape.kind.optional(),
   templateId: z.string().optional(),
   parentRunId: z.string().optional(),
+  origin: z.enum(["you", "flowcode"]).optional(),
   attachedKnowledgeIds: z.array(z.string()).default([]),
   modelAssignments: z.record(z.string(), ModelAssignment).optional(),
   references: z.array(ReferenceFile).max(20).default([]),

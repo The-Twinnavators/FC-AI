@@ -108,6 +108,12 @@ describe("discovery: Light Research", () => {
     expect(prd.markdown).toMatch(/## 17\. Build phases/);
     expect(prd.markdown).toMatch(/Possible scope creep: a nice-to-have dashboard/);
     expect(prd.markdown).toMatch(/\| Invoices are spread across email 1 \| R1:/);
+    // The UX part: brief, flow, design system, components and screen specs, after the requirements.
+    expect(prd.markdown).toMatch(/## 18\. UX: Design brief/);
+    expect(prd.markdown).toMatch(/## 19\. UX: User flow\n\n\| Step \| Screen \| What the user does \| What happens next \|/);
+    expect(prd.markdown).toMatch(/## 20\. UX: Design system[\s\S]*the style you capture in New build replaces it/);
+    expect(prd.markdown).toMatch(/## 21\. UX: Components\n\n\| Component \| Used on \| Variants and states \|/);
+    expect(prd.markdown).toMatch(/## 22\. UX: Screen specs\n\n\| Screen \| Layout \| Key content and actions \| States \|/);
     D.approveDoc(app, p.id, "prd", prd.version);
     const h = D.handoff(app, p.id);
     expect(h.prd.name).toMatch(/-prd\.md$/);

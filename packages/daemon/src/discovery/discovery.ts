@@ -1114,6 +1114,33 @@ const PRD_PROMPT = (deep: boolean) =>
 - phases: 2 to 4 build phases, the most important user flow first.
 ${deep ? "- measures: success measures. principles: product principles. infoArch: information architecture (screens and how they connect). responsive: phone and tablet behaviour. dataPrivacy: data, privacy and security considerations. integrations: only if required. analytics: events worth considering. rollout: the first-release boundary. afterLaunch: research to continue after launch.\n" : ""}Do not add accounts, databases, AI features, payments, integrations or other technology unless the approved first version needs them. Do not turn hypotheses into facts.`;
 
+/** The UX part of the PRD: design brief, user flow, design system, components and screen specs (a second call, so a
+ *  small model writes each part well; if it fails the PRD still comes back, with the UX part marked to try again). */
+const UX_SCHEMA = {
+  brief: "list",
+  userflow: [["step", "Step"], ["screen", "Screen"], ["action", "What the user does"], ["next", "What happens next"]],
+  designSystem: [["part", "Part"], ["rule", "Rule"]],
+  components: [["name", "Component"], ["usedOn", "Used on"], ["states", "Variants and states"]],
+  screenSpecs: [["screen", "Screen"], ["layout", "Layout"], ["content", "Key content and actions"], ["states", "States"]],
+} as const;
+
+const UX_PROMPT = `Write the UX part of the PRD for the approved first version and the requirements below. Plain language; concrete enough to build from.
+- brief: the design brief in 5 to 8 lines: the goal of the design, who it is for and their context, the tone and personality, the look and feel, what must feel effortless, and constraints (accessibility, phone first if it applies).
+- userflow: the main flow as numbered steps, each with the screen it happens on, what the user does and what happens next (including what happens when something goes wrong).
+- designSystem: a starting design system, one rule per row: colour (roles, not only hex: background, text, primary action, success, warning, error), typography (typefaces, sizes for headings and body), spacing scale, corner radius, elevation (borders or shadows), motion (and reduced motion), and icon style. Choose to fit the tone; the style the person captures in New build replaces it.
+- components: the reusable components the screens need (buttons, inputs, cards, lists, navigation, dialogs and so on), where each is used, and its variants and states (default, hover, focus, disabled, loading, error).
+- screenSpecs: one row per main screen: its layout (regions top to bottom, what changes on a phone), the key content and actions, and its loading, empty, error and success states.
+Only what the approved first version needs. Do not add accounts, payments or AI features that aren't in it.`;
+
+/** Asks for the UX part; on failure returns undefined (the PRD is still written). */
+async function generateUx(app: App, context: string, requirements: string): Promise<Record<string, unknown> | undefined> {
+  try {
+    return (await ask(app, SYSTEM, `Approved first version:\n${untrusted("summary", context.slice(0, 5000))}\n\nRequirements:\n${untrusted("requirements", requirements.slice(0, 3000))}\n\nTask: ${UX_PROMPT}`, prdSchema(UX_SCHEMA))) as Record<string, unknown>;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function generatePrd(app: App, id: string): Promise<DiscoveryProject> {
   const p = getProject(app, id);
   const deep = p.mode === "deep";
@@ -1126,8 +1153,11 @@ export async function generatePrd(app: App, id: string): Promise<DiscoveryProjec
   } catch (e) {
     throw new DiscoveryError(`FlowCode couldn't write the PRD: ${(e as Error).message.slice(0, 200)}. Your research is saved; try again.`);
   }
+  // The UX part: design brief, user flow, design system, components and screen specs.
+  const reqText = JSON.stringify({ screens: raw.screens, journey: raw.journey, requirements: raw.requirements, design: raw.design });
+  const ux = await generateUx(app, context, reqText);
   const fresh = getProject(app, id);
-  const markdown = prdMarkdown(fresh, raw);
+  const markdown = prdMarkdown(fresh, { ...raw, ...(ux ? { ux } : {}) });
   fresh.prds = [...fresh.prds.map((d) => (d.status === "draft" ? { ...d, status: "superseded" as const } : d)), { version: (fresh.prds.at(-1)?.version ?? 0) + 1, markdown, status: "draft", createdAt: nowIso() }];
   fresh.status = "prd_draft";
   fresh.outputs[deep ? "d_prd" : "l_prd"] = { data: {}, generatedAt: nowIso() };
@@ -1233,6 +1263,21 @@ export function prdMarkdown(p: DiscoveryProject, raw: Record<string, unknown>): 
         ["Assumptions and open questions", bullets([...assumptions, ...l("openQuestions")])],
         ["Build phases", table([["name", "Phase"], ["scope", "Delivers"]], t("phases", [["name", "Phase"], ["scope", "Scope"]]))],
       ];
+  // The UX part, after the product requirements: what the screens look like and how people move through them.
+  const uxRaw = raw.ux as Record<string, unknown> | undefined;
+  const ul = (k: string) => normalizeBlock({ id: k, label: k, kind: "list", maxRows: 20 }, uxRaw?.[k]) as string[];
+  const ut = (k: string, cols: Array<[string, string]>) => normalizeBlock({ id: k, label: k, kind: "table", columns: cols.map(([cid, label]) => ({ id: cid, label })), maxRows: 24 }, uxRaw?.[k]) as Row[];
+  const uxCols = (k: keyof typeof UX_SCHEMA) => UX_SCHEMA[k] as unknown as Array<[string, string]>;
+  const uxSections: Array<[string, string]> = uxRaw
+    ? [
+        ["UX: Design brief", bullets(ul("brief"))],
+        ["UX: User flow", table(uxCols("userflow"), ut("userflow", uxCols("userflow")))],
+        ["UX: Design system", `${table(uxCols("designSystem"), ut("designSystem", uxCols("designSystem")))}\n\n_A starting point: the style you capture in New build replaces it._`],
+        ["UX: Components", table(uxCols("components"), ut("components", uxCols("components")))],
+        ["UX: Screen specs", table(uxCols("screenSpecs"), ut("screenSpecs", uxCols("screenSpecs")))],
+      ]
+    : [["UX: Design brief, user flow, design system, components and screen specs", "_FlowCode couldn't write the UX part this time. Write the PRD again to add it, or fill it in yourself._"]];
+  sections.push(...uxSections);
   return [
     `# ${p.title}: ${deep ? "product requirements document (PRD)" : "starter product requirements document (PRD)"}`,
     `_${PRD_EXPLAINER} Made with FlowCode ${deep ? "Deep" : "Light"} Research. Assumptions stay visible; nothing here is proof the product will succeed._`,

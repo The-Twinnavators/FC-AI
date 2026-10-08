@@ -165,6 +165,7 @@ export class Orchestrator {
       constraints: input.constraints ?? [],
       createdAt: nowIso(),
       parentRunId: input.parentRunId,
+      ...(input.origin ? { origin: input.origin } : {}),
       attachedKnowledgeIds: input.attachedKnowledgeIds ?? [],
       referencePaths: [],
       strategy: undefined,

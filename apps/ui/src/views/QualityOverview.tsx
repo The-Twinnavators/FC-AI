@@ -11,6 +11,7 @@ import { Empty, StatusChip, ago } from "../components/ui";
 import { RadialGauge, SkeletonBlock } from "../components/motion";
 import { ProjectActions } from "../components/ProjectActions";
 import { ViewInBuilder } from "../components/ViewInBuilder";
+import { DemoButton } from "../components/DemoButton";
 import { ProjectShot } from "../components/ProjectShot";
 
 type Severity = "critical" | "high" | "medium" | "low" | "informational";
@@ -113,6 +114,7 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                     <span className="muted">{r ? `Analysed ${ago(r.generatedAt)}` : l ? `Updated ${ago(l.updatedAt)}` : ""}</span>
                   </div>
                 </button>
+                <DemoButton projectId={p.id} projectName={p.name} className="card-demo" />
                 <ViewInBuilder projectId={p.id} projectName={p.name} runId={(p as Project & { latestRun?: { id: string } }).latestRun?.id} className="card-view" />
                 <ProjectActions project={p} onChanged={reload} />
                 </div>

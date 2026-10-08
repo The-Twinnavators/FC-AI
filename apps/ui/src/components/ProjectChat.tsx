@@ -202,6 +202,8 @@ export function ProjectChat({ projectId, runs, view, events, onSent, onShow, onD
         attachedKnowledgeIds: [],
         references: attach.map(({ name, role, content }) => ({ name, role, content })),
         coder: cloud ? "cloud" : "local",
+        // Typed by you: taste memory learns your preferences only from requests like this one.
+        origin: "you",
         ...(latest ? { parentRunId: latest.id, kind: "iterate" } : {}),
       });
       onSent(run);

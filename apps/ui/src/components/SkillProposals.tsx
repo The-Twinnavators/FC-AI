@@ -117,7 +117,7 @@ export function SkillProposals({ onOpenSkill, waitingOnly = false }: { onOpenSki
                       Used by <AgentHeads roles={i.skill.roles.length ? i.skill.roles : ["coder"]} id={`sp-${i.patternId}`} max={2} />
                     </span>
                   ) : null}
-                  {i.pattern ? <span>{i.pattern.count} times in {i.pattern.runs.length} runs</span> : null}
+                  {i.pattern ? <span>{howOften(i.pattern)}</span> : null}
                 </span>
               </button>
               {i.skill && (i.status === "enabled" || i.status === "proposed") ? (
@@ -176,7 +176,7 @@ export function SkillProposals({ onOpenSkill, waitingOnly = false }: { onOpenSki
             <div className="sprop-detail__head">
               <div>
                 <h2 className="sprop-detail__title">{proposalTitle(opened)}</h2>
-                {opened.pattern ? <p className="muted">{opened.pattern.count} times in {opened.pattern.runs.length} runs</p> : null}
+                {opened.pattern ? <p className="muted">{howOften(opened.pattern)}</p> : null}
               </div>
               <span className="sprop-detail__state">
                 {opened.status === "enabled" ? null : <span className={`sprop-item__status is-${opened.status}`}>{STATUS[opened.status]}</span>}
@@ -199,7 +199,7 @@ export function SkillProposals({ onOpenSkill, waitingOnly = false }: { onOpenSki
                 <pre className="sprop-item__instr">{opened.skill.instructions}</pre>
                 <div className="sprop-item__agents">
                   {/* Who wrote this skill, and which agents follow it. */}
-                  <span className="sprop-agent" title="The Documenter agent drafted this skill from the failures below">
+                  <span className="sprop-agent" title={opened.pattern?.category === "taste" ? "The Documenter agent drafted this from your own requests below" : "The Documenter agent drafted this skill from the failures below"}>
                     <RobotHead color={ROLE_COLOR.documenter!} id={`sp-doc-${opened.patternId}`} size={20} />
                     <span>
                       Drafted by <strong>Documenter</strong>
@@ -215,7 +215,7 @@ export function SkillProposals({ onOpenSkill, waitingOnly = false }: { onOpenSki
             ) : null}
             {opened.pattern?.examples.length ? (
               <section className="sprop-item__evidence">
-                <span className="sprop-item__label">What happened</span>
+                <span className="sprop-item__label">{opened.pattern.category === "taste" ? "What you asked" : "What happened"}</span>
                 <ul>
                   {opened.pattern.examples.map((x) => (
                     <li key={x} className="mono">
@@ -240,6 +240,11 @@ export function SkillProposals({ onOpenSkill, waitingOnly = false }: { onOpenSki
 
     </div>
   );
+}
+
+/** How often: failures per run, or (taste) how many of your own requests asked for it. */
+function howOften(p: Pattern): string {
+  return p.category === "taste" ? `In ${p.count} of your requests` : `${p.count} times in ${p.runs.length} runs`;
 }
 
 /** What the dialog calls the proposal: the failure it fixes, else its skill's purpose. */

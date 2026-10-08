@@ -444,3 +444,37 @@
 .code-backdrop__col { display: flex; gap: 14px; }
 .code-backdrop__col pre { margin: 0; font: inherit; white-space: pre; }
 .code-backdrop__nums { color: rgba(255, 255, 255, 0.07); text-align: right; min-width: 2ch; user-select: none; }
+
+/* System setup: three tiers side by side (the tested one marked), then tips for every setup. */
+.ab2__setup-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+.ab2__setup-list > li { display: grid; gap: 14px; align-content: start; padding: 24px 24px 8px 0; }
+.ab2__setup-list > li + li { padding-left: 24px; border-left: 1px solid var(--line); }
+.ab2__setup-tier { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 650; font-size: 16px; color: var(--text-0); }
+.ab2__setup-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--sig-ok-bg); color: var(--sig-ok); }
+.ab2__setup-list dl { margin: 0; display: grid; gap: 10px; }
+.ab2__setup-list dl > div { display: grid; gap: 2px; }
+.ab2__setup-list dt { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.ab2__setup-list dd { margin: 0; font-size: 14px; color: var(--text-0); }
+.ab2__setup-list p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+.ab2__setup-tips { display: grid; gap: 10px; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.ab2__setup-tips ul { margin: 0; padding-left: 18px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 32px; font-size: 14px; color: var(--text-1); }
+@media (max-width: 860px) {
+  .ab2__setup-list { grid-template-columns: minmax(0, 1fr); }
+  .ab2__setup-list > li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+  .ab2__setup-tips ul { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* System setup as a table: zebra rows, the part names on the left, the tested setup's column tinted. */
+.ab2__setup-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.ab2__setup-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+.ab2__setup-table th, .ab2__setup-table td { text-align: left; vertical-align: top; padding: 14px 18px; line-height: 1.5; }
+.ab2__setup-table thead th { padding-top: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.ab2__setup-table thead th .ab2__setup-badge { display: inline-block; margin-top: 6px; }
+.ab2__setup-table thead .ab2__setup-tier { display: block; }
+.ab2__setup-table tbody th { width: 150px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.ab2__setup-table tbody td { color: var(--text-0); }
+.ab2__setup-table tbody tr:nth-child(odd) { background: color-mix(in srgb, var(--text-0) 3.5%, transparent); }
+.ab2__setup-table .is-pick { background: color-mix(in srgb, var(--sig-ok) 7%, transparent); }
+.ab2__setup-table tbody tr:nth-child(odd) .is-pick { background: color-mix(in srgb, var(--sig-ok) 11%, transparent); }
+.ab2__setup-table .ab2__setup-note { color: var(--text-1); font-size: 13.5px; }
+.ab2__setup-table tbody td:not(.ab2__setup-note) { font-weight: 550; }

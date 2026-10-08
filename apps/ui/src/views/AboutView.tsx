@@ -30,6 +30,49 @@ const FEATURES = [
 
 // Who FlowCode is for: people building on their own, without a team. The person with the idea first
 // (docs/flowcode-ai-opportunities.md: a product owner or designer-founder), then solo developers and vibe coders.
+/** The system setup, from the models FlowCode uses (setup.ts, router.ts) and the machine it's tested on. */
+const SETUP: Array<{ tier: string; pick?: boolean; rows: Array<[string, string]>; note: string }> = [
+  {
+    tier: "Works",
+    rows: [
+      ["Memory", "16 GB"],
+      ["Graphics", "None needed (runs on the processor)"],
+      ["Coder models", "qwen2.5-coder:7b, qwen3:8b or llama3.1:8b (about 5 GB each)"],
+      ["Free disk", "20 GB"],
+    ],
+    note: "Builds take much longer, and a smaller model needs more retries to get a step right.",
+  },
+  {
+    tier: "Recommended",
+    pick: true,
+    rows: [
+      ["Memory", "32 GB"],
+      ["Graphics", "NVIDIA with 8 GB of video memory (e.g. RTX 5070 laptop)"],
+      ["Coder models", "qwen3:14b (9 GB, the verified Coder) or gpt-oss:20b (13 GB)"],
+      ["Free disk", "40 GB"],
+    ],
+    note: "A prototype like No BIO & GMO builds in under ten minutes. Add qwen2.5vl:3b so the design is checked on every screen.",
+  },
+  {
+    tier: "Peak",
+    rows: [
+      ["Memory", "64 GB"],
+      ["Graphics", "NVIDIA with 24 GB of video memory or more"],
+      ["Coder models", "qwen3-coder:30b (18 GB) or gpt-oss:20b (13 GB), fully on the graphics card"],
+      ["Free disk", "60 GB"],
+    ],
+    note: "The largest models fit entirely in video memory: the fastest builds and the fewest retries.",
+  },
+];
+
+const SETUP_TIPS = [
+  "An SSD: models load from disk every time they start.",
+  "Windows 11, Node.js 22.13 or later, and Ollama for the models.",
+  "Plugged in, with nothing else heavy using the graphics card while a build runs.",
+  "Optional: nomic-embed-text (0.3 GB) so search understands meaning, not just matching words.",
+  "Whichever Coder you pick, check it once: System Health → Models & capability lab → Run capability test. Only a model that passes can act as Coder.",
+];
+
 const WHO = [
   { title: "Founders and small-business owners", text: "Turn an idea into an app you can click through and show people, without writing code." },
   { title: "Solo developers and vibe coders", text: "Describe what you want in plain words and get tested, checked code you can keep building on." },
@@ -99,6 +142,62 @@ export function AboutView() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="ab2__section ab2__setup" aria-labelledby="ab2-setup">
+        <div className="ab2__head">
+          <span className="ab2__eyebrow">System setup</span>
+          <h2 className="ab2__h" id="ab2-setup">
+            Runs on your computer, <span className="ab2__accent">so your computer sets the pace.</span>
+          </h2>
+          <p className="ab2__lede">Every agent is an AI model running on this machine. The graphics card&apos;s memory decides which models fit and how fast they answer; the faster they answer, the faster a build finishes. Any setup below works. The better ones just get there sooner.</p>
+        </div>
+        {/* One table: each row is one part of the computer, read across the three setups; the tested one is marked. */}
+        <div className="ab2__setup-wrap">
+          <table className="ab2__setup-table">
+            <thead>
+              <tr>
+                <th scope="col">
+                  <span className="sr-only">Part</span>
+                </th>
+                {SETUP.map((t) => (
+                  <th key={t.tier} scope="col" className={t.pick ? "is-pick" : undefined}>
+                    <span className="ab2__setup-tier">{t.tier}</span>
+                    {t.pick ? <span className="ab2__setup-badge">What FlowCode is tested on</span> : null}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {SETUP[0]!.rows.map(([label], i) => (
+                <tr key={label}>
+                  <th scope="row">{label}</th>
+                  {SETUP.map((t) => (
+                    <td key={t.tier} className={t.pick ? "is-pick" : undefined}>
+                      {t.rows[i]![1]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+              <tr>
+                <th scope="row">What to expect</th>
+                {SETUP.map((t) => (
+                  <td key={t.tier} className={`ab2__setup-note${t.pick ? " is-pick" : ""}`}>
+                    {t.note}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div className="ab2__setup-tips">
+          <span className="ab2__eyebrow">For every setup</span>
+          <ul>
+            {SETUP_TIPS.map((tip) => (
+              <li key={tip}>{tip}</li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       <section className="ab2__cta" aria-labelledby="ab2-start">

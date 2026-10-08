@@ -587,6 +587,7 @@ function Composer({ project, preflight, parentRun, initialObjective, onCreated, 
         // React runs the verified golden path; Angular scaffolds its starter and plans the request on top of it.
         ...(template ? (starter === "angular" ? { kind: "spec_build", templateId: "angular-starter" } : { kind: "template_build", templateId: "react-vite-scheduler" }) : {}),
         ...(iterate && parentRun ? { parentRunId: parentRun.id, kind: "iterate" } : {}),
+        origin: "you",
         attachedKnowledgeIds: attached,
       });
       onCreated(run);

@@ -15618,3 +15618,7 @@ body.cp-driving #copilot-panel { z-index: 80; }
 }
 @media (prefers-reduced-motion: reduce) { .hiw-code__text { animation: none; max-width: none; } }
 @media (max-width: 760px) { .hiw-code { display: none; } }
+/* Project cards: Demo sits left of View (same size and baseline); the date leaves room for both. */
+.qa-card-wrap .card-demo { position: absolute; right: 124px; bottom: 22px; height: 32px; min-height: 32px; width: 96px; justify-content: center; gap: 6px; z-index: 1; }
+.qa-card-wrap .lrc-card__foot { padding-right: 232px !important; }
+.demo-btn.is-failed { color: var(--sig-bad); }

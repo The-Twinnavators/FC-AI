@@ -12,9 +12,10 @@ import type { SkillSpec, ToolCallRecord } from "@flowcode/contracts";
 import type { App } from "../app.js";
 import { untrusted } from "../orchestrator/prompts.js";
 import { fixToolNames } from "./skills.js";
+import { MIN_TASTE_REQUESTS, TASTE_SYSTEM, tasteArea, tasteHits } from "./taste.js";
 
-export type PatternCategory = "patch_miss" | "done_rejected" | "blocker" | "script_fail" | "guessed_path" | "wrong_tool" | "prose_only" | "model_failure";
-const SKILLABLE: PatternCategory[] = ["patch_miss", "done_rejected", "blocker", "script_fail", "guessed_path", "wrong_tool", "prose_only"];
+export type PatternCategory = "patch_miss" | "done_rejected" | "blocker" | "script_fail" | "guessed_path" | "wrong_tool" | "prose_only" | "model_failure" | "taste";
+const SKILLABLE: PatternCategory[] = ["patch_miss", "done_rejected", "blocker", "script_fail", "guessed_path", "wrong_tool", "prose_only", "taste"];
 const ROLES: Record<PatternCategory, string[]> = {
   patch_miss: ["coder", "debugger"],
   done_rejected: ["planner", "coder", "debugger"],
@@ -24,6 +25,8 @@ const ROLES: Record<PatternCategory, string[]> = {
   wrong_tool: ["coder", "debugger"],
   prose_only: ["coder", "debugger"],
   model_failure: [],
+  // Your style: the planner plans to it, the coder builds to it (designer work is the coder's).
+  taste: ["planner", "coder"],
 };
 
 export interface Pattern {
@@ -61,20 +64,23 @@ const normalize = (s: string) => s.replace(/[A-Za-z]:[\\/][^\s"')]+|(?:src|app|l
 
 /** Repeated failures across recent runs, most frequent first. Deterministic; no model involved. */
 export function detectPatterns(app: App, sinceIso = new Date(Date.now() - WINDOW_DAYS * 86_400_000).toISOString()): Pattern[] {
-  return collect(app, sinceIso, "9999").filter((p) => p.count >= MIN_HITS && p.runs.length >= MIN_RUNS).sort((a, b) => b.count - a.count);
+  return collect(app, sinceIso, "9999")
+    .filter((p) => (p.category === "taste" ? p.count >= MIN_TASTE_REQUESTS : p.count >= MIN_HITS && p.runs.length >= MIN_RUNS))
+    .sort((a, b) => b.count - a.count);
 }
 
 /** Every failure pattern between two times (no minimum counts). */
 function collect(app: App, sinceIso: string, untilIso: string): Pattern[] {
   const buckets = new Map<string, Pattern>();
   const add = (category: PatternCategory, key: string, title: string, runId: string, example: string, at: string) => {
-    const id = `${category}:${hash(key)}`;
+    const id = category === "taste" ? `taste:${key}` : `${category}:${hash(key)}`;
     const p = buckets.get(id) ?? { id, category, title, count: 0, runs: [], examples: [], lastSeen: at, needsCodeFix: !SKILLABLE.includes(category) };
     p.count++;
     // Examples from different runs first, so a draft addresses the pattern rather than one run's details.
     const newRun = !p.runs.includes(runId);
-    if (!p.examples.includes(example) && (p.examples.length < 4 || newRun)) {
-      if (p.examples.length >= 4) p.examples.shift();
+    const keep = category === "taste" ? 8 : 4;
+    if (!p.examples.includes(example) && (p.examples.length < keep || newRun)) {
+      if (p.examples.length >= keep) p.examples.shift();
       p.examples.push(example);
     }
     if (newRun) p.runs.push(runId);
@@ -128,6 +134,11 @@ function collect(app: App, sinceIso: string, untilIso: string): Pattern[] {
     if (e.type === "run.status_changed" && /prose only/i.test(e.message)) add("prose_only", "prose", "The model answers in prose instead of calling a tool", r.run_id, e.message.slice(0, 220), r.created_at);
   }
 
+  // Taste: the design areas your own change requests keep coming back to.
+  for (const h of tasteHits(app.store.runs.where("created_at >= ? AND created_at < ?", sinceIso, untilIso))) {
+    for (const area of h.areas) add("taste", area, `You keep asking about ${tasteArea(area)?.label ?? area}`, h.runId, h.text, h.at);
+  }
+
   return [...buckets.values()];
 }
 
@@ -152,6 +163,7 @@ export function numbered(text: string): string {
 
 /** When a proposed skill applies. Set from the pattern, not by the model: triggers are matched against task text. */
 function triggersFor(p: Pattern): string[] {
+  if (p.category === "taste") return tasteArea(p.id.split(":")[1] ?? "")?.triggers ?? ["*"];
   if (p.category !== "patch_miss") return ["*"];
   const ext = /in \.(\w+) files/.exec(p.title)?.[1] ?? "";
   if (ext === "css" || ext === "scss") return ["css", "style", "styles", "color", "colour", "token", "spacing", "font"];
@@ -189,19 +201,26 @@ export async function scanAndPropose(app: App, max = 2): Promise<{ started: bool
 
 async function draftSkill(app: App, p: Pattern): Promise<Pick<Proposal, "skillId">> {
   const assignment = app.router.assignmentFor("documenter");
+  const taste = p.category === "taste";
   const res = await app.router.chat({ role: "documenter" }, { ...assignment, temperature: 0.2 }, {
-    messages: [
-      { role: "system", content: DRAFT_SYSTEM },
-      { role: "user", content: `Pattern: ${p.title}\nHappened ${p.count} times in ${p.runs.length} runs.\nAgent roles affected: ${ROLES[p.category].join(", ")}\nExamples:\n${untrusted("failures", p.examples.join("\n---\n"))}` },
-    ],
+    messages: taste
+      ? [
+          { role: "system", content: TASTE_SYSTEM },
+          { role: "user", content: `Area: ${tasteArea(p.id.split(":")[1] ?? "")?.label ?? p.title}\n${p.count} of their requests touched it.\nTheir requests:\n${untrusted("requests", p.examples.join("\n---\n"))}` },
+        ]
+      : [
+          { role: "system", content: DRAFT_SYSTEM },
+          { role: "user", content: `Pattern: ${p.title}\nHappened ${p.count} times in ${p.runs.length} runs.\nAgent roles affected: ${ROLES[p.category].join(", ")}\nExamples:\n${untrusted("failures", p.examples.join("\n---\n"))}` },
+        ],
     format: { type: "object", properties: { name: { type: "string" }, purpose: { type: "string" }, instructions: { type: "string" } }, required: ["name", "purpose", "instructions"] },
     maxOutputTokens: 1200,
     timeoutMs: 240_000,
   });
   const j = JSON.parse(res.content) as { name?: string; purpose?: string; instructions?: string };
   const slug = (j.name ?? p.category).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || p.category;
+  if (taste && !j.instructions?.trim()) throw new Error("No preference is shared by enough of your requests yet. FlowCode looks again after your next changes.");
   if (!j.instructions?.trim() || !j.purpose?.trim()) throw new Error("The model didn't return usable skill text.");
-  const id = `skill.proposed-${slug}`;
+  const id = taste ? `skill.your-style-${p.id.split(":")[1]}` : `skill.proposed-${slug}`;
   const existing = app.store.skills.get(id);
   const skill: SkillSpec = {
     id: existing ? `${id}-${hash(p.id).slice(0, 4)}` : id,
@@ -214,7 +233,7 @@ async function draftSkill(app: App, p: Pattern): Promise<Pick<Proposal, "skillId
     policies: { network: "denied", filesystem: "governed_write" },
     acceptance: [],
     tests: [],
-    changelog: [{ version: "0.1.0", date: new Date().toISOString().slice(0, 10), note: `Proposed by FlowCode from ${p.count} failures in ${p.runs.length} runs: ${p.title}` }],
+    changelog: [{ version: "0.1.0", date: new Date().toISOString().slice(0, 10), note: taste ? `Your style, drafted by FlowCode from ${p.count} of your change requests` : `Proposed by FlowCode from ${p.count} failures in ${p.runs.length} runs: ${p.title}` }],
     roles: ROLES[p.category],
     triggers: triggersFor(p),
     enabled: false,
@@ -300,7 +319,18 @@ export function proposalsView(app: App) {
           before: Math.round(b * 100) / 100,
           after: Math.round(a * 100) / 100,
           runsAfter: after.runs,
-          verdict: after.runs < 3 ? "Too early to tell: needs at least 3 runs since you turned it on." : b === 0 ? "No baseline to compare with." : a <= b * 0.7 ? "Helping: this failure happens noticeably less often. Keep it." : "Not helping yet: about as often as before. Consider editing it or turning it off.",
+          verdict:
+            after.runs < 3
+              ? "Too early to tell: needs at least 3 runs since you turned it on."
+              : b === 0
+                ? "No baseline to compare with."
+                : p.patternId.startsWith("taste:")
+                  ? a <= b * 0.7
+                    ? "Helping: you ask for this less often now, so builds get it right the first time. Keep it."
+                    : "Not helping yet: you still ask for this about as often. Edit it to match what you keep asking for."
+                  : a <= b * 0.7
+                    ? "Helping: this failure happens noticeably less often. Keep it."
+                    : "Not helping yet: about as often as before. Consider editing it or turning it off.",
         };
       }
       return { ...p, pattern, skill, effect };
