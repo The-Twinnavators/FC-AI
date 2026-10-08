@@ -8,6 +8,7 @@ import { Lightbulb } from "lucide-react";
 import { navigate } from "../router";
 import { Icon } from "./ui";
 import { HiwIllustration } from "./HiwIllustrations";
+import { HiwCode } from "./HiwCode";
 import { RobotHead, ROLE_COLOR, ROLE_LABEL } from "./RobotHead";
 
 type StageId = "prd" | "start" | "plan" | "build" | "check" | "launch";
@@ -180,6 +181,7 @@ export function HowItWorks({ onStart }: { onStart: () => void }) {
             <span className="hw__visual-num" aria-hidden="true">
               {pad(i + 1)}
             </span>
+            <HiwCode key={`code-${stage.id}`} id={stage.id} />
             <HiwIllustration key={stage.id} id={stage.id} />
           </div>
           <div className="hw__content">

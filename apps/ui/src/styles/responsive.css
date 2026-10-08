@@ -15590,3 +15590,31 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .lib-history__loading { display: flex; align-items: center; min-height: 40px; padding: 4px 2px; }
 .lib-history__loading.sug-progress__bar { display: block; min-height: 0; padding: 0; margin: 8px 0; }
 .lib-overview .lib-card > svg.lib-card__iso[width="72"] { width: 72px; }
+
+/* How FlowCode works: faint code typed line by line on the left of each stage's illustration, with line numbers. */
+.hw__visual { overflow: hidden; }
+.hw__visual > .hiw-vis { position: relative; z-index: 1; }
+.hiw-code {
+  --step: 0.55s;
+  position: absolute; left: 22px; top: 50%; transform: translateY(-50%); z-index: 0;
+  display: grid; gap: 1px; pointer-events: none;
+  font: 400 11px/1.55 var(--font-mono); color: rgba(255, 255, 255, 0.16);
+  -webkit-mask-image: linear-gradient(90deg, #000 55%, transparent);
+  mask-image: linear-gradient(90deg, #000 55%, transparent);
+}
+.hiw-code__line { display: flex; gap: 12px; white-space: pre; }
+.hiw-code__num { min-width: 2ch; text-align: right; color: rgba(255, 255, 255, 0.08); }
+.hiw-code__text {
+  overflow: hidden; max-width: 0; border-right: 1px solid transparent;
+  animation: hiw-type calc(var(--n) * var(--step) + 3s) steps(24, end) infinite;
+  animation-delay: calc(var(--i) * var(--step));
+}
+@keyframes hiw-type {
+  0% { max-width: 0; border-right-color: rgba(255, 255, 255, 0.4); }
+  6% { max-width: 30ch; border-right-color: rgba(255, 255, 255, 0.4); }
+  8% { border-right-color: transparent; }
+  85% { max-width: 30ch; opacity: 1; }
+  100% { max-width: 30ch; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .hiw-code__text { animation: none; max-width: none; } }
+@media (max-width: 760px) { .hiw-code { display: none; } }

@@ -12,6 +12,7 @@ import { HowItWorks } from "../components/HowItWorks";
 import { ProjectCards } from "./QualityOverview";
 import { Modal } from "../components/Modal";
 import { NEW_BUILD_PRD_KEY } from "../components/PrdTemplates";
+import { CodeBackdrop } from "../components/CodeBackdrop";
 
 type ProjectRow = Project & { latestRun?: Run };
 
@@ -134,6 +135,7 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
       {/* Closing call to action: the same band as About FlowCode's. */}
       <div className="ab2 ab2--home-cta">
         <section className="ab2__cta" aria-labelledby="home-start">
+          <CodeBackdrop />
           <h2 className="ab2__h" id="home-start">
             Start with what you have.
           </h2>

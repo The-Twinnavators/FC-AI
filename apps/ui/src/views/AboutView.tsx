@@ -7,6 +7,7 @@
 import { BadgeCheck, ClipboardList, Eye, FileText, Hammer, Layers, LayoutGrid, Lightbulb, MessageSquareText, Search, ShieldCheck } from "lucide-react";
 import { BannerHero, IntroActions as Actions } from "../components/IntroHero";
 import { DemoCell } from "../components/AboutFragments";
+import { CodeBackdrop } from "../components/CodeBackdrop";
 
 /* ─── Page content ─── */
 
@@ -101,6 +102,7 @@ export function AboutView() {
       </section>
 
       <section className="ab2__cta" aria-labelledby="ab2-start">
+          <CodeBackdrop />
         <h2 className="ab2__h" id="ab2-start">
           Start with what you have.
         </h2>

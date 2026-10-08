@@ -424,3 +424,23 @@
 
 /* "Who it's for": the heading runs on one line beside the three columns below it (26ch broke it after "an"). */
 .ab2__who .ab2__h { max-width: none; }
+
+/* "Start with what you have." banner: faint code in the background, fading towards the middle. */
+.ab2__cta { position: relative; overflow: hidden; isolation: isolate; }
+.ab2__cta > :not(.code-backdrop) { position: relative; z-index: 1; }
+.code-backdrop {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  display: flex; justify-content: space-between; gap: 32px; padding: 20px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 46% 70% at 50% 50%, transparent 30%, #000 85%);
+  mask-image: radial-gradient(ellipse 46% 70% at 50% 50%, transparent 30%, #000 85%);
+}
+.code-backdrop__col {
+  margin: 0; font: 400 11.5px/1.6 var(--font-mono); color: rgba(255, 255, 255, 0.13);
+  white-space: pre; text-align: left; overflow: hidden;
+}
+.code-backdrop__col--right { text-align: left; }
+@media (max-width: 720px) { .code-backdrop__col--right { display: none; } }
+/* Line numbers beside the faint code, fainter still, like an editor gutter. */
+.code-backdrop__col { display: flex; gap: 14px; }
+.code-backdrop__col pre { margin: 0; font: inherit; white-space: pre; }
+.code-backdrop__nums { color: rgba(255, 255, 255, 0.07); text-align: right; min-width: 2ch; user-select: none; }
