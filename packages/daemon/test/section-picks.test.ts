@@ -33,11 +33,10 @@ describe("library section picks", () => {
   });
 
   it("gives an app with several sections a side navigation, chosen by what the app is", () => {
-    // Filtered out until the side navigation is in the catalog; the rule itself is checked through pickSections' reasons.
-    const picks = (text: string) => pickSections(text, "p1").map((p) => p.id);
-    const known = (id: string) => id.startsWith("sidebar-");
-    expect(picks("An admin dashboard for a studio: bookings, clients, reports and settings.").filter(known).length).toBeLessThanOrEqual(1);
-    expect(picks("A landing page for a bakery.").filter(known)).toEqual([]);
+    const side = (text: string) => ids(text).filter((x) => x.startsWith("sidebar-"));
+    expect(side("An admin dashboard for a studio: bookings, clients, reports and settings.")).toEqual(["sidebar-app"]);
+    expect(side("A support dashboard for a help desk: an inbox of customer messages, contacts and reports.")).toEqual(["sidebar-rail"]);
+    expect(side("A landing page for a bakery.")).toEqual([]);
   });
 
   it("names section files as components", () => {

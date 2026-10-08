@@ -15642,3 +15642,10 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .cl-frame-wrap { position: relative; }
 .cl-frame-wrap.is-loading .cl-frame { visibility: hidden; }
 .cl-frame-load { position: absolute; left: 24px; right: 24px; top: 50%; margin: 0; z-index: 1; }
+
+/* Network graph: how to move around, in the bottom-right corner (solid, readable over the graph; clicks pass through). */
+.network__keys { position: absolute; right: 14px; bottom: 14px; z-index: 2; margin: 0; display: grid; gap: 6px; padding: 10px 12px; border-radius: 8px; background: color-mix(in srgb, var(--bg-0) 82%, transparent); border: 1px solid var(--line); pointer-events: none; font-size: 12px; }
+.network__keys > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.network__keys dt { margin: 0; font: 600 11px/1.4 var(--font-mono); color: var(--text-0); padding: 1px 6px; border-radius: 4px; background: color-mix(in srgb, var(--text-0) 8%, transparent); }
+.network__keys dd { margin: 0; color: var(--text-1); }
+@media (max-width: 760px) { .network__keys { display: none; } }

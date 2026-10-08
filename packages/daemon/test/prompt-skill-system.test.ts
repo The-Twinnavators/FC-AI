@@ -456,9 +456,13 @@ describe("ready-made screen layouts", () => {
     const refs = [{ name: "prd.md", role: "prd", content: prd }] as never;
     const tasks = specRuntimeTasks(refs, "react-vite-scheduler");
     const keys = tasks.map((t) => t.key);
-    expect(keys.indexOf("fc_layouts")).toBe(keys.indexOf("layout") - 1);
+    // A dashboard spec also gets library sections (its side navigation), added between the layouts and the app layout.
+    expect(keys.indexOf("fc_layouts")).toBe(keys.indexOf("fc_sections") - 1);
+    expect(keys.indexOf("fc_sections")).toBe(keys.indexOf("layout") - 1);
+    expect(tasks.find((t) => t.key === "fc_sections")!.dependsOn).toEqual(["fc_layouts"]);
+    expect(tasks.find((t) => t.key === "fc_sections")!.objective).toMatch(/sidebar-app/);
     const layout = tasks.find((t) => t.key === "layout")!;
-    expect(layout.dependsOn).toEqual(["fc_layouts"]);
+    expect(layout.dependsOn).toEqual(["fc_sections"]);
     // App layout wires the ready-made screens; Design the main screens replaces their sample content.
     expect(layout.objective).toMatch(/Design the main screens", replaces their sample content/);
     const screens = tasks.find((t) => t.key === "screens")!;

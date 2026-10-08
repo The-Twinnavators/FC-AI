@@ -112,7 +112,7 @@ export function ConstellationGraph(props: Props) {
     // The dashboard preview: a closer view, with smaller orbs and much less glow.
     const pv = !!live.current.preview;
     // Smaller, calmer orbs on the Network page too (they grow with zoom, and the auto-fit zooms in).
-    const ORB = pv ? 0.32 : 0.55;
+    const ORB = pv ? 0.32 : 0.7;
     const GLOW = pv ? 0.3 : 0.35;
     let zoomTarget = pv ? 1.6 : 1;
     let panX = 0;

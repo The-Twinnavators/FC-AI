@@ -60,7 +60,7 @@ export function NetworkView({ projects, query }: { projects: Project[]; query: U
           ))}
         </select>
         <span className="muted" style={{ fontSize: 12, marginLeft: "auto" }}>
-          Projects at the centre; Structure, Code, Knowledge and Intelligence orbit around them. Drag to turn, shift-drag to move, scroll to zoom, click a node to inspect
+          Projects at the centre; Structure, Code, Knowledge and Intelligence orbit around them.
         </span>
         <label className="check" style={{ alignItems: "center" }}>
           <input type="checkbox" checked={labels} onChange={(e) => setLabels(e.target.checked)} /> Labels
@@ -74,6 +74,26 @@ export function NetworkView({ projects, query }: { projects: Project[]; query: U
         <div className="network__canvas" data-guide="network.canvas" aria-hidden="true">
           {laid ? <ConstellationGraph nodes={laid.nodes} edges={laid.edges} clusters={laid.clusters} orbit={ORBIT} colors={COLORS} selectedId={selected?.id ?? null} labels={labels} avoid={panel} onSelect={(id) => setSelected(id ? byId.get(id) : undefined)} /> : null}
         </div>
+
+        {/* How to move around, kept in view in the bottom-right corner of the graph. */}
+        <dl className="network__keys" aria-label="How to move around the graph">
+          <div>
+            <dt>Drag</dt>
+            <dd>Turn</dd>
+          </div>
+          <div>
+            <dt>Shift + drag</dt>
+            <dd>Move</dd>
+          </div>
+          <div>
+            <dt>Scroll</dt>
+            <dd>Zoom</dd>
+          </div>
+          <div>
+            <dt>Click a node</dt>
+            <dd>Inspect it</dd>
+          </div>
+        </dl>
 
         <aside ref={panel} data-guide="network.panel" className="network__panel" aria-label={selected ? "Node details" : "Node categories"}>
           {selected ? (
