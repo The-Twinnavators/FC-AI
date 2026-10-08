@@ -826,7 +826,14 @@ export class Orchestrator {
         this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: `Orchestrator error: ${(err as Error).message}`, level: "error" });
         this.setStatus(runId, "failed", `Unexpected orchestrator error: ${(err as Error).message}`);
       })
-      .finally(() => this.active.delete(runId));
+      .finally(() => {
+        this.active.delete(runId);
+        // Tell open pages the work loop has ended. Without this the builder kept saying "Debugger is working" on a
+        // stopped build (the stop event arrives while the loop is still finishing), and the chat treated a new change
+        // as a question about work in progress (Kids cash app).
+        const now = this.d.store.runs.get(runId);
+        if (now && !this.active.has(runId)) this.d.bus.emit({ type: "run.status_changed", projectId: now.projectId, runId, message: `No agent is working on this build now (${now.status.replace(/_/g, " ")})`, data: { idle: true } });
+      });
     return this.setStatus(runId, "running");
   }
 
@@ -1742,6 +1749,14 @@ export class Orchestrator {
     for (const child of this.d.store.runs.where("project_id = ?", run.projectId)) {
       if (child.parentRunId === runId && child.constraints.includes(AUTO_RETRY_MARK) && !TERMINAL_RUN_STATUSES.includes(child.status))
         void Promise.resolve(this.cancel(child.id, `The original build was retried, so this automatic follow-up stopped (only one build works on a project at a time).`)).catch(() => undefined);
+    }
+    // A retry of the step that's already running doesn't restart it (Kids cash app: five retries in a minute from a
+    // troubleshooter that stayed open, each throwing away the work in progress). Its guidance still reaches the step.
+    const current = this.d.store.tasks.get(taskId);
+    if (current?.status === "running" && this.active.has(runId)) {
+      if (guidance) this.d.store.setSetting(`taskFindings:${taskId}`, [...this.d.store.getSetting<string[]>(`taskFindings:${taskId}`, []), `Guidance from the user (follow this): ${guidance}`]);
+      this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, taskId, message: guidance ? `"${current.title}" is already running again; your guidance goes to its next try.` : `"${current.title}" is already running again, so it wasn't restarted.` });
+      return run;
     }
     const reopened = this.graph.reopen(runId, taskId);
     this.d.store.setSetting(`taskFindings:${taskId}`, [...this.d.store.getSetting<string[]>(`taskFindings:${taskId}`, []), guidance ? `Guidance from the user (follow this): ${guidance}` : "User requested retry; use a revised approach."]);

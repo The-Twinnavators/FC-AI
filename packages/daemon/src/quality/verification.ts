@@ -284,16 +284,26 @@ export class Verifier {
           // Read the check by what it says: removal wording means the text must be gone.
           const mustNotContain = c.check.type === "file_not_contains" || isRemovalWording(c.description);
           let has = false;
+          let where = c.check.path;
           try {
             const p = jail.resolve(c.check.path).abs;
-            const body = fs.existsSync(p) ? fs.readFileSync(p, "utf8") : "";
+            const text = c.check.text;
+            const found = (body: string) => !!body && (body.includes(text) || (squash(text).length >= 3 && squash(body).includes(squash(text))) || wildcardLine(body, text));
+            const read = (f: string) => (fs.existsSync(f) ? fs.readFileSync(f, "utf8") : "");
             // Spacing isn't knowable in advance ("--x: teal" vs "--x:teal"), so compare with whitespace removed too.
-            has = !!body && (body.includes(c.check.text) || (squash(c.check.text).length >= 3 && squash(body).includes(squash(c.check.text))) || wildcardLine(body, c.check.text));
+            has = found(read(p));
+            // "Contains" checks find the work where it really is (only for adding, never for removals):
+            if (!has && !mustNotContain) {
+              const other = sameScreenFiles(p).find((f) => found(read(f)) || usesKitClass(read(f), text, jail.root));
+              const kit = usesKitClass(read(p), text, jail.root);
+              if (kit) has = true;
+              else if (other) (has = true), (where = path.relative(jail.root, other).split(path.sep).join("/"));
+            }
           } catch {
             has = false;
           }
           met = mustNotContain ? !has : has;
-          refs.push(`file:${c.check.path}`);
+          refs.push(`file:${where}`);
           if (!met) failures.push(mustNotContain ? `${c.description}: ${c.check.path} still contains "${c.check.text}" (it should be removed)` : `${c.description}: ${c.check.path} does not contain "${c.check.text}"`);
           break;
         }
@@ -900,4 +910,37 @@ export function selfComparingTests(abs: string): string[] {
 function testReport(output: string): string {
   const clean = output.replace(/\x1b\[[0-9;]*m/g, "");
   return `${testFailureDigest(clean)}${clean.slice(-1500)}`;
+}
+
+/** Screen files in the same folder that are the same screen under another name (learn-coins.tsx ↔ LearnCoinsScreen.tsx). */
+export function sameScreenFiles(abs: string): string[] {
+  const norm = (f: string) => f.replace(/\.(tsx?|jsx?)$/i, "").toLowerCase().replace(/[^a-z0-9]/g, "").replace(/(screen|page|view)$/, "");
+  const dir = path.dirname(abs);
+  const want = norm(path.basename(abs));
+  if (!want || !fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((f) => /\.(tsx?|jsx?)$/i.test(f) && path.join(dir, f) !== abs && norm(f) === want)
+    .map((f) => path.join(dir, f));
+}
+
+/**
+ * A building-block class (`ui-skeleton`) is in a screen when the screen uses the kit component that draws it
+ * (`<Skeleton>` renders `ui-skeleton`): the class lives in src/components/ui, never typed into the screen itself.
+ * Kids cash app: a check for "ui-skeleton" in the coin screen failed for three hours while the screen used <Skeleton>.
+ */
+export function usesKitClass(body: string, text: string, root: string): boolean {
+  if (!body || !/^ui-[a-z0-9-]+$/i.test(text)) return false;
+  const kitDir = path.join(root, "src", "components", "ui");
+  const files = fs.existsSync(kitDir) ? fs.readdirSync(kitDir).filter((f) => /\.(tsx|jsx)$/.test(f)).map((f) => path.join(kitDir, f)) : [];
+  for (const f of files) {
+    const src = fs.readFileSync(f, "utf8");
+    // Each exported component, with the source up to the next one.
+    const parts = src.split(/(?=export (?:default )?function )/);
+    for (const part of parts) {
+      const name = /^export (?:default )?function ([A-Z]\w*)/.exec(part)?.[1];
+      if (name && part.includes(text) && new RegExp(`<${name}[\\s/>]`).test(body)) return true;
+    }
+  }
+  return false;
 }
