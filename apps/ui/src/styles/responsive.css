@@ -15622,3 +15622,17 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .qa-card-wrap .card-demo { position: absolute; right: 124px; bottom: 22px; height: 32px; min-height: 32px; width: 96px; justify-content: center; gap: 6px; z-index: 1; }
 .qa-card-wrap .lrc-card__foot { padding-right: 232px !important; }
 .demo-btn.is-failed { color: var(--sig-bad); }
+/* Project cards (dark theme): a lighter slate surface instead of near-black, so they lift off the page. */
+:root:not([data-theme="light"]) .lrc-card.qa-card { background: #1c2230 !important; box-shadow: inset 0 0 0 1px rgba(190, 200, 222, 0.1); }
+
+/* Component library: live section previews, each in its own frame. */
+.cl-bar { margin-bottom: 16px; }
+.cl-style { display: inline-flex; align-items: center; gap: 8px; }
+.cl-style .select { min-width: 220px; }
+.cl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; min-width: 0; }
+.cl-item { display: grid; gap: 10px; min-width: 0; }
+.cl-item__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.cl-item__head p { margin: 2px 0 0; font-size: 13px; }
+.cl-frame { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #fff; display: block; }
+.cl-code { margin: 0; padding: 14px 16px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); font: 400 12px/1.6 var(--font-mono); white-space: pre; overflow: auto; max-height: 60vh; }
+:root[data-theme="light"] .cl-code { background: var(--bg-3); }

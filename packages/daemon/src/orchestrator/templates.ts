@@ -3,6 +3,7 @@
  * (typecheck/lint/test/build from a clean copy) by the benchmark; agents build the feature on top.
  * Deterministic steps (scaffold, approved install) are executed by the runtime, not by a model.
  */
+import { syncLocalFonts } from "../workspace/localFonts.js";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -89,6 +90,8 @@ function scaffoldStep(templateId: string): (a: RuntimeStepArgs) => Promise<Agent
       if (!res.ok) return { kind: "blocked", reason: `Scaffold failed on ${rel}: ${res.message}`, nextAction: "Use an empty workspace for template builds" };
       created.push(rel);
     }
+    // The fonts the tokens name, copied in and declared locally (no internet needed to show them).
+    created.push(...syncLocalFonts(jail.root));
     onChanged(created);
     deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Runtime scaffolded ${created.length} files from the verified starter template` });
     deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Made the starter into ${identity.name}${identity.vibe && identity.vibe.id !== "flat" ? ` (${identity.vibe.name} surfaces)` : ""}: title, description and design brief${identity.colors.length ? `, plus ${identity.colors.length} colours from the PRD (${Object.keys(identity.roles).length} mapped onto the theme)` : identity.template ? `, in the ${identity.template.name} style` : ""}` });

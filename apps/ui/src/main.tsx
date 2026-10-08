@@ -16,9 +16,13 @@ import "./styles/component-tokens.css";
 import { App } from "./App";
 import { loadThemeOverrides } from "./theme";
 import { themeFor } from "./appearance";
+import { registerBundledFonts } from "./bundledFonts";
 
 // First paint: the theme this page should have (toggle, system or per page).
 document.documentElement.dataset.theme = themeFor(location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] ?? "");
+
+// The fonts prototypes use, so previews here show the real typeface.
+registerBundledFonts();
 
 // Saved attribute overrides from Primitives → Attributes.
 void loadThemeOverrides();

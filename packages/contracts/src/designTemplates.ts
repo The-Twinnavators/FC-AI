@@ -33,13 +33,13 @@ export interface DesignTemplate {
 }
 
 const NEO = `Inter, Roboto, "Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif`;
-const HUMANIST = `Seravek, "Gill Sans Nova", Ubuntu, Calibri, "DejaVu Sans", source-sans-pro, sans-serif`;
-const GEOMETRIC = `Avenir, Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif`;
-const ROUNDED = `ui-rounded, "Hiragino Maru Gothic ProN", Quicksand, Comfortaa, Manjari, "Arial Rounded MT", "Arial Rounded MT Bold", Calibri, source-sans-pro, sans-serif`;
-const OLDSTYLE = `"Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, serif`;
-const TRANSITIONAL = `Charter, "Bitstream Charter", "Sitka Text", Cambria, serif`;
-const DIDONE = `Didot, "Bodoni MT", "Noto Serif Display", "URW Palladio L", P052, Sylfaen, serif`;
-const INDUSTRIAL = `Bahnschrift, "DIN Alternate", "Franklin Gothic Medium", "Nimbus Sans Narrow", sans-serif-condensed, sans-serif`;
+const HUMANIST = `"Source Sans 3", Seravek, "Gill Sans Nova", Ubuntu, Calibri, "DejaVu Sans", source-sans-pro, sans-serif`;
+const GEOMETRIC = `Montserrat, Avenir, Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif`;
+const ROUNDED = `Quicksand, ui-rounded, "Hiragino Maru Gothic ProN", Quicksand, Comfortaa, Manjari, "Arial Rounded MT", "Arial Rounded MT Bold", Calibri, source-sans-pro, sans-serif`;
+const OLDSTYLE = `"Source Serif 4", "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, serif`;
+const TRANSITIONAL = `Literata, Charter, "Bitstream Charter", "Sitka Text", Cambria, serif`;
+const DIDONE = `"Playfair Display", Didot, "Bodoni MT", "Noto Serif Display", "URW Palladio L", P052, Sylfaen, serif`;
+const INDUSTRIAL = `Oswald, Bahnschrift, "DIN Alternate", "Franklin Gothic Medium", "Nimbus Sans Narrow", sans-serif-condensed, sans-serif`;
 
 export const DESIGN_TEMPLATES: DesignTemplate[] = [
   {

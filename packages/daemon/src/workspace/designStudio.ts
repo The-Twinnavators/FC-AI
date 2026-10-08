@@ -7,6 +7,7 @@
  *    and the builder is told to use them.
  * Token writes go through the governed, snapshotted file operations, so each change can be undone.
  */
+import { syncLocalFonts } from "./localFonts.js";
 import fs from "node:fs";
 import path from "node:path";
 import type { PathJail } from "../security/pathJail.js";
@@ -54,6 +55,8 @@ function writeTokens(jail: PathJail, ops: FileOperations, ctx: { projectId: stri
   if (!changed.length) return { changed };
   const r = ops.replaceContent({ jail, projectId: ctx.projectId, runId: ctx.runId, approved: false }, TOKENS, css);
   if (!r.ok) throw new Error(r.message);
+  // A new font in the tokens: its file is copied in and declared locally.
+  syncLocalFonts(jail.root);
   return { snapshotId: r.snapshotIds[0], changed };
 }
 

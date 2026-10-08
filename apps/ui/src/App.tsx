@@ -35,6 +35,7 @@ const ProjectSettingsView = lazy(() => import("./views/SettingsView").then((m) =
 const SystemView = lazy(() => import("./views/SystemView").then((m) => ({ default: m.SystemView })));
 const AgentsView = lazy(() => import("./views/AgentsView").then((m) => ({ default: m.AgentsView })));
 const NetworkView = lazy(() => import("./views/NetworkView").then((m) => ({ default: m.NetworkView })));
+const ComponentsView = lazy(() => import("./views/ComponentsView").then((m) => ({ default: m.ComponentsView })));
 const PipelineView = lazy(() => import("./views/PipelineView").then((m) => ({ default: m.PipelineView })));
 const SearchView = lazy(() => import("./views/SearchView").then((m) => ({ default: m.SearchView })));
 const TopicsView = lazy(() => import("./views/TopicsView").then((m) => ({ default: m.TopicsView })));
@@ -73,6 +74,7 @@ const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; icon: str
     label: "Intelligence",
     items: [
       { path: "/library", icon: "library", label: "Prompts & Skills" },
+      { path: "/components", icon: "layers", label: "Component library" },
       { path: "/knowledge", icon: "knowledge", label: "Knowledge Hub" },
       { path: "/topics", icon: "search", label: "Research Topics" },
       // What FlowCode proposes to change about how it works, from run reviews.
@@ -256,7 +258,7 @@ export function App() {
   }, [projectId]);
 
   useEffect(() => {
-    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Research Topics", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "FlowReport" };
+    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Research Topics", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "FlowReport" };
     document.title = `${project ? project.name : titles[section] ?? "FlowCode"} · FlowCode`;
   }, [section, project]);
 
@@ -404,6 +406,7 @@ export function App() {
         {section === "journal" && <JournalView key={route.parts[1] ?? "first"} projectId={route.parts[1]} runId={route.parts[2]} projects={projects.data ?? []} />}
         {section === "network" && <NetworkView projects={projects.data ?? []} query={route.query} />}
         {section === "pipeline" && <PipelineView />}
+        {section === "components" && <ComponentsView />}
         {section === "primitives" && <PrimitivesView />}
         {section === "discover" && <DiscoverView id={route.parts[1]} />}
         {section === "flowreport" && <FlowReportView projectId={route.parts[1]} />}

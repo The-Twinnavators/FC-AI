@@ -16,3 +16,5 @@ export * from "./componentStyles.js";
 export * from "./plainLanguage.js";
 export * from "./discovery.js";
 export * from "./agentRoles.js";
+export * from "./fonts.js";
+export * from "./sectionLibrary.js";

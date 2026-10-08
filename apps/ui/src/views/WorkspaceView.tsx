@@ -36,7 +36,6 @@ import { ScreenCoverage } from "../components/ScreenCoverage";
 import { ReviewPanel } from "../components/ReviewPanel";
 import { Modal } from "../components/Modal";
 import { PanelGrip, StripGrip, useWsLayout, type PanelId } from "../components/WsLayout";
-import { PreviewThemeToggle, usePreviewTheme } from "../components/PreviewTheme";
 
 
 interface TreeNode {
@@ -1106,7 +1105,6 @@ const DEVICES = [
 type Device = (typeof DEVICES)[number]["id"];
 
 function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: RunView["artifacts"] }) {
-  const [previewTheme] = usePreviewTheme(projectId);
   // The chosen size is kept per project.
   const deviceKey = `flowcode.previewDevice.${projectId}`;
   const [device, setDeviceState] = useState<Device>(() => {
@@ -1161,7 +1159,6 @@ function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: 
                 </button>
               ))}
             </div>
-            <PreviewThemeToggle projectId={projectId} />
             <button type="button" className="btn btn--sm" data-cp="point-something" onClick={() => setPointing(true)} title="Click what should change on a fresh picture of your app, and say how">
               <Crosshair size={14} aria-hidden="true" /> Point at something
             </button>
@@ -1183,7 +1180,7 @@ function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: 
       {live.data?.url || shots.length ? <DemoBanner projectId={projectId} /> : null}
       {live.data?.url ? (
         <div className={`preview-stage${frameWidth ? " preview-stage--device" : ""}`}>
-          <iframe key={reloads} className="preview-frame" title={`Live preview, ${device}`} src={live.data.url} sandbox="allow-scripts allow-same-origin allow-forms" style={{ colorScheme: previewTheme, ...(frameWidth ? { width: frameWidth, maxWidth: "100%" } : {}) }} />
+          <iframe key={reloads} className="preview-frame" title={`Live preview, ${device}`} src={live.data.url} sandbox="allow-scripts allow-same-origin allow-forms" style={{ ...(frameWidth ? { width: frameWidth, maxWidth: "100%" } : {}) }} />
         </div>
       ) : shots.length ? (
         <ScreenshotGallery shots={shots} />

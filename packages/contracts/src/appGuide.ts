@@ -16,6 +16,7 @@ export const APP_GUIDE: GuideAnchor[] = [
   // Global chrome
   { id: "nav.projects", route: "*", title: "Dashboard", description: "Home: start a prototype and see My Projects.", keywords: ["home", "projects", "builds", "start"] },
   { id: "nav.agents", route: "*", title: "Agents", description: "Live map of agent roles, their models and the tools they call, with the Plan → Implement → Repair → Verify pipeline.", keywords: ["agents", "who", "activity", "pipeline", "visual"] },
+  { id: "nav.components", route: "*", title: "Component library", description: "The ready page sections FlowCode builds from, shown live in any visual style, with their code.", keywords: ["components", "sections", "library", "templates", "blocks"] },
   { id: "nav.pipeline", route: "*", title: "Skill pipeline", description: "How skills flow into your builds over 24h, 7 or 30 days: library changes, skills agents picked, the steps that used them and whether checks passed.", keywords: ["pipeline", "skills", "usage", "activity"] },
   { id: "nav.network", route: "*", title: "Network Graph", description: "Interactive 3D knowledge graph of projects, runs, tasks, files, requirements, knowledge, agents, models and tools.", keywords: ["network", "graph", "knowledge graph", "3d", "relationships"] },
   { id: "nav.knowledge", route: "*", title: "Knowledge Hub", description: "Search files, decisions, sources and history; record decisions; run research with consent; map the repository.", keywords: ["knowledge", "search", "memory", "research", "decision"] },
