@@ -684,6 +684,9 @@ const STEP_LABEL: Record<string, string> = {
 
 function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; events: FlowEvent[]; onChanged: () => void; onFollowUp: (text: string) => void }) {
   const [troubleTask, setTroubleTask] = useState<string>();
+  // Finished steps fold to one line (step number, title, status); a click opens one to see its checks and files.
+  const [openDone, setOpenDone] = useState<Set<string>>(() => new Set());
+  const toggleDone = (id: string) => setOpenDone((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
   const [troubleRun, setTroubleRun] = useState(false);
   const { run, tasks } = view;
   const planApproval = view.approvals.find((a) => a.kind === "plan" && a.status === "pending");
@@ -791,6 +794,12 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
                   <Icon name="edit" size={13} /> Edit as follow-up
                 </button>
               )}
+              {view.coder.ok ? (
+                // The coder on the same row as the edit button; its test result is in the tooltip.
+                <span className="muted run-head__coder" title={view.coder.reason}>
+                  Coder <span className="mono">{run.modelAssignments.coder?.model}</span>
+                </span>
+              ) : null}
             </div>
           </>
         )}
@@ -801,11 +810,7 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
               View capability lab
             </button>
           </p>
-        ) : (
-          <p className="muted" style={{ margin: 0, fontSize: 12 }}>
-            Coder <span className="mono">{run.modelAssignments.coder?.model}</span> — {view.coder.reason}
-          </p>
-        )}
+        ) : null}
       </header>
       <section className="ov__section" aria-labelledby="ov-now">
         <h3 className="ov__h" id="ov-now">
@@ -955,17 +960,28 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
             {g.label} <span className="task-group__n">{items.length}</span>
           </h4>
         <ol className="task-list" data-guide="ws.tasks" aria-label={g.label}>
-          {items.map(({ t, i }) => (
-            <li key={t.id} className="task" data-guide="ws.tasks" data-ctx-task={t.id} data-ctx-run={run.id} data-ctx-status={t.status} data-ctx-label={t.title}>
+          {items.map(({ t, i }) => {
+            const foldable = g.id === "done";
+            const folded = foldable && !openDone.has(t.id);
+            return (
+            <li key={t.id} className={folded ? "task task--folded" : "task"} data-guide="ws.tasks" data-ctx-task={t.id} data-ctx-run={run.id} data-ctx-status={t.status} data-ctx-label={t.title}>
               <div className="task__rail">
                 <Led status={t.status} />
               </div>
-              <div>
-                <span className="label">Step {i + 1}</span>
-                <h3 className="task__title">{t.title}</h3>
-              </div>
+              {foldable ? (
+                <button type="button" className="task__fold" aria-expanded={!folded} onClick={() => toggleDone(t.id)}>
+                  <span className="label">Step {i + 1}</span>
+                  <h3 className="task__title">{t.title}</h3>
+                </button>
+              ) : (
+                <div>
+                  <span className="label">Step {i + 1}</span>
+                  <h3 className="task__title">{t.title}</h3>
+                </div>
+              )}
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <StatusChip status={t.status} label={STEP_LABEL[t.status]} />
+                {folded ? null : <>
                 {t.status === "blocked" || t.status === "failed" ? (
                   <button className="btn btn--sm btn--primary" onClick={() => setTroubleTask(troubleTask === t.id ? undefined : t.id)} aria-expanded={troubleTask === t.id}>
                     <Icon name="help" size={13} /> Troubleshoot
@@ -982,7 +998,9 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
                   </ConfirmButton>
                 ) : null}
                 {t.actualPaths.length && !view.active ? <PatchButton runId={run.id} taskId={t.id} /> : null}
+                </>}
               </div>
+              {folded ? null : (
               <div className="task__body">
                 {t.acceptanceCriteria.length ? (
                   <details className="task__how" open={technical || t.status === "running" || t.status === "blocked" || t.status === "failed"}>
@@ -1022,10 +1040,17 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
                     </details>
                   </div>
                 ) : null}
-                {troubleTask === t.id ? <TroubleshootPanel runId={run.id} taskId={t.id} onClose={() => setTroubleTask(undefined)} onChanged={onChanged} onFollowUp={onFollowUp} /> : null}
+                {troubleTask === t.id ? (
+                  // In a modal, so the causes and fixes have room and sit right where you're looking.
+                  <Modal className="tshoot-modal" labelledBy="tshoot-title" onClose={() => setTroubleTask(undefined)}>
+                    <TroubleshootPanel runId={run.id} taskId={t.id} onClose={() => setTroubleTask(undefined)} onChanged={onChanged} onFollowUp={onFollowUp} />
+                  </Modal>
+                ) : null}
               </div>
+              )}
             </li>
-          ))}
+            );
+          })}
         </ol>
           </section>
           );
@@ -1058,9 +1083,9 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
         </div>
       ) : null}
       {troubleRun ? (
-        <div style={{ padding: "0 16px 16px" }}>
+        <Modal className="tshoot-modal" labelledBy="tshoot-title" onClose={() => setTroubleRun(false)}>
           <TroubleshootPanel runId={run.id} onClose={() => setTroubleRun(false)} onChanged={onChanged} onFollowUp={onFollowUp} />
-        </div>
+        </Modal>
       ) : null}
     </div>
   );

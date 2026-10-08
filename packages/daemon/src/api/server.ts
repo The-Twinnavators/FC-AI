@@ -470,6 +470,12 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     return { project: p, preflight: app.projects.latestPreflight(p.id), runs: app.store.runs.where("project_id = ? ORDER BY created_at DESC", p.id), workspaceName: app.projects.jail(p).root.split(/[\\/]/).pop() };
   });
   add("POST /projects/:id/rename", ({ params, body }) => renameProject(app, params.id, redact(parse(z.object({ name: z.string().trim().min(1).max(200) }), body).name)));
+  // The extras this project's builds were asked for (New build → Look and feel, or later from the Design tab).
+  add("GET /projects/:id/extras", ({ params }) => {
+    const asked = new Set<string>();
+    for (const r of app.store.runs.where("project_id = ?", params.id)) for (const x of app.store.getSetting<{ extras?: string[] } | undefined>(`runLook:${r.id}`, undefined)?.extras ?? []) asked.add(x);
+    return { asked: [...asked] };
+  });
   add("GET /projects/:id/admin", ({ params }) => ({ managedWorkspace: isManagedWorkspace(app, params.id), runs: app.store.runs.where("project_id = ?", params.id).length }));
   add("POST /projects/:id/delete", ({ params, body }) => {
     const b = parse(z.object({ deleteFiles: z.boolean().optional(), confirmName: z.string() }), body);

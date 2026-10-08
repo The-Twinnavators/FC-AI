@@ -85,7 +85,7 @@ export function TroubleshootPanel({ runId, taskId, onClose, onChanged, onFollowU
     <section className="tshoot" aria-label="Troubleshoot">
       <header className="tshoot__head">
         <Lightbulb size={16} aria-hidden="true" />
-        <strong>{d?.title ?? "Looking into it…"}</strong>
+        <strong id="tshoot-title">{d?.title ?? "Looking into it…"}</strong>
         <button className="icon-btn" aria-label="Close troubleshooter" onClick={onClose} style={{ marginLeft: "auto" }}>
           <X size={16} />
         </button>

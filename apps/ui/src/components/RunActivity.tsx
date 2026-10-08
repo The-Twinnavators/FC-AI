@@ -64,18 +64,19 @@ export function RunActivity({ runId, taskId, onChanged }: { runId: string; taskI
         <strong>{a.label}</strong>
         {a.detail ? <span className="run-activity__detail">{a.detail}</span> : null}
         {a.since ? <span className="muted run-activity__since">for {ago(a.since)}</span> : null}
+        {/* Time left on the same line; its basis opens under it. */}
+        {eta && a.state !== "waiting_approval" && a.state !== "needs_decision" && a.state !== "paused" ? (
+          <details className="run-activity__eta" open={technical}>
+            <summary>{eta.lowMs !== undefined && eta.highMs !== undefined ? (eta.remainingSteps ? `about ${mins(eta.lowMs)}–${mins(eta.highMs)} left` : "no steps left; final checks next") : "time left: not enough data yet"}</summary>
+            <p>{eta.basis}</p>
+            {a.waitingMs > 60_000 ? <p>Waiting for you so far: {mins(a.waitingMs)} (not part of the estimate).</p> : null}
+          </details>
+        ) : null}
       </div>
-      {eta && a.state !== "waiting_approval" && a.state !== "needs_decision" && a.state !== "paused" ? (
-        <details className="run-activity__eta" open={technical}>
-          <summary>{eta.lowMs !== undefined && eta.highMs !== undefined ? (eta.remainingSteps ? `About ${mins(eta.lowMs)}–${mins(eta.highMs)} of work left` : "No steps left; final checks next") : "Time left: not enough data yet"}</summary>
-          <p>{eta.basis}</p>
-          {a.waitingMs > 60_000 ? <p>Waiting for you so far: {mins(a.waitingMs)} (not part of the estimate).</p> : null}
-        </details>
-      ) : null}
       {a.firstLookAt && ["planning", "generating", "running_tools", "checking", "retrying", "waiting_service", "possibly_stalled", "waiting_approval"].includes(a.state) ? (
         <div className="run-activity__firstlook" data-cp="first-look" role="status">
-          <span>
-            <strong>First look ready.</strong> Your main screens are designed, with sample data. FlowCode is now adding the features.
+          <span title="Your main screens are designed, with sample data. FlowCode is now adding the features.">
+            <strong>First look ready:</strong> screens designed with sample data
           </span>
           <button type="button" className="btn btn--sm btn--primary" onClick={() => window.dispatchEvent(new CustomEvent("fc:show-tab", { detail: "preview" }))}>
             Open Preview

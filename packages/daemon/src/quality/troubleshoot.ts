@@ -145,6 +145,15 @@ export async function troubleshoot(app: App, runId: string, taskId?: string, exp
     pkg = undefined;
   }
   const { causes, fixes } = detect(app, root, evidence, pkg, task ? [...task.expectedPaths, ...task.actualPaths] : undefined);
+  // "Use a stronger coder model" names the model this build actually has, and doesn't suggest the one it already uses
+  // (Kids cash app: it suggested qwen3-coder:30b to a build already on qwen3-coder:30b).
+  const coder = run.modelAssignments?.coder;
+  const stronger = fixes.find((f) => f.id === "bigger-model");
+  if (stronger && coder) {
+    if (coder.providerId.startsWith("hosted")) fixes.splice(fixes.indexOf(stronger), 1);
+    else if (/qwen3-coder:30b/i.test(coder.model)) stronger.detail = `This build already uses ${coder.model}, the strongest local coder here. The next step up is the cloud coder (Models page), chosen per change in the chat.`;
+    else stronger.detail = `This build uses ${coder.model}. A larger local model (e.g. qwen3-coder:30b) follows tool instructions more reliably; switching it on the Models page applies to this build from its next try.`;
+  }
   if (task && task.status === "blocked") fixes.push({ id: "rollback", kind: "rollback", label: "Undo this task's changes", detail: "Restores every file this task changed, so you can start it fresh." });
   if (!fixes.some((f) => f.kind === "retry_with_guidance") && task) fixes.unshift({ id: "retry", kind: "retry_with_guidance", label: "Retry with a fresh approach", detail: "Re-runs the task with the failure notes.", text: "Re-read the relevant files before editing and take a different approach from the last attempt." });
 

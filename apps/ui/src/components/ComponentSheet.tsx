@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { useResource } from "../api";
-import { vibeTokens } from "@flowcode/contracts";
+import { BUNDLED_FONTS, fontFaceCss, vibeTokens } from "@flowcode/contracts";
 import { Empty } from "./ui";
 import { SkeletonBlock } from "./motion";
 import { type PreviewTheme } from "./PreviewTheme";
@@ -113,12 +113,11 @@ ${swatches ? `<div class="fc-sheet__section">
 </div>` : ""}`;
 }
 
-/** Google Fonts the app loads (Styles → Text), so the sheet draws in the same fonts as the app. */
-const fontLinks = (fonts: string[]) =>
-  fonts
-    .filter((f) => /^[A-Za-z0-9 ]+$/.test(f))
-    .map((f) => `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(f).replace(/%20/g, "+")}:wght@400;500;600;700&display=swap">`)
-    .join("");
+/** The app's fonts in the sheet: the bundled ones as @font-face from FlowCode's own files (nothing from the internet). */
+const fontLinks = (fonts: string[]) => {
+  const used = BUNDLED_FONTS.filter((b) => fonts.some((f) => f.toLowerCase() === b.family.toLowerCase()));
+  return used.length ? `<style>${fontFaceCss(used, (file) => new URL(`fonts/${file}.woff2`, document.baseURI).href)}</style>` : "";
+};
 
 /** What a sheet frame draws: everything, or one card's part (the type scale, the colours, or just some blocks' samples). */
 /** The kit's markup for blocks an app may not use yet (same classes as src/components/ui), for the Shape preview. */

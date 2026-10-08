@@ -1,12 +1,13 @@
 /**
  * Styles → Design → Typography (after CSSVibes' typography canvas): a font browser for headings, body text and code
- * (CSSVibes' font list, with its pairings), and the type table: each level's size, weight and line height, previewed
+ * (the fonts FlowCode bundles, with pairings), and the type table: each level's size, weight and line height, previewed
  * in the chosen fonts. Saved to the app's type tokens; the live preview follows every change before it's saved.
  */
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { post, useResource } from "../api";
 import { stylesChanged } from "./ComponentSheet";
+import { BUNDLED_FONTS } from "@flowcode/contracts";
 
 interface Token {
   name: string;
@@ -19,61 +20,41 @@ type Category = "Sans-Serif" | "Serif" | "Monospace" | "Display" | "Handwriting"
 interface FontOption {
   name: string;
   category: Category;
-  provider: "Google Fonts" | "System";
+  provider: "Bundled" | "System";
   pairsWith?: string[];
 }
 
-/** CSSVibes' font list (typography-canvas fontDatabase), with its suggested pairings. */
+/**
+ * The fonts that really work: the ones FlowCode bundles (registered with this page, and copied into the app's
+ * public/fonts when you save, so the app draws them with no internet) plus fonts every computer has. Google Fonts
+ * aren't offered: FlowCode runs locally and its security rules block loading them, so they only ever showed a
+ * fallback.
+ */
+const KIND: Record<string, Category> = { sans: "Sans-Serif", serif: "Serif", display: "Display", mono: "Monospace" };
 const FONTS: FontOption[] = [
-  ...(["Inter", "Poppins", "Roboto", "Open Sans", "Lato", "Montserrat", "Source Sans 3", "Raleway", "PT Sans", "Nunito", "Ubuntu", "Work Sans", "Nunito Sans", "Rubik", "Karla", "DM Sans", "Outfit", "Manrope", "Space Grotesk"] as const).map((name) => ({ name, category: "Sans-Serif" as const, provider: "Google Fonts" as const })),
-  ...(["Playfair Display", "Merriweather", "Lora", "Crimson Text", "PT Serif", "Roboto Slab", "Source Serif 4", "EB Garamond", "Libre Baskerville", "Bitter", "Cormorant Garamond", "Spectral"] as const).map((name) => ({ name, category: "Serif" as const, provider: "Google Fonts" as const })),
-  ...(["Roboto Mono", "Fira Code", "JetBrains Mono", "Source Code Pro", "IBM Plex Mono", "Space Mono"] as const).map((name) => ({ name, category: "Monospace" as const, provider: "Google Fonts" as const })),
-  ...(["Bebas Neue", "Righteous", "Permanent Marker", "Archivo Black", "Fredoka", "DM Serif Display"] as const).map((name) => ({ name, category: "Display" as const, provider: "Google Fonts" as const })),
-  ...(["Pacifico", "Dancing Script", "Caveat", "Kaushan Script", "Satisfy"] as const).map((name) => ({ name, category: "Handwriting" as const, provider: "Google Fonts" as const })),
+  ...BUNDLED_FONTS.map((f) => ({ name: f.family, category: KIND[f.kind] ?? "Sans-Serif", provider: "Bundled" as const })),
   { name: "Arial", category: "Sans-Serif", provider: "System" },
   { name: "Helvetica", category: "Sans-Serif", provider: "System" },
   { name: "Georgia", category: "Serif", provider: "System" },
   { name: "Times New Roman", category: "Serif", provider: "System" },
   { name: "Courier New", category: "Monospace", provider: "System" },
 ];
+/** Pairings among the fonts on offer: a contrasting face for the other role. */
 const PAIRS: Record<string, string[]> = {
-  Inter: ["Playfair Display", "Merriweather", "Lora"],
-  Poppins: ["Lora", "Crimson Text", "Playfair Display"],
-  Roboto: ["Roboto Slab", "Merriweather", "Lora"],
-  "Open Sans": ["Merriweather", "Lora", "Playfair Display"],
-  Lato: ["Lora", "Merriweather", "Playfair Display"],
-  Montserrat: ["Merriweather", "Crimson Text", "Lora"],
-  "Source Sans 3": ["Source Serif 4", "Merriweather"],
-  Raleway: ["Lora", "Merriweather"],
-  "PT Sans": ["PT Serif"],
-  Nunito: ["Lora", "Merriweather"],
-  Ubuntu: ["Lora", "Merriweather"],
-  "Work Sans": ["Crimson Text", "Lora"],
-  "Nunito Sans": ["Lora", "Crimson Text"],
-  Rubik: ["Lora", "Merriweather"],
-  Karla: ["Lora", "Merriweather"],
-  "DM Sans": ["DM Serif Display", "Lora"],
-  Outfit: ["Lora", "Crimson Text"],
-  Manrope: ["Lora", "Merriweather"],
-  "Space Grotesk": ["Lora", "Crimson Text", "Space Mono"],
-  "Playfair Display": ["Inter", "Poppins", "Open Sans"],
-  Merriweather: ["Open Sans", "Lato", "Montserrat"],
-  Lora: ["Inter", "Poppins", "Lato"],
-  "Crimson Text": ["Montserrat", "Work Sans"],
-  "PT Serif": ["PT Sans"],
-  "Roboto Slab": ["Roboto"],
-  "Source Serif 4": ["Source Sans 3"],
-  "EB Garamond": ["Inter", "Open Sans"],
-  "Libre Baskerville": ["Inter", "Open Sans"],
-  Bitter: ["Open Sans", "Lato"],
-  "Cormorant Garamond": ["Montserrat", "Inter"],
-  Spectral: ["Inter", "Rubik"],
-  "DM Serif Display": ["DM Sans"],
-  "Bebas Neue": ["Open Sans", "Lato"],
-  Arial: ["Georgia", "Times New Roman"],
-  Georgia: ["Arial", "Helvetica"],
+  Inter: ["Source Serif 4", "Fraunces", "Playfair Display"],
+  "Source Sans 3": ["Source Serif 4", "Literata"],
+  Montserrat: ["Literata", "Source Serif 4"],
+  Quicksand: ["Fraunces", "Literata"],
+  "DM Sans": ["Fraunces", "Playfair Display"],
+  "Work Sans": ["Literata", "Source Serif 4"],
+  "Source Serif 4": ["Source Sans 3", "Inter"],
+  Literata: ["Work Sans", "DM Sans"],
+  Fraunces: ["Inter", "DM Sans"],
+  "Playfair Display": ["Inter", "Source Sans 3", "Work Sans"],
+  Oswald: ["Inter", "Source Sans 3"],
+  "JetBrains Mono": ["Inter", "DM Sans"],
 };
-const CATEGORIES: Array<"All" | Category> = ["All", "Sans-Serif", "Serif", "Monospace", "Display", "Handwriting"];
+const CATEGORIES: Array<"All" | Category> = ["All", "Sans-Serif", "Serif", "Display", "Monospace"];
 const FALLBACK: Record<Category, string> = {
   "Sans-Serif": "system-ui, sans-serif",
   Serif: "Georgia, serif",
@@ -85,18 +66,9 @@ const stackOf = (f: FontOption) => (f.provider === "System" ? `${/\s/.test(f.nam
 const firstFamily = (stack = "") => stack.split(",")[0].trim().replace(/^["']|["']$/g, "");
 const fontOf = (stack?: string) => FONTS.find((f) => f.name === firstFamily(stack));
 
-/** Google fonts drawn in FlowCode itself (the browser's list shows each font in its own face). */
-const loaded = new Set<string>();
-function loadFonts(names: string[]) {
-  const want = names.filter((n) => !loaded.has(n) && FONTS.find((f) => f.name === n)?.provider === "Google Fonts");
-  if (!want.length) return;
-  want.forEach((n) => loaded.add(n));
-  for (let i = 0; i < want.length; i += 12) {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = `https://fonts.googleapis.com/css2?${want.slice(i, i + 12).map((n) => `family=${n.replace(/ /g, "+")}:wght@400;700`).join("&")}&display=swap`;
-    document.head.appendChild(link);
-  }
+/** Bundled fonts are registered with the page at start-up and load when drawn; nothing is fetched from the internet. */
+function loadFonts(_names: string[]) {
+  /* kept so the call sites stay simple */
 }
 
 /** The levels the starter kit draws, and the tokens each one reads. Small and caption share the kit's scale sizes. */
@@ -179,9 +151,8 @@ export function TypographyEditor({ projectId, onDraft, frame, onClose }: Typogra
   const save = async () => {
     setBusy(true);
     setMsg(undefined);
-    const google = ["--font-sans", "--font-display", "--font-mono"].map((n) => fontOf(value(n))).filter((f): f is FontOption => f?.provider === "Google Fonts").map((f) => f.name);
     try {
-      await post(`/projects/${projectId}/design`, { theme: "default", values: edits, googleFonts: [...new Set(google)] });
+      await post(`/projects/${projectId}/design`, { theme: "default", values: edits });
       stylesChanged();
       onClose();
     } catch (e) {

@@ -15655,8 +15655,40 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .feed__live { position: relative; display: flex; align-items: center; gap: 8px; padding: 10px 16px 12px; border-bottom: 1px solid var(--line); }
 .feed__live-doing { color: var(--text-1); font-size: 13px; }
 .feed__live-clock { margin-left: auto; font: 500 12px/1 var(--font-mono); color: var(--text-2); font-variant-numeric: tabular-nums; }
-.feed__live-bar { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; height: 2px; border-radius: 0; }
+.feed__live-bar { position: absolute; left: 0; right: 0; bottom: -1px; margin: 0; height: 1px; border-radius: 0; background: transparent; }
 /* Overview: the working agent while a plan is drafted (same head and words as the Activity feed and status strip). */
 .ov__working { display: flex; align-items: center; gap: 10px; padding: 16px; font-size: 14px; color: var(--text-1); }
 .ov__working strong { color: var(--text-0); font-weight: 600; }
 .feed__live-model { font: 500 11.5px/1 var(--font-mono); color: var(--text-2); padding: 3px 7px; border-radius: 6px; background: color-mix(in srgb, var(--text-0) 6%, transparent); }
+
+/* Finished steps fold to one line: step number and title on a row, the status chip at the end; a click opens one. */
+.task__fold { all: unset; display: grid; gap: 2px; min-width: 0; cursor: pointer; border-radius: 6px; }
+.task__fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.task--folded { padding-block: 9px; align-items: center; }
+.task--folded .task__rail { padding-top: 0; }
+.task--folded .task__fold { display: flex; align-items: baseline; gap: 10px; }
+.task--folded .task__fold .label { flex: none; }
+.task--folded .task__title { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task__fold:hover .task__title { color: var(--text-0); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong, var(--line)); }
+
+/* Overview, compact: no box inside "Where it stands" (a stuck build keeps its warning box), time left on the status
+   line, first look on one line, and the coder beside the edit button. */
+.ov__section .run-activity:not(.run-activity--stall) { border: 0; padding: 0; border-radius: 0; gap: 10px; }
+.run-activity__now .run-activity__eta { flex-basis: auto; }
+.run-activity__now .run-activity__eta > summary { font-size: 12px; color: var(--text-2); }
+.run-activity__now .run-activity__eta[open] { flex-basis: 100%; }
+.ov__section .run-activity__firstlook { margin-top: 0; padding: 6px 6px 6px 10px; flex-wrap: nowrap; }
+.ov__section .run-activity__firstlook > span { flex: 1; min-width: 0; }
+.ov__section .rtime { margin-top: 2px; }
+.run-head__coder { margin-left: auto; font-size: 12px; }
+
+/* Design → Extras: New build's extras for an existing app; ones already asked for are marked, the rest go to the chat. */
+.extras-panel { display: grid; gap: 16px; padding: 16px 20px 24px; max-width: 760px; }
+.extras-panel__lede { margin: 0; font-size: 13px; }
+.extras-panel__has { margin-left: 8px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; color: var(--ok, #2dd4bf); background: color-mix(in srgb, var(--ok, #2dd4bf) 14%, transparent); }
+.extras-panel__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12.5px; }
+
+/* Troubleshoot opens as a modal: the panel fills it, solid surface, scrolls inside. */
+.modal-box.tshoot-modal { width: min(720px, 100%); }
+.tshoot-modal .tshoot { margin: 0; overflow: auto; min-height: 0; background: var(--bg-1); border-color: var(--line-strong, var(--line)); border-radius: 12px; padding: 20px 22px; font-size: 13.5px; }
+.tshoot-modal .tshoot__head { position: sticky; top: -20px; z-index: 1; margin: -20px -22px 0; padding: 16px 22px 12px; background: var(--bg-1); border-bottom: 1px solid var(--line); }

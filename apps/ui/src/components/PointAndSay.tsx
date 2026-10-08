@@ -14,6 +14,11 @@ type Size = "phone" | "tablet" | "desktop";
 /** The builder chat takes this text into its message box (it never sends it on its own). */
 export const COMPOSE_EVENT = "fc:compose-change";
 let pendingCompose: string | undefined;
+/** Opens the builder chat with a change written out, for the person to read and send. */
+export function composeChange(text: string) {
+  pendingCompose = text;
+  window.dispatchEvent(new CustomEvent(COMPOSE_EVENT, { detail: text }));
+}
 export const takePendingCompose = () => {
   const t = pendingCompose;
   pendingCompose = undefined;

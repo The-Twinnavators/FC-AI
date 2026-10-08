@@ -7,7 +7,8 @@
  *    the app's own stylesheets, and its React components). Coding agents get the same list so they reuse these.
  */
 import { useMemo, useState, type CSSProperties } from "react";
-import { Boxes, Layers, Palette, RefreshCw, Undo2, Wand2 } from "lucide-react";
+import { Boxes, Layers, Palette, RefreshCw, Sparkles, Undo2, Wand2 } from "lucide-react";
+import { ExtrasPanel } from "./ExtrasPanel";
 import { ComponentSheet, stylesChanged } from "./ComponentSheet";
 import { SurfacePanel } from "./SurfacePanel";
 import { StyleCapture } from "./StyleCapture";
@@ -48,7 +49,7 @@ const keyOf = (t: Token) => `${t.file}|${t.selector}|${t.name}`;
 const HEX = /^#([0-9a-f]{6})$/i;
 
 export function StylesPanel({ projectId }: { projectId: string }) {
-  const [view, setView] = useState<"tokens" | "surface" | "components">("components");
+  const [view, setView] = useState<"tokens" | "surface" | "components" | "extras">("components");
   const [capturing, setCapturing] = useState(false);
   return (
     <div className="styles-wrap">
@@ -63,13 +64,16 @@ export function StylesPanel({ projectId }: { projectId: string }) {
         <button type="button" role="tab" aria-selected={view === "surface"} className="styles-views__btn" onClick={() => setView("surface")}>
           <Layers size={14} aria-hidden="true" /> Surface
         </button>
+        <button type="button" role="tab" aria-selected={view === "extras"} className="styles-views__btn" onClick={() => setView("extras")}>
+          <Sparkles size={14} aria-hidden="true" /> Extras
+        </button>
       </div>
         <button type="button" className="btn btn--sm" data-cp="capture-open" data-cp-safe aria-expanded={capturing} onClick={() => setCapturing((c) => !c)}>
           <Wand2 size={14} aria-hidden="true" /> Capture a style
         </button>
       </div>
       {capturing ? <StyleCapture projectId={projectId} onClose={() => setCapturing(false)} /> : null}
-      {view === "tokens" ? <TokensView projectId={projectId} /> : view === "surface" ? <SurfacePanel projectId={projectId} /> : <ComponentSheet projectId={projectId} />}
+      {view === "extras" ? <ExtrasPanel projectId={projectId} /> : view === "tokens" ? <TokensView projectId={projectId} /> : view === "surface" ? <SurfacePanel projectId={projectId} /> : <ComponentSheet projectId={projectId} />}
     </div>
   );
 }
