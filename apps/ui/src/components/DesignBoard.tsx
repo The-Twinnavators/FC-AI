@@ -147,7 +147,7 @@ function DesignCard({ id, title, group, note, onConfigure, children }: { id: str
           {title}
         </h4>
         <span className="label">{group}</span>
-        <button type="button" className="btn btn--sm dcard__configure" onClick={onConfigure}>
+        <button type="button" className="btn btn--sm dcard__configure" data-cp={`configure-${id}`} onClick={onConfigure}>
           <SlidersHorizontal size={13} aria-hidden="true" /> Configure
         </button>
       </div>

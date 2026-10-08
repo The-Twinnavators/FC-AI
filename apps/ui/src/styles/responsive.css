@@ -15692,3 +15692,4 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .modal-box.tshoot-modal { width: min(720px, 100%); }
 .tshoot-modal .tshoot { margin: 0; overflow: auto; min-height: 0; background: var(--bg-1); border-color: var(--line-strong, var(--line)); border-radius: 12px; padding: 20px 22px; font-size: 13.5px; }
 .tshoot-modal .tshoot__head { position: sticky; top: -20px; z-index: 1; margin: -20px -22px 0; padding: 16px 22px 12px; background: var(--bg-1); border-bottom: 1px solid var(--line); }
+.screens__earlier { display: grid; gap: 10px; padding: 0 12px 12px; justify-items: start; } .screens__earlier .screens { padding: 0; width: 100%; }

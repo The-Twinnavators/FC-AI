@@ -44,6 +44,35 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1")("look check rules", (
   }, 60_000);
 });
 
+describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1")("look check: a screen that is only its title", () => {
+  // Kids cash app: Lessons, Games and Progress were a title, one line and a button for the whole build.
+  const stub = `<html lang="en"><head><style>body{font-family:sans-serif}button{background:#4f46e5;color:#fff;border:0;padding:12px}</style></head><body><nav><a href="#l">Lessons</a><a href="#g">Games</a></nav><main><header class="ui-page-header"><h1>Games</h1><p>Play fun games to practice money skills.</p><button>Play Game</button></header></main></body></html>`;
+  it("flags it (a warning: the design steps make it blocking)", async () => {
+    const { server, url } = await serve(stub);
+    const session = await BrowserSession.launch("test-look-title-only");
+    try {
+      const f = (await lookCheck(session, url)).findings.find((x) => x.rule === "title-only");
+      expect(f?.serious).toBe(false);
+      expect(f?.message).toContain('Only a title so far ("Games")');
+    } finally {
+      server.close();
+      await session.close();
+    }
+  }, 60_000);
+
+  it("leaves a screen with real content alone", async () => {
+    const full = stub.replace("</header></main>", "</header><ul><li>Coin match: pair each coin with its value</li><li>Shop till: give the right change</li><li>Piggy bank: save up for a toy</li></ul></main>");
+    const { server, url } = await serve(full);
+    const session = await BrowserSession.launch("test-look-title-full");
+    try {
+      expect((await lookCheck(session, url)).findings.some((x) => x.rule === "title-only")).toBe(false);
+    } finally {
+      server.close();
+      await session.close();
+    }
+  }, 60_000);
+});
+
 describe("look check behind sign-in", () => {
   it("reads the prototype's demo account from src/sim", async () => {
     const { demoAccount } = await import("../src/quality/lookCheck.js");

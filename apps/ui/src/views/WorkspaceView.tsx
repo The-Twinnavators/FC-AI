@@ -689,6 +689,8 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
   const toggleDone = (id: string) => setOpenDone((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
   const [troubleRun, setTroubleRun] = useState(false);
   const { run, tasks } = view;
+  // The latest finished step that changed files: where "Undo a change" opens.
+  const lastChanged = [...tasks].reverse().find((t) => t.status === "verified" && t.actualPaths.length)?.id;
   const planApproval = view.approvals.find((a) => a.kind === "plan" && a.status === "pending");
   const state = view.resumable && run.status !== "awaiting_approval" ? "resumable" : run.status;
   const [showFull, setShowFull] = useState(false);
@@ -969,7 +971,7 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
                 <Led status={t.status} />
               </div>
               {foldable ? (
-                <button type="button" className="task__fold" aria-expanded={!folded} onClick={() => toggleDone(t.id)}>
+                <button type="button" className="task__fold" aria-expanded={!folded} data-cp={t.id === lastChanged ? "step-fold-changed" : undefined} onClick={() => toggleDone(t.id)}>
                   <span className="label">Step {i + 1}</span>
                   <h3 className="task__title">{t.title}</h3>
                 </button>

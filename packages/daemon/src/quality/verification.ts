@@ -727,6 +727,9 @@ export class Verifier {
       if (opts.structureOnly) {
         for (const f of result.findings) if (VISUAL_RULES.has(f.rule)) f.serious = false;
       }
+      // A screen that is still only its title is the design steps' to fill: it blocks them, so a build can't finish
+      // with placeholder screens, but a feature step working on another screen isn't held up by it.
+      if (opts.designStep) for (const f of result.findings) if (f.rule === "title-only") f.serious = true;
       const review = opts.structureOnly ? { findings: [], model: undefined, limitation: undefined } : await lookReview(this.router, [run.modelAssignments.coder, run.modelAssignments.coder?.providerId.startsWith("hosted") ? run.modelAssignments.critic : run.modelAssignments.critic?.providerId.startsWith("hosted") ? this.router.roleAssignments(project.id).critic : run.modelAssignments.critic], result.screens, `${run.objective}\nThis step: ${task.title}`, { projectId: project.id, runId: run.id, signal });
       // The look review's taste ("reads like a landing page") is the design steps' to act on. On a feature step it's advice:
       // with a cloud reviewer it blocked Sort Controls and Responsive three times each on a design they couldn't change.

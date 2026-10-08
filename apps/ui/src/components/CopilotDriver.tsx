@@ -242,7 +242,8 @@ export function CopilotDriver() {
         const ok = await press(() => document.querySelector<HTMLElement>(`[data-tab="${step.tab}"]`));
         if (!ok) setNote("That tab isn't on this screen.");
       } else {
-        const el = await waitFor(() => find(step.target));
+        // A click right after a page or panel opens waits longer: the builder's step list can take a few seconds to draw.
+        const el = await waitFor(() => find(step.target), step.do === "click" ? 15_000 : 6000);
         if (!alive || stopped.current) return;
         if (!el) setNote(step.missing ?? "That part isn't on this screen right now, so I've stopped here.");
         else {

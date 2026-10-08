@@ -24,34 +24,64 @@ export function latestShots<T extends Shot>(all: T[]): T[] {
   return [...byLabel.values()].sort((a, b) => width(a.label) - width(b.label));
 }
 
+/** The screen a look-check shot is of: its label without the step it was taken after. */
+const screenOf = (label: string) => label.replace(/\s*\(after\s+"[^"]*"\)\s*$/, "").trim();
+
+/**
+ * The latest shot of each screen, with each screen's earlier shots behind a toggle. FlowCode retakes every screen after
+ * every step, so a build's gallery was mostly near-identical repeats (Kids cash app: 35 shots of 4 screens).
+ */
 export function ScreenshotGallery({ shots }: { shots: Shot[] }) {
   const [open, setOpen] = useState<number>();
+  const [showEarlier, setShowEarlier] = useState(false);
   const thumbs = useRef<Array<HTMLButtonElement | null>>([]);
+  const order = (x: Shot, i: number) => x.createdAt ?? String(i).padStart(6, "0");
+  const indexed = shots.map((x, i) => ({ x, k: order(x, i) }));
+  const latest = new Map<string, { x: Shot; k: string }>();
+  for (const it of indexed) {
+    const key = screenOf(it.x.label);
+    const prev = latest.get(key);
+    if (!prev || it.k > prev.k) latest.set(key, it);
+  }
+  const current = [...latest.values()].map((it) => it.x);
+  const earlier = indexed.filter((it) => !current.includes(it.x)).sort((p, q) => (p.k < q.k ? 1 : -1)).map((it) => it.x);
+  const all = showEarlier ? [...current, ...earlier] : current;
   const close = () => {
     const i = open;
     setOpen(undefined);
     if (i !== undefined) requestAnimationFrame(() => thumbs.current[i]?.focus());
   };
+  const grid = (list: Shot[], offset: number) => (
+    <div className="screens">
+      {list.map((x, j) => (
+        <figure key={x.id}>
+          <button
+            className="screens__thumb"
+            ref={(el) => {
+              thumbs.current[offset + j] = el;
+            }}
+            onClick={() => setOpen(offset + j)}
+            aria-label={`Open ${x.label}`}
+          >
+            <img src={artifactUrl(x.id)} alt="" loading="lazy" />
+          </button>
+          <figcaption>{offset ? x.label : screenOf(x.label).replace(/^Look check:\s*/, "")}</figcaption>
+        </figure>
+      ))}
+    </div>
+  );
   return (
     <>
-      <div className="screens">
-        {shots.map((s, i) => (
-          <figure key={s.id}>
-            <button
-              className="screens__thumb"
-              ref={(el) => {
-                thumbs.current[i] = el;
-              }}
-              onClick={() => setOpen(i)}
-              aria-label={`Open ${s.label}`}
-            >
-              <img src={artifactUrl(s.id)} alt="" loading="lazy" />
-            </button>
-            <figcaption>{s.label}</figcaption>
-          </figure>
-        ))}
-      </div>
-      {open !== undefined && shots[open] ? <ShotModal shots={shots} index={open} onIndex={setOpen} onClose={close} /> : null}
+      {grid(current, 0)}
+      {earlier.length ? (
+        <div className="screens__earlier">
+          <button type="button" className="btn btn--sm btn--ghost" aria-expanded={showEarlier} onClick={() => setShowEarlier((v) => !v)}>
+            {showEarlier ? "Hide earlier look checks" : `Earlier look checks (${earlier.length})`}
+          </button>
+          {showEarlier ? grid(earlier, current.length) : null}
+        </div>
+      ) : null}
+      {open !== undefined && all[open] ? <ShotModal shots={all} index={open} onIndex={setOpen} onClose={close} /> : null}
     </>
   );
 }

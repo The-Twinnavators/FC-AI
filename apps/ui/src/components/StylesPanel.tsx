@@ -64,7 +64,7 @@ export function StylesPanel({ projectId }: { projectId: string }) {
         <button type="button" role="tab" aria-selected={view === "surface"} className="styles-views__btn" onClick={() => setView("surface")}>
           <Layers size={14} aria-hidden="true" /> Surface
         </button>
-        <button type="button" role="tab" aria-selected={view === "extras"} className="styles-views__btn" onClick={() => setView("extras")}>
+        <button type="button" role="tab" aria-selected={view === "extras"} className="styles-views__btn" data-cp="design-view-extras" onClick={() => setView("extras")}>
           <Sparkles size={14} aria-hidden="true" /> Extras
         </button>
       </div>

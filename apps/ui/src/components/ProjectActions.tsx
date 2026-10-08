@@ -75,7 +75,7 @@ export function ProjectActions({ project, onChanged }: { project: ProjectLike; o
       {menu && place ? createPortal(
         <div ref={menuRef} className="ctx-menu proj-actions__menu proj-actions__menu--floating" style={place} role="menu" aria-label={`${project.name} actions`}>
           <div className="ctx-menu__group">
-            <button role="menuitem" className="ctx-menu__item" onClick={() => (setMenu(false), setRenaming(true))}>
+            <button role="menuitem" className="ctx-menu__item" data-cp="project-rename" onClick={() => (setMenu(false), setRenaming(true))}>
               <Icon name="edit" size={16} /> Rename
             </button>
             {project.latestRun ? (
@@ -94,7 +94,7 @@ export function ProjectActions({ project, onChanged }: { project: ProjectLike; o
             </button>
           </div>
           <div className="ctx-menu__group">
-            <button role="menuitem" className="ctx-menu__item ctx-menu__item--danger" onClick={() => (setMenu(false), setDeleting(true))}>
+            <button role="menuitem" className="ctx-menu__item ctx-menu__item--danger" data-cp="project-delete" onClick={() => (setMenu(false), setDeleting(true))}>
               <Icon name="trash" size={16} /> Delete project…
             </button>
           </div>

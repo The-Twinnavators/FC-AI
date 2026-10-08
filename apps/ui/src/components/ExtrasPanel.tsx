@@ -30,7 +30,7 @@ export function ExtrasPanel({ projectId }: { projectId: string }) {
       <p className="muted extras-panel__lede">
         The extras from New build, for this app. Tick the ones to add; the change is written into the chat for you to send.
       </p>
-      <ul className="look__checks">
+      <ul className="look__checks" data-cp="extras-list">
         {BUILD_EXTRAS.map((x) => {
           const already = has.has(x.id);
           return (
@@ -51,7 +51,7 @@ export function ExtrasPanel({ projectId }: { projectId: string }) {
       </ul>
       <div className="extras-panel__foot">
         <span className="muted">Animations always respect the "reduce motion" setting on the viewer's device.</span>
-        <button type="button" className="btn btn--primary btn--sm" disabled={!picked.length} onClick={add}>
+        <button type="button" className="btn btn--primary btn--sm" data-cp="extras-add" disabled={!picked.length} onClick={add}>
           {picked.length ? `Add ${picked.length} to this app` : "Add to this app"}
         </button>
       </div>

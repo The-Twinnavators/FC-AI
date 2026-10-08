@@ -424,7 +424,7 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
                 </span>
               </button>
               {expanded ? (
-                <div id={`lrc-${c.id}`} className="lrc-items">
+                <div id={`lrc-${c.id}`} className="lrc-items" data-cp="launch-items">
                   {c.shown.map((it) => (
                     <ItemCard key={it.id} it={it} busy={busy === it.id} fresh={fresh.has(it.id)} act={(body) => act(it.id, body)} fillPrompt={fillPrompt} />
                   ))}

@@ -6,7 +6,7 @@
  *  - unstyled browser defaults (default serif font, grey system buttons) instead of the design tokens;
  *  - text below WCAG AA contrast;
  *  - horizontal scrolling at 375px, and touch targets smaller than 24px;
- *  - a screen with almost nothing on it;
+ *  - a screen with almost nothing on it, or nothing but its title (blocking on the design steps, which own the screens);
  *  - the same control on every item ("Create" in each day cell), the same empty label repeated ("0 events"),
  *    "Sign in" next to "Sign out", and "No events" when the prototype's sample data has events;
  *  - once the app has more than one screen, no navigation.
@@ -130,6 +130,16 @@ function auditScreen(): Array<{ rule: string; serious: boolean; message: string 
   }
 
   if (text.length < 40) out.push({ rule: "empty-screen", serious: false, message: "This screen shows almost nothing. Add its real content, or a designed empty state with the next action." });
+  else {
+    // A screen that is still only its header: a title, a line and a button (Kids cash app: Lessons, Games and Progress
+    // stayed like that for the whole build while every look check passed). Counted outside the header and navigation.
+    const h1 = h1s[0];
+    const head = h1 ? (h1.closest("header, [class*='page-header'], [class*='pageheader'], [class*='PageHeader']") ?? h1.parentElement) : null;
+    const outside = (el: Element) => !(head && head.contains(el)) && !el.closest("nav, [role=navigation], aside, footer");
+    const rest = Array.from(main.querySelectorAll("*")).filter((el) => el.children.length === 0 && visible(el) && outside(el)).map((el) => (el as HTMLElement).innerText?.trim() ?? "").join(" ").trim();
+    const things = Array.from(main.querySelectorAll("img, svg, table, li, input, select, textarea, article, [class*='card'], canvas")).filter((el) => visible(el) && outside(el)).length;
+    if (h1 && rest.length < 30 && things < 2) out.push({ rule: "title-only", serious: false, message: `Only a title so far ("${(h1 as HTMLElement).innerText.trim().slice(0, 30)}"): add this screen's real content from the spec, or a designed empty state that says what comes next.` });
+  }
   return out;
 }
 

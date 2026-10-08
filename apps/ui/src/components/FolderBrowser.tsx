@@ -105,7 +105,7 @@ export function FolderBrowser({ title = "Choose a repository", note, action = "U
           </code>
         </div>
 
-        <div className="fbrowse__list">
+        <div className="fbrowse__list" data-cp="folder-list">
           {loading ? (
             <p className="fbrowse__msg">
               <Loader2 size={14} className="spin" aria-hidden="true" /> Reading the folder…
@@ -140,7 +140,7 @@ export function FolderBrowser({ title = "Choose a repository", note, action = "U
             <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel} disabled={busy}>
               Cancel
             </button>
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => path && onChoose(path, leaf)} disabled={!path || loading || busy}>
+            <button type="button" className="btn btn--primary btn--sm" data-cp="folder-choose" onClick={() => path && onChoose(path, leaf)} disabled={!path || loading || busy}>
               {busy ? <Loader2 size={13} className="spin" aria-hidden="true" /> : null}
               {busy ? "Checking…" : action}
             </button>

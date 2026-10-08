@@ -165,7 +165,7 @@ export function TypographyEditor({ projectId, onDraft, frame, onClose }: Typogra
   const controls = (
     <div className="typo">
       <fieldset className="studio__sec">
-        <legend>Fonts</legend>
+        <legend data-cp="typo-fonts">Fonts</legend>
         <FontPicker label="Headings" token="--font-display" value={value("--font-display")} pairWith={firstFamily(value("--font-sans"))} onPick={(f) => set({ "--font-display": stackOf(f) })} />
         <FontPicker label="Body" token="--font-sans" value={value("--font-sans")} pairWith={firstFamily(value("--font-display"))} onPick={(f) => set({ "--font-sans": stackOf(f) })} />
         {has("--font-mono") ? <FontPicker label="Code" token="--font-mono" value={value("--font-mono")} only="Monospace" onPick={(f) => set({ "--font-mono": stackOf(f) })} /> : null}
@@ -262,7 +262,7 @@ export function TypographyEditor({ projectId, onDraft, frame, onClose }: Typogra
       <button type="button" className="btn" onClick={onClose}>
         Cancel
       </button>
-      <button type="button" className="btn btn--primary" onClick={() => void save()} disabled={busy || !Object.keys(edits).length}>
+      <button type="button" className="btn btn--primary" data-cp="typo-save" onClick={() => void save()} disabled={busy || !Object.keys(edits).length}>
         {busy ? "Saving…" : "Save typography"}
       </button>
     </>
