@@ -44,7 +44,10 @@ export function VersionHistory({ path, current }: { path: string; current: strin
       {error ? (
         <p className="muted">Couldn't load the history: {error}</p>
       ) : !data ? (
-        <p className="muted">Loading…</p>
+        // The same sliding progress bar FlowCode shows while a change is starting, instead of the word "Loading".
+        <span className="lib-history__loading sug-progress__bar" role="progressbar" aria-label="Loading the version history">
+          <span className="is-indeterminate" />
+        </span>
       ) : (
         <ol className="lib-history__list">
           {rows.map((v) => {
