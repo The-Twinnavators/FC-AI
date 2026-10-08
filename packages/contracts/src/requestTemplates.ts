@@ -166,7 +166,7 @@ ${plan}`,
 
 ${plan}
 
-Attach a feature spec (System Settings → PRD templates → Simulation or what-if tool) for the formulas, data and saved scenarios.`,
+Attach a feature spec (Settings → PRD templates → Simulation or what-if tool) for the formulas, data and saved scenarios.`,
   },
   {
     id: "ai-review-queue",
@@ -193,7 +193,7 @@ Attach a feature spec (System Settings → PRD templates → Simulation or what-
 
 ${plan}
 
-Attach a feature spec (System Settings → PRD templates → AI feature) for the schema, review rules and privacy.`,
+Attach a feature spec (Settings → PRD templates → AI feature) for the schema, review rules and privacy.`,
   },
   {
     id: "3d-product-explainer",

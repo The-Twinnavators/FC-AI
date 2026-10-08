@@ -25,7 +25,7 @@ export class OpenAICompatibleProvider implements Provider {
   }
 
   private assertEnabled() {
-    if (!this.config.enabled) throw new ProviderError("unknown", `Hosted provider ${this.config.label} is disabled. Enable it in System Settings and consent to hosted transfer first.`);
+    if (!this.config.enabled) throw new ProviderError("unknown", `Hosted provider ${this.config.label} is disabled. Enable it in Settings and consent to hosted transfer first.`);
     if (!this.config.baseUrl) throw new ProviderError("unknown", `Hosted provider ${this.config.label} has no base URL`);
   }
 

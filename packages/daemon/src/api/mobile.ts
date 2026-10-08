@@ -303,7 +303,7 @@ self.addEventListener("notificationclick", (e) => {
 
 const PAGE_LOCKED = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FlowCode</title>${ICON}
 <style>.brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}.brand__name{font-weight:700;font-size:18px;color:#e8ebf2}.brand__name em{font-style:italic;font-weight:800;color:#a78bfa}body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:#0f131c;color:#e8ebf2;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box;text-align:center}p{max-width:30ch;color:#b9c0cd}</style></head>
-<body><main>${BRAND}<h1 style="font-size:20px">This link has expired</h1><p>Open FlowCode on your computer, go to System Settings → Phone and scan the QR code again.</p></main></body></html>`;
+<body><main>${BRAND}<h1 style="font-size:20px">This link has expired</h1><p>Open FlowCode on your computer, go to Settings → Phone and scan the QR code again.</p></main></body></html>`;
 
 const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f131c">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="FlowCode">
@@ -434,7 +434,7 @@ li.gone{display:flex;align-items:center;justify-content:space-between;padding:10
       if (choice.outcome === "accepted") install.hidden = true;
       return;
     }
-    if (!window.isSecureContext) return showHelp("<b>Installing needs the secure link.</b><p>In FlowCode on your computer, open System Settings → Phone, choose <i>Use HTTPS with Tailscale</i> and scan the new QR code. Then tap Download the app again.</p>");
+    if (!window.isSecureContext) return showHelp("<b>Installing needs the secure link.</b><p>In FlowCode on your computer, open Settings → Phone, choose <i>Use HTTPS with Tailscale</i> and scan the new QR code. Then tap Download the app again.</p>");
     if (ios) return showHelp("<b>Add FlowCode to your Home Screen</b><ol><li>Tap the Share button <span aria-hidden=\\"true\\">⬆︎</span> in Safari's toolbar.</li><li>Scroll down and tap <i>Add to Home Screen</i>, then <i>Add</i>.</li><li>Open FlowCode from your Home Screen and tap <i>Turn on notifications</i>.</li></ol>");
     showHelp("<b>Install FlowCode</b><ol><li>Open your browser's menu (⋮).</li><li>Tap <i>Install app</i> or <i>Add to Home screen</i>.</li><li>Open FlowCode from your Home Screen and tap <i>Turn on notifications</i>.</li></ol>");
   };

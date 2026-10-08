@@ -32,7 +32,7 @@ export const THEMED_PAGES: Array<{ section: string; label: string }> = [
   { section: "topics", label: "Research Topics" },
   { section: "agents", label: "Agents" },
   { section: "network", label: "Network Graph" },
-  { section: "settings", label: "System Settings" },
+  { section: "settings", label: "Settings" },
   { section: "about", label: "About FlowCode" },
   { section: "guide", label: "Feature guide" },
   { section: "primitives", label: "Branding" },

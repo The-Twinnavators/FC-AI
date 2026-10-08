@@ -77,7 +77,7 @@ export function classifyRequest(objective: string, opts: { referenceRoles?: stri
     ? undefined
     : hasPrd
       ? "Built to the attached spec."
-      : `${primary === "product_spec" ? "A product spec" : "A feature spec"} would keep its decisions in one place (users, flows, data, states, what's out of scope). System Settings → PRD templates has one; attach it to the next build of this feature.`;
+      : `${primary === "product_spec" ? "A product spec" : "A feature spec"} would keep its decisions in one place (users, flows, data, states, what's out of scope). Settings → PRD templates has one; attach it to the next build of this feature.`;
   // Build prompts: the guidance for each kind of feature found, plus the new-feature prompt for anything spec-sized.
   const prompts = [...new Set([...(primary === "feature_spec" || primary === "product_spec" ? ["plan-new-feature"] : []), ...hits.flatMap((c) => (c.prompt ? [c.prompt] : []))])];
   return { primary, label, concepts: hits.map((c) => c.name), skills: [...new Set(skills)], prompts, specNeeded, specAttached: hasPrd, note, words };

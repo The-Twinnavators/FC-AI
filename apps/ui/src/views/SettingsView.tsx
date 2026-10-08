@@ -73,7 +73,7 @@ export function SettingsView({ projects }: { projects: Project[] }) {
       <header className="page__head">
         <div>
           <span className="label">System</span>
-          <h1 className="page__title">System Settings</h1>
+          <h1 className="page__title">Settings</h1>
           <p className="lrc__meta">How FlowCode works on this computer and for each project: how hands-on builds are, what's kept and for how long, and how the app looks.</p>
         </div>
       </header>
@@ -241,7 +241,7 @@ export function ProjectSettingsView({ projectId, onClose, onSaved }: { projectId
             <p className="muted" style={{ margin: 0, fontSize: 13 }}>
               Applies to this project only. The default for new projects is in{" "}
               <button type="button" className="link-btn" onClick={() => navigate("/settings")}>
-                System Settings
+                Settings
               </button>
               .
             </p>

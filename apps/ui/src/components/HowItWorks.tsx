@@ -38,7 +38,7 @@ const STAGES: Stage[] = [
     youDo: ["No PRD yet? Open Create PRD: describe the problem, and FlowCode researches it with you and writes the PRD.", "Have one? Bring it to New build, with any content as JSON (it becomes the prototype's data).", "Keep the numbered headings and any layout you draw: the plan follows them."],
     where: [
       { label: "Create PRD", to: "/discover" },
-      { label: "System Settings → PRD templates", to: "/settings" },
+      { label: "Settings → PRD templates", to: "/settings" },
     ],
     agents: ["researcher", "planner"],
     tip: "Put real examples in the PRD (names, prices, messages). The prototype shows them instead of made-up sample data.",

@@ -90,8 +90,8 @@ const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; icon: str
     label: "System",
     items: [
       { path: "/about", icon: "help", label: "About FlowCode" },
-      { path: "/settings", icon: "settings", label: "System Settings" },
       { path: "/guide", icon: "library", label: "Feature guide" },
+      { path: "/settings", icon: "settings", label: "Settings" },
       { path: "/primitives", icon: "layers", label: "Branding" },
       { path: "/system", icon: "server", label: "System Health" },
     ],
@@ -256,7 +256,7 @@ export function App() {
   }, [projectId]);
 
   useEffect(() => {
-    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Research Topics", quality: "My Projects", reports: "Reports", models: "Models", settings: "System Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "FlowReport" };
+    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Research Topics", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "FlowReport" };
     document.title = `${project ? project.name : titles[section] ?? "FlowCode"} · FlowCode`;
   }, [section, project]);
 
