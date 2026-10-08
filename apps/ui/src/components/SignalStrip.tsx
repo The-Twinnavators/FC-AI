@@ -42,7 +42,7 @@ const groupNote = (k: VerificationKind) =>
   BROWSER.includes(k) ? "Re-runs the browser checks together (dev server, preview, screenshots, accessibility, design, critique). About a minute." : STATIC.includes(k) ? "Re-runs the static scans together." : k === "project_preflight" || k === "manifest_validation" ? "Re-reads the project setup." : "";
 const CAN_RERUN = (k: VerificationKind) => k !== "install";
 
-export function SignalStrip({ run, checks, active, resumable, paused, controls, onRerun, agent, grip, style }: { /** Paused from the builder: the step in progress finishes, then it waits. */ paused?: boolean; /** Move grip (the builder layout). */ grip?: React.ReactNode; style?: React.CSSProperties; run?: Run; checks: VerificationCheck[]; active: boolean; resumable: boolean; controls: React.ReactNode; onRerun?: () => void; /** Role of the agent working right now. */ agent?: string }) {
+export function SignalStrip({ run, checks, active, resumable, paused, controls, onRerun, agent, doing, grip, style }: { /** Paused from the builder: the step in progress finishes, then it waits. */ paused?: boolean; /** Move grip (the builder layout). */ grip?: React.ReactNode; style?: React.CSSProperties; run?: Run; checks: VerificationCheck[]; active: boolean; resumable: boolean; controls: React.ReactNode; onRerun?: () => void; /** Role of the agent working right now. */ agent?: string; /** What it is doing, in the same words as the Activity feed. */ doing?: string }) {
   const [openKind, setOpenKind] = useState<VerificationKind>();
   const [anchor, setAnchor] = useState<DOMRect>();
   const [busy, setBusy] = useState<Set<string>>(new Set());
@@ -104,7 +104,7 @@ export function SignalStrip({ run, checks, active, resumable, paused, controls, 
           {active && agent ? (
             <span className="strip__agent">
               <span className="strip__agent-dot" style={{ background: ROLE_COLOR[agent] }} aria-hidden="true" />
-              {ROLE_LABEL[agent] ?? agent.replace(/_/g, " ")} {paused ? "is finishing this step" : "is working"}
+              {ROLE_LABEL[agent] ?? agent.replace(/_/g, " ")} is {paused ? "finishing this step" : doing ?? "working"}
             </span>
           ) : paused ? (
             <span className="strip__agent">Continue to start the next step</span>

@@ -15656,3 +15656,7 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .feed__live-doing { color: var(--text-1); font-size: 13px; }
 .feed__live-clock { margin-left: auto; font: 500 12px/1 var(--font-mono); color: var(--text-2); font-variant-numeric: tabular-nums; }
 .feed__live-bar { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; height: 2px; border-radius: 0; }
+/* Overview: the working agent while a plan is drafted (same head and words as the Activity feed and status strip). */
+.ov__working { display: flex; align-items: center; gap: 10px; padding: 16px; font-size: 14px; color: var(--text-1); }
+.ov__working strong { color: var(--text-0); font-weight: 600; }
+.feed__live-model { font: 500 11.5px/1 var(--font-mono); color: var(--text-2); padding: 3px 7px; border-radius: 6px; background: color-mix(in srgb, var(--text-0) 6%, transparent); }

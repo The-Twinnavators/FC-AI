@@ -417,7 +417,7 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
           </div>
         </Modal>
       ) : null}
-      <SignalStrip run={view?.run} checks={view?.checks ?? []} active={!!view?.active} resumable={!!view?.resumable} paused={!!view?.paused} controls={controls} onRerun={() => setRunTick((t) => t + 1)} agent={workingAgent?.role} grip={<StripGrip strip={wsLayout.layout.strip} onChange={wsLayout.setStrip} />} style={{ order: wsLayout.layout.strip === "top" ? -1 : 10 }} />
+      <SignalStrip run={view?.run} checks={view?.checks ?? []} active={!!view?.active} resumable={!!view?.resumable} paused={!!view?.paused} controls={controls} onRerun={() => setRunTick((t) => t + 1)} agent={workingAgent?.role} doing={doingNow(events, workingAgent?.role)} grip={<StripGrip strip={wsLayout.layout.strip} onChange={wsLayout.setStrip} />} style={{ order: wsLayout.layout.strip === "top" ? -1 : 10 }} />
     </div>
   );
 }
@@ -832,9 +832,18 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
       ) : null}
 
       {run.status === "draft" ? (
-        <div style={{ padding: 16 }} role="status">
-          <Led status="running" /> Reading your project and drafting a plan…
-        </div>
+        view.active ? (
+          <div className="ov__working" role="status">
+            <RobotHead color={ROLE_COLOR.planner ?? "#9a9fd6"} id="ov-working" size={24} className="robot-head--working" />
+            <span>
+              <strong>{ROLE_LABEL.planner ?? "Planner"}</strong> is {doingNow(events, "planner", true)}
+            </span>
+          </div>
+        ) : (
+          <div style={{ padding: 16 }} role="status">
+            <Led status="running" /> Reading your project and drafting a plan…
+          </div>
+        )
       ) : null}
 
       {ideas || savedIdeas ? (
@@ -1310,11 +1319,57 @@ function agentOf(e: FlowEvent): string | undefined {
  * Everything FlowCode and its agents did for this request, newest first. Consecutive work by one agent is one block,
  * headed by that agent's robot head, name and start time, so a hand-over (Coder → Debugger) is easy to see.
  */
+/** What each agent is doing while its model writes: in full (Overview, Activity) and short (the status strip). */
+const ROLE_DOING_FULL: Record<string, string> = {
+  planner: "drafting the plan",
+  coder: "writing code",
+  debugger: "working out a fix",
+  accessibility_qa: "reviewing accessibility",
+  security_qa: "reviewing security",
+  critic: "reviewing the design",
+  researcher: "researching",
+  repository_analyst: "reading the repository",
+  documenter: "writing the docs",
+};
+const ROLE_DOING: Record<string, string> = {
+  planner: "drafting",
+  coder: "coding",
+  debugger: "fixing",
+  accessibility_qa: "reviewing",
+  security_qa: "reviewing",
+  critic: "reviewing",
+  researcher: "researching",
+  repository_analyst: "reading",
+  documenter: "writing",
+};
+
+/** The model the working agent is thinking with, when its latest event is a model call. */
+export function modelNow(events: FlowEvent[]): string | undefined {
+  const last = [...events].reverse().find((e) => e.type !== "command.output");
+  return last?.type === "model.requested" ? last.message.split("→").pop()?.trim() || undefined : undefined;
+}
+
+/**
+ * What the working agent is doing right now, in the same words everywhere it shows (Activity, Overview, status strip):
+ * from the latest event, e.g. "drafting". The model it thinks with is shown beside it where there is room (modelNow).
+ */
+export function doingNow(events: FlowEvent[], role?: string, full = false): string {
+  const last = [...events].reverse().find((e) => e.type !== "command.output");
+  if (!last) return "working";
+  if (last.type === "model.requested") {
+    return (role && (full ? ROLE_DOING_FULL : ROLE_DOING)[role]) || "thinking";
+  }
+  if (last.type.startsWith("command.")) return "running a command";
+  if (last.type.startsWith("tool.")) return "working in the files";
+  if (last.type.startsWith("verification.")) return "checking the work";
+  return "working";
+}
+
 /**
  * While a run is working: the agent's head moves, the row says what it is waiting on, and a clock counts the seconds
  * since the last event, so a long model call never looks frozen.
  */
-function FeedWorking({ role, last }: { role: string; last?: FlowEvent }) {
+function FeedWorking({ role, last, doing, model }: { role: string; last?: FlowEvent; doing: string; model?: string }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -1322,13 +1377,12 @@ function FeedWorking({ role, last }: { role: string; last?: FlowEvent }) {
   }, []);
   const since = last ? Math.max(0, Math.floor((now - new Date(last.createdAt).getTime()) / 1000)) : 0;
   const clock = `${Math.floor(since / 60)}:${String(since % 60).padStart(2, "0")}`;
-  const model = last?.type === "model.requested" ? last.message.split("→").pop()?.trim() : undefined;
-  const doing = model ? `waiting for ${model} to answer` : last?.type.startsWith("command.") ? "running a command" : last?.type.startsWith("tool.") ? "working in the files" : last?.type.startsWith("verification.") ? "checking the work" : "working";
   return (
     <div className="feed__live" role="status">
       <RobotHead color={ROLE_COLOR[role] ?? "#9a9fd6"} id="feed-live" size={26} className="robot-head--working" />
       <span className="feed__agent-name">{ROLE_LABEL[role] ?? role}</span>
       <span className="feed__live-doing">is {doing}</span>
+      {model ? <span className="feed__live-model">{model}</span> : null}
       <span className="feed__live-clock" aria-label={`${since} seconds since the last update`}>{clock}</span>
       <span className="feed__live-bar sug-progress__bar" aria-hidden="true">
         <span className="is-indeterminate" />
@@ -1352,7 +1406,7 @@ function ActivityFeed({ events, working }: { events: FlowEvent[]; working?: stri
   }
   return (
     <>
-    {working ? <FeedWorking role={working} last={items[items.length - 1]} /> : null}
+    {working ? <FeedWorking role={working} last={items[items.length - 1]} doing={doingNow(items, working, true)} model={modelNow(items)} /> : null}
     <ol className="feed feed--agents" aria-live="off">
       {blocks.reverse().map((blk, bi) => {
         const first = blk.events[0];
