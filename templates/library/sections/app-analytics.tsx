@@ -1,3 +1,8 @@
+/** @flowcode-library app-analytics · Analytics dashboard (App screens)
+ * Use cases: analytics dashboard; website analytics; traffic report; kpi dashboard; reporting; metrics overview; marketing dashboard; admin home
+ * Jobs to be done: see how my site is performing; compare traffic across date ranges; find my top pages; see where visitors come from
+ * Keywords: app, dashboard, analytics, chart, kpi, table, sortable, date range
+ */
 /**
  * App screen: analytics dashboard. A whole screen with its own top bar (product name, pages, date range), a row of
  * KPI tiles with change against the previous period, a line chart with a hover and keyboard tooltip, a sortable table

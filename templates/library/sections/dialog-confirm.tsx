@@ -1,3 +1,8 @@
+/** @flowcode-library dialog-confirm · Confirm dialog (Dialogs and drawers)
+ * Use cases: delete confirmation; cancel booking; remove item; discard changes; destructive action; cancel subscription; archive confirmation
+ * Jobs to be done: avoid deleting something by mistake; confirm i really want to cancel; undo a deletion i regret
+ * Keywords: dialog, modal, confirm, delete, undo
+ */
 /**
  * Dialog: confirm a destructive action. A booking card with a Delete button that opens a small modal asking "Delete
  * this booking?", with Cancel (focused first, the safe choice) and a danger-coloured Delete. The result shows on the

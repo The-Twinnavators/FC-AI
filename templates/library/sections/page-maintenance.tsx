@@ -1,3 +1,8 @@
+/** @flowcode-library page-maintenance · Planned maintenance (Alerts and states)
+ * Use cases: maintenance page; planned downtime; scheduled outage; service status; system upgrade notice; outage notice; back soon
+ * Jobs to be done: know when the service is back; see which features are affected; get notified when it returns; plan around the downtime
+ * Keywords: maintenance, downtime, status, page, notify
+ */
 /**
  * Planned maintenance: tells people the app is down on purpose, when it started, when it should be back (with a live
  * countdown) and which parts are affected, in a status list they can filter. A "tell me when it's back" form keeps

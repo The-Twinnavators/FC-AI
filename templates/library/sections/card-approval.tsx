@@ -1,3 +1,8 @@
+/** @flowcode-library card-approval · Approval queue (Cards)
+ * Use cases: approval queue; refund requests; expense approvals; access requests; moderation queue; leave requests; change requests; review inbox
+ * Jobs to be done: approve or deny pending requests; judge the risk before deciding; undo a decision made by mistake; clear the queue of requests
+ * Keywords: approval, review, refund, decision, queue
+ */
 /**
  * Approval queue: requests that need a person's decision, one at a time, each with what is asked, why, what it
  * touches, a risk level and how far the decision reaches. Good for refunds, booking changes or any action a team

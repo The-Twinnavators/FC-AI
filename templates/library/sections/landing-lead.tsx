@@ -1,3 +1,8 @@
+/** @flowcode-library landing-lead · Lead generation landing (Landing pages)
+ * Use cases: lead magnet; free guide download; ebook landing; consultation booking; lead capture; checklist download; newsletter opt-in; webinar signup
+ * Jobs to be done: get the free guide; learn what the guide covers; decide if the author is credible; book a free consultation
+ * Keywords: landing, lead generation, form, guide, consultation, studio, page template
+ */
 /**
  * Page template: lead-generation landing page. One goal: get a name and email in exchange for a free guide. The short
  * form sits above the fold beside the promise, then the page answers "what's in it", "who wrote it" and "did it help

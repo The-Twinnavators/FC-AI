@@ -1,3 +1,8 @@
+/** @flowcode-library landing-click-through · Click-through page (Landing pages)
+ * Use cases: free trial signup; saas landing; app download; ad campaign landing; roi calculator; product signup; free account offer
+ * Jobs to be done: decide whether to try the product; see how much time i would save; see who already uses it; start a free trial
+ * Keywords: landing, click-through, saas, trial, social proof, calculator, carousel, page template
+ */
 /**
  * Page template: click-through landing page. It warms visitors up before one sign-up action: a centred promise with
  * social proof, the businesses already using it, three benefits, a "how much time would I save?" slider, a rotating

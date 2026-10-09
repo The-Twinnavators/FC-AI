@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Timer } from "lucide-react";
 import type { Run } from "@flowcode/contracts";
 import { useResource } from "../api";
+import { RobotHead, ROLE_COLOR, ROLE_LABEL, workingRole } from "./RobotHead";
 
 const WORKING = ["draft", "running", "verifying", "recovering", "awaiting_approval"];
 
@@ -49,9 +50,21 @@ export function BuildTimer({ run, compact = false, clock = false }: { run?: Pick
   );
 }
 
-/** The timer for a project's latest build (refreshes its status every few seconds). */
-export function ProjectBuildTimer({ projectId }: { projectId: string }) {
+/**
+ * The agent working on a project's latest build, with its robot head (refreshes every few seconds). The elapsed time
+ * isn't repeated here: the top bar and the Performance tab show it.
+ */
+export function ProjectWorkingAgent({ projectId }: { projectId: string }) {
   const projects = useResource<Array<{ id: string; latestRun?: Run }>>("/projects", [], 8000);
   const run = projects.data?.find((p) => p.id === projectId)?.latestRun;
-  return <BuildTimer run={run} />;
+  const working = !!run && WORKING.includes(run.status);
+  const view = useResource<{ run: Run; tasks: Array<{ id: string; role: string; attempts: number }> }>(working ? `/runs/${run!.id}` : null, [run?.id], 5000);
+  const role = working ? workingRole(view.data?.run ?? run, view.data?.tasks) : undefined;
+  if (!role) return null;
+  return (
+    <span className="build-agent" title={`${ROLE_LABEL[role] ?? role} is working on this build`}>
+      <RobotHead color={ROLE_COLOR[role] ?? "#9a9fd6"} id={`agent-${role}`} size={20} className="robot-head--working" />
+      <span>{ROLE_LABEL[role] ?? role} is working</span>
+    </span>
+  );
 }

@@ -5,6 +5,7 @@
 import { RefreshCw } from "lucide-react";
 import type { Run } from "@flowcode/contracts";
 import { useResource } from "../api";
+import { RobotHead, ROLE_COLOR, ROLE_LABEL } from "./RobotHead";
 import { navigate } from "../router";
 import { Empty } from "./ui";
 import { SkeletonBlock } from "./motion";
@@ -235,6 +236,8 @@ export function RunPerformance({ runId }: { runId?: string }) {
         </section>
       ) : null}
 
+      <LibraryUsed runId={runId} />
+
       {data.slowest.length ? (
         <section className="perf-sec" aria-labelledby="perf-slow">
           <h3 id="perf-slow" className="perf-sec__title">Slowest operations</h3>
@@ -292,6 +295,72 @@ export function RunPerformance({ runId }: { runId?: string }) {
         </section>
       ) : null}
     </div>
+  );
+}
+
+interface LibraryRow {
+  id: string;
+  name: string;
+  by: string;
+  step: string;
+  reason?: string;
+  inApp: boolean;
+  inScreen: boolean;
+  file?: string;
+}
+
+/** Which component library pieces the build used, who chose each (FlowCode or an agent), and where each ended up. */
+function LibraryUsed({ runId }: { runId?: string }) {
+  const { data } = useResource<{ pieces: LibraryRow[] }>(runId ? `/runs/${runId}/library` : null, [runId], 15_000);
+  if (!data) return null;
+  const used = data.pieces.filter((p) => p.inScreen).length;
+  return (
+    <section className="perf-sec" aria-labelledby="perf-library">
+      <h3 id="perf-library" className="perf-sec__title">Component library</h3>
+      {data.pieces.length ? (
+        <>
+          <p className="muted perf-lib__sum">
+            {data.pieces.length} piece{data.pieces.length === 1 ? "" : "s"} added, {used} in a screen.
+          </p>
+          <table className="table perf-table">
+            <thead>
+              <tr>
+                <th scope="col">Piece</th>
+                <th scope="col">Chosen by</th>
+                <th scope="col">Why</th>
+                <th scope="col">Now</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.pieces.map((p) => (
+                <tr key={`${p.id}-${p.by}`}>
+                  <td>
+                    {p.name}
+                    {p.file ? <span className="muted mono perf-lib__file"> {p.file.replace("src/sections/", "")}</span> : null}
+                  </td>
+                  <td>
+                    {p.by === "flowcode" ? (
+                      "FlowCode"
+                    ) : p.by === "unrecorded" ? (
+                      <span className="muted">Not recorded</span>
+                    ) : (
+                      <span className="perf-lib__agent">
+                        <RobotHead color={ROLE_COLOR[p.by] ?? "#9a9fd6"} id={`lib-${p.id}`} size={18} />
+                        {ROLE_LABEL[p.by] ?? p.by}
+                      </span>
+                    )}
+                  </td>
+                  <td>{p.reason ?? <span className="muted">{p.step ? `Picked from the library index in “${p.step}”` : "Added before FlowCode recorded library use"}</span>}</td>
+                  <td>{p.inScreen ? "In a screen" : p.inApp ? <span className="muted">Added, not in a screen yet</span> : <span className="muted">Removed</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      ) : (
+        <p className="muted">No library pieces were used in this build yet.</p>
+      )}
+    </section>
   );
 }
 

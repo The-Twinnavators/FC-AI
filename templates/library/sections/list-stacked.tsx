@@ -1,3 +1,8 @@
+/** @flowcode-library list-stacked · Stacked list (Tables and lists)
+ * Use cases: contact list; team members; order list; inbox; search results; file list; patient list; ticket list; mobile list
+ * Jobs to be done: find a person or item quickly; filter by status; see details without leaving the list; check what needs attention
+ * Keywords: list, mobile, search, filter
+ */
 /**
  * Stacked list: the phone-friendly view of a table. Each row shows initials, a title, a meta line, a status and a
  * chevron, and opens to show more. A search box and status filter sit above, with an empty state when nothing

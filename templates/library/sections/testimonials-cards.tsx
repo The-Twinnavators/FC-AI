@@ -1,3 +1,8 @@
+/** @flowcode-library testimonials-cards · Testimonial cards (Testimonials)
+ * Use cases: customer testimonials; reviews section; social proof; client feedback; success stories; user quotes; student reviews
+ * Jobs to be done: hear from people who use it; trust the product before buying; see whether people like me benefit; read honest customer feedback
+ * Keywords: testimonials, reviews, quotes, social proof
+ */
 /**
  * Testimonials: cards. Three short quotes with who said them. Make it the app's own: use only real quotes the PRD
  * provides; with none, leave this section out rather than inventing praise.

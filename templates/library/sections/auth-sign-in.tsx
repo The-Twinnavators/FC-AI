@@ -1,3 +1,8 @@
+/** @flowcode-library auth-sign-in · Sign in (Sign-in and sign-up)
+ * Use cases: sign in; login; member login; account access; customer portal login; admin login; returning user
+ * Jobs to be done: sign in to my account; reset a forgotten password; stay signed in on my device; continue with another account
+ * Keywords: auth, sign in, login, form, password
+ */
 /**
  * Sign in: email and password with show/hide, "remember me", a forgot-password link, inline errors, a "signing in"
  * state and a welcome-back confirmation. Optional "continue with" buttons are plain text, no logos. Use it as the

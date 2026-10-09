@@ -1,3 +1,8 @@
+/** @flowcode-library home-saas · SaaS homepage (Homepages)
+ * Use cases: saas homepage; software product site; b2b marketing site; booking software; scheduling tool; pricing plans; free trial; product marketing
+ * Jobs to be done: understand what the software does; compare plans for my budget; see how it fits my tools; start a free trial
+ * Keywords: page, homepage, saas, landing, pricing, tabs, faq, signup, b2b
+ */
 /**
  * Page template: SaaS homepage. A whole landing page for a software product sold on a subscription, here booking and
  * scheduling software for small studios: navigation, a centred hero over a live-looking product preview, the tools it

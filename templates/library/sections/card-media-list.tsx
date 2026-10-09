@@ -1,3 +1,8 @@
+/** @flowcode-library card-media-list · Media list cards (Cards)
+ * Use cases: listings; property listings; course catalog; event list; recipe list; job listings; saved items; travel destinations; podcast episodes
+ * Jobs to be done: browse listings with details; save items to come back to; see only my saved items; find the one that fits me
+ * Keywords: list, media, listing, favourites, saved
+ */
 /**
  * Cards: media list. Wide cards in a column, each with a picture on the left, a title, a short summary, details and
  * tags, plus a heart to save it. A switch shows only saved ones. Use for classes, recipes, guides or listings. Make it

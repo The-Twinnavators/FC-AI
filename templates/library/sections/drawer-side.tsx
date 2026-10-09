@@ -1,3 +1,8 @@
+/** @flowcode-library drawer-side · Side drawer (Dialogs and drawers)
+ * Use cases: record details; edit panel; order details; contact details; task details; ticket details; quick view; inspector panel
+ * Jobs to be done: see the details of an item; edit an item without losing my place; check an order while scanning the list; update a record quickly
+ * Keywords: drawer, side panel, details, edit
+ */
 /**
  * Drawer: details from the side. A list of bookings; choosing one slides a drawer in from the right with its details
  * and a few edits (seats, paid, a note). Saving updates the list. Use it to look at or tweak one item without losing

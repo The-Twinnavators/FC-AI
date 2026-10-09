@@ -1,3 +1,8 @@
+/** @flowcode-library sheet-bottom · Bottom sheet (Dialogs and drawers)
+ * Use cases: mobile action menu; more options; share menu; item actions; mobile context menu; quick actions
+ * Jobs to be done: share an item with someone; duplicate or archive an item; reach more actions on my phone
+ * Keywords: bottom sheet, action sheet, mobile, more menu
+ */
 /**
  * Bottom sheet: more actions. A phone-style list where each item has a "More" button; it opens a sheet from the
  * bottom of the screen with Share, Duplicate and Archive. Use it on small screens for actions that do not fit on the

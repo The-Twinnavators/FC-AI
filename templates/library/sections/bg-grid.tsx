@@ -1,3 +1,8 @@
+/** @flowcode-library bg-grid · Fading grid (Page backgrounds)
+ * Use cases: hero background; developer tool landing; saas homepage; technical product page; launch page; feature section
+ * Jobs to be done: focus on the headline; feel the product is precise and technical; notice a launch or announcement
+ * Keywords: background, pattern, page background, grid
+ */
 /**
  * Page background: fading grid (pattern). Faint grid lines that fade out towards the edges.
  * Good for: Developer and data products; behind a hero.

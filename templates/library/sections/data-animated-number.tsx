@@ -1,3 +1,8 @@
+/** @flowcode-library data-animated-number · Animated numbers (Charts and data)
+ * Use cases: dashboard headline figures; kpi summary; impact numbers; results section; fundraising totals; period report
+ * Jobs to be done: see the headline numbers at a glance; check this period's results; refresh figures for the next period
+ * Keywords: stats, count up, kpi, dashboard
+ */
 /**
  * Data: animated numbers. A row of three headline figures that count up with an ease-out curve when they scroll into
  * view, with a refresh button that loads the next set and counts again. Use at the top of an overview or a report.

@@ -1,3 +1,8 @@
+/** @flowcode-library bg-split · Diagonal split (Page backgrounds)
+ * Use cases: hero background; landing page section; sign in page background; feature highlight; promo section; portfolio header
+ * Jobs to be done: see a clear break between sections; focus on the main message; tell the two halves of a page apart
+ * Keywords: background, gradient, page background, split
+ */
 /**
  * Page background: diagonal split (gradient). Two tones divided on a diagonal.
  * Good for: Sections that pair a promise with a picture or a form.

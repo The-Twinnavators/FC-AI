@@ -1,3 +1,8 @@
+/** @flowcode-library logo-cloud · Logo cloud (Testimonials)
+ * Use cases: trusted by; customer logos; client list; partners; social proof; as featured in; sponsors
+ * Jobs to be done: see who already uses this; judge if the company is credible; check if businesses like mine use it
+ * Keywords: logos, trusted by, social proof, marquee, customers, clients
+ */
 /**
  * Logo cloud: "Trusted by" wordmarks of the businesses that use you, in three layouts: a simple row, a tidy grid and a
  * slow scrolling strip that pauses on hover, on focus or with its pause button, and stands still for people who ask

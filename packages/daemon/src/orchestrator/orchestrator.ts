@@ -5,6 +5,7 @@
  */
 import { appliesToRole, isFinishedRun } from "@flowcode/contracts";
 import fs from "node:fs";
+import os from "node:os";
 import { z } from "zod";
 import path from "node:path";
 import {
@@ -39,7 +40,7 @@ import { TaskGraph } from "./dag.js";
 import { evaluateCompletionGate } from "./completionGate.js";
 import { runAgentLoop, type AgentOutcome } from "./agentLoop.js";
 import { createDispatcher, renderTree } from "./tools.js";
-import { buildHandoff, renderHandoff } from "./handoff.js";
+import { buildHandoff, fitHandoff } from "./handoff.js";
 import { promptById, untrusted } from "./prompts.js";
 import { autoApprovalReason, ROLE_TOOLS, type ToolName } from "@flowcode/contracts";
 import { listTree, readFile } from "../workspace/fileService.js";
@@ -56,13 +57,17 @@ import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
-import { SECTION_STEPS, keptSection, pickSections, sectionFile } from "./sectionRecipes.js";
+import { ADD_SECTIONS, SECTION_STEPS, keptSection, pickSections, picksIn, sectionFile, sectionsObjective } from "./sectionRecipes.js";
+import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
+import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
+import { screenPickGuidance, screenPicks } from "./screenPicks.js";
+import { APP_LAYOUT, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
 import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
 import { lookGuidance, visualDirection, type BuildLook } from "./starterIdentity.js";
-import { designTemplate } from "@flowcode/contracts";
+import { designTemplate, LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { extractRequirements, referencePath, summarizeReference, type Requirement } from "../quality/spec.js";
 import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchItems, groupSteps, parseBatch, planBatches, planKey, runtimeItems, stepsFromGroups, uniqueIds, type LrcPlan, type PlanItem } from "../quality/lrcPlan.js";
 import { promptConfigFor } from "../quality/taskPrompt.js";
@@ -325,6 +330,21 @@ export class Orchestrator {
     let plan: ImplementationPlan;
     if (strategy.kind === "template_build") {
       plan = templatePlan(strategy.templateId!, run.objective);
+      // The screens are decided here too, so FlowCode writes the layout step and every step names the same files.
+      if (starterOf(strategy.templateId).starter.framework === "React" && plan.tasks.some((t) => t.title === APP_LAYOUT)) {
+        const ctrl = new AbortController();
+        this.active.set(runId, ctrl);
+        try {
+          const screens = await this.decideScreens(run, "", ctrl.signal);
+          if (screens) {
+            const note = screenPlanNote(screens);
+            // The steps after the layout (runtime steps ignore their objective).
+            plan = { ...plan, tasks: plan.tasks.map((t) => (t.role === "coder" && t.title !== APP_LAYOUT ? { ...t, objective: `${t.objective}\n\n${note}` } : t)) };
+          }
+        } finally {
+          this.active.delete(runId);
+        }
+      }
     } else if (strategy.kind === "spec_build") {
       const ctrl = new AbortController();
       this.active.set(runId, ctrl);
@@ -624,6 +644,7 @@ export class Orchestrator {
     const runtime = specRuntimeTasks(refs, starter.id, this.d.store.getSetting<BuildLook | undefined>(`runLook:${run.id}`, undefined));
     // With a PRD, FlowCode writes the prototype plan and builds its code items as the steps.
     if (requirements.length) return this.planChecklist(run, refs, requirements, starter.id, runtime, signal);
+    const screenPlan = starter.starter.framework === "React" ? await this.decideScreens(run, prdTextOf(refs).slice(0, 6000), signal) : undefined;
     const refLines = refs.map((r) => `- ${referencePath(r)} — ${summarizeReference(r)}`);
     const specCls = classifyRequest(run.objective, { referenceRoles: refs.map((r) => r.role), specBuild: true, prd: prdTextOf(refs) });
     const prompt = [
@@ -633,7 +654,7 @@ export class Orchestrator {
       visualDirection(refs),
       lookGuidance(this.d.store.getSetting<BuildLook | undefined>(`runLook:${run.id}`, undefined), refs.some((r) => r.role === "css") || /#[0-9a-f]{6}\b[\s\S]*#[0-9a-f]{6}\b[\s\S]*#[0-9a-f]{6}\b/i.test(prdTextOf(refs)) ? undefined : designTemplate(this.d.store.getSetting<BuildLook | undefined>(`runLook:${run.id}`, undefined)?.template)),
       run.constraints.length ? `Constraints:\n${run.constraints.map((c) => `- ${c}`).join("\n")}` : "",
-      `The runtime has ALREADY planned these first tasks (do not repeat them): scaffold ${starter.starter.stack}, install dependencies, copy the reference files below into the workspace, and build the app layout and navigation (one screen component per main screen, shown one at a time). Your feature tasks fill those screens with real content and controls; name the screen each task works on. A final task wiring everything into ${starter.starter.entry} is also added for you.`,
+      `The runtime has ALREADY planned these first tasks (do not repeat them): scaffold ${starter.starter.stack}, install dependencies, copy the reference files below into the workspace, and build the app layout and navigation (one screen component per main screen, shown one at a time). Your feature tasks fill those screens with real content and controls; name the screen each task works on.${screenPlan ? ` ${screenPlanNote(screenPlan)}` : ""} A final task wiring everything into ${starter.starter.entry} is also added for you.`,
       `Reference files (readable by the coder with read_file):\n${refLines.join("\n") || "- none"}`,
       prd ? `PRD (${prd.name}):\n${untrusted(prd.name, prd.content.slice(0, 14_000))}` : "",
       requirements.length ? `Requirement lines extracted from the PRD:\n${requirements.slice(0, 60).map((r) => `${r.id}: ${r.text}`).join("\n")}` : "",
@@ -673,7 +694,7 @@ export class Orchestrator {
     const features = featureTasks ?? specFallbackTasks(refs, starter.id, run.objective);
     const polish = polishTask(features.map((t) => t.key));
     const cleanup = cleanupTask([polish.key]);
-    const tasks = [...runtime, ...features, polish, cleanup, { ...assembleTask([cleanup.key], starter.id), key: "m_assemble" }];
+    const tasks = this.withScreenPicks(run, [...runtime, ...features, polish, cleanup, { ...assembleTask([cleanup.key], starter.id), key: "m_assemble" }], screenPlan);
     return {
       goal: run.objective,
       assumptions: [
@@ -690,6 +711,58 @@ export class Orchestrator {
       rollbackStrategy: "Every file change is snapshotted; restore the 'Plan approved' checkpoint to return to an empty workspace.",
       tasks,
     };
+  }
+
+  /**
+   * Library pieces matched to the planned screens join the library step (with their reasons), and the design step
+   * learns which piece is for which screen. The keyword picks only catch websites and named sections; an app spec
+   * like NOBIO's got nothing but a sidebar.
+   */
+  private withScreenPicks(run: Run, tasks: PlanTask[], screens: ScreenPlan | undefined): PlanTask[] {
+    const lib = tasks.find((t) => t.title === ADD_SECTIONS);
+    if (!screens || !lib) return tasks;
+    const have = picksIn(lib.objective);
+    const extra = screenPicks(screens.screens, have.map((p) => p.id));
+    if (!extra.length) return tasks;
+    // Kept for the layout step, which puts each piece into its screen.
+    this.d.store.setSetting(screenPicksKey(run.id), extra);
+    this.d.bus.emit({ type: "plan.proposed", projectId: run.projectId, runId: run.id, message: `Matched library pieces to the screens: ${extra.map((p) => `${p.screen} → ${LIBRARY_SECTIONS.find((x) => x.id === p.id)?.name ?? p.id}`).join(", ")}` });
+    return tasks.map((t) =>
+      t === lib
+        ? { ...t, objective: sectionsObjective([...have, ...extra]), expectedPaths: [...new Set([...extra.map((p) => sectionFile(p.id)), ...t.expectedPaths])] }
+        : t.title === DESIGN_SCREENS
+          ? { ...t, objective: `${t.objective}\n\n${screenPickGuidance(extra, sectionFile)}` }
+          : t,
+    );
+  }
+
+  /**
+   * The app's screens, in one short planner call before the build steps are planned: every step then names the same
+   * screen files, and FlowCode writes the layout step itself (NOBIO build: five names for one screen, and a layout step
+   * that read for three attempts and stopped). Undefined when the planner names none; the layout step then decides.
+   */
+  private async decideScreens(run: Run, requirements: string, signal: AbortSignal): Promise<ScreenPlan | undefined> {
+    const ev = { projectId: run.projectId, runId: run.id };
+    let plan: ScreenPlan | undefined;
+    try {
+      const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.1 }, {
+        messages: [
+          { role: "system", content: SCREENS_SYSTEM },
+          { role: "user", content: `Product request:\n${untrusted("request", run.objective.slice(0, 1500))}${requirements ? `\n\nRequirements:\n${untrusted("requirements", requirements)}` : ""}` },
+        ],
+        format: SCREENS_SCHEMA,
+        timeoutMs: 180_000,
+        signal,
+      });
+      plan = parseScreenPlan(JSON.parse(extractJson(res.content)));
+    } catch (err) {
+      if (signal.aborted) throw err;
+    }
+    if (plan) {
+      this.d.store.setSetting(screenPlanKey(run.id), plan);
+      this.d.bus.emit({ ...ev, type: "plan.proposed", message: `The app's screens: ${plan.screens.map((x) => x.label).join(", ")}. Every step uses these files, and FlowCode writes the app layout from them` });
+    } else this.d.bus.emit({ ...ev, type: "plan.proposed", message: "The planner didn't name the app's screens; the layout step will decide them", level: "warning" });
+    return plan;
   }
 
   /**
@@ -710,7 +783,8 @@ export class Orchestrator {
     // Each part is planned on its own, so every part also sees the PRD's functional requirements: its tests must agree
     // with them (Calculator test 3: the numeric-accuracy part expected "Infinity" for 1 ÷ 0, against F7's message).
     const core = requirements.filter((r) => /functional requirements?|features?$/i.test(r.section) && !/non-functional/i.test(r.section)).slice(0, 30);
-    const product = `Product request (summary):\n${untrusted("request", run.objective.slice(0, 1200))}\nScreens are already designed by an earlier step (one component per main screen in ${react ? "src/screens/" : "src/app/"}, with sample data); each task adds its feature into that design: name the screen file it works on.${core.length ? `\nThe PRD's functional requirements, for consistency (other parts may plan them; your tests must agree with them):\n${untrusted("functional-requirements", core.map((r) => `${r.id}: ${r.text}`).join("\n"))}` : ""}`;
+    const screenPlan = react ? await this.decideScreens(run, requirements.slice(0, 80).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 220)}`).join("\n"), signal) : undefined;
+    const product = `Product request (summary):\n${untrusted("request", run.objective.slice(0, 1200))}\nScreens are already designed by an earlier step (one component per main screen in ${react ? "src/screens/" : "src/app/"}, with sample data); each task adds its feature into that design: name the screen file it works on.${screenPlan ? `\n${screenPlanNote(screenPlan)}` : ""}${core.length ? `\nThe PRD's functional requirements, for consistency (other parts may plan them; your tests must agree with them):\n${untrusted("functional-requirements", core.map((r) => `${r.id}: ${r.text}`).join("\n"))}` : ""}`;
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Writing the prototype plan from ${requirements.length} PRD requirements: ${bySection.features.length} describe features (planned in ${batches.length} part${batches.length === 1 ? "" : "s"}, one section each) and become build steps; ${bySection.items.length} are goals, restated stories, plans, decisions or later ideas, placed for a person to check` });
     const ask = async (part: Requirement[], label: string, temperature: number) => {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
@@ -777,7 +851,7 @@ export class Orchestrator {
       riskNotes: ["Dependency installation (npm install) runs package lifecycle scripts and uses the network"],
       validationPlan: specRequiredChecks(refs, templateId),
       rollbackStrategy: "Every file change is snapshotted; restore the 'Plan approved' checkpoint to return to an empty workspace.",
-      tasks: [...fixed, ...features, polish, cleanup, assemble],
+      tasks: this.withScreenPicks(run, [...fixed, ...features, polish, cleanup, assemble], screenPlan),
     };
   }
 
@@ -1161,6 +1235,14 @@ export class Orchestrator {
     // cash app: "a simple money learning app" became four screens). With four or more, a side navigation from the
     // library is put in src/sections/ as a starting point, chosen by what the app is; the design step may use or delete it.
     if (task.title === DESIGN_SCREENS || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_SCREENS) {
+      // Pieces the layout step placed when the plan didn't know about them (screens decided at the layout step): the
+      // design step learns they are its starting structure.
+      const placed = this.d.store.getSetting<Placement[]>(placedKey(run.id), []);
+      const findings = this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []);
+      if (placed.length && !task.objective.includes("already render the library pieces") && !findings.some((f) => f.includes("already render the library pieces"))) {
+        const note = screenPickGuidance(placed.map((p) => ({ id: p.id, screen: p.screen, score: 0, reason: "" })), sectionFile);
+        this.d.store.setSetting(`taskFindings:${task.id}`, [...findings, note].slice(-12));
+      }
       let app = "";
       try {
         app = fs.readFileSync(jail.resolve("src/App.tsx").abs, "utf8");
@@ -1184,6 +1266,7 @@ export class Orchestrator {
           if (res.ok) {
             const note = `This app has ${labels.length} screens (${labels.join(", ")}). A side navigation from the library is in ${sectionFile(id)} as a starting point${pick ? ` (${pick.reason})` : ""}: use it in place of the top navigation if it suits the app, with the real screen names and icons, or delete it.`;
             this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), note].slice(-12));
+            recordUse(this.d.store, run.id, { id, by: "flowcode", step: task.title, reason: `The app has ${labels.length} screens: a side navigation to move between them` });
             this.d.bus.emit({ ...ev, type: "recovery.action", message: `Added a side navigation as a starting point (${sectionFile(id)}): the app has ${labels.length} screens` });
           }
         }
@@ -1257,7 +1340,17 @@ export class Orchestrator {
     }
 
     // Runtime-executed tasks (deterministic steps such as scaffolding from a verified template or installs).
-    const runtimeStep = (run.strategy?.templateId && TEMPLATES[run.strategy.templateId]?.runtimeSteps[task.title]) || UPGRADE_STEPS[task.title] || LAYOUT_STEPS[task.title] || SECTION_STEPS[task.title] || undefined;
+    let plannedScreens = task.title === APP_LAYOUT ? this.d.store.getSetting<ScreenPlan | undefined>(screenPlanKey(run.id), undefined) : undefined;
+    // A plan with no screen list (written before screens were decided up front, or the planner named none then): decide
+    // them now, so FlowCode writes the layout instead of the coder reading for three attempts (NOBIO: step 7 blocked
+    // twice with 25 reads in a row and no edit).
+    if (task.title === APP_LAYOUT && !plannedScreens && layoutOpen(jail)) {
+      const refs = this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []);
+      const prd = refs.find((r) => r.role === "prd") ?? refs.find((r) => r.role === "text");
+      const reqs = prd ? extractRequirements(prd.content, 600).slice(0, 80).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 220)}`).join("\n") : "";
+      plannedScreens = await this.decideScreens(run, reqs, signal);
+    }
+    const runtimeStep = (run.strategy?.templateId && TEMPLATES[run.strategy.templateId]?.runtimeSteps[task.title]) || UPGRADE_STEPS[task.title] || LAYOUT_STEPS[task.title] || SECTION_STEPS[task.title] || (writesLayout(plannedScreens, jail) ? layoutStep(plannedScreens) : undefined);
     let outcome: AgentOutcome;
     const changed = new Set<string>(task.actualPaths);
     if (runtimeStep) {
@@ -1357,6 +1450,31 @@ export class Orchestrator {
         verdict = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), task, { signal });
         task = this.d.store.tasks.require(task.id);
       }
+    }
+    // The library pieces FlowCode put into the screens are their starting structure: the design step keeps each one in
+    // a screen, or names it with the reason in its summary. Otherwise "the model may use the library" quietly becomes
+    // "the model wrote its own" (NOBIO: the sidebar FlowCode added was never used).
+    if (verdict.allMet && (task.title === DESIGN_SCREENS || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_SCREENS)) {
+      const placed = this.d.store.getSetting<Placement[]>(placedKey(run.id), []);
+      const summary = outcome.kind === "complete" ? outcome.summary : "";
+      const imported = importedSections(jail);
+      const dropped = placed.filter((p) => !imported.has(p.component) && !summary.toLowerCase().includes(p.component.toLowerCase()));
+      if (dropped.length) {
+        verdict = {
+          ...verdict,
+          allMet: false,
+          failures: [
+            ...verdict.failures,
+            `Library pieces the screens started from are no longer used: ${dropped.map((p) => `${p.component} (${p.screen} screen)`).join(", ")}. Put each back in its screen and fill in its SAMPLE content with the spec's, or, if one really doesn't fit, name it with the reason in your task_complete summary (for example "Removed ${dropped[0]!.component}: …").`,
+          ],
+        };
+      }
+    }
+    // A designed screen's class names must be styled somewhere: names nothing defines render as bare elements while the
+    // type check and tests pass (NOBIO: library-looking fl-card__title, fl-snv-filters, no piece copied, a plain list).
+    if (verdict.allMet && [DESIGN_SCREENS, DESIGN_POLISH].some((d) => task.title === d || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === d)) {
+      const message = unstyledMessage(unstyledClasses(jail, [...changed]), 4);
+      if (message) verdict = { ...verdict, allMet: false, failures: [...verdict.failures, message] };
     }
     // Every colour and token the app uses must still be defined. A step that leaves one undefined isn't done, however
     // its own checks read (they usually only confirm what was removed or added).
@@ -1507,7 +1625,7 @@ export class Orchestrator {
     // same files again and again until the read limit stopped it, twice, and the step ran out of turns.
     const lean = !!modelOverride || (roleBase.contextWindow ?? (roleBase.providerId.startsWith("hosted") ? 128_000 : 16_384)) <= 32_768;
     // FR-A1: record the exact model version (digest from the capability record) with every action.
-    const assignment = { ...base, version: base.version ?? this.d.lab.latest(base)?.modelVersion };
+    let assignment = { ...base, version: base.version ?? this.d.lab.latest(base)?.modelVersion };
     // Before any tool runs: the code-writing model must be the one chosen for the run and be installed. If it isn't,
     // stop with zero edits and say so; never swap in another model (the CalendarDay loop ran on an unasked-for 8B).
     if (role === "coder" || role === "debugger") {
@@ -1526,7 +1644,13 @@ export class Orchestrator {
           reason: `Coder model unavailable: ${assignment.model} — ${reason}. No files were changed. This needs your decision: retry, free up memory, or choose another coder in System Health → Models & capability lab (gpt-oss:20b, or qwen2.5-coder:7b for less memory). FlowCode doesn't switch models on its own.`,
           nextAction: "Choose the coder model in System Health → Models & capability lab, then retry the step",
         };
-      this.d.bus.emit({ ...ev, type: "model.tier", message: `${role === "coder" ? "Coder" : "Debugger"} model for "${task.title}": ${assignment.model}${modelOverride ? " (the fast model you turned on in Speed & recovery)" : ""}` });
+      // A local model runs with a 16k window unless one is chosen, and a step's instructions alone can fill most of it:
+      // every file the model read then pushed the last one out, and it read the same files for three attempts without
+      // an edit (NOBIO, "Design the main screens": ~11,000 tokens to send, 8,800 of them the brief). Coding steps get
+      // 32k when the model supports it and the computer has the memory (qwen3-coder:30b: about 1.5 GB more).
+      const bigger = !assignment.providerId.startsWith("hosted") && !base.contextWindow && (info?.maxContext ?? 0) >= 32_768 && os.totalmem() >= 24 * 2 ** 30;
+      if (bigger) assignment = { ...assignment, contextWindow: 32_768 };
+      this.d.bus.emit({ ...ev, type: "model.tier", message: `${role === "coder" ? "Coder" : "Debugger"} model for "${task.title}": ${assignment.model}${modelOverride ? " (the fast model you turned on in Speed & recovery)" : ""}${bigger ? ", with a 32k context" : ""}` });
     }
     const open = this.d.store.getSetting<string>(`openErrors:${task.id}`, "");
     const kit = kitFacts(jail, `${task.title}\n${task.objective}\n${task.acceptanceCriteria.map((c) => c.description).join("\n")}`);
@@ -1715,6 +1839,15 @@ export class Orchestrator {
       createdInRun: (rel) => this.d.store.snapshots.where("run_id = ?", run.id).some((s) => s.relativePath === rel && s.contentHash === "absent"),
       typeErrorsAfterEdit: (paths) => this.d.verifier.newTypeErrors(this.d.store.runs.require(run.id), signal, paths),
       onNoProgress: () => this.d.store.setSetting(`taskCycled:${task.id}`, true),
+      // An agent copying a library piece into src/sections/: recorded, so the Performance tab shows who used what.
+      onSectionWritten: (rel, text) => {
+        const piece = pieceOf(rel, text);
+        const role = task.attempts > 1 ? "debugger" : task.role;
+        if (piece && !this.d.store.getSetting<LibraryUse[]>(libraryUseKey(run.id), []).some((u) => u.id === piece.id)) {
+          recordUse(this.d.store, run.id, { id: piece.id, by: role, step: task.title });
+          this.d.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `${role === "debugger" ? "Debugger" : "Coder"} used the library piece "${piece.name}" (${rel})`, data: { libraryPiece: piece.id } });
+        }
+      },
       onAwaitingApproval: (w) => {
         this.updateTask(task, { status: w ? "awaiting_approval" : "running" });
         this.setStatus(run.id, w ? "awaiting_approval" : "running");
@@ -1737,6 +1870,13 @@ export class Orchestrator {
           },
         }).catch(() => [])
       : [];
+    // The opening message (system + brief) takes at most about half of what the model can be sent, so it has room to
+    // read files and remember them (the same budget the agent loop trims the conversation to).
+    const windowTokens = assignment.contextWindow ?? (assignment.providerId.startsWith("hosted") ? 128_000 : 16_384);
+    const replyTokens = assignment.providerId.startsWith("hosted") ? Math.max(16_000, Math.floor(windowTokens / 4)) : Math.min(4096, Math.floor(windowTokens / 4));
+    const room = Math.max(6000, Math.floor((windowTokens - replyTokens) * 2.8 * 0.9 * 0.55) - system.length);
+    const brief = fitHandoff(packet, renderTree(listTree(jail, ".", 2, lean ? 80 : 140)), (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name), room);
+    if (brief.dropped.length) this.d.bus.emit({ type: "recovery.action", projectId: project.id, runId: run.id, taskId: task.id, message: `Fitted the step's brief to ${assignment.model}'s context (${Math.round((system.length + brief.text.length) / 1000)}k characters, leaving room to work): left out ${brief.dropped.join(", ")}` });
     const result = await runAgentLoop({
       router: this.d.router,
       store: this.d.store,
@@ -1746,7 +1886,7 @@ export class Orchestrator {
       extraTools,
       relaxGuards: guardStops(this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, [])) >= 2,
       system,
-      user: renderHandoff(packet, renderTree(listTree(jail, ".", 2, lean ? 80 : 140)), (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name)),
+      user: brief.text,
       executor: dispatcher,
       // Photos need "allow external research": without it find_image always says no, and a step asked 10 times.
       allowedTools: project.settings.allowExternalResearch ? undefined : ((ROLE_TOOLS[role] ?? []) as ToolName[]).filter((t) => t !== "find_image"),

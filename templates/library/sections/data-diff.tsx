@@ -1,3 +1,8 @@
+/** @flowcode-library data-diff · Before and after diff (Charts and data)
+ * Use cases: version comparison; code review; document changes; change history; contract revisions; config changes; content review
+ * Jobs to be done: see what changed between versions; review edits before accepting; compare before and after side by side
+ * Keywords: diff, compare, changes, versions
+ */
 /**
  * Data: before and after. A line-by-line comparison of two versions of a text, with added lines tinted green, removed
  * lines tinted red, line numbers, and a switch between one unified list and side-by-side columns. Use for reviewing a

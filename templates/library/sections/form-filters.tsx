@@ -1,3 +1,8 @@
+/** @flowcode-library form-filters · Search and filter bar (Forms)
+ * Use cases: search and filter; product filters; listing search; job search; property search; catalog filtering; directory search; advanced search
+ * Jobs to be done: narrow down to what i want; search by keyword and category; clear filters and start over; see how many results match
+ * Keywords: form, search, filter, chips
+ */
 /**
  * Form: search and filter bar over a list. A search box, two selects and quick filter buttons narrow a small list
  * kept in memory; each active filter shows as a removable chip, with Clear all. The count updates for screen readers

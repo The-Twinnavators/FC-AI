@@ -1,3 +1,8 @@
+/** @flowcode-library input-file-upload · File upload (Forms)
+ * Use cases: file upload; photo upload; document upload; receipt upload; attachments; id verification upload; resume upload; image upload
+ * Jobs to be done: attach photos to my request; upload receipts or documents; remove a file i added by mistake; see my upload finish
+ * Keywords: upload, file, drag and drop, dropzone, attachment, progress, validation
+ */
 /**
  * Input: file upload. A drop zone with a browse button, then a list of the chosen files with a type icon, size, a
  * progress bar and a remove button. Files that are the wrong type or too big are refused with a clear reason. The

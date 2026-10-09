@@ -1,3 +1,8 @@
+/** @flowcode-library chart-radial-gauge · Radial gauges (Charts and data)
+ * Use cases: goal progress; completion rate; storage usage; fitness goals; budget used; project progress; score display; health metrics
+ * Jobs to be done: see how close i am to a goal; check how much is used up; track progress at a glance
+ * Keywords: gauge, progress, ring, percentage, chart
+ */
 /**
  * Chart: radial gauges. Three rings of different sizes that fill to a percentage with a soft glow, each with a label,
  * a short note and buttons to nudge the value. Use for progress toward a goal, a pass rate or readiness on a dashboard.

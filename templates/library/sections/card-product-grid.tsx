@@ -1,3 +1,8 @@
+/** @flowcode-library card-product-grid · Product card grid (Cards)
+ * Use cases: product catalog; online shop; store front; product listing; category page; menu items; marketplace listings; merch store
+ * Jobs to be done: browse products and prices; add items to my basket; compare products by rating; find something to buy
+ * Keywords: shop, product, ecommerce, basket, cart, grid
+ */
 /**
  * Cards: product grid. Shop items with a picture, name, price, rating and an add-to-basket button that shows "Added"
  * and updates a small basket count. Use for a shop, a menu or a rental catalogue. Make it the app's own: replace

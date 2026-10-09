@@ -1,3 +1,8 @@
+/** @flowcode-library card-kpi · KPI cards (Cards)
+ * Use cases: dashboard overview; kpi summary; analytics dashboard; sales metrics; admin overview; business performance; finance summary; store stats
+ * Jobs to be done: see how the business is doing; spot whether numbers are up or down; compare this week with last week; check key metrics at a glance
+ * Keywords: dashboard, kpi, metrics, analytics, overview
+ */
 /**
  * Cards: KPI. A row of dashboard numbers, each with its change against the last period (up or down) and a small
  * trend line. Use at the top of a dashboard or an owner's overview. Make it the app's own: replace SAMPLE with the

@@ -1,3 +1,8 @@
+/** @flowcode-library shop-product-cards · Product cards (Shop)
+ * Use cases: product grid; product listing; featured products; related products; wishlist; shop catalog; sale items
+ * Jobs to be done: browse products; save items to my wishlist; add a product to my bag; pick the colour i want
+ * Keywords: product card, wishlist, rating, swatches, add to bag, sale, shop
+ */
 /**
  * Product cards: three card styles side by side. A photo-first card with a wishlist heart, a horizontal card with a
  * star rating, and a minimal card with colour swatches (one colour is sold out). Each "Add to bag" button goes from

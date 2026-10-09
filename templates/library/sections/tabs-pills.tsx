@@ -1,3 +1,8 @@
+/** @flowcode-library tabs-pills · Pill tabs (Tabs, breadcrumbs and paging)
+ * Use cases: order queue; status tabs; order fulfilment; pipeline stages; ticket queue; task stages; filtered list views; kitchen orders
+ * Jobs to be done: sort work into stages; move an order to the next stage; see how many items are waiting; focus on one group at a time
+ * Keywords: tabs, pills, counts, tablist, keyboard
+ */
 /**
  * Pill tabs: rounded tabs with live counts and one tab panel, operated with arrow keys, Home and End (roving
  * tabindex). Use it to sort one list into a few stages, such as orders that are new, ready or collected.

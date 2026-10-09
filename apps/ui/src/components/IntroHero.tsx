@@ -28,13 +28,15 @@ export function IntroActions() {
   );
 }
 
-export function IntroHero({ eyebrow, extra }: { eyebrow: ReactNode; extra?: ReactNode }) {
+export function IntroHero({ eyebrow, extra }: { eyebrow?: ReactNode; extra?: ReactNode }) {
   return (
     <section className="ab2__hero" aria-labelledby="intro-title">
       <div className="ab2__hero-text">
-        <span className="ab2__eyebrow">
-          <Sparkles size={13} aria-hidden="true" /> {eyebrow}
-        </span>
+        {eyebrow ? (
+          <span className="ab2__eyebrow">
+            <Sparkles size={13} aria-hidden="true" /> {eyebrow}
+          </span>
+        ) : null}
         <h1 className="ab2__title" id="intro-title">
           Turn a PRD into a prototype <span className="ab2__accent">you can check.</span>
         </h1>

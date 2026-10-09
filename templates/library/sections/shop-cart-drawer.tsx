@@ -1,3 +1,8 @@
+/** @flowcode-library shop-cart-drawer · Cart drawer (Shop)
+ * Use cases: shopping cart; mini cart; slide-out cart; online store; basket; checkout; order review
+ * Jobs to be done: check what is in my bag; change quantities before buying; reach free delivery; check out quickly
+ * Keywords: cart, bag, drawer, slide-over, checkout, quantity, undo, free delivery, shop
+ */
 /**
  * Cart drawer: a "Bag" button that slides the shopping bag in from the right. Change quantities, remove a line (with
  * undo), see how far it is to free delivery and the subtotal, then check out to a confirmation (no payment is taken).

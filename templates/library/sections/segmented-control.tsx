@@ -1,3 +1,8 @@
+/** @flowcode-library segmented-control · Segmented control (Forms)
+ * Use cases: view switcher; display preference; theme choice; plan type choice; time range picker; sort mode; delivery option
+ * Jobs to be done: pick one option quickly; understand what each choice means; keep my preferred setting next time
+ * Keywords: segmented, radio group, toggle, settings
+ */
 /**
  * Segmented control: a row of three or four joined options where exactly one is chosen, with a description below
  * that explains the choice. Native radio buttons inside a fieldset, so arrow keys move between options. Use it for a

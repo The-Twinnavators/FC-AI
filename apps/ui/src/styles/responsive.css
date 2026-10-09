@@ -15718,7 +15718,7 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .cl-detail__nav { display: inline-flex; align-items: center; gap: 10px; margin-right: auto; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 
 /* Component library: the count and "Preview in" bar stays at the top while the tiles scroll; the shelves sit under it. */
-.cl-page .cl-bar { position: sticky; top: 0; z-index: 4; margin-bottom: 16px; padding-block: 12px; background: var(--bg-0); border-bottom: 1px solid var(--line); }
+.cl-page .cl-bar { position: sticky; top: 0; z-index: 4; margin-bottom: 16px; padding-block: 12px; padding-inline: 24px; background: var(--bg-0); border-bottom: 1px solid var(--line); }
 .cl-page .cl-room .skill-room__nav { top: 84px !important; }
 /* Component library search, in the sticky bar. */
 .cl-page .cl-bar { gap: 16px; }
@@ -15729,3 +15729,54 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .cl-search__n { position: absolute; right: 12px; font-size: 12px; }
 .cl-none { display: grid; gap: 10px; justify-items: start; padding: 28px 4px; color: var(--text-1); }
 .cl-none p { margin: 0; }
+.model-perf__slow { margin: 0; max-width: 75ch; line-height: 1.5; }
+.build-agent { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-1); }
+.perf-lib__sum { margin: 0 0 8px; }
+.perf-lib__file { font-size: 12px; }
+.perf-lib__agent { display: inline-flex; align-items: center; gap: 6px; }
+.sounds__list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 0; }
+.sounds__item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.sounds__item > span { display: grid; gap: 2px; }
+.startpage { display: grid; gap: 16px; }
+.startpage__heading { margin: 0 0 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); }
+.startpage__row { display: flex; align-items: center; gap: 10px; width: 100%; cursor: pointer; padding: 4px 0; }
+.startpage__tag { margin-left: auto; font-size: 12px; color: var(--text-2); }
+
+/* The rail never squeezes its logo or items when the window is shorter than the navigation: it scrolls instead
+   (the logo had collapsed to 0px once the navigation grew past the window's height). */
+.rail {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.rail > * {
+  flex-shrink: 0;
+}
+/* The logo stays at the top of the rail while the navigation scrolls under it. It covers the rail's top padding and
+   the gap below it itself (as padding), so no item shows above or below it: it hides overflow so its wordmark can
+   fold when the rail collapses, which clipped a cover drawn outside it. */
+.rail__brand {
+  position: sticky;
+  top: -8px;
+  z-index: 2;
+  box-sizing: border-box;
+  height: 56px;
+  margin-top: -8px;
+  margin-bottom: 0;
+  padding-top: 8px;
+  padding-bottom: 12px;
+  background: inherit;
+}
+.app .rail__brand,
+.app[data-nav="expanded"] .rail__brand {
+  padding-top: 8px;
+  padding-bottom: 12px;
+}
+/* Dashboard: My Projects first, then How FlowCode works, 80px apart. */
+.home-split > .home-projects { margin-top: 0; }
+.home-split > #newbuild { margin-top: 56px; } /* + the 24px grid gap = 80px */
+/* Component library: new pieces waiting for approval. */
+.lib-shelf--proposed { margin-bottom: 8px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-ink) 45%, transparent); }
+.lib-shelf--proposed .lib-shelf__count { color: var(--brand-ink); }
+.cl-proposed-note { grid-column: 1 / -1; margin: 0 0 16px; padding: 12px 16px; border-radius: 8px; background: color-mix(in srgb, var(--brand-ink) 12%, transparent); font-size: 14px; color: var(--text-1); }

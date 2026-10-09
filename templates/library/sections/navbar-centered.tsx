@@ -1,3 +1,8 @@
+/** @flowcode-library navbar-centered · Centered navigation (Navigation)
+ * Use cases: portfolio header; studio website header; blog header; editorial navigation; agency site menu; restaurant site header; content site navigation
+ * Jobs to be done: browse the main sections of the site; find the work or articles i want; get in touch with the studio; move between pages easily
+ * Keywords: header, navbar, portfolio, studio
+ */
 /**
  * Navigation: centered. Links in the middle, brand left, action right: a calmer, more editorial header for content
  * sites, portfolios and studios. Make it the app's own: replace SAMPLE and point links at real screens.

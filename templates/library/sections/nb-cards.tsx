@@ -1,3 +1,8 @@
+/** @flowcode-library nb-cards · Neobrutal cards (Neobrutalism kit)
+ * Use cases: pricing card; profile card; feature card; plan picker; team member card; creator profile; bold product page
+ * Jobs to be done: choose a plan; follow a person i like; learn about a key feature
+ * Keywords: cards, pricing, profile, feature, sticker, neobrutalism
+ */
 /**
  * Neobrutalist cards: a feature card, a pricing card with a tilted sticker badge, and a profile card with a follow
  * toggle. Use them for a bold product page, a plan picker or a team page. Make it the app's own: replace SAMPLE with the

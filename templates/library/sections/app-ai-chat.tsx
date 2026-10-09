@@ -1,3 +1,8 @@
+/** @flowcode-library app-ai-chat · AI assistant chat (App screens)
+ * Use cases: ai chat; chatbot; ai assistant; conversation history; customer support bot; writing assistant; coding assistant; q&a assistant
+ * Jobs to be done: ask the assistant a question; pick up a past conversation; copy code from an answer; get started with a suggested prompt
+ * Keywords: app, ai, chat, assistant, streaming, composer, history, sidebar, drawer, markdown
+ */
 /**
  * App screen: AI assistant chat. A history sidebar (new chat, search, rename, delete with undo) beside a centred
  * thread where your messages sit in bubbles and the assistant's replies stream in word by word with a Stop button.

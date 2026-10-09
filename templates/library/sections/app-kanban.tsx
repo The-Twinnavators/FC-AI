@@ -1,3 +1,8 @@
+/** @flowcode-library app-kanban · Task board (App screens)
+ * Use cases: kanban board; task board; project management; sprint board; sales pipeline; content calendar; workflow board; to-do board
+ * Jobs to be done: track tasks through stages; move work forward; see what each person is working on; keep work in progress under control
+ * Keywords: app, kanban, board, tasks, drag and drop, project, workflow
+ */
 /**
  * App screen: task board. A top bar with the board name and an assignee filter, then columns of cards. Move a card
  * with its arrow buttons, with Alt + arrow keys while it has focus (left/right between columns, up/down within one),

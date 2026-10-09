@@ -1,3 +1,8 @@
+/** @flowcode-library bg-grain · Film grain (Page backgrounds)
+ * Use cases: editorial site; portfolio; studio website; blog background; craft brand site; restaurant site
+ * Jobs to be done: enjoy a warm, crafted feel; read comfortably on a textured page; focus on the words and pictures
+ * Keywords: background, pattern, page background, grain
+ */
 /**
  * Page background: film grain (pattern). A subtle paper-like grain over the page colour.
  * Good for: Editorial, craft and premium brands; pairs well with serif type.

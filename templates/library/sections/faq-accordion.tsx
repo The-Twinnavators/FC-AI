@@ -1,3 +1,8 @@
+/** @flowcode-library faq-accordion · FAQ accordion (FAQ)
+ * Use cases: faq; help center; common questions; pricing questions; support page; product questions; shipping and returns; policy questions
+ * Jobs to be done: get an answer without contacting support; find out how billing works; clear up doubts before buying; find the answer to my question
+ * Keywords: faq, questions, help, accordion
+ */
 /**
  * FAQ: accordion. Questions that open in place (native details/summary, so it works with the keyboard and without
  * script). Make it the app's own: replace SAMPLE with the questions people really ask (5 to 8).

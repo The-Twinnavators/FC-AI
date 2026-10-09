@@ -1,3 +1,8 @@
+/** @flowcode-library bg-soft · Soft gradient (Page backgrounds)
+ * Use cases: landing page background; hero background; sign in page background; marketing page; onboarding screen; pricing page background
+ * Jobs to be done: feel welcomed by a calm page; focus on the main message; read the page without visual clutter
+ * Keywords: background, gradient, page background, soft
+ */
 /**
  * Page background: soft gradient (gradient). A gentle wash of the accent colour at the top, fading into the page.
  * Good for: Calm, friendly pages: onboarding, help, settings intros.

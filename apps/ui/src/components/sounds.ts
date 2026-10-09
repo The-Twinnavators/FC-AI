@@ -3,7 +3,7 @@
  * - alert: a soft rising two-note chime, for a new approval waiting on you;
  * - block: a low falling two-note tone, for a blocked task or run;
  * - reply: a short soft pop, when a chat (Copilot or the builder chat) answers.
- * On by default; the bell in the top bar mutes them. Browsers only allow sound after the page has been clicked once.
+ * On by default; Settings → Sounds turns them off. Browsers only allow sound after the page has been clicked once.
  */
 export type SoundKind = "alert" | "block" | "reply";
 

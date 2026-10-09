@@ -1,3 +1,8 @@
+/** @flowcode-library banner-top · Top announcement banner (Alerts and states)
+ * Use cases: announcement bar; promo banner; new feature announcement; maintenance notice; sale announcement; cookie or policy notice; event promotion
+ * Jobs to be done: hear about what's new; find out about a sale or offer; learn about planned downtime; hide a notice i've seen
+ * Keywords: banner, announcement, notice, dismissible
+ */
 /**
  * Top banner: a full-width announcement across the top of a page, with one link and a dismiss button. Once someone
  * closes it, it stays closed on that device (remembered in local storage). Use it for one short, time-limited notice.

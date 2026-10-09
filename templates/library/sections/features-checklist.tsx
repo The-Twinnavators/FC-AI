@@ -1,3 +1,8 @@
+/** @flowcode-library features-checklist · Feature checklist (Features)
+ * Use cases: what's included; plan features; membership benefits; package contents; service inclusions; course syllabus; subscription perks
+ * Jobs to be done: see everything that's included; check a must-have feature is covered; know what i get for the price; decide whether to sign up
+ * Keywords: features, included, checklist, plan
+ */
 /**
  * Features: checklist. A heading on one side, a two-column list of what's included on the other. Compact; good
  * below a hero or near pricing. Make it the app's own: replace SAMPLE with the real list (6 to 10 items).

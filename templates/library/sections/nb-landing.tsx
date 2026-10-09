@@ -1,3 +1,8 @@
+/** @flowcode-library nb-landing · Neobrutal landing (Neobrutalism kit)
+ * Use cases: landing page; playful product homepage; studio homepage; event homepage; waitlist signup; booking service landing; product launch
+ * Jobs to be done: understand what the product offers; see an available booking slot; join the waitlist with my email
+ * Keywords: landing, hero, features, call to action, email signup, neobrutalism
+ */
 /**
  * Neobrutalist landing page: a loud hero with a booking preview, a row of three feature cards and a closing call to
  * action with an email sign-up. Use it as the front page of a playful product, studio or event. Make it the app's own:

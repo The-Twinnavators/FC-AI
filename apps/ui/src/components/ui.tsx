@@ -70,7 +70,8 @@ const ICONS: Record<string, string> = {
   rocket: "M12 3c3 2 5 5.5 5 9.5L15 16H9l-2-3.5C7 8.5 9 5 12 3zM12 9a1.5 1.5 0 1 0 0 .01M9 16l-2 4 3-1.5M15 16l2 4-3-1.5",
   support: "M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H4zM17 14h3v5h-3zM20 19a3 3 0 0 1-3 2h-3",
   checklist: "M10 6h10M10 12h10M10 18h10M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5 2.5-2.5M4 18h3",
-  agents: "M12 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2M19 8l2-2M5 8 3 6",
+  // A robot head (antenna, head, eyes, ears), like the agents' robot heads elsewhere.
+  agents: "M12 1.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM12 3.5V7M7 7h10a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-6a3 3 0 0 1 3-3zM9 11.5v2M15 11.5v2M2 11.5v3M22 11.5v3",
 };
 
 export function Icon({ name, size = 16, label }: { name: keyof typeof ICONS | string; size?: number; label?: string }) {

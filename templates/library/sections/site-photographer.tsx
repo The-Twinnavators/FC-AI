@@ -1,3 +1,8 @@
+/** @flowcode-library site-photographer · Photographer portfolio (Industry sites)
+ * Use cases: photographer portfolio; photo gallery; wedding photography; portrait studio; artist portfolio; image gallery; photography packages; session booking
+ * Jobs to be done: browse the photographer's work; compare photography packages; check if my date is free; book a photo session
+ * Keywords: page, template, photographer, portfolio, gallery, filter, lightbox, packages, booking, html5up
+ */
 /**
  * Page template: photographer portfolio website. A one-page site for a wedding, portrait or commercial photographer:
  * a full-height intro, two alternating statement panels, a large gallery with a category filter and a lightbox

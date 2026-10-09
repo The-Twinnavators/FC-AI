@@ -86,3 +86,67 @@ describe("a screen state no step planned", () => {
     expect(stateRepairTask(screens, [], { id: "run_1" }, undefined, 9, () => "task_y")).toBeUndefined();
   });
 });
+
+describe("a brief bigger than the model's room to work", () => {
+  it("leaves out knowledge, then stylesheets, names what it left out, and keeps the screen", async () => {
+    const { fitHandoff, renderHandoff } = await import("../src/orchestrator/handoff.js");
+    const css = (n: number) => `.a { color: red; }\n`.repeat(n);
+    const packet = {
+      runObjective: "Build NOBIO",
+      task: { title: "Design the main screens", objective: "Design each main screen. ".repeat(160), expectedPaths: ["src/screens/", "src/styles/"], acceptanceCriteria: ["Typecheck passes"] },
+      acceptedDecisions: [],
+      constraints: ["Requirements for this step: " + "R1: show brands. ".repeat(200)],
+      completedTasks: [],
+      relevantFiles: [
+        { path: "src/styles/components.css (line-numbered; line prefixes are not part of the file)", excerpt: css(400) },
+        { path: "src/styles/tokens.css (line-numbered; line prefixes are not part of the file)", excerpt: css(300) },
+        { path: "src/screens/BrandsListScreen.tsx (line-numbered; line prefixes are not part of the file)", excerpt: "export default function BrandsListScreen() { return null; }" },
+      ],
+      findings: [],
+      openBlockers: [],
+      knowledge: [1, 2, 3].map((i) => ({ title: `Playbook ${i}`, content: "x".repeat(1400), provenance: "" })),
+    };
+    const full = renderHandoff(packet, "src/\n".repeat(140), []);
+    expect(full.length).toBeGreaterThan(25_000);
+    const fitted = fitHandoff(packet, "src/\n".repeat(140), [], 12_000);
+    expect(fitted.text.length).toBeLessThan(full.length / 2);
+    expect(fitted.dropped.slice(0, 4)).toEqual(['knowledge "Playbook 3"', 'knowledge "Playbook 2"', "src/styles/components.css", "src/styles/tokens.css"]);
+    expect(fitted.text).toContain("Not attached, to leave room to work (read one with read_file only if you need it): src/styles/components.css, src/styles/tokens.css");
+    expect(fitted.text).toContain("export default function BrandsListScreen()");
+    // A brief that fits is left as it is.
+    expect(fitHandoff(packet, "src/", [], 100_000)).toEqual({ text: renderHandoff(packet, "src/", []), dropped: [] });
+  });
+});
+
+describe("a prop a UI kit component doesn't take, reported over two lines", () => {
+  it("gets a hint to wrap it, not to change the kit (NOBIO: <Card className> failed six type checks)", async () => {
+    const { typeErrorHints } = await import("../src/quality/typeHints.js");
+    const jail = project({
+      "src/screens/BrandsListScreen.tsx": 'import { Card } from "../components/ui";\nexport default function B() {\n  return <Card className="brand">x</Card>;\n}\n',
+    });
+    const errors = [
+      "src/screens/BrandsListScreen.tsx(3,10): error TS2322: Type '{ children: string; className: string; }' is not assignable to type 'IntrinsicAttributes & { title?: ReactNode; children: ReactNode; }'.",
+      "  Property 'className' does not exist on type 'IntrinsicAttributes & { title?: ReactNode; children: ReactNode; }'.",
+    ];
+    const [hint] = typeErrorHints(jail, errors);
+    expect(hint).toMatch(/<Card> is part of the app's UI kit/);
+    expect(hint).toContain("put the className on a <div> around it (<div className=…><Card>…</Card></div>)");
+  });
+});
+
+describe("a designed screen whose class names nothing styles", () => {
+  it("is named with its classes, and fl- names are pointed back to the library (NOBIO)", async () => {
+    const { unstyledClasses, unstyledMessage } = await import("../src/quality/unstyledClasses.js");
+    const jail = project({
+      "src/styles/app.css": ".brand-list { display: grid; } .brand-list .is-active { color: red; } /* .not-a-rule */ .hero { background: url(a.b.png); }",
+      "src/screens/Brands.tsx": 'export default function B({ on }: { on: boolean }) {\n  return <div className="brand-list fl-screen"><h2 className="fl-card__title">x</h2><p className={on ? "is-active" : "fl-card__meta"}>y</p><span className={`fl-card-link ${on ? "a" : ""}`}>z</span></div>;\n}\n',
+      "src/sections/ListStacked.tsx": 'export default function L() { return <div className="fl-unknown-in-library" />; }',
+    });
+    const found = unstyledClasses(jail, ["src/screens/Brands.tsx", "src/sections/ListStacked.tsx"]);
+    expect(found).toEqual([{ file: "src/screens/Brands.tsx", classes: ["fl-screen", "fl-card__title", "fl-card__meta", "fl-card-link"] }]);
+    expect(found[0]!.classes).not.toContain("brand-list");
+    expect(found[0]!.classes).not.toContain("is-active");
+    expect(unstyledMessage(found, 4)).toMatch(/copy the real piece from \.flowcode\/sections\//);
+    expect(unstyledMessage([{ file: "x.tsx", classes: ["a", "b"] }], 4)).toBeUndefined();
+  });
+});

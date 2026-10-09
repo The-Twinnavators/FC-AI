@@ -1,3 +1,8 @@
+/** @flowcode-library chart-area · Area chart (Charts and data)
+ * Use cases: trend chart; analytics report; traffic over time; revenue trend; usage over time; sales comparison; time series dashboard
+ * Jobs to be done: see how numbers change over time; compare two series side by side; check a value on a specific week; switch between short and long ranges
+ * Keywords: chart, area, trend, time series, report
+ */
 /**
  * Chart: area. Two series over recent weeks as smooth, overlaid areas that draw themselves in, with glowing end
  * points, a legend, a 4 or 12 week switch and a crosshair that shows each week's numbers on hover or with the arrow

@@ -1,3 +1,8 @@
+/** @flowcode-library page-offline · Offline (Alerts and states)
+ * Use cases: offline mode; no connection; offline screen; connection lost; offline-first app; sync pending; network error
+ * Jobs to be done: keep working without internet; know my changes are saved; reconnect when the network returns; see what still works offline
+ * Keywords: offline, connection, retry, error, page
+ */
 /**
  * Offline: shown when the device loses its connection. Says so plainly, lists what still works and what has to wait,
  * shows changes saved on this device until the connection returns, and offers a retry that really checks the

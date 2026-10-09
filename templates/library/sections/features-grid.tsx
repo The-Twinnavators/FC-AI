@@ -1,3 +1,8 @@
+/** @flowcode-library features-grid · Feature grid (Features)
+ * Use cases: feature overview; benefits section; services list; product capabilities; why choose us; agency services; platform highlights; integrations overview
+ * Jobs to be done: see what the product can do; check it covers my needs; compare benefits at a glance; understand what services are offered
+ * Keywords: features, benefits, services, grid
+ */
 /**
  * Features: icon grid. Six benefits as cards, each with an icon, a short title and one sentence. The default way to
  * explain what a product does. Make it the app's own: replace SAMPLE with the PRD's real capabilities (3 or 6 read

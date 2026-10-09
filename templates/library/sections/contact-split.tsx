@@ -1,3 +1,8 @@
+/** @flowcode-library contact-split · Contact details and form (Contact)
+ * Use cases: contact page; support form; get in touch; sales inquiry; office address; booking inquiry; customer support
+ * Jobs to be done: get in touch with the team; send a question to support; find the office address or phone; ask sales about a plan
+ * Keywords: contact, form, email, support, address
+ */
 /**
  * Contact: details and form. Ways to reach you on one side, a short form on the other. The form is a prototype: it
  * checks the fields and shows a confirmation, and keeps the message in local storage instead of sending it. Make it

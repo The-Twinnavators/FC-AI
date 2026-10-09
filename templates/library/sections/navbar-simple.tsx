@@ -1,3 +1,8 @@
+/** @flowcode-library navbar-simple · Simple navigation (Navigation)
+ * Use cases: site header; marketing navigation; landing page header; product site menu; top navigation; mobile menu; saas homepage header
+ * Jobs to be done: find my way around the site; get to the page i need; start a free trial from anywhere; open the menu on my phone
+ * Keywords: header, navbar, menu, navigation
+ */
 /**
  * Navigation: simple. Brand on the left, page links, one main action on the right. On phones the links fold into a
  * menu button. Make it the app's own: replace SAMPLE, point each link at a real screen, keep one primary action.

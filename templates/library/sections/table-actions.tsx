@@ -1,3 +1,8 @@
+/** @flowcode-library table-actions · Table with row actions (Tables and lists)
+ * Use cases: admin table; user management; order management; bookings list; invoice list; inventory management; customer list; content management
+ * Jobs to be done: find a record quickly; edit or remove an entry; check the status of each order; manage records page by page
+ * Keywords: table, search, pagination, admin, status
+ */
 /**
  * Table: search, row actions and pages. Status badges, a per-row menu (edit, duplicate, delete with a confirm step),
  * a search box above and pagination below. Use it for admin lists people manage day to day: bookings, orders, stock.

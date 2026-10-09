@@ -1,3 +1,8 @@
+/** @flowcode-library home-devtool · Developer tool homepage (Homepages)
+ * Use cases: developer tool homepage; open source project; sdk landing; cli tool; library homepage; api product; developer pricing; devtool marketing
+ * Jobs to be done: install the library quickly; see how it works with my framework; compare performance with alternatives; choose a plan for my team
+ * Keywords: developer, devtool, cli, sdk, open source, terminal, code, benchmarks, pricing, faq, landing
+ */
 /**
  * Page template: developer-tool homepage, here an open-source local-first sync library with a paid hosted relay.
  * Navigation with a star count, a split hero with a one-line install command and a terminal that types out a short

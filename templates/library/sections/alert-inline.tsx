@@ -1,3 +1,8 @@
+/** @flowcode-library alert-inline · Inline alerts (Alerts and states)
+ * Use cases: form errors; success message; warning notice; system status; account notices; payment failed; validation feedback; info message
+ * Jobs to be done: know what went wrong and fix it; confirm my change was saved; notice something that needs my attention; dismiss a message i've read
+ * Keywords: alert, message, notice, status, feedback, dismissible
+ */
 /**
  * Alerts: inline messages in four tones (info, success, warning, error). Each has an icon, a title, a line of text
  * and, when useful, one action; the dismissible ones close and can be brought back. Use them inside a page to explain

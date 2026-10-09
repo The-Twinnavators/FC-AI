@@ -5,7 +5,7 @@
  */
 import { DisplayModeSettings } from "../displayMode";
 import { useEffect, useState, type ComponentType } from "react";
-import { BookOpen, FileText, Gauge, Globe, LockKeyhole, ShieldCheck, Smartphone, SunMoon, UserRound } from "lucide-react";
+import { BookOpen, FileText, Gauge, Globe, LockKeyhole, ShieldCheck, Smartphone, SunMoon, House, UserRound, Volume2 } from "lucide-react";
 import { ProjectSettings as ProjectSettingsSchema, type Project, type ProjectSettings } from "@flowcode/contracts";
 import { post, useResource } from "../api";
 import { navigate } from "../router";
@@ -17,17 +17,21 @@ import { RuntimeSettings } from "../components/RuntimeSettings";
 import { PrdTemplates } from "../components/PrdTemplates";
 import { AppearanceSettings } from "../components/AppearanceSettings";
 import { PhoneApprovals } from "../components/PhoneApprovals";
+import { SoundSettings } from "../components/SoundSettings";
+import { StartPageSettings } from "../components/StartPageSettings";
 
 interface AppSettings {
   retention: { snapshotsDays: number; eventsDays: number };
   projectDefaults: ProjectSettings;
 }
 
-type SectionId = "copilot" | "explain" | "appearance" | "phone" | "prd" | "speed" | "policy" | "search" | "data";
+type SectionId = "copilot" | "explain" | "appearance" | "start" | "sounds" | "phone" | "prd" | "speed" | "policy" | "search" | "data";
 const SECTIONS: Array<{ id: SectionId; label: string; hint: string; icon: ComponentType<{ size?: number; "aria-hidden"?: boolean }> }> = [
   { id: "copilot", label: "About you", hint: "How FlowCode addresses you, notes about you", icon: UserRound },
   { id: "explain", label: "Explanations", hint: "Plain language or technical details", icon: BookOpen },
   { id: "appearance", label: "Appearance", hint: "Light and dark: a toggle, your system, or per page", icon: SunMoon },
+  { id: "start", label: "Start page", hint: "The page FlowCode opens on", icon: House },
+  { id: "sounds", label: "Sounds", hint: "Notification sounds on or off, and what each means", icon: Volume2 },
   { id: "phone", label: "Phone", hint: "Approvals, blocked builds and notifications on your phone", icon: Smartphone },
   { id: "prd", label: "PRD templates", hint: "Starting points for websites, SaaS, e-commerce and more", icon: FileText },
   { id: "speed", label: "Speed & recovery", hint: "Fast model, what happens when a run gets stuck", icon: Gauge },
@@ -94,6 +98,8 @@ export function SettingsView({ projects }: { projects: Project[] }) {
       {tab === "copilot" ? <CopilotProfile /> : null}
       {tab === "explain" ? <DisplayModeSettings /> : null}
       {tab === "appearance" ? <AppearanceSettings /> : null}
+      {tab === "start" ? <StartPageSettings /> : null}
+      {tab === "sounds" ? <SoundSettings /> : null}
       {tab === "phone" ? <PhoneApprovals /> : null}
       {tab === "prd" ? <PrdTemplates /> : null}
       {tab === "speed" ? <RuntimeSettings /> : null}

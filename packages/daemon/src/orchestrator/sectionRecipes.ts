@@ -21,6 +21,7 @@ import type { PathJail } from "../security/pathJail.js";
 import type { AgentOutcome } from "./agentLoop.js";
 import { screenText, SAMPLE_MARKER } from "./layoutRecipes.js";
 import { templatesRoot, type RuntimeStepArgs } from "./templates.js";
+import { recordUse } from "./libraryUse.js";
 
 export const ADD_SECTIONS = "Add library sections";
 
@@ -133,8 +134,8 @@ export const keptSection = (id: string) => `.flowcode/sections/${id}.tsx.txt`;
 export function sectionGuidance(picks: SectionPick[]): string {
   // No section picked: the library is still in the app, with an index, for any screen that needs a ready piece.
   if (!picks.length)
-    return `FlowCode's component library is kept in .flowcode/sections/ (${INDEX_FILE} lists every piece: name, one line, file). Before writing a card, list, form, table, empty state, stats row or navigation from scratch, check the index: when one fits the screen, copy it into src/sections/ as a .tsx file, replace its SAMPLE object with the spec's real content (then delete the "${SAMPLE_MARKER}" comment) and reshape it for this product. It styles itself from src/styles/library.css, which reads the design tokens. Use a piece only where it fits; compose your own otherwise.`;
-  return `Library sections are in src/sections/ (${picks.map((p) => `${sectionFile(p.id).replace("src/sections/", "")}: ${p.reason}`).join("; ")}). They are starting points, not the design: use one only where it fits the screen, replace every value in its SAMPLE object with the spec's real content (then delete the "${SAMPLE_MARKER}" comment), reshape it for this product, and delete any you don't use. Compose your own where none fits. They style themselves from src/styles/library.css, which reads the design tokens; restyle through the tokens, not by editing library.css. Every other library section is kept in .flowcode/sections/ if a screen needs one. Page backgrounds are one class on a section or the page (fl-bg-soft, -mesh, -glow, -aurora, -split, -ink for gradients; fl-bg-dots, -grid, -stripes, -waves, -topo, -grain for patterns); use at most one or two where the design calls for atmosphere, never on every section.`;
+    return `FlowCode's component library is kept in .flowcode/sections/ (${INDEX_FILE} lists every piece: name, one line, its use cases and jobs to be done, file). Match each screen by what the person there is trying to do: pick the piece whose jobs to be done fit (each file starts with them too). Before writing a card, list, form, table, empty state, stats row or navigation from scratch, check the index: when one fits the screen, copy it into src/sections/ as a .tsx file, replace its SAMPLE object with the spec's real content (then delete the "${SAMPLE_MARKER}" comment) and reshape it for this product. It styles itself from src/styles/library.css, which reads the design tokens. Use a piece only where it fits; compose your own otherwise.`;
+  return `Library sections are in src/sections/ (${picks.map((p) => `${sectionFile(p.id).replace("src/sections/", "")}: ${p.reason}`).join("; ")}). They are starting points, not the design: use one only where it fits the screen, replace every value in its SAMPLE object with the spec's real content (then delete the "${SAMPLE_MARKER}" comment), reshape it for this product, and delete any you don't use. Compose your own where none fits. They style themselves from src/styles/library.css, which reads the design tokens; restyle through the tokens, not by editing library.css. Every other library section is kept in .flowcode/sections/ if a screen needs one: ${INDEX_FILE} lists each with its use cases and jobs to be done, so match a screen by what the person there is trying to do. Page backgrounds are one class on a section or the page (fl-bg-soft, -mesh, -glow, -aurora, -split, -ink for gradients; fl-bg-dots, -grid, -stripes, -waves, -topo, -grain for patterns); use at most one or two where the design calls for atmosphere, never on every section.`;
 }
 
 /** The index of the kept library, for the design and screen steps to choose from. */
@@ -150,9 +151,7 @@ export function sectionsTask(text: string, seed: string, dependsOn: string[]): P
   return {
     key: "fc_sections",
     title: ADD_SECTIONS,
-    objective: picks.length
-      ? `Copy the library sections this spec calls for into src/sections/ as starting points: ${picks.map((p) => `${p.id} (${p.reason})`).join("; ")}`
-      : "Keep FlowCode's component library in .flowcode/sections/ with its index, for the screens to draw on (the spec calls for no section as a starting point)",
+    objective: sectionsObjective(picks),
     dependsOn,
     expectedPaths: [...picks.map((p) => sectionFile(p.id)), "src/styles/library.css", ".flowcode/sections/"],
     acceptanceCriteria: [{ id: "q1", description: "Library styles added", check: { type: "file_exists" as const, path: "src/styles/library.css" } }],
@@ -161,9 +160,28 @@ export function sectionsTask(text: string, seed: string, dependsOn: string[]): P
   };
 }
 
+/** The library step's objective: the pieces to copy with their reasons (read back by the step), or keeping the library. */
+export function sectionsObjective(picks: SectionPick[]): string {
+  return picks.length
+    ? `Copy the library sections this spec calls for into src/sections/ as starting points: ${picks.map((p) => `${p.id} (${p.reason})`).join("; ")}`
+    : "Keep FlowCode's component library in .flowcode/sections/ with its index, for the screens to draw on (the spec calls for no section as a starting point)";
+}
+
+/** The pieces and reasons in a library step's objective. */
+export function picksIn(objective: string): SectionPick[] {
+  const known = new Set(LIBRARY_SECTIONS.map((x) => x.id));
+  const list = objective.split(": ").slice(1).join(": ");
+  return list
+    .split("; ")
+    .map((part) => /^([a-z]+(?:-[a-z]+)+) \((.*)\)$/.exec(part.trim()))
+    .filter((m): m is RegExpExecArray => !!m && known.has(m[1]!))
+    .map((m) => ({ id: m[1]!, reason: m[2]! }));
+}
+
 /** Copies the planned sections, their icons and styles, keeps the whole library for later, and imports library.css. */
 async function addSections({ deps, run, task, jail, onChanged }: RuntimeStepArgs): Promise<AgentOutcome> {
-  const planned = new Set(task.objective.match(/\b[a-z]+(?:-[a-z]+)+(?= \()/g) ?? []);
+  const plannedPicks = picksIn(task.objective);
+  const planned = new Set(plannedPicks.map((p) => p.id));
   const ctx = { jail, projectId: run.projectId, runId: run.id, taskId: task.id, approved: run.planApproved };
   const changed: string[] = [];
   const write = (rel: string, content: string) => {
@@ -182,8 +200,9 @@ async function addSections({ deps, run, task, jail, onChanged }: RuntimeStepArgs
     "",
     "Each piece is a self-contained React component styled by src/styles/library.css and the design tokens. To use one, copy",
     "its file into src/sections/ as a .tsx file, replace its SAMPLE object with the app's real content, and reshape it.",
+    "Match each screen in the PRD to a piece by what the person there is trying to do: its \"Jobs\" and \"Use for\" lists. A pattern serves every use case listed, whatever its sample shows.",
     "",
-    ...SECTION_CATEGORIES.filter((c) => LIBRARY_SECTIONS.some((x) => x.category === c.id)).flatMap((c) => ["## " + c.label, ...LIBRARY_SECTIONS.filter((x) => x.category === c.id).map((x) => `- ${x.name}: ${x.description} (${keptSection(x.id)})`), ""]),
+    ...SECTION_CATEGORIES.filter((c) => LIBRARY_SECTIONS.some((x) => x.category === c.id)).flatMap((c) => ["## " + c.label, ...LIBRARY_SECTIONS.filter((x) => x.category === c.id).map((x) => `- ${x.name}: ${x.description}${x.useCases?.length ? ` Use for: ${x.useCases.join(", ")}.` : ""}${x.jobs?.length ? ` Jobs: ${x.jobs.join("; ")}.` : ""} (${keptSection(x.id)})`), ""]),
   ].join("\n");
   write(INDEX_FILE, index);
   const added: string[] = [];
@@ -195,6 +214,7 @@ async function addSections({ deps, run, task, jail, onChanged }: RuntimeStepArgs
       const res = write(sectionFile(s.id), src);
       if (!res.ok) return { kind: "blocked", reason: `Couldn't add ${sectionFile(s.id)}: ${res.message}`, nextAction: "Retry this step" };
       added.push(s.name);
+      recordUse(deps.store, run.id, { id: s.id, by: "flowcode", step: task.title, reason: plannedPicks.find((p) => p.id === s.id)?.reason });
       usedSource += src;
     }
   }

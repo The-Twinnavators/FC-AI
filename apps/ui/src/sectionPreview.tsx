@@ -37,7 +37,15 @@ const addStyles = (used: string) => {
 };
 
 // Height to the Components page, so the frame fits the section (and grows when a section opens something inline).
-const report = () => parent.postMessage({ type: "fl-section-height", id, height: document.documentElement.scrollHeight }, "*");
+// Floating panels (a search's results, a menu, a popover) sit outside the normal flow and don't count in scrollHeight,
+// so the frame also grows to the lowest element on the page; otherwise they were cut off at the frame's edge.
+const report = () => {
+  let bottom = document.documentElement.scrollHeight;
+  for (const el of document.querySelectorAll("#root *")) bottom = Math.max(bottom, Math.ceil(el.getBoundingClientRect().bottom + window.scrollY) + 24);
+  parent.postMessage({ type: "fl-section-height", id, height: bottom }, "*");
+};
+// Opening a menu or a popover changes the page without resizing the body, so watch for that too.
+new MutationObserver(() => requestAnimationFrame(report)).observe(document.getElementById("root")!, { childList: true, subtree: true });
 const ro = new ResizeObserver(report);
 ro.observe(document.body);
 ro.observe(document.documentElement);

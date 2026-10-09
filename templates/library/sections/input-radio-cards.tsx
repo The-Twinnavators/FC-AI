@@ -1,3 +1,8 @@
+/** @flowcode-library input-radio-cards · Radio cards (Forms)
+ * Use cases: plan selection; delivery options; shipping method; subscription tier; checkout options; membership choice; service package
+ * Jobs to be done: pick the plan that suits me; choose how my order is delivered; compare options with prices; confirm my choice
+ * Keywords: radio, radio cards, plan picker, delivery options, fieldset, choice
+ */
 /**
  * Input: radio cards. Choices shown as cards, each with a title, a short description and a price: one group for a
  * plan and one for delivery, including an option that can't be picked right now. They are real radio buttons in a

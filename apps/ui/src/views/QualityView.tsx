@@ -14,7 +14,8 @@ import { Markdown } from "../components/Markdown";
 import { get } from "../api";
 import { LaunchView } from "./LaunchView";
 import { PlanView } from "./PlanView";
-import { ProjectBuildTimer } from "../components/BuildTimer";
+import { ProjectWorkingAgent } from "../components/BuildTimer";
+import { StartOver } from "../components/StartOver";
 import { RunReports } from "./ReportsView";
 import { RunPerformancePage } from "../components/RunPerformance";
 import { ProjectDecisions, useProjectDecisions } from "../components/ProjectDecisions";
@@ -64,10 +65,11 @@ export function QualityView({ projects, projectId, view: routeView, runId }: { p
           <span className="label">My Projects</span>
           <h1 className="page__title">{projects.find((p) => p.id === projectId)?.name ?? "Project"}</h1>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <ProjectBuildTimer projectId={projectId} />
-          <button className="btn btn--primary" onClick={() => navigate(`/projects/${projectId}`)} title="Open this project in the FlowCode Builder">
-            <Blocks size={14} strokeWidth={1.75} aria-hidden="true" /> View in FlowCode Builder
+        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          <ProjectWorkingAgent projectId={projectId} />
+          <StartOver runId={(projects.find((p) => p.id === projectId) as (Project & { latestRun?: { id: string } }) | undefined)?.latestRun?.id} />
+          <button className="btn btn--primary" onClick={() => navigate(`/projects/${projectId}`)} title="Open this project in the Agent Builder">
+            <Blocks size={14} strokeWidth={1.75} aria-hidden="true" /> View in Agent Builder
           </button>
           {projects.length > 1 ? (
             <select className="select" style={{ width: 220 }} aria-label="Project" value={projectId} onChange={(e) => (setProjectId(e.target.value), setIntel(undefined))}>

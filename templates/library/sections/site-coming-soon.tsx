@@ -1,3 +1,8 @@
+/** @flowcode-library site-coming-soon · Coming-soon page (Industry sites)
+ * Use cases: coming soon; opening soon; new business launch; pre-opening; notify me; launch countdown; local business teaser; under construction
+ * Jobs to be done: know when it opens; get notified on opening day; follow the opening progress
+ * Keywords: page, coming soon, launch, pre-launch, countdown, notify, waitlist, email, local business, bakery, html5up
+ */
 /**
  * Site: coming soon. A single full-screen page for a new local business that hasn't opened yet (café, bakery, shop,
  * salon, studio): a short promise, a live countdown to opening day, a notify-me form that checks the email, spots

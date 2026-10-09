@@ -1,3 +1,8 @@
+/** @flowcode-library faq-columns · FAQ columns (FAQ)
+ * Use cases: faq; common questions; help page; pricing questions; support page; quick answers
+ * Jobs to be done: scan all the answers at once; get an answer without contacting support; reach a person when stuck; clear up doubts before buying
+ * Keywords: faq, questions, help
+ */
 /**
  * FAQ: two columns. Every answer visible at once, with a way to reach a person. Good when the answers are short.
  * Make it the app's own: replace SAMPLE (4 to 8 pairs) and point the contact link at a real screen.

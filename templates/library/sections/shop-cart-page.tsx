@@ -1,3 +1,8 @@
+/** @flowcode-library shop-cart-page · Cart page (Shop)
+ * Use cases: cart page; shopping basket; checkout review; order summary; promo code; delivery options; online store
+ * Jobs to be done: review my order before paying; apply a discount code; choose a delivery option; remove items i do not want
+ * Keywords: cart, basket, promo code, delivery, order summary, table, checkout, shop
+ */
 /**
  * Cart page: the full shopping bag before checkout. A table of items with quantity steppers and remove (with undo),
  * a promo code box (one code works; anything else shows an inline error), delivery choices and an order summary that

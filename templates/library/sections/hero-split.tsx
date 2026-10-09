@@ -1,3 +1,8 @@
+/** @flowcode-library hero-split · Split hero (Heroes)
+ * Use cases: landing page hero; product launch; homepage intro; saas homepage; app download page; feature announcement; service landing page
+ * Jobs to be done: understand what the product does; see the product before signing up; start a free trial; decide if this is for me
+ * Keywords: hero, landing, header, product
+ */
 /**
  * Hero: split. Promise and actions on the left, a picture of the product on the right. The default for products and
  * services. Make it the app's own: replace SAMPLE; swap the media placeholder for a real screenshot or photo (with

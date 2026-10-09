@@ -1,3 +1,8 @@
+/** @flowcode-library team-grid · Team grid (Team)
+ * Use cases: team page; about us; meet the team; staff directory; leadership; our people; board members; speakers
+ * Jobs to be done: see who is behind the product; find the right person to contact; trust the company by knowing the people; learn what each person does
+ * Keywords: team, about, people, staff
+ */
 /**
  * Team: grid. The people behind the product, with a role and one line each. Make it the app's own: use only people
  * the PRD names; swap the initials for real photos (with alt text) when there are some.

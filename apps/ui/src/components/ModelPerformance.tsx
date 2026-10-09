@@ -20,8 +20,16 @@ interface Perf {
   models: Stats[];
   loaded: Array<{ name: string; sizeGb: number; gpuShare: number; contextLength?: number }>;
   recommendation: { text: string; model?: string; basis: string };
+  slowRoles?: Array<{ role: string; model: string; tokPerSec: number; faster: string; fasterTokPerSec: number }>;
   caveats: string[];
 }
+
+const roleName = (r: string) => r.replace(/_/g, " ").replace(/\bqa\b/, "QA").replace(/^\w/, (c) => c.toUpperCase());
+
+type Slow = NonNullable<Perf["slowRoles"]>[number];
+/** One note per slow model, naming every role that uses it. */
+const slowByModel = (rows: Slow[]) => [...new Map(rows.map((r) => [r.model, { ...r, roles: rows.filter((x) => x.model === r.model).map((x) => x.role) }])).values()];
+const list = (a: string[]) => (a.length < 2 ? (a[0] ?? "") : `${a.slice(0, -1).join(", ")} and ${a.at(-1)}`);
 
 const pct = (n?: number) => (n === undefined ? "—" : `${Math.round(n * 100)}%`);
 
@@ -40,6 +48,11 @@ export function ModelPerformance() {
         <p className="model-perf__rec">
           <strong>{p.recommendation.text}</strong>
         </p>
+        {slowByModel(p.slowRoles ?? []).map((g) => (
+          <p key={g.model} className="model-perf__slow" role="note">
+            <strong className="status-text--warn">Slow on this computer.</strong> {list(g.roles.map(roleName))} use{g.roles.length === 1 ? "s" : ""} <span className="mono">{g.model}</span>, which writes {g.tokPerSec} tokens/s here (it likely doesn't fit in GPU memory). <span className="mono">{g.faster}</span> writes {g.fasterTokPerSec}. Consider it for {g.roles.length === 1 ? "that role" : "those roles"} below.
+          </p>
+        ))}
         <div className="model-perf__table-wrap">
           <table className="model-perf__table">
             <thead>

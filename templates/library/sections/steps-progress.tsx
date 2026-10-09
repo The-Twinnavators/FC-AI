@@ -1,3 +1,8 @@
+/** @flowcode-library steps-progress · Steps progress (Tabs, breadcrumbs and paging)
+ * Use cases: checkout steps; booking flow; onboarding wizard; multi-step form; application process; setup wizard; order progress; registration steps
+ * Jobs to be done: see how far along i am; move through a booking step by step; go back and change an earlier step; finish a long form in parts
+ * Keywords: steps, progress, stepper, wizard, booking
+ */
 /**
  * Steps progress: a step indicator that marks each step done, current or upcoming, with Back and Next buttons. It
  * runs left to right on wide screens and top to bottom on phones; finished steps can be clicked to go back to them.

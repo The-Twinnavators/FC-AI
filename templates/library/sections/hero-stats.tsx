@@ -1,3 +1,8 @@
+/** @flowcode-library hero-stats · Hero with proof (Heroes)
+ * Use cases: landing page hero; results-driven homepage; agency homepage; fundraising page; b2b product homepage; case study intro; nonprofit impact page
+ * Jobs to be done: see proof the product works; judge whether the claims are credible; get started with confidence; book a demo with the team
+ * Keywords: hero, landing, results, stats
+ */
 /**
  * Hero: with proof. Promise, actions and three numbers that back it up, on a tinted band. Good when the product has
  * real results to show. Make it the app's own: replace SAMPLE; only use numbers the PRD actually gives.

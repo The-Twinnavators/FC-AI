@@ -1,3 +1,8 @@
+/** @flowcode-library site-event · Conference site (Industry sites)
+ * Use cases: conference website; event schedule; agenda; speaker lineup; event tickets; summit; festival; meetup
+ * Jobs to be done: plan which sessions to attend; see who is speaking; buy tickets for the event; find out how to get there
+ * Keywords: page, event, conference, summit, schedule, agenda, tabs, speakers, tickets, travel, faq, html5up
+ */
 /**
  * Site: conference / event. A one-page site for a conference, festival, summit or meetup: a full-height hero with the
  * date and venue, a statement band with the headline numbers, the schedule by day in tabs (sessions can be saved to

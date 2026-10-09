@@ -1,3 +1,8 @@
+/** @flowcode-library card-project · Project cards (Cards)
+ * Use cases: projects dashboard; project overview; client projects; campaign tracker; course progress; workspace list; portfolio projects
+ * Jobs to be done: see how each project is progressing; open a project to work on it; rename or delete a project; spot which projects need attention
+ * Keywords: projects, dashboard, gauge, progress, status
+ */
 /**
  * Project cards: a grid of projects, each with a picture banner, a status chip, two small gauges, the last update and
  * a menu to rename or delete. Good for a workspace home, a client list or any "my things" overview. Make it the app's

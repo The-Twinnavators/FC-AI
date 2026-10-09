@@ -1,3 +1,8 @@
+/** @flowcode-library site-real-estate · Real-estate agency website (Industry sites)
+ * Use cases: real estate listings; property search; rental listings; estate agent; letting agency; home valuation; property portal; agent profiles
+ * Jobs to be done: find a home in my budget; search homes to buy or rent; save homes i like; get my home valued; find a local agent
+ * Keywords: page, template, real estate, property, listings, search, filters, agents, valuation, form, html5up
+ */
 /**
  * Page template: real-estate or letting agency website. A one-page site for a local estate agent: a hero with a
  * property search (buy or rent, area, bedrooms, budget), three proof points, listing cards with sorting and

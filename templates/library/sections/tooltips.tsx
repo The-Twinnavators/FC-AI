@@ -1,3 +1,8 @@
+/** @flowcode-library tooltips · Tooltips (Tabs, breadcrumbs and paging)
+ * Use cases: toolbar hints; icon buttons; calendar toolbar; editor toolbar; field help; control explanations; accessibility hints
+ * Jobs to be done: understand what an icon does; learn the controls without guessing; get a quick hint without leaving
+ * Keywords: tooltip, hint, toolbar, icon buttons, accessibility
+ */
 /**
  * Tooltips: short hints on icon buttons that appear on hover and on keyboard focus, on any side (top, right, bottom,
  * left), stay open while the pointer is over them and close with Escape. Each is linked with aria-describedby. Use them

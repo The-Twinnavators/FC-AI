@@ -1,3 +1,8 @@
+/** @flowcode-library pricing-tiers · Three pricing tiers (Pricing)
+ * Use cases: pricing page; subscription plans; plan comparison; membership tiers; saas pricing; service packages; course pricing
+ * Jobs to be done: find the right plan for my budget; compare plans side by side; see what the popular plan includes; choose a plan and sign up
+ * Keywords: pricing, plans, subscription, tiers
+ */
 /**
  * Pricing: three tiers. The middle plan is highlighted as the usual choice. Make it the app's own: replace SAMPLE
  * with the PRD's real plans and prices (2 or 3 plans read best); keep one plan featured.

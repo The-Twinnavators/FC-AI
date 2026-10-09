@@ -1,3 +1,8 @@
+/** @flowcode-library auth-forgot-password · Forgot password (Sign-in and sign-up)
+ * Use cases: forgot password; password reset; account recovery; reset link request; locked out; recover access
+ * Jobs to be done: reset my forgotten password; get back into my account; receive a password reset link; resend the reset email
+ * Keywords: auth, password reset, forgot password, email, cooldown
+ */
 /**
  * Forgot password: ask for an email, then show a "check your email" screen with what to do next and a resend button
  * that waits out a short cooldown. Use it as the route behind "Forgot password?". Nothing is sent: the "link" is only

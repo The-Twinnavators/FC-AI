@@ -1,3 +1,8 @@
+/** @flowcode-library home-personal · Personal homepage (Homepages)
+ * Use cases: personal website; portfolio; freelancer site; designer portfolio; developer portfolio; online resume; personal blog; hire me
+ * Jobs to be done: see the freelancer's best work; check if they are available; learn what services they offer; send a project enquiry
+ * Keywords: page, homepage, personal, portfolio, freelancer, resume, blog, contact
+ */
 /**
  * Page template: personal homepage. A whole one-person site for a freelancer, here a product designer who also
  * builds front ends: a quiet name-first navigation, a large typographic introduction with availability, selected

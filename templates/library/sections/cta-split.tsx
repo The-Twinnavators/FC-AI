@@ -1,3 +1,8 @@
+/** @flowcode-library cta-split · Call-to-action card (Calls to action)
+ * Use cases: trial invite; data import prompt; upgrade prompt; download app; demo request; promotional offer; migration invite
+ * Jobs to be done: start a free trial; bring my data over easily; try the product with my own work; take the next step
+ * Keywords: cta, call to action, import, trial
+ */
 /**
  * Call to action: split card. An invitation in a card with a picture beside it; softer than the banner. Make it the
  * app's own: replace SAMPLE and the media placeholder (real image, with alt text).

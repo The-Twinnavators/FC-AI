@@ -1,3 +1,8 @@
+/** @flowcode-library form-settings · Settings form (Forms)
+ * Use cases: account settings; profile settings; notification preferences; user preferences; delete account; privacy settings; workspace settings
+ * Jobs to be done: update my profile details; choose which notifications i get; delete my account safely; save changes to my settings
+ * Keywords: form, settings, profile, switch, danger zone
+ */
 /**
  * Form: settings and profile. Grouped sections laid out in two columns (what the group is about on the left, its
  * fields on the right): profile details, notification switches and a danger zone whose delete asks for confirmation

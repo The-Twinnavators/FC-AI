@@ -46,6 +46,8 @@ export interface DispatchContext {
   /** Called when the edits stop making progress (the same errors keep coming back): the step moves to a stronger model. */
   onNoProgress?: (reason: string) => void;
   phase: string;
+  /** A file the agent wrote in src/sections/ (a library piece it copied in), with its text: recorded as library use. */
+  onSectionWritten?: (rel: string, text: string) => void;
   /** The project as it is now (settings change mid-step: "allow external research" turned on during a design step). */
   currentProject?: () => Project;
   /** Checks a candidate photo shows what was searched for (a vision model); find_image skips the ones that don't. */
@@ -343,6 +345,13 @@ export function createDispatcher(ctx: DispatchContext) {
       if (res.paths.some((p) => /^src[\\/]sections[\\/][^\\/]+\.(tsx|jsx)$/.test(p)) && fs.existsSync(path.join(ctx.jail.root, "src/styles/library.css"))) {
         const css = syncedLibraryCss(ctx.jail.root);
         if (css !== undefined) ctx.ops.replaceContent({ ...opCtx, toolCallId: `fc_libcss_${toolCallId}`, approved: true }, "src/styles/library.css", css);
+      }
+      for (const p of res.paths.map((x) => x.replace(/\\/g, "/")).filter((x) => /^src\/sections\/[^/]+\.(tsx|jsx)$/.test(x))) {
+        try {
+          ctx.onSectionWritten?.(p, fs.readFileSync(path.join(ctx.jail.root, p), "utf8"));
+        } catch {
+          /* removed again in the same call */
+        }
       }
     }
     let typeNote = "";

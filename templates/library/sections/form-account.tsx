@@ -1,3 +1,8 @@
+/** @flowcode-library form-account · Create account form (Forms)
+ * Use cases: sign up; create account; registration; join page; onboarding signup; member registration; trial signup
+ * Jobs to be done: create my account; choose a strong password; join the service; get started with a new account
+ * Keywords: form, sign up, account, validation, password, registration
+ */
 /**
  * Form: create an account. Stacked fields for name, email and a password (show/hide and a strength hint) plus a terms
  * checkbox. Each field checks itself when you leave it and again on submit; errors sit under the field and the first

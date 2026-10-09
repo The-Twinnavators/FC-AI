@@ -6,11 +6,12 @@ import { ApprovalsView } from "./views/ApprovalsView";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { fitSideLists } from "./fitSideLists";
 import { APPEARANCE_EVENT, applyTheme, readAppearance, saveAppearance, saveManualTheme, themeFor } from "./appearance";
-import { Megaphone, MegaphoneOff, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import type { Approval, Project } from "@flowcode/contracts";
 import { conn, post, useEventStream, useResource } from "./api";
 import { Icon, Logo } from "./components/ui";
 import { navigate, useRoute } from "./router";
+import { NAV_GROUPS } from "./nav";
 import { ProjectsView } from "./views/ProjectsView";
 import { WorkspaceView } from "./views/WorkspaceView";
 import { Copilot } from "./components/Copilot";
@@ -19,7 +20,7 @@ import { GlobalSearch } from "./components/GlobalSearch";
 import { BuildProgress, rememberBuildProject } from "./components/BuildProgress";
 import { AppFooter } from "./components/AppFooter";
 import { Modal } from "./components/Modal";
-import { onSoundsChange, playSound, setSoundsOn, soundsOn } from "./components/sounds";
+import { playSound } from "./components/sounds";
 import { BackToTop } from "./components/BackToTop";
 import { SkeletonBlock, useParallax, useRevealAll } from "./components/motion";
 import { CopilotDriver } from "./components/CopilotDriver";
@@ -53,52 +54,6 @@ function PageSkeleton() {
 }
 
 /** Primary navigation: Dashboard, then grouped sections. */
-const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; icon: string; label: string }> }> = [
-  { items: [{ path: "/", icon: "home", label: "Dashboard" }] },
-  {
-    label: "Work",
-    items: [
-      { path: "/quality", icon: "checklist", label: "My Projects" },
-      // Create PRD: research a problem and write the PRD a build starts from.
-      { path: "/discover", icon: "compass", label: "Create PRD" },
-      // Everything waiting on you, and the decision log.
-      { path: "/approvals", icon: "flag", label: "Approvals" },
-    ],
-  },
-  {
-    label: "Repo tools",
-    // Reports on any repo folder on this computer (not only FlowCode projects).
-    items: [{ path: "/flowreport", icon: "reports", label: "Repo Report" }],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      { path: "/library", icon: "library", label: "Prompts & Skills" },
-      { path: "/components", icon: "layers", label: "Component library" },
-      { path: "/knowledge", icon: "knowledge", label: "Knowledge Hub" },
-      { path: "/topics", icon: "search", label: "Research Topics" },
-      // What FlowCode proposes to change about how it works, from run reviews.
-    ],
-  },
-  {
-    label: "Data process",
-    items: [
-      { path: "/agents", icon: "agents", label: "Agents" },
-      { path: "/network", icon: "network", label: "Network Graph" },
-      { path: "/pipeline", icon: "diagnostics", label: "Skill pipeline" },
-    ],
-  },
-  {
-    label: "System",
-    items: [
-      { path: "/about", icon: "help", label: "About FlowCode" },
-      { path: "/guide", icon: "library", label: "Feature guide" },
-      { path: "/settings", icon: "settings", label: "Settings" },
-      { path: "/primitives", icon: "layers", label: "Branding" },
-      { path: "/system", icon: "server", label: "System Health" },
-    ],
-  },
-];
 
 export function App() {
   const route = useRoute();
@@ -193,8 +148,6 @@ export function App() {
     if (e.type === "task.blocked" || (e.type === "run.status_changed" && to === "blocked")) playSound("block");
     else if (e.type === "approval.requested") playSound("alert");
   });
-  const [sounds, setSounds] = useState(soundsOn);
-  useEffect(() => onSoundsChange(setSounds), []);
   const projects = useResource<Project[]>("/projects", [route.path]);
 
   const section = route.parts[0] ?? "";
@@ -301,7 +254,7 @@ export function App() {
             {g.items.map((n) => {
               const active = n.path === "/" ? section === "" || section === "projects" : `/${section}` === n.path || (n.path === "/system" && section === "models");
               return (
-                <button key={n.path} data-guide={`nav.${n.path === "/" ? "projects" : n.path.slice(1)}`} className="rail__item" aria-label={n.label} title={n.label} aria-current={active ? "page" : undefined} onClick={() => navigate(n.path)}>
+                <button key={n.path} data-guide={`nav.${n.path === "/" ? "projects" : n.path.slice(1)}`} className="rail__item" aria-label={n.label} title={n.path === "/approvals" && pending ? `${n.label}: ${pending} waiting on you, the oldest for ${oldestWaitMin} min${ideasPending ? `, plus ${ideasPending} optional suggestion${ideasPending === 1 ? "" : "s"}` : ""}` : n.label} aria-current={active ? "page" : undefined} onClick={() => navigate(n.path)}>
                   <Icon name={n.icon} size={18} />
                   <span className="rail__label">{n.label}</span>
                   {n.path === "/approvals" && pending + proposed ? (
@@ -355,18 +308,6 @@ export function App() {
         <button data-guide="topbar.provider" className="provider-pill" onClick={() => navigate(health.data && !health.data.providers.ollama.ok ? "/" : "/system/models")} title={health.data && !health.data.providers.ollama.ok ? "Local models are offline: the Dashboard shows how to set up Ollama" : `${health.data?.providers.ollama.detail ?? "Checking provider"} · open Models & capability lab`}>
           <span className={`led ${health.data ? (health.data.providers.ollama.ok ? "led--ok" : "led--bad") : ""}`} aria-hidden="true" />
           {health.data ? (health.data.providers.ollama.ok ? "Local models · online" : "Local models · offline") : "Provider…"}
-        </button>
-        <button
-          data-guide="topbar.approvals"
-          className={`provider-pill${pending && oldestWaitMin >= 5 ? " provider-pill--overdue" : ""}`}
-          onClick={() => navigate("/approvals")}
-          aria-label={`${pending} approval${pending === 1 ? "" : "s"} waiting${ideasPending ? `, ${ideasPending} suggestion${ideasPending === 1 ? "" : "s"}` : ""}. Open Approvals`}
-          title={pending ? `Oldest has waited ${oldestWaitMin} min${ideasPending ? ` · plus ${ideasPending} optional suggestion${ideasPending === 1 ? "" : "s"}` : ""}` : ideasPending ? `${ideasPending} optional suggestion${ideasPending === 1 ? "" : "s"}` : "Nothing waiting on you"}
-        >
-          <span className={`led ${pending ? (oldestWaitMin >= 5 ? "led--bad" : "led--warn") : ""}`} aria-hidden="true" /> {pending ? `${pending} waiting on you` : ideasPending ? `${ideasPending} suggestion${ideasPending === 1 ? "" : "s"}` : "No approvals"}
-        </button>
-        <button className="theme-toggle" onClick={() => setSoundsOn(!sounds)} aria-pressed={sounds} aria-label={sounds ? "Mute sounds" : "Turn sounds on"} title={sounds ? "Sounds on: alerts, blocks and chat replies. Click to mute." : "Sounds off. Click to turn on."}>
-          {sounds ? <Megaphone size={16} aria-hidden="true" /> : <MegaphoneOff size={16} aria-hidden="true" />}
         </button>
         <button className="theme-toggle" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"} title={appearance.mode === "custom" ? `${theme === "light" ? "Dark" : "Light"} theme for this page` : appearance.mode === "system" ? "Following your system theme. Click to choose by hand." : theme === "light" ? "Dark theme" : "Light theme"}>
           {theme === "light" ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />}

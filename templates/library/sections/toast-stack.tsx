@@ -1,3 +1,8 @@
+/** @flowcode-library toast-stack · Toast notifications (Alerts and states)
+ * Use cases: notifications; save confirmation; undo action; background task updates; activity alerts; error notifications; upload complete
+ * Jobs to be done: know my action worked; undo something i did by mistake; stay aware of updates while working; notice errors without losing my place
+ * Keywords: toast, snackbar, notification, undo
+ */
 /**
  * Toasts: short notices that stack in the bottom-right corner after an action. They close by themselves after a few
  * seconds (the timer pauses while the pointer or keyboard focus is on one), can be closed by hand or with Escape, and

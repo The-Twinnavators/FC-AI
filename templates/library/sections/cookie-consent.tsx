@@ -1,3 +1,8 @@
+/** @flowcode-library cookie-consent · Cookie consent (Alerts and states)
+ * Use cases: cookie banner; privacy consent; gdpr consent; cookie preferences; tracking consent; privacy settings
+ * Jobs to be done: decide which cookies to allow; reject non-essential tracking; change my cookie choice later; protect my privacy
+ * Keywords: cookies, consent, privacy, banner, dialog
+ */
 /**
  * Cookie consent: a banner with Accept all, Reject non-essential and Manage, where rejecting is exactly as easy as
  * accepting. Manage opens a dialog with a switch per category (essential is always on). The choice is remembered in

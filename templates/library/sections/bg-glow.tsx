@@ -1,3 +1,8 @@
+/** @flowcode-library bg-glow · Top glow (Page backgrounds)
+ * Use cases: hero background; launch page; dark landing page; product announcement; pricing highlight; sign in page background
+ * Jobs to be done: focus on the headline; notice what's new; feel the product is modern and polished
+ * Keywords: background, gradient, page background, glow
+ */
 /**
  * Page background: top glow (gradient). A spotlight of the accent colour from the top edge.
  * Good for: Product launches and hero sections over a plain page.

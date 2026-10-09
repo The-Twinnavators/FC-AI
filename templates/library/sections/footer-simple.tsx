@@ -1,3 +1,8 @@
+/** @flowcode-library footer-simple · Simple footer (Footers)
+ * Use cases: app footer; simple footer; landing page footer; legal links; small print
+ * Jobs to be done: read the privacy policy or terms; find a few key links; see who runs the site
+ * Keywords: footer, app
+ */
 /**
  * Footer: simple. One row: brand, a few links and the small print. For apps and small sites. Make it the app's own:
  * replace SAMPLE and point links at real screens.

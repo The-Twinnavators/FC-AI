@@ -33,13 +33,6 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
   }, []);
   const [error, setError] = useState<string>();
 
-  // The most recent project, opened on its Design tab (where Capture a style lives).
-  const openDesignTab = () => {
-    const latest = [...(projects ?? [])].sort((a, b) => (b.latestRun?.createdAt ?? b.updatedAt).localeCompare(a.latestRun?.createdAt ?? a.updatedAt))[0];
-    if (!latest) return setBuilding(true);
-    navigate(`/projects/${latest.id}`);
-    setTimeout(() => window.dispatchEvent(new CustomEvent("fc:show-tab", { detail: "styles" })), 300);
-  };
   const openExisting = async () => {
     setError(undefined);
     const folder = await window.flowcode?.selectFolder?.();
@@ -60,32 +53,6 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
       {/* The intro: what FlowCode does, the two ways in, and a short live demo of a build. */}
       <div className="ab2 ab2--home">
         <IntroHero
-          eyebrow={
-            // Hover or focus the line to see what it is and where to find it.
-            <span className="ab2__news-trigger">
-              <button type="button" className="ab2__eyebrow-link" aria-describedby="capture-style">
-                Capture a style from a website or screenshot
-              </button>
-              <aside className="ab2__news ab2__news--pop" id="capture-style" role="tooltip" aria-labelledby="capture-style-title">
-                <span className="ab2__news-tag">Feature</span>
-                <div>
-                  <strong id="capture-style-title">Capture a style</strong>
-                  <p>Give FlowCode a website address, or screenshots and mockups, and it copies the colours, fonts, corners and surfaces into your prototype. You can change any of it afterwards.</p>
-                  <p className="ab2__news-where">
-                    Find it when you{" "}
-                    <button type="button" className="ab2__link" onClick={() => setBuilding(true)}>
-                      start a new build
-                    </button>{" "}
-                    (step 2, Choose the look), or in any project&apos;s{" "}
-                    <button type="button" className="ab2__link" onClick={openDesignTab}>
-                      Design tab
-                    </button>{" "}
-                    → Capture a style.
-                  </p>
-                </div>
-              </aside>
-            </span>
-          }
           extra={
             <>
               {window.flowcode?.selectFolder ? (
@@ -102,15 +69,6 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
       <Dashboard />
 
       <div className="home-split">
-      <div id="newbuild" data-reveal>
-        <HowItWorks onStart={() => setBuilding(true)} />
-      </div>
-      {building ? (
-        <Modal onClose={() => setBuilding(false)} labelledBy="newbuild-title" className="nb-modal">
-          <NewBuild wizard onCancel={() => setBuilding(false)} />
-        </Modal>
-      ) : null}
-
       {/* The three most recent projects, as small My Projects cards, on the page itself (no container). */}
       <section className="home-projects" data-guide="projects.list" data-reveal aria-labelledby="projects-heading">
         <header className="home-projects__head">
@@ -131,6 +89,16 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
           <ProjectCards compact reload={reload} projects={[...projects].sort((a, b) => (b.latestRun?.createdAt ?? b.updatedAt).localeCompare(a.latestRun?.createdAt ?? a.updatedAt)).slice(0, 3)} />
         )}
       </section>
+      {/* How FlowCode works, after the projects. */}
+      <div id="newbuild" data-reveal>
+        <HowItWorks onStart={() => setBuilding(true)} />
+      </div>
+      {building ? (
+        <Modal onClose={() => setBuilding(false)} labelledBy="newbuild-title" className="nb-modal">
+          <NewBuild wizard onCancel={() => setBuilding(false)} />
+        </Modal>
+      ) : null}
+
       </div>
       {/* Closing call to action: the same band as About FlowCode's. */}
       <div className="ab2 ab2--home-cta">

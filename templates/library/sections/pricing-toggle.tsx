@@ -1,3 +1,8 @@
+/** @flowcode-library pricing-toggle · Monthly or yearly pricing (Pricing)
+ * Use cases: pricing page; subscription plans; monthly vs yearly billing; membership pricing; saas pricing; annual discount offer
+ * Jobs to be done: see how much i save yearly; pick monthly or yearly billing; choose between two plans; find the right plan for my budget
+ * Keywords: pricing, plans, yearly, monthly, subscription
+ */
 /**
  * Pricing: monthly or yearly. Two plans with a switch that shows the yearly saving. Good for subscriptions. Make it
  * the app's own: replace SAMPLE with real plans and both prices; the switch keeps its state on the page.

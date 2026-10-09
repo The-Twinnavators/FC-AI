@@ -129,9 +129,17 @@ export function nearestFile(jail: PathJail, asked: string): string | undefined {
   });
 }
 
-export function typeErrorHints(jail: PathJail, errors: string[]): string[] {
+export function typeErrorHints(jail: PathJail, raw: string[]): string[] {
   const hints: string[] = [];
   const seen = new Set<string>();
+  // tsc continues an error on indented lines ("Type … is not assignable to type '…'." then "  Property 'className'
+  // does not exist on type 'IntrinsicAttributes & …'."). Joined to their error line, so a hint that reads the detail
+  // matches (NOBIO: <Card className> failed six type checks while its hint never fired).
+  const errors = raw.flatMap((l) => l.split(/\r?\n/)).reduce<string[]>((out, l) => {
+    if (/^\s{2,}\S/.test(l) && out.length && /error TS\d+/.test(out[out.length - 1]!)) out[out.length - 1] += ` ${l.trim()}`;
+    else out.push(l);
+    return out;
+  }, []);
   // ESLint prints the file on its own line, then "23:5  error  Parsing error: Unexpected token <" under it. A .js file
   // with JSX in a TypeScript project (Calendar test 6: four left from before the plan used .tsx) breaks lint for every
   // later step; renaming it to .tsx fixes it, and extension-less imports keep working.
@@ -435,13 +443,23 @@ export function typeErrorHints(jail: PathJail, errors: string[]): string[] {
       if (seen.has(`${file}:${ln}:${prop}`)) continue;
       seen.add(`${file}:${ln}:${prop}`);
       let tag = "the component";
+      let kit = false;
       try {
-        const t = fs.readFileSync(path.join(jail.root, file), "utf8").split(/\r?\n/)[Number(ln) - 1] ?? "";
-        tag = `<${/^<?([A-Z]\w*)/.exec(t.slice(Number(col) - 1))?.[1] ?? /<([A-Z]\w*)/.exec(t)?.[1] ?? "component"}>`;
+        const src = fs.readFileSync(path.join(jail.root, file), "utf8");
+        const t = src.split(/\r?\n/)[Number(ln) - 1] ?? "";
+        const name = /^<?([A-Z]\w*)/.exec(t.slice(Number(col) - 1))?.[1] ?? /<([A-Z]\w*)/.exec(t)?.[1];
+        tag = `<${name ?? "component"}>`;
+        // A part of the starter's UI kit (src/components/ui): shared by every screen, so the screen adapts, not the kit.
+        kit = !!name && new RegExp(`import\\s*\\{[^}]*\\b${name}\\b[^}]*\\}\\s*from\\s*["'][./]*(?:[\\w/]*/)?components/ui["']`).test(src);
       } catch {
         /* unreadable */
       }
-      hints.push(`${file} line ${ln}: ${tag} only accepts ${accepted.replace(/\s+/g, " ")}, not "${prop}". Either stop passing ${prop}, or add it to that component's props type (and use it there). Change one side so both agree.`);
+      const props = accepted.replace(/\s+/g, " ");
+      hints.push(
+        kit
+          ? `${file} line ${ln}: ${tag} is part of the app's UI kit (src/components/ui) and only accepts ${props}, not "${prop}". Don't change the kit: ${prop === "className" || prop === "style" ? `put the ${prop} on a <div> around it (<div ${prop}=…>${tag}…${tag.replace("<", "</")}</div>), or drop it` : `stop passing ${prop}; use only the props listed`}.`
+          : `${file} line ${ln}: ${tag} only accepts ${props}, not "${prop}". Either stop passing ${prop}, or add it to that component's props type (and use it there). Change one side so both agree.`,
+      );
       continue;
     }
     // "Cannot find name 'AppShell'": the missing import, from the one file that exports the name.

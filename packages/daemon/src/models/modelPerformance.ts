@@ -41,8 +41,18 @@ export interface ModelPerformance {
   models: ModelStats[];
   loaded: LoadedFit[];
   recommendation: { text: string; model?: string; basis: string };
+  /** Roles whose model writes far slower here than another local model (usually one that doesn't fit in GPU memory). */
+  slowRoles: SlowRole[];
   /** Plain notes on what the numbers can and can't show. */
   caveats: string[];
+}
+
+export interface SlowRole {
+  role: string;
+  model: string;
+  tokPerSec: number;
+  faster: string;
+  fasterTokPerSec: number;
 }
 
 const med = (a: number[]) => {
@@ -129,6 +139,36 @@ export function recommend(stats: ModelStats[], current?: string): ModelPerforman
   return { text: `${best.model} has the best measured results among the local coders. Consider trying it as this computer's coder.`, model: best.model, basis };
 }
 
+/** Median writing speed per model on this computer, from every recorded call (any role) with at least 3 measured calls. */
+export function writingSpeeds(app: App): Map<string, number> {
+  const gen = new Map<string, number[]>();
+  for (const r of app.db.all<{ data: string }>("SELECT data FROM events WHERE type = 'model.completed'")) {
+    const d = (JSON.parse(r.data) as { data?: { model?: string; providerId?: string; usage?: { completionTokens?: number }; timing?: { generateMs?: number } } }).data;
+    if (!d?.model || d.providerId?.startsWith("hosted") || !d.timing?.generateMs || d.timing.generateMs <= 500 || (d.usage?.completionTokens ?? 0) <= 20) continue;
+    (gen.get(d.model) ?? gen.set(d.model, []).get(d.model)!).push(d.usage!.completionTokens! / (d.timing.generateMs / 1000));
+  }
+  return new Map([...gen].filter(([, v]) => v.length >= 3).map(([m, v]) => [m, Math.round(med(v)! * 10) / 10]));
+}
+
+/**
+ * A role on a local model that writes under 15 tokens/s while another local model here writes at least twice as fast
+ * that is already the planner's, coder's or debugger's
+ * (NOBIO build: the planner on qwen3:14b, which doesn't fit an 8 GB GPU, wrote 9 tokens/s; planning took 24 minutes).
+ */
+export function slowRoles(assignments: Record<string, { providerId: string; model: string } | undefined>, speeds: Map<string, number>): SlowRole[] {
+  // Suggest only a model already trusted with real work here (the planner's, coder's or debugger's), never a small
+  // vision or embedding model just because it writes fast.
+  const trusted = new Set(["planner", "coder", "debugger"].map((r) => assignments[r]).filter((x) => x && !x.providerId.startsWith("hosted")).map((x) => x!.model));
+  const fastest = [...speeds].filter(([m]) => trusted.has(m)).sort((a, b) => b[1] - a[1])[0];
+  if (!fastest) return [];
+  return Object.entries(assignments).flatMap(([role, a]) => {
+    if (!a || a.providerId.startsWith("hosted")) return [];
+    const v = speeds.get(a.model);
+    if (v === undefined || v >= 15 || fastest[0] === a.model || fastest[1] < v * 2) return [];
+    return [{ role, model: a.model, tokPerSec: v, faster: fastest[0], fasterTokPerSec: fastest[1] }];
+  });
+}
+
 export async function modelPerformance(app: App): Promise<ModelPerformance> {
   const stats = modelStats(app);
   const ollama = app.router.provider("ollama") as unknown as { loaded?: () => Promise<Array<{ name: string; sizeBytes: number; vramBytes: number; contextLength?: number }>> };
@@ -139,6 +179,7 @@ export async function modelPerformance(app: App): Promise<ModelPerformance> {
     models: stats,
     loaded,
     recommendation: recommend(stats, current),
+    slowRoles: slowRoles(app.router.roleAssignments() as Record<string, { providerId: string; model: string }>, writingSpeeds(app)),
     caveats: [
       "Results come from real builds, which differ in difficulty; a model used on harder projects can look worse than it is.",
       "Speeds are medians of recorded calls. GPU share is only known for models loaded right now.",

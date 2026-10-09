@@ -59,6 +59,7 @@ import { troubleshoot } from "../quality/troubleshoot.js";
 import { getRunReview, IMPROVEMENTS_KEY, recordRunReview, type Improvement } from "../quality/runReview.js";
 import { governedRoute, listDecisions, logDecision } from "../governance/decisionLog.js";
 import { modelPerformance } from "../models/modelPerformance.js";
+import { libraryReport } from "../orchestrator/libraryUse.js";
 import { draftScreenSpec, getScreenSpecs, saveScreenSpec, screenCoverage } from "../quality/screenCoverage.js";
 import { rememberFirstEstimate, runActivity } from "./runActivity.js";
 import { runFacts } from "./runFacts.js";
@@ -501,6 +502,17 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   // Reusable parts (CSS class families with samples, React components) for the Styles tab's visual style sheet.
   // Where a run's time went: model (load / prompt / writing), commands, file tools and checks.
   add("GET /runs/:id/performance", ({ params }) => runPerformance(app, params.id));
+  // Which component library pieces this build used, who chose each, and whether it reached a screen.
+  // The PRD and text files a build was started from, so it can be started over from the same spec (New build, prefilled).
+  add("GET /runs/:id/references", ({ params }) => {
+    const run = app.store.runs.require(params.id);
+    const refs = app.store.getSetting<Array<{ name: string; role: string; content: string }>>(`runRefs:${run.id}`, []);
+    return { objective: run.objective, references: refs.filter((r) => r.role === "prd" || r.role === "text").map((r) => ({ name: r.name, role: r.role, content: r.content })) };
+  });
+  add("GET /runs/:id/library", ({ params }) => {
+    const run = app.store.runs.require(params.id);
+    return { pieces: libraryReport(app.store, app.projects.jail(run.projectId), run.id) };
+  });
   // Which model did what in this build, and what left this computer (from its recorded model calls).
   add("GET /runs/:id/models", ({ params }) => runModels(app, params.id));
   // The Copilot's first draft for a form, from the person's idea (local model; nothing is saved here).

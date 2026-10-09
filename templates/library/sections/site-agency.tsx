@@ -1,3 +1,8 @@
+/** @flowcode-library site-agency · Creative agency website (Industry sites)
+ * Use cases: agency website; design studio; creative portfolio; services overview; case studies; client work; consultancy site; project enquiry
+ * Jobs to be done: see the studio's past work; understand how they work; find out what services they offer; start a project with the studio
+ * Keywords: page, template, agency, studio, portfolio, work, services, process, clients, contact, html5up
+ */
 /**
  * Page template: creative agency or design studio website. A one-page site for a branding, web or campaign studio:
  * a bold banner, a filterable showcase of work in alternating wide and narrow tiles, services with what each includes,

@@ -1,3 +1,8 @@
+/** @flowcode-library input-quantity · Quantity stepper (Forms)
+ * Use cases: ticket quantity; cart quantity; guest count; order quantity; portion selector; stock adjustment; basket
+ * Jobs to be done: choose how many tickets i need; change the number of items; see the running total; set the number of guests
+ * Keywords: quantity, stepper, number input, counter, tickets, cart
+ */
 /**
  * Input: quantity steppers. Minus and plus buttons around a number field in three sizes, each with its own lower and
  * upper limit. Typed numbers are kept inside the limits when you leave the field, the buttons switch off at the ends,

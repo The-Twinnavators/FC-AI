@@ -1,3 +1,8 @@
+/** @flowcode-library app-support-inbox · Support inbox (App screens)
+ * Use cases: support inbox; help desk; customer messages; ticketing; shared inbox; customer service; live chat inbox; conversations
+ * Jobs to be done: answer customer questions quickly; find a customer conversation; track which tickets are open; reply with a saved answer
+ * Keywords: app, inbox, support, help desk, messages, chat, filters
+ */
 /**
  * App screen: support inbox. Three panes: conversations with Open / Pending / Closed filters, a search box and unread
  * dots; the selected conversation's thread with status buttons and a reply box that offers canned replies; and the

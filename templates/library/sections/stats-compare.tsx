@@ -1,3 +1,8 @@
+/** @flowcode-library stats-compare · Stats compared (Charts and data)
+ * Use cases: kpi dashboard; metrics overview; sales summary; performance report; business stats; weekly report; admin dashboard
+ * Jobs to be done: see how the business is doing; compare this period to the last; spot trends at a glance; track key numbers over time
+ * Keywords: stats, kpi, comparison, sparkline, trend, period, dashboard
+ */
 /**
  * Stats compared with the last period: tiles for the numbers that matter, a week / month / quarter switch, an arrow
  * and percentage against the previous period, and a small trend line drawn in SVG. Use it at the top of a dashboard

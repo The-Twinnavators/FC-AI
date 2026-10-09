@@ -1,3 +1,8 @@
+/** @flowcode-library input-range · Range sliders (Forms)
+ * Use cases: price filter; budget filter; distance filter; search filters; price range; duration filter; rental search
+ * Jobs to be done: narrow results to my budget; find options within my distance; set a minimum and maximum
+ * Keywords: range, slider, price range, dual thumb, filter, min max
+ */
 /**
  * Input: range sliders. A single slider that shows its value as you drag, and a two-thumb price range whose min and
  * max number fields stay in step with the thumbs (the thumbs can't cross). A results line updates from the chosen

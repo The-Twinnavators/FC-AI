@@ -1,3 +1,8 @@
+/** @flowcode-library timeline-activity · Activity timeline (Charts and data)
+ * Use cases: activity feed; audit log; order history; customer history; change log; recent activity; event log; notifications history
+ * Jobs to be done: see what happened recently; trace the history of an order; filter events by type; look back at older activity
+ * Keywords: timeline, activity, feed, history, log, events, load more
+ */
 /**
  * Activity timeline: a vertical feed of what happened, grouped by day, with an icon per kind of event and relative
  * times ("12 min ago"). Filter by kind; "Show older" loads earlier days. Use it on a dashboard, a customer record or

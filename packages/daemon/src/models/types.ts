@@ -63,6 +63,8 @@ export interface ModelInfo {
   capabilities?: string[];
   family?: string;
   parameterSize?: string;
+  /** The longest context the model supports (tokens), when the provider reports it. */
+  maxContext?: number;
 }
 
 export interface Provider {

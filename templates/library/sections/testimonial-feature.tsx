@@ -1,3 +1,8 @@
+/** @flowcode-library testimonial-feature · Featured quote (Testimonials)
+ * Use cases: featured testimonial; customer quote; client endorsement; case study quote; founder quote; press quote
+ * Jobs to be done: hear a trusted customer's opinion; feel confident about choosing this; see a real success story
+ * Keywords: testimonial, quote, review
+ */
 /**
  * Testimonial: one big quote. A single strong quote, centered, with who said it. Good between feature sections.
  * Make it the app's own: use a real quote from the PRD, or leave the section out.

@@ -1,3 +1,8 @@
+/** @flowcode-library pagination · Pagination (Tabs, breadcrumbs and paging)
+ * Use cases: paged list; search results; order history; bookings list; transaction list; data table paging; records list; archive
+ * Jobs to be done: browse through a long list; jump to a specific page; show more results per page; filter records by status
+ * Keywords: pagination, pages, page size, list, navigation
+ */
 /**
  * Pagination: numbered pages with previous and next, ellipses for long ranges, a page-size select and a
  * "Showing 21–40 of 312" line. Use it under any long list or table that loads a page at a time.

@@ -1,3 +1,8 @@
+/** @flowcode-library auth-split · Sign in, split (Sign-in and sign-up)
+ * Use cases: sign in; login; member login; customer portal login; branded login; account access; returning user login
+ * Jobs to be done: sign in to my account; get back to my saved work; access my member area; log in with my email and password
+ * Keywords: auth, sign in, login, split, quote
+ */
 /**
  * Sign in, split: the sign-in form beside a picture panel drawn from the theme's accent (a soft gradient with a short
  * quote from a member). On phones the picture becomes a short banner above the form. Use it when the sign-in page

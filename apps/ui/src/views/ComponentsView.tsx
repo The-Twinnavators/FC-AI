@@ -4,7 +4,7 @@
  * the section's styles never mix with FlowCode's. Read-only: builds copy the sections they need.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, SECTION_CATEGORIES, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
+import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
 import { Search } from "lucide-react";
 
@@ -66,7 +66,8 @@ function SectionThumb({ id, styleId, title }: { id: string; styleId: string; tit
 }
 
 export function ComponentsView() {
-  const [cat, setCat] = useState<SectionCategory | "all">("all");
+  // "proposed": new pieces waiting for the owner's approval, not in the library yet.
+  const [cat, setCat] = useState<SectionCategory | "all" | "proposed">("all");
   const [styleId, setStyleId] = useState(() => {
     try {
       const saved = localStorage.getItem("flowcode.componentsStyle");
@@ -92,10 +93,10 @@ export function ComponentsView() {
   const counts = useMemo(() => new Map(SECTION_CATEGORIES.map((c) => [c.id, LIBRARY_SECTIONS.filter((s) => s.category === c.id).length])), []);
   // Search: every word must appear in the piece's name, description, tags or shelf (within the shelf you're on).
   const [q, setQ] = useState("");
-  const words = q.toLowerCase().split(/s+/).filter(Boolean);
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
   const label = (c: string) => SECTION_CATEGORIES.find((x) => x.id === c)?.label ?? c;
   const matches = (x: LibrarySection) => !words.length || words.every((w) => `${x.name} ${x.description} ${x.tags.join(" ")} ${label(x.category)}`.toLowerCase().includes(w));
-  const shown = LIBRARY_SECTIONS.filter((s) => (cat === "all" || s.category === cat) && matches(s));
+  const shown = cat === "proposed" ? PROPOSED_SECTIONS.filter(matches) : LIBRARY_SECTIONS.filter((s) => (cat === "all" || s.category === cat) && matches(s));
   // Previous and next in the details modal, through the pieces on the current shelf (← and → keys too).
   const at = open ? shown.findIndex((x) => x.id === open.id) : -1;
   const step = (d: number) => {
@@ -115,7 +116,7 @@ export function ComponentsView() {
     return () => removeEventListener("keydown", onKey);
   });
   // Choosing a shelf goes back up to the top of the list (just under the top bar); already above it, it stays put.
-  const pick = (id: SectionCategory | "all") => {
+  const pick = (id: SectionCategory | "all" | "proposed") => {
     setCat(id);
     const top = document.getElementById("cl-room-top");
     if (top && top.getBoundingClientRect().top < 72) top.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -155,6 +156,12 @@ export function ComponentsView() {
 
       <div id="cl-room-top" className="skill-room cl-room">
         <nav className="lib-shelves skill-room__nav" aria-label="Section categories">
+          {PROPOSED_SECTIONS.length ? (
+            <button type="button" className="lib-shelf lib-shelf--proposed" aria-current={cat === "proposed"} onClick={() => pick("proposed")}>
+              <span className="lib-shelf__label">Needs your approval</span>
+              <span className="lib-shelf__count">{PROPOSED_SECTIONS.length}</span>
+            </button>
+          ) : null}
           <button type="button" className="lib-shelf" aria-current={cat === "all"} onClick={() => pick("all")}>
             <span className="lib-shelf__label">All sections</span>
             <span className="lib-shelf__count">{LIBRARY_SECTIONS.length}</span>
@@ -174,7 +181,7 @@ export function ComponentsView() {
         {!shown.length ? (
           <div className="cl-none" role="status">
             <p>
-              Nothing matches “{q}”{cat !== "all" ? ` in ${label(cat)}` : ""}.
+              Nothing matches “{q}”{cat === "proposed" ? " in the pieces waiting for approval" : cat !== "all" ? ` in ${label(cat)}` : ""}.
             </p>
             <div style={{ display: "flex", gap: 8 }}>
               {cat !== "all" ? (
@@ -189,6 +196,11 @@ export function ComponentsView() {
           </div>
         ) : null}
         <ul className="cl-grid">
+          {cat === "proposed" ? (
+            <li className="cl-proposed-note" role="note">
+              New pieces, not in the library yet: builds don't use them until you approve them. Open one to try it, then say which to approve and which to change or drop.
+            </li>
+          ) : null}
           {shown.map((s) => (
             <li key={s.id}>
               <button type="button" className="cl-tile" onClick={() => (setShowCode(false), setOpen(s))} aria-label={`${s.name}: open details`}>

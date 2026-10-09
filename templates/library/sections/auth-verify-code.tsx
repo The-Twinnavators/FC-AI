@@ -1,3 +1,8 @@
+/** @flowcode-library auth-verify-code · Verify code (Sign-in and sign-up)
+ * Use cases: email verification; phone verification; two-factor authentication; one-time code; otp entry; login verification; confirm sign up; magic code login
+ * Jobs to be done: confirm my email address; verify my phone number; prove it is really me; finish signing in securely; get a new code sent
+ * Keywords: auth, otp, verification, two-step, code input
+ */
 /**
  * Verify code: a six-digit one-time code in six boxes. Typing moves to the next box, pasting fills them all, Backspace
  * on an empty box moves back and the arrow keys move between boxes. A wrong code shakes and explains; the right code

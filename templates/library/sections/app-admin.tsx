@@ -1,3 +1,8 @@
+/** @flowcode-library app-admin · Admin panel: users and roles (App screens)
+ * Use cases: admin panel; user management; roles and permissions; access control; team directory; member management; back office; user list
+ * Jobs to be done: manage who has access; change people's roles in bulk; invite a new user; deactivate a user safely; review a user's activity
+ * Keywords: app, admin, users, table, filters, bulk-actions, drawer, dialog, permissions, roles
+ */
 /**
  * App screen: admin panel for people and access. A coloured sidebar (sections, seats used on the plan) beside a top
  * bar with search and the signed-in admin. The Users tab is a data table with search, role and status filters,

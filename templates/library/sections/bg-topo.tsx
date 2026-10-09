@@ -1,3 +1,8 @@
+/** @flowcode-library bg-topo · Contour lines (Page backgrounds)
+ * Use cases: outdoor brand site; travel site; maps or location product; adventure booking; hero background; about section
+ * Jobs to be done: feel a sense of exploration; focus on the main message; enjoy an outdoorsy, natural feel
+ * Keywords: background, pattern, page background, topo
+ */
 /**
  * Page background: contour lines (pattern). Topographic contour lines in the text colour.
  * Good for: Outdoor, maps, travel and exploration products.

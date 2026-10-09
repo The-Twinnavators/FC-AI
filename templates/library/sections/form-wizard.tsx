@@ -1,3 +1,8 @@
+/** @flowcode-library form-wizard · Multi-step form (Forms)
+ * Use cases: onboarding flow; checkout steps; booking flow; application form; setup wizard; registration steps; quote request; survey
+ * Jobs to be done: complete a long form step by step; review my answers before submitting; set up my account; apply without getting lost
+ * Keywords: form, wizard, steps, multi-step, review
+ */
 /**
  * Form: three-step wizard. Details, then preferences, then a review of everything with an edit link per answer and a
  * final confirm. A step indicator shows where you are; Next checks only the current step and Back keeps what you

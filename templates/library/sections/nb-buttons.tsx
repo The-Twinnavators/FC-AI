@@ -1,3 +1,8 @@
+/** @flowcode-library nb-buttons · Neobrutal buttons (Neobrutalism kit)
+ * Use cases: button styles; playful ui; bold design system; action buttons; loading buttons; icon buttons; ui kit
+ * Jobs to be done: take an action with one click; see that my action is working; toggle an option on or off
+ * Keywords: buttons, neobrutalism, loading, icon button, toggle, bold
+ */
 /**
  * Neobrutalist buttons: primary, secondary, danger, icon-only, disabled and loading, with thick ink borders and a hard
  * shadow that lifts on hover and presses flat on click. Use it as the button set for a bold, playful app. Make it the

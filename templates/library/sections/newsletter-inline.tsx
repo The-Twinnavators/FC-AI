@@ -1,3 +1,8 @@
+/** @flowcode-library newsletter-inline · Newsletter sign-up (Newsletter)
+ * Use cases: newsletter signup; email subscribe; product updates signup; waitlist; blog subscribe; launch notification; mailing list
+ * Jobs to be done: get updates by email; hear about the launch first; subscribe to new articles; join the waitlist
+ * Keywords: newsletter, subscribe, email, updates
+ */
 /**
  * Newsletter: inline sign-up. One field and a button. A prototype: it checks the email, shows a confirmation and
  * keeps the address in local storage. Make it the app's own: replace SAMPLE with what people get and how often.

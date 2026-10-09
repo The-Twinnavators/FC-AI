@@ -1,3 +1,8 @@
+/** @flowcode-library hero-centered · Centered hero (Heroes)
+ * Use cases: landing page hero; product launch; app homepage; event announcement; coming soon page; campaign page; startup homepage
+ * Jobs to be done: understand the main promise quickly; see what the product looks like; get started right away; learn more before committing
+ * Keywords: hero, landing, launch, app
+ */
 /**
  * Hero: centered. One bold promise in the middle with a wide product picture underneath. Good for launches and apps
  * with one clear job. Make it the app's own: replace SAMPLE; swap the media for a real screenshot (with alt text).

@@ -1,3 +1,8 @@
+/** @flowcode-library dialog-form · Form dialog (Dialogs and drawers)
+ * Use cases: new booking; add item; quick create; new task; add contact; new appointment; create event; add expense
+ * Jobs to be done: add a new item without leaving the page; book an appointment quickly; create an entry with the right details; fix mistakes before saving
+ * Keywords: dialog, modal, form, validation
+ */
 /**
  * Dialog: short form. A "New booking" button opens a modal with name, date and time; it checks each field, shows
  * errors next to them, and on save adds the booking to the list on the page (kept in local storage). Use it for quick

@@ -1,3 +1,8 @@
+/** @flowcode-library details-list · Details list (Cards)
+ * Use cases: booking details; order details; account details; profile details; record view; reservation summary; customer record
+ * Jobs to be done: check the details of my booking; fix one wrong detail; copy my reference number; update my contact information
+ * Keywords: description list, details, record, inline edit, copy, booking, order
+ */
 /**
  * Details list: one record (here a class booking) shown as label and value rows, each editable in place with Save
  * and Cancel, checked before saving. The reference has a copy button. Use it for a booking, order or account page

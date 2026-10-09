@@ -1,3 +1,8 @@
+/** @flowcode-library table-selectable · Selectable table (Tables and lists)
+ * Use cases: bulk actions; task list; inbox management; order processing; admin table; file manager; user management; moderation queue
+ * Jobs to be done: handle many items at once; mark several tasks as done; delete items in bulk; undo a bulk change
+ * Keywords: table, checkbox, select, bulk actions, undo
+ */
 /**
  * Table: select rows and act on many at once. Row checkboxes, a select-all box (with a mixed state when only some are
  * picked) and a bar of bulk actions that appears once anything is selected, with an undo message after each action.

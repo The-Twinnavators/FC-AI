@@ -1,3 +1,8 @@
+/** @flowcode-library bg-aurora · Aurora (Page backgrounds)
+ * Use cases: hero background; launch page; ai product landing; creative portfolio; event page; coming soon page
+ * Jobs to be done: feel the brand's personality; focus on the main message; notice a launch or announcement
+ * Keywords: background, gradient, page background, aurora
+ */
 /**
  * Page background: aurora (gradient). A slowly turning, blurred blend of the theme colours (still for people who ask for less motion).
  * Good for: One standout moment: a launch hero or a sign-up page.

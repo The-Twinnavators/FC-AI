@@ -1,3 +1,8 @@
+/** @flowcode-library landing-product · Single product page (Landing pages)
+ * Use cases: product detail; product page; single product store; direct-to-consumer product; hero product; product reviews; item detail
+ * Jobs to be done: see the product from every angle; choose the right option for me; add the product to my bag; read what other buyers think; check shipping and specs
+ * Keywords: landing, product, ecommerce, gallery, options, reviews, tabs, page template
+ */
 /**
  * Page template: single product landing page for a physical product. Gallery on the left (four views you can switch),
  * the buy box on the right with rating, price, finish and shade options, quantity and "Add to bag", then details,

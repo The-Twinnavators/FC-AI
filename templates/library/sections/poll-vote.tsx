@@ -1,3 +1,8 @@
+/** @flowcode-library poll-vote · Poll (Forms)
+ * Use cases: poll; community vote; survey question; feature voting; member feedback; quick survey; event voting
+ * Jobs to be done: vote on what happens next; see what others think; change my vote; share my opinion quickly
+ * Keywords: poll, vote, survey, results, radio, feedback
+ */
 /**
  * Poll: one question, pick one answer and vote, then see the results as bars with percentages and the total number
  * of votes. Your own answer is marked, and you can change it. The vote is remembered on this device. Use it to ask

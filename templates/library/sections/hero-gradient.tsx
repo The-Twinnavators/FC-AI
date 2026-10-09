@@ -1,3 +1,8 @@
+/** @flowcode-library hero-gradient · Gradient hero (Heroes)
+ * Use cases: landing page hero; product launch; ai product homepage; new feature announcement; dark mode homepage; saas homepage; developer tool landing
+ * Jobs to be done: hear about what's new; understand what the product does; get started right away; learn more before committing
+ * Keywords: hero, dark, gradient, announcement, landing
+ */
 /**
  * Gradient hero: a dark panel with a "New" announcement pill, a light display heading with one phrase in a gradient,
  * a short lede and two actions. Good for a product's front page or the top of a launch page. Make it the app's own:

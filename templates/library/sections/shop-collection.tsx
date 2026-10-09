@@ -1,3 +1,8 @@
+/** @flowcode-library shop-collection · Collection with filters (Shop)
+ * Use cases: product catalog; category page; search results; filtered listing; shop by category; online store; product browsing
+ * Jobs to be done: find products that fit my size; filter products by price; sort products by what matters to me; narrow down a big range
+ * Keywords: collection, category page, filters, sort, chips, product grid, drawer, shop
+ */
 /**
  * Collection page: a shop category with filters down the side (price range, size, colour, in stock only), a sort
  * menu, a live result count, removable filter chips with "Clear all", and a product grid. On phones the filters fold

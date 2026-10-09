@@ -1,3 +1,8 @@
+/** @flowcode-library card-profile · Profile card (Cards)
+ * Use cases: user profile; creator profile; team member card; contact card; author bio; mentor profile; freelancer profile; social profile
+ * Jobs to be done: learn about a person; follow someone i'm interested in; send someone a message; see someone's activity numbers
+ * Keywords: profile, person, contact, follow, avatar
+ */
 /**
  * Cards: profile. One person's card with initials, role, a short bio, a few numbers, and Follow and Message actions.
  * Follow toggles; Message opens a short note form with checks and a sent message. Use for a teacher, a host or a

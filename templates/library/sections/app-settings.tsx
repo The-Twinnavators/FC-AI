@@ -1,3 +1,8 @@
+/** @flowcode-library app-settings · Account settings (App screens)
+ * Use cases: account settings; profile settings; notification preferences; billing; team management; workspace settings; user preferences; subscription management
+ * Jobs to be done: update my profile details; control which notifications i get; change my plan; invite my team; delete my workspace safely
+ * Keywords: app, settings, account, profile, billing, team, notifications, danger zone
+ */
 /**
  * App screen: account settings. A top bar, a section nav (Profile, Notifications, Billing, Team) that switches the
  * panel, and forms that know when they have unsaved changes and show Saving / Saved. Profile checks its fields

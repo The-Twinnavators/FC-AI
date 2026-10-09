@@ -1,3 +1,8 @@
+/** @flowcode-library site-clinic · Health clinic site (Industry sites)
+ * Use cases: clinic website; medical practice; dental practice; physiotherapy; appointment request; practitioner profiles; opening hours; healthcare services
+ * Jobs to be done: book an appointment; check if the clinic is open now; find the right practitioner; see if my insurance is accepted
+ * Keywords: page, clinic, health, medical, practice, physiotherapy, services, practitioners, opening hours, appointment, insurance, faq, form, html5up
+ */
 /**
  * Site: health clinic / practice. A one-page site for a GP surgery, physiotherapy or dental practice, or any clinic
  * that takes appointments: a centred emblem header with a live "open now" line, services in alternating feature boxes,

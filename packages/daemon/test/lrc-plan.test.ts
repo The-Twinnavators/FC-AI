@@ -206,10 +206,16 @@ describe("a spec build plans from the checklist", () => {
     const { project } = makeProject(app);
     // The planner gets one feature section per call and leaves its last requirement out each time.
     const sections: string[] = [];
+    const screenNotes: boolean[] = [];
     app.router.register({
       config: { id: "ollama", kind: "ollama", label: "stub", enabled: true, hosted: false },
       chat: async (req) => {
         const user = String(req.messages.at(-1)?.content ?? "");
+        // The screens are decided first, in a call of their own; every part then gets the same screen files.
+        if (String(req.messages[0]?.content ?? "").startsWith("You decide which screens")) {
+          return { content: JSON.stringify({ product: "Calendar", screens: [{ name: "Calendar", purpose: "See events by month, week or day." }] }), toolCalls: [], model: "stub", durationMs: 1 };
+        }
+        screenNotes.push(user.includes("src/screens/CalendarScreen.tsx: Calendar"));
         const lines = [...user.matchAll(/(R\d+) \[([^\]]*)\]/g)].map((m) => ({ id: m[1], section: m[2] }));
         sections.push(...new Set(lines.map((l) => l.section)));
         const title = /views/i.test(lines[0]?.section ?? "") ? "Calendar views" : "Events";
@@ -224,6 +230,8 @@ describe("a spec build plans from the checklist", () => {
     await app.orchestrator.plan(run.id);
     // Goals never reach the planner; each call is one section.
     expect(sections).toEqual(["4. Calendar views", "5. Events"]);
+    expect(screenNotes).toEqual([true, true]);
+    expect(app.store.getSetting<{ screens: Array<{ file: string }> } | null>(`screenPlan:${run.id}`, null)?.screens.map((x) => x.file)).toEqual(["src/screens/CalendarScreen.tsx"]);
     const plan = app.store.getSetting<LrcPlan | null>(planKey(project.id), null)!;
     expect(plan.runId).toBe(run.id);
     // The planner left one requirement out per section: FlowCode placed both, so every requirement has a home.

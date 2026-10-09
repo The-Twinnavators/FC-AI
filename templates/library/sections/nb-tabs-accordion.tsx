@@ -1,3 +1,8 @@
+/** @flowcode-library nb-tabs-accordion · Neobrutal tabs and accordion (Neobrutalism kit)
+ * Use cases: faq; class details; plan comparison; product details; help section; tabbed content; policies
+ * Jobs to be done: find answers to my questions; compare details between options; read only the part i need
+ * Keywords: tabs, accordion, faq, keyboard, disclosure, neobrutalism
+ */
 /**
  * Neobrutalist tabs and accordion: folder-style tabs that switch with the arrow keys, Home and End, and a stack of
  * chunky questions that open one at a time or all at once. Use them for class details, plan comparisons or an FAQ.

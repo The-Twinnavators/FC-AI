@@ -1,3 +1,8 @@
+/** @flowcode-library app-storefront · Shop home screen (App screens)
+ * Use cases: shop home; online store; storefront; product catalog; marketplace home; booking shop; ecommerce app
+ * Jobs to be done: browse products by category; search for a product; add items to my bag; find current deals
+ * Keywords: app, shop, ecommerce, storefront, product grid, cart, search, tabs
+ */
 /**
  * App screen: a shop's home screen. A header with the shop name, a search box and a bag button with its count (the bag
  * opens as a small panel you can edit), category tabs, a dismissible promo banner, a product grid with add-to-bag and

@@ -1,3 +1,8 @@
+/** @flowcode-library input-button-group · Button groups (Forms)
+ * Use cases: editor toolbar; text formatting; note editor; view switcher; save options; rich text editor; document editor
+ * Jobs to be done: format my text; align my content; save my work in different ways; switch between views
+ * Keywords: button group, toolbar, toggle, aria-pressed, split button, menu, formatting
+ */
 /**
  * Input: button groups. An editor toolbar made of joined buttons: text alignment (one choice at a time), formatting
  * (bold, italic, underline switch on and off independently) and a split button whose main half saves and whose arrow

@@ -1,3 +1,8 @@
+/** @flowcode-library sidebar-nested · Nested sidebar with pins (Navigation)
+ * Use cases: project navigation; documentation navigation; workspace tree; file tree; knowledge base; wiki; multi-project app
+ * Jobs to be done: find a page inside a project; pin pages i use often; keep my open folders between visits; move between projects quickly
+ * Keywords: sidebar, navigation, tree, nested, expandable, pinned, favorites, app shell, drawer, responsive
+ */
 /**
  * Sidebar: nested groups with pins. Projects open into their pages (two levels, chevrons turn as they open) and any
  * page can be pinned to a "Pinned" list at the top with a small pin button. What is open and what is pinned are both

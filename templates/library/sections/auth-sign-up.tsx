@@ -1,3 +1,8 @@
+/** @flowcode-library auth-sign-up · Sign up (Sign-in and sign-up)
+ * Use cases: sign up; registration; create account; join form; member registration; onboarding start; account creation; new user signup
+ * Jobs to be done: create an account for myself; join the service with my email; set a strong password; get started with a new account
+ * Keywords: auth, sign up, register, form, password strength
+ */
 /**
  * Sign up: a create-account form with name, email and a password that shows its strength and a live checklist of the
  * rules, plus a terms checkbox. Errors appear under each field when the form is sent; success shows a "check your

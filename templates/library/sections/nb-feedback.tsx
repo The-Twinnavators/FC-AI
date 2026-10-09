@@ -1,3 +1,8 @@
+/** @flowcode-library nb-feedback · Neobrutal feedback (Neobrutalism kit)
+ * Use cases: alerts; notifications; status badges; upload progress; system messages; booking status; dashboard notices
+ * Jobs to be done: know if something worked; see the status of my booking; track an upload until it finishes; dismiss notices i have read
+ * Keywords: alerts, badges, progress, notifications, status, neobrutalism
+ */
 /**
  * Neobrutalist feedback: alerts in four tones that can be dismissed (and brought back), status badges, and chunky
  * progress bars with a running upload. Use it for notices on a dashboard, booking status or anything that takes a while.

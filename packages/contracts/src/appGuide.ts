@@ -34,7 +34,7 @@ export const APP_GUIDE: GuideAnchor[] = [
   { id: "topbar.search", route: "*", title: "Global search", description: "Searches files, knowledge, prompts, skills and run history.", keywords: ["search", "find"] },
   { id: "topbar.provider", route: "*", title: "Provider status", description: "Shows whether the local model provider (Ollama) is online.", keywords: ["ollama", "online", "offline", "provider"] },
   { id: "topbar.copilot", route: "*", title: "Copilot", description: "Opens the app-aware Copilot in a docked side panel (Ctrl+K). It answers questions about FlowCode and highlights the parts of the screen it is describing.", keywords: ["copilot", "help", "assistant", "ask"] },
-  { id: "topbar.approvals", route: "*", title: "Pending approvals", description: "How many decisions are waiting on you across projects.", keywords: ["approvals", "pending", "waiting"] },
+  { id: "nav.approvals", route: "*", title: "Approvals", description: "Decisions waiting on you across projects; the badge shows how many.", keywords: ["approvals", "pending", "waiting"] },
   // Home
   { id: "newbuild.form", route: "/", title: "How FlowCode works", description: "Six tabs from writing a PRD to handing off the real app, and Start a prototype, which opens New build as a 4-step modal. Describe what to build, optionally attach a PRD (.md) plus HTML/CSS/JSON and images of the look, choose autonomy, and start.", keywords: ["new", "build", "create", "prd", "spec", "start"] },
   { id: "newbuild.description", route: "/", title: "What are you building?", description: "Your description is scored live; name who uses it, what they do and the data involved to avoid a generic result.", keywords: ["description", "score", "generic", "request"] },

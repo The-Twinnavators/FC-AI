@@ -1,3 +1,8 @@
+/** @flowcode-library features-alternating · Alternating features (Features)
+ * Use cases: how it works; product tour; feature showcase; step by step guide; onboarding overview; case study story; service process
+ * Jobs to be done: understand how the product works; see each feature in action; follow the process step by step; picture using it in my day
+ * Keywords: features, how it works, steps, showcase
+ */
 /**
  * Features: alternating rows. Each feature gets a picture and a short story, alternating sides. Good for showing how
  * the product works step by step. Make it the app's own: replace SAMPLE; 2 to 4 rows; swap each media placeholder

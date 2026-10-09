@@ -1,3 +1,8 @@
+/** @flowcode-library nb-form · Neobrutal sign-up form (Neobrutalism kit)
+ * Use cases: sign up form; club membership; waitlist form; class registration; event registration; application form; contact form
+ * Jobs to be done: join a club or studio; register for a class; sign up for the waitlist; tell them about myself
+ * Keywords: form, sign up, validation, radio, checkbox, select, neobrutalism
+ */
 /**
  * Neobrutalist sign-up form: text inputs, a select, a radio group, a textarea and a terms checkbox, with chunky
  * borders, inline errors and a success panel. Use it for joining a studio, a club or a waitlist. Make it the app's own:

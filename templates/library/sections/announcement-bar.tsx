@@ -1,3 +1,8 @@
+/** @flowcode-library announcement-bar · Announcements (Alerts and states)
+ * Use cases: announcement banner; promo bar; product update; launch news; sale announcement; site notice; whats new
+ * Jobs to be done: hear about what is new; learn about a current offer; dismiss news i have seen
+ * Keywords: announcement, banner, pill, notice, dismiss, news
+ */
 /**
  * Announcements: three ways to tell people about something new. A slim top bar with a link and a close button (stays
  * closed on this device), a small pill above a page heading, and a notice that floats at the bottom of the screen

@@ -1,3 +1,8 @@
+/** @flowcode-library skeleton-loading · Skeleton loading (Alerts and states)
+ * Use cases: loading state; feed loading; dashboard loading; list loading; search results loading; profile loading
+ * Jobs to be done: know content is on its way; wait without the page jumping around; see the page shape before data arrives
+ * Keywords: skeleton, loading, placeholder, shimmer
+ */
 /**
  * Skeleton loading: shimmering placeholders shaped like the card list to come, then the real cards after a short
  * wait. Use it wherever content arrives after a moment, so the page keeps its shape instead of jumping.

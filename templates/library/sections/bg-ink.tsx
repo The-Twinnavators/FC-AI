@@ -1,3 +1,8 @@
+/** @flowcode-library bg-ink · Ink band (Page backgrounds)
+ * Use cases: call to action band; stats band; promo section; newsletter section; highlight section; closing section
+ * Jobs to be done: notice the key invitation; see a clear break between sections; take the next step
+ * Keywords: background, gradient, page background, ink
+ */
 /**
  * Page background: ink band (gradient). The accent colour as a solid band with a soft highlight; text switches to the on-accent colour.
  * Good for: A closing call to action or a stats band.

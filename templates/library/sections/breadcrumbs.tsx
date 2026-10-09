@@ -1,3 +1,8 @@
+/** @flowcode-library breadcrumbs · Breadcrumbs (Tabs, breadcrumbs and paging)
+ * Use cases: breadcrumb navigation; category hierarchy; folder path; docs navigation; product category trail; nested settings; file browser path
+ * Jobs to be done: see where i am in the site; go back up a level; find my way through nested pages
+ * Keywords: breadcrumbs, navigation, trail, hierarchy, responsive
+ */
 /**
  * Breadcrumbs: a trail from the home page to the page you are on. On phones the middle levels fold into a "…" button
  * that reveals them; the last crumb is the current page (aria-current). Use it on pages three or more levels deep.

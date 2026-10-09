@@ -1,3 +1,8 @@
+/** @flowcode-library status-badges · Status badges (Alerts and states)
+ * Use cases: order status; task status; deployment status; job queue; ticket status; build progress; workflow tracker; delivery tracking
+ * Jobs to be done: see where each item stands; spot what failed at a glance; know when something is still working; track progress over time
+ * Keywords: status, badge, chip, signal light, indicator
+ */
 /**
  * Status badges: status chips with a coloured dot (done, in progress, waiting, failed, draft) and signal lights that
  * glow, with a soft pulse while something is working. Shown on a short list of jobs whose status you can move on with

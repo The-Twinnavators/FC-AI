@@ -1,3 +1,8 @@
+/** @flowcode-library page-not-found · 404 page (Alerts and states)
+ * Use cases: 404 page; page not found; broken link; missing page; error page
+ * Jobs to be done: find the page i was looking for; get back to the home page; search for what i need
+ * Keywords: 404, not found, error page
+ */
 /**
  * Page not found (404): a big number, a short honest message, a search across the app's main pages and links back to
  * them. Use it as the catch-all route. Make it the app's own: replace SAMPLE with the app's real pages and their

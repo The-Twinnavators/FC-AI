@@ -1,3 +1,8 @@
+/** @flowcode-library tabs-underline · Underline tabs (Navigation)
+ * Use cases: section tabs; profile tabs; inbox folders; order status tabs; settings sections; project views; dashboard views
+ * Jobs to be done: switch between views quickly; see how many items are in each group; find the right section of a page
+ * Keywords: tabs, underline, navigation, counts
+ */
 /**
  * Underline tabs: accessible tabs with an underline that slides to the active tab, optional count badges, and arrow
  * keys, Home and End to move between them. Use it to split one page into a few views of the same thing.

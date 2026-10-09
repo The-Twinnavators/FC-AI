@@ -1,3 +1,8 @@
+/** @flowcode-library bg-waves · Waves (Page backgrounds)
+ * Use cases: hero background; travel site; wellness site; music or audio product; landing page section; event page
+ * Jobs to be done: feel calm and at ease; focus on the main message; enjoy a relaxed, flowing page
+ * Keywords: background, pattern, page background, waves
+ */
 /**
  * Page background: waves (pattern). Repeating wave lines in the accent colour.
  * Good for: Wellness, travel, water or calm brands.

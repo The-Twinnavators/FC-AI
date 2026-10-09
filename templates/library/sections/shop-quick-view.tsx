@@ -1,3 +1,8 @@
+/** @flowcode-library shop-quick-view · Quick view (Shop)
+ * Use cases: quick view; product grid; product preview; shop catalog; fast add to cart; category browsing
+ * Jobs to be done: check a product without leaving the page; pick a size and colour; add a product to my bag quickly
+ * Keywords: quick view, product dialog, modal, gallery, size, colour, add to bag, shop
+ */
 /**
  * Quick view: a product grid where "Quick view" opens the product in a dialog without leaving the page. It has a
  * small gallery (three views), colour and size choices (sold-out sizes are greyed), a quantity stepper and "Add to

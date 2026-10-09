@@ -1,3 +1,8 @@
+/** @flowcode-library progress-set · Progress set (Charts and data)
+ * Use cases: upload progress; order status; storage usage; goal tracking; quota usage; fundraising goal; delivery tracking; fitness goal
+ * Jobs to be done: track my order's progress; see how much storage i have left; check progress toward my goal; follow an upload until it finishes
+ * Keywords: progress, progress bar, steps, usage, storage, ring, circular, goal
+ */
 /**
  * Progress set: four ways to show how far along something is. A labelled bar (a photo upload you can start and
  * cancel), a segmented bar for a multi-step order, a stacked bar for storage split by type with a legend, and a

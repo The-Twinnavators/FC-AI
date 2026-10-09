@@ -1,3 +1,8 @@
+/** @flowcode-library empty-state · Empty list state (Alerts and states)
+ * Use cases: empty list; first run; no projects yet; empty inbox; no tasks; empty cart; onboarding start; no saved items
+ * Jobs to be done: add my first item; understand what goes here; get started with the product; know what to do next
+ * Keywords: empty state, list, onboarding, zero data
+ */
 /**
  * Empty state: what a list shows before it has anything in it. A simple drawing, a title, a line that says what the
  * list is for, and one primary action that adds the first item; the list then appears, and removing every item brings

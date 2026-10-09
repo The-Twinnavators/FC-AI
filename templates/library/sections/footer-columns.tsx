@@ -1,3 +1,8 @@
+/** @flowcode-library footer-columns · Footer with columns (Footers)
+ * Use cases: site footer; site map; marketing footer; company links; legal links; resource links
+ * Jobs to be done: find a page i couldn't find above; read the privacy policy or terms; get in touch or follow on social; browse every section of the site
+ * Keywords: footer, links, site map
+ */
 /**
  * Footer: columns. Brand and a line about it, then three columns of links, then the small print. Make it the app's
  * own: replace SAMPLE; point links at real screens; keep the credit line if this app uses an HTML5 UP template.

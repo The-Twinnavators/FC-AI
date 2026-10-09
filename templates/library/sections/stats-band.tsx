@@ -1,3 +1,8 @@
+/** @flowcode-library stats-band · Stats band (Stats)
+ * Use cases: results section; company milestones; impact numbers; social proof metrics; about us figures; nonprofit impact; growth highlights
+ * Jobs to be done: see the results in numbers; judge how established the company is; trust the product with proof; understand the scale of impact
+ * Keywords: stats, numbers, results, metrics
+ */
 /**
  * Stats: band. Four numbers on the accent colour, a strong break between sections. Make it the app's own: replace
  * SAMPLE with numbers the PRD actually gives; never invent results.

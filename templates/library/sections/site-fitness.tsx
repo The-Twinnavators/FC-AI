@@ -1,3 +1,8 @@
+/** @flowcode-library site-fitness · Fitness studio site (Industry sites)
+ * Use cases: gym website; yoga studio; class timetable; fitness classes; pilates studio; membership pricing; free trial class; trainer profiles
+ * Jobs to be done: find a class that fits my schedule; choose a membership; meet the trainers; book a free trial
+ * Keywords: page, fitness, yoga, gym, studio, timetable, schedule, filter, pricing, trainers, free trial, form, html5up
+ */
 /**
  * Site: fitness / yoga studio. A one-page site for a gym, yoga or pilates studio, or any class-based fitness business:
  * centred masthead, a bold intro, a class timetable you can filter by day (and by beginner-friendly), what's included,

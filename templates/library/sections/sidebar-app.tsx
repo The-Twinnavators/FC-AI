@@ -1,3 +1,8 @@
+/** @flowcode-library sidebar-app · App sidebar (Navigation)
+ * Use cases: app navigation; dashboard layout; admin panel; booking app; crm; project management app; saas app shell; back office
+ * Jobs to be done: move between sections of the app; find a page quickly; create a new item from anywhere; manage my account and sign out
+ * Keywords: sidebar, navigation, app shell, dashboard, collapsible, search, account menu, drawer, responsive
+ */
 /**
  * Sidebar: the classic app sidebar. Product name at the top, a search box that filters the pages, grouped pages with
  * icons and counts, one primary "New booking" button and the signed-in person with a small menu at the bottom. It

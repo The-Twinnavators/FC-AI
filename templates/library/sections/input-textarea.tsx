@@ -1,3 +1,8 @@
+/** @flowcode-library input-textarea · Textareas (Forms)
+ * Use cases: comments; reviews; feedback form; booking notes; message box; discussion thread; notes field; support message
+ * Jobs to be done: leave a comment; write a review; add notes to my booking; send feedback within the limit
+ * Keywords: textarea, character count, auto grow, comment box, comments, limit
+ */
 /**
  * Input: textareas. A message field that grows with what you type and counts characters, warning as you near the
  * limit and refusing to send once you're over it; and a comment box with a small formatting toolbar, Cancel and Post.

@@ -1,3 +1,8 @@
+/** @flowcode-library input-select · Selects (Forms)
+ * Use cases: country picker; category select; searchable dropdown; form selects; timezone picker; assignee picker; settings options
+ * Jobs to be done: pick an option from a long list; find my option by typing; choose a category for my item
+ * Keywords: select, dropdown, listbox, combobox, searchable select, type-ahead, native select
+ */
 /**
  * Input: selects. Three ways to pick from a list: a custom select (a button that opens a listbox; arrow keys, Home,
  * End, type a letter to jump, Enter to pick, Escape to close), a native select styled to match it, and a searchable

@@ -1,3 +1,8 @@
+/** @flowcode-library bg-dots · Dot grid (Page backgrounds)
+ * Use cases: hero background; developer tool landing; docs page background; feature section; technical product page; portfolio background
+ * Jobs to be done: focus on the content on a subtle backdrop; feel the product is precise and technical; read the page without visual clutter
+ * Keywords: background, pattern, page background, dots
+ */
 /**
  * Page background: dot grid (pattern). A fine grid of dots in the text colour.
  * Good for: Tools and technical products; behind cards or diagrams.

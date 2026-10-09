@@ -17,6 +17,10 @@ import { App } from "./App";
 import { loadThemeOverrides } from "./theme";
 import { themeFor } from "./appearance";
 import { registerBundledFonts } from "./bundledFonts";
+import { applyStartPage } from "./nav";
+
+// The page chosen in Settings → Start page, when FlowCode opens without one.
+applyStartPage();
 
 // First paint: the theme this page should have (toggle, system or per page).
 document.documentElement.dataset.theme = themeFor(location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] ?? "");

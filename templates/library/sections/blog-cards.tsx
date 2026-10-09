@@ -1,3 +1,8 @@
+/** @flowcode-library blog-cards · Latest posts (Blog)
+ * Use cases: blog; latest posts; news; articles; journal; resources; case studies; press releases; recipes
+ * Jobs to be done: read the latest articles; find posts on a topic i care about; keep up with company news; learn from guides and stories
+ * Keywords: blog, posts, articles, journal, news
+ */
 /**
  * Blog: latest posts. Three cards with a picture, topic, title, summary and date. Make it the app's own: replace
  * SAMPLE with real posts (or the spec's topics); link each card to its post screen.

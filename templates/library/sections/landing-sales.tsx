@@ -1,3 +1,8 @@
+/** @flowcode-library landing-sales · Long-form sales page (Landing pages)
+ * Use cases: sales page; online course; coaching program; workshop sales; digital product; course enrolment; membership offer; ebook sales
+ * Jobs to be done: decide if the course is right for me; see what i will learn each week; choose how to pay; enrol in the course; get my questions answered before buying
+ * Keywords: landing, sales page, course, pricing, guarantee, faq, accordion, page template
+ */
 /**
  * Page template: long-form sales page for one product or course. A reading-width column that walks the visitor from
  * the problem to the outcome, then shows what's included week by week, the price (pay once or in three parts), the

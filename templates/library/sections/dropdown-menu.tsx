@@ -1,3 +1,8 @@
+/** @flowcode-library dropdown-menu · Actions menu (Tabs, breadcrumbs and paging)
+ * Use cases: row actions; file list actions; document list; item management; context menu; project list; record actions
+ * Jobs to be done: rename or duplicate an item; delete something i no longer need; share a link to an item; undo a mistake quickly
+ * Keywords: dropdown, menu, actions, kebab, keyboard
+ */
 /**
  * Actions menu: a "more" button on each row that opens a menu with icons, a separator and a destructive item. Arrow
  * keys, Home, End and the first letter move through it; Escape closes it and focus goes back to the button. Use it

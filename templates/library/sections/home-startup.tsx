@@ -1,3 +1,8 @@
+/** @flowcode-library home-startup · Startup homepage (Homepages)
+ * Use cases: startup homepage; company website; careers; open roles; about the team; mission statement; traction milestones; investor-facing site
+ * Jobs to be done: understand what the company is building; learn who the founders are; find a job that fits me; hear about future roles
+ * Keywords: page, homepage, startup, mission, traction, timeline, team, careers, hiring
+ */
 /**
  * Page template: startup homepage. A whole page for an early-stage company that is selling a vision as much as a
  * product, here a small team building a shared household planner: navigation, a bold left-aligned hero with a

@@ -1,3 +1,8 @@
+/** @flowcode-library cta-banner · Call-to-action banner (Calls to action)
+ * Use cases: closing call to action; sign up prompt; free trial invite; demo request; end of page invite; download prompt; join waitlist
+ * Jobs to be done: get started now; sign up for a free trial; take the next step; book a demo
+ * Keywords: cta, call to action, sign up, closing
+ */
 /**
  * Call to action: banner. A closing invitation on the accent colour with one main action. Usually just above the
  * footer. Make it the app's own: replace SAMPLE; keep it to one sentence and one primary action.

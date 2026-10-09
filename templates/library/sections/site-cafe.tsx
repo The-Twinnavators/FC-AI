@@ -1,3 +1,8 @@
+/** @flowcode-library site-cafe · Cafe website (Industry sites)
+ * Use cases: cafe website; restaurant website; menu; opening hours; table booking; bistro; bar website; bakery
+ * Jobs to be done: see what is on the menu; check if they are open today; find how to get there; book a table
+ * Keywords: page, template, cafe, restaurant, menu, tabs, hours, reservations, booking, form, html5up
+ */
 /**
  * Page template: cafe or restaurant website. A one-page site for a neighbourhood cafe, bistro or small restaurant:
  * centred header, warm hero, three highlights, a tabbed menu with a vegetarian filter, opening hours (today marked),

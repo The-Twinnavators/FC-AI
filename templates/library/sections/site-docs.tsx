@@ -1,3 +1,8 @@
+/** @flowcode-library site-docs · Docs site (Industry sites)
+ * Use cases: documentation; api docs; developer docs; help center; knowledge base; user guide; sdk reference; getting started guide
+ * Jobs to be done: learn how to use the api; find the right docs page; copy install and code examples; check parameters for a call
+ * Keywords: docs, documentation, developer, api, sidebar, search, code, table of contents, tabs, feedback
+ */
 /**
  * Page template: documentation site for a developer product, here a small scheduling API. A sticky top bar with the
  * product name, a version picker and a search box that filters the page list as you type; a left nav of collapsible

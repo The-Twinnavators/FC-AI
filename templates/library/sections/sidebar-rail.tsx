@@ -1,3 +1,8 @@
+/** @flowcode-library sidebar-rail · Icon rail and panel (Navigation)
+ * Use cases: email app; chat app; messaging; file browser; workspace navigation; help desk; notes app; app navigation
+ * Jobs to be done: switch between sections of the app; open a conversation or folder; find a page within a section; keep my place while browsing
+ * Keywords: sidebar, navigation, icon rail, secondary panel, inbox, app shell, tooltips, drawer, responsive
+ */
 /**
  * Sidebar: icon rail with a secondary panel, like an email or chat app. A slim rail of section icons (names show as
  * tooltips) sits next to a wider panel listing the pages of the chosen section; choosing a page opens it on the right.

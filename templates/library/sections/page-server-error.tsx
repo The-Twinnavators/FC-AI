@@ -1,3 +1,8 @@
+/** @flowcode-library page-server-error · Server error (500) (Alerts and states)
+ * Use cases: server error; 500 page; error page; something went wrong; error boundary; service failure; crash screen
+ * Jobs to be done: try again after something broke; report a problem to support; understand what went wrong; get back to what i was doing
+ * Keywords: error, 500, server error, retry, page
+ */
 /**
  * Server error (500): something broke on our side. A small server illustration, an honest message, a retry button
  * that shows a "trying again" state, a reference code people can copy for support, and a support link. The retry is

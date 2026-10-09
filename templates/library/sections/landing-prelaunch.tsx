@@ -1,3 +1,8 @@
+/** @flowcode-library landing-prelaunch · Pre-launch waitlist (Landing pages)
+ * Use cases: waitlist; pre-launch; coming soon; early access; beta signup; launch countdown; referral waitlist
+ * Jobs to be done: join the waitlist early; know when it launches; move up the waitlist by sharing; see what is coming on launch day
+ * Keywords: landing, pre-launch, waitlist, countdown, coming soon, referral, page template
+ */
 /**
  * Page template: pre-launch / waitlist page. One screen built around a live countdown to launch day and a single email
  * field; joining shows the visitor's place in the queue and a referral link to move up. Once the launch date passes the

@@ -8,7 +8,7 @@ import { BlockerAdvice } from "../components/BlockerAdvice";
 import { ChangeImpactPanel } from "../components/ChangeImpactPanel";
 import { RunModelsPanel } from "../components/RunModelsPanel";
 import { useDisplayMode } from "../displayMode";
-import { RobotHead, ROLE_COLOR, ROLE_LABEL } from "../components/RobotHead";
+import { RobotHead, ROLE_COLOR, ROLE_LABEL, workingRole } from "../components/RobotHead";
 import { KnowledgePicker } from "../components/KnowledgePicker";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { checkName, friendlyError } from "@flowcode/contracts";
@@ -182,9 +182,9 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
   });
   // The agent working right now, by the same rule as the Agents page: the current task's role (the debugger on a
   // retry), the planner while a draft has no tasks yet, otherwise whoever made the latest model call.
-  const currentTask = view?.tasks.find((t) => t.id === view.run.currentTaskId);
   const lastCaller = [...events].reverse().find((e) => e.type === "model.requested" && typeof (e.data as { role?: unknown } | undefined)?.role === "string")?.data as { role: string } | undefined;
-  const workingAgent = currentTask ? { role: currentTask.attempts > 1 ? "debugger" : currentTask.role } : view?.run.status === "draft" && !view.tasks.length ? { role: "planner" } : lastCaller;
+  const role = workingRole(view?.run, view?.tasks, lastCaller?.role);
+  const workingAgent = role ? { role } : undefined;
 
   useEffect(() => {
     if (view?.approvals.some((a) => a.status === "pending")) setWorkMode("details");

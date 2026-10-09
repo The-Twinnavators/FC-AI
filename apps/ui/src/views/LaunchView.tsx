@@ -55,6 +55,16 @@ interface Report {
   categories: Category[];
 }
 
+/** The checklist's categories in four groups, so 28 categories read as a few clear parts. */
+type GroupId = "build" | "prd" | "later" | "background";
+const GROUPS: Array<{ id: GroupId; label: string; description: string }> = [
+  { id: "build", label: "Making it a real app", description: "What every real app needs beyond the prototype: a backend, security, privacy, quality and launch." },
+  { id: "prd", label: "From your PRD", description: "The features and requirements your PRD describes, to build for real." },
+  { id: "later", label: "Optional, later", description: "Useful after launch; not needed to go live." },
+  { id: "background", label: "PRD background", description: "Context from your PRD for a person to read and check." },
+];
+const groupOf = (c: { id: string; optional?: boolean }): GroupId => (c.optional ? "later" : c.id === "spec.background" ? "background" : c.id.startsWith("spec.") ? "prd" : "build");
+
 type Priority = "low" | "medium" | "high" | "critical";
 const PRIORITY_LABEL: Record<Priority, string> = { low: "Low", medium: "Medium", high: "High", critical: "Critical" };
 const isDone = (s: Status) => s === "completed" || s === "not_applicable";
@@ -135,6 +145,8 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
   };
   const filtering = filter !== "all" || q.trim().length > 0;
   const visible = useMemo(() => (report?.categories ?? []).map((c) => ({ ...c, shown: c.items.filter(matches) })).filter((c) => c.shown.length || !filtering), [report, filter, q]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The one expand/collapse toggle: everything shown is open.
+  const allOpen = visible.length > 0 && visible.every((c) => open[c.id] ?? filtering);
 
   /** Returns the error message when the change was refused (a prompt that misses the standard), else undefined. */
   const act = async (itemId: string, body: Record<string, unknown>): Promise<string | undefined> => {
@@ -217,7 +229,7 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
             </>
           )}
           <p className="lrc__sub">For building the real application: everything the prototype simulates or leaves out. Each item has a prompt you can give to a coding agent.</p>
-          <p className="lrc__sub">
+          {embedded ? null : <p className="lrc__sub">
             {report ? (
               <>
                 <strong>{report.projectName}</strong>
@@ -226,12 +238,7 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
             ) : (
               "…"
             )}
-          </p>
-          {t && report ? (
-            <p className="lrc__meta">
-              {t.done} of {t.total} tasks complete across {report.categories.length} categories.{report.checksLastRunAt ? ` The prototype's checks last ran ${ago(report.checksLastRunAt)}.` : ""}
-            </p>
-          ) : null}
+          </p>}
         </div>
         <div className="lrc__actions">
           <button className="btn" onClick={() => setAdding((a) => !a)} aria-expanded={adding}>
@@ -271,71 +278,52 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
         </div>
       ) : null}
 
-      {/* D11: for people who don't write code. Only routes and hand-offs; no invented prices or timelines. */}
-      <details className="lrc-real" data-cp="real-app" data-reveal>
-        <summary>Not a developer? How to turn this into a real app</summary>
-        <p className="lrc-real__lede">The prototype shows what the app should do. A real app also needs everything below the progress bar: a server, real data, accounts, security and a web address. There are three common routes.</p>
-        <div className="lrc-real__routes">
-          <section>
-            <h3>Work with a developer</h3>
-            <p>Hand them:</p>
-            <ul>
-              <li>Your PRD: what the app is for and who uses it.</li>
-              <li>This checklist (<strong>Download .md</strong>). Each item has a prompt their coding tools can use.</li>
-              <li>The prototype itself: <strong>Export as a folder</strong> (above) gives them a copy they can open and click through.</li>
-            </ul>
-            <p>Ask them which launch-gate items come first, and for an estimate per category of the checklist.</p>
-          </section>
-          <section>
-            <h3>Use an app-builder service</h3>
-            <p>Rebuild the screens and flows on a service made for people who don&apos;t code, using the prototype as your reference.</p>
-            <p>Before you choose one, check it supports what the checklist lists for your app: accounts, payments, saving data, privacy.</p>
-          </section>
-          <section>
-            <h3>Use a coding agent yourself</h3>
-            <p>Each item&apos;s prompt is written for a coding agent. Start with the launch-gate items, one at a time, and check each result before the next.</p>
-          </section>
-        </div>
-        <p className="lrc-real__note">Whichever route you take: the prototype&apos;s data is pretend. Before real customers use the app, do the security and privacy items, because they protect people&apos;s details.</p>
-      </details>
 
       {notice ? (
         <p className="notice" role="status" style={{ marginBottom: 16 }}>
           {notice}
         </p>
       ) : null}
-      {t ? (
-        <div className="lrc__progress" data-reveal>
-          <div className="lrc__progress-row">
-            <span>Overall progress</span>
-            <strong>{pct}%</strong>
-          </div>
-          <span className="lrc-bar lrc-bar--lg" role="progressbar" aria-label="Overall launch readiness" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
-            <span style={{ width: `${pct}%` }} />
-          </span>
-        </div>
-      ) : null}
-
       {t && report ? (
-        report.level !== "green" ? (
-          <button className={`lrc__gate lrc__gate--open lrc__gate--${report.level}`} onClick={() => setFilter("gate")}>
-            <Icon name="quality" size={16} /> {[t.gateBlocked ? `${plural(t.gateBlocked, "blocked launch-gate task")}` : "", t.criticalOpen ? `${plural(t.criticalOpen, "critical launch-gate task")} remaining` : ""].filter(Boolean).join(". ")}
-            <span className="lrc__gate-link">Show</span>
-          </button>
-        ) : (
-          <p className="lrc__gate lrc__gate--clear">
-            <Icon name="check" size={16} /> No blocked or incomplete critical launch-gate tasks right now.
-          </p>
-        )
-      ) : null}
-
-      {report?.requirements ? (
-        <p className="lrc__plan" data-reveal>
-          <Icon name="checklist" size={15} />
-          <span>
-            Your PRD has {plural(report.requirements.total, "requirement")}. The prototype simulates {report.requirements.inSteps} of them; build each for real from the Spec categories below. {report.requirements.forPeople} {report.requirements.forPeople === 1 ? "is" : "are"} for a person to check and {report.requirements.later} {report.requirements.later === 1 ? "was" : "were"} left out of the prototype.
-          </span>
-        </p>
+        <section className="lrc-sum" data-reveal aria-label="Launch readiness summary">
+          <div className="lrc-sum__progress">
+            <div className="lrc__progress-row">
+              <span>Overall progress</span>
+              <strong>{pct}%</strong>
+            </div>
+            <span className="lrc-bar lrc-bar--lg" role="progressbar" aria-label="Overall launch readiness" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+              <span style={{ width: `${pct}%` }} />
+            </span>
+            <p className="lrc-sum__meta">
+              {t.done} of {t.total} tasks complete across {report.categories.length} categories.{report.checksLastRunAt ? ` The prototype's checks last ran ${ago(report.checksLastRunAt)}.` : ""}
+            </p>
+          </div>
+          <div className="lrc-sum__stats">
+            <button type="button" className={`lrc-stat lrc-stat--${report.level}`} aria-pressed={filter === "gate"} onClick={() => setFilter(filter === "gate" ? "all" : "gate")} title="Show only launch-gate tasks">
+              <strong>{t.criticalOpen}</strong>
+              <span>
+                {t.criticalOpen === 1 ? "Critical launch-gate task left" : "Critical launch-gate tasks left"}
+                {t.gateBlocked ? ` · ${t.gateBlocked} blocked` : ""}
+              </span>
+            </button>
+            <button type="button" className="lrc-stat" aria-pressed={filter === "in_progress"} onClick={() => setFilter(filter === "in_progress" ? "all" : "in_progress")}>
+              <strong>{t.in_progress}</strong>
+              <span>In progress</span>
+            </button>
+            <button type="button" className="lrc-stat" aria-pressed={filter === "completed"} onClick={() => setFilter(filter === "completed" ? "all" : "completed")}>
+              <strong>{t.completed}</strong>
+              <span>Complete</span>
+            </button>
+          </div>
+          {report.requirements ? (
+            <p className="lrc-sum__plan">
+              <Icon name="checklist" size={15} />
+              <span>
+                Your PRD has {plural(report.requirements.total, "requirement")}. The prototype simulates {report.requirements.inSteps} of them; build each for real from the PRD categories below. {report.requirements.forPeople} {report.requirements.forPeople === 1 ? "is" : "are"} for a person to check and {report.requirements.later} {report.requirements.later === 1 ? "was" : "were"} left out of the prototype.
+              </span>
+            </p>
+          ) : null}
+        </section>
       ) : null}
 
       {adding && report ? (
@@ -354,32 +342,24 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
         />
       ) : null}
 
-      <label className="lrc__search">
-        <span className="label">Search</span>
-        <input className="input" type="search" placeholder="Search title or description" value={q} onChange={(e) => setQ(e.target.value)} />
-      </label>
-
-      <div className="lrc__pills" role="toolbar" aria-label="Filter checklist" data-guide="lrc.filters">
-        {FILTERS.map((f) => {
-          const n = !t ? undefined : f.id === "all" ? t.total : f.id === "gate" ? undefined : f.id === "flagged" ? t.flagged : t[f.id];
-          return (
-            <button key={f.id} className="lrc__pill" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>
-              {f.label}
-              {n !== undefined && f.id !== "all" ? <span className="lrc__pill-n">{n}</span> : null}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="lrc__expand">
-        <button className="btn btn--sm" onClick={() => setOpen(Object.fromEntries((report?.categories ?? []).map((c) => [c.id, true])))}>
-          <Icon name="chevron" size={12} /> Expand all
-        </button>
-        <button className="btn btn--sm" onClick={() => setOpen(Object.fromEntries((report?.categories ?? []).map((c) => [c.id, false])))}>
-          <span style={{ transform: "rotate(-90deg)", display: "inline-flex" }}>
+      <div className="lrc-toolbar">
+        <input className="input lrc-toolbar__search" type="search" aria-label="Search the checklist" placeholder="Search title or description" value={q} onChange={(e) => setQ(e.target.value)} />
+        <div className="lrc__pills" role="toolbar" aria-label="Filter checklist" data-guide="lrc.filters">
+          {FILTERS.map((f) => {
+            const n = !t ? undefined : f.id === "all" ? t.total : f.id === "gate" ? undefined : f.id === "flagged" ? t.flagged : t[f.id];
+            return (
+              <button key={f.id} className="lrc__pill" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>
+                {f.label}
+                {n !== undefined && f.id !== "all" ? <span className="lrc__pill-n">{n}</span> : null}
+              </button>
+            );
+          })}
+        </div>
+        <button className="btn btn--sm lrc-toolbar__expand" onClick={() => setOpen(Object.fromEntries((report?.categories ?? []).map((c) => [c.id, !allOpen])))}>
+          <span style={{ transform: allOpen ? "rotate(-90deg)" : "rotate(90deg)", display: "inline-flex" }}>
             <Icon name="chevron" size={12} />
           </span>
-          Collapse all
+          {allOpen ? "Collapse all" : "Expand all"}
         </button>
       </div>
 
@@ -391,7 +371,23 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
       {!report ? <SkeletonBlock rows={7} label="Scanning project" /> : null}
 
       <div className="lrc__list">
-        {visible.map((c, i) => {
+        {GROUPS.map((g) => {
+          const cats = visible.filter((c) => groupOf(c) === g.id);
+          if (!cats.length) return null;
+          const all = cats.flatMap((c) => c.items);
+          const groupDone = all.filter((x) => isDone(x.status)).length;
+          return (
+            <section key={g.id} className="lrc-group" aria-labelledby={`lrc-group-${g.id}`}>
+              <header className="lrc-group__head">
+                <h3 className="lrc-group__title" id={`lrc-group-${g.id}`}>
+                  {g.label}
+                </h3>
+                <span className="lrc-group__count mono">
+                  {groupDone} / {all.length} done
+                </span>
+                <p className="lrc-group__desc">{g.description}</p>
+              </header>
+        {cats.map((c, i) => {
           // Category progress counts every item in the category, not only the filtered ones; N/A counts as done.
           const counted = c.items;
           const done = counted.filter((x) => isDone(x.status)).length;
@@ -408,8 +404,7 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
                 </span>
                 <span className="lrc-cat__text">
                   <span className="lrc-cat__title">
-                    {c.title}
-                    {c.optional ? <span className="lrc-cat__opt">(optional)</span> : null}
+                    {c.title.replace(/^Spec · /, "")}
                   </span>
                   <span className="lrc-cat__desc">
                     {c.description}
@@ -438,8 +433,38 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
             </section>
           );
         })}
+            </section>
+          );
+        })}
         {report && !visible.length ? <Empty title="Nothing matches">Try another filter or search term.</Empty> : null}
       </div>
+      {/* D11: for people who don't write code. Only routes and hand-offs; no invented prices or timelines. */}
+      <details className="lrc-real" data-cp="real-app" data-reveal>
+        <summary>Not a developer? How to turn this into a real app</summary>
+        <p className="lrc-real__lede">The prototype shows what the app should do. A real app also needs everything below the progress bar: a server, real data, accounts, security and a web address. There are three common routes.</p>
+        <div className="lrc-real__routes">
+          <section>
+            <h3>Work with a developer</h3>
+            <p>Hand them:</p>
+            <ul>
+              <li>Your PRD: what the app is for and who uses it.</li>
+              <li>This checklist (<strong>Download .md</strong>). Each item has a prompt their coding tools can use.</li>
+              <li>The prototype itself: <strong>Export as a folder</strong> (above) gives them a copy they can open and click through.</li>
+            </ul>
+            <p>Ask them which launch-gate items come first, and for an estimate per category of the checklist.</p>
+          </section>
+          <section>
+            <h3>Use an app-builder service</h3>
+            <p>Rebuild the screens and flows on a service made for people who don&apos;t code, using the prototype as your reference.</p>
+            <p>Before you choose one, check it supports what the checklist lists for your app: accounts, payments, saving data, privacy.</p>
+          </section>
+          <section>
+            <h3>Use a coding agent yourself</h3>
+            <p>Each item&apos;s prompt is written for a coding agent. Start with the launch-gate items, one at a time, and check each result before the next.</p>
+          </section>
+        </div>
+        <p className="lrc-real__note">Whichever route you take: the prototype&apos;s data is pretend. Before real customers use the app, do the security and privacy items, because they protect people&apos;s details.</p>
+      </details>
     </div>
   );
 }

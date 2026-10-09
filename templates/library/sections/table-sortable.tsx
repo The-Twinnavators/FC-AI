@@ -1,3 +1,8 @@
+/** @flowcode-library table-sortable · Sortable table (Tables and lists)
+ * Use cases: data table; report table; sales report; leaderboard; budget breakdown; price list; inventory list; expense report
+ * Jobs to be done: sort data to find the highest values; compare figures across rows; see the total at a glance; review numbers in a report
+ * Keywords: table, sort, data, numbers
+ */
 /**
  * Table: sortable columns. A clean data table with a caption, click-to-sort headers (aria-sort) and tabular numbers
  * that line up, plus a total row. Use it for any list people compare by a column: bookings, orders, invoices.

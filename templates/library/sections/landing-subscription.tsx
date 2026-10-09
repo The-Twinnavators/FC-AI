@@ -1,3 +1,8 @@
+/** @flowcode-library landing-subscription · Subscription offer (Landing pages)
+ * Use cases: subscription box; meal kit; coffee subscription; plan builder; recurring delivery; pet food subscription; flower delivery; subscribe and save
+ * Jobs to be done: build a subscription that fits me; choose how often it arrives; see what it will cost; start my subscription
+ * Keywords: landing, subscription, plan picker, order summary, meal kit, coffee, page template
+ */
 /**
  * Page template: subscription offer landing page. A short split hero, three "how it works" steps, then a plan builder
  * (box size, roast, grind and delivery frequency) beside a live order summary that does the maths, and a sign-up that

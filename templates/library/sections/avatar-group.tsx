@@ -1,3 +1,8 @@
+/** @flowcode-library avatar-group · Avatar group (Cards)
+ * Use cases: team members; collaborators; attendee list; online presence; shared with; project members; participants; assignees
+ * Jobs to be done: see who is on the team; check who is online now; see everyone attending; find a specific person
+ * Keywords: avatars, team, presence, status, people
+ */
 /**
  * Avatars: initials on theme colours in four sizes, with status dots, a stacked group that ends in "+5", and the
  * full list of people behind it. Use it to show who is on a team, a booking or a shared list.

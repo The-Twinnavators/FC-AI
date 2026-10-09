@@ -1,3 +1,8 @@
+/** @flowcode-library bg-stripes · Diagonal stripes (Page backgrounds)
+ * Use cases: promo section; sale banner background; highlight section; construction or coming soon page; call to action band
+ * Jobs to be done: notice a highlighted section; see a clear break between sections; find out about a sale or offer
+ * Keywords: background, pattern, page background, stripes
+ */
 /**
  * Page background: diagonal stripes (pattern). Thin diagonal stripes in the accent colour.
  * Good for: Playful sections and promotional banners.

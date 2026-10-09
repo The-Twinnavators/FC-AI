@@ -1,3 +1,8 @@
+/** @flowcode-library bg-mesh · Mesh gradient (Page backgrounds)
+ * Use cases: hero background; landing page background; launch page; creative portfolio; product announcement; event page
+ * Jobs to be done: feel the brand's personality; notice a launch or announcement; focus on the main message
+ * Keywords: background, gradient, page background, mesh
+ */
 /**
  * Page background: mesh gradient (gradient). Soft colour blooms in the corners from the accent, success and focus colours.
  * Good for: Hero sections and landing pages that should feel lively.

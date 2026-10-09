@@ -1,3 +1,8 @@
+/** @flowcode-library accordion-variants · Accordion styles (FAQ)
+ * Use cases: faq; help center; policies; product details; terms summary; knowledge base; support questions
+ * Jobs to be done: find answers to my questions; read only the part i need; scan policies quickly
+ * Keywords: accordion, faq, collapse, expand, disclosure, questions
+ */
 /**
  * Accordion styles: the same open-and-close questions in three looks: one bordered box, separate cards, and rows
  * with an icon each. Switch between "one at a time" and "open several". Built from buttons with aria-expanded, so

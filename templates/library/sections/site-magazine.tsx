@@ -1,3 +1,8 @@
+/** @flowcode-library site-magazine · Online magazine (Industry sites)
+ * Use cases: online magazine; blog; news site; editorial; article feed; newsletter; content hub; publication front page
+ * Jobs to be done: find something good to read; browse stories by section; save articles for later; subscribe to the newsletter
+ * Keywords: page, template, magazine, blog, editorial, articles, search, categories, newsletter, html5up
+ */
 /**
  * Page template: online magazine or blog. A one-page front page for an independent magazine, newsletter or
  * editorial blog: a sidebar with search, sections and most-read stories (it folds behind a button on phones), a

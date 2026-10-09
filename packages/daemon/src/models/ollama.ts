@@ -170,10 +170,11 @@ export class OllamaProvider implements Provider {
 
   async describe(model: string): Promise<ModelInfo | undefined> {
     try {
-      const res = await this.post<{ capabilities?: string[]; details?: { family?: string; parameter_size?: string }; modified_at?: string }>("/api/show", { model }, undefined, 15_000);
+      const res = await this.post<{ capabilities?: string[]; details?: { family?: string; parameter_size?: string }; modified_at?: string; model_info?: Record<string, unknown> }>("/api/show", { model }, undefined, 15_000);
+      const maxContext = Object.entries(res.model_info ?? {}).find(([k, v]) => k.endsWith(".context_length") && typeof v === "number")?.[1] as number | undefined;
       const tags = await this.listModels().catch(() => []);
       const tag = tags.find((t) => t.name === model || t.name === `${model}:latest`);
-      return { name: model, digest: tag?.digest, sizeBytes: tag?.sizeBytes, capabilities: res.capabilities, family: res.details?.family, parameterSize: res.details?.parameter_size };
+      return { name: model, digest: tag?.digest, sizeBytes: tag?.sizeBytes, capabilities: res.capabilities, family: res.details?.family, parameterSize: res.details?.parameter_size, ...(maxContext ? { maxContext } : {}) };
     } catch {
       return undefined;
     }

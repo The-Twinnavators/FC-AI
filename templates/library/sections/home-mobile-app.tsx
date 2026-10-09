@@ -1,3 +1,8 @@
+/** @flowcode-library home-mobile-app · Mobile app homepage (Homepages)
+ * Use cases: mobile app landing; app download page; app marketing site; budgeting app; feature tour; app store promotion; app reviews
+ * Jobs to be done: decide whether to download the app; see how the app works; get the download link on my phone; read what users think
+ * Keywords: page, homepage, mobile app, phone mockup, download, features, reviews, faq, budgeting
+ */
 /**
  * Page template: mobile app homepage. A whole page for a phone app, here a budgeting app for households: navigation,
  * a split hero with two phone mockups drawn in CSS, download buttons and a rating, four steps to get started, a
