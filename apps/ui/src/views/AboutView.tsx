@@ -51,7 +51,7 @@ const SETUP: Array<{ tier: string; pick?: boolean; rows: Array<[string, string]>
       ["Coder models", "qwen3:14b (9 GB, the verified Coder) or gpt-oss:20b (13 GB)"],
       ["Free disk", "40 GB"],
     ],
-    note: "A prototype like No BIO & GMO builds in under ten minutes. Add qwen2.5vl:3b so the design is checked on every screen.",
+    note: "Runs every model FlowCode is tested with. Build time depends on the project and the models you choose. Add qwen2.5vl:3b so the design is checked on every screen.",
   },
   {
     tier: "Peak",
@@ -61,7 +61,7 @@ const SETUP: Array<{ tier: string; pick?: boolean; rows: Array<[string, string]>
       ["Coder models", "qwen3-coder:30b (18 GB) or gpt-oss:20b (13 GB), fully on the graphics card"],
       ["Free disk", "60 GB"],
     ],
-    note: "The largest models fit entirely in video memory: the fastest builds and the fewest retries.",
+    note: "More GPU memory provides room for larger models and more demanding workloads. Actual build speed varies by model and project.",
   },
 ];
 
