@@ -344,7 +344,7 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
             { id: "styles", label: "Design" },
             { id: "review", label: "Review", count: changedPaths.size },
             { id: "activity", label: "Activity" },
-            { id: "terminal", label: "Technical output" },
+            { id: "terminal", label: "Terminal" },
             ...(openFile ? [{ id: "file" as const, label: openFile.split("/").pop() ?? "File" }] : []),
           ]}
         />
