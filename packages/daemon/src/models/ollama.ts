@@ -82,7 +82,7 @@ export class OllamaProvider implements Provider {
       model: req.model,
       messages,
       stream: false,
-      options: { temperature: req.temperature ?? 0.1, ...(req.contextWindow ? { num_ctx: req.contextWindow } : { num_ctx: 16384 }), ...((req.maxOutputTokens ?? (req.format ? 4096 : undefined)) ? { num_predict: req.maxOutputTokens ?? 4096 } : {}) },
+      options: { temperature: req.temperature ?? 0.1, ...(req.contextWindow ? { num_ctx: req.contextWindow } : { num_ctx: 8192 }), ...((req.maxOutputTokens ?? (req.format ? 4096 : undefined)) ? { num_predict: req.maxOutputTokens ?? 4096 } : {}) },
       keep_alive: "15m",
     };
     if (req.tools?.length) body.tools = req.tools.map((t) => ({ type: "function", function: t }));
@@ -181,7 +181,9 @@ export class OllamaProvider implements Provider {
   }
 
   async embed(model: string, input: string[], signal?: AbortSignal): Promise<number[][]> {
-    const res = await this.post<{ embeddings: number[][] }>("/api/embed", { model, input }, signal, 120_000);
+    // Released as soon as it has answered: it reloads in a moment, and on a small GPU those
+    // few hundred megabytes are worth more to the model doing the work.
+    const res = await this.post<{ embeddings: number[][] }>("/api/embed", { model, input, keep_alive: "30s" }, signal, 120_000);
     return res.embeddings;
   }
 
