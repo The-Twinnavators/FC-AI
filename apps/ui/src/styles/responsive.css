@@ -13597,59 +13597,98 @@ p.nb__starter b {
   flex-wrap: wrap;
   gap: 8px;
 }
-/* The suggested models belong to the Model field above them, so they are drawn as its option list: the same width,
-   and each id on the same left margin as the text inside the input (14px), rather than floating at a button's own
-   indent. The chosen one is marked by a bar and weight as well as a tint. */
-.cloud-models {
-  display: grid;
-  gap: 0;
+/* Models → Cloud model: the model picker is a combobox. The list is shut until the field is pressed, is anchored to
+   it, and closes on a choice. Everything here is built from the theme's surface and text tokens, so it reads in light
+   mode as well as dark; the chosen row is marked with a tick, not with colour alone. */
+.cloud-picker {
+  position: relative;
+}
+.cloud-picker__input {
   width: 100%;
-  margin: 6px 0 0;
-  padding: 0;
-  list-style: none;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-2, 4px);
-  background: rgba(0, 0, 0, 0.18);
-  overflow: hidden;
+  padding-right: calc(8px + 16px + 8px);
 }
-.cloud-models li {
+.cloud-picker__toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
   display: grid;
-  gap: 2px;
-  padding: 8px 14px 9px;
-  border-top: 1px solid var(--line);
-  font-size: 12.5px;
-}
-.cloud-models li:first-child {
-  border-top: 0;
-}
-.cloud-models li:has(.btn[aria-pressed="true"]) {
-  background: color-mix(in srgb, var(--brand-ink, #8b5cf6) 16%, transparent);
-  box-shadow: inset 2px 0 0 var(--brand-ink, #8b5cf6);
-}
-.cloud-models .btn {
-  height: auto;
-  width: fit-content;
-  max-width: 100%;
+  place-items: center;
+  width: 16px;
+  height: 16px;
   padding: 0;
   border: 0;
   background: none;
+  color: var(--text-2);
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+.cloud-picker__toggle:hover {
+  color: var(--text-0);
+}
+.cloud-picker__toggle svg {
+  transition: transform var(--t-fast) var(--ease);
+}
+.cloud-picker__toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.cloud-models {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 0;
+  max-height: 17rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2, 4px);
+  background: var(--bg-2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+.cloud-models li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 4px;
+  color: var(--text-0);
   font-size: 13px;
-  white-space: normal;
+  cursor: pointer;
+}
+.cloud-models li > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.cloud-models .mono {
   overflow-wrap: anywhere;
 }
-.cloud-models .btn:hover:not(:disabled) {
-  background: none;
-  border-color: transparent;
-  color: var(--text-0);
-  text-decoration: underline;
-}
-.cloud-models .btn[aria-pressed="true"] {
-  color: var(--text-0);
-  font-weight: 700;
-  box-shadow: none;
-}
 .cloud-models .muted {
+  color: var(--text-2);
   font-size: 12px;
+  line-height: 1.45;
+}
+.cloud-models li.is-at {
+  background: var(--bg-active);
+}
+.cloud-models li[aria-selected="true"] .mono {
+  font-weight: 700;
+}
+.cloud-models__tick {
+  display: grid;
+  place-items: center;
+  height: 18px;
+  color: var(--brand-ink);
+}
+.cloud-models__none {
+  grid-template-columns: minmax(0, 1fr);
+  color: var(--text-2);
+  cursor: default;
 }
 
 /* Dashboard → My Projects: each card leads with the project's newest screenshot (or a placeholder). */

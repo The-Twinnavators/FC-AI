@@ -1,11 +1,11 @@
 /** Models & capability lab (FR-M1, FR-M2, §4.1 module 4). */
 import { ModelPerformance } from "../components/ModelPerformance";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CapabilityRecord, ModelAssignment, ProviderConfig } from "@flowcode/contracts";
 import { post, useEventStream, useResource } from "../api";
 import { Empty, Led, StatusChip, ago } from "../components/ui";
 import { planAutoAssign, type Plan } from "../components/autoAssign";
-import { Wand2 } from "lucide-react";
+import { Check, ChevronDown, Wand2 } from "lucide-react";
 
 const PROBES = ["structured_read_file", "structured_create_file", "contextual_patch", "protected_manifest_edit", "tool_result_follow_up", "approval_request", "safe_command_result_interpretation", "bounded_repair_loop"];
 
@@ -327,10 +327,40 @@ function CloudCoder({ onSaved }: { onSaved: () => void }) {
   const [saving, setSaving] = useState(false);
   const [key, setKey] = useState("");
   const [saved, setSaved] = useState<string>();
+  // The model picker is a combobox: shut until you press it, filters as you type, and closes on a choice.
+  const [listOpen, setListOpen] = useState(false);
+  const [at, setAt] = useState(0);
+  const picker = useRef<HTMLDivElement>(null);
   const anthropic = cfg.data?.provider === ANTHROPIC;
   const ids = useResource<{ models: string[]; error: string }>(cfg.data?.keyPresent && (anthropic || cfg.data?.baseUrl) ? "/models/cloud-coder/models" : null, [cfg.data?.keyPresent, cfg.data?.baseUrl, cfg.data?.provider]);
   const url = baseUrl ?? cfg.data?.baseUrl ?? "";
   const name = model ?? (cfg.data?.model || (anthropic ? "claude-sonnet-5-5" : ""));
+
+  // Everything the key can reach, with a note against the three worth recommending. Typing narrows it; an exact
+  // match does not, or choosing one would empty the list under your hand.
+  const every = ids.data?.models?.length ? ids.data.models : anthropic ? CLAUDE_MODELS.map((m) => m.id) : [];
+  const noteFor = (id: string) => CLAUDE_MODELS.find((m) => m.id === id)?.note;
+  const typed = name.trim().toLowerCase();
+  const options = !typed || every.includes(name.trim()) ? every : every.filter((m) => m.toLowerCase().includes(typed));
+
+  const choose = (id: string) => {
+    setModel(id);
+    setListOpen(false);
+  };
+
+  useEffect(() => {
+    if (!listOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setListOpen(false);
+    const onDown = (e: MouseEvent) => {
+      if (picker.current && !picker.current.contains(e.target as Node)) setListOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("mousedown", onDown);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("mousedown", onDown);
+    };
+  }, [listOpen]);
   const pickProvider = async (provider: CloudCfg["provider"]) => {
     setError(undefined);
     setSaved(undefined);
@@ -418,28 +448,85 @@ function CloudCoder({ onSaved }: { onSaved: () => void }) {
             <input className="input" value={url} placeholder="https://api.example.com/v1" onChange={(e) => setBaseUrl(e.target.value)} />
           </label>
         )}
-        <label className="field">
-          <span>Model</span>
-          <input className="input" value={name} list="cloud-models" placeholder={anthropic ? "claude-sonnet-5-5" : "the provider's model id, e.g. gpt-5.6-sol"} onChange={(e) => setModel(e.target.value)} />
-          <datalist id="cloud-models">
-            {(ids.data?.models?.length ? ids.data.models : anthropic ? CLAUDE_MODELS.map((m) => m.id) : []).map((m) => (
-              <option key={m} value={m} />
-            ))}
-          </datalist>
-          {anthropic ? (
-            <ul className="cloud-models">
-              {CLAUDE_MODELS.map((m) => (
-                <li key={m.id}>
-                  <button type="button" className="btn btn--sm btn--ghost mono" aria-pressed={name === m.id} onClick={() => setModel(m.id)}>
-                    {m.id}
-                  </button>
-                  <span className="muted">{m.note}</span>
-                </li>
-              ))}
-            </ul>
+        <div className="field">
+          <label htmlFor="cloud-model">Model</label>
+          <div className="cloud-picker" ref={picker}>
+            <input
+              id="cloud-model"
+              className="input cloud-picker__input"
+              role="combobox"
+              aria-expanded={listOpen}
+              aria-controls="cloud-model-list"
+              aria-autocomplete="list"
+              aria-activedescendant={listOpen && options[at] ? `cloud-model-${at}` : undefined}
+              value={name}
+              placeholder={anthropic ? "claude-sonnet-5-5" : "the provider's model id, e.g. gpt-5.6-sol"}
+              onChange={(e) => {
+                setModel(e.target.value);
+                setAt(0);
+                setListOpen(true);
+              }}
+              onMouseDown={() => options.length && setListOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                  e.preventDefault();
+                  if (!listOpen) return setListOpen(true);
+                  setAt((n) => (e.key === "ArrowDown" ? Math.min(options.length - 1, n + 1) : Math.max(0, n - 1)));
+                } else if (e.key === "Enter" && listOpen && options[at]) {
+                  e.preventDefault();
+                  choose(options[at]);
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="cloud-picker__toggle"
+              tabIndex={-1}
+              aria-label={listOpen ? "Close the model list" : "Open the model list"}
+              aria-expanded={listOpen}
+              onClick={() => setListOpen((v) => !v)}
+            >
+              <ChevronDown size={16} aria-hidden="true" />
+            </button>
+            {listOpen ? (
+              <ul className="cloud-models" id="cloud-model-list" role="listbox" aria-label="Models">
+                {options.length ? (
+                  options.map((m, n) => (
+                    <li
+                      key={m}
+                      id={`cloud-model-${n}`}
+                      role="option"
+                      aria-selected={m === name.trim()}
+                      className={n === at ? "is-at" : undefined}
+                      onMouseEnter={() => setAt(n)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        choose(m);
+                      }}
+                    >
+                      <span className="cloud-models__tick" aria-hidden="true">
+                        {m === name.trim() ? <Check size={14} /> : null}
+                      </span>
+                      <span>
+                        <span className="mono">{m}</span>
+                        {noteFor(m) ? <span className="muted">{noteFor(m)}</span> : null}
+                      </span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="cloud-models__none" aria-disabled="true">
+                    Nothing matches "{name.trim()}"
+                  </li>
+                )}
+              </ul>
+            ) : null}
+          </div>
+          {ids.data?.error ? (
+            <span className="muted" style={{ fontSize: 12.5 }}>Couldn't load the provider's models: {ids.data.error}</span>
+          ) : ids.data?.models.length ? (
+            <span className="muted" style={{ fontSize: 12.5 }}>{ids.data.models.length} models available with this key: press the field to pick one.</span>
           ) : null}
-          {ids.data?.error ? <span className="muted" style={{ fontSize: 12.5 }}>Couldn't load the provider's models: {ids.data.error}</span> : ids.data?.models.length ? <span className="muted" style={{ fontSize: 12.5 }}>{ids.data.models.length} models available with this key: pick from the list.</span> : null}
-        </label>
+        </div>
         <div className="field">
           <span>API key</span>
           {cfg.data?.keyPresent ? (
