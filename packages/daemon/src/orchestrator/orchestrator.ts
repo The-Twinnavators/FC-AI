@@ -910,7 +910,12 @@ export class Orchestrator {
     void this.execute(runId, ctrl.signal)
       .catch((err) => {
         this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: `Orchestrator error: ${(err as Error).message}`, level: "error" });
-        this.setStatus(runId, "failed", `Unexpected orchestrator error: ${(err as Error).message}`);
+        // Blocked, not failed: what lands here is usually the machine, not the work (a missing Playwright binary
+        // ended a build 30 seconds into its first step and threw away 14 minutes of planning and three finished
+        // steps, because "failed" is terminal and cannot be resumed). The two checks just above already block for
+        // the same kind of reason. The event stays at error level, so this changes what you can do about it, not
+        // how loudly it is reported.
+        this.setStatus(runId, "blocked", `Unexpected orchestrator error: ${(err as Error).message}`);
       })
       .finally(() => {
         this.active.delete(runId);

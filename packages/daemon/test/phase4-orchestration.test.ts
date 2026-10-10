@@ -10,6 +10,7 @@ import { createApp } from "../src/app.js";
 import { ScriptedProvider, call } from "../src/models/scripted.js";
 import type { ChatMessage } from "../src/models/types.js";
 import { evaluateCompletionGate } from "../src/orchestrator/completionGate.js";
+import { TERMINAL_RUN_STATUSES } from "@flowcode/contracts";
 import { idealProbeSolver } from "./scripted-agents.js";
 import { makeApp, makeProject, waitFor } from "./helpers.js";
 
@@ -77,6 +78,26 @@ async function setup(app: ReturnType<typeof createApp>, b: Behaviour = {}) {
 }
 
 describe("orchestration with mocked agents", () => {
+  it("keeps a build resumable when the execution loop throws", async () => {
+    const { app } = makeApp();
+    await setup(app);
+    const { project } = makeProject(app, { "README.md": "# demo\n" });
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Add a greeting module", constraints: [], attachedKnowledgeIds: [] });
+    // A missing Playwright binary arrived here: the machine was short a browser, the work was fine. Ending the build
+    // as "failed" made it terminal, so the plan and every finished step were thrown away over an environment fault
+    // that took one command to fix. The two checks just above this handler already block rather than fail.
+    const boom = "Executable doesn't exist at chrome-headless-shell.exe";
+    (app.orchestrator as unknown as { execute: () => Promise<void> }).execute = () => Promise.reject(new Error(boom));
+    await app.orchestrator.plan(run.id);
+    const ended = await waitFor(() => {
+      const r = app.store.runs.require(run.id);
+      return !app.orchestrator.isActive(run.id) && r.statusReason?.includes(boom) ? r : undefined;
+    }, 30_000);
+    expect(ended.status, ended.statusReason).toBe("blocked");
+    // Terminal means the plan and every finished step are gone: the build can only be started over.
+    expect(TERMINAL_RUN_STATUSES).not.toContain(ended.status);
+    expect(() => app.orchestrator.start(run.id), "a blocked build can be started again").not.toThrow();
+  });
   it("tries the fast model on a step's first attempt", async () => {
     const { app } = makeApp();
     await setup(app);
