@@ -1,4 +1,4 @@
-/** @flowcode-library panels-drawers - Panels and drawers: side, bottom and inline (Dialogs and drawers)
+/** @flowcode-library panels-drawers · Panels and drawers: side, bottom and inline (Dialogs and drawers)
  * Use cases: record detail beside a list; filters panel; mobile actions sheet; settings pane; help panel
  * Jobs to be done: look at one thing without losing the list; change filters and see the result; act on a row
  * Keywords: drawer, panel, side sheet, bottom sheet, slide over, detail

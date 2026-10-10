@@ -1,4 +1,4 @@
-/** @flowcode-library switches-states - Switches: every state and size (Forms)
+/** @flowcode-library switches-states · Switches: every state and size (Forms)
  * Use cases: settings screen; feature on or off; notification preferences; privacy choice; row-level toggle
  * Jobs to be done: turn something on or off; see at a glance what is on; know a setting is locked
  * Keywords: switch, toggle, on off, setting, disabled

@@ -1,4 +1,4 @@
-/** @flowcode-library sliders-states - Sliders: single, stepped and range (Forms)
+/** @flowcode-library sliders-states · Sliders: single, stepped and range (Forms)
  * Use cases: price filter; volume; image quality; date range; rating filter
  * Jobs to be done: pick a number without typing; narrow a list to a range; see the value as I drag
  * Keywords: slider, range, track, thumb, steps, filter

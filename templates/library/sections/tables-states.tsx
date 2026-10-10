@@ -1,4 +1,4 @@
-/** @flowcode-library tables-states - Tables: sorting, selection, density and the states a row reaches (Tables and lists)
+/** @flowcode-library tables-states · Tables: sorting, selection, density and the states a row reaches (Tables and lists)
  * Use cases: an admin list; invoices; search results; a report; anything with more than three columns
  * Jobs to be done: sort by a column; pick some rows and act on them; read a long table without losing the row
  * Keywords: table, data table, sort, select rows, sticky header, zebra, density, empty, aria-sort

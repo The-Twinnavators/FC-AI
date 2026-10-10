@@ -1,4 +1,4 @@
-/** @flowcode-library dropdowns-states - Dropdowns: select, combo box and the open menu (Forms)
+/** @flowcode-library dropdowns-states · Dropdowns: select, combo box and the open menu (Forms)
  * Use cases: country picker; status filter; assignee picker; sort order; settings choice
  * Jobs to be done: choose one from many; find an option by typing; see what is chosen now
  * Keywords: select, dropdown, combo box, menu, option, disabled

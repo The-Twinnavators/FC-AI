@@ -1,4 +1,4 @@
-/** @flowcode-library motion-presets - Motion: durations, easings and the handful of animations worth keeping (Small components)
+/** @flowcode-library motion-presets · Motion: durations, easings and the handful of animations worth keeping (Small components)
  * Use cases: a design system's motion scale; a drawer opening; a toast arriving; a row being removed; a page change
  * Jobs to be done: pick a duration that feels right; use the same easing everywhere; switch motion off properly
  * Keywords: animation, motion, transition, duration, easing, keyframes, reduced motion, fade, slide

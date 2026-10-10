@@ -1,4 +1,4 @@
-/** @flowcode-library checkboxes-radios - Checkboxes and radios: every state (Forms)
+/** @flowcode-library checkboxes-radios · Checkboxes and radios: every state (Forms)
  * Use cases: settings toggles; multi-select filters; single choice from a list; terms agreement; table row selection
  * Jobs to be done: choose several things; choose exactly one thing; see what is already chosen
  * Keywords: checkbox, radio, indeterminate, selection, disabled

@@ -5,13 +5,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { LIBRARY_SECTIONS, SECTION_CATEGORIES } from "../packages/contracts/dist/index.js";
+import { LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES } from "../packages/contracts/dist/index.js";
 import { metaBlock, META_START } from "../packages/contracts/dist/libraryMeta.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dir = path.join(root, "templates/library/sections");
 let changed = 0;
-for (const s of LIBRARY_SECTIONS) {
+// The shelf's pieces carry the same block, so approving one changes nothing about it.
+const all = [...LIBRARY_SECTIONS, ...PROPOSED_SECTIONS];
+for (const s of all) {
   const file = path.join(dir, `${s.id}.tsx`);
   if (!fs.existsSync(file)) continue;
   const text = fs.readFileSync(file, "utf8");
@@ -24,4 +26,4 @@ for (const s of LIBRARY_SECTIONS) {
     changed++;
   }
 }
-console.log(`library meta: ${changed} file(s) updated, ${LIBRARY_SECTIONS.length} in the catalog`);
+console.log(`library meta: ${changed} file(s) updated, ${LIBRARY_SECTIONS.length} in the catalog and ${PROPOSED_SECTIONS.length} awaiting approval`);

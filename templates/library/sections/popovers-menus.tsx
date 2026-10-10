@@ -1,4 +1,4 @@
-/** @flowcode-library popovers-menus - Popovers: a panel on a button, and how it differs from a tooltip (Dialogs and drawers)
+/** @flowcode-library popovers-menus · Popovers: a panel on a button, and how it differs from a tooltip (Dialogs and drawers)
  * Use cases: a filter panel; a date picker; a share panel; a profile card on a name; an action menu
  * Jobs to be done: change a few things without leaving the page; look something up in place; act on one row
  * Keywords: popover, menu, dropdown panel, flyout, anchored, placement, dismiss, aria-expanded

@@ -1,4 +1,4 @@
-/** @flowcode-library focus-rings - Focus rings: thickness, offset, color and where they break (Small components)
+/** @flowcode-library focus-rings · Focus rings: thickness, offset, color and where they break (Small components)
  * Use cases: an accessible design system; a keyboard audit; a dark theme; a dense toolbar; a custom control
  * Jobs to be done: see where the keyboard is; pick a ring that works on every background; stop hiding focus
  * Keywords: focus ring, focus-visible, outline, keyboard, accessibility, contrast, offset

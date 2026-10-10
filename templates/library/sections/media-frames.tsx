@@ -1,4 +1,4 @@
-/** @flowcode-library media-frames - Media frames: ratios, fit, loading and what to do when it fails (Small components)
+/** @flowcode-library media-frames · Media frames: ratios, fit, loading and what to do when it fails (Small components)
  * Use cases: a gallery grid; a card's cover; a video thumbnail; an avatar crop; a logo wall
  * Jobs to be done: lay out pictures without the page jumping; keep a grid even; cope with a picture that fails
  * Keywords: image, thumbnail, aspect ratio, object-fit, placeholder, lazy, caption, fallback

@@ -1,4 +1,4 @@
-/** @flowcode-library avatars-variants - Avatars: sizes, shapes, initials, status and a stack (Small components)
+/** @flowcode-library avatars-variants · Avatars: sizes, shapes, initials, status and a stack (Small components)
  * Use cases: a comment's author; a team list; an assignee picker; a chat header; a presence row
  * Jobs to be done: tell people apart at a glance; see who is on something; see who is here now
  * Keywords: avatar, initials, profile picture, presence, status dot, avatar group, fallback

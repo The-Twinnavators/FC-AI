@@ -1,4 +1,4 @@
-/** @flowcode-library file-upload-states - File upload: dropzone and the files after it (Forms)
+/** @flowcode-library file-upload-states · File upload: dropzone and the files after it (Forms)
  * Use cases: attach a PRD; upload photos; import a spreadsheet; profile picture; supporting documents
  * Jobs to be done: add a file; see it is going up; know when it failed and try again
  * Keywords: upload, dropzone, drag and drop, progress, attachment, error

@@ -1,4 +1,4 @@
-/** @flowcode-library progress-indicators - Progress: bars, rings, spinners and skeletons (Alerts and states)
+/** @flowcode-library progress-indicators · Progress: bars, rings, spinners and skeletons (Alerts and states)
  * Use cases: a file uploading; a report building; a page loading; a long save; a queue of jobs
  * Jobs to be done: know something is happening; know how much is left; know whether to wait
  * Keywords: progress, bar, spinner, loader, skeleton, indeterminate, loading, percent

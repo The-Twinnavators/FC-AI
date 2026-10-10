@@ -1,7 +1,7 @@
-/** @flowcode-library pagination-variants - Pagination: numbered, simple and load more (Tabs, breadcrumbs and paging)
+/** @flowcode-library pagination-variants · Pagination: numbered, simple and load more (Tabs, breadcrumbs and paging)
  * Use cases: long lists; search results; tables; galleries; activity feeds
  * Jobs to be done: get to the next page; jump to a page; see how much there is left
- * Keywords: pagination, paging, next, previous, page size, load more, infinite
+ * Keywords: pagination, paging, next, previous, page size, load more
  */
 /**
  * Three ways through a long list. Numbered paging when people need to come back to a place; previous and next when

@@ -1,4 +1,4 @@
-/** @flowcode-library top-nav-variants - Top nav: app bar, marketing header and the phone menu (Navigation)
+/** @flowcode-library top-nav-variants · Top nav: app bar, marketing header and the phone menu (Navigation)
  * Use cases: app shell header; marketing site header; signed-in bar; search in the bar; mobile menu
  * Jobs to be done: get to the main areas; find what I am looking for; sign in or reach my account
  * Keywords: top nav, app bar, header, navbar, sticky, hamburger, mobile menu, skip link

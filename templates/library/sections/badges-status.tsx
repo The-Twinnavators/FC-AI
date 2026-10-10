@@ -1,4 +1,4 @@
-/** @flowcode-library badges-status - Badges: status pills, counts and dots (Small components)
+/** @flowcode-library badges-status · Badges: status pills, counts and dots (Small components)
  * Use cases: a row's status; unread counts; an online dot; a plan label; a new flag
  * Jobs to be done: see the state of a row at a glance; see how many are waiting; tell live from stale
  * Keywords: badge, pill, status, count, dot, notification, label, tone

@@ -1,4 +1,4 @@
-/** @flowcode-library cards-variants - Cards: kinds, elevation and states (Cards)
+/** @flowcode-library cards-variants · Cards: kinds, elevation and states (Cards)
  * Use cases: dashboard tiles; project list; article list; settings groups; pickable options
  * Jobs to be done: scan a list of things; open one of them; choose one of several
  * Keywords: card, tile, elevation, surface, clickable, selected

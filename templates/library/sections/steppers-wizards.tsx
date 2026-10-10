@@ -1,4 +1,4 @@
-/** @flowcode-library steppers-wizards - Steppers: numbered, with a bar, and vertical (Tabs, breadcrumbs and paging)
+/** @flowcode-library steppers-wizards · Steppers: numbered, with a bar, and vertical (Tabs, breadcrumbs and paging)
  * Use cases: checkout; onboarding; a long form split up; an import wizard; a booking flow
  * Jobs to be done: see how many steps are left; go back to a step I finished; know which step failed
  * Keywords: stepper, wizard, steps, progress, multi-step, back, next, current step

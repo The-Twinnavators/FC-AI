@@ -1,7 +1,7 @@
-/** @flowcode-library lists-rows - Lists: plain rows, rows that open, rows you act on, and rows you reorder (Tables and lists)
+/** @flowcode-library lists-rows · Lists: plain rows, rows that open, rows you act on, and rows you reorder (Tables and lists)
  * Use cases: a settings list; an inbox; search results; a queue; a playlist
  * Jobs to be done: scan a list; open one; act on one without opening it; put them in my own order
- * Keywords: list, rows, list item, divider, hover, selected, reorder, drag handle, swipe actions
+ * Keywords: list, rows, list item, divider, hover, selected, reorder, drag handle
  */
 /**
  * Four lists that look nearly the same and behave completely differently, which is the point: the look of a row has to

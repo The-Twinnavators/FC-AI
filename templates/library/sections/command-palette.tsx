@@ -1,4 +1,4 @@
-/** @flowcode-library command-palette - Command palette: search, groups, keyboard and the empty result (Small components)
+/** @flowcode-library command-palette · Command palette: search, groups, keyboard and the empty result (Small components)
  * Use cases: a power-user shortcut; jump to a record; run an action by name; a docs search; an admin console
  * Jobs to be done: get anywhere by typing; run a command without finding the menu; see what the shortcut is
  * Keywords: command palette, command k, quick search, fuzzy, keyboard, shortcut, results, recent

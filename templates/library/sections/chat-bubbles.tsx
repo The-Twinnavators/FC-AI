@@ -1,4 +1,4 @@
-/** @flowcode-library chat-bubbles - Chat: bubbles, grouping, delivery and the message that failed (Small components)
+/** @flowcode-library chat-bubbles · Chat: bubbles, grouping, delivery and the message that failed (Small components)
  * Use cases: a support thread; client messages; an assistant conversation; comments on a shoot; a team channel
  * Jobs to be done: follow who said what; know my message arrived; send another one; retry one that failed
  * Keywords: chat, message, bubble, thread, timestamp, delivered, read receipt, typing, retry

@@ -1,7 +1,7 @@
 /** @flowcode-library site-nonprofit · Charity site (Industry sites)
  * Use cases: charity website; nonprofit; donation page; fundraising; volunteer signup; foundation site; community group; impact report
  * Jobs to be done: donate to a cause i care about; see the impact of my gift; set up a monthly donation; sign up to volunteer
- * Keywords: page, nonprofit, charity, donate, donation, impact, programmes, volunteer, sign-up, form, html5up
+ * Keywords: page, nonprofit, charity, donate, donation, impact, programs, volunteer, sign-up, form, html5up
  */
 /**
  * Site: charity / nonprofit. A one-page site for a community charity, foundation or volunteer-run group: a tall banner,

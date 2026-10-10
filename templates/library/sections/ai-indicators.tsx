@@ -1,7 +1,7 @@
-/** @flowcode-library ai-indicators - AI indicators: what a model made, what it is doing, and how sure it is (Small components)
+/** @flowcode-library ai-indicators · AI indicators: what a model made, what it is doing, and how sure it is (Small components)
  * Use cases: a generated draft; a suggestion in a field; a streaming answer; a citation; a confidence note
  * Jobs to be done: tell generated text from written text; see the model working; decide whether to trust it
- * Keywords: AI, generated, suggestion, streaming, confidence, provenance, sparkle, disclosure, citation
+ * Keywords: AI, generated, suggestion, streaming, confidence, provenance, citation, disclosure
  */
 /**
  * The marks that say a machine was involved. They matter more than most components, because the thing they label is

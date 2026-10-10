@@ -1,4 +1,4 @@
-/** @flowcode-library empty-states - Empty states: nothing yet, nothing found, nothing left, nothing worked (Alerts and states)
+/** @flowcode-library empty-states · Empty states: nothing yet, nothing found, nothing left, nothing worked (Alerts and states)
  * Use cases: a new account's first screen; a search with no results; a cleared inbox; a failed load; a filtered table
  * Jobs to be done: understand why this is empty; know what to do next; get back to something that is not empty
  * Keywords: empty state, zero state, no results, first run, onboarding, error state, placeholder

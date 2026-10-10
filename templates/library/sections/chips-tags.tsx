@@ -1,4 +1,4 @@
-/** @flowcode-library chips-tags - Chips and tags: filters, choices and labels (Forms)
+/** @flowcode-library chips-tags · Chips and tags: filters, choices and labels (Forms)
  * Use cases: filter bar; chosen filters; labels on a card; category tags; removable selections
  * Jobs to be done: narrow a list; see what I have already narrowed it by; take a filter off again
  * Keywords: chip, tag, filter, label, dismiss, remove

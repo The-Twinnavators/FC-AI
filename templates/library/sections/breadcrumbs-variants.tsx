@@ -1,5 +1,5 @@
-/** @flowcode-library breadcrumbs-variants - Breadcrumbs: full, folded and with a menu (Tabs, breadcrumbs and paging)
- * Use dcases: nested folders; project then run then step; settings sections; catalog categories
+/** @flowcode-library breadcrumbs-variants · Breadcrumbs: full, folded and with a menu (Tabs, breadcrumbs and paging)
+ * Use cases: nested folders; project then run then step; settings sections; catalog categories
  * Jobs to be done: see where I am; go back up one level; jump to the top
  * Keywords: breadcrumb, trail, hierarchy, path, overflow, current page
  */

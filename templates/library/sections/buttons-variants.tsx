@@ -1,7 +1,7 @@
-/** @flowcode-library buttons-variants - Buttons: every variant and state (Forms)
+/** @flowcode-library buttons-variants · Buttons: every variant and state (Forms)
  * Use cases: action button set; destructive confirm; form submit states; disabled action; toolbar actions
  * Jobs to be done: pick the right button for an action; show an action is unavailable; warn before something destructive
- * Keywords: button, primary, secondary, destructive, disabled
+ * Keywords: button, primary, secondary, destructive, disabled, states
  */
 /**
  * Every button as one matrix: the state across the top, the kind down the side. Hover and pressed are drawn in those

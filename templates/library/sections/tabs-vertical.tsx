@@ -1,4 +1,4 @@
-/** @flowcode-library tabs-vertical - Vertical tabs: a rail of sections beside the panel (Tabs, breadcrumbs and paging)
+/** @flowcode-library tabs-vertical · Vertical tabs: a rail of sections beside the panel (Tabs, breadcrumbs and paging)
  * Use cases: settings with many groups; account areas; a long record's sections; docs chapters; admin panels
  * Jobs to be done: move between many sections without wrapping; see every section at once; keep my place
  * Keywords: vertical tabs, rail, side tabs, settings nav, aria-orientation, selected

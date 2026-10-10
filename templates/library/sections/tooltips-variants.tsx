@@ -1,4 +1,4 @@
-/** @flowcode-library tooltips-variants - Tooltips: placement, delay and what belongs in one (Alerts and states)
+/** @flowcode-library tooltips-variants · Tooltips: placement, delay and what belongs in one (Alerts and states)
  * Use cases: naming an icon button; a shortened cell in a table; a keyboard shortcut; a disabled control's reason
  * Jobs to be done: find out what this button does; read a name that was cut off; learn the shortcut
  * Keywords: tooltip, hint, title, hover, focus, placement, delay, aria-describedby

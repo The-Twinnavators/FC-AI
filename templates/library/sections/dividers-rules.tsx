@@ -1,7 +1,7 @@
-/** @flowcode-library dividers-rules - Dividers: horizontal, vertical, with a label, and when to use none (Small components)
- * Use cases: between list rows; between toolbar groups; an "or" between two ways to sign in; a section break
+/** @flowcode-library dividers-rules · Dividers: horizontal, vertical, with a label, and when to use none (Small components)
+ * Use cases: between list rows; between toolbar groups; an or between two ways to sign in; a section break
  * Jobs to be done: see where one group ends; separate a toolbar's groups; break a long page up
- * Keywords: divider, rule, separator, hr, horizontal rule, vertical rule, spacing, aria-hidden
+ * Keywords: divider, rule, separator, hr, horizontal rule, vertical rule, spacing
  */
 /**
  * The smallest component there is, and the one most often used instead of spacing. A line says "these are different

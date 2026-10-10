@@ -1,4 +1,4 @@
-/** @flowcode-library sidebar-nav-variants - Sidebar: groups, collapsing and the icon rail (Navigation)
+/** @flowcode-library sidebar-nav-variants · Sidebar: groups, collapsing and the icon rail (Navigation)
  * Use cases: app shell sidebar; admin navigation; docs chapters; project areas; collapsed rail
  * Jobs to be done: reach any area in one press; fold the sidebar away for room; see where I am
  * Keywords: sidebar, side nav, rail, collapse, groups, active, badge, aria-current

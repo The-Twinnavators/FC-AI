@@ -1,4 +1,4 @@
-/** @flowcode-library modals-dialogs - Modals: confirm, destructive, form and the one you cannot dismiss (Dialogs and drawers)
+/** @flowcode-library modals-dialogs · Modals: confirm, destructive, form and the one you cannot dismiss (Dialogs and drawers)
  * Use cases: confirm before deleting; a short form over the page; sign-in prompt; unsaved changes; a required choice
  * Jobs to be done: decide one thing without losing the page; be stopped before something destructive; get back out
  * Keywords: modal, dialog, confirm, destructive, focus trap, escape, scrim, alertdialog

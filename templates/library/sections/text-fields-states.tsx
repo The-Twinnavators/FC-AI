@@ -1,4 +1,4 @@
-/** @flowcode-library text-fields-states - Text fields: every variant and state (Forms)
+/** @flowcode-library text-fields-states · Text fields: every variant and state (Forms)
  * Use cases: sign-up form; settings form; search box; validation messages; read-only record
  * Jobs to be done: fill in a form; understand why an entry was refused; see a field I cannot change
  * Keywords: input, text field, validation, invalid, disabled, focus

@@ -1,7 +1,7 @@
-/** @flowcode-library alerts-states - Alerts: four tones, inline, banner and toast (Alerts and states)
+/** @flowcode-library alerts-states · Alerts: four tones, inline, banner and toast (Alerts and states)
  * Use cases: form saved; something failed; a warning before an action; a tip; a site-wide notice
  * Jobs to be done: know something happened; understand what went wrong; get told without losing my place
- * Keywords: alert, toast, banner, notice, success, warning, error, info, dismiss, live region
+ * Keywords: alert, toast, banner, notice, success, warning, error, info, dismiss
  */
 /**
  * The same four tones in the three places a message can appear. Where it appears decides how it behaves: an inline
