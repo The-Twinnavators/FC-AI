@@ -107,7 +107,9 @@ export function ModelsView() {
       <div className="models-col models-col--side">
       <section className="section models-providers">
         <div className="section__head">
-          <h2 className="section__title">AI providers</h2>
+          <h2 className="section__title">
+            <em className="brand-ai">AI</em> providers
+          </h2>
         </div>
         {/* One row per provider: name and state on one line, where it runs and its details below (a 4-column table
             squeezed the names into tall wrapped blocks). */}
@@ -419,7 +421,9 @@ function CloudCoder({ onSaved }: { onSaved: () => void }) {
   return (
     <section className="section" data-guide="models.cloud">
       <div className="section__head">
-        <h2 className="section__title">AI cloud models</h2>
+        <h2 className="section__title">
+          <em className="brand-ai">AI</em> cloud models
+        </h2>
         <span className="chip" style={{ marginLeft: "auto" }}>{cfg.data?.ready ? `ready · ${cfg.data.model}` : "not set up"}</span>
       </div>
       <div className="section__body" style={{ display: "grid", gap: 12 }}>
