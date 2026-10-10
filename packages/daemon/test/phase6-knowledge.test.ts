@@ -69,6 +69,26 @@ describe("knowledge, search, prompts and skills", () => {
     expect(app.knowledge.search("repository architecture map", { kinds: ["skill"] })[0].id).toBe("skill.repository-map");
   });
 
+  it("deletes a prompt with its history and its search entry, and refuses the built-ins", () => {
+    const { app } = makeApp();
+    // A built-in is seeded again on every start, so a delete here would undo itself. Refuse it instead.
+    expect(() => app.knowledge.deletePrompt("role.coder")).toThrow(/Built-in prompts can't be deleted/);
+    expect(app.store.prompts.get("role.coder")).toBeTruthy();
+    expect(() => app.knowledge.deletePrompt("prompt.never-existed")).toThrow(/not found/);
+
+    const mine = app.store.prompts.require("role.coder");
+    app.knowledge.savePrompt({ ...mine, id: "prompt.mine", title: "Mine", version: "1.0.0", template: "a template of my own" });
+    app.knowledge.savePrompt({ ...mine, id: "prompt.mine", title: "Mine", version: "1.1.0", template: "a second draft of my own" });
+    expect(app.knowledge.promptVersions("prompt.mine")).toHaveLength(2);
+    expect(app.knowledge.search("a second draft of my own", { kinds: ["prompt"] }).some((r) => r.id === "prompt.mine")).toBe(true);
+
+    expect(app.knowledge.deletePrompt("prompt.mine")).toEqual({ deleted: "prompt.mine" });
+    expect(app.store.prompts.get("prompt.mine")).toBeUndefined();
+    expect(app.knowledge.promptVersions("prompt.mine")).toHaveLength(0);
+    // Without clearing the index the prompt goes on answering searches and opens onto nothing.
+    expect(app.knowledge.search("a second draft of my own", { kinds: ["prompt"] }).some((r) => r.id === "prompt.mine")).toBe(false);
+  });
+
   it("repository-map skill distinguishes facts from inferences and cites paths", () => {
     const { app } = makeApp();
     const { jail } = makeProject(app, {

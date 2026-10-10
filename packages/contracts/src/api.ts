@@ -40,6 +40,7 @@ export const API_ROUTES = {
   updateKnowledge: "POST /knowledge/:id",
   listPrompts: "GET /prompts",
   savePrompt: "POST /prompts",
+  deletePrompt: "POST /prompts/:id/delete",
   listSkills: "GET /skills",
   saveSkill: "POST /skills",
   runSkill: "POST /skills/:id/run",

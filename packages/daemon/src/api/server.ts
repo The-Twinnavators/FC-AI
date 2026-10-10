@@ -14,6 +14,7 @@ import { watchFirstLook } from "./firstLook.js";
 import { setupStatus, testAndUse, useAsCoder } from "./setup.js";
 import { externalChanges, watchStops } from "../workspace/stamp.js";
 import { briefIdea } from "../orchestrator/ideaScout.js";
+import { BUILTIN_PROMPT_IDS } from "../orchestrator/prompts.js";
 import { isFinishedRun } from "@flowcode/contracts";
 import { designTemplate } from "@flowcode/contracts";
 import { execFileSync } from "node:child_process";
@@ -1260,9 +1261,17 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   add(R.updateKnowledge, ({ params, body }) =>
     app.knowledge.update(params.id, parse(z.object({ title: z.string(), content: z.string(), tags: z.array(z.string()), pinned: z.boolean(), excluded: z.boolean(), confirmedByUser: z.boolean(), durability: z.enum(["temporary", "durable"]) }).partial(), body)),
   );
-  add(R.listPrompts, () => app.store.prompts.list("updated_at DESC"));
+  // `builtin` is derived from the seed, not stored, so it stays true as the built-ins change.
+  add(R.listPrompts, () => app.store.prompts.list("updated_at DESC").map((p) => ({ ...p, builtin: BUILTIN_PROMPT_IDS.has(p.id) })));
   add(R.savePrompt, ({ body }) => app.knowledge.savePrompt(parse(C.PromptSpec, body)));
   add("GET /prompts/:id/versions", ({ params }) => app.knowledge.promptVersions(params.id));
+  add(R.deletePrompt, ({ params }) => {
+    try {
+      return app.knowledge.deletePrompt(params.id);
+    } catch (e) {
+      throw new HttpError(400, (e as Error).message);
+    }
+  });
   add("GET /library/stats", ({ query }) => libraryStats(app, (["24h", "7d", "30d"] as const).find((w) => w === query.get("window")) ?? "24h"));
   add(R.listSkills, () => app.store.skills.list("updated_at DESC"));
   add(R.saveSkill, ({ body }) => app.knowledge.saveSkill(parse(C.SkillSpec, body)));

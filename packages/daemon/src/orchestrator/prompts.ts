@@ -183,6 +183,12 @@ Only report what is visible. These are subjective critique findings, not automat
   },
 ];
 
+/**
+ * The prompts FlowCode seeds on every start. Deriving the set from the seed itself means it cannot drift:
+ * add a built-in and it is protected from deletion the same day, without a second list to remember.
+ */
+export const BUILTIN_PROMPT_IDS = new Set(ROLE_PROMPTS.map((p) => p.id));
+
 export function promptById(id: string): PromptSpec {
   const p = ROLE_PROMPTS.find((x) => x.id === id);
   if (!p) throw new Error(`Unknown prompt ${id}`);

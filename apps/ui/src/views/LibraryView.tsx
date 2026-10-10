@@ -2,6 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { REQUEST_TEMPLATES, type PromptSpec, type SkillSpec } from "@flowcode/contracts";
 import { get, post, useResource } from "../api";
+import { ConfirmButton } from "../components/ConfirmButton";
 import { Plus, Search } from "lucide-react";
 import { SKILL_CATEGORIES, categoryOf, skillMatches, type SkillCategory } from "../skillCategories";
 import { Tabs } from "../components/ui";
@@ -150,7 +151,7 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
   const proposalCount = useResource<{ items: Array<{ status: string }> }>("/skill-proposals", [], 30_000).data?.items.filter((i) => i.status !== "dismissed").length;
   const toolCount = useResource<unknown[]>("/system/tools", [], 0).data?.length;
   const serverCount = useResource<{ servers: unknown[] }>("/mcp/servers", [], 30_000).data?.servers.length;
-  const prompts = useResource<PromptSpec[]>("/prompts");
+  const prompts = useResource<Array<PromptSpec & { builtin?: boolean }>>("/prompts");
   // Polled so skills added elsewhere (API, another window) appear without a reload.
   const skills = useResource<SkillSpec[]>("/skills", [], 15_000);
   const [selected, setSelected] = useState<string>();
@@ -337,7 +338,7 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
                   onCancel={() => setDraft(undefined)}
                 />
               ) : prompt ? (
-                <PromptDetail prompt={prompt} onSaved={prompts.reload} />
+                <PromptDetail prompt={prompt} onSaved={prompts.reload} onDeleted={() => (setSelected(undefined), prompts.reload())} />
               ) : skill ? (
                 <SkillDetail key={skill.id + skill.version} skill={skill} onChanged={skills.reload} onEdit={() => setDraft({ spec: skill, isNew: false })} onDeleted={() => (setSelected(undefined), skills.reload())} />
               ) : (
@@ -349,9 +350,18 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
   );
 }
 
-function PromptDetail({ prompt, onSaved }: { prompt: PromptSpec; onSaved: () => void }) {
+function PromptDetail({ prompt, onSaved, onDeleted }: { prompt: PromptSpec & { builtin?: boolean }; onSaved: () => void; onDeleted: () => void }) {
   const [template, setTemplate] = useState(prompt.template);
   const [error, setError] = useState<string>();
+  const remove = async () => {
+    setError(undefined);
+    try {
+      await post(`/prompts/${encodeURIComponent(prompt.id)}/delete`, {});
+      onDeleted();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
   const bump = (v: string) => {
     const [a, b] = v.split(".").map(Number);
     return `${a}.${(b ?? 0) + 1}.0`;
@@ -400,6 +410,22 @@ function PromptDetail({ prompt, onSaved }: { prompt: PromptSpec; onSaved: () => 
         <button className="btn btn--primary" disabled={template === prompt.template} onClick={save}>
           Save as v{bump(prompt.version)}
         </button>
+        {/* Built-ins are seeded again on every start, so Delete there would undo itself. Say why instead. */}
+        {prompt.builtin ? (
+          <span className="muted" style={{ marginLeft: "auto", fontSize: 12 }}>Built in — FlowCode keeps this one. Your edits to it are kept too.</span>
+        ) : (
+          <span style={{ marginLeft: "auto" }}>
+            <ConfirmButton
+              className="btn btn--ghost"
+              data-cp="lib-delete-prompt"
+              question={`Delete ${prompt.title}? ${prompt.roles.length ? `${prompt.roles.join(", ")} will stop using it. ` : ""}Its version history goes too, and this cannot be undone.`}
+              confirmLabel="Delete prompt"
+              onConfirm={remove}
+            >
+              Delete
+            </ConfirmButton>
+          </span>
+        )}
       </div>
     </div>
   );

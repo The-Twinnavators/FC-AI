@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { CreateKnowledgeInput, KnowledgeItem, PromptSpec, SkillSpec } from "@flowcode/contracts";
+import { BUILTIN_PROMPT_IDS } from "../orchestrator/prompts.js";
 import { CreateKnowledgeInput as CreateKnowledgeSchema, PromptSpec as PromptSchema, SkillSpec as SkillSchema } from "@flowcode/contracts";
 import type { Store } from "../db/store.js";
 import type { EventBus } from "../events/bus.js";
@@ -292,6 +293,22 @@ export class KnowledgeService {
     return p;
   }
 
+  /**
+   * Removes a prompt, its version history and its search entry. Built-ins are refused rather than
+   * removed: they are seeded again on the next start, so deleting one looks like it worked until
+   * FlowCode restarts and puts it back.
+   */
+  deletePrompt(id: string) {
+    const p = this.store.prompts.get(id);
+    if (!p) throw new Error(`Prompt ${id} not found`);
+    if (BUILTIN_PROMPT_IDS.has(id)) throw new Error("Built-in prompts can't be deleted - FlowCode adds them back when it starts. Edit it instead; your edits are kept.");
+    this.store.db.run("DELETE FROM prompts WHERE id = ?", id);
+    this.store.db.run("DELETE FROM prompt_versions WHERE prompt_id = ?", id);
+    // Without this the prompt keeps answering global searches and opens onto nothing.
+    this.store.db.run("DELETE FROM search_index WHERE entity_kind = 'prompt' AND entity_id = ?", id);
+    return { deleted: id };
+  }
+
   promptVersions(id: string): PromptSpec[] {
     return this.store.db.all<{ data: string }>("SELECT data FROM prompt_versions WHERE prompt_id = ? ORDER BY created_at ASC", id).map((r) => JSON.parse(r.data) as PromptSpec);
   }
@@ -317,6 +334,8 @@ export class KnowledgeService {
     if (s.source !== "user") throw new Error("Built-in skills can't be deleted; turn them off instead");
     this.store.db.run("DELETE FROM skills WHERE id = ?", id);
     this.store.db.run("DELETE FROM skill_versions WHERE skill_id = ?", id);
+    // Same gap as prompts had: a deleted skill went on answering global searches.
+    this.store.db.run("DELETE FROM search_index WHERE entity_kind = 'skill' AND entity_id = ?", id);
     return { deleted: id };
   }
 
