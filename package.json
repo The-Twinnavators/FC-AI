@@ -13,8 +13,9 @@
   },
   "scripts": {
     "build": "tsc -b packages/contracts packages/daemon && npm run build -w @flowcode/ui && npm run build -w @flowcode/desktop",
-    "typecheck": "tsc -b packages/contracts packages/daemon && npm run typecheck -w @flowcode/ui && npm run typecheck -w @flowcode/desktop && npm run typecheck:library",
+    "typecheck": "tsc -b packages/contracts packages/daemon && npm run typecheck -w @flowcode/ui && npm run typecheck -w @flowcode/desktop && npm run typecheck:library && npm run typecheck:guide",
     "typecheck:library": "node scripts/check-library-sections.mjs",
+    "typecheck:guide": "node scripts/audit-guide.mjs --strict",
     "test": "vitest run",
     "start": "npm run build && npm run start -w @flowcode/desktop",
     "dev": "npm run dev -w @flowcode/ui",
@@ -23,6 +24,7 @@
     "dev:empty": "node --disable-warning=ExperimentalWarning scripts/dev-empty.mjs",
     "benchmark": "node --disable-warning=ExperimentalWarning packages/daemon/dist/bench/goldenPath.js",
     "audit:ui": "node scripts/audit-ui.mjs",
+    "audit:guide": "node scripts/audit-guide.mjs",
     "build:ui-gallery": "node scripts/ui-gallery/build.mjs"
   },
   "devDependencies": {
