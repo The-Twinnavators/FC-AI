@@ -12,7 +12,8 @@ import { RobotHead, ROLE_COLOR, ROLE_LABEL, workingRole } from "../components/Ro
 import { KnowledgePicker } from "../components/KnowledgePicker";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { checkName, friendlyError } from "@flowcode/contracts";
-import { Check, Copy, Crosshair, ListChecks, MessageSquare, RefreshCw } from "lucide-react";
+import { Check, Copy, ExternalLink, ListChecks, MessageSquare, RefreshCw } from "lucide-react";
+import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
 import type { Approval, Checkpoint, CommandRecord, FlowEvent, KnowledgeItem, PreflightRecord, Project, Run, Snapshot, Task, VerificationCheck } from "@flowcode/contracts";
 import { artifactUrl, get, post, useEventStream, useResource } from "../api";
 import { ApprovalCard } from "../components/ApprovalCard";
@@ -1132,13 +1133,16 @@ function DemoBanner({ projectId }: { projectId: string }) {
   );
 }
 
-/** Preview sizes: the widths FlowCode's own screenshots use, so what you try matches what was checked. */
-const DEVICES = [
-  { id: "phone", label: "Phone", width: 375 },
-  { id: "tablet", label: "Tablet", width: 768 },
-  { id: "desktop", label: "Desktop", width: 0 },
-] as const;
-type Device = (typeof DEVICES)[number]["id"];
+/** A screen with a pointer on it, drawn like the lucide icons around it (lucide has no monitor-and-cursor icon). */
+function MonitorPointer() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+      <path d="M9.5 6.5l6 2.4-2.6.9-.9 2.6z" />
+    </svg>
+  );
+}
 
 function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: RunView["artifacts"] }) {
   // The chosen size is kept per project.
@@ -1159,7 +1163,7 @@ function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: 
       /* kept for this visit */
     }
   };
-  const frameWidth = DEVICES.find((d) => d.id === device)!.width;
+  const frameWidth = deviceWidth(device);
   const [pointing, setPointing] = useState(false);
   const live = useResource<{ url: string } | null>(`/projects/${projectId}/preview`);
   const [busy, setBusy] = useState(false);
@@ -1186,20 +1190,16 @@ function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: 
         <span className="label">live preview</span>
         {live.data?.url ? (
           <>
-            <span className="mono muted">{live.data.url}</span>
+            <a className="btn btn--sm" href={live.data.url} target="_blank" rel="noopener noreferrer" title={`Open ${live.data.url} in your browser`}>
+              <ExternalLink size={14} aria-hidden="true" /> View in browser
+            </a>
             <CopyUrl url={live.data.url} />
-            <div className="seg preview-devices" data-cp="preview-sizes" role="radiogroup" aria-label="Preview size" style={{ marginLeft: "auto" }}>
-              {DEVICES.map((d) => (
-                <button key={d.id} type="button" role="radio" aria-checked={device === d.id} className={`seg__btn${device === d.id ? " is-on" : ""}`} onClick={() => setDevice(d.id)} title={d.width ? `${d.label} (${d.width} px wide)` : "Full width"}>
-                  {d.label}
-                </button>
-              ))}
-            </div>
-            <button type="button" className="btn btn--sm" data-cp="point-something" onClick={() => setPointing(true)} title="Click what should change on a fresh picture of your app, and say how">
-              <Crosshair size={14} aria-hidden="true" /> Point at something
+            <PreviewSizes value={device} onChange={setDevice} style={{ marginLeft: "auto" }} />
+            <button type="button" className="btn btn--sm btn--icon" data-cp="point-something" onClick={() => setPointing(true)} aria-label="Point &amp; Edit" title="Point &amp; Edit: click what should change on a fresh picture of your app, and say how">
+              <MonitorPointer />
             </button>
-            <button type="button" className="btn btn--sm" onClick={() => setReloads((n) => n + 1)} title="Reload the preview to see the latest changes">
-              <RefreshCw size={14} aria-hidden="true" /> Refresh
+            <button type="button" className="btn btn--sm btn--icon" onClick={() => setReloads((n) => n + 1)} aria-label="Refresh" title="Reload the preview to see the latest changes">
+              <RefreshCw size={14} aria-hidden="true" />
             </button>
             <button className="btn btn--sm" onClick={() => post(`/projects/${projectId}/preview/stop`).then(live.reload)}>
               Stop

@@ -466,12 +466,13 @@
 
 /* System setup as a table: zebra rows, the part names on the left, the tested setup's column tinted. */
 .ab2__setup-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-1); }
-.ab2__setup-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+.ab2__setup-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 14px; min-width: 640px; }
 .ab2__setup-table th, .ab2__setup-table td { text-align: left; vertical-align: top; padding: 14px 18px; line-height: 1.5; }
 .ab2__setup-table thead th { padding-top: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.ab2__setup-table .ab2__setup-label-col { width: 180px; }
 .ab2__setup-table thead th .ab2__setup-badge { display: inline-block; margin-top: 6px; }
 .ab2__setup-table thead .ab2__setup-tier { display: block; }
-.ab2__setup-table tbody th { width: 150px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.ab2__setup-table tbody th { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
 .ab2__setup-table tbody td { color: var(--text-0); }
 .ab2__setup-table tbody tr:nth-child(odd) { background: color-mix(in srgb, var(--text-0) 3.5%, transparent); }
 .ab2__setup-table .is-pick { background: color-mix(in srgb, var(--sig-ok) 7%, transparent); }

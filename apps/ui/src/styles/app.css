@@ -326,6 +326,8 @@ a {
   font-weight: 550;
   cursor: pointer;
   white-space: nowrap;
+  /* A link styled as a button is still a link: keep the underline off so it matches the buttons beside it. */
+  text-decoration: none;
   transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
 }
 

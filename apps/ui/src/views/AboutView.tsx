@@ -155,6 +155,12 @@ export function AboutView() {
         {/* One table: each row is one part of the computer, read across the three setups; the tested one is marked. */}
         <div className="ab2__setup-wrap">
           <table className="ab2__setup-table">
+            <colgroup>
+              <col className="ab2__setup-label-col" />
+              {SETUP.map((t) => (
+                <col key={t.tier} />
+              ))}
+            </colgroup>
             <thead>
               <tr>
                 <th scope="col">
