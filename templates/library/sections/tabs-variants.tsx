@@ -1,4 +1,4 @@
-/** @flowcode-library tabs-variants - Tabs: underline, pills and enclosed (Tabs, breadcrumbs and paging)
+/** @flowcode-library tabs-variants - Horizontal tabs: underline, pills and enclosed (Tabs, breadcrumbs and paging)
  * Use cases: record detail sections; settings groups; report views; inbox filters; dashboard ranges
  * Jobs to be done: move between parts of one thing; see which part I am on; count what is in each part
  * Keywords: tabs, underline, pills, enclosed, selected, disabled, badge
