@@ -26,7 +26,7 @@ const addStyles = (used: string) => {
   const style = document.createElement("style");
   style.textContent = [
     previewBaseCss(styleId),
-    "html,body{margin:0;overflow:hidden;background:var(--color-bg);color:var(--color-text);font-family:var(--font-sans);font-size:var(--text-md);-webkit-font-smoothing:antialiased}*,*::before,*::after{box-sizing:border-box}",
+    "html,body{margin:0;overflow-x:hidden;background:var(--color-bg);color:var(--color-text);font-family:var(--font-sans);font-size:var(--text-md);-webkit-font-smoothing:antialiased}body{overflow-y:auto}*,*::before,*::after{box-sizing:border-box}",
     baseCss,
     ...Object.keys(categoryCss)
       .sort()

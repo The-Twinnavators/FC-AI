@@ -17,14 +17,21 @@ const key = (id: string) => `../../../../templates/library/sections/${id}.tsx`;
  * One section, live, in its own window (section-preview.html), so it behaves exactly as in a built app: its dialogs,
  * focus and Escape act on that window, never on FlowCode's page. The preview page reports its height.
  */
+/**
+ * One height for every preview, so the frame is a viewport rather than a measurement of its own contents.
+ * Sizing it from the content made vh circular: a piece asking for 88vh grew the frame, which grew the 88vh, which
+ * grew the frame. landing-prelaunch settled at 3631px for 435px of content, centred in the middle of the emptiness.
+ */
+const PREVIEW_HEIGHT = 760;
+
 function SectionFrame({ id, styleId, title, width }: { id: string; styleId: string; title: string; width: number }) {
-  const [height, setHeight] = useState(360);
-  // Until the section has drawn, the frame shows the loading bar (never an empty white box).
+  // Until the section has drawn, the frame shows the loading bar (never an empty white box). The page still reports
+  // its height; it is what tells us it has drawn, and no longer what sets the frame's size.
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       const m = e.data as { type?: string; id?: string; height?: number };
-      if (m?.type === "fl-section-height" && m.id === id && typeof m.height === "number") (setHeight(Math.max(120, Math.ceil(m.height))), setReady(true));
+      if (m?.type === "fl-section-height" && m.id === id && typeof m.height === "number") setReady(true);
     };
     addEventListener("message", onMessage);
     return () => removeEventListener("message", onMessage);
@@ -37,7 +44,7 @@ function SectionFrame({ id, styleId, title, width }: { id: string; styleId: stri
           <span className="is-indeterminate" />
         </span>
       )}
-      <iframe className="cl-frame" title={`${title} preview`} src={src} loading="lazy" style={{ height, ...(width ? { width } : {}) }} />
+      <iframe className="cl-frame" title={`${title} preview`} src={src} loading="lazy" style={{ height: PREVIEW_HEIGHT, ...(width ? { width } : {}) }} />
     </div>
   );
 }
