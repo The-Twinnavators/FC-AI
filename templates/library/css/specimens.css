@@ -409,8 +409,8 @@ a.fl-ctl-row:focus-visible { outline: none; box-shadow: var(--focus-ring); }
    pointer; only the dot goes. The name carries the weight, because a dot alone is a lot to ask of one colour. */
 .fl-ctl-row-unread { flex: none; width: 0.5rem; height: 0.5rem; border-radius: 999px; background: transparent; }
 .fl-ctl-row.is-unread .fl-ctl-row-unread { background: var(--color-accent); }
-.fl-ctl-row.is-unread .fl-ctl-row-main strong { font-weight: 700; color: var(--color-text); }
 .fl-ctl-rows--links .fl-ctl-row .fl-ctl-row-main strong { font-weight: 500; }
+.fl-ctl-rows--links .fl-ctl-row.is-unread .fl-ctl-row-main strong { font-weight: 700; color: var(--color-text); }
 .fl-ctl-row-icon, .fl-ctl-row-grip { display: grid; flex: none; place-items: center; color: var(--color-text-muted); }
 .fl-ctl-row-icon svg, .fl-ctl-row-grip svg { width: 1.1rem; height: 1.1rem; }
 .fl-ctl-row-grip { transform: rotate(90deg); cursor: grab; }
