@@ -372,7 +372,7 @@ function Workspace({ id }: { id: string }) {
         </div>
       </header>
       <div className="disc-ws__body">
-        <nav className="disc-steps" aria-label="Research stages">
+        <nav className="disc-steps" aria-label="Research stages" data-cp="prd-stages">
           <p className="disc-steps__count">
             Stage {idx + 1} of {stages.length}
           </p>
@@ -381,7 +381,7 @@ function Workspace({ id }: { id: string }) {
               const state = stageState(p, st);
               return (
                 <li key={st.id}>
-                  <button type="button" className={`disc-step disc-step--${state}${st.id === stage.id ? " is-current" : ""}`} aria-current={st.id === stage.id ? "step" : undefined} onClick={() => void open(go(st))}>
+                  <button type="button" data-stage={st.id} data-optional={state === "optional" ? "true" : undefined} className={`disc-step disc-step--${state}${st.id === stage.id ? " is-current" : ""}`} aria-current={st.id === stage.id ? "step" : undefined} onClick={() => void open(go(st))}>
                     <span className="disc-step__n" aria-hidden="true">
                       {state === "done" || state === "approved" ? <Icon name="check" size={12} /> : i + 1}
                     </span>
@@ -397,7 +397,7 @@ function Workspace({ id }: { id: string }) {
           </ol>
           <p className="disc-steps__note">FlowCode drafts each stage for you. Edit anything, or add detail and draft it again.</p>
         </nav>
-        <main className="disc-main" aria-labelledby="disc-step-title">
+        <main className="disc-main" aria-labelledby="disc-step-title" data-cp={`prd-on-${stage.id}`}>
           {affected.length ? <AffectedNotice id={id} view={view} affected={affected} onDone={(v) => (setView(v), setAffected([]))} onReview={(s) => (setAffected([]), void open(s))} /> : null}
           <StageView key={stage.id + p.mode} view={view} stage={stage} onView={apply} onOpen={(s) => void open(s)} prev={stages[idx - 1]} next={stages[idx + 1]} go={go} />
         </main>
@@ -460,7 +460,7 @@ function StageView({ view, stage, onView, onOpen, prev, next, go }: { view: View
         <div className="disc-generate disc-stage-draft">
           {/* The Planner agent drafts the plan; its head animates while it works. */}
           <AgentBadge role={(working && STEP_AGENT[working]) || STEP_AGENT[stage.draft[0]] || "planner"} working={!!progress} id={stage.id} />
-          <button type="button" className="btn btn--primary disc-ai-btn" disabled={!!progress || needsProblem} onClick={() => void draft()}>
+          <button type="button" className="btn btn--primary disc-ai-btn" data-cp="prd-draft" disabled={!!progress || needsProblem} onClick={() => void draft()}>
             <Sparkles size={15} aria-hidden="true" />
             {progress ? "Drafting…" : stage.steps.every((s) => p.outputs[s]?.data) ? "Draft this stage again" : stage.draftLabel ?? "Draft this stage"}
           </button>
@@ -478,7 +478,7 @@ function StageView({ view, stage, onView, onOpen, prev, next, go }: { view: View
           Save and exit
         </button>
         {next ? (
-          <button type="button" className="btn btn--primary disc-nav__next" disabled={gateOpen} title={gateOpen ? "Approve the map first" : undefined} onClick={async () => { for (const f of flushers.current.values()) await f(); onOpen(go(next)); }}>
+          <button type="button" className="btn btn--primary disc-nav__next" data-cp="prd-continue" disabled={gateOpen} title={gateOpen ? "Approve the map first" : undefined} onClick={async () => { for (const f of flushers.current.values()) await f(); onOpen(go(next)); }}>
             Continue: {next.name}
           </button>
         ) : null}
@@ -1226,7 +1226,7 @@ function BuildStep({ view, onOpen }: { view: View; onOpen: (s: string) => void }
       {p.handoff ? <p className="disc-approved">A prototype was started from this research {ago(p.handoff.at)}.</p> : null}
       {error ? <p className="notice notice--bad" role="alert">{error}</p> : null}
       <div className="disc-actions">
-        <button type="button" className="btn btn--primary" disabled={busy} onClick={() => void start()}>
+        <button type="button" className="btn btn--primary" data-cp="prd-prototype" disabled={busy} onClick={() => void start()}>
           {busy ? "Opening New build…" : "Start a prototype"}
         </button>
         <button type="button" className="btn" onClick={() => onOpen(deep ? "d_prd" : "l_prd")}>

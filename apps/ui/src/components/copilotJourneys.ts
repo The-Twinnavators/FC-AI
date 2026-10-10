@@ -99,6 +99,47 @@ export function createPrdJourney(problem?: string): Journey {
 }
 
 const ROLE_WORDS: Array<[RegExp, string]> = [[/\bcoder|coding\b/, "coder"], [/\bplanner|planning\b/, "planner"], [/\bdebugger\b/, "debugger"], [/\bcritic|visual|vision\b/, "critic"], [/\bresearcher|research\b/, "researcher"], [/\bdocumenter|copilot|writer\b/, "documenter"], [/\breviewer\b/, "reviewer"]];
+/**
+ * Walking the research workspace, stage by stage. Built from the project's own stages, because Light and Deep have
+ * different ones and a project can drop the optional sections; a hard-coded six would point at stages that are not
+ * there. Each stage is the same two beats - draft it, then your turn to continue - and the Copilot waits for the
+ * next stage to actually open before going on, rather than assuming your click landed.
+ */
+export function prdStagesJourney(id: string, stages: Array<{ id: string; name: string; optional?: boolean }>): Journey {
+  const steps: Step[] = [
+    { do: "go", path: `/discover/${id}`, say: "This is the research workspace. Everything from here to a PRD happens on this page." },
+    { do: "point", target: "prd-stages", say: `${stages.length} stages, in order. The ones marked optional research can be skipped; the rest each end in something the PRD needs.` },
+  ];
+  stages.forEach((st, i) => {
+    const last = i === stages.length - 1;
+    steps.push({
+      do: "point",
+      target: "prd-draft",
+      say: `Stage ${i + 1}, ${st.name.toLowerCase()}. FlowCode drafts it for you; read what it wrote and change anything that is not right.${st.optional ? " This one is optional - skip it if you already know the answer." : ""}`,
+      missing: `Stage ${i + 1}, ${st.name.toLowerCase()}, has nothing to draft: fill it in yourself and carry on.`,
+    });
+    if (!last) {
+      steps.push({
+        do: "wait",
+        target: "prd-continue",
+        until: `prd-on-${stages[i + 1].id}`,
+        say: `When this stage reads right, press Continue. I will wait here and pick up on ${stages[i + 1].name.toLowerCase()}.`,
+      });
+    }
+  });
+  steps.push({ do: "confirm", target: "prd-prototype", say: "Last stage. Start a prototype opens New build with the PRD attached. That button is yours." });
+  return { id: "prd-stages", title: "Walk through the research stages", steps };
+}
+
+/** The research project's stages, read from the workspace on screen: its real ones, not a guessed six. */
+export function stagesOnPage(): Array<{ id: string; name: string; optional?: boolean }> {
+  return [...document.querySelectorAll<HTMLElement>('[data-cp="prd-stages"] [data-stage]')].map((el) => ({
+    id: el.dataset.stage!,
+    name: (el.querySelector(".disc-step__name")?.textContent ?? el.dataset.stage!).replace(/Optional research$/, "").trim(),
+    optional: el.dataset.optional === "true",
+  }));
+}
+
 export function switchModelJourney(role = "coder"): Journey {
   return {
     title: `Change the ${role}'s model`,
@@ -231,6 +272,12 @@ export const CATALOG: Array<{ id: string; group: string; label: string; match: R
   { id: "new-build", group: "Build", label: "Start a new build", match: /^$/, build: () => newBuildJourney() },
   { id: "style-new-build", group: "Build", label: "Capture a style in a new build", match: /^$/, build: () => newBuildStyleJourney() },
   { id: "create-prd", group: "Build", label: "Create a PRD from a problem", match: /^$/, build: () => createPrdJourney() },
+  { id: "prd-stages", group: "Build", label: "Walk me through the research stages", match: /\b(stages?|walk me through|step by step|what do i do (on|at) (each|this) stage|finish (the|my) (research|prd))\b/, build: () => {
+    const stages = stagesOnPage();
+    const id = /^#?\/discover\/([^/?]+)/.exec(location.hash.replace(/^#/, "") || location.pathname)?.[1];
+    // Off the workspace, or before it has drawn, there is nothing to walk: say so instead of pointing at nothing.
+    return id && stages.length ? prdStagesJourney(id, stages) : { title: "Walk through the research stages", steps: [go("/discover", "Open a piece of research first - or start one - and ask me again from inside it.")] };
+  } },
   { id: "open-folder", group: "Build", label: "Open an existing project folder", match: /\b(open|import|add|use)\b.*\b(existing|folder|repo|repository|code ?base)\b/, build: () => ({ title: "Open an existing project folder", steps: [go("/", "This starts from the Dashboard."), yours("open-folder", "Open an existing repository picks a folder on this computer and makes it a FlowCode project. Choose the folder yourself.", "Opening a folder works in the FlowCode desktop app, where it can show your computer's folder picker. In the browser, start a new build instead.")] }) },
   { id: "change", group: "Build", label: "Ask for a change to my app", project: true, match: /\b(change|edit|update|tweak|modify|fix)\b.*\b(my app|the app|prototype|screen|page|button|header|colou?r|text)\b|\bask for a change\b|\bfollow.?up\b/, build: (c) => ({ title: "Ask for a change", steps: [go(`/projects/${c.project!.id}`, `Open ${c.project!.name} in the builder.`), { do: "click", target: "ws-mode-chat", say: "Changes are asked for in the builder's Chat." }, point("chat-input", "Describe the change in your own words, e.g. \"make the header blue and the headings larger\". Tick Styling only for purely visual changes."), yours("chat-send", "Press Send when it's right. FlowCode plans only the difference, builds it and checks it.")] }) },
   { id: "preview", group: "Build", label: "Preview and try my app", project: true, match: /\b(preview|try|see|test|open|run)\b.*\b(my app|the app|prototype|it live)\b/, build: (c) => ({ title: "Preview your app", steps: [go(`/projects/${c.project!.id}`, `Open ${c.project!.name} in the builder.`), tab("preview", "The Preview tab runs your app live. Click around it like a user would; try a narrow window too.")] }) },
@@ -302,7 +349,8 @@ export const CATALOG: Array<{ id: string; group: string; label: string; match: R
  */
 export const NEXT_IN_BUILD: Record<string, { id: string; why: string; /** Where to go instead when nothing is waiting on you, so the chain never sends you to an empty page. */ ifNothingWaiting?: { id: string; why: string } }> = {
   // The spine.
-  "create-prd": { id: "new-build", why: "A finished PRD is what a build starts from." },
+  "create-prd": { id: "prd-stages", why: "Starting it is one button; the PRD comes out of the six stages after it." },
+  "prd-stages": { id: "new-build", why: "A finished PRD is what a build starts from." },
   "new-build": { id: "approve", why: "A build stops for your decisions; that is where it will wait for you.", ifNothingWaiting: { id: "preview", why: "Nothing is waiting on you, so go and see what it has built so far." } },
   approve: { id: "preview", why: "Once it is past your decisions, see what it actually built." },
   preview: { id: "change", why: "Anything you want different, ask for it here." },
