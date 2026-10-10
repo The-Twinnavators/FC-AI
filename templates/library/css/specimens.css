@@ -9,9 +9,11 @@
 .fl-ctl-vtabs { display: grid; grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr); gap: var(--space-5); margin-top: var(--space-3); }
 .fl-ctl-vtabs-rail { display: grid; align-content: start; gap: var(--space-1, 0.25rem); border-left: 2px solid var(--color-border); padding-left: var(--space-2); }
 .fl-ctl-vtabs--filled .fl-ctl-vtabs-rail { border-left: 0; padding-left: 0; }
+/* Square: a rail is a run of rows against an edge, and a corner on each row fights the line that marks the one you
+   are on. The count keeps its pill, because that is a badge rather than a row. */
 .fl-ctl-vtab {
   display: flex; align-items: center; gap: var(--space-2); width: 100%;
-  border: 0; border-radius: var(--radius-md); background: none; padding: var(--space-2) var(--space-3);
+  border: 0; border-radius: 0; background: none; padding: var(--space-2) var(--space-3);
   color: var(--color-text-muted); font: inherit; font-size: var(--text-sm); text-align: left; cursor: pointer;
   transition: background var(--duration-fast, 150ms) var(--easing, ease), color var(--duration-fast, 150ms) var(--easing, ease);
 }
