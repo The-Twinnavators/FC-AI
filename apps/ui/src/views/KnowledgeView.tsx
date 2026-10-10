@@ -184,7 +184,7 @@ export function KnowledgeView({ query, projects }: { query: URLSearchParams; pro
           value={tab}
           onChange={setTab}
           tabs={[
-            { id: "catalogue", label: "Catalogue", count: shelves[0]?.count },
+            { id: "catalogue", label: "Catalog", count: shelves[0]?.count },
             { id: "playbook", label: "Design playbook" },
             { id: "research", label: "Research desk", count: jobs.filter((j) => j.status === "awaiting_approval").length || undefined },
             { id: "note", label: "Write a note" },

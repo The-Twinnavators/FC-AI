@@ -55,7 +55,7 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
   const close = () => (setEditor(undefined), setDraft({}), setComponentCss(undefined));
 
   const nav: Array<{ group: string; items: Array<{ id: string; label: string }> }> = [
-    { group: "Foundations", items: [{ id: "colours", label: "Colours" }, { id: "type", label: "Typography" }, { id: "shape", label: "Shape & style" }] },
+    { group: "Foundations", items: [{ id: "colours", label: "Colors" }, { id: "type", label: "Typography" }, { id: "shape", label: "Shape & style" }] },
     { group: "Components", items: blocks.map((b) => ({ id: b.block, label: blockLabel(lib, b.block) })) },
   ];
   const go = (id: string) => document.getElementById(`dcard-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -81,7 +81,7 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
           <h3 className="dboard__group-title">Components in this design</h3>
           <DesignComponentsBar projectId={projectId} used={used.filter(isComponent)} onChange={onShown} />
         </div>
-        <DesignCard id="colours" title="Colours" group="Foundation" note="5 brand colors, 10 shades each; neutrals and status colors follow them" onConfigure={() => setEditor({ kind: "colours" })}>
+        <DesignCard id="colours" title="Colors" group="Foundation" note="5 brand colors, 10 shades each; neutrals and status colors follow them" onConfigure={() => setEditor({ kind: "colours" })}>
           <PaletteSummary projectId={projectId} theme={theme} />
         </DesignCard>
         <DesignCard id="type" title="Typography" group="Foundation" note="Heading, body and code fonts; size, weight and line height for each level" onConfigure={() => setEditor({ kind: "type" })}>
@@ -306,7 +306,7 @@ function ColoursEditor({ projectId, theme, onDraft, onClose, preview }: { projec
 
   return (
     <EditorModal
-      title="Colours"
+      title="Colors"
       onClose={onClose}
       preview={preview}
       footer={

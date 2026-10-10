@@ -785,7 +785,7 @@ export async function synthesizeVirtualInterviews(app: App, id: string): Promise
       },
     )) as Record<string, unknown>;
   } catch (e) {
-    throw new DiscoveryError(`FlowCode couldn't summarise the virtual interviews: ${(e as Error).message.slice(0, 200)}`);
+    throw new DiscoveryError(`FlowCode couldn't summarize the virtual interviews: ${(e as Error).message.slice(0, 200)}`);
   }
   const strs = (v: unknown, n: number) => (Array.isArray(v) ? v : []).map((x) => str(x, 400)).filter(Boolean).slice(0, n);
   const fresh = getProject(app, id);
@@ -897,7 +897,7 @@ export async function synthesizeVirtualTests(app: App, id: string): Promise<Disc
       { type: "object", properties: { taskIssues: { type: "array", items: { type: "string" } }, issues: { type: "array", items: { type: "string" } }, valueSignals: { type: "array", items: { type: "string" } }, toVerify: { type: "array", items: { type: "string" } } }, required: ["taskIssues", "issues", "valueSignals", "toVerify"] },
     )) as Record<string, unknown>;
   } catch (e) {
-    throw new DiscoveryError(`FlowCode couldn't summarise the virtual tests: ${(e as Error).message.slice(0, 200)}`);
+    throw new DiscoveryError(`FlowCode couldn't summarize the virtual tests: ${(e as Error).message.slice(0, 200)}`);
   }
   const strs = (v: unknown, n: number) => (Array.isArray(v) ? v : []).map((x) => str(x, 400)).filter(Boolean).slice(0, n);
   const issues = strs(raw.taskIssues, vt.tasks.length);
@@ -1112,7 +1112,7 @@ const PRD_PROMPT = (deep: boolean) =>
 - design: short design direction (tone, density, layout).
 - openQuestions: the assumptions and questions still open.
 - phases: 2 to 4 build phases, the most important user flow first.
-${deep ? "- measures: success measures. principles: product principles. infoArch: information architecture (screens and how they connect). responsive: phone and tablet behaviour. dataPrivacy: data, privacy and security considerations. integrations: only if required. analytics: events worth considering. rollout: the first-release boundary. afterLaunch: research to continue after launch.\n" : ""}Do not add accounts, databases, AI features, payments, integrations or other technology unless the approved first version needs them. Do not turn hypotheses into facts.`;
+${deep ? "- measures: success measures. principles: product principles. infoArch: information architecture (screens and how they connect). responsive: phone and tablet behavior. dataPrivacy: data, privacy and security considerations. integrations: only if required. analytics: events worth considering. rollout: the first-release boundary. afterLaunch: research to continue after launch.\n" : ""}Do not add accounts, databases, AI features, payments, integrations or other technology unless the approved first version needs them. Do not turn hypotheses into facts.`;
 
 /** The UX part of the PRD: design brief, user flow, design system, components and screen specs (a second call, so a
  *  small model writes each part well; if it fails the PRD still comes back, with the UX part marked to try again). */

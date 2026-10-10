@@ -18,7 +18,7 @@ const SAMPLE = {
       title: "See the whole week at once",
       text: "Drag a booking to move it. Everyone involved is told, and nothing double-books.",
       points: ["Week and day views", "Color by service", "Holidays blocked automatically"],
-      media: "The week view with bookings colour-coded by service",
+      media: "The week view with bookings color-coded by service",
     },
     {
       eyebrow: "Get paid",

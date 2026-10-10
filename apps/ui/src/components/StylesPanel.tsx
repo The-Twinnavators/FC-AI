@@ -38,7 +38,7 @@ interface Scan {
 }
 
 const GROUPS: Array<{ id: Group; label: string }> = [
-  { id: "color", label: "Colours" },
+  { id: "color", label: "Colors" },
   { id: "typography", label: "Typography" },
   { id: "spacing", label: "Spacing & sizes" },
   { id: "radius", label: "Radius" },

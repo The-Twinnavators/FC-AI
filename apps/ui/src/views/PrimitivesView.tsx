@@ -223,7 +223,7 @@ const PRIMITIVES: Primitive[] = [
       </div>
     ),
   },
-  { id: "eyebrow", name: "Eyebrow & gradient text", group: "Typography", file: "styles/motion.css .eyebrow .grad", usage: "Announcements above display headings; .grad for one emphasised phrase per heading.", demo: () => (<div style={{ display: "grid", gap: 10 }}><span className="eyebrow"><b>NEW</b> Capture a style from any website or screenshot</span><span style={{ fontSize: 34, fontWeight: 300, letterSpacing: "-0.03em" }}>Turn a PRD into a <span className="grad">clickable prototype.</span></span></div>) },
+  { id: "eyebrow", name: "Eyebrow & gradient text", group: "Typography", file: "styles/motion.css .eyebrow .grad", usage: "Announcements above display headings; .grad for one emphasized phrase per heading.", demo: () => (<div style={{ display: "grid", gap: 10 }}><span className="eyebrow"><b>NEW</b> Capture a style from any website or screenshot</span><span style={{ fontSize: 34, fontWeight: 300, letterSpacing: "-0.03em" }}>Turn a PRD into a <span className="grad">clickable prototype.</span></span></div>) },
   { id: "type", name: "Type scale", group: "Typography", file: "styles/tokens.css", usage: "Manrope for UI text (light 300 for descriptions); Martian Mono for labels and code; Roboto Mono for logs, feeds and metrics.", demo: () => (<div style={{ display: "grid", gap: 6 }}><span style={{ fontSize: 56, fontWeight: 300, letterSpacing: "-0.035em", lineHeight: 1 }}>Display 56</span><span style={{ fontSize: 30, fontWeight: 300 }}>Title 30</span><span style={{ fontSize: 17, fontWeight: 650 }}>Section 17</span><span>Body 14</span><span className="label">Micro label 10</span><span className="mono">Mono 11.5</span></div>) },
   {
     id: "icons",

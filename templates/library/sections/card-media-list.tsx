@@ -29,7 +29,7 @@ const SAMPLE = {
       title: "Glazing and finishing",
       summary: "Mix, dip and layer glazes, then see how each one changes in the kiln.",
       meta: ["4 weeks", "Saturdays 10 am", "$140"],
-      tags: ["Intermediate", "Colour"],
+      tags: ["Intermediate", "Color"],
       alt: "A row of glazed bowls in blues and greens",
     },
     {

@@ -438,13 +438,13 @@ export function qualityChecks(files: SourceFile[]): PoschiCommonFinding[] {
     {
       id: 'LX-QUA-004',
       area: 'Design consistency',
-      title: 'Colours are written literally in the code with no central theme',
+      title: 'Colors are written literally in the code with no central theme',
       severity: 'low',
       absent: hardcodedColour.length > 2 && !themeTokens,
       lookedFor: 'CSS custom properties, a Tailwind config, or a tokens file, beside literal hex '
         + 'and rgb() values',
       files: hardcodedColour,
-      detail: 'Colour values are written directly into components and no central set of tokens was '
+      detail: 'Color values are written directly into components and no central set of tokens was '
         + 'found. Every future change to the palette is then a search-and-replace across the '
         + 'codebase, and the near-misses — two greys that differ by a shade — are invisible until '
         + 'somebody sees two screens side by side.',
@@ -1640,7 +1640,7 @@ export function securityChecks(files: SourceFile[]): PoschiCommonFinding[] {
 // partly, and a check that finds a third of them while reading as though it
 // found all of them is worse than none. Not attempted.
 export const NOT_STATICALLY_CHECKABLE: string[] = [
-  'Colour contrast against WCAG AA, which needs computed styles rather than source.',
+  'Color contrast against WCAG AA, which needs computed styles rather than source.',
   'Whether a focus indicator clears 3:1 against the colours next to it. The indicator can be '
   + 'found in the stylesheet; what it lands on cannot, because the colour behind it depends on '
   + 'the theme, the state and what is underneath at the time.',

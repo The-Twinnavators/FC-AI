@@ -322,7 +322,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     ]
       .filter(Boolean)
       .join("\n");
-    const run = app.orchestrator.createRun({ projectId, objective: redact(objective), constraints: ["Change only files under src/.", "Do not change behaviour or data; this is a visual change.", "Keep light and dark themes working and text contrast at WCAG AA."], attachedKnowledgeIds: [], ...(latest ? { parentRunId: latest.id, kind: "iterate" as const } : {}) });
+    const run = app.orchestrator.createRun({ projectId, objective: redact(objective), constraints: ["Change only files under src/.", "Do not change behavior or data; this is a visual change.", "Keep light and dark themes working and text contrast at WCAG AA."], attachedKnowledgeIds: [], ...(latest ? { parentRunId: latest.id, kind: "iterate" as const } : {}) });
     void app.orchestrator.plan(run.id).catch(() => undefined);
     s.runId = run.id;
     s.projectId = projectId;
@@ -632,7 +632,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     // Up to three brand colours, as a build sets them: the captured ones, then companions of the main colour.
     if (style.brand.length) style.brand = brandTrio(style.brand, app.store.getSetting<DesignDirection | null>(`designDirection:${params.id}`, null) ?? designDirection(latest?.objective ?? ""));
     // Colours FlowCode added to complete the set came from no source: say so, rather than crediting one.
-    for (const hex of style.brand) if (!style.origins?.some((o) => o.value.toLowerCase() === hex.toLowerCase())) style.origins?.push({ what: "Companion colour", value: hex, from: "Chosen by FlowCode to go with your main colour" });
+    for (const hex of style.brand) if (!style.origins?.some((o) => o.value.toLowerCase() === hex.toLowerCase())) style.origins?.push({ what: "Companion color", value: hex, from: "Chosen by FlowCode to go with your main color" });
     let applied: string[] = [];
     try {
       applied = applyCapturedStyle(app.projects.jail(params.id), app.ops, { projectId: params.id, runId }, style);
