@@ -4,9 +4,9 @@
  * Keywords: background, pattern, page background, grain
  */
 /**
- * Page background: film grain (pattern). A subtle paper-like grain over the page colour.
+ * Page background: film grain (pattern). A subtle paper-like grain over the page color.
  * Good for: Editorial, craft and premium brands; pairs well with serif type.
- * Use it by adding the class "fl-bg-grain" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-grain" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

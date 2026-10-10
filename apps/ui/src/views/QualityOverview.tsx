@@ -91,7 +91,7 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                   <div className="lrc-card__top">
                     <div className="lrc-card__name">
                       <strong>{p.name}</strong>
-                      <span className="mono">{p.projectType && p.projectType !== "unknown" ? p.projectType : "not analysed"}</span>
+                      <span className="mono">{p.projectType && p.projectType !== "unknown" ? p.projectType : "not analyzed"}</span>
                     </div>
                   </div>
                   <div className="qa-card__metrics">
@@ -106,12 +106,12 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                       {r ? <RadialGauge value={r.overall / 100} size={gauge} stroke={compact ? 4 : 5} label={`${p.name} build health`} /> : <span className="qa-metric__none" aria-hidden="true">—</span>}
                       <span>
                         <span className="label">Build health</span>
-                        <span className="qa-metric__val">{r ? `${r.overall}/100 · ${r.verdict}` : "Not analysed"}</span>
+                        <span className="qa-metric__val">{r ? `${r.overall}/100 · ${r.verdict}` : "Not analyzed"}</span>
                       </span>
                     </div>
                   </div>
                   <div className="lrc-card__foot">
-                    <span className="muted">{r ? `Analysed ${ago(r.generatedAt)}` : l ? `Updated ${ago(l.updatedAt)}` : ""}</span>
+                    <span className="muted">{r ? `Analyzed ${ago(r.generatedAt)}` : l ? `Updated ${ago(l.updatedAt)}` : ""}</span>
                   </div>
                 </button>
                 <DemoButton projectId={p.id} projectName={p.name} className="card-demo" />

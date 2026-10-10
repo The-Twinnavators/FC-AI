@@ -17,7 +17,7 @@ const SAMPLE = {
   title: "Studio to-dos",
   lede: "Tick the jobs you've handled, then mark them done or clear them in one go.",
   rows: [
-    { id: "t1", task: "Order backdrop paper (grey, 2.7m)", who: "Maya", due: "Today", done: false },
+    { id: "t1", task: "Order backdrop paper (gray, 2.7m)", who: "Maya", due: "Today", done: false },
     { id: "t2", task: "Edit Tom Reyes product shots", who: "Jonah", due: "Today", done: false },
     { id: "t3", task: "Send deposit reminder to Ana", who: "Maya", due: "Tomorrow", done: false },
     { id: "t4", task: "Charge camera batteries for Saturday", who: "Elif", due: "Fri 9 Oct", done: false },

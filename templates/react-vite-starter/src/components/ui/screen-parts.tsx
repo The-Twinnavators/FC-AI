@@ -3,7 +3,7 @@
  * src/styles/screen-parts.css. Use them with the blocks in ./index.tsx:
  *
  *   <Grid>          responsive columns: "stats" (key numbers), "cards", "split" (wide + narrow), "halves"
- *   <Trend>         change since last time, as text and arrow (never colour alone)
+ *   <Trend>         change since last time, as text and arrow (never color alone)
  *   <Progress>      labelled progress bar with its value in words
  *   <BarChart>      a small bar chart whose values are also readable as text
  *   <DataTable>     a captioned table that scrolls sideways on phones

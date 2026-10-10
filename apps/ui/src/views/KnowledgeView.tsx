@@ -103,7 +103,7 @@ export function KnowledgeView({ query, projects }: { query: URLSearchParams; pro
     }
   }, [onlyResearch]); // eslint-disable-line react-hooks/exhaustive-deps
   const callNo = new Map(all.map((k, i) => [k.id, `${KIND_CODE[k.kind] ?? "ITM"}·${String(all.length - i).padStart(4, "0")}`]));
-  // Opening from search results: show the Catalogue, make sure the item's shelf is in view, then bring the reading
+  // Opening from search results: show the Catalog, make sure the item's shelf is in view, then bring the reading
   // pane on screen (it sits below the search results).
   const [scrollTo, setScrollTo] = useState<string | null>(null);
   const openItem = (id: string) => {
@@ -282,7 +282,7 @@ export function KnowledgeView({ query, projects }: { query: URLSearchParams; pro
               <LibPager
                 page={catPage}
                 pages={Math.ceil(cards.length / CAT_PAGE)}
-                label="Catalogue pages"
+                label="Catalog pages"
                 onChange={(p) => {
                   setCatPage(p);
                   document.querySelector(".lib-catalogue")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -432,7 +432,7 @@ function Trust({ level }: { level?: string }) {
   );
 }
 
-/** The reading pane: one item with its catalogue record, full text and citations. */
+/** The reading pane: one item with its catalog record, full text and citations. */
 function ReadingPane({ item, shelf, callNo, onClose, onChange, inline = false, parts, onPart, projects }: { item: KnowledgeItem; shelf?: string; callNo?: string; onClose?: () => void; onChange: () => void; inline?: boolean; projects?: Project[]; parts?: KnowledgeItem[]; onPart?: (id: string) => void }) {
   const at = parts ? parts.findIndex((p) => p.id === item.id) : -1;
   const update = (patch: Partial<KnowledgeItem>) => post(`/knowledge/${item.id}`, patch).then(onChange);

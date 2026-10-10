@@ -19,7 +19,7 @@ const SAMPLE = {
   lede: "Your classes, shelf space and firing queue in one place.",
   demo: { email: "sam@example.com", password: "glaze-2024" },
   tag: "Open studio · Tue to Sun",
-  quote: "I booked one Saturday taster and somehow I now have a shelf, a favourite wheel and twelve slightly wonky mugs.",
+  quote: "I booked one Saturday taster and somehow I now have a shelf, a favorite wheel and twelve slightly wonky mugs.",
   person: { initials: "RO", name: "Rosa Okafor", role: "Member since spring" },
   forgotHref: "#forgot-password",
   signUpHref: "#sign-up",

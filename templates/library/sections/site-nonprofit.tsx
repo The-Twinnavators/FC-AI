@@ -5,10 +5,10 @@
  */
 /**
  * Site: charity / nonprofit. A one-page site for a community charity, foundation or volunteer-run group: a tall banner,
- * the mission in a box lifted over it with impact figures, four programmes, a voice from the community, a donation
+ * the mission in a box lifted over it with impact figures, four programs, a voice from the community, a donation
  * picker (one-off or monthly, preset or own amount, gift aid) that only shows a confirmation and takes no payment, and
  * a volunteer sign-up form. Layout adapted from HTML5 UP "Alpha" (html5up.net, CC BY 3.0); keep the credit.
- * Make it the app's own: replace SAMPLE with the organisation's mission, real figures and programmes; point the
+ * Make it the app's own: replace SAMPLE with the organization's mission, real figures and programs; point the
  * donation confirmation at the payment step the PRD describes.
  */
 import { useState, type FormEvent } from "react";
@@ -35,14 +35,14 @@ const SAMPLE = {
       { value: "38,400", label: "meals shared last year" },
       { value: "1,250", label: "households supported" },
       { value: "212", label: "active volunteers" },
-      { value: "92p", label: "of every £1 goes to food" },
+      { value: "92¢", label: "of every $1 goes to food" },
     ],
   },
   programmes: {
     title: "What we do",
-    lede: "Four programmes, each run by volunteers and shaped by the people who use them.",
+    lede: "Four programs, each run by volunteers and shaped by the people who use them.",
     items: [
-      { icon: "layers", title: "Community larder", text: "A shop-style larder where members choose their own groceries for £3.50 a visit, around £25 of food.", when: "Tue and Fri, 10:00–14:00 · Fernhill Hall" },
+      { icon: "layers", title: "Community larder", text: "A shop-style larder where members choose their own groceries for $4.50 a visit, around $33 of food.", when: "Tue and Fri, 10:00–14:00 · Fernhill Hall" },
       { icon: "heart", title: "Holiday lunches", text: "A hot meal and an activity for children in every school holiday, with a bag of food to take home.", when: "School holidays, Mon–Thu 12:00 · Three schools" },
       { icon: "sparkle", title: "Cook and share", text: "Six-week classes on cooking well on a budget, ending with a meal together. Childcare provided.", when: "Wednesday evenings · Community kitchen" },
       { icon: "pin", title: "Home deliveries", text: "Weekly food parcels and a friendly chat for people who are housebound, unwell or caring full-time.", when: "Every Thursday · 140 homes" },
@@ -62,7 +62,7 @@ const SAMPLE = {
       { label: "Kitchen, rent and utilities", pence: 9 },
       { label: "Running the charity", pence: 8 },
     ],
-    amounts: [10, 25, 50, 100],
+    amounts: [15, 35, 65, 130],
     impact: {
       10: "feeds a family of four for two days",
       25: "pays for ten hot holiday lunches",
@@ -112,8 +112,8 @@ export default function SiteNonprofit() {
     if (amount === "other") {
       if (other.trim() === "") return setAmountError("Enter an amount, or pick one of the buttons.");
       if (!Number.isFinite(otherValue) || !/^\d+(\.\d{1,2})?$/.test(other.trim())) return setAmountError("Use numbers only, like 15 or 12.50.");
-      if (otherValue < 2) return setAmountError("The smallest gift we can process is £2.");
-      if (otherValue > 10000) return setAmountError("For gifts over £10,000, please contact us so we can thank you properly.");
+      if (otherValue < 2) return setAmountError("The smallest gift we can process is $3.");
+      if (otherValue > 13000) return setAmountError("For gifts over $13,000, please contact us so we can thank you properly.");
     }
     setAmountError("");
     setGift({ value, monthly, giftAid });
@@ -147,7 +147,7 @@ export default function SiteNonprofit() {
   };
 
   const vErr = (k: keyof VolErrors) => (volErrors[k] ? { "aria-invalid": true as const, "aria-describedby": `np-${k}-err` } : {});
-  const money = (n: number) => `£${Number.isInteger(n) ? n : n.toFixed(2)}`;
+  const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
   return (
     <div className="fl-st2-page" id="top">
@@ -262,7 +262,7 @@ export default function SiteNonprofit() {
               </h2>
               <p className="fl-lede">{d.donate.lede}</p>
               <h3 className="fl-eyebrow" style={{ marginTop: "var(--space-4)" }}>
-                Where each £1 goes
+                Where each $1 goes
               </h3>
               <ul style={{ display: "grid", gap: "var(--space-3)", margin: 0, padding: 0, listStyle: "none" }}>
                 {d.donate.spend.map((s) => (
@@ -309,7 +309,7 @@ export default function SiteNonprofit() {
                       {d.donate.amounts.map((a) => (
                         <label key={a} className="fl-st2-amount">
                           <input type="radio" name="amount" value={a} checked={amount === a} onChange={() => { setAmount(a); setAmountError(""); }} />
-                          <span>£{a}</span>
+                          <span>${a}</span>
                         </label>
                       ))}
                     </div>
@@ -341,7 +341,7 @@ export default function SiteNonprofit() {
                   ) : null}
                   <label className="fl-st2-check">
                     <input type="checkbox" checked={giftAid} onChange={(e) => setGiftAid(e.target.checked)} />
-                    I'm a UK taxpayer: add gift aid, so the charity can claim an extra 25p for every £1.
+                    Send me a tax receipt: gifts to Northlight are tax-deductible in the US.
                   </label>
                   <button type="submit" className="fl-btn fl-btn--primary">
                     {valid && value > 0 ? `Give ${money(value)}${monthly ? " a month" : ""}` : "Give"}

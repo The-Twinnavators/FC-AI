@@ -7,7 +7,7 @@
  * Stats compared with the last period: tiles for the numbers that matter, a week / month / quarter switch, an arrow
  * and percentage against the previous period, and a small trend line drawn in SVG. Use it at the top of a dashboard
  * or report. Make it the app's own: replace SAMPLE with your metrics and series; mark metrics where going down is
- * good with `lowerIsBetter` so the colours read the right way.
+ * good with `lowerIsBetter` so the colors read the right way.
  */
 import { useEffect, useRef, useState } from "react";
 

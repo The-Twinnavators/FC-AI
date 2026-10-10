@@ -44,7 +44,7 @@ const SAMPLE = {
       pages: [
         { id: "overview", label: "Overview", text: "Kiln 2 needs new elements before the spring firing.", cards: [["2 weeks", "Time left"], ["Theo", "Owner"], ["On track", "Status"]] },
         { id: "tasks", label: "Tasks", text: "What has to happen, in order.", cards: [["Done", "Order elements"], ["This week", "Book the electrician"], ["Next week", "Test firing"]] },
-        { id: "budget", label: "Budget", text: "Parts and labour against what we set aside.", cards: [["$640", "Set aside"], ["$410", "Spent"], ["$230", "Left"]] },
+        { id: "budget", label: "Budget", text: "Parts and labor against what we set aside.", cards: [["$640", "Set aside"], ["$410", "Spent"], ["$230", "Left"]] },
       ],
     },
     {

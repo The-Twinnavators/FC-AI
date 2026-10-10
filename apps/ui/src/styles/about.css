@@ -1,6 +1,6 @@
 /*
  * About FlowCode. Theme-aware throughout (only FlowCode tokens), hairline-divided grids, small UI fragments on a dotted
- * canvas, one accent colour for the key words. Radius ≤ 10px; no nested cards, no accent bars.
+ * canvas, one accent color for the key words. Radius ≤ 10px; no nested cards, no accent bars.
  */
 .ab2 {
   --ab-accent: var(--brand-ink);
@@ -248,7 +248,7 @@
 .abf--review { gap: 8px; }
 @media (prefers-reduced-motion: reduce) { .ab2__cell .abf, .demo-reveal { transition: none; } }
 
-/* A soft colour glow behind the hero UI: brand blue and teal, fading to transparent so it sits in either theme. */
+/* A soft color glow behind the hero UI: brand blue and teal, fading to transparent so it sits in either theme. */
 .ab2__collage::after {
   content: "";
   position: absolute;
@@ -293,7 +293,7 @@
 .ab2 .ab2__cta .ab__actions .btn:not(.btn--primary) { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.6); }
 .ab2 .ab2__cta .ab__actions .btn:not(.btn--primary):hover { background: rgba(255, 255, 255, 0.12); }
 .ab2__cta .btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-/* The app's primary-button colour rule is !important; the white button on the blue band needs the same weight. */
+/* The app's primary-button color rule is !important; the white button on the blue band needs the same weight. */
 .ab2 .ab2__cta .ab__actions .btn--primary { background: #fff !important; color: #2a3f8f !important; }
 .ab2 .ab2__cta .ab__actions .btn--primary:hover { background: rgba(255, 255, 255, 0.9) !important; }
 

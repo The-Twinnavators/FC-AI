@@ -66,7 +66,7 @@
 .fl-st-major::after { content: ""; display: block; width: 3.5rem; margin-top: var(--space-4); border-bottom: 3px solid currentColor; }
 .fl-head--center .fl-st-major::after { margin-inline: auto; }
 
-/* Overlays: side panel (default) and centred lightbox (--dark). */
+/* Overlays: side panel (default) and centered lightbox (--dark). */
 .fl-st-scrim { position: fixed; inset: 0; z-index: 50; display: flex; justify-content: flex-end; background: color-mix(in srgb, var(--color-bg) 70%, transparent); backdrop-filter: blur(4px); }
 .fl-st-scrim--dark { display: grid; place-items: center; padding: var(--space-5); background: color-mix(in srgb, var(--color-bg) 92%, transparent); overflow-y: auto; }
 

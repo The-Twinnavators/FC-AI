@@ -1,5 +1,5 @@
 /**
- * An agent's robot head: neutral shaded metal (lit from the top-left) with the role colour on the antenna tip and
+ * An agent's robot head: neutral shaded metal (lit from the top-left) with the role color on the antenna tip and
  * eyes. Used on the Agents page and, for whoever is working right now, on a run's signal strip.
  */
 export const ROLE_COLOR: Record<string, string> = {

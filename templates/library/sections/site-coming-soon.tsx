@@ -36,7 +36,7 @@ const SAMPLE = {
   ],
   social: [
     { label: "Photo diary", handle: "@littlefernbakes", href: "#notify" },
-    { label: "Neighbourhood page", handle: "Little Fern, Mill Street", href: "#notify" },
+    { label: "Neighborhood page", handle: "Little Fern, Mill Street", href: "#notify" },
     { label: "Email", handle: "hello@littlefern.example", href: "mailto:hello@littlefern.example" },
   ],
   footer: "© 2027 Little Fern Bakery",

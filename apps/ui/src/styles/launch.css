@@ -713,7 +713,7 @@
   background: color-mix(in srgb, var(--brand) 18%, transparent);
   color: var(--brand-ink);
 }
-/* Build step status, in the app's status colours: blue building, teal done, purple waiting on you, red needs fixing. */
+/* Build step status, in the app's status colors: blue building, teal done, purple waiting on you, red needs fixing. */
 .lrc-badge--step {
   background: var(--bg-3);
   color: var(--text-1);

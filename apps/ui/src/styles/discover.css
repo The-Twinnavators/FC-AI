@@ -531,7 +531,7 @@
   color: var(--brand-ink);
 }
 
-/* Evidence labels: each source type keeps one colour across the app. */
+/* Evidence labels: each source type keeps one color across the app. */
 .disc-tag {
   display: inline-flex;
   padding: 2px 8px;
@@ -929,7 +929,7 @@
   gap: 8px;
 }
 
-/* Documents as white pages on a grey desk, like a word processor. Always light, in both themes. */
+/* Documents as white pages on a gray desk, like a word processor. Always light, in both themes. */
 .doc-desk {
   display: grid;
   justify-items: center;
@@ -1081,7 +1081,7 @@
   background: rgba(59, 130, 246, 0.16);
 }
 
-/* Research list: the status as a solid badge above the title (grey draft, blue in progress, purple needs your OK, teal done). */
+/* Research list: the status as a solid badge above the title (gray draft, blue in progress, purple needs your OK, teal done). */
 .disc-status-badge {
   justify-self: start;
   padding: 2px 8px;
@@ -1398,7 +1398,7 @@
   color: var(--text-1);
 }
 
-/* Optional stages in the stage list: a dashed outline instead of a number fill, and a grey note. */
+/* Optional stages in the stage list: a dashed outline instead of a number fill, and a gray note. */
 .disc-step--optional .disc-step__n {
   background: transparent !important;
   border: 1.5px dashed var(--text-2);

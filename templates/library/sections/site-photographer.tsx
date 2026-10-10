@@ -28,7 +28,7 @@ const SAMPLE = {
   intro: {
     eyebrow: "Wedding, family and portrait photographer",
     title: "Quiet pictures of loud, lovely days.",
-    lede: "Based on the coast, travelling anywhere with a train station. Booking weddings for 2027 now.",
+    lede: "Based on the coast, traveling anywhere with a train station. Booking weddings for 2027 now.",
     action: { label: "See the gallery", href: "#photo-gallery" },
   },
   panels: [
@@ -45,7 +45,7 @@ const SAMPLE = {
   ],
   gallery: {
     title: "Recent work",
-    lede: "A few favourites from the last two seasons. Select any photo to see it larger.",
+    lede: "A few favorites from the last two seasons. Select any photo to see it larger.",
     filters: ["All", "Weddings", "Portraits", "Family", "Commercial"],
     photos: [
       { title: "First look on the harbour wall", kind: "Weddings", place: "Port Isaac", shape: "tall" },
@@ -64,9 +64,9 @@ const SAMPLE = {
     title: "Packages",
     lede: "Every package includes an online gallery for a year, print rights and a planning call.",
     items: [
-      { name: "Portrait hour", price: "£290", detail: "1 hour, one location", points: ["40+ edited photos", "Gallery in 7 days", "Up to 4 people"], featured: false },
-      { name: "Full wedding day", price: "£2,400", detail: "Prep to first dance, up to 10 hours", points: ["600+ edited photos", "Sneak peek in 48 hours", "Second photographer", "Printed album, 30 pages"], featured: true },
-      { name: "Small wedding", price: "£1,250", detail: "Ceremony and meal, up to 4 hours", points: ["250+ edited photos", "Gallery in 3 weeks", "Up to 30 guests"], featured: false },
+      { name: "Portrait hour", price: "$385", detail: "1 hour, one location", points: ["40+ edited photos", "Gallery in 7 days", "Up to 4 people"], featured: false },
+      { name: "Full wedding day", price: "$3,200", detail: "Prep to first dance, up to 10 hours", points: ["600+ edited photos", "Sneak peek in 48 hours", "Second photographer", "Printed album, 30 pages"], featured: true },
+      { name: "Small wedding", price: "$1,650", detail: "Ceremony and meal, up to 4 hours", points: ["250+ edited photos", "Gallery in 3 weeks", "Up to 30 guests"], featured: false },
     ],
   },
   booking: {

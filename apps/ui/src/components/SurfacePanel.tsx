@@ -67,7 +67,7 @@ export function SurfacePanel({ projectId }: { projectId: string }) {
     <div className="surface-panel">
       <div className="surface-panel__head">
         <p className="muted" style={{ margin: 0 }}>
-          How cards, panels and buttons are drawn. Colours and fonts stay the same. Pick one to apply it to the whole app.
+          How cards, panels and buttons are drawn. Colors and fonts stay the same. Pick one to apply it to the whole app.
         </p>
         <button type="button" className="btn btn--sm" onClick={undoLast} disabled={!undo.length || !!busy} title={undo.length ? "Undo the last change" : "Nothing to undo"}>
           <Undo2 size={14} aria-hidden="true" /> Undo

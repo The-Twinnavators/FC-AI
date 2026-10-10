@@ -6,7 +6,7 @@
 /**
  * Page background: diagonal split (gradient). Two tones divided on a diagonal.
  * Good for: Sections that pair a promise with a picture or a form.
- * Use it by adding the class "fl-bg-split" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-split" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

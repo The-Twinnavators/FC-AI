@@ -25,7 +25,7 @@ const SAMPLE = {
     { value: "sat-21", label: "Saturday 21 June, 10:00 – 13:00" },
   ],
   levels: [
-    { value: "new", label: "New to clay", hint: "We start with hand-building and centre the wheel together." },
+    { value: "new", label: "New to clay", hint: "We start with hand-building and center the wheel together." },
     { value: "some", label: "Done a class or two", hint: "Straight onto the wheel with a little guidance." },
     { value: "regular", label: "Regular potter", hint: "Bring a project; the teacher helps where you need it." },
   ],

@@ -62,7 +62,7 @@ const seeded = (id: string) => {
   return ((h >>> 0) % 1000) / 1000;
 };
 
-/** Cluster colours, one per group. */
+/** Cluster colors, one per group. */
 export const GROUP_COLOR: Record<string, string> = { Structure: "#c084fc", Code: "#7fb0c4", Knowledge: "#f9a8d4", Intelligence: "#4ade80" };
 export const ORBIT = 1.3;
 

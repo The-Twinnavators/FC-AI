@@ -5,7 +5,7 @@
  */
 /**
  * Site: fitness / yoga studio. A one-page site for a gym, yoga or pilates studio, or any class-based fitness business:
- * centred masthead, a bold intro, a class timetable you can filter by day (and by beginner-friendly), what's included,
+ * centered masthead, a bold intro, a class timetable you can filter by day (and by beginner-friendly), what's included,
  * the trainers, membership prices with a monthly/annual switch, and a free-trial form that checks itself and keeps the
  * request in local storage. Layout adapted from HTML5 UP "Escape Velocity" (html5up.net, CC BY 3.0); keep the credit.
  * Make it the app's own: replace SAMPLE with the studio's real classes, people and prices; keep the timetable and trial
@@ -79,9 +79,9 @@ const SAMPLE = {
     title: "Simple prices, no joining fee",
     lede: "Pause any membership for up to two months a year. Annual plans are paid monthly at the lower rate.",
     plans: [
-      { name: "Twice a week", monthly: 59, annual: 52, unit: "/ month", note: "8 classes a month, any type", featured: false, features: ["8 classes each month", "Book 7 days ahead", "Bring a friend once a month"] },
-      { name: "Unlimited", monthly: 89, annual: 79, unit: "/ month", note: "Most members choose this", featured: true, features: ["Every class, every day", "Book 14 days ahead", "Two guest passes a month", "Quarterly progress check-in"] },
-      { name: "Class pack", monthly: 120, annual: 120, unit: "/ 10 classes", note: "Valid for six months", featured: false, features: ["10 classes, any type", "Share with one other person", "Top up any time"] },
+      { name: "Twice a week", monthly: 79, annual: 69, unit: "/ month", note: "8 classes a month, any type", featured: false, features: ["8 classes each month", "Book 7 days ahead", "Bring a friend once a month"] },
+      { name: "Unlimited", monthly: 119, annual: 105, unit: "/ month", note: "Most members choose this", featured: true, features: ["Every class, every day", "Book 14 days ahead", "Two guest passes a month", "Quarterly progress check-in"] },
+      { name: "Class pack", monthly: 159, annual: 159, unit: "/ 10 classes", note: "Valid for six months", featured: false, features: ["10 classes, any type", "Share with one other person", "Top up any time"] },
     ],
   },
   trial: {
@@ -341,7 +341,7 @@ export default function SiteFitness() {
                   {p.featured ? <span className="fl-badge">{p.note}</span> : <span className="fl-meta">{p.note}</span>}
                   <h3>{p.name}</h3>
                   <p className="fl-price" style={{ margin: 0 }}>
-                    <strong>£{annual ? p.annual : p.monthly}</strong>
+                    <strong>${annual ? p.annual : p.monthly}</strong>
                     <span className="fl-meta">{p.unit}</span>
                   </p>
                   <ul className="fl-checks">

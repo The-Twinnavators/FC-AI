@@ -67,7 +67,7 @@ const SECTIONS: Array<{ id: string; title: string; hint: string; test: (p: Primi
  * The sheet document. `vibe` previews the app's own building blocks in another surface style (after CSSVibes) by
  * setting that style's surface tokens over the app's stylesheet; nothing in the app changes until "Use this style".
  */
-/** Colour tokens shown at the top of the sheet, in the order people think about them. */
+/** Color tokens shown at the top of the sheet, in the order people think about them. */
 const SWATCHES: Array<[string, string]> = [
   ["--color-bg", "Page"],
   ["--color-surface", "Surface"],
@@ -83,7 +83,7 @@ const SWATCHES: Array<[string, string]> = [
 ];
 
 /**
- * Text and Colours, drawn with the app's own classes and tokens, so the sheet shows the type and palette set in
+ * Text and Colors, drawn with the app's own classes and tokens, so the sheet shows the type and palette set in
  * Styles → Text and Tokens before the building blocks that use them.
  */
 function foundations(css: string, part: "all" | "type" | "colours" = "all"): string {
@@ -108,7 +108,7 @@ function foundations(css: string, part: "all" | "type" | "colours" = "all"): str
   <div class="fc-sheet__type">${type.map(([html, label]) => `<div class="fc-sheet__type-row"><div>${html}</div><span>${label}</span></div>`).join("")}</div>
 </div>
 ${swatches ? `<div class="fc-sheet__section">
-  <div class="fc-sheet__head"><h2>Colours</h2><span>From Styles → Tokens</span></div>
+  <div class="fc-sheet__head"><h2>Colors</h2><span>From Styles → Tokens</span></div>
   <div class="fc-sheet__swatches">${swatches}</div>
 </div>` : ""}`;
 }
@@ -119,7 +119,7 @@ const fontLinks = (fonts: string[]) => {
   return used.length ? `<style>${fontFaceCss(used, (file) => new URL(`fonts/${file}.woff2`, document.baseURI).href)}</style>` : "";
 };
 
-/** What a sheet frame draws: everything, or one card's part (the type scale, the colours, or just some blocks' samples). */
+/** What a sheet frame draws: everything, or one card's part (the type scale, the colors, or just some blocks' samples). */
 /** The kit's markup for blocks an app may not use yet (same classes as src/components/ui), for the Shape preview. */
 const KIT_SAMPLES: Record<string, string> = {
   "ui-btn": `<button type="button" class="ui-btn ui-btn--primary ui-btn--md">Save changes</button>`,
@@ -162,7 +162,7 @@ function sheetDoc(lib: Library, vibe?: string, fonts: string[] = [], draft: Reco
         return html ? [`<figure class="fc-sheet__sample"><div class="fc-sheet__stage">${html}</div><figcaption>${escHtml(b.replace(/^ui-/, ""))}</figcaption></figure>`] : [];
       })
       .join("")}</div>`;
-  // "palette": the colour swatches, then the given blocks drawn in those colours (the Colours editor's preview).
+  // "palette": the color swatches, then the given blocks drawn in those colors (the Colors editor's preview).
   const body = part === "type" || part === "colours" ? foundations(lib.css, part) : part === "blocks" ? samplesOnly() : part === "shape" ? oneEach() : part === "palette" ? foundations(lib.css, "colours") + samplesOnly() : foundations(lib.css) + SECTIONS.filter((x) => placed.get(x.id)?.length)
     .map(
       (x) => `<div class="fc-sheet__section">

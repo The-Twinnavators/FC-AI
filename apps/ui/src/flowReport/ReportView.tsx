@@ -2,7 +2,7 @@
  * A finished Repo Report run, on screen.
  *  - All fifteen sections, always: one that found nothing, failed or doesn't apply still gets a row saying which, so a
  *    failed analyser never looks like a clean result.
- *  - Severity has the colour; confidence is set in words. Two colour scales and nobody can tell which means urgent.
+ *  - Severity has the color; confidence is set in words. Two color scales and nobody can tell which means urgent.
  *  - The Claude Code prompt is a block you copy (monospace, a Copy button), never hidden behind a disclosure.
  *  - Layout: the summary and the sections are full-width bands with dividers; findings are rows inside an open section,
  *    not cards inside a card.

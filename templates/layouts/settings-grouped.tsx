@@ -6,7 +6,7 @@
  *  1. Replace the groups and rows in SAMPLE with the settings the spec describes, and connect each control to the
  *     app's real state or storage. Remove the "flowcode:sample" comment when nothing sample is left.
  *  2. Delete groups the spec doesn't need. A setting that does nothing yet must not be shown.
- *  3. Keep the building blocks and tokens. Change spacing or colours in src/styles/tokens.css, not here.
+ *  3. Keep the building blocks and tokens. Change spacing or colors in src/styles/tokens.css, not here.
  */
 import { useState } from "react";
 import { Button, Dialog, Notice, PageHeader, Section, SettingRow, SettingsList, Switch } from "../components/ui";

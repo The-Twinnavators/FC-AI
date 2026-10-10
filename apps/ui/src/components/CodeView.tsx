@@ -1,5 +1,5 @@
 /**
- * Read-only code view with line numbers and syntax colours. A small tokenizer per language family (TypeScript and
+ * Read-only code view with line numbers and syntax colors. A small tokenizer per language family (TypeScript and
  * JavaScript, JSON, CSS, HTML, Python, Markdown, shell); anything else shows as plain text with line numbers.
  */
 import { useMemo } from "react";

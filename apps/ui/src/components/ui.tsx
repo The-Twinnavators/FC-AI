@@ -141,9 +141,9 @@ export function statusSignal(status?: string): Signal {
 }
 
 /**
- * The one status colour scheme, shared by dots, chips and status text:
+ * The one status color scheme, shared by dots, chips and status text:
  * ok = teal (passed), notes = yellow (passed with notes), help = purple (paused, waiting, needs your OK),
- * stopped = magenta (cancelled), bad = red (needs fixing), run = blue (building, checking), warn = attention, off = grey (not yet).
+ * stopped = magenta (cancelled), bad = red (needs fixing), run = blue (building, checking), warn = attention, off = gray (not yet).
  */
 export type StatusTone = "ok" | "notes" | "help" | "stopped" | "bad" | "run" | "warn" | "off";
 export function statusTone(status?: string): StatusTone {
@@ -159,7 +159,7 @@ export function Led({ status, label }: { status?: string; label?: string }) {
   return <span className={`led ${cls}`} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true} />;
 }
 
-/** Status words in their status colour (the same scheme as the dots and chips). */
+/** Status words in their status color (the same scheme as the dots and chips). */
 export function StatusText({ status, children, className }: { status?: string; children: React.ReactNode; className?: string }) {
   return <span className={`status-text status-text--${statusTone(status)}${className ? ` ${className}` : ""}`}>{children}</span>;
 }

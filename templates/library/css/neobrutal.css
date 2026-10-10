@@ -1,4 +1,4 @@
-/* Neobrutalism kit: thick ink borders, hard offset shadows, flat colour blocks, chunky type, press effects. Tokens only. */
+/* Neobrutalism kit: thick ink borders, hard offset shadows, flat color blocks, chunky type, press effects. Tokens only. */
 
 /* ── Kit root: every part reads these ── */
 .fl-nb {
@@ -296,7 +296,7 @@
   .fl-nb-row > .fl-nb-btn:not(.fl-nb-btn--icon) { flex: 1 1 auto; }
 }
 
-/* ── Reduced motion: keep the colours, drop the movement ── */
+/* ── Reduced motion: keep the colors, drop the movement ── */
 @media (prefers-reduced-motion: reduce) {
   .fl-nb-btn, .fl-nb-card, .fl-nb-close, .fl-nb-choice span, .fl-nb-tab, .fl-nb-input, .fl-nb-select, .fl-nb-textarea,
   .fl-nb-progress__fill, .fl-nb-acc__sign, .fl-nb-acc__btn { transition: none; }

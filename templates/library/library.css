@@ -1,7 +1,7 @@
 /*
  * FlowCode section library: the styles every library section shares. Only design tokens (src/styles/tokens.css):
- * no raw colours, sizes or fonts, so each section takes on the app's look. Classes start with "fl-".
- * Licence: MIT (FlowCode). Section patterns informed by MIT/CC BY libraries listed in THIRD_PARTY_NOTICES.md.
+ * no raw colors, sizes or fonts, so each section takes on the app's look. Classes start with "fl-".
+ * License: MIT (FlowCode). Section patterns informed by MIT/CC BY libraries listed in THIRD_PARTY_NOTICES.md.
  */
 
 /* ── Section frame ── */

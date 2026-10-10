@@ -48,10 +48,10 @@ const SAMPLE = {
     title: "Services",
     lede: "Hire us for one thing or all of it. Every project has one lead designer from start to finish.",
     items: [
-      { name: "Brand identity", from: "From £8,500", text: "Naming, logo, type, colour, a short brand guide and the first twenty things you'll need to print." },
-      { name: "Websites", from: "From £12,000", text: "Design and build on a platform you can edit yourself. Booking, shops and memberships included where you need them." },
-      { name: "Campaigns", from: "From £6,000", text: "Launches, open days and fundraising drives: posters, social, email and the landing page that ties them together." },
-      { name: "Packaging", from: "From £4,500", text: "Labels, boxes and bags with print-ready files and a supplier we trust to make them." },
+      { name: "Brand identity", from: "From $11,000", text: "Naming, logo, type, color, a short brand guide and the first twenty things you'll need to print." },
+      { name: "Websites", from: "From $16,000", text: "Design and build on a platform you can edit yourself. Booking, shops and memberships included where you need them." },
+      { name: "Campaigns", from: "From $8,000", text: "Launches, open days and fundraising drives: posters, social, email and the landing page that ties them together." },
+      { name: "Packaging", from: "From $6,000", text: "Labels, boxes and bags with print-ready files and a supplier we trust to make them." },
     ],
   },
   process: {
@@ -72,7 +72,7 @@ const SAMPLE = {
   contact: {
     title: "Tell us about your project",
     lede: "We take on six new projects a quarter. Tell us a little and we'll reply within two working days.",
-    budgets: ["Under £10k", "£10k – £25k", "£25k – £50k", "£50k +"],
+    budgets: ["Under $13k", "$13k – $33k", "$33k – $66k", "$66k +"],
     methods: [
       { icon: "mail", label: "Email", value: "studio@northlight.example" },
       { icon: "phone", label: "Phone", value: "0117 496 0732" },

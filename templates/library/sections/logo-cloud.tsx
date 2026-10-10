@@ -14,7 +14,7 @@ import { useState } from "react";
 // flowcode:sample
 const SAMPLE = {
   row: { caption: "Trusted by makers, shops and studios across the county" },
-  grid: { title: "Studios that teach with us", lede: "From one-room workshops to community art centres." },
+  grid: { title: "Studios that teach with us", lede: "From one-room workshops to community art centers." },
   marquee: { caption: "Stocked by independent shops", pause: "Pause scrolling", play: "Play scrolling" },
   // Invented businesses. `mark` picks one of the small drawn symbols; `style` picks the lettering.
   logos: [

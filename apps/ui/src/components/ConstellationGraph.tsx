@@ -137,7 +137,7 @@ export function ConstellationGraph(props: Props) {
       const bw = Math.max(1, x1 - x0);
       const bh = Math.max(1, y1 - y0);
       const f = Math.max(0.5, Math.min(2.2, Math.min((free.r - free.l) / bw, (free.b - free.t) / bh)));
-      // Zooming scales everything about the view's centre (canvas centre + pan).
+      // Zooming scales everything about the view's center (canvas center + pan).
       const ox = W / 2 + panX;
       const oy = H / 2 + panY;
       const cx = ox + ((x0 + x1) / 2 - ox) * f;

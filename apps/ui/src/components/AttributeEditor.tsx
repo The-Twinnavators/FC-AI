@@ -1,6 +1,6 @@
 /**
  * Attributes tab on the Primitives page: edit a component's design attributes directly (no model involved).
- * Changes apply live across the whole app and are saved as theme overrides; colours are per theme.
+ * Changes apply live across the whole app and are saved as theme overrides; colors are per theme.
  */
 import { useEffect, useState } from "react";
 import { onThemeChange, resetThemeVars, setThemeVar, themeOverrides, activeTheme } from "../theme";
@@ -127,7 +127,7 @@ export function AttributeEditor({ attrs }: { attrs: Attr[] }) {
       </div>
       <div className="attr__foot">
         <span className="muted">
-          Changes apply across the whole app and are saved automatically.{attrs.some((a) => a.kind === "color") ? ` Colours are saved for the ${activeTheme()} theme only.` : ""}
+          Changes apply across the whole app and are saved automatically.{attrs.some((a) => a.kind === "color") ? ` Colors are saved for the ${activeTheme()} theme only.` : ""}
         </span>
         {anyChanged ? (
           <button className="btn btn--sm" onClick={() => resetThemeVars(attrs.map((a) => a.var))}>

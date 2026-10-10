@@ -1,6 +1,6 @@
 /**
  * Virtual interviews and virtual user testing: AI-simulated participants answer the interview plan or try the test
- * tasks. FlowCode runs one participant per request so progress shows, then summarises. Everything here is labelled as
+ * tasks. FlowCode runs one participant per request so progress shows, then summarizes. Everything here is labelled as
  * an AI-generated perspective and sits apart from real findings.
  */
 import { useState, type ReactNode } from "react";
@@ -29,7 +29,7 @@ function useVirtualRun<V extends ViewLike>(path: string, onView: (v: V) => void)
         v = await call({ action: "participant", index: i });
         onView(v);
       }
-      setProgress("Summarising what they said…");
+      setProgress("Summarizing what they said…");
       onView(await call({ action: "synthesize" }));
     } catch (e) {
       setError((e as Error).message);
@@ -89,7 +89,7 @@ export function VirtualInterviewsPanel<V extends ViewLike>({ view, onView, agent
       <h3 id="vi-title" className="disc-virtual__title">
         Virtual interviews
       </h3>
-      <p className="disc-virtual__lede">Practise your interview plan before talking to real people. FlowCode role-plays four different participants, asks them your screening and interview questions, and summarises what came up.</p>
+      <p className="disc-virtual__lede">Practise your interview plan before talking to real people. FlowCode role-plays four different participants, asks them your screening and interview questions, and summarizes what came up.</p>
       <RunBar label="Conduct virtual interviews" again={!!vi} progress={progress} agent={agent} disabled={questions.length ? undefined : "Plan the conversations first."} onRun={() => void run("Interviewing")} onClear={() => void clear()} note={VIRTUAL_INTERVIEW_NOTE} />
       {error ? (
         <p className="notice notice--bad" role="alert">

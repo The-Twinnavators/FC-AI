@@ -1464,8 +1464,8 @@ function ActivityFeed({ events, working }: { events: FlowEvent[]; working?: stri
 }
 
 /**
- * Activity colours by what an event is: failures red, model calls blue, tool calls teal, commands amber, checks green,
- * steps and plans purple, run status grey.
+ * Activity colors by what an event is: failures red, model calls blue, tool calls teal, commands amber, checks green,
+ * steps and plans purple, run status gray.
  */
 function actKind(type: string, level?: string, message = ""): string {
   if (level === "error" || /failed|rejected|blocked/.test(type) || /→ (failed|error)/.test(message)) return "bad";
@@ -1498,12 +1498,12 @@ function FeedMessage({ type, message }: { type?: string; message: string }) {
   );
 }
 
-/** Command status → the app's status colours: teal passed, red failed, blue running, purple waiting, grey not yet. */
+/** Command status → the app's status colors: teal passed, red failed, blue running, purple waiting, gray not yet. */
 const termStatus = (s: string) => (s === "succeeded" ? "ok" : /fail|timed|killed|error/.test(s) ? "bad" : /running|started/.test(s) ? "run" : /awaiting|blocked|queued/.test(s) ? "wait" : "idle");
 
 /**
- * One output line, coloured by what it says: errors red (the file and line in blue so they're easy to find), passes
- * teal, warnings yellow, npm's own echo lines grey.
+ * One output line, colored by what it says: errors red (the file and line in blue so they're easy to find), passes
+ * teal, warnings yellow, npm's own echo lines gray.
  */
 function TermLine({ line, prev = [] }: { line: string; prev?: string[] }) {
   // The rest of a multi-line error ("  Property 'children' does not exist…") stays red with the line that started it.

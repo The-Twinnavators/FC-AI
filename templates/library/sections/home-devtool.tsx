@@ -181,7 +181,7 @@ const SAMPLE = {
       price: "$0",
       per: "forever",
       text: "The full library and a relay you host yourself.",
-      points: ["Every feature in the library", "Self-hosted relay (one container)", "Community chat and discussions", "MIT licence"],
+      points: ["Every feature in the library", "Self-hosted relay (one container)", "Community chat and discussions", "MIT license"],
       cta: "Read the quickstart",
     },
     team: {

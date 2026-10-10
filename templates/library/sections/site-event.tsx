@@ -100,17 +100,17 @@ const SAMPLE = {
     title: "Tickets",
     lede: "Prices include lunch both days, the evening socials and recordings of every talk.",
     types: [
-      { id: "early", name: "Early bird", price: 240, note: "Both days, in person", soldOut: true, max: 10 },
-      { id: "standard", name: "Standard", price: 320, note: "Both days, in person", soldOut: false, max: 10 },
-      { id: "student", name: "Student", price: 95, note: "Valid student ID at the door", soldOut: false, max: 1 },
-      { id: "online", name: "Online pass", price: 60, note: "Live stream and recordings", soldOut: false, max: 10 },
+      { id: "early", name: "Early bird", price: 319, note: "Both days, in person", soldOut: true, max: 10 },
+      { id: "standard", name: "Standard", price: 425, note: "Both days, in person", soldOut: false, max: 10 },
+      { id: "student", name: "Student", price: 125, note: "Valid student ID at the door", soldOut: false, max: 1 },
+      { id: "online", name: "Online pass", price: 79, note: "Live stream and recordings", soldOut: false, max: 10 },
     ],
   },
   travel: {
     title: "Getting there",
     cards: [
       { icon: "arrow", title: "By train", text: "Port Ellery Central is a 9-minute walk along the harbour. Direct trains from the capital every hour, about 2h 10m." },
-      { icon: "globe", title: "By air or car", text: "Ellery Airport is 25 minutes by the X4 bus. Driving? The Quayside car park is £12 a day; there are no spaces at the hall." },
+      { icon: "globe", title: "By air or car", text: "Ellery Airport is 25 minutes by the X4 bus. Driving? The Quayside parking garage is $16 a day; there are no spaces at the hall." },
       { icon: "layers", title: "Where to stay", text: "Three hotels within ten minutes' walk hold rooms for us until 1 April. Quote FIELDWORK27 for 15% off." },
     ],
     faq: [
@@ -403,7 +403,7 @@ export default function SiteEvent() {
               {held ? (
                 <div className="fl-card fl-wrap--narrow" style={{ marginInline: "auto" }}>
                   <p className="fl-done" role="status">
-                    Held: {held.qty} × {held.name} ({`£${held.total.toLocaleString("en-GB")}`}), reference {held.ref}. We'll keep them for 15 minutes.
+                    Held: {held.qty} × {held.name} ({`$${held.total.toLocaleString("en-US")}`}), reference {held.ref}. We'll keep them for 15 minutes.
                   </p>
                   <p className="fl-note" style={{ margin: 0 }}>
                     This is a preview, so no payment is taken. On the live site you'd now go to a secure checkout.
@@ -420,7 +420,7 @@ export default function SiteEvent() {
                       <label key={t.id} className="fl-st2-ticket">
                         <input type="radio" name="ev-ticket" value={t.id} checked={ticket === t.id} disabled={t.soldOut} onChange={() => setTicket(t.id)} />
                         <span style={{ fontWeight: "var(--weight-semibold)" }}>{t.name}</span>
-                        <strong>£{t.price}</strong>
+                        <strong>${t.price}</strong>
                         <span className="fl-meta">{t.note}</span>
                         {t.soldOut ? <span className="fl-st2-pill fl-st2-pill--muted">Sold out</span> : null}
                       </label>
@@ -445,7 +445,7 @@ export default function SiteEvent() {
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--space-5)", flexWrap: "wrap" }}>
                       <span>
                         <span className="fl-meta">Total </span>
-                        <span className="fl-st2-total">£{(chosen.price * qtyClamped).toLocaleString("en-GB")}</span>
+                        <span className="fl-st2-total">${(chosen.price * qtyClamped).toLocaleString("en-US")}</span>
                       </span>
                       <button type="button" className="fl-btn fl-btn--primary" onClick={reserve}>
                         Reserve {qtyClamped} {qtyClamped === 1 ? "ticket" : "tickets"}

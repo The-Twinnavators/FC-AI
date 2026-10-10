@@ -63,7 +63,7 @@ function Overview({ p }: { p?: number }) {
       <ul className="abf__steps">
         {(
           [
-            ["Update backdrop colour tokens", s1],
+            ["Update backdrop color tokens", s1],
             ["Give Pacific Foods its own photo", s2],
           ] as const
         ).map(([t, s]) => (

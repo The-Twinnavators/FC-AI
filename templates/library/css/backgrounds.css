@@ -1,5 +1,5 @@
 /* Page backgrounds: gradients and patterns as one class on any section or page (fl-bg-*). Tokens only, so each one
-   re-colours with the app's style. Patterns are drawn with CSS or masked SVG filled with a token colour. Content sits
+   re-colours with the app's style. Patterns are drawn with CSS or masked SVG filled with a token color. Content sits
    above the decoration (position: relative; isolation). Motion stops for people who ask for less. */
 
 [class*="fl-bg-"] { position: relative; isolation: isolate; }
@@ -71,7 +71,7 @@
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 200px 200px repeat;
 }
 
-/* Combine: a soft gradient under a pattern (e.g. class="fl-bg-glow fl-bg-dots" keeps the dots' colour; prefer one of each). */
+/* Combine: a soft gradient under a pattern (e.g. class="fl-bg-glow fl-bg-dots" keeps the dots' color; prefer one of each). */
 
 @media (prefers-reduced-motion: reduce) {
   .fl-bg-aurora::before { animation: none; }

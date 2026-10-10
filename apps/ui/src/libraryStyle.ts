@@ -1,6 +1,6 @@
 /**
  * The styles a library preview runs with: FlowCode's bundled fonts, the prototype starter's tokens and one visual
- * style's colours, fonts and corners. Shared by the section preview page and the Elements grid.
+ * style's colors, fonts and corners. Shared by the section preview page and the Elements grid.
  */
 import { BUNDLED_FONTS, DESIGN_TEMPLATES, fontFaceCss } from "@flowcode/contracts";
 import tokensCss from "../../../templates/react-vite-starter/src/styles/tokens.css?raw";

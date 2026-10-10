@@ -17,7 +17,7 @@ const SAMPLE = {
   title: "Everything about the beginner course",
   tabs: [
     { id: "overview", label: "Overview", heading: "Six Thursdays at the wheel", text: "Start from a lump of clay and leave with four finished pieces. Small groups of eight, all tools included, and a glaze night at the end." },
-    { id: "schedule", label: "Schedule", heading: "6pm to 8:30pm, weekly", text: "Weeks one to three are centring and pulling walls. Week four is trimming. Weeks five and six are glazing and the final firing." },
+    { id: "schedule", label: "Schedule", heading: "6pm to 8:30pm, weekly", text: "Weeks one to three are centering and pulling walls. Week four is trimming. Weeks five and six are glazing and the final firing." },
     { id: "bring", label: "What to bring", heading: "Clothes you do not mind", text: "We supply clay, aprons and tools. Bring a towel, short nails help, and tie long hair back. Lockers are free." },
     { id: "price", label: "Price", heading: "$180 for the whole course", text: "Pay in full or in two parts. Firing and glaze costs are included. Miss a week and you can make it up on a Sunday." },
   ],

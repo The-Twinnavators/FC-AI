@@ -1,6 +1,6 @@
 /* Commerce: cart drawer, cart page, product cards, collection with filters, quick view (classes start with fl-shop-). */
 
-/* ── Product tones: placeholder photos and colour swatches, mixed from theme tokens only ── */
+/* ── Product tones: placeholder photos and color swatches, mixed from theme tokens only ── */
 .fl-shop-img, .fl-shop-swatch, .fl-shop-check { --shop-tone: color-mix(in srgb, var(--color-accent) 30%, var(--color-surface)); }
 .fl-shop-tone--oat { --shop-tone: color-mix(in srgb, var(--color-text) 14%, var(--color-surface)); }
 .fl-shop-tone--charcoal { --shop-tone: color-mix(in srgb, var(--color-text) 82%, var(--color-surface)); }
@@ -84,7 +84,7 @@
 .fl-shop-qty--lg { height: var(--control-lg); }
 .fl-shop-qty--lg button { width: var(--control-lg); }
 
-/* ── Dialog shell: backdrop, side drawer, centred panel ── */
+/* ── Dialog shell: backdrop, side drawer, centered panel ── */
 .fl-shop-backdrop {
   position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: var(--space-4);
   background: color-mix(in srgb, var(--color-text) 45%, transparent);

@@ -28,13 +28,13 @@ const SAMPLE = {
   hero: {
     eyebrow: "Selling and letting in Ashford Vale since 1998",
     title: "Find the house you'll still love in ten years.",
-    lede: "Family homes, flats and cottages across six neighbourhoods, with agents who live round the corner.",
+    lede: "Family homes, flats and cottages across six neighborhoods, with agents who live round the corner.",
   },
   areas: ["Any area", "Old Town", "Riverside", "Millbrook", "Kingsmead", "Elm Park", "Southfields"],
   bedOptions: ["Any", "1+", "2+", "3+", "4+"],
   maxPrice: {
-    buy: [{ label: "No max", value: 0 }, { label: "£300,000", value: 300000 }, { label: "£450,000", value: 450000 }, { label: "£600,000", value: 600000 }, { label: "£800,000", value: 800000 }],
-    rent: [{ label: "No max", value: 0 }, { label: "£1,000 pcm", value: 1000 }, { label: "£1,500 pcm", value: 1500 }, { label: "£2,000 pcm", value: 2000 }],
+    buy: [{ label: "No max", value: 0 }, { label: "$395,000", value: 395000 }, { label: "$595,000", value: 595000 }, { label: "$795,000", value: 795000 }, { label: "$1,050,000", value: 1050000 }],
+    rent: [{ label: "No max", value: 0 }, { label: "$1,300 /mo", value: 1300 }, { label: "$2,000 /mo", value: 2000 }, { label: "$2,650 /mo", value: 2650 }],
   },
   proof: [
     { icon: "chart", value: "214", label: "homes sold last year" },
@@ -42,15 +42,15 @@ const SAMPLE = {
     { icon: "heart", value: "4.9 / 5", label: "from 1,180 client reviews" },
   ],
   listings: [
-    { id: "h1", mode: "buy", title: "Three-bed Victorian terrace", area: "Old Town", address: "Chapel Street", price: 425000, beds: 3, baths: 1, sqft: 1080, status: "New", added: 3 },
-    { id: "h2", mode: "buy", title: "Riverside apartment with balcony", area: "Riverside", address: "Wharf Lane", price: 289000, beds: 2, baths: 2, sqft: 780, status: "", added: 12 },
-    { id: "h3", mode: "buy", title: "Detached family home and garden", area: "Kingsmead", address: "Orchard Rise", price: 695000, beds: 4, baths: 3, sqft: 1950, status: "Under offer", added: 20 },
-    { id: "h4", mode: "buy", title: "Stone cottage by the green", area: "Millbrook", address: "The Green", price: 510000, beds: 3, baths: 2, sqft: 1240, status: "", added: 7 },
-    { id: "h5", mode: "buy", title: "Five-bed Edwardian semi", area: "Elm Park", address: "Beech Avenue", price: 875000, beds: 5, baths: 3, sqft: 2400, status: "New", added: 1 },
-    { id: "h6", mode: "rent", title: "One-bed flat above the bakery", area: "Old Town", address: "Market Row", price: 950, beds: 1, baths: 1, sqft: 520, status: "", added: 4 },
-    { id: "h7", mode: "rent", title: "Two-bed modern townhouse", area: "Southfields", address: "Larch Close", price: 1450, beds: 2, baths: 2, sqft: 890, status: "New", added: 2 },
-    { id: "h8", mode: "rent", title: "Family home near the schools", area: "Elm Park", address: "Hazel Road", price: 1900, beds: 4, baths: 2, sqft: 1500, status: "Let agreed", added: 15 },
-    { id: "h9", mode: "rent", title: "Converted mill loft", area: "Riverside", address: "Mill Yard", price: 1650, beds: 2, baths: 1, sqft: 1010, status: "", added: 9 },
+    { id: "h1", mode: "buy", title: "Three-bed Victorian row house", area: "Old Town", address: "Chapel Street", price: 560000, beds: 3, baths: 1, sqft: 1080, status: "New", added: 3 },
+    { id: "h2", mode: "buy", title: "Riverside apartment with balcony", area: "Riverside", address: "Wharf Lane", price: 385000, beds: 2, baths: 2, sqft: 780, status: "", added: 12 },
+    { id: "h3", mode: "buy", title: "Detached family home and garden", area: "Kingsmead", address: "Orchard Rise", price: 915000, beds: 4, baths: 3, sqft: 1950, status: "Under contract", added: 20 },
+    { id: "h4", mode: "buy", title: "Stone cottage by the green", area: "Millbrook", address: "The Green", price: 675000, beds: 3, baths: 2, sqft: 1240, status: "", added: 7 },
+    { id: "h5", mode: "buy", title: "Five-bed Edwardian duplex", area: "Elm Park", address: "Beech Avenue", price: 1150000, beds: 5, baths: 3, sqft: 2400, status: "New", added: 1 },
+    { id: "h6", mode: "rent", title: "One-bed apartment above the bakery", area: "Old Town", address: "Market Row", price: 1250, beds: 1, baths: 1, sqft: 520, status: "", added: 4 },
+    { id: "h7", mode: "rent", title: "Two-bed modern townhouse", area: "Southfields", address: "Larch Close", price: 1900, beds: 2, baths: 2, sqft: 890, status: "New", added: 2 },
+    { id: "h8", mode: "rent", title: "Family home near the schools", area: "Elm Park", address: "Hazel Road", price: 2500, beds: 4, baths: 2, sqft: 1500, status: "Lease signed", added: 15 },
+    { id: "h9", mode: "rent", title: "Converted mill loft", area: "Riverside", address: "Mill Yard", price: 2175, beds: 2, baths: 1, sqft: 1010, status: "", added: 9 },
   ],
   agents: [
     { name: "Priya Raman", initials: "PR", role: "Sales, Old Town & Riverside", sold: "61 homes sold in 2025", phone: "01632 960 211" },
@@ -81,7 +81,7 @@ const SAMPLE = {
 type Mode = "buy" | "rent";
 type Errors = Partial<Record<"address" | "postcode" | "type" | "name" | "contact", string>>;
 
-const money = (n: number) => `£${n.toLocaleString("en-GB")}`;
+const money = (n: number) => `$${n.toLocaleString("en-US")}`;
 
 export default function SiteRealEstate() {
   const d = SAMPLE;
@@ -137,7 +137,7 @@ export default function SiteRealEstate() {
     const v = (k: string) => String(f.get(k) ?? "").trim();
     const next: Errors = {};
     if (!v("address")) next.address = "Add the first line of the address.";
-    if (!/^[A-Za-z]{1,2}\d[A-Za-z\d]?\s*\d[A-Za-z]{2}$/.test(v("postcode"))) next.postcode = "Enter a full postcode, like AV1 3RT.";
+    if (!/^[A-Za-z]{1,2}\d[A-Za-z\d]?\s*\d[A-Za-z]{2}$/.test(v("postcode"))) next.postcode = "Enter a full ZIP code, like AV1 3RT.";
     if (!v("type")) next.type = "Choose the type of property.";
     if (!v("name")) next.name = "Add your name.";
     const c = v("contact");
@@ -307,7 +307,7 @@ export default function SiteRealEstate() {
                       {l.status ? <span className={`fl-badge fl-st-estate-status${l.status === "New" ? "" : " is-muted"}`}>{l.status}</span> : null}
                       <p className="fl-st-estate-price">
                         {money(l.price)}
-                        {l.mode === "rent" ? <span> pcm</span> : null}
+                        {l.mode === "rent" ? <span> /mo</span> : null}
                       </p>
                       <h3>{l.title}</h3>
                       <p className="fl-meta">
@@ -316,7 +316,7 @@ export default function SiteRealEstate() {
                       <ul className="fl-st-estate-facts">
                         <li>{l.beds} bed</li>
                         <li>{l.baths} bath</li>
-                        <li>{l.sqft.toLocaleString("en-GB")} sq ft</li>
+                        <li>{l.sqft.toLocaleString("en-US")} sq ft</li>
                       </ul>
                       <div className="fl-st-estate-card__foot">
                         <a className="fl-link" href="#estate-agents">
@@ -350,7 +350,7 @@ export default function SiteRealEstate() {
               <h2 id="estate-agents-title" className="fl-title">
                 Your local agents
               </h2>
-              <p className="fl-lede">Each of us covers a few neighbourhoods, so the person who values your home also shows it.</p>
+              <p className="fl-lede">Each of us covers a few neighborhoods, so the person who values your home also shows it.</p>
             </div>
             <ul className="fl-grid fl-grid--4 fl-st-estate-agents">
               {d.agents.map((a) => (
@@ -406,7 +406,7 @@ export default function SiteRealEstate() {
                       {errText("address")}
                     </div>
                     <div className="fl-field">
-                      <label htmlFor="estate-postcode">Postcode</label>
+                      <label htmlFor="estate-postcode">ZIP code</label>
                       <input id="estate-postcode" name="postcode" className="fl-input" autoComplete="postal-code" {...errProps("postcode")} />
                       {errText("postcode")}
                     </div>

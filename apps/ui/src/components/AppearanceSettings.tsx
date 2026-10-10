@@ -1,6 +1,6 @@
 /**
  * Settings → Appearance: choose how light and dark are picked. With "Custom per page", each page has its own mode
- * and moving between pages with different modes fades the colours.
+ * and moving between pages with different modes fades the colors.
  */
 import { useState } from "react";
 import { Moon, Sun } from "lucide-react";

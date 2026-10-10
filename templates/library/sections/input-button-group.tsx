@@ -19,7 +19,7 @@ const SAMPLE = {
   note: "Bring an apron and an old towel. We start glazing at 7pm sharp, so please arrive ten minutes early.",
   align: [
     { id: "left", label: "Align left" },
-    { id: "center", label: "Align centre" },
+    { id: "center", label: "Align center" },
     { id: "right", label: "Align right" },
   ],
   format: [

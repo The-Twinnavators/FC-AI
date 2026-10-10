@@ -6,7 +6,7 @@
  *  1. Replace every value in SAMPLE with the app's real data (from its state, storage or src/content/), using the
  *     spec's words for titles and labels. Remove the "flowcode:sample" comment when nothing sample is left.
  *  2. Delete any section the spec doesn't need. Keep the order: what matters most comes first.
- *  3. Keep the building blocks and tokens. Change spacing or colours in src/styles/tokens.css, not here.
+ *  3. Keep the building blocks and tokens. Change spacing or colors in src/styles/tokens.css, not here.
  */
 import { ActivityList, BarChart, Badge, Button, Card, DataTable, EmptyState, Grid, PageHeader, Section, Stat, Trend } from "../components/ui";
 

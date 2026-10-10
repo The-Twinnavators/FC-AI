@@ -580,7 +580,7 @@
   box-shadow: var(--focus-ring, 0 0 0 3px var(--color-focus));
 }
 
-/* A narrow centred column (sign-in and other short forms). */
+/* A narrow centered column (sign-in and other short forms). */
 .ui-narrow {
   display: grid;
   gap: var(--space-4);

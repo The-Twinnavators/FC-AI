@@ -54,7 +54,7 @@ export function dur(ms: number): string {
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
 const KIND: Record<string, string> = { model: "AI model", command: "Command", tool: "File tool", check: "Check" };
 
-/** One horizontal bar split into labelled segments, with a legend that carries the numbers (not colour alone). */
+/** One horizontal bar split into labelled segments, with a legend that carries the numbers (not color alone). */
 function SplitBar({ parts, label }: { parts: Array<{ name: string; ms: number; tone: string }>; label: string }) {
   const total = parts.reduce((n, p) => n + p.ms, 0);
   if (!total) return null;

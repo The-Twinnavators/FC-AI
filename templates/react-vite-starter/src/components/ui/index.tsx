@@ -12,7 +12,7 @@
  *   <Skeleton>      loading placeholder shaped like the content
  *   <DataState>     loading, error (with Try again), empty and ready for any data area, in one wrapper
  *   <Stat>          a key number with its label
- *   <Badge>         a short status label (never colour alone)
+ *   <Badge>         a short status label (never color alone)
  *   <Notice>        an inline message: info, success, warning, error
  *   <Dialog>        a modal dialog with a title and actions (native <dialog>)
  *

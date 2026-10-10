@@ -5,7 +5,7 @@
  */
 /**
  * Cards: product grid. Shop items with a picture, name, price, rating and an add-to-basket button that shows "Added"
- * and updates a small basket count. Use for a shop, a menu or a rental catalogue. Make it the app's own: replace
+ * and updates a small basket count. Use for a shop, a menu or a rental catalog. Make it the app's own: replace
  * SAMPLE with the real products (and real photos with alt text); wire the basket to the app's own cart state.
  */
 import { useState } from "react";

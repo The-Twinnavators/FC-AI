@@ -81,7 +81,7 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
           <h3 className="dboard__group-title">Components in this design</h3>
           <DesignComponentsBar projectId={projectId} used={used.filter(isComponent)} onChange={onShown} />
         </div>
-        <DesignCard id="colours" title="Colours" group="Foundation" note="5 brand colours, 10 shades each; neutrals and status colours follow them" onConfigure={() => setEditor({ kind: "colours" })}>
+        <DesignCard id="colours" title="Colours" group="Foundation" note="5 brand colors, 10 shades each; neutrals and status colors follow them" onConfigure={() => setEditor({ kind: "colours" })}>
           <PaletteSummary projectId={projectId} theme={theme} />
         </DesignCard>
         <DesignCard id="type" title="Typography" group="Foundation" note="Heading, body and code fonts; size, weight and line height for each level" onConfigure={() => setEditor({ kind: "type" })}>
@@ -192,11 +192,11 @@ function ControlsEditor({ title, projectId, theme, only, onDraft, onClose, previ
   );
 }
 
-// ───────────────────────── Colours ─────────────────────────
+// ───────────────────────── Colors ─────────────────────────
 
 const ROLE_LABEL: Record<string, string> = { primary: "Primary", secondary: "Secondary", tertiary: "Tertiary", "accent-1": "Accent 1", "accent-2": "Accent 2" };
 const STATUS_LABEL: Record<StatusKind, string> = { success: "Success", warning: "Warning", error: "Error", info: "Info" };
-const NEUTRAL_LABEL: Record<NeutralTone, string> = { brand: "Brand-tinted", warm: "Warm", cool: "Cool", pure: "Pure grey" };
+const NEUTRAL_LABEL: Record<NeutralTone, string> = { brand: "Brand-tinted", warm: "Warm", cool: "Cool", pure: "Pure gray" };
 
 function usePalette(projectId: string) {
   const r = useResource<{ config: PaletteConfig; saved: boolean }>(`/projects/${projectId}/design/palette`, [projectId]);
@@ -227,11 +227,11 @@ function RampRow({ label, ramp, base, sub }: { label: string; ramp: Ramp; base?:
   );
 }
 
-/** The Colours card: brand ramps, neutrals and status colours, and how many contrast checks pass. */
+/** The Colors card: brand ramps, neutrals and status colors, and how many contrast checks pass. */
 function PaletteSummary({ projectId, theme }: { projectId: string; theme: PreviewTheme }) {
   const { data } = usePalette(projectId);
   const palette = useMemo(() => (data ? buildPalette(data.config) : undefined), [data]);
-  if (!palette) return <div className="dcard__loading muted">Reading colours…</div>;
+  if (!palette) return <div className="dcard__loading muted">Reading colors…</div>;
   const audit = contrastAudit(palette, roleTokens(palette, theme === "dark"));
   const fails = audit.filter((c) => !c.pass).length;
   return (
@@ -249,7 +249,7 @@ function PaletteSummary({ projectId, theme }: { projectId: string; theme: Previe
         ))}
         <span className={`palette-sum__audit is-${fails ? "bad" : "ok"}`}>{fails ? `${fails} contrast check${fails === 1 ? "" : "s"} to fix` : `All ${audit.length} contrast checks pass`}</span>
       </div>
-      {!data?.saved ? <p className="muted palette-sum__hint">Started from the app&apos;s accent colour. Configure to choose your brand colours.</p> : null}
+      {!data?.saved ? <p className="muted palette-sum__hint">Started from the app&apos;s accent color. Configure to choose your brand colors.</p> : null}
     </div>
   );
 }
@@ -272,7 +272,7 @@ function ColoursEditor({ projectId, theme, onDraft, onClose, preview }: { projec
 
   const setBrand = (i: number, patch: Partial<BrandColor>) => setCfg({ ...cfg, brand: cfg.brand.map((b, j) => (j === i ? { ...b, ...patch } : b)) });
   const addBrand = () => {
-    // A starting suggestion: the primary's complement, so a new colour is never a copy.
+    // A starting suggestion: the primary's complement, so a new color is never a copy.
     const base = palette.brand[0]?.ramp[500] ?? "#6d28d9";
     const h = parseInt(base.slice(1), 16);
     const comp = `#${(0xffffff ^ h).toString(16).padStart(6, "0")}`;
@@ -311,18 +311,18 @@ function ColoursEditor({ projectId, theme, onDraft, onClose, preview }: { projec
       preview={preview}
       footer={
         <>
-          {msg ? <span className="dmodal__msg">{msg.text}</span> : <span className="muted dmodal__msg">Saving updates the app&apos;s colour tokens for light and dark. You can undo it.</span>}
+          {msg ? <span className="dmodal__msg">{msg.text}</span> : <span className="muted dmodal__msg">Saving updates the app&apos;s color tokens for light and dark. You can undo it.</span>}
           <button type="button" className="btn" onClick={onClose}>
             Cancel
           </button>
           <button type="button" className="btn btn--primary" onClick={() => void save()} disabled={busy}>
-            {busy ? "Saving…" : "Save colours"}
+            {busy ? "Saving…" : "Save colors"}
           </button>
         </>
       }
     >
       <fieldset className="studio__sec">
-        <legend>Brand colours</legend>
+        <legend>Brand colors</legend>
         {cfg.brand.map((b, i) => {
           const hex = normalizeHex(b.hex) ?? "#000000";
           const p = palette.brand[i];
@@ -341,14 +341,14 @@ function ColoursEditor({ projectId, theme, onDraft, onClose, preview }: { projec
         })}
         {cfg.brand.length < MAX_BRAND_COLORS ? (
           <button type="button" className="btn btn--sm brand-add" onClick={addBrand}>
-            <Plus size={13} aria-hidden="true" /> Add a brand colour
+            <Plus size={13} aria-hidden="true" /> Add a brand color
           </button>
         ) : null}
       </fieldset>
 
       <fieldset className="studio__sec">
         <legend>Suggested neutrals</legend>
-        <p className="dmodal__note muted">Picked to go with your brand colours. Choose a different tone if you like.</p>
+        <p className="dmodal__note muted">Picked to go with your brand colors. Choose a different tone if you like.</p>
         <div className="studio__chips" role="group" aria-label="Neutral tone">
           {(Object.keys(NEUTRAL_LABEL) as NeutralTone[]).map((t) => (
             <button key={t} type="button" className={`studio__chip${(cfg.neutral ?? "brand") === t ? " is-on" : ""}`} aria-pressed={(cfg.neutral ?? "brand") === t} onClick={() => setCfg({ ...cfg, neutral: t })}>
@@ -360,15 +360,15 @@ function ColoursEditor({ projectId, theme, onDraft, onClose, preview }: { projec
       </fieldset>
 
       <fieldset className="studio__sec">
-        <legend>Status colours</legend>
-        <p className="dmodal__note muted">Picked from your brand colours when one fits, otherwise made to sit with your primary. Set one to override it.</p>
+        <legend>Status colors</legend>
+        <p className="dmodal__note muted">Picked from your brand colors when one fits, otherwise made to sit with your primary. Set one to override it.</p>
         {STATUS_KINDS.map((k) => {
           const st = palette.status[k];
           return (
             <div key={k} className="brand-row">
               <span className="brand-row__name">
                 {STATUS_LABEL[k]}
-                <span className="muted">{st.from === "brand" ? "from your brand colours" : st.from === "you" ? "set by you" : "picked to match your primary"}</span>
+                <span className="muted">{st.from === "brand" ? "from your brand colors" : st.from === "you" ? "set by you" : "picked to match your primary"}</span>
               </span>
               <span className="brand-row__tools">
                 {st.from === "you" ? (
@@ -407,7 +407,7 @@ function ColoursEditor({ projectId, theme, onDraft, onClose, preview }: { projec
             </li>
           ))}
         </ul>
-        <p className="dmodal__note muted">The app&apos;s colour roles are chosen from these shades to pass: text 4.5:1, focus rings and borders 3:1.</p>
+        <p className="dmodal__note muted">The app&apos;s color roles are chosen from these shades to pass: text 4.5:1, focus rings and borders 3:1.</p>
       </fieldset>
     </EditorModal>
   );

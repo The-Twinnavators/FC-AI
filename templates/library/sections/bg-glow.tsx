@@ -4,9 +4,9 @@
  * Keywords: background, gradient, page background, glow
  */
 /**
- * Page background: top glow (gradient). A spotlight of the accent colour from the top edge.
+ * Page background: top glow (gradient). A spotlight of the accent color from the top edge.
  * Good for: Product launches and hero sections over a plain page.
- * Use it by adding the class "fl-bg-glow" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-glow" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

@@ -4,8 +4,8 @@
  * Keywords: page, template, cafe, restaurant, menu, tabs, hours, reservations, booking, form, html5up
  */
 /**
- * Page template: cafe or restaurant website. A one-page site for a neighbourhood cafe, bistro or small restaurant:
- * centred header, warm hero, three highlights, a tabbed menu with a vegetarian filter, opening hours (today marked),
+ * Page template: cafe or restaurant website. A one-page site for a neighborhood cafe, bistro or small restaurant:
+ * centered header, warm hero, three highlights, a tabbed menu with a vegetarian filter, opening hours (today marked),
  * how to find you, a table-booking form and a footer. Layout adapted from HTML5 UP "Arcana" (html5up.net, CC BY 3.0);
  * keep the credit. The booking form checks its fields and keeps bookings in local storage; nothing is sent.
  * Make it the app's own: replace SAMPLE with the real menu, prices, hours and address, and keep only the menu tabs and
@@ -46,10 +46,10 @@ const SAMPLE = {
         label: "Breakfast",
         note: "Served 7:00 to 11:30",
         items: [
-          { name: "Sourdough toast & cultured butter", desc: "Two thick slices, house marmalade or seasonal jam.", price: "5.50", tags: ["V"] },
-          { name: "Juniper full breakfast", desc: "Free-range eggs, smoked bacon, sausage, roast tomato, mushrooms, beans, toast.", price: "13.00", tags: [] },
-          { name: "Green shakshuka", desc: "Baked eggs in spinach, leek and feta, with flatbread for dipping.", price: "11.50", tags: ["V"] },
-          { name: "Bircher bowl", desc: "Overnight oats, grated apple, toasted seeds, yoghurt and berries.", price: "7.00", tags: ["V", "GF"] },
+          { name: "Sourdough toast & cultured butter", desc: "Two thick slices, house marmalade or seasonal jam.", price: "7.25", tags: ["V"] },
+          { name: "Juniper full breakfast", desc: "Free-range eggs, smoked bacon, sausage, roast tomato, mushrooms, beans, toast.", price: "17.00", tags: [] },
+          { name: "Green shakshuka", desc: "Baked eggs in spinach, leek and feta, with flatbread for dipping.", price: "15.00", tags: ["V"] },
+          { name: "Bircher bowl", desc: "Overnight oats, grated apple, toasted seeds, yogurt and berries.", price: "9.25", tags: ["V", "GF"] },
         ],
       },
       {
@@ -57,10 +57,10 @@ const SAMPLE = {
         label: "Lunch",
         note: "Served 11:30 to 15:00",
         items: [
-          { name: "Roast squash & lentil salad", desc: "Puy lentils, herbs, pickled shallot, tahini dressing.", price: "10.50", tags: ["VG", "GF"] },
-          { name: "Chicken & tarragon pie", desc: "Short crust, buttered greens and a jug of gravy.", price: "14.50", tags: [] },
-          { name: "Soup of the day", desc: "Ask at the counter. Served with bread and butter.", price: "7.50", tags: ["V"] },
-          { name: "Fish finger sandwich", desc: "Hake in a crisp crumb, tartare, gem lettuce, soft white bun.", price: "12.00", tags: [] },
+          { name: "Roast squash & lentil salad", desc: "Puy lentils, herbs, pickled shallot, tahini dressing.", price: "14.00", tags: ["VG", "GF"] },
+          { name: "Chicken & tarragon pie", desc: "Short crust, buttered greens and a jug of gravy.", price: "19.00", tags: [] },
+          { name: "Soup of the day", desc: "Ask at the counter. Served with bread and butter.", price: "10.00", tags: ["V"] },
+          { name: "Fish finger sandwich", desc: "Hake in a crisp crumb, tartare, gem lettuce, soft white bun.", price: "16.00", tags: [] },
         ],
       },
       {
@@ -68,10 +68,10 @@ const SAMPLE = {
         label: "Coffee & drinks",
         note: "Oat, soy and almond milk at no extra cost",
         items: [
-          { name: "Espresso", desc: "This month: a washed Ethiopian with notes of apricot and black tea.", price: "2.60", tags: ["VG"] },
-          { name: "Flat white", desc: "Double shot, silky milk.", price: "3.40", tags: ["V"] },
-          { name: "Filter of the week", desc: "Brewed by the cup, ask what's on.", price: "3.80", tags: ["VG"] },
-          { name: "Fresh lemonade", desc: "Made every morning with mint from the terrace.", price: "3.50", tags: ["VG"] },
+          { name: "Espresso", desc: "This month: a washed Ethiopian with notes of apricot and black tea.", price: "3.50", tags: ["VG"] },
+          { name: "Flat white", desc: "Double shot, silky milk.", price: "4.50", tags: ["V"] },
+          { name: "Filter of the week", desc: "Brewed by the cup, ask what's on.", price: "5.00", tags: ["VG"] },
+          { name: "Fresh lemonade", desc: "Made every morning with mint from the terrace.", price: "4.50", tags: ["VG"] },
         ],
       },
       {
@@ -79,9 +79,9 @@ const SAMPLE = {
         label: "Bakes",
         note: "Out of the oven from 7:00",
         items: [
-          { name: "Cardamom bun", desc: "Our best seller, knotted and glazed.", price: "3.60", tags: ["V"] },
-          { name: "Almond croissant", desc: "Twice baked with frangipane.", price: "3.90", tags: ["V"] },
-          { name: "Sausage roll", desc: "Pork, sage and onion in rough puff.", price: "4.20", tags: [] },
+          { name: "Cardamom bun", desc: "Our best seller, knotted and glazed.", price: "4.75", tags: ["V"] },
+          { name: "Almond croissant", desc: "Twice baked with frangipane.", price: "5.25", tags: ["V"] },
+          { name: "Sausage roll", desc: "Pork, sage and onion in rough puff.", price: "5.50", tags: [] },
         ],
       },
     ],
@@ -304,7 +304,7 @@ export default function SiteCafe() {
                       <div className="fl-st-cafe-item__row">
                         <strong>{it.name}</strong>
                         <span className="fl-st-cafe-item__dots" aria-hidden="true" />
-                        <span className="fl-st-cafe-item__price">£{it.price}</span>
+                        <span className="fl-st-cafe-item__price">${it.price}</span>
                       </div>
                       <p className="fl-text">
                         {it.desc}

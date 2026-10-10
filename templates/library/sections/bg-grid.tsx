@@ -6,7 +6,7 @@
 /**
  * Page background: fading grid (pattern). Faint grid lines that fade out towards the edges.
  * Good for: Developer and data products; behind a hero.
- * Use it by adding the class "fl-bg-grid" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-grid" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

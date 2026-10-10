@@ -4,9 +4,9 @@
  * Keywords: background, gradient, page background, aurora
  */
 /**
- * Page background: aurora (gradient). A slowly turning, blurred blend of the theme colours (still for people who ask for less motion).
+ * Page background: aurora (gradient). A slowly turning, blurred blend of the theme colors (still for people who ask for less motion).
  * Good for: One standout moment: a launch hero or a sign-up page.
- * Use it by adding the class "fl-bg-aurora" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-aurora" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

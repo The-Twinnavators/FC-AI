@@ -4,9 +4,9 @@
  * Keywords: background, pattern, page background, topo
  */
 /**
- * Page background: contour lines (pattern). Topographic contour lines in the text colour.
+ * Page background: contour lines (pattern). Topographic contour lines in the text color.
  * Good for: Outdoor, maps, travel and exploration products.
- * Use it by adding the class "fl-bg-topo" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-topo" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

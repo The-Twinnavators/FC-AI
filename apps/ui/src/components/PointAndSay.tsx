@@ -124,7 +124,7 @@ export function PointAndSay({ projectId, size, onClose }: { projectId: string; s
                 <label className="pas__label" htmlFor="pas-say">
                   What should change?
                 </label>
-                <textarea id="pas-say" className="textarea" rows={4} value={say} onChange={(e) => setSay(e.target.value)} placeholder="e.g. Make this button say “Start lesson” and use the accent colour" />
+                <textarea id="pas-say" className="textarea" rows={4} value={say} onChange={(e) => setSay(e.target.value)} placeholder="e.g. Make this button say “Start lesson” and use the accent color" />
                 <button type="button" className="btn btn--primary" disabled={!say.trim()} onClick={toChat}>
                   Put it in the chat
                 </button>

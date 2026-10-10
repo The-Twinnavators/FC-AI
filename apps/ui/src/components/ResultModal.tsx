@@ -142,7 +142,7 @@ export function ResultModal({ r, saved, onToggleSave, onClose }: { r: WebResult;
               ) : (
                 <p className="muted" style={{ margin: 0 }}>Couldn't pull key points from this {r.tab === "videos" ? "video's description" : "page"}.</p>
               )}
-              {summary?.model ? <span className="muted res-modal__meta">Summarised by {summary.model} from the {summary.from === "page" ? "page" : "description"}</span> : null}
+              {summary?.model ? <span className="muted res-modal__meta">Summarized by {summary.model} from the {summary.from === "page" ? "page" : "description"}</span> : null}
             </div>
             {r.publishedAt ? <span className="muted res-modal__meta">Published {when(r.publishedAt)}</span> : null}
             <div className="res-modal__notes">

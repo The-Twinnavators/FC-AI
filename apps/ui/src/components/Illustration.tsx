@@ -1,7 +1,7 @@
 /**
  * unDraw illustrations (https://undraw.co, free under the unDraw license). Drop downloaded SVGs into
  * src/assets/illustrations/<slug>.svg; they are bundled at build time (no network at runtime) and recoloured:
- * unDraw's accent (#6c63ff) follows the brand accent, its dark ink (#090814, #3f3d56, #2f2e41) and light greys follow the theme,
+ * unDraw's accent (#6c63ff) follows the brand accent, its dark ink (#090814, #3f3d56, #2f2e41) and light grays follow the theme,
  * so every illustration works in light and dark mode. Missing files render a labelled placeholder.
  */
 const FILES = import.meta.glob("../assets/illustrations/*.svg", { query: "?raw", import: "default", eager: true }) as Record<string, string>;

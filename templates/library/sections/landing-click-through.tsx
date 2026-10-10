@@ -4,7 +4,7 @@
  * Keywords: landing, click-through, saas, trial, social proof, calculator, carousel, page template
  */
 /**
- * Page template: click-through landing page. It warms visitors up before one sign-up action: a centred promise with
+ * Page template: click-through landing page. It warms visitors up before one sign-up action: a centered promise with
  * social proof, the businesses already using it, three benefits, a "how much time would I save?" slider, a rotating
  * set of customer quotes, and a closing sign-up. Every button leads to that one sign-up. Suits SaaS trials, app
  * downloads and free-account offers arriving from an ad or email. The sign-up checks the email and shows a

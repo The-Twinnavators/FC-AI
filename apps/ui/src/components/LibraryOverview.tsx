@@ -39,7 +39,7 @@ const nice = (id: string) => {
 };
 
 /**
- * An isometric column for a share (0–1): a 3D block filled from the bottom in the card's colour (lit top, mid left,
+ * An isometric column for a share (0–1): a 3D block filled from the bottom in the card's color (lit top, mid left,
  * shaded right), with an empty glass track above it showing what's left.
  */
 function IsoColumn({ value, color }: { value: number; color: string }) {

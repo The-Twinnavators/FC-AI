@@ -5,7 +5,7 @@
  */
 /**
  * Site: health clinic / practice. A one-page site for a GP surgery, physiotherapy or dental practice, or any clinic
- * that takes appointments: a centred emblem header with a live "open now" line, services in alternating feature boxes,
+ * that takes appointments: a centered emblem header with a live "open now" line, services in alternating feature boxes,
  * the practitioners, opening hours with today highlighted, an appointment request form that checks itself and keeps
  * the request in local storage, and insurance, self-pay fees and FAQs.
  * Layout adapted from HTML5 UP "Directive" (html5up.net, CC BY 3.0); keep the credit.
@@ -72,15 +72,15 @@ const SAMPLE = {
   },
   insurance: {
     title: "Insurance and fees",
-    lede: "We're a recognised provider with these insurers. Bring your policy number; we'll bill them directly.",
+    lede: "We're a recognized provider with these insurers. Bring your policy number; we'll bill them directly.",
     insurers: ["Meridian Health", "Northgate Cover", "Clearwell Medical", "Harbour Mutual", "Evergreen Care Plans"],
     fees: [
-      { item: "GP consultation (20 min)", fee: "£75" },
-      { item: "Physiotherapy assessment (45 min)", fee: "£68" },
-      { item: "Physiotherapy follow-up (30 min)", fee: "£55" },
-      { item: "Women's health review (30 min)", fee: "£95" },
-      { item: "Blood test (plus lab fee)", fee: "£35" },
-      { item: "Travel vaccination", fee: "from £45" },
+      { item: "Primary care visit (20 min)", fee: "$99" },
+      { item: "Physiotherapy assessment (45 min)", fee: "$90" },
+      { item: "Physiotherapy follow-up (30 min)", fee: "$73" },
+      { item: "Women's health review (30 min)", fee: "$125" },
+      { item: "Blood test (plus lab fee)", fee: "$46" },
+      { item: "Travel vaccination", fee: "from $59" },
     ],
     faq: [
       { q: "Do I need a referral for physiotherapy?", a: "No. You can book directly. If your insurer needs a GP referral, we can arrange one at the same visit." },

@@ -5,9 +5,9 @@
  */
 /**
  * Product cards: three card styles side by side. A photo-first card with a wishlist heart, a horizontal card with a
- * star rating, and a minimal card with colour swatches (one colour is sold out). Each "Add to bag" button goes from
+ * star rating, and a minimal card with color swatches (one color is sold out). Each "Add to bag" button goes from
  * adding to added, and the bag count updates. Use them in shop grids, "you may also like" rows or a featured strip.
- * Make it the app's own: replace SAMPLE with real products, prices and colours; keep one card style per grid.
+ * Make it the app's own: replace SAMPLE with real products, prices and colors; keep one card style per grid.
  */
 import { useEffect, useRef, useState } from "react";
 import { Tick } from "./icons";
@@ -30,7 +30,7 @@ const SAMPLE = {
   photo: {
     id: "carafe",
     name: "Ribbed water carafe",
-    note: "Glazed stoneware · 1 litre",
+    note: "Glazed stoneware · 1 liter",
     price: 4200,
     flag: "New",
     tone: "ink",
@@ -133,7 +133,7 @@ export default function ShopProductCards() {
   const [bag, setBag] = useState(0);
   const [states, setStates] = useState<Record<string, AddState>>({});
   const [wished, setWished] = useState(false);
-  const [colour, setColour] = useState(d.swatch.colours[0].id);
+  const [color, setColour] = useState(d.swatch.colours[0].id);
   const [status, setStatus] = useState("");
   const timers = useRef<number[]>([]);
 
@@ -151,7 +151,7 @@ export default function ShopProductCards() {
     );
   };
 
-  const chosen = d.swatch.colours.find((c) => c.id === colour) ?? d.swatch.colours[0];
+  const chosen = d.swatch.colours.find((c) => c.id === color) ?? d.swatch.colours[0];
   const state = (id: string): AddState => states[id] ?? "idle";
   const money = (cents: number) => `${d.currency}${(cents / 100).toFixed(2)}`;
 
@@ -238,7 +238,7 @@ export default function ShopProductCards() {
                     type="radio"
                     name="shop-product-cards-colour"
                     value={c.id}
-                    checked={colour === c.id}
+                    checked={color === c.id}
                     onChange={() => setColour(c.id)}
                     aria-label={c.inStock ? c.name : `${c.name}, ${d.soldOut.toLowerCase()}`}
                   />

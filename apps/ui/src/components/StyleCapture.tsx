@@ -1,6 +1,6 @@
 /**
  * Styles → Capture a style (CSSVibes): point at a website, or attach screenshots, mockups, CSS or HTML, and FlowCode
- * captures their colours, fonts, corners and surface style onto this app's Styles page. It is one more Styles edit:
+ * captures their colors, fonts, corners and surface style onto this app's Styles page. It is one more Styles edit:
  * adjust it in Design, Tokens and Surface afterwards, or undo it.
  */
 import { useState } from "react";
@@ -81,8 +81,8 @@ export function StyleCapture({ projectId, onClose }: { projectId: string; onClos
           <X size={14} aria-hidden="true" />
         </button>
       </div>
-      {/* One description: exact styles from a website, CSS or HTML; from images, colours from the pixels and the rest
-          read by the Visual critic (inline, with its robot head), or colours only when its model can't see. */}
+      {/* One description: exact styles from a website, CSS or HTML; from images, colors from the pixels and the rest
+          read by the Visual critic (inline, with its robot head), or colors only when its model can't see. */}
       <div className="capture__intro">
         <span className="capture__bot" title="The Visual critic agent reads fonts, corners and surface style from images">
           <RobotHead color={ROLE_COLOR.critic!} id="capture-critic" size={44} />
@@ -93,12 +93,12 @@ export function StyleCapture({ projectId, onClose }: { projectId: string; onClos
         <Wand2 size={15} aria-hidden="true" /> Capture a style
       </span>
       <p className="capture__lede">
-        Point at a website, or attach screenshots, mockups, CSS or HTML. From a website, CSS or HTML, FlowCode reads the exact colours, fonts, corners and surface style. From images, colours are sampled from the pixels; fonts, corners and surface style are read by the{" "}
+        Point at a website, or attach screenshots, mockups, CSS or HTML. From a website, CSS or HTML, FlowCode reads the exact colors, fonts, corners and surface style. From images, colors are sampled from the pixels; fonts, corners and surface style are read by the{" "}
 Visual critic
         {vision.data?.model ? <span className="capture__model"> ({vision.data.model})</span> : null}
         {vision.data && !vision.data.vision ? (
           <span className="capture__warn">
-            , but its model can&apos;t see images, so an image gives you its colours only (give it a vision model in <a href="#/system/models">Models &amp; capability lab</a>)
+            , but its model can&apos;t see images, so an image gives you its colors only (give it a vision model in <a href="#/system/models">Models &amp; capability lab</a>)
           </span>
         ) : null}
         . You can change any of it here afterwards, or undo it.
@@ -129,7 +129,7 @@ Visual critic
           }}
         >
           <p>
-            Capture a style replaces this project&apos;s colours, fonts, corners and surface style, so <strong>every page</strong> takes on the new look, not just one.
+            Capture a style replaces this project&apos;s colors, fonts, corners and surface style, so <strong>every page</strong> takes on the new look, not just one.
           </p>
           <p>You can change any of it afterwards on the Design tab, or undo it.</p>
           <p className="muted">

@@ -15,7 +15,7 @@
   --fr-high: #c2410c;
 }
 
-/* ── Severity and score colours ─────────────────────────────────────────── */
+/* ── Severity and score colors ─────────────────────────────────────────── */
 .fr-sev--critical {
   --sev: var(--sig-bad);
 }

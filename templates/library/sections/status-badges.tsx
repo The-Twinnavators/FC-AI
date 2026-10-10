@@ -4,7 +4,7 @@
  * Keywords: status, badge, chip, signal light, indicator
  */
 /**
- * Status badges: status chips with a coloured dot (done, in progress, waiting, failed, draft) and signal lights that
+ * Status badges: status chips with a colored dot (done, in progress, waiting, failed, draft) and signal lights that
  * glow, with a soft pulse while something is working. Shown on a short list of jobs whose status you can move on with
  * a button; each change is announced. Use it for orders, tasks, bookings or anything with a lifecycle.
  * Adapted from FlowCode's own UI (Branding page).

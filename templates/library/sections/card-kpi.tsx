@@ -6,7 +6,7 @@
 /**
  * Cards: KPI. A row of dashboard numbers, each with its change against the last period (up or down) and a small
  * trend line. Use at the top of a dashboard or an owner's overview. Make it the app's own: replace SAMPLE with the
- * app's real measures and periods; keep "higher is better" right for each one so up and down get the right colour.
+ * app's real measures and periods; keep "higher is better" right for each one so up and down get the right color.
  */
 import { useState } from "react";
 

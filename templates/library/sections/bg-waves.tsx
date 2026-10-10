@@ -4,9 +4,9 @@
  * Keywords: background, pattern, page background, waves
  */
 /**
- * Page background: waves (pattern). Repeating wave lines in the accent colour.
+ * Page background: waves (pattern). Repeating wave lines in the accent color.
  * Good for: Wellness, travel, water or calm brands.
- * Use it by adding the class "fl-bg-waves" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-waves" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

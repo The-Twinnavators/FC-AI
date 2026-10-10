@@ -1,5 +1,5 @@
 /**
- * Repo Report's list (#/flowreport): every repository you analyse, as a card with its last reading.
+ * Repo Report's list (#/flowreport): every repository you analyze, as a card with its last reading.
  *  - A project is a folder you keep coming back to: the second run is comparable to the first (same settings, same
  *    analysis version) and the history is somewhere you can find it.
  *  - The card shows the last run, not the project: whether the last reading was clean, when, and whether it's still

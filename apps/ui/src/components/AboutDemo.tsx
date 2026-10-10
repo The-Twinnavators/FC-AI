@@ -69,7 +69,7 @@ export function AboutDemo() {
           <div className="abf__label">Plan and progress</div>
           <ul className="abf__steps">
             {[
-              ["Update backdrop colour tokens", step1],
+              ["Update backdrop color tokens", step1],
               ["Give Pacific Foods its own photo", step2],
             ].map(([t, s]) => (
               <li key={t}>

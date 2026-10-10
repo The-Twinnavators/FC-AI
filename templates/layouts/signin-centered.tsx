@@ -7,7 +7,7 @@
  *     account logic (never store passwords in plain text or local storage). Remove the "flowcode:sample" comment when
  *     nothing sample is left.
  *  2. Delete what the spec doesn't need (for example "Create account").
- *  3. Keep the building blocks and tokens. Change spacing or colours in src/styles/tokens.css, not here.
+ *  3. Keep the building blocks and tokens. Change spacing or colors in src/styles/tokens.css, not here.
  */
 import { useState, type FormEvent } from "react";
 import { Button, Card, Field, Notice, Tabs } from "../components/ui";

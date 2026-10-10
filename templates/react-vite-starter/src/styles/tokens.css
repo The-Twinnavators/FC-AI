@@ -1,12 +1,12 @@
 /*
  * Design tokens: the only place raw values live. Components consume var(--…) tokens.
- * To add a value, extend this file (extend_tokens workflow); never inline raw colours or sizes in components.
+ * To add a value, extend this file (extend_tokens workflow); never inline raw colors or sizes in components.
  *
  * How to use them (every screen follows these, so the app looks like one product):
  *  - Accent (--color-accent) is for the one main action per screen, links, the current navigation item and focus. Nothing else.
- *  - Success and danger colours are for status only (saved, done, error, delete). Never decoration.
- *  - Cards and panels use the surface colour on the page background; wells, tracks and hover use surface-sunken.
- *  - Content uses the text colour; descriptions, hints and labels use text-muted.
+ *  - Success and danger colors are for status only (saved, done, error, delete). Never decoration.
+ *  - Cards and panels use the surface color on the page background; wells, tracks and hover use surface-sunken.
+ *  - Content uses the text color; descriptions, hints and labels use text-muted.
  *  - Spacing runs from space-1 to space-9 on an 8px rhythm (space-3 is a 4px half-step); space-8 and space-9 separate page sections. Related things sit closer than unrelated ones.
  *  - Radius: radius-sm for inputs and badges, radius-md for buttons, radius-lg for cards. Never mix in others.
  *  - Controls share the control-sm/md/lg/xl heights (with matching control-pad-* and control-text-*), so buttons,

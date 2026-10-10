@@ -19,7 +19,7 @@ const MATRIX: Array<{ category: string; use: string; rule: string; tone?: Record
   {
     category: "Status, feedback & alerts",
     use: "Badges, banners, toasts, callouts",
-    rule: "Always paired with the matching signal colour.",
+    rule: "Always paired with the matching signal color.",
     tone: { CircleCheck: "var(--sig-ok)", TriangleAlert: "var(--sig-warn)", OctagonAlert: "var(--sig-bad)", Info: "var(--brand-ink)" },
     icons: [[CircleCheck, "CircleCheck", "CheckCircle2"], [TriangleAlert, "TriangleAlert", "AlertTriangle"], [OctagonAlert, "OctagonAlert", "AlertOctagon"], [Info, "Info"], [CircleHelp, "CircleHelp", "HelpCircle"], [Clock, "Clock"], [LoaderCircle, "LoaderCircle", "Loader2"]],
   },
@@ -66,9 +66,9 @@ export function IconMatrix() {
         </div>
       ))}
       <ul className="iconlib__rules">
-        <li><b>Grid.</b> 16, 20, 24 or 32px, centred in a fixed box.</li>
+        <li><b>Grid.</b> 16, 20, 24 or 32px, centered in a fixed box.</li>
         <li><b>Stroke.</b> 2px at 20px and up; 1.5px at 16px to avoid ink traps.</li>
-        <li><b>Interaction.</b> Icon buttons show a hover background pill, not a colour change alone.</li>
+        <li><b>Interaction.</b> Icon buttons show a hover background pill, not a color change alone.</li>
         <li><b>Accessibility.</b> Decorative icons are aria-hidden; icon-only buttons need an aria-label.</li>
       </ul>
     </div>
@@ -90,7 +90,7 @@ export function IllustrationGallery() {
   return (
     <div className="illuslib">
       <p className="muted" style={{ margin: 0 }}>
-        {ILLUSTRATIONS_AVAILABLE.length} of {STATES.length} added. The accent follows the brand colour and people and shapes follow the theme, so each works in light and dark mode. See src/assets/illustrations/README.md.
+        {ILLUSTRATIONS_AVAILABLE.length} of {STATES.length} added. The accent follows the brand color and people and shapes follow the theme, so each works in light and dark mode. See src/assets/illustrations/README.md.
       </p>
       <div className="illuslib__grid">
         {STATES.map((s) => (

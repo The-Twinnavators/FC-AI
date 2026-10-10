@@ -1,6 +1,6 @@
 /**
  * Workspace → Styles, two views:
- *  - Tokens: the project's design primitives (CSS custom properties) grouped as colours, typography, spacing, radius,
+ *  - Tokens: the project's design primitives (CSS custom properties) grouped as colors, typography, spacing, radius,
  *    shadows and motion. Editing a value rewrites that one declaration (snapshotted, so it can be undone). Tokens
  *    nothing uses are tucked away.
  *  - Components: a visual style sheet of the reusable parts the app already has (CSS class families rendered with
@@ -51,7 +51,7 @@ const HEX = /^#([0-9a-f]{6})$/i;
 
 /**
  * The design option this app uses: one of the visual styles, or Custom (captured, edited by hand, or from the PRD).
- * It records who set it (FlowCode on New build, or you). Picking a style writes its colours, fonts and corners into
+ * It records who set it (FlowCode on New build, or you). Picking a style writes its colors, fonts and corners into
  * the app's tokens, which can be undone in Changes.
  */
 function DesignChoice({ projectId }: { projectId: string }) {
@@ -180,7 +180,7 @@ function TokensView({ projectId }: { projectId: string }) {
     return (
       <div style={{ padding: 16 }}>
         <Empty title="No design tokens yet" action={<button className="btn" onClick={reload}>Re-scan</button>}>
-          Styles shows the CSS custom properties (like <code>--color-primary: #3a60c4</code>) in this project's stylesheets. Scanned {data.scanned} stylesheet{data.scanned === 1 ? "" : "s"} and found none. Ask the agent to “move the colours, fonts and spacing into design tokens in tokens.css” and they'll appear here.
+          Styles shows the CSS custom properties (like <code>--color-primary: #3a60c4</code>) in this project's stylesheets. Scanned {data.scanned} stylesheet{data.scanned === 1 ? "" : "s"} and found none. Ask the agent to “move the colors, fonts and spacing into design tokens in tokens.css” and they'll appear here.
         </Empty>
       </div>
     );
@@ -243,7 +243,7 @@ function TokensView({ projectId }: { projectId: string }) {
 }
 
 /**
- * Swatches that would blend into the page get an outline: very light colours on the light theme, very dark ones on the
+ * Swatches that would blend into the page get an outline: very light colors on the light theme, very dark ones on the
  * dark theme (the CSS applies each class only in its theme).
  */
 function edgeClass(v: string): string {
@@ -392,8 +392,8 @@ function TokenRow({ t, lookup, busy, onSave }: { t: Token; lookup?: Map<string, 
   return (
     <div className={`styles-token styles-token--${t.group}${busy ? " is-busy" : ""}`}>
       {t.group === "color" && HEX.test(t.value) ? (
-        <label className={`styles-swatch styles-swatch--pick${edgeClass(draft.match(HEX) ? draft : t.value)}`} style={{ background: draft.match(HEX) ? draft : t.value }} title="Pick a colour">
-          <input type="color" aria-label={`${t.name} colour picker`} value={draft.match(HEX) ? draft : t.value} onChange={(e) => setDraft(e.target.value)} onBlur={commit} />
+        <label className={`styles-swatch styles-swatch--pick${edgeClass(draft.match(HEX) ? draft : t.value)}`} style={{ background: draft.match(HEX) ? draft : t.value }} title="Pick a color">
+          <input type="color" aria-label={`${t.name} color picker`} value={draft.match(HEX) ? draft : t.value} onChange={(e) => setDraft(e.target.value)} onBlur={commit} />
         </label>
       ) : (
         preview(t, lookup)

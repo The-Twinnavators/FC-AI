@@ -259,7 +259,7 @@ export function SkillForm({ initial, isNew, existingIds, onSaved, onCancel }: { 
         <label className="label" htmlFor="sk-acc">
           Acceptance checks (one per line)
         </label>
-        <textarea id="sk-acc" className="textarea" style={{ minHeight: 90 }} value={acceptance} onChange={(e) => setAcceptance(e.target.value)} placeholder={"Typecheck passes\nNo raw colour values"} />
+        <textarea id="sk-acc" className="textarea" style={{ minHeight: 90 }} value={acceptance} onChange={(e) => setAcceptance(e.target.value)} placeholder={"Typecheck passes\nNo raw color values"} />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div className="field">

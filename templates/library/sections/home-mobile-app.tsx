@@ -7,7 +7,7 @@
  * Page template: mobile app homepage. A whole page for a phone app, here a budgeting app for households: navigation,
  * a split hero with two phone mockups drawn in CSS, download buttons and a rating, four steps to get started, a
  * feature tour where choosing a feature changes the phone screen, numbers, reviews, questions, a "text me the link"
- * form on a strong colour band, and a footer. Suits any consumer app with an iPhone and Android version. Make it the
+ * form on a strong color band, and a footer. Suits any consumer app with an iPhone and Android version. Make it the
  * app's own: replace SAMPLE, redraw the phone screens as the app's real main screens, and point the store buttons at
  * the real listings.
  */
@@ -83,7 +83,7 @@ const SAMPLE = {
   ],
   ctaTitle: "Send the download link to your phone",
   ctaText: "Enter your mobile number and we'll text you one link. That's the only message you'll get.",
-  footer: { base: "© 2026 Penny Jar Apps Ltd. Penny Jar is a budgeting tool, not a bank.", links: ["Privacy", "Terms", "Help centre", "Press"] },
+  footer: { base: "© 2026 Penny Jar Apps Ltd. Penny Jar is a budgeting tool, not a bank.", links: ["Privacy", "Terms", "Help center", "Press"] },
 };
 
 const money = (n: number) => `$${n.toLocaleString("en-US")}`;

@@ -324,7 +324,7 @@ function Mini({ label, value }: { label: string; value: string | number }) {
 
 
 /**
- * An agent as a small shaded robot: neutral metal lit from the top-left (reads as 3D), with the role colour kept to
+ * An agent as a small shaded robot: neutral metal lit from the top-left (reads as 3D), with the role color kept to
  * the eyes and antenna tip. Busy agents blink and pulse their antenna and chest light.
  */
 function Robot({ x, y, s, color, level }: { x: number; y: number; s: number; color: string; level: number }) {

@@ -6,7 +6,7 @@
  *  1. Replace every value in SAMPLE with the app's real data and the spec's words. Point each shortcut at a real
  *     screen id. Remove the "flowcode:sample" comment when nothing sample is left.
  *  2. Delete any section the spec doesn't need. Show the EmptyState for a brand-new user with nothing to continue.
- *  3. Keep the building blocks and tokens. Change spacing or colours in src/styles/tokens.css, not here.
+ *  3. Keep the building blocks and tokens. Change spacing or colors in src/styles/tokens.css, not here.
  */
 import { ActionTile, Button, Card, Checklist, EmptyState, Grid, PageHeader, Progress, Section } from "../components/ui";
 

@@ -4,9 +4,9 @@
  * Keywords: background, gradient, page background, soft
  */
 /**
- * Page background: soft gradient (gradient). A gentle wash of the accent colour at the top, fading into the page.
+ * Page background: soft gradient (gradient). A gentle wash of the accent color at the top, fading into the page.
  * Good for: Calm, friendly pages: onboarding, help, settings intros.
- * Use it by adding the class "fl-bg-soft" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-soft" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

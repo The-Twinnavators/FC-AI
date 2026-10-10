@@ -46,7 +46,7 @@ function useReducedMotion() {
   return reduced;
 }
 
-/** One ring. The stroke fills from the top, clockwise, with a gradient from the accent to the success colour. */
+/** One ring. The stroke fills from the top, clockwise, with a gradient from the accent to the success color. */
 function Gauge({ value, label, size, reduced }: { value: number; label: string; size: Size; reduced: boolean }) {
   const stroke = STROKE[size];
   const r = (VIEW - stroke) / 2;

@@ -4,7 +4,7 @@
  * Keywords: stats, numbers, results, metrics
  */
 /**
- * Stats: band. Four numbers on the accent colour, a strong break between sections. Make it the app's own: replace
+ * Stats: band. Four numbers on the accent color, a strong break between sections. Make it the app's own: replace
  * SAMPLE with numbers the PRD actually gives; never invent results.
  */
 // flowcode:sample

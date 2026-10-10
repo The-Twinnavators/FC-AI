@@ -1,6 +1,6 @@
 /**
- * A colour picker: the swatch opens a popover with a saturation/brightness square, a hue slider, the hex value and
- * the palette's own colours as quick picks. Dragging, arrow keys and typing a hex all work; changes are live.
+ * A color picker: the swatch opens a popover with a saturation/brightness square, a hue slider, the hex value and
+ * the palette's own colors as quick picks. Dragging, arrow keys and typing a hex all work; changes are live.
  */
 import { useEffect, useId, useRef, useState } from "react";
 import { normalizeHex } from "@flowcode/contracts";
@@ -32,7 +32,7 @@ export function ColorPicker({ value, onChange, label, swatches = [] }: { value: 
   const box = useRef<HTMLDivElement>(null);
   const id = useId();
 
-  // Follow outside changes (another control, a palette pick) without losing the hue of greys while dragging.
+  // Follow outside changes (another control, a palette pick) without losing the hue of grays while dragging.
   useEffect(() => {
     setText(hex);
     if (hsvToHex(hsv) !== hex) setHsv((cur) => ({ ...hexToHsv(hex), h: hexToHsv(hex).s === 0 ? cur.h : hexToHsv(hex).h }));
@@ -54,7 +54,7 @@ export function ColorPicker({ value, onChange, label, swatches = [] }: { value: 
     setHsv(next);
     onChange(hsvToHex(next));
   };
-  /** Pointer drag on the square or the hue bar; `apply` maps the 0–1 position to a colour. */
+  /** Pointer drag on the square or the hue bar; `apply` maps the 0–1 position to a color. */
   const drag = (apply: (x: number, y: number) => void) => (e: React.PointerEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     const at = (ev: { clientX: number; clientY: number }) => {
@@ -87,10 +87,10 @@ export function ColorPicker({ value, onChange, label, swatches = [] }: { value: 
 
   return (
     <div className="cpick" ref={box}>
-      <button type="button" className="cpick__swatch" style={{ background: hex }} aria-label={`${label}: ${hex}. Open the colour picker`} aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)} />
+      <button type="button" className="cpick__swatch" style={{ background: hex }} aria-label={`${label}: ${hex}. Open the color picker`} aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)} />
       <input className="input mono cpick__hex" value={text} aria-label={`${label} hex value`} maxLength={7} onChange={(e) => typed(e.target.value)} onBlur={() => setText(hex)} />
       {open ? (
-        <div className="cpick__pop" id={id} role="dialog" aria-label={`${label} colour picker`}>
+        <div className="cpick__pop" id={id} role="dialog" aria-label={`${label} color picker`}>
           <div
             className="cpick__sv"
             style={{ background: `hsl(${hsv.h} 100% 50%)` }}
@@ -121,7 +121,7 @@ export function ColorPicker({ value, onChange, label, swatches = [] }: { value: 
             <input className="input mono cpick__hex cpick__hex--pop" value={text} aria-label="Hex value" maxLength={7} onChange={(e) => typed(e.target.value)} onBlur={() => setText(hex)} />
           </div>
           {swatches.length ? (
-            <div className="cpick__swatches" role="group" aria-label="Colours in your palette">
+            <div className="cpick__swatches" role="group" aria-label="Colors in your palette">
               {swatches.map((s) => (
                 <button key={s.label + s.hex} type="button" className={`cpick__chip${s.hex === hex ? " is-on" : ""}`} style={{ background: s.hex }} title={`${s.label} · ${s.hex}`} aria-label={`${s.label} ${s.hex}`} onClick={() => typed(s.hex)} />
               ))}

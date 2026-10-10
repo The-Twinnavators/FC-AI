@@ -9,7 +9,7 @@
  * sections with the current page marked (it becomes a slide-in drawer on phones); an article with a callout, an
  * install snippet with npm/pnpm/yarn tabs, code blocks with copy buttons and a parameters table; an "On this page"
  * list that follows your scroll; previous/next links and a "Was this page helpful?" prompt. Suits API docs, SDK
- * guides, help centres and handbooks. Nothing is sent anywhere.
+ * guides, help centers and handbooks. Nothing is sent anywhere.
  * Make it the app's own: replace SAMPLE with the product's real page tree, versions and article content, and point
  * each page at its own route.
  */
@@ -184,7 +184,7 @@ const warnIcon = (
   </svg>
 );
 
-/** Colours keywords, strings and comments in one line of sample code. */
+/** Colors keywords, strings and comments in one line of sample code. */
 function highlight(line: string): ReactNode[] {
   const parts = line.split(/(\/\/.*$|"[^"]*"|\b(?:import|from|const|await|new|true|false)\b)/g);
   return parts.map((p, i) => {

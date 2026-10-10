@@ -4,7 +4,7 @@
  * Keywords: collection, category page, filters, sort, chips, product grid, drawer, shop
  */
 /**
- * Collection page: a shop category with filters down the side (price range, size, colour, in stock only), a sort
+ * Collection page: a shop category with filters down the side (price range, size, color, in stock only), a sort
  * menu, a live result count, removable filter chips with "Clear all", and a product grid. On phones the filters fold
  * into a drawer behind a "Filters" button. When nothing matches, it says so and offers to clear the filters. Make it
  * the app's own: replace SAMPLE with the real products and the filters that matter for them; keep filters to a handful.
@@ -35,7 +35,7 @@ const SAMPLE = {
   result: "product",
   outOfStock: "Out of stock",
   emptyTitle: "No products match",
-  emptyText: "Try a wider price range or fewer sizes and colours.",
+  emptyText: "Try a wider price range or fewer sizes and colors.",
   emptyAction: "Clear filters",
   sizes: ["XS", "S", "M", "L", "XL"],
   colours: [
@@ -58,7 +58,7 @@ const SAMPLE = {
   ],
 };
 
-type Filters = { min: string; max: string; sizes: string[]; colours: string[]; inStock: boolean };
+type Filters = { min: string; max: string; sizes: string[]; colors: string[]; inStock: boolean };
 const NO_FILTERS: Filters = { min: "", max: "", sizes: [], colours: [], inStock: false };
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';

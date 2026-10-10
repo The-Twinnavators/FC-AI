@@ -91,7 +91,7 @@ const CSS_PROPS: Record<string, string> = { Colors: "background, color", Radius:
 interface ComponentPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Catalogue ids already in the design. */
+  /** Catalog ids already in the design. */
   configured: string[];
   onAdd: (ids: string[]) => void;
   primaryColor: string;

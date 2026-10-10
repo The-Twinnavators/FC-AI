@@ -6,7 +6,7 @@
  *  1. Replace every value in SAMPLE with the spec's real product name, promise, tasks and steps. Point each tile at a
  *     real screen id. Remove the "flowcode:sample" comment when nothing sample is left.
  *  2. Delete any section the spec doesn't need. This screen uses <Hero> for its one h1 instead of <PageHeader>.
- *  3. Keep the building blocks and tokens. Change spacing or colours in src/styles/tokens.css, not here.
+ *  3. Keep the building blocks and tokens. Change spacing or colors in src/styles/tokens.css, not here.
  */
 import { ActionTile, Button, Card, Grid, Hero, Progress, Section } from "../components/ui";
 

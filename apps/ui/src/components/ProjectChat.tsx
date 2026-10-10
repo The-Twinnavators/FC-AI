@@ -29,12 +29,12 @@ interface View {
 
 const SUGGESTIONS = [
   { label: "Change the font", text: "Change the body font to Inter and headings to Manrope SemiBold.", style: true },
-  { label: "Change the accent colour", text: "Change the accent colour to a deep purple (#5b3cc4) in light and dark mode, keeping text contrast at WCAG AA.", style: true },
+  { label: "Change the accent color", text: "Change the accent color to a deep purple (#5b3cc4) in light and dark mode, keeping text contrast at WCAG AA.", style: true },
   { label: "More spacing", text: "Give the layout more breathing room: increase spacing between cards and sections by about 50%.", style: true },
   { label: "Larger text", text: "Increase the base text size to 16px and scale headings to match.", style: true },
   { label: "Rounder corners", text: "Use a 10px corner radius on cards and 6px on buttons.", style: true },
 ];
-const STYLE_CONSTRAINT = "Styling only: change CSS, design tokens, fonts and colours. Do not change behaviour, content or file structure.";
+const STYLE_CONSTRAINT = "Styling only: change CSS, design tokens, fonts and colors. Do not change behavior, content or file structure.";
 
 type Role = "prd" | "html" | "css" | "json" | "text";
 interface Attachment {
@@ -457,7 +457,7 @@ export function ProjectChat({ projectId, runs, view, events, onSent, onShow, onD
           rows={3}
           value={text}
           disabled={sending}
-          placeholder={busy ? "Ask about the change in progress (e.g. “What are you doing now?”), or type a change to queue for next" : "Ask for a change — e.g. “Use a warmer accent colour and larger headings”"}
+          placeholder={busy ? "Ask about the change in progress (e.g. “What are you doing now?”), or type a change to queue for next" : "Ask for a change — e.g. “Use a warmer accent color and larger headings”"}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {

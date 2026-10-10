@@ -4,7 +4,7 @@
  * Keywords: cta, call to action, sign up, closing
  */
 /**
- * Call to action: banner. A closing invitation on the accent colour with one main action. Usually just above the
+ * Call to action: banner. A closing invitation on the accent color with one main action. Usually just above the
  * footer. Make it the app's own: replace SAMPLE; keep it to one sentence and one primary action.
  */
 // flowcode:sample

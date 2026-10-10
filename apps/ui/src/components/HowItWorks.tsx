@@ -49,7 +49,7 @@ const STAGES: Stage[] = [
     summary: "Bring the PRD and the look",
     title: "Start a prototype with your PRD and your look",
     lede: "New build takes your PRD and support files, and the look you want: screenshots or mockups, a page's HTML or CSS, or a website to take the style from.",
-    youDo: ["Attach the PRD, content as JSON, and images or pages that show the style you want.", "Choose the look and feel, or give a website and FlowCode captures its colours, fonts, corners and surfaces.", "Name it, choose who writes the code (local or cloud) and how hands-on FlowCode is."],
+    youDo: ["Attach the PRD, content as JSON, and images or pages that show the style you want.", "Choose the look and feel, or give a website and FlowCode captures its colors, fonts, corners and surfaces.", "Name it, choose who writes the code (local or cloud) and how hands-on FlowCode is."],
     where: [
       { label: "New build", to: "new-build" },
       { label: "Create PRD → Build from this PRD", to: "/discover" },
@@ -63,7 +63,7 @@ const STAGES: Stage[] = [
     summary: "Nothing is built before you say so",
     title: "Get the design right before anything is built",
     lede: "FlowCode captures the style onto your project's Design tab and writes a prototype plan from your PRD: the screens and features, the requirements each covers, and the tests that prove it.",
-    youDo: ["Set the look on the Design tab: colours, type, corners, surfaces and motion. Capture a style again any time.", "Read the Prototype plan: each step, its requirements and its tests.", "Approve when both are right. Nothing is built before you do."],
+    youDo: ["Set the look on the Design tab: colors, type, corners, surfaces and motion. Capture a style again any time.", "Read the Prototype plan: each step, its requirements and its tests.", "Approve when both are right. Nothing is built before you do."],
     where: [
       { label: "My Projects → your project → Design", to: "/quality" },
       { label: "My Projects → your project → Prototype plan", to: "/quality" },

@@ -137,7 +137,7 @@ const PRIMITIVES: Primitive[] = [
     name: "Status chip",
     group: "Status",
     file: "components/ui.tsx StatusChip",
-    usage: "Run, task and check states. Colour comes from the shared signal mapping, so states read the same everywhere.",
+    usage: "Run, task and check states. Color comes from the shared signal mapping, so states read the same everywhere.",
     demo: () => (
       <>
         {["verified", "running", "awaiting_approval", "blocked", "failed", "skipped", "not_run"].map((s) => (
@@ -230,7 +230,7 @@ const PRIMITIVES: Primitive[] = [
     name: "Icons",
     group: "Foundations",
     file: "lucide-react · components/IconLibrary.tsx",
-    usage: "Lucide (open source, ISC) for every system cue: a 24px grid, 2px stroke, currentColor. Status icons always carry their signal colour.",
+    usage: "Lucide (open source, ISC) for every system cue: a 24px grid, 2px stroke, currentColor. Status icons always carry their signal color.",
     demo: () => <IconMatrix />,
   },
   {
@@ -276,7 +276,7 @@ const PRIMITIVES: Primitive[] = [
     name: "Color tokens",
     group: "Foundations",
     file: "styles/tokens.css",
-    usage: "Muted slate-navy surfaces and a mid-saturation blue accent (reduced blue light); teal means positive/passed; amber and red for warnings and failures. The logo keeps its purple. Never hard-code colours in components.",
+    usage: "Muted slate-navy surfaces and a mid-saturation blue accent (reduced blue light); teal means positive/passed; amber and red for warnings and failures. The logo keeps its purple. Never hard-code colors in components.",
     demo: () => (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, width: "100%" }}>
         {["--brand-1", "--brand-2", "--brand-3", "--teal-1", "--teal-2", "--teal-ink", "--sig-ok", "--sig-warn", "--sig-bad", "--sig-run", "--text-0", "--text-2"].map((t) => (

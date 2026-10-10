@@ -88,7 +88,7 @@ function typeScale(base: number, ratio: number): Record<string, string> {
 const MAX_RADIUS = 32;
 const radii = (r: number): Record<string, string> => ({ "--radius-sm": `${Math.round(r * 0.4)}px`, "--radius-md": `${Math.round(r * 0.6)}px`, "--radius-lg": `${Math.round(r * 0.8)}px`, "--radius-xl": `${r}px` });
 
-// Contrast (WCAG) for the text colours.
+// Contrast (WCAG) for the text colors.
 const hexRgb = (hex: string) => {
   const h = hex.replace("#", "");
   const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h.slice(0, 6);
@@ -147,7 +147,7 @@ export function DesignControls({ projectId, theme, onDraft, only }: { projectId:
       setDraft({});
     }
   };
-  /** Shows the change at once and saves it shortly after the last move (sliders and colour pickers fire often). */
+  /** Shows the change at once and saves it shortly after the last move (sliders and color pickers fire often). */
   const change = (values: Record<string, string>, label: string, wait = 450) => {
     setDraft((d) => ({ ...d, ...values }));
     const p = pending.current;

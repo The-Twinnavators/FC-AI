@@ -424,14 +424,14 @@ export const SEVERITY_LABEL: Record<Severity, string> = { critical: "Critical", 
 export const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low", "info"];
 
 /**
- * Severity colours are CSS classes (flowreport.css: .fr-sev--critical … .fr-sev--info), so they follow the theme and
+ * Severity colors are CSS classes (flowreport.css: .fr-sev--critical … .fr-sev--info), so they follow the theme and
  * match the rest of FlowCode: red, orange, amber, teal, then neutral for informational (a note, not a lesser problem).
- * Confidence is never coloured: two colour scales and nobody can tell which one means urgent.
+ * Confidence is never colored: two color scales and nobody can tell which one means urgent.
  */
 export const sevClass = (s: Severity) => `fr-sev--${s}`;
 
 /**
- * Score bands: words as well as colour, because a colour alone isn't a reading anyone can quote. The middle band is
+ * Score bands: words as well as color, because a color alone isn't a reading anyone can quote. The middle band is
  * deliberately neutral: "workable" is neither good news nor a problem. `tone` is a .fr-tone--* class.
  */
 export function scoreBand(score: number | null): { word: string; tone: "none" | "ok" | "fair" | "warn" | "bad" } {

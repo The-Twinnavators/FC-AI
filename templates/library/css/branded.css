@@ -148,7 +148,7 @@
 
 /* ── Gradient hero ── */
 .fl-brd-hero {
-  /* A dark panel in both themes: in light mode the text colour is dark, so mix toward it; ink is the page background. */
+  /* A dark panel in both themes: in light mode the text color is dark, so mix toward it; ink is the page background. */
   --fl-brd-surface: color-mix(in srgb, var(--color-text) 94%, var(--color-bg));
   --fl-brd-ink: var(--color-bg);
   --fl-brd-ink-muted: color-mix(in srgb, var(--color-bg) 72%, var(--color-text));

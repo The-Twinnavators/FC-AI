@@ -6,7 +6,7 @@
  *  1. Replace every value in SAMPLE with the spec's real plans and features. Remove the "flowcode:sample" comment
  *     when nothing sample is left.
  *  2. Delete sections the spec doesn't need. Payment itself is out of scope: buttons go to the next real step.
- *  3. Keep the building blocks and tokens. Change spacing or colours in src/styles/tokens.css, not here.
+ *  3. Keep the building blocks and tokens. Change spacing or colors in src/styles/tokens.css, not here.
  */
 import { Badge, Button, DataTable, Grid, PageHeader, Section, Stat } from "../components/ui";
 

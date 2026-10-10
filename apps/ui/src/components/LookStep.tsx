@@ -11,7 +11,7 @@ export function suggestedVibe(refs: Pick<ReferenceFile, "role" | "content">[], t
   return vibeFromText(prd)?.id ?? TEMPLATE_VIBES[template ?? ""] ?? "flat";
 }
 
-/** A design template's colours and radii as CSS custom properties, for previews. */
+/** A design template's colors and radii as CSS custom properties, for previews. */
 export function templateVars(t: DesignTemplate): Record<string, string> {
   const c = t.colors;
   return {
@@ -29,7 +29,7 @@ export function templateVars(t: DesignTemplate): Record<string, string> {
   };
 }
 
-/** A small card drawn with a vibe's surface tokens over a theme's colours (a template's, or an app's own). */
+/** A small card drawn with a vibe's surface tokens over a theme's colors (a template's, or an app's own). */
 export function VibePreview({ vibe, colors }: { vibe: string; colors: Record<string, string> }) {
   const vars = { "--border-width": "1px", "--radius-md": "6px", "--radius-lg": "8px", ...colors, ...vibeTokens(vibe) } as React.CSSProperties;
   return (
@@ -43,7 +43,7 @@ export function VibePreview({ vibe, colors }: { vibe: string; colors: Record<str
   );
 }
 
-/** The PRD (or an attached CSS file) already decides the colours. */
+/** The PRD (or an attached CSS file) already decides the colors. */
 export function prdSetsLook(refs: Pick<ReferenceFile, "role" | "content">[]): boolean {
   if (refs.some((r) => r.role === "css")) return true;
   const prd = refs.filter((r) => r.role === "prd" || r.role === "text").map((r) => r.content).join("\n");
@@ -107,11 +107,11 @@ export function LookStep({
   return (
     <div className="look">
       {fromPrd ? (
-        <p className="look__note">Your PRD sets the colours, so FlowCode uses them. You can still add the extras below.</p>
+        <p className="look__note">Your PRD sets the colors, so FlowCode uses them. You can still add the extras below.</p>
       ) : (
         <fieldset className="look__styles">
           <legend className="look__legend">Choose a visual style</legend>
-          <p className="look__hint">Your PRD doesn&apos;t set colours or fonts, so pick a starting look. You can change any colour or font later in Styles.</p>
+          <p className="look__hint">Your PRD doesn&apos;t set colors or fonts, so pick a starting look. You can change any color or font later in Styles.</p>
           <div className="look__grid" role="radiogroup" aria-label="Visual style">
             {DESIGN_TEMPLATES.map((t) => (
               <label key={t.id} className={`look-card${template === t.id ? " is-on" : ""}`}>
@@ -129,7 +129,7 @@ export function LookStep({
       )}
       <fieldset className="look__styles">
         <legend className="look__legend">Choose a surface style</legend>
-        <p className="look__hint">How cards, panels and buttons are drawn: flat, glass, soft, bold outlines and more. It works with any colours.</p>
+        <p className="look__hint">How cards, panels and buttons are drawn: flat, glass, soft, bold outlines and more. It works with any colors.</p>
         <div className="look__grid look__grid--vibes" role="radiogroup" aria-label="Surface style">
           {STYLE_VIBES.map((v) => (
             <label key={v.id} className={`look-card${vibe === v.id ? " is-on" : ""}`}>

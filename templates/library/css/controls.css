@@ -1,6 +1,6 @@
 /* Controls: status badges and signal lights, skeleton loading, underline tabs, segmented control. Tokens only. */
 
-/* ── Tones: each sets one colour the parts below read from ── */
+/* ── Tones: each sets one color the parts below read from ── */
 .fl-ctl-tone-done { --fl-ctl-tone: var(--color-success); }
 .fl-ctl-tone-progress { --fl-ctl-tone: var(--color-accent); }
 .fl-ctl-tone-waiting { --fl-ctl-tone: color-mix(in srgb, var(--color-danger) 50%, var(--color-success)); }

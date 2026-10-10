@@ -17,7 +17,7 @@
 .fl-st2-bar__end { margin-left: auto; display: flex; gap: var(--space-3); align-items: center; }
 .fl-st2-burger { display: none; }
 .fl-st2-burger svg { width: 1.25rem; height: 1.25rem; }
-/* Centred masthead: brand on its own line, links beneath (fitness). */
+/* Centered masthead: brand on its own line, links beneath (fitness). */
 .fl-st2-bar--center { position: static; }
 .fl-st2-bar--center .fl-st2-bar__row { justify-content: center; text-align: center; padding-block: var(--space-7) var(--space-6); }
 .fl-st2-bar--center .fl-st2-brand { flex-basis: 100%; justify-content: center; font-size: var(--text-2xl); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
@@ -79,7 +79,7 @@
 .fl-st2-trainer .fl-media { width: 7rem; font: var(--weight-bold) var(--text-xl) / 1 var(--font-display); color: var(--color-accent); }
 .fl-st2-trainer .fl-st2-choices { justify-content: center; }
 
-/* ══ Nonprofit (Alpha rhythm): tall banner, a box lifted over it, a four-cell programme grid ══ */
+/* ══ Nonprofit (Alpha rhythm): tall banner, a box lifted over it, a four-cell program grid ══ */
 .fl-st2-banner { padding: var(--space-9) var(--space-5) calc(var(--space-9) + 7rem); text-align: center; }
 .fl-st2-banner .fl-head { margin-bottom: 0; }
 .fl-st2-lift { position: relative; z-index: 1; margin-top: -7rem; padding-inline: var(--space-5); }
@@ -102,7 +102,7 @@
 .fl-st2-impactline { margin: 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-accent) 8%, transparent); font-size: var(--text-sm); }
 .fl-st2-oncard { color: var(--color-text); }
 
-/* ══ Event (Fractal rhythm): full-height hero, centred statement bands, alternating spotlights ══ */
+/* ══ Event (Fractal rhythm): full-height hero, centered statement bands, alternating spotlights ══ */
 .fl-st2-hero { display: grid; align-items: center; min-height: min(88vh, 52rem); padding: var(--space-9) var(--space-5); }
 .fl-st2-facts { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-7); margin: 0; padding: 0; list-style: none; }
 .fl-st2-facts li { display: flex; gap: var(--space-3); align-items: center; }
@@ -143,7 +143,7 @@
 .fl-st2-stepper output { min-width: 2.5rem; text-align: center; font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
 .fl-st2-total { font: var(--weight-bold) var(--text-xl) / 1 var(--font-display); font-variant-numeric: tabular-nums; }
 
-/* ══ Clinic (Directive rhythm): centred emblem header with a pointed lower edge, alternating feature boxes ══ */
+/* ══ Clinic (Directive rhythm): centered emblem header with a pointed lower edge, alternating feature boxes ══ */
 .fl-st2-dirhead { padding: var(--space-9) var(--space-5) calc(var(--space-9) + 3rem); text-align: center; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3rem), 50% 100%, 0 calc(100% - 3rem)); }
 .fl-st2-emblem { display: grid; place-items: center; width: 4.5rem; height: 4.5rem; margin-inline: auto; border-radius: 50%; background: var(--color-accent); color: var(--color-on-accent); box-shadow: 0 0 0 var(--space-2) color-mix(in srgb, var(--color-accent) 18%, transparent); }
 .fl-st2-emblem svg { width: 2rem; height: 2rem; }

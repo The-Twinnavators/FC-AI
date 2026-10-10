@@ -1,6 +1,6 @@
 /* Alerts and feedback: inline alerts, top banner, toasts, empty state, 404 page. Tokens only. */
 
-/* ── Tones: each sets one colour the parts below read from ── */
+/* ── Tones: each sets one color the parts below read from ── */
 .fl-alr-tone-info { --fl-alr-tone: var(--color-accent); }
 .fl-alr-tone-success { --fl-alr-tone: var(--color-success); }
 .fl-alr-tone-warning { --fl-alr-tone: color-mix(in srgb, var(--color-danger) 50%, var(--color-success)); }

@@ -4,7 +4,7 @@
  * Keywords: avatars, team, presence, status, people
  */
 /**
- * Avatars: initials on theme colours in four sizes, with status dots, a stacked group that ends in "+5", and the
+ * Avatars: initials on theme colors in four sizes, with status dots, a stacked group that ends in "+5", and the
  * full list of people behind it. Use it to show who is on a team, a booking or a shared list.
  * Make it the app's own: replace SAMPLE with your people (photos can replace the initials) and real presence data.
  */

@@ -60,7 +60,7 @@ export function NetworkView({ projects, query }: { projects: Project[]; query: U
           ))}
         </select>
         <span className="muted" style={{ fontSize: 12, marginLeft: "auto" }}>
-          Projects at the centre; Structure, Code, Knowledge and Intelligence orbit around them.
+          Projects at the center; Structure, Code, Knowledge and Intelligence orbit around them.
         </span>
         <label className="check" style={{ alignItems: "center" }}>
           <input type="checkbox" checked={labels} onChange={(e) => setLabels(e.target.checked)} /> Labels

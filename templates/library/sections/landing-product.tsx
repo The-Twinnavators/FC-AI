@@ -54,7 +54,7 @@ const SAMPLE = {
     { k: "Light", v: "8 W LED, 2700 K warm white, 600 lumens" },
     { k: "Dimming", v: "Touch dimmer, 5 levels" },
     { k: "Cable", v: "2 m braided fabric, inline USB-C power" },
-    { k: "Materials", v: "Powder-coated steel, aluminium arm, glass diffuser" },
+    { k: "Materials", v: "Powder-coated steel, aluminum arm, glass diffuser" },
   ],
   shipping:
     "Orders placed before 2 pm ship the same day from our workshop. Delivery takes 2–4 working days. Not quite right? Send it back within 60 days in its box for a full refund; we cover return postage.",

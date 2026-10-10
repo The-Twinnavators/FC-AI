@@ -8,7 +8,7 @@ export type SkillCategory = "planning" | "design" | "recipes" | "process" | "qua
 
 export const SKILL_CATEGORIES: Array<{ id: SkillCategory; label: string; hint: string }> = [
   { id: "planning", label: "Planning and product", hint: "PRDs, scope, flows, structure and how FlowCode reports back" },
-  { id: "design", label: "Design and UX", hint: "Layout, type, states, forms, motion and responsive behaviour" },
+  { id: "design", label: "Design and UX", hint: "Layout, type, states, forms, motion and responsive behavior" },
   { id: "recipes", label: "Component recipes", hint: "Ready patterns for cards, pricing, sign-in, toasts and more" },
   { id: "process", label: "Build process", hint: "Tests first, root-cause debugging, small steps, simplifying and proving it works" },
   { id: "quality", label: "Review and checks", hint: "Accessibility, code and design review, audits, security and performance" },

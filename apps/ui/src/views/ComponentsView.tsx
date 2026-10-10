@@ -134,7 +134,7 @@ export function ComponentsView() {
           <span className="label">Intelligence</span>
           <h1 className="page__title">Component library</h1>
           <p className="lrc__meta">
-            The ready sections FlowCode builds pages from. Each one takes on a project&apos;s colours, fonts, spacing and corners from its design tokens, so the same section fits any style. Pick a style below to see.
+            The ready sections FlowCode builds pages from. Each one takes on a project&apos;s colors, fonts, spacing and corners from its design tokens, so the same section fits any style. Pick a style below to see.
           </p>
         </div>
       </header>

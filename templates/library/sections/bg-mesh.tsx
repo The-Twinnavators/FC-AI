@@ -4,9 +4,9 @@
  * Keywords: background, gradient, page background, mesh
  */
 /**
- * Page background: mesh gradient (gradient). Soft colour blooms in the corners from the accent, success and focus colours.
+ * Page background: mesh gradient (gradient). Soft color blooms in the corners from the accent, success and focus colors.
  * Good for: Hero sections and landing pages that should feel lively.
- * Use it by adding the class "fl-bg-mesh" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-mesh" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

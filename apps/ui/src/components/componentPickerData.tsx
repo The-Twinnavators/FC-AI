@@ -1,6 +1,6 @@
 /**
  * The "Add components" picker, ported from CSSVibes' ComponentPickerModal (copy, tips, previews and animations
- * unchanged). Previews draw in the app's accent colour and corner radius. The catalogue lists CSSVibes' components;
+ * unchanged). Previews draw in the app's accent color and corner radius. The catalog lists CSSVibes' components;
  * the ones FlowCode's starter kit already has also show in the design sheet, and every pick is passed to the builder.
  */
 import React from "react";

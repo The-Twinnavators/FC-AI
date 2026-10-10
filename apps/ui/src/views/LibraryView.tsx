@@ -57,7 +57,7 @@ function SkillGrid({ skills, onOpen, onToggle }: { skills: SkillSpec[]; onOpen: 
   const total = groups.reduce((n, g) => n + (counts.get(g.id) ?? 0), 0);
   const pick = (id: SkillCategory | "all") => {
     setCat(id);
-    // Back to the top of the catalogue, like choosing a shelf in the Knowledge hub.
+    // Back to the top of the catalog, like choosing a shelf in the Knowledge hub.
     // Scrolled down into the list: go back up to its top (just under the top bar); already above it: stay put.
     const top = document.getElementById("skill-room-top");
     if (top && top.getBoundingClientRect().top < 72) top.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -116,7 +116,7 @@ function SkillGrid({ skills, onOpen, onToggle }: { skills: SkillSpec[]; onOpen: 
   );
 }
 
-/** One colour per category, for the spine in the nav and on each category's container (the Knowledge hub's shelves). */
+/** One color per category, for the spine in the nav and on each category's container (the Knowledge hub's shelves). */
 export const CAT_COLOR: Record<SkillCategory, string> = {
   planning: "#84a0db",
   design: "#a78bfa",

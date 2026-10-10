@@ -1,5 +1,5 @@
 /**
- * Theme overrides edited on the Primitives page (Attributes tabs). Colours are kept per theme (light/dark);
+ * Theme overrides edited on the Primitives page (Attributes tabs). Colors are kept per theme (light/dark);
  * sizes and other attributes apply to both. Applied as one stylesheet so they beat the defaults, and saved in the
  * daemon (with a localStorage fallback when the daemon doesn't have the endpoint yet).
  */
@@ -69,7 +69,7 @@ function persist() {
   saveTimer = window.setTimeout(() => void api("POST", "/ui/theme", current).catch(() => undefined), 400);
 }
 
-/** Sets one attribute live; `scope` is "theme" for colours (current theme only) or "all". `null` resets it. */
+/** Sets one attribute live; `scope` is "theme" for colors (current theme only) or "all". `null` resets it. */
 export function setThemeVar(name: string, value: string | null, scope: "theme" | "all") {
   const bucket = scope === "all" ? current.all : current[activeTheme()];
   if (value === null) delete bucket[name];

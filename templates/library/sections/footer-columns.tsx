@@ -14,7 +14,7 @@ const SAMPLE = {
   columns: [
     { title: "Product", links: ["Features", "Pricing", "What's new"] },
     { title: "Company", links: ["About", "Journal", "Careers"] },
-    { title: "Help", links: ["Help centre", "Contact", "Status"] },
+    { title: "Help", links: ["Help center", "Contact", "Status"] },
   ],
   legal: ["Privacy", "Terms"],
   year: 2026,

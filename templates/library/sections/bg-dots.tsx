@@ -4,9 +4,9 @@
  * Keywords: background, pattern, page background, dots
  */
 /**
- * Page background: dot grid (pattern). A fine grid of dots in the text colour.
+ * Page background: dot grid (pattern). A fine grid of dots in the text color.
  * Good for: Tools and technical products; behind cards or diagrams.
- * Use it by adding the class "fl-bg-dots" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-dots" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

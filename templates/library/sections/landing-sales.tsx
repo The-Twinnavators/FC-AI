@@ -6,7 +6,7 @@
 /**
  * Page template: long-form sales page for one product or course. A reading-width column that walks the visitor from
  * the problem to the outcome, then shows what's included week by week, the price (pay once or in three parts), the
- * guarantee and the FAQ, with the same "Enrol" action repeated. Suits online courses, coaching programmes, workshops
+ * guarantee and the FAQ, with the same "Enrol" action repeated. Suits online courses, coaching programs, workshops
  * and digital products. Enrolling is a prototype: it checks the email and shows a confirmation, nothing is charged or
  * sent. Make it the app's own: replace SAMPLE with the real offer, keep the section order, and cut any section the
  * offer can't honestly fill.

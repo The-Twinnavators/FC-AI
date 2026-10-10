@@ -50,7 +50,7 @@ function roleFor(name: string, hasPrd: boolean): ReferenceFile["role"] | undefin
 
 /** Client-side preview of what a reference must preserve (the daemon re-checks after the build). */
 function summarize(role: ReferenceFile["role"], content: string): string {
-  if (role === "image") return "Its colours, fonts and corners are captured for the Styles page";
+  if (role === "image") return "Its colors, fonts and corners are captured for the Styles page";
   try {
     if (role === "html") {
       const doc = new DOMParser().parseFromString(content, "text/html");
@@ -415,7 +415,7 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
             <label className="nb__styleurl">
               <span className="label">Take the style from a website</span>
               <input className="input" data-cp="nb-style-url" type="url" inputMode="url" placeholder="https://example.com (optional)" value={styleUrl} onChange={(e) => setStyleUrl(e.target.value)} />
-              <span className="muted">Its colours, fonts, corners and surfaces become your starting design. You can change all of it on the Design tab before the build starts.</span>
+              <span className="muted">Its colors, fonts, corners and surfaces become your starting design. You can change all of it on the Design tab before the build starts.</span>
             </label>
             <LookStep refs={refs} template={template} onTemplate={setTemplate} extras={extras} onExtras={setExtras} vibe={vibe ?? suggestedVibe(refs, prdSetsLook(refs) ? undefined : template)} onVibe={setVibe} />
           </div>

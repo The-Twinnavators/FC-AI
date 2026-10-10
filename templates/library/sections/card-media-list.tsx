@@ -19,7 +19,7 @@ const SAMPLE = {
     {
       id: "wheel",
       title: "Wheel throwing for beginners",
-      summary: "Centre clay, pull your first walls and leave with three pots ready for glazing.",
+      summary: "Center clay, pull your first walls and leave with three pots ready for glazing.",
       meta: ["6 weeks", "Tuesdays 6:30 pm", "$180"],
       tags: ["Beginner", "Clay"],
       alt: "Hands shaping a pot on a spinning wheel",

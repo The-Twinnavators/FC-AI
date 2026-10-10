@@ -9,7 +9,7 @@
  */
 // flowcode:sample
 const SAMPLE = {
-  title: "Your money, finally organised",
+  title: "Your money, finally organized",
   lede: "Every account, bill and goal in one view, with a plan that adjusts when life does.",
   primary: { label: "Get started", href: "#start" },
   stats: [

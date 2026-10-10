@@ -197,7 +197,7 @@ export function FlowReportProjectPage({ projectId }: { projectId: string }) {
           </p>
           {/* The folder in full: a display name is a basename, and two folders called `app` look the same by it. */}
           {project?.repositoryPath ? (
-            <p className="fr-path" title="The folder being analysed">
+            <p className="fr-path" title="The folder being analyzed">
               {project.repositoryPath}
             </p>
           ) : null}
@@ -471,7 +471,7 @@ function SettingsPanel({ settings, busy, onCancel, onSave }: { settings: Analysi
           </label>
         ))}
       </div>
-      {/* On by default: without it the findings are a catalogue. A toggle because it costs time on a quick re-run. */}
+      {/* On by default: without it the findings are a catalog. A toggle because it costs time on a quick re-run. */}
       <label className="fr-toggle fr-toggle--wide">
         <input type="checkbox" checked={draft.tailoredWriting} onChange={(e) => setDraft({ ...draft, tailoredWriting: e.target.checked })} />
         <span>

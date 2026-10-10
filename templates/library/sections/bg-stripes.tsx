@@ -4,9 +4,9 @@
  * Keywords: background, pattern, page background, stripes
  */
 /**
- * Page background: diagonal stripes (pattern). Thin diagonal stripes in the accent colour.
+ * Page background: diagonal stripes (pattern). Thin diagonal stripes in the accent color.
  * Good for: Playful sections and promotional banners.
- * Use it by adding the class "fl-bg-stripes" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-stripes" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

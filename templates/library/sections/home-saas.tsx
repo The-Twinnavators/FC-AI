@@ -5,7 +5,7 @@
  */
 /**
  * Page template: SaaS homepage. A whole landing page for a software product sold on a subscription, here booking and
- * scheduling software for small studios: navigation, a centred hero over a live-looking product preview, the tools it
+ * scheduling software for small studios: navigation, a centered hero over a live-looking product preview, the tools it
  * connects to, a bento grid of features, a tabbed "how it works", pricing with a monthly/yearly switch, questions, a
  * trial sign-up and a footer. Suits any B2B or prosumer SaaS. Make it the app's own: replace SAMPLE with the product's
  * real plans, features and wording, and redraw the preview as the product's main screen.

@@ -1,5 +1,5 @@
 /**
- * A centred modal over a blurred scrim. Escape or a click on the scrim closes it; focus moves into it, stays inside
+ * A centered modal over a blurred scrim. Escape or a click on the scrim closes it; focus moves into it, stays inside
  * while it's open (Tab cycles), and returns to where it was when it closes. The page behind doesn't scroll.
  */
 import { useEffect, useRef } from "react";

@@ -5,7 +5,7 @@
  */
 /**
  * Quick view: a product grid where "Quick view" opens the product in a dialog without leaving the page. It has a
- * small gallery (three views), colour and size choices (sold-out sizes are greyed), a quantity stepper and "Add to
+ * small gallery (three views), color and size choices (sold-out sizes are grayed), a quantity stepper and "Add to
  * bag", which asks for a size if none is picked. Use it on busy shop grids so people can buy without losing their
  * place. Make it the app's own: replace SAMPLE with the real products, photos and options, and link "Full details"
  * to the product page.
@@ -180,12 +180,12 @@ function MinusPlus({ plus }: { plus?: boolean }) {
 function QuickView({ product, onClose, onAdd, returnTo }: { product: Product; onClose: () => void; onAdd: (text: string, qty: number) => void; returnTo: RefObject<HTMLElement | null> }) {
   const d = SAMPLE;
   const [view, setView] = useState(0);
-  const [colour, setColour] = useState(product.colours[0].id);
+  const [color, setColour] = useState(product.colours[0].id);
   const [size, setSize] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [error, setError] = useState(false);
   const panelRef = useModal(true, onClose, returnTo);
-  const colourName = product.colours.find((c) => c.id === colour)?.name ?? "";
+  const colourName = product.colours.find((c) => c.id === color)?.name ?? "";
   const setQ = (n: number) => setQty(Math.min(d.maxQty, Math.max(1, Number.isFinite(n) ? Math.round(n) : 1)));
 
   const submit = (e: FormEvent<HTMLFormElement>) => {
@@ -212,14 +212,14 @@ function QuickView({ product, onClose, onAdd, returnTo }: { product: Product; on
 
         <div className="fl-shop-gallery">
           <span
-            className={`fl-shop-img fl-shop-img--tall fl-shop-tone--${colour} fl-shop-view--${d.views[view].toLowerCase()}`}
+            className={`fl-shop-img fl-shop-img--tall fl-shop-tone--${color} fl-shop-view--${d.views[view].toLowerCase()}`}
             role="img"
             aria-label={`${product.name} in ${colourName}, ${d.views[view].toLowerCase()} view (photo placeholder)`}
           />
           <div className="fl-shop-thumbs" role="group" aria-label="Photos">
             {d.views.map((v, i) => (
               <button key={v} type="button" className="fl-shop-thumb" aria-pressed={view === i} aria-label={`${v} view`} onClick={() => setView(i)}>
-                <span className={`fl-shop-img fl-shop-tone--${colour} fl-shop-view--${v.toLowerCase()}`} aria-hidden="true" />
+                <span className={`fl-shop-img fl-shop-tone--${color} fl-shop-view--${v.toLowerCase()}`} aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -240,7 +240,7 @@ function QuickView({ product, onClose, onAdd, returnTo }: { product: Product; on
             </legend>
             {product.colours.map((c) => (
               <label key={c.id} className={`fl-shop-swatch fl-shop-tone--${c.id}`} title={c.name}>
-                <input type="radio" name="shop-quick-view-colour" value={c.id} checked={colour === c.id} onChange={() => setColour(c.id)} aria-label={c.name} />
+                <input type="radio" name="shop-quick-view-colour" value={c.id} checked={color === c.id} onChange={() => setColour(c.id)} aria-label={c.name} />
                 <span />
               </label>
             ))}
@@ -345,7 +345,7 @@ export default function ShopQuickView() {
               </div>
               <h3>{p.name}</h3>
               <span className="fl-meta">
-                {p.colours.length} colours · {p.sizes.filter((s) => s.inStock).length} sizes in stock
+                {p.colours.length} colors · {p.sizes.filter((s) => s.inStock).length} sizes in stock
               </span>
               <span className="fl-shop-price">{money(p.price)}</span>
             </li>

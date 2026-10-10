@@ -20,7 +20,7 @@ const SAMPLE = {
     { id: "class", label: "Class", hint: "Wheel taster", body: "Saturday wheel taster: two hours at the wheel, clay and firing included." },
     { id: "time", label: "Time", hint: "Sat 10:00", body: "Saturday 14 November, 10:00 to 12:00. Two places left." },
     { id: "details", label: "Your details", hint: "Name and email", body: "Ana Ruiz, ana@example.com. We send a reminder the day before." },
-    { id: "pay", label: "Payment", hint: "£45", body: "£45 paid at the studio on the day. Free to cancel up to 48 hours before." },
+    { id: "pay", label: "Payment", hint: "$59", body: "$59 paid at the studio on the day. Free to cancel up to 48 hours before." },
   ],
   doneTitle: "You're booked in",
   doneText: "See you on Saturday at 10:00. Wear something you don't mind getting muddy.",

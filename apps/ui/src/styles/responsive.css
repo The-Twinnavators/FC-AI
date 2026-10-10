@@ -633,7 +633,7 @@
   height: 100%;
 }
 
-/* Workspace signal strip: 90px tall; controls vertically centred. */
+/* Workspace signal strip: 90px tall; controls vertically centered. */
 .ws > .strip {
   min-height: 90px;
   align-items: stretch;
@@ -1537,7 +1537,7 @@ select.select {
 .stack-anim i:nth-child(5) { left: 17.25px; bottom: 9px; animation-delay: 1.05s; background: var(--brand-3); }
 .stack-anim i:nth-child(6) { left: 11.5px; bottom: 18px; animation-delay: 1.35s; background: var(--sig-ok); }
 
-/* Status column: animation + badge centred on each other and in the middle of the row. */
+/* Status column: animation + badge centered on each other and in the middle of the row. */
 .build-row {
   align-items: center;
 }
@@ -2366,18 +2366,18 @@ form .section__body,
     transition: none;
   }
 }
-/* Illustration palette per theme: dark ink softens in dark mode; light greys become subtle surfaces. */
+/* Illustration palette per theme: dark ink softens in dark mode; light grays become subtle surfaces. */
 .illus {
   --ill-ink: #2f2e41;
   --ill-surface: #e6e6e6;
 }
 :root:not([data-theme="light"]) .illus {
-  /* A deep slate blue, not light grey: the large shapes stay solid instead of looking washed out on dark panels. */
+  /* A deep slate blue, not light gray: the large shapes stay solid instead of looking washed out on dark panels. */
   --ill-ink: #2e3a56;
   --ill-surface: rgba(120, 140, 190, 0.14);
 }
 
-/* Orchestrator wireframe globe: line colour per theme. */
+/* Orchestrator wireframe globe: line color per theme. */
 :root {
   --orb-line: #c4b5fd;
 }
@@ -3200,7 +3200,7 @@ form .section__body,
   color: #6d28d9 !important;
 }
 
-/* Notices carry an icon (Lucide info / triangle-alert / circle-x / circle-check), drawn in the notice's signal colour. */
+/* Notices carry an icon (Lucide info / triangle-alert / circle-x / circle-check), drawn in the notice's signal color. */
 .notice::before {
   content: "";
   flex: none;
@@ -3396,7 +3396,7 @@ form .section__body,
   font-size: 12px !important;
 }
 
-/* Styles tab: colours two-up; the swatch is the colour picker. */
+/* Styles tab: colors two-up; the swatch is the color picker. */
 .styles-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 8px !important;
@@ -4995,8 +4995,8 @@ button.web-card__title:focus-visible {
   margin: 0 16px 8px;
 }
 
-/* ═══ Knowledge Hub as a library: shelves · catalogue · reading pane ═══
-   Serif titles (book spines and catalogue cards), mono call numbers, a coloured spine per shelf. */
+/* ═══ Knowledge Hub as a library: shelves · catalog · reading pane ═══
+   Serif titles (book spines and catalog cards), mono call numbers, a colored spine per shelf. */
 .lib {
   --lib-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
   --lib-paper: rgba(255, 255, 255, 0.025);
@@ -5026,7 +5026,7 @@ button.web-card__title:focus-visible {
   margin-top: 20px;
 }
 
-/* Room: shelves | catalogue | reader */
+/* Room: shelves | catalog | reader */
 .lib__room {
   display: grid;
   grid-template-columns: 230px minmax(0, 1fr);
@@ -5107,7 +5107,7 @@ button.web-card__title:focus-visible {
   opacity: 0.55;
 }
 
-/* Catalogue */
+/* Catalog */
 .lib-catalogue {
   min-width: 0;
 }
@@ -5178,7 +5178,7 @@ button.web-card__title:focus-visible {
   color: var(--text-0);
 }
 
-/* Catalogue cards: a library index card with a coloured spine. */
+/* Catalog cards: a library index card with a colored spine. */
 .lib-grid {
   list-style: none;
   margin: 0;
@@ -5326,7 +5326,7 @@ button.web-card__title:focus-visible {
 .lib-card__aside {
   font-style: italic;
 }
-/* List view: compact rows sharing rules, like a catalogue drawer. */
+/* List view: compact rows sharing rules, like a catalog drawer. */
 .lib-grid--list .lib-card {
   min-height: 0;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -5758,7 +5758,7 @@ button.web-card__title:focus-visible {
   overflow-wrap: anywhere;
 }
 
-/* ═══ Library: catalogue pages, reading drawer, full-screen search results ═══ */
+/* ═══ Library: catalog pages, reading drawer, full-screen search results ═══ */
 .lib-range {
   margin: -4px 0 12px;
   font-size: 12px;
@@ -6033,7 +6033,7 @@ button.web-card__title:focus-visible {
   background: rgba(0, 0, 0, 0.5);
 }
 
-/* Light theme: the file list sits on the page background colour itself. */
+/* Light theme: the file list sits on the page background color itself. */
 :root[data-theme="light"] #panel-left-files {
   background: var(--bg-0);
 }
@@ -6351,7 +6351,7 @@ button.web-card__title:focus-visible {
   box-shadow: none;
 }
 
-/* No thick coloured left bars anywhere: selection and emphasis use a soft fill or a thin full outline instead. */
+/* No thick colored left bars anywhere: selection and emphasis use a soft fill or a thin full outline instead. */
 .ba-history li.is-current {
   box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.4);
 }
@@ -6799,7 +6799,7 @@ button.web-card__title:focus-visible {
   background: #ffffff;
 }
 
-/* Colour swatches are squares beside the token name, not strips the height of the card. */
+/* Color swatches are squares beside the token name, not strips the height of the card. */
 .styles-token--color .styles-swatch,
 .styles-grid .styles-swatch {
   width: 36px;
@@ -7722,7 +7722,7 @@ button.web-card__title:focus-visible {
   z-index: 45;
 }
 
-/* Modal: centred over a blurred scrim. Above the top bar (45) and the Copilot (60), below the spotlight (80). */
+/* Modal: centered over a blurred scrim. Above the top bar (45) and the Copilot (60), below the spotlight (80). */
 .modal-scrim {
   position: fixed;
   inset: 0;
@@ -7773,7 +7773,7 @@ button.web-card__title:focus-visible {
   animation: none;
   box-shadow: inset 0 0 0 1px var(--line-strong), 0 30px 80px -30px rgba(0, 0, 0, 0.75);
 }
-/* Its bar (catalogue number and close) stays at the top while the content scrolls. */
+/* Its bar (catalog number and close) stays at the top while the content scrolls. */
 .reader-modal .lib-reader__bar {
   position: sticky;
   top: -18px;
@@ -9006,7 +9006,7 @@ button.web-card__title:focus-visible {
 .hero--panel::after {
   background-position: 0 0, right top;
 }
-/* Hero image in FlowCode's colours: a royal-blue-to-purple tint (blend mode "color") keeps the image's light and
+/* Hero image in FlowCode's colors: a royal-blue-to-purple tint (blend mode "color") keeps the image's light and
    detail but takes the brand hues. Order: left fade, tint, image. */
 .hero--panel::after {
   background:
@@ -9047,7 +9047,7 @@ button.web-card__title:focus-visible {
     background-position: 0 0, 0 0, 70% top;
   }
 }
-/* Tint centred on the top of the pyramid (about 74% across, 12% down with the image anchored to its top): royal blue
+/* Tint centered on the top of the pyramid (about 74% across, 12% down with the image anchored to its top): royal blue
    at the peak fading out radially into a muted navy, plus a soft blue glow there. Layers: left fade, glow (screen),
    radial tint (color), image. */
 .hero--panel::after {
@@ -9075,7 +9075,7 @@ button.web-card__title:focus-visible {
 .hero--panel::after {
   opacity: 0.4;
 }
-/* More blue at the top of the pyramid: a brighter, more saturated glow and a richer blue at the tint's centre, aimed at
+/* More blue at the top of the pyramid: a brighter, more saturated glow and a richer blue at the tint's center, aimed at
    the peak (about 73% across, 6% down at full width). */
 .hero--panel::after {
   background:
@@ -9269,7 +9269,7 @@ button.web-card__title:focus-visible {
   }
 }
 
-/* File viewer: line numbers and syntax colours. */
+/* File viewer: line numbers and syntax colors. */
 .codeview {
   min-height: 100%;
   overflow: auto;
@@ -9686,7 +9686,7 @@ body.is-dragging-y * {
     animation: none;
   }
 }
-/* Collapsed rail: icons sit at a fixed distance from the left edge (the collapsed rail is 60px, items 40px), not centred
+/* Collapsed rail: icons sit at a fixed distance from the left edge (the collapsed rail is 60px, items 40px), not centered
    in whatever width the rail has mid-animation, so they don't jump when it closes. */
 .app:not([data-nav="expanded"]) .rail {
   align-items: flex-start;
@@ -9699,7 +9699,7 @@ body.is-dragging-y * {
 }
 
 /* Light theme: the troubleshoot fixes and the Styles view switcher used see-through black meant for the dark theme,
-   which turned them muddy grey on a light page. Light surfaces and full-strength text instead. */
+   which turned them muddy gray on a light page. Light surfaces and full-strength text instead. */
 :root[data-theme="light"] .tshoot__fix {
   background: #ffffff;
   border-color: #dde0e7;
@@ -9819,7 +9819,7 @@ body.is-dragging-y * {
 }
 
 /* Light theme: your chat messages. A clearer blue bubble with full-strength text; the file name and time stay
-   readable on it (AA contrast) instead of grey on blue. */
+   readable on it (AA contrast) instead of gray on blue. */
 :root[data-theme="light"] .pchat__me {
   background: #e3eafb;
   box-shadow: inset 0 0 0 1px #b9c9f0;
@@ -9857,7 +9857,7 @@ body.is-dragging-y * {
 }
 
 /* ─── Light theme sweep (scripts/theme-sweep.mjs) ─── */
-/* Launch checklist filter: the selected pill used an undefined --brand colour, leaving white text on no background. */
+/* Launch checklist filter: the selected pill used an undefined --brand color, leaving white text on no background. */
 .lrc__pill[aria-pressed="true"] {
   background: #3a60c4;
   color: #ffffff;
@@ -9878,7 +9878,7 @@ body.is-dragging-y * {
   color: #454d5e;
 }
 
-/* Both logos are links home: no underline, inherit colour, visible focus. */
+/* Both logos are links home: no underline, inherit color, visible focus. */
 a.rail__brand,
 a.topbar__brand {
   color: inherit;
@@ -10748,7 +10748,7 @@ a.topbar__brand:focus-visible {
   opacity: 0.7;
 }
 
-/* Status words in their status colour (StatusText): same scheme as the dots and chips. */
+/* Status words in their status color (StatusText): same scheme as the dots and chips. */
 .status-text--ok {
   color: var(--sig-ok);
 }
@@ -10790,8 +10790,8 @@ a.topbar__brand:focus-visible {
 }
 
 /*
- * Status colour scheme (final): teal = passed, yellow = passed with notes, purple = waiting on you,
- * magenta = cancelled, red = needs fixing, blue = building or checking, grey = not yet.
+ * Status color scheme (final): teal = passed, yellow = passed with notes, purple = waiting on you,
+ * magenta = cancelled, red = needs fixing, blue = building or checking, gray = not yet.
  */
 /* Yellow: finished, with notes. */
 .chip.chip--notes {
@@ -10986,7 +10986,7 @@ a.topbar__brand:focus-visible {
 }
 
 /*
- * Container headers match the builder's column headers: a navy band (the builder columns' colour) with a hairline
+ * Container headers match the builder's column headers: a navy band (the builder columns' color) with a hairline
  * underneath, the same compact height and title size, so every panel header in FlowCode reads the same.
  */
 :root:not([data-theme="light"]) .section > .section__head {
@@ -11584,7 +11584,7 @@ a.topbar__brand:focus-visible {
 :root[data-theme="light"] .library-panel__list .skill-toolbar {
   background: #ffffff;
 }
-/* Light theme: the skill list sits on light grey, with white cards on it. */
+/* Light theme: the skill list sits on light gray, with white cards on it. */
 :root[data-theme="light"] .library-panel__list {
   background: #f1f3f6;
 }
@@ -11995,7 +11995,7 @@ html.theme-shift *::after {
   .sprop__bar-actions { flex-wrap: wrap; }
 }
 
-/* Token sliders, dark theme: dark track, white thumb (light theme keeps its grey track and purple thumb). */
+/* Token sliders, dark theme: dark track, white thumb (light theme keeps its gray track and purple thumb). */
 :root:not([data-theme="light"]) .styles-slider input[type="range"]::-webkit-slider-runnable-track { background: #0b0e15; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
 :root:not([data-theme="light"]) .styles-slider input[type="range"]::-moz-range-track { background: #0b0e15; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
 :root:not([data-theme="light"]) .styles-slider input[type="range"]::-webkit-slider-thumb { background: #ffffff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
@@ -12060,7 +12060,7 @@ html.theme-shift *::after {
   }
 }
 
-/* Terminal colours (the terminal is always dark): status chip on each command, and lines tinted by what they say. */
+/* Terminal colors (the terminal is always dark): status chip on each command, and lines tinted by what they say. */
 .term__status {
   display: inline-block;
   padding: 0 7px;
@@ -12491,7 +12491,7 @@ p.nb__starter b {
   font-weight: 600;
 }
 
-/* System → Launcher & system log: each line coloured by what it's about. */
+/* System → Launcher & system log: each line colored by what it's about. */
 .syslog { --sys: #8b93a7; }
 .syslog--error { --sys: #ff6b6b; }
 .syslog--warn { --sys: #f5b544; }
@@ -12537,7 +12537,7 @@ p.nb__starter b {
   overflow: auto;
 }
 
-/* Workspace → Activity: each event coloured by what it is (label chip and dot). */
+/* Workspace → Activity: each event colored by what it is (label chip and dot). */
 .act { --act: #8b93a7; }
 .act--bad { --act: #ff6b6b; }
 .act--warn { --act: #f5b544; }
@@ -12628,7 +12628,7 @@ p.nb__starter b {
 .dcard__note { margin: 0; font-size: 12.5px; }
 .dcard__loading { padding: 18px; font-size: 13px; }
 
-/* Colour ramps: ten shades per colour, the user's own marked. */
+/* Color ramps: ten shades per color, the user's own marked. */
 .ramp { display: grid; grid-template-columns: 112px minmax(0, 1fr); align-items: center; gap: 10px; }
 .ramp__label { display: grid; font-size: 12.5px; font-weight: 600; }
 .ramp__label .muted { font: 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 400; }
@@ -12713,7 +12713,7 @@ p.nb__starter b {
 .dmodal__msg { margin-right: auto; font-size: 12.5px; }
 .dmodal__note { margin: 0; font-size: 12.5px; }
 
-/* Brand and status colour rows in the Colours editor. */
+/* Brand and status color rows in the Colors editor. */
 .brand-row {
   display: grid;
   grid-template-columns: 30px minmax(0, 1fr) auto;
@@ -12745,11 +12745,11 @@ p.nb__starter b {
 .audit__row.is-bad .audit__ratio::before { content: "✕ "; color: var(--sig-bad, #e5484d); }
 .audit__fix { grid-column: 2 / -1; font-size: 12px; color: var(--sig-warn); }
 
-/* Colour rows: name, then the picker (and remove/reset). */
+/* Color rows: name, then the picker (and remove/reset). */
 .brand-row { grid-template-columns: minmax(0, 1fr) auto auto; }
 .brand-row__tools { display: inline-flex; align-items: center; gap: 8px; }
 
-/* Colour picker: swatch + hex, opening a saturation/brightness square, hue bar and palette quick picks. */
+/* Color picker: swatch + hex, opening a saturation/brightness square, hue bar and palette quick picks. */
 .cpick { position: relative; display: inline-flex; align-items: center; gap: 8px; }
 .cpick__swatch {
   width: 34px;
@@ -14378,7 +14378,7 @@ section.dash { padding-top: 40px !important; }
 @keyframes ill-say-in { from { opacity: 0; transform: translateY(4px) scale(0.85); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ill-say { animation: none; } }
 /* Card banners: a full 1280px page squeezed to the card's width is unreadable, so show the top of the page at about
-   half size, centred (the hero and headings stay legible) instead of the whole width at a third. */
+   half size, centered (the hero and headings stay legible) instead of the whole width at a third. */
 .pcard__shot--banner img {
   position: absolute;
   inset: auto;
@@ -14390,7 +14390,7 @@ section.dash { padding-top: 40px !important; }
   transform: translateX(-50%);
   object-fit: initial;
 }
-/* Most pages start their content on the left: crop from just inside the left edge instead of the centre. */
+/* Most pages start their content on the left: crop from just inside the left edge instead of the center. */
 .pcard__shot--banner img { left: 0; width: 150%; transform: translateX(-5%); }
 
 /* Top bar: one active build shows its name as plain text (no picker). */
@@ -14501,7 +14501,7 @@ section.dash { padding-top: 40px !important; }
 }
 .settings-nav__item::before, .settings-nav__item::after, .lib-shelf::before, .lib-shelf::after { display: none !important; }
 
-/* Parts of a row: optional icon or colour dot, label (with an optional hint under it), optional count. */
+/* Parts of a row: optional icon or color dot, label (with an optional hint under it), optional count. */
 .settings-nav__icon { grid-row: span 2; width: 28px !important; height: 28px !important; border-radius: 7px !important; }
 .settings-nav__label, .lib-shelf__label { grid-column: 2; font: inherit !important; color: inherit !important; }
 .settings-nav__item:not(:has(.settings-nav__icon)) .settings-nav__label,
@@ -14756,7 +14756,7 @@ section.dash { padding-top: 40px !important; }
 
 /* Don't let the browser "anchor" the scroll when a section above collapses: we place the opened section ourselves. */
 .fr-page, #main:has(.fr-page) { overflow-anchor: none; }
-/* Status chips on a project screenshot: one solid dark pill in both themes (their colours are made for dark), so they
+/* Status chips on a project screenshot: one solid dark pill in both themes (their colors are made for dark), so they
    read over any page, light or dark. */
 :root[data-theme="light"] .lrc-card.qa-card .qa-card__status .chip,
 .lrc-card.qa-card .qa-card__status .chip {
@@ -14768,8 +14768,8 @@ section.dash { padding-top: 40px !important; }
   filter: brightness(1.15);
 }
 :root[data-theme="light"] .lrc-card.qa-card .qa-card__status > .muted { background: rgba(12, 15, 28, 0.9) !important; color: #e6e9f2 !important; }
-/* Status chips on screenshots, quieter: a small pill in the page's own surface colour with neutral text; only the dot
-   carries the status colour. Readable over any screenshot, without shouting. */
+/* Status chips on screenshots, quieter: a small pill in the page's own surface color with neutral text; only the dot
+   carries the status color. Readable over any screenshot, without shouting. */
 .lrc-card.qa-card .qa-card__status .chip,
 :root[data-theme="light"] .lrc-card.qa-card .qa-card__status .chip {
   height: 22px !important;
@@ -14801,7 +14801,7 @@ svg.gauge { overflow: visible; }
 .lrc-card.qa-card .pcard__shot--banner { border-radius: 10px 10px 0 0 !important; overflow: hidden; }
 /* Project cards: the View button is 96 × 32. */
 .qa-card-wrap .card-view, .pcard .card-view { height: 32px !important; min-height: 32px !important; width: 96px !important; justify-content: center !important; }
-/* Project cards: 24px between the footer line and the View button (and the date beside it, centred on the button). */
+/* Project cards: 24px between the footer line and the View button (and the date beside it, centered on the button). */
 .qa-card-wrap .lrc-card__foot { padding-top: 24px !important; min-height: 56px; box-sizing: border-box; display: flex; align-items: center; }
 .qa-card-wrap .card-view { bottom: 22px !important; }
 /* Project cards in a row share a height; the footer (line, date, View) always sits at the card's bottom, so the line
@@ -14829,7 +14829,7 @@ svg.gauge { overflow: visible; }
 .ctext__ul li::marker { color: var(--brand-2); }
 .ctext code { font-family: var(--font-mono); font-size: .88em; padding: 1px 5px; border-radius: 5px; background: color-mix(in srgb, var(--text-2) 14%, transparent); }
 
-/* Builder chat: a readable column, replies without a coloured block. */
+/* Builder chat: a readable column, replies without a colored block. */
 .pchat__list { max-width: 820px; width: 100%; margin: 0 auto; box-sizing: border-box; }
 .pchat__agent, .pchat__agent--bad, .pchat__agent--ok, .pchat__agent--work, .pchat__answer { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 4px 0 0 !important; color: var(--text-0) !important; }
 .pchat__agent > p { color: var(--text-0) !important; }
@@ -14955,7 +14955,7 @@ svg.gauge { overflow: visible; }
 .mprob__fix-status--ok { color: var(--sig-ok); border-color: color-mix(in srgb, var(--sig-ok) 45%, var(--line)); }
 .mprob__fix-status--warn { color: var(--sig-warn, #f2b33d); border-color: color-mix(in srgb, var(--sig-warn, #f2b33d) 45%, var(--line)); }
 .run-review__more-link { margin-left: 8px; font-size: 12px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--brand-ink); }
-/* Chat replies are always in the normal text colour; the status chip (e.g. "Needs your help") carries the tone. */
+/* Chat replies are always in the normal text color; the status chip (e.g. "Needs your help") carries the tone. */
 .pchat__agent .ctext, .pchat__agent .ctext p, .pchat__agent .ctext li,
 .pchat__agent--bad .ctext p, .pchat__agent--ok .ctext p, .pchat__agent--work .ctext p { color: var(--text-0) !important; }
 
@@ -15492,12 +15492,12 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .mcp-detail__tools { display: grid; gap: 8px; }
 .lib-modal .mcp-form { border: 0; padding: 0; background: none; }
 .lib-modal .mcp-server__confirm { display: inline-flex; align-items: center; gap: 8px; }
-/* Skill group header: the category colour is a small dot beside the title (as in the category list), not a bar
+/* Skill group header: the category color is a small dot beside the title (as in the category list), not a bar
    stretched to the header height. */
 .skill-browse__head > .lib-shelf__spine { width: 8px; height: 8px; border-radius: 50%; align-self: start; margin-top: 9px; flex: 0 0 auto; }
 
 .mcp-detail__connection { display: grid; gap: 10px; padding-top: 16px; border-top: 1px solid var(--line); }
-/* A server switched on: teal, the same "on / ok" colour as the On badges. */
+/* A server switched on: teal, the same "on / ok" color as the On badges. */
 .mcp-switch input:checked + span { background: var(--sig-ok); }
 
 /* Server cards: a small on/off switch in the card's bottom-right corner. */
@@ -15507,7 +15507,7 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .mcp-switch--sm span { width: 28px; height: 16px; border-radius: 8px; }
 .mcp-switch--sm span::after { width: 12px; height: 12px; top: 2px; left: 2px; }
 .mcp-switch--sm input:checked + span::after { transform: translateX(12px); }
-/* Server roles: a chosen agent is filled teal (the "on" colour), with no outline. */
+/* Server roles: a chosen agent is filled teal (the "on" color), with no outline. */
 .mcp-role.is-on { background: color-mix(in srgb, var(--sig-ok) 26%, transparent); border-color: transparent; color: var(--text-0); }
 
 /* Version history inside the prompt / skill modal. */
@@ -15526,7 +15526,7 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .lib-cards > li.has-switch { position: relative; }
 .lib-cards > li.has-switch > .lib-card .lib-card__meta { padding-right: 40px; }
 .lib-cards > li.has-switch > .lib-card__switch { position: absolute; right: 16px; bottom: 16px; z-index: 1; }
-/* Group headings (skill categories, tool groups): the colour is a small round dot, centred on the title line. */
+/* Group headings (skill categories, tool groups): the color is a small round dot, centered on the title line. */
 .skill-browse__head > .lib-shelf__spine { grid-row: 1; align-self: center; height: 8px; min-height: 0; width: 8px; margin: 0; border-radius: 50%; }
 .skill-sort__heading .lib-shelf__spine { width: 8px; height: 8px; border-radius: 50%; }
 .skill-browse__head > .skill-browse__title, .skill-browse__head > .skill-browse__hint { grid-column: 2; }

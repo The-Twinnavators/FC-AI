@@ -4,7 +4,7 @@
  * Keywords: app, ai, chat, assistant, streaming, composer, history, sidebar, drawer, markdown
  */
 /**
- * App screen: AI assistant chat. A history sidebar (new chat, search, rename, delete with undo) beside a centred
+ * App screen: AI assistant chat. A history sidebar (new chat, search, rename, delete with undo) beside a centered
  * thread where your messages sit in bubbles and the assistant's replies stream in word by word with a Stop button.
  * Replies understand light formatting (bold, lists, inline code and code blocks with a Copy button) and carry Copy,
  * Regenerate and thumbs up / down. An empty chat offers suggested prompts. The composer has an attach button (shows a

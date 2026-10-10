@@ -1,12 +1,12 @@
 /**
  * Layout: About, "team" version. The mission in two sentences, the people behind it and how to get in touch. Good
- * for organisations, clubs and services where people matter.
+ * for organizations, clubs and services where people matter.
  *
  * To make it this app's own:
  *  1. Replace every value in SAMPLE with the spec's real mission, people and contact details. Remove the
  *     "flowcode:sample" comment when nothing sample is left. Never invent people or quotes.
  *  2. Delete sections the spec doesn't need.
- *  3. Keep the building blocks and tokens. Change spacing or colours in src/styles/tokens.css, not here.
+ *  3. Keep the building blocks and tokens. Change spacing or colors in src/styles/tokens.css, not here.
  */
 import { Avatar, Card, Grid, PageHeader, Section, SettingRow, SettingsList, Stat } from "../components/ui";
 

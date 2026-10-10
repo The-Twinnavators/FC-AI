@@ -32,7 +32,7 @@ const SAMPLE = {
   filters: ["All", "Product", "Web", "Brand"],
   work: [
     { id: "kiln", title: "Kiln & Co. booking app", kind: "Product", year: "2025", text: "Class booking and waitlists for a chain of four pottery studios. Bookings up 38% in the first quarter.", shape: "calendar" },
-    { id: "harbour", title: "Harbour Bakery ordering", kind: "Web", year: "2025", text: "Pre-order site for a neighbourhood bakery, built to sell out by 9am without a queue.", shape: "bag" },
+    { id: "harbour", title: "Harbour Bakery ordering", kind: "Web", year: "2025", text: "Pre-order site for a neighborhood bakery, built to sell out by 9am without a queue.", shape: "bag" },
     { id: "greenline", title: "Greenline Cleaners rebrand", kind: "Brand", year: "2024", text: "Name, logo and van livery for a family cleaning business moving into offices.", shape: "mark" },
     { id: "ledger", title: "Fieldnote invoicing", kind: "Product", year: "2023", text: "Invoices and expenses for independent tradespeople, designed for use on a phone in a van.", shape: "chart" },
   ],

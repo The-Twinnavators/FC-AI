@@ -4,9 +4,9 @@
  * Keywords: background, gradient, page background, ink
  */
 /**
- * Page background: ink band (gradient). The accent colour as a solid band with a soft highlight; text switches to the on-accent colour.
+ * Page background: ink band (gradient). The accent color as a solid band with a soft highlight; text switches to the on-accent color.
  * Good for: A closing call to action or a stats band.
- * Use it by adding the class "fl-bg-ink" to any section, or to the page's outer element. Colours come from the
+ * Use it by adding the class "fl-bg-ink" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
 // flowcode:sample

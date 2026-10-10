@@ -4,7 +4,7 @@
  * Keywords: app, admin, users, table, filters, bulk-actions, drawer, dialog, permissions, roles
  */
 /**
- * App screen: admin panel for people and access. A coloured sidebar (sections, seats used on the plan) beside a top
+ * App screen: admin panel for people and access. A colored sidebar (sections, seats used on the plan) beside a top
  * bar with search and the signed-in admin. The Users tab is a data table with search, role and status filters,
  * sortable columns, row selection with bulk actions (change role; deactivate after a confirm dialog), pagination and
  * a no-results state. Opening a person shows a side drawer with editable details, a role select and their activity

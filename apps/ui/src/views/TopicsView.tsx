@@ -264,7 +264,7 @@ function TopicPage({ id }: { id: string }) {
             <p className="muted" style={{ margin: 0 }}>Generate an analysis of what these results say, then add it to the Knowledge Hub so agents can use it.</p>
           )}
           <button className="btn" disabled={!!busy} onClick={() => act("analyze", async () => setT(await post<Topic>(`/topics/${t.id}/analyze`)))}>
-            <Sparkles size={14} className={busy === "analyze" ? "spin" : undefined} aria-hidden="true" /> {busy === "analyze" ? "Analysing… (local model)" : t.analysis ? "Regenerate analysis" : "Generate analysis"}
+            <Sparkles size={14} className={busy === "analyze" ? "spin" : undefined} aria-hidden="true" /> {busy === "analyze" ? "Analyzing… (local model)" : t.analysis ? "Regenerate analysis" : "Generate analysis"}
           </button>
           <button
             className="btn btn--primary"

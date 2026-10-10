@@ -40,7 +40,7 @@ type Tab = "health" | "environment" | "engine" | "models" | "stuck" | "problems"
 const TAB_IDS: Tab[] = ["health", "environment", "models", "engine", "stuck", "problems"];
 const ModelsView = lazy(() => import("./ModelsView").then((x) => ({ default: x.ModelsView })));
 
-/** What a system log line is about, for its colour and label (errors and warnings first, then by subject). */
+/** What a system log line is about, for its color and label (errors and warnings first, then by subject). */
 function logKind(level: string, message: string): { id: string; label: string } {
   const m = message.toLowerCase();
   if (level === "error" || /\b[1-9]\d* failed\b|crash|error/.test(m)) return { id: "error", label: "Error" };

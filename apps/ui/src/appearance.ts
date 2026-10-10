@@ -2,7 +2,7 @@
  * Appearance: how FlowCode picks light or dark.
  *  - toggle: the top bar's light/dark button (the choice is remembered)
  *  - system: follow the computer's light or dark setting
- *  - custom: light or dark per page; moving between pages with different modes fades the colours over half a second
+ *  - custom: light or dark per page; moving between pages with different modes fades the colors over half a second
  * Stored in this browser (a per-person preference), like the theme itself.
  */
 export type ThemeName = "light" | "dark";
