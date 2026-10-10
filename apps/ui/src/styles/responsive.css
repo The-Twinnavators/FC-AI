@@ -13646,7 +13646,10 @@ p.nb__starter b {
   list-style: none;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-2, 4px);
-  background: var(--bg-2);
+  /* --bg-2 is translucent in the dark theme: fine for a panel on the page, not for a popup over it. The base colour
+     underneath makes it solid, so nothing shows through the options. */
+  background-color: var(--bg-0);
+  background-image: linear-gradient(var(--bg-2), var(--bg-2));
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
 }
 .cloud-models li {
