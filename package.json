@@ -16,6 +16,7 @@
     "typecheck": "tsc -b packages/contracts packages/daemon && npm run typecheck -w @flowcode/ui && npm run typecheck -w @flowcode/desktop",
     "test": "vitest run",
     "start": "npm run build && npm run start -w @flowcode/desktop",
+    "dev": "npm run dev -w @flowcode/ui",
     "dev:daemon": "node --disable-warning=ExperimentalWarning scripts/dev-daemon.mjs",
     "dev:ui": "npm run dev -w @flowcode/ui",
     "dev:empty": "node --disable-warning=ExperimentalWarning scripts/dev-empty.mjs",

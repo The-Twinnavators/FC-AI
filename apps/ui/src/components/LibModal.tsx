@@ -99,13 +99,15 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
   );
 }
 
-export function LibModal({ label, onClose, actions, children }: { label: string; onClose: () => void; actions?: React.ReactNode; children: React.ReactNode }) {
+/** `toolbar`: controls for what the modal is showing (the component library puts the preview sizes there). */
+export function LibModal({ label, onClose, actions, toolbar, children }: { label: string; onClose: () => void; actions?: React.ReactNode; toolbar?: React.ReactNode; children: React.ReactNode }) {
   return (
     <Modal onClose={onClose} className="lib-modal" labelledBy="lib-modal-title">
       <header className="lib-modal__bar">
         <span id="lib-modal-title" className="label">
           {label}
         </span>
+        {toolbar}
         <button type="button" className="btn btn--sm btn--ghost lib-modal__close" onClick={onClose} aria-label="Close">
           <X size={16} aria-hidden="true" />
         </button>

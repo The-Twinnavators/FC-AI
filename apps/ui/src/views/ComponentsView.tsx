@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
+import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
 import { Search } from "lucide-react";
 
 
@@ -16,7 +17,7 @@ const key = (id: string) => `../../../../templates/library/sections/${id}.tsx`;
  * One section, live, in its own window (section-preview.html), so it behaves exactly as in a built app: its dialogs,
  * focus and Escape act on that window, never on FlowCode's page. The preview page reports its height.
  */
-function SectionFrame({ id, styleId, title }: { id: string; styleId: string; title: string }) {
+function SectionFrame({ id, styleId, title, width }: { id: string; styleId: string; title: string; width: number }) {
   const [height, setHeight] = useState(360);
   // Until the section has drawn, the frame shows the loading bar (never an empty white box).
   const [ready, setReady] = useState(false);
@@ -30,13 +31,13 @@ function SectionFrame({ id, styleId, title }: { id: string; styleId: string; tit
   }, [id]);
   const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&style=${encodeURIComponent(styleId)}`, document.baseURI).href;
   return (
-    <div className={`cl-frame-wrap${ready ? "" : " is-loading"}`}>
+    <div className={`cl-frame-wrap${ready ? "" : " is-loading"}${width ? " cl-frame-wrap--device" : ""}`}>
       {ready ? null : (
         <span className="cl-frame-load sug-progress__bar" role="progressbar" aria-label={`Loading the ${title} preview`}>
           <span className="is-indeterminate" />
         </span>
       )}
-      <iframe className="cl-frame" title={`${title} preview`} src={src} loading="lazy" style={{ height }} />
+      <iframe className="cl-frame" title={`${title} preview`} src={src} loading="lazy" style={{ height, ...(width ? { width } : {}) }} />
     </div>
   );
 }
@@ -79,6 +80,7 @@ export function ComponentsView() {
   const [open, setOpen] = useState<LibrarySection>();
   const [code, setCode] = useState<string>();
   const [showCode, setShowCode] = useState(false);
+  const [device, setDevice] = useState<Device>("desktop");
   useEffect(() => {
     try {
       localStorage.setItem("flowcode.componentsStyle", styleId);
@@ -91,12 +93,16 @@ export function ComponentsView() {
     if (open) void sources[key(open.id)]?.().then(setCode);
   }, [open]);
   const counts = useMemo(() => new Map(SECTION_CATEGORIES.map((c) => [c.id, LIBRARY_SECTIONS.filter((s) => s.category === c.id).length])), []);
+  const catOrder = useMemo(() => new Map(SECTION_CATEGORIES.map((c, i) => [c.id, i])), []);
   // Search: every word must appear in the piece's name, description, tags or shelf (within the shelf you're on).
   const [q, setQ] = useState("");
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
   const label = (c: string) => SECTION_CATEGORIES.find((x) => x.id === c)?.label ?? c;
   const matches = (x: LibrarySection) => !words.length || words.every((w) => `${x.name} ${x.description} ${x.tags.join(" ")} ${label(x.category)}`.toLowerCase().includes(w));
-  const shown = cat === "proposed" ? PROPOSED_SECTIONS.filter(matches) : LIBRARY_SECTIONS.filter((s) => (cat === "all" || s.category === cat) && matches(s));
+  // The grid follows the shelves beside it: categories in their listed order, and inside one, the order they are
+  // written in (sort is stable). On a single shelf every piece shares a category, so this changes nothing there.
+  const byCategory = (a: LibrarySection, b: LibrarySection) => (catOrder.get(a.category) ?? SECTION_CATEGORIES.length) - (catOrder.get(b.category) ?? SECTION_CATEGORIES.length);
+  const shown = (cat === "proposed" ? PROPOSED_SECTIONS.filter(matches) : LIBRARY_SECTIONS.filter((s) => (cat === "all" || s.category === cat) && matches(s))).sort(byCategory);
   // Previous and next in the details modal, through the pieces on the current shelf (← and → keys too).
   const at = open ? shown.findIndex((x) => x.id === open.id) : -1;
   const step = (d: number) => {
@@ -219,6 +225,7 @@ export function ComponentsView() {
         <LibModal
           label={`${SECTION_CATEGORIES.find((c) => c.id === open.category)?.label ?? "Section"} · ${showCode ? "code" : "preview"}`}
           onClose={() => setOpen(undefined)}
+          toolbar={showCode ? undefined : <PreviewSizes value={device} onChange={setDevice} />}
           actions={
             <>
               <span className="cl-detail__nav">
@@ -246,7 +253,7 @@ export function ComponentsView() {
                 {open.description} File: <span className="mono">templates/library/sections/{open.id}.tsx</span>
               </p>
             </div>
-            {showCode ? <pre className="cl-code">{code ?? "Loading…"}</pre> : <SectionFrame id={open.id} styleId={styleId} title={open.name} />}
+            {showCode ? <pre className="cl-code">{code ?? "Loading…"}</pre> : <SectionFrame id={open.id} styleId={styleId} title={open.name} width={deviceWidth(device)} />}
           </div>
         </LibModal>
       ) : null}
