@@ -13,6 +13,8 @@
  * announced at once rather than waiting for a gap.
  *
  * Make it the app's own: put the verb in the button - "Delete shoot", never "OK" - and make the quiet option Cancel.
+ * The dialog opens over the panel below the buttons so it can be seen here; in a page it covers the window, which is
+ * the one line to change: the stage goes from position: absolute to position: fixed.
  */
 /**
  * How to try it
@@ -167,7 +169,15 @@ export default function ModalsDialogs() {
         ))}
       </ul>
 
-      {open ? <Dialog kind={open} onClose={close} say={setSaid} /> : null}
+      {/* The stage stands in for the page a dialog covers. In an app this is position: fixed over the whole window;
+          here it is a box of its own, so the dialog opens beside the button that opened it rather than off-screen. */}
+      <div className="fl-ctl-dlg-demo">
+        {open ? (
+          <Dialog kind={open} onClose={close} say={setSaid} />
+        ) : (
+          <p className="fl-ctl-matrix-what">Open one of the four above and it appears here, over this panel.</p>
+        )}
+      </div>
 
       <p className="fl-ctl-status" role="status" aria-live="polite">
         {said || "Open one. Tab around inside it; focus will not leave."}

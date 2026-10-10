@@ -52,6 +52,8 @@ const SAMPLE = {
 export default function ListsRows() {
   const d = SAMPLE;
   const [open, setOpen] = useState("m1");
+  // Read is not the same thing as open: opening a message reads it, and it stays read after you move on.
+  const [read, setRead] = useState<string[]>([]);
   const [files, setFiles] = useState(d.files);
   const [order, setOrder] = useState(d.order);
   const [said, setSaid] = useState("");
@@ -83,30 +85,42 @@ export default function ListsRows() {
 
         <li>
           <p className="fl-ctl-matrix-kind">Rows that open</p>
-          <p className="fl-ctl-matrix-what">Each row is a link to one thing. The one you are looking at stays marked.</p>
+          <p className="fl-ctl-matrix-what">
+            Each row is a link to one thing. The one you are looking at stays marked, and opening a message reads it for good.
+          </p>
           <ul className="fl-ctl-rows fl-ctl-rows--links">
-            {d.mail.map((m) => (
-              <li key={m.id}>
-                <a
-                  href="#top"
-                  className={`fl-ctl-row${m.id === open ? " is-on" : ""}`}
-                  aria-current={m.id === open ? "true" : undefined}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpen(m.id);
-                    setSaid(`Opened: ${m.sub}`);
-                  }}
-                >
-                  <span className={`fl-ctl-dot ${m.unread && m.id !== open ? "fl-ctl-dot--online" : "fl-ctl-dot--offline"}`} aria-hidden="true" />
-                  <span className="fl-ctl-row-main">
-                    <strong>{m.who}</strong>
-                    <span className="fl-ctl-matrix-what">{m.sub}</span>
-                  </span>
-                  <span className="fl-ctl-matrix-what">{m.when}</span>
-                </a>
-              </li>
-            ))}
+            {d.mail.map((m) => {
+              const unread = m.unread && !read.includes(m.id);
+              return (
+                <li key={m.id}>
+                  <a
+                    href="#top"
+                    className={`fl-ctl-row${m.id === open ? " is-on" : ""}${unread ? " is-unread" : ""}`}
+                    aria-current={m.id === open ? "true" : undefined}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setOpen(m.id);
+                      setRead((v) => (v.includes(m.id) ? v : [...v, m.id]));
+                      setSaid(`Opened: ${m.sub}`);
+                    }}
+                  >
+                    <span className="fl-ctl-row-unread" aria-hidden="true" />
+                    {unread ? <span className="fl-sr">Unread. </span> : null}
+                    <span className="fl-ctl-row-main">
+                      <strong>{m.who}</strong>
+                      <span className="fl-ctl-matrix-what">{m.sub}</span>
+                    </span>
+                    <span className="fl-ctl-matrix-what">{m.when}</span>
+                  </a>
+                </li>
+              );
+            })}
           </ul>
+          {read.length ? (
+            <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32" onClick={() => setRead([])}>
+              Mark them unread again
+            </button>
+          ) : null}
         </li>
 
         <li>
