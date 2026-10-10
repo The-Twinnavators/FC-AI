@@ -88,7 +88,7 @@ export function SearchView({ query }: { query: URLSearchParams }) {
             </>
           ) : (
             <>
-              <span>Track this search? Save it as a topic to follow it in Research Topics.</span>
+              <span>Track this search? Save it as a topic to follow it in Topic Search.</span>
               <button className="btn btn--primary btn--sm" onClick={saveTopic} disabled={!data}>
                 <Plus size={14} aria-hidden="true" /> Save “{q.length > 40 ? `${q.slice(0, 40)}…` : q}” as topic
               </button>

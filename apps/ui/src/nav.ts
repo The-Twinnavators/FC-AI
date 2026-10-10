@@ -22,7 +22,7 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
       { path: "/library", icon: "library", label: "Prompts & Skills" },
       { path: "/components", icon: "layers", label: "Component library" },
       { path: "/knowledge", icon: "knowledge", label: "Knowledge Hub" },
-      { path: "/topics", icon: "search", label: "Research Topics" },
+      { path: "/topics", icon: "search", label: "Topic Search" },
       // What FlowCode proposes to change about how it works, from run reviews.
     ],
   },

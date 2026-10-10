@@ -211,7 +211,7 @@ export function App() {
   }, [projectId]);
 
   useEffect(() => {
-    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Research Topics", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
+    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Topic Search", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
     document.title = `${project ? project.name : titles[section] ?? "FlowCode"} · FlowCode`;
   }, [section, project]);
 

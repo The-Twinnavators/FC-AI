@@ -68,7 +68,7 @@ const SUGGESTIONS: Record<string, string[]> = {
   "quality/:id": ["What does this check mean?", "What is the prototype plan?", "Why did this check fail?"],
   "projects/:id": ["What's the build doing right now?", "Is anything going wrong?", "What should I do next?", "What do the checks at the bottom mean?"],
   knowledge: ["How do I upload a document?", "How does the AI use my knowledge?", "What is the difference between notes and sources?"],
-  topics: ["How do research topics work?", "How do I start a new topic?", "Where do the findings go?"],
+  topics: ["How does Topic Search work?", "How do I start a new topic?", "Where do the findings go?"],
   network: ["What does the graph show?", "How are items linked?", "How do I filter the graph?"],
   library: ["What is a skill?", "How do I turn a guide into a skill?", "How do I use a prompt in a prototype?", "What are the UI components for?"],
   search: ["What does search cover?", "How do I search the web?", "How do I save a result to knowledge?"],

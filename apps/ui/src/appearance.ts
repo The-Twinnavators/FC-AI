@@ -29,7 +29,7 @@ export const THEMED_PAGES: Array<{ section: string; label: string }> = [
   { section: "flowreport", label: "Repo Report" },
   { section: "library", label: "Prompts & Skills" },
   { section: "knowledge", label: "Knowledge Hub" },
-  { section: "topics", label: "Research Topics" },
+  { section: "topics", label: "Topic Search" },
   { section: "agents", label: "Agents" },
   { section: "network", label: "Network Graph" },
   { section: "settings", label: "Settings" },

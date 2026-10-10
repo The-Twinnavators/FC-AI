@@ -122,7 +122,7 @@ export function ModelsView() {
       <section className="section" data-guide="models.lab">
         <div className="section__head">
           <h2 className="section__title">Coder capability lab</h2>
-          <label className="check" style={{ marginLeft: "auto" }}>
+          <label className="check" style={{ marginLeft: "auto" }} title="Runs the eight probes with the model's own thinking turned on. FlowCode keeps thinking off for normal work — it is slower, and the runtime checks results itself — so a pass here is recorded against this setting, not the one the Coder runs with.">
             <input type="checkbox" checked={reasoning} onChange={(e) => setReasoning(e.target.checked)} /> Probe with reasoning enabled
           </label>
         </div>

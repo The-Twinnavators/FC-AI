@@ -57,7 +57,7 @@ const PAGE_NAMES: Record<string, string> = {
   projects: "workspace",
   quality: "My Projects",
   search: "Search",
-  topics: "Research Topics",
+  topics: "Topic Search",
   reports: "Reports",
   knowledge: "Knowledge Hub",
   library: "Prompts & Skills",

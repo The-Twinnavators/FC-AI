@@ -62,7 +62,7 @@ function TopicList() {
       <header className="page__head">
         <div>
           <span className="label">Intelligence</span>
-          <h1 className="page__title">Research Topics</h1>
+          <h1 className="page__title">Topic Search</h1>
           <p className="lrc__meta">{data ? `${data.length} topic${data.length === 1 ? "" : "s"} · ${data.reduce((n, t) => n + t.saved.length, 0)} saved items` : "Searches you follow, with results kept up to date."}</p>
         </div>
         <div className="topic-tools">
@@ -82,7 +82,7 @@ function TopicList() {
             </button>
           </div>
           <button className="btn btn--primary" data-cp="topic-new" data-cp-safe onClick={() => setAdding((a) => !a)} aria-expanded={adding}>
-            <Plus size={14} aria-hidden="true" /> New topic
+            <Plus size={14} aria-hidden="true" /> Search new topic
           </button>
         </div>
       </header>
@@ -176,7 +176,7 @@ function TopicPage({ id }: { id: string }) {
 
   return (
     <div className="page">
-      <BackLink fallback="/topics" fallbackLabel="Research Topics" />
+      <BackLink fallback="/topics" fallbackLabel="Topic Search" />
       <header className="topic-head">
         <div style={{ minWidth: 0 }}>
           <span className="topic-card__meta">
