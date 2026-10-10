@@ -41,6 +41,83 @@ submits something on its own.
 
 ---
 
+## Part 0 — Prepare the walkthroughs
+
+Before anchors, before the driver: decide what gets a walkthrough and write down the words. This is
+the easiest part to skip and the one that decides whether anybody uses the feature.
+
+### Which workflows earn one
+
+A workflow earns a walkthrough if any of these is true:
+
+- **It crosses more than one screen.** People lose the thread between screens; this is the single
+  best predictor that a walkthrough will be used.
+- **It has a decision button someone hesitates over.** The walkthrough's job is to get them to that
+  button understanding what it does.
+- **It is where new people get stuck** — what support is asked, or what the numbers show abandoned.
+
+A workflow does **not** earn one when it is a single obvious control on a single screen. A cursor
+gliding to the only button on the page is theatre, and a menu padded with those teaches people the
+menu is not worth opening.
+
+Write the whole inventory as a flat list before writing a single step. FlowCode's is 37.
+
+### Titles
+
+A title completes *"Show me how to…"*. So: a task in the imperative, reading naturally mid-sentence,
+using no feature name the person has not met yet.
+
+| Write this | Not this | Why |
+| --- | --- | --- |
+| Start a new build | New build wizard | Names the task, not the screen |
+| Capture a style from a website | Style capture | A noun is not something you can be shown how to do |
+| Approve what's waiting on me | Approvals | Says what the person gets out of it |
+| Connect a tool server | MCP configuration | A word they have not met yet is not a title |
+
+The title does double duty: it is the row in the menu *and* the sentence the product says when it
+starts — "I'll show you how to approve what's waiting on you. Anything final is yours to press."
+Read every title back inside that sentence. If it does not fit, it is not a title yet.
+
+### Groups
+
+Group by the part of the person's job, not the part of the product. Five to nine groups; a group
+with one topic in it is not a group, it is a topic you have hidden. FlowCode's seven: Build, Design,
+Decisions, Project, Settings, Intelligence, Health.
+
+Order the groups the way the work happens, not alphabetically. Someone scanning the list is looking
+for where they are.
+
+### The card: one sentence, then what's in it
+
+- **The sentence says when you would want this**, not what the screen contains. "Where you say what
+  the app should do and who writes the code" beats "The new build form".
+- **"What's in it"** lists two to five parts as `Name — what it is for`. Same rule as the `say`
+  lines: the label is already on screen, so spend the words on the purpose.
+- **Every name must be a control that is actually there.** A name that has drifted is worse than a
+  missing one: the person reads it, goes looking, and finds nothing. Check these against the UI on a
+  schedule — a script that greps each name out of your source and reports the misses takes an hour to
+  write and catches every rename.
+- **Keep it to what the walkthrough touches.** A card is not a tour of the screen.
+
+### Matching a typed request
+
+Optional, and only if the product has a search or a chat box. Give each walkthrough a matcher so
+"how do I send an invoice" starts the right one:
+
+```ts
+{ id: "send-invoice", group: "Invoices", label: "Send an invoice to a client",
+  match: /\b(send|email|deliver)\b.*\b(invoice|bill)\b/, build: () => sendInvoiceJourney() }
+```
+
+- **A wrong match is worse than no match.** It moves someone's cursor somewhere they did not ask to
+  go. Require a verb *and* an object; never match a bare noun.
+- **Resolve ties by catalog order**, and keep the catalog ordered most-asked first.
+- **Say what it is about to do before it moves**, every time, in one sentence that names the
+  walkthrough and who presses the final button.
+- A request that matches nothing should fall back to the topics list, not to a guess.
+
+---
+
 ## Part 1 — Make the UI addressable
 
 Nothing else works until this is done, and it is the part that gets skipped.
@@ -248,6 +325,7 @@ Two rules:
 
 ## Build order
 
+0. The inventory, titles and groups (Part 0). On paper, before any code.
 1. Anchors on one screen, and a walkthrough using only `go`, `point` and `confirm`.
 2. The driver, with the `FINAL` guard and hand-back, before anything else.
 3. `click`, `type`, `tab`.
