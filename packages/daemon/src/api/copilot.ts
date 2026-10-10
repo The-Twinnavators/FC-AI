@@ -366,8 +366,13 @@ function partBrief(explain: string, part: { name: string; kind: string; context?
   const prompt = [
     `The user right-clicked the ${part.kind} "${part.name}" ${where} and wants to know about THAT ${part.kind} only.`,
     known ? `The guide says: ${known.name} — ${known.what}` : feature ? `The guide doesn't list it separately; it belongs to ${feature.title}: ${feature.summary}` : "",
-    part.context ? `Shown next to it: ${untrusted("ui-text", part.context)}` : "",
-    `Answer in 1–3 plain sentences: what this ${part.kind} does and when to use it. Do NOT describe the rest of the feature, list its other parts, or give a tour. If you're not sure what it does, say so plainly.`,
+    part.context ? `Shown next to it on the page: ${untrusted("ui-text", part.context)}` : "",
+    `Answer in 1–3 plain sentences: what this ${part.kind} does and when to use it. Do NOT describe the rest of the feature, list its other parts, or give a tour.`,
+    // Without this a small model answers from the word itself: "Peak" in a hardware table came back as "peak resource
+    // usage during a run". A confident wrong answer about the user's own product is worse than admitting the gap.
+    known
+      ? "Answer from the guide line above. Do not add capabilities it does not mention."
+      : `You have NOT been told what this ${part.kind} does. Work it out ONLY from the text shown next to it on the page, and only if that makes it plain. If it does not, reply exactly: "The guide doesn't cover this one yet${feature ? `, so I'd be guessing. It sits in ${feature.title}.` : ", so I'd be guessing."}" Never infer meaning from the name alone.`,
     "Then put 2–3 short follow-up questions the user might ask next in followUps.",
   ]
     .filter(Boolean)
