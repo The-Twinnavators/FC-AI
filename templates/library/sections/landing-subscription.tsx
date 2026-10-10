@@ -74,7 +74,7 @@ export default function LandingSubscription() {
   const [grind, setGrind] = useState(d.grinds[0]);
   const [freqId, setFreqId] = useState(d.frequencies[0].id);
   const [email, setEmail] = useState("");
-  const [ZIP code, setPostcode] = useState("");
+  const [postcode, setPostcode] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [done, setDone] = useState(false);
 
@@ -92,15 +92,15 @@ export default function LandingSubscription() {
     const next: Errors = {};
     if (!email.trim()) next.email = "Add an email for delivery updates.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) next.email = "That email looks incomplete, for example sam@home.com.";
-    if (!ZIP code.trim()) next.postcode = "Add your ZIP code so we can check delivery.";
-    else if (ZIP code.trim().length < 3) next.postcode = "That ZIP code looks too short.";
+    if (!postcode.trim()) next.postcode = "Add your ZIP code so we can check delivery.";
+    else if (postcode.trim().length < 3) next.postcode = "That ZIP code looks too short.";
     setErrors(next);
     if (Object.keys(next).length) {
       document.getElementById(`ld-sub-${Object.keys(next)[0]}`)?.focus();
       return;
     }
     try {
-      localStorage.setItem("landing-subscription", JSON.stringify({ plan: plan.id, roast, grind, frequency: freq.id, email: email.trim(), postcode: ZIP code.trim(), at: new Date().toISOString() }));
+      localStorage.setItem("landing-subscription", JSON.stringify({ plan: plan.id, roast, grind, frequency: freq.id, email: email.trim(), postcode: postcode.trim(), at: new Date().toISOString() }));
     } catch {
       /* storage unavailable: the confirmation still shows */
     }
@@ -311,7 +311,7 @@ export default function LandingSubscription() {
                         id="ld-sub-postcode"
                         className="fl-input"
                         autoComplete="postal-code"
-                        value={ZIP code}
+                        value={postcode}
                         onChange={(e) => setPostcode(e.target.value)}
                         aria-invalid={errors.postcode ? true : undefined}
                         aria-describedby={errors.postcode ? "ld-sub-postcode-err" : undefined}

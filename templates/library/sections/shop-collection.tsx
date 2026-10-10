@@ -38,7 +38,7 @@ const SAMPLE = {
   emptyText: "Try a wider price range or fewer sizes and colors.",
   emptyAction: "Clear filters",
   sizes: ["XS", "S", "M", "L", "XL"],
-  colours: [
+  colors: [
     { id: "oat", name: "Oat" },
     { id: "clay", name: "Clay" },
     { id: "sage", name: "Sage" },
@@ -59,7 +59,7 @@ const SAMPLE = {
 };
 
 type Filters = { min: string; max: string; sizes: string[]; colors: string[]; inStock: boolean };
-const NO_FILTERS: Filters = { min: "", max: "", sizes: [], colours: [], inStock: false };
+const NO_FILTERS: Filters = { min: "", max: "", sizes: [], colors: [], inStock: false };
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -210,10 +210,10 @@ function FilterFields({ prefix, f, set, priceError, counts }: { prefix: string; 
       <fieldset className="fl-shop-fieldset">
         <legend>{d.coloursLegend}</legend>
         <ul className="fl-shop-list">
-          {d.colours.map((c) => (
+          {d.colors.map((c) => (
             <li key={c.id}>
               <label className="fl-shop-check">
-                <input type="checkbox" checked={f.colours.includes(c.id)} onChange={() => set({ ...f, colours: toggle(f.colours, c.id) })} />
+                <input type="checkbox" checked={f.colors.includes(c.id)} onChange={() => set({ ...f, colors: toggle(f.colors, c.id) })} />
                 <span className={`fl-shop-swatch-dot fl-shop-tone--${c.id}`} aria-hidden="true" />
                 {c.name}
                 <small>
@@ -263,7 +263,7 @@ export default function ShopCollection() {
       if (!priceError && min !== null && p.price < min) return false;
       if (!priceError && max !== null && p.price > max) return false;
       if (f.sizes.length && !p.sizes.some((s) => f.sizes.includes(s))) return false;
-      if (f.colours.length && !f.colours.includes(p.colour)) return false;
+      if (f.colors.length && !f.colors.includes(p.colour)) return false;
       if (f.inStock && !p.inStock) return false;
       return true;
     });
@@ -285,8 +285,8 @@ export default function ShopCollection() {
     chips.push({ key: "price", label, clear: () => setF((x) => ({ ...x, min: "", max: "" })) });
   }
   f.sizes.forEach((s) => chips.push({ key: `size-${s}`, label: `Size ${s}`, clear: () => setF((x) => ({ ...x, sizes: x.sizes.filter((v) => v !== s) })) }));
-  f.colours.forEach((c) =>
-    chips.push({ key: `colour-${c}`, label: d.colours.find((x) => x.id === c)?.name ?? c, clear: () => setF((x) => ({ ...x, colours: x.colours.filter((v) => v !== c) })) }),
+  f.colors.forEach((c) =>
+    chips.push({ key: `colour-${c}`, label: d.colors.find((x) => x.id === c)?.name ?? c, clear: () => setF((x) => ({ ...x, colors: x.colors.filter((v) => v !== c) })) }),
   );
   if (f.inStock) chips.push({ key: "stock", label: d.stockLabel, clear: () => setF((x) => ({ ...x, inStock: false })) });
 
@@ -400,7 +400,7 @@ export default function ShopCollection() {
                       </a>
                     </h3>
                     <span className="fl-meta">
-                      {d.colours.find((c) => c.id === p.colour)?.name} · {p.sizes.join(", ")}
+                      {d.colors.find((c) => c.id === p.colour)?.name} · {p.sizes.join(", ")}
                     </span>
                     <span className="fl-shop-price">{money(p.price)}</span>
                   </li>

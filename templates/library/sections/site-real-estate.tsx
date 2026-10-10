@@ -137,7 +137,7 @@ export default function SiteRealEstate() {
     const v = (k: string) => String(f.get(k) ?? "").trim();
     const next: Errors = {};
     if (!v("address")) next.address = "Add the first line of the address.";
-    if (!/^[A-Za-z]{1,2}\d[A-Za-z\d]?\s*\d[A-Za-z]{2}$/.test(v("postcode"))) next.postcode = "Enter a full ZIP code, like AV1 3RT.";
+    if (!/^\d{5}(-\d{4})?$/.test(v("postcode"))) next.postcode = "Enter a full ZIP code, like AV1 3RT.";
     if (!v("type")) next.type = "Choose the type of property.";
     if (!v("name")) next.name = "Add your name.";
     const c = v("contact");
