@@ -14,6 +14,18 @@
  *
  * Make it the app's own: 2px or more, 2px of offset, and a second color underneath so it survives any background.
  */
+/**
+ * How to try it
+ * - Tab through the page rather than reading it: every button in the matrix takes focus, and only the ring changes.
+ * - Tab across the row of controls at the bottom: a ring has to work on all of them, not only on buttons.
+ * - Switch "Show the ring on mouse presses too" on, then click a button: that is :focus instead of :focus-visible, and why
+ *   people ask for rings to be removed.
+ *
+ * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths rather
+ * than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
+ * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
+ * it runs here.
+ */
 import { useState } from "react";
 import { Icon } from "./icons";
 

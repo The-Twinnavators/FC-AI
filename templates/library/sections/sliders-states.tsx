@@ -9,6 +9,15 @@
  *
  * Make it the app's own: set the min, max and step, and keep the value text. A stepped slider should say its steps.
  */
+/**
+ * How to try it
+ * - Drag any slider, or focus one and use the arrow keys: each cell keeps its own value and writes it out beside itself.
+ * - Drag the two range thumbs past each other: they keep their order.
+ *
+ * Dependencies: React (useState). Nothing else — no package to install and nothing fetched at run time. The styles are the
+ * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
+ * exactly as it runs here.
+ */
 import { useState } from "react";
 
 // flowcode:sample

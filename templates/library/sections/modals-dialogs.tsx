@@ -14,6 +14,18 @@
  *
  * Make it the app's own: put the verb in the button - "Delete shoot", never "OK" - and make the quiet option Cancel.
  */
+/**
+ * How to try it
+ * - Open any of the four. Focus moves into the dialog and back to the button that opened it.
+ * - Tab around inside one: focus cannot leave it.
+ * - Escape closes three of them and is ignored by the fourth, which is the point of that one.
+ * - The scrim closes the ones that may be closed.
+ *
+ * Dependencies: React (useEffect, useRef, useState), and the library's own inline icon set ("./icons"), which is a table of
+ * SVG paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles
+ * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
+ * built app exactly as it runs here.
+ */
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./icons";
 

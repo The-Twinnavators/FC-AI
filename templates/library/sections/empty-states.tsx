@@ -13,6 +13,17 @@
  *
  * Make it the app's own: replace the words, keep the four apart. An empty state with no action is a dead end.
  */
+/**
+ * How to try it
+ * - Type a word that is not there in the "Nothing found" search: it empties and fills as you type.
+ * - Press "Try again" on the failed one, then "Break it again".
+ * - The four are different on purpose: nothing yet, nothing found, nothing left, nothing worked.
+ *
+ * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths rather
+ * than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
+ * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
+ * it runs here.
+ */
 import { useState } from "react";
 import { Icon } from "./icons";
 

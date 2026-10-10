@@ -9,6 +9,17 @@
  *
  * Make it the app's own: keep the count. "Page 3" means nothing without "of 48".
  */
+/**
+ * How to try it
+ * - Press a page number, Previous or Next: the numbers and the "showing" line follow.
+ * - Press "Load 25 more" until it runs out.
+ * - Change rows per page: it goes back to page one, which is what changing the page size has to do.
+ *
+ * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths rather
+ * than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
+ * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
+ * it runs here.
+ */
 import { useState } from "react";
 import { Icon } from "./icons";
 

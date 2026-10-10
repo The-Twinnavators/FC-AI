@@ -58,6 +58,25 @@
 .fl-ctl-nav-menu { position: absolute; right: 0; top: calc(100% + var(--space-2)); z-index: 5; min-width: 12rem; box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.18)); }
 .fl-ctl-nav-skip { position: absolute; left: var(--space-3); top: var(--space-3); z-index: 6; border-radius: var(--radius-md); background: var(--color-accent); color: var(--color-on-accent, #fff); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); transform: translateY(-200%); transition: transform var(--duration-fast, 150ms) var(--easing, ease); }
 .fl-ctl-nav-skip:focus { transform: none; }
+/* ── A bar folds at its own width ───────────────────────────────────────────── */
+.fl-ctl-nav-wrap { position: relative; min-width: 0; }
+/* With room, the links are in the bar and the button is not there at all. */
+.fl-ctl-nav-fold { display: none; }
+@container specimen (max-width: 620px) {
+  .fl-ctl-nav-fold { display: inline-flex; margin-left: auto; }
+  .fl-ctl-nav-wrap .fl-ctl-nav-spacer { display: none; }
+  .fl-ctl-nav-wrap .fl-ctl-nav-links,
+  .fl-ctl-nav-wrap .fl-ctl-nav-acts { display: none; }
+  /* Open: the links drop out under the bar, full width, one per row - never a wrapped block inside it. */
+  .fl-ctl-nav-wrap.is-open .fl-ctl-nav-links,
+  .fl-ctl-nav-wrap.is-open .fl-ctl-nav-acts { display: grid; order: 9; flex: 1 0 100%; width: 100%; gap: var(--space-2); margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+  .fl-ctl-nav-wrap.is-open .fl-ctl-nav-acts { border-top: 0; padding-top: 0; }
+  .fl-ctl-nav-wrap.is-open .fl-ctl-nav-links ul { display: grid; gap: var(--space-1, 0.25rem); }
+  .fl-ctl-nav-wrap.is-open .fl-ctl-nav-links a { padding: var(--space-3); }
+  .fl-ctl-nav-wrap.is-open .fl-ctl-nav-search { flex: 1 0 100%; }
+  .fl-ctl-nav-wrap.is-open .fl-ctl-nav-acts .fl-btn { width: 100%; }
+}
+.fl-ctl-nav-acts { display: flex; align-items: center; gap: var(--space-2); }
 .fl-ctl-nav-phone { max-width: 22rem; }
 .fl-ctl-nav--phone { justify-content: space-between; }
 .fl-ctl-nav-sheet { display: grid; gap: var(--space-3); border: 1px solid var(--color-border); border-top: 0; border-radius: 0 0 var(--radius-lg) var(--radius-lg); background: var(--color-surface); padding: var(--space-4); }
@@ -143,7 +162,7 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-empty-hits { display: grid; gap: var(--space-2); width: 100%; margin: 0; padding: 0; list-style: none; text-align: left; }
 .fl-ctl-empty-hits li { border-radius: var(--radius-md); background: var(--color-surface-sunken); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); }
 
-@media (max-width: 760px) {
+@container specimen (max-width: 760px) {
   .fl-ctl-vtabs, .fl-ctl-side-stage { grid-template-columns: minmax(0, 1fr); }
   .fl-ctl-vtabs-rail { display: flex; overflow-x: auto; border-left: 0; border-bottom: 2px solid var(--color-border); padding: 0 0 var(--space-2); }
   .fl-ctl-vtab { width: auto; flex: none; }
@@ -321,7 +340,7 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-focus-row .fl-ctl-field { width: 9rem; }
 .fl-ctl-focus-range { width: 8rem; }
 
-@media (max-width: 760px) {
+@container specimen (max-width: 760px) {
   .fl-ctl-alert-list, .fl-ctl-prog-grid, .fl-ctl-dlg-list, .fl-ctl-pop-list, .fl-ctl-tip-grid { grid-template-columns: minmax(0, 1fr); }
   .fl-ctl-pop, .fl-ctl-pop--wide { width: min(16rem, 72vw); }
 }
@@ -552,7 +571,7 @@ a.fl-ctl-row:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 @keyframes fl-ctl-mo-collapse { from { opacity: 0; max-height: 0; padding-block: 0; } to { opacity: 1; max-height: 4rem; } }
 @keyframes fl-ctl-mo-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 55%, transparent); } 70% { box-shadow: 0 0 0 1rem transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 
-@media (max-width: 760px) {
+@container specimen (max-width: 760px) {
   .fl-ctl-list-grid, .fl-ctl-media-pair, .fl-ctl-mo-grid { grid-template-columns: minmax(0, 1fr); }
   .fl-ctl-msg-col { max-width: 85%; }
 }

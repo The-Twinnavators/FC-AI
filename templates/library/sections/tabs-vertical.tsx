@@ -12,6 +12,17 @@
  *
  * Make it the app's own: replace the sections. Keep one panel per tab, and never more than one level of them.
  */
+/**
+ * How to try it
+ * - Press any section in the rail, or use Up/Down, Home and End.
+ * - The panel beside it changes with the tab, and the disabled section is skipped.
+ * - Narrow the piece and the rail lies back down into a scrolling row.
+ *
+ * Dependencies: React (useRef, useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths
+ * rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the
+ * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
+ * exactly as it runs here.
+ */
 import { useRef, useState } from "react";
 import { Icon } from "./icons";
 

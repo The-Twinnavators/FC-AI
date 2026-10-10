@@ -14,6 +14,17 @@
  * Make it the app's own: pick one easing for entering and one for leaving, and use them everywhere. Anything over
  * 400 ms is the user waiting for your animation to finish.
  */
+/**
+ * How to try it
+ * - Press "Play them all", or Play on any one.
+ * - Change the duration and the easing: all six replay against the new pair, side by side.
+ * - Switch "Respect reduced motion" on: all six become the same short cross-fade, which is what the setting means.
+ *
+ * Dependencies: React (CSSProperties, useState), and the library's own inline icon set ("./icons"), which is a table of SVG
+ * paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are
+ * the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built
+ * app exactly as it runs here.
+ */
 import { useState, type CSSProperties } from "react";
 import { Icon } from "./icons";
 

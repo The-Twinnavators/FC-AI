@@ -13,6 +13,17 @@
  *
  * Make it the app's own: replace the columns. Keep the header in a thead so it sticks and is read as headings.
  */
+/**
+ * How to try it
+ * - Press a column heading to sort; press it again to reverse. aria-sort moves with it.
+ * - Tick rows: an actions bar appears and the header box goes indeterminate.
+ * - Switch Dense, Striped and "No rows" to see the table's other states, including an empty one that keeps its headings.
+ *
+ * Dependencies: React (useEffect, useRef, useState), and the library's own inline icon set ("./icons"), which is a table of
+ * SVG paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles
+ * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
+ * built app exactly as it runs here.
+ */
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./icons";
 

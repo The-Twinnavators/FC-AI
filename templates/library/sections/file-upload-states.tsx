@@ -14,6 +14,18 @@
  * Make it the app's own: set which file kinds you take and say so in the dropzone. Keep the retry on rows that can
  * succeed on a second try, and only on those.
  */
+/**
+ * How to try it
+ * - Drop a file on the first zone, or press it to pick one: it appears in the list and climbs to done.
+ * - Drop something over 10 MB: it lands refused, and offers no retry, because retrying it would fail the same way.
+ * - Press "Try again" on the row that lost its connection: that one can succeed.
+ * - Press the x on any row to remove it.
+ *
+ * Dependencies: React (useEffect, useRef, useState), and the library's own inline icon set ("./icons"), which is a table of
+ * SVG paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles
+ * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
+ * built app exactly as it runs here.
+ */
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./icons";
 

@@ -13,6 +13,16 @@
  *
  * Make it the app's own: one weight and one color for every divider in the app. Two weights reads as a mistake.
  */
+/**
+ * How to try it
+ * - Switch "Draw the lines" off: the same list without them, so you can judge whether they were doing anything.
+ * - The rest is reference: four weights, a vertical rule for toolbar groups, and a labelled rule.
+ *
+ * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths rather
+ * than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
+ * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
+ * it runs here.
+ */
 import { useState } from "react";
 import { Icon } from "./icons";
 

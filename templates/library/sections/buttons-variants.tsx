@@ -11,6 +11,18 @@
  * the app's tokens, so this set restyles with everything else.
  */
 
+/**
+ * How to try it
+ * - Press the heart: it toggles, and says so through the live region under the matrix.
+ * - Press Delete: it arms, then needs a second press to confirm.
+ * - Press Pay: it goes to its loading state, then stays done.
+ * - Every other cell is a state drawn on purpose, so the set reads without hovering.
+ *
+ * Dependencies: React (useEffect, useRef, useState), and the library's own inline icon set ("./icons"), which is a table of
+ * SVG paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles
+ * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
+ * built app exactly as it runs here.
+ */
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./icons";
 

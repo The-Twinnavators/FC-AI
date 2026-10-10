@@ -15,6 +15,18 @@
  * Make it the app's own: put your own images in, keep the ratio on the frame, and give every one a real alt or an
  * empty alt if it is decoration. There is no third option.
  */
+/**
+ * How to try it
+ * - Switch "Still loading" and "Never arrived" on and off: the layout holds still through both, which is the thing being
+ *   shown.
+ * - Cover and contain are the same picture in the same frame, so the cost of each is visible.
+ * - No image is fetched: the pictures are gradients, so the piece works in an app with no assets.
+ *
+ * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths rather
+ * than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
+ * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
+ * it runs here.
+ */
 import { useState } from "react";
 import { Icon } from "./icons";
 

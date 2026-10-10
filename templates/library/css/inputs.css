@@ -307,7 +307,7 @@ select.fl-in-trigger option { color: var(--color-text); }
 }
 
 /* ── Phones ── */
-@media (max-width: 560px) {
+@container specimen (max-width: 560px) {
   .fl-in-selects { grid-template-columns: minmax(0, 1fr); }
   .fl-in-drop { padding: var(--space-6) var(--space-4); }
   .fl-in-file { padding: var(--space-3); gap: var(--space-2); }
@@ -447,7 +447,7 @@ input.fl-ctl-field--56 { height: 56px; min-height: 56px; padding-inline: var(--s
 .fl-ctl-chip-item--44 { min-height: 44px; padding-inline: var(--space-4); font-size: var(--text-md); }
 
 /* ── Input specimens on a narrow screen ────────────────────────────────────── */
-@media (max-width: 760px) {
+@container specimen (max-width: 760px) {
   .fl-ctl-chip-bar { gap: var(--space-2); }
   .fl-ctl-file-list li { flex-wrap: wrap; }
   .fl-ctl-setting-list li { flex-wrap: wrap; gap: var(--space-3); }

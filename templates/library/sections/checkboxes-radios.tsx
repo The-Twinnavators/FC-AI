@@ -12,6 +12,16 @@
  *
  * Make it the app's own: replace the labels. Keep the description under a label where the choice needs explaining.
  */
+/**
+ * How to try it
+ * - Tick any box or radio in the matrix: they are real inputs, so the keyboard and screen readers work.
+ * - In "Select all, in practice", tick one or two rows: the box above them goes indeterminate on its own.
+ * - Press the indeterminate box: it chooses everything, which is what people expect.
+ *
+ * Dependencies: React (useEffect, useRef, useState). Nothing else — no package to install and nothing fetched at run time.
+ * The styles are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece
+ * runs in a built app exactly as it runs here.
+ */
 import { useEffect, useRef, useState } from "react";
 
 // flowcode:sample

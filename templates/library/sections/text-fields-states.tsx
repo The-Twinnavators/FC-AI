@@ -11,6 +11,17 @@
  * message goes and how it is tied to the field for a screen reader. Underneath, the same field live: the error
  * appears when you leave it empty or half-written, and goes when the address is whole.
  */
+/**
+ * How to try it
+ * - Type in any cell: the matrix rows are real fields, not pictures of fields.
+ * - In "The same field, live", leave the email half-written and tab out: the error arrives on the way out, not on every
+ *   keystroke, and clears when the address is whole.
+ * - Type past 140 characters in the note: the count turns into an error.
+ *
+ * Dependencies: React (useState). Nothing else — no package to install and nothing fetched at run time. The styles are the
+ * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
+ * exactly as it runs here.
+ */
 import { useState } from "react";
 
 // flowcode:sample

@@ -15,6 +15,18 @@
  * Make it the app's own: replace the commands. Keep the recent list for an empty query; a palette that starts blank
  * teaches nobody what it can do.
  */
+/**
+ * How to try it
+ * - Press Ctrl+K anywhere on the page, or the button.
+ * - Type: the list narrows, the match is marked, and results stay grouped.
+ * - Arrow keys move the highlight while focus stays in the field; Enter runs; Escape closes.
+ * - Type something that matches nothing: it says what it looked through.
+ *
+ * Dependencies: React (useEffect, useMemo, useRef, useState), and the library's own inline icon set ("./icons"), which is a
+ * table of SVG paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The
+ * styles are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs
+ * in a built app exactly as it runs here.
+ */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "./icons";
 

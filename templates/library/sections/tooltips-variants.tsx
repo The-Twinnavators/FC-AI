@@ -12,6 +12,18 @@
  *
  * Make it the app's own: name the control, in two or three words. If it needs a sentence, it is not a tooltip.
  */
+/**
+ * How to try it
+ * - Rest on any of the four buttons, or tab to one: both open the tooltip, after a short delay going in and none coming
+ *   out.
+ * - Sweep across the toolbar: only the one you rest on opens.
+ * - Escape shuts an open tooltip.
+ *
+ * Dependencies: React (ReactNode, useEffect, useRef, useState), and the library's own inline icon set ("./icons"), which is
+ * a table of SVG paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time.
+ * The styles are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece
+ * runs in a built app exactly as it runs here.
+ */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
 

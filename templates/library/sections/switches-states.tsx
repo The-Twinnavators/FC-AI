@@ -12,6 +12,16 @@
  *
  * Make it the app's own: replace the settings and their descriptions. If a change needs saving, use a checkbox.
  */
+/**
+ * How to try it
+ * - Flick any switch in the matrix, at any size.
+ * - Flick one in the settings list: it says it saved as it moved, which is the whole difference between a switch and a
+ *   checkbox.
+ *
+ * Dependencies: React (useState). Nothing else — no package to install and nothing fetched at run time. The styles are the
+ * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
+ * exactly as it runs here.
+ */
 import { useState } from "react";
 
 // flowcode:sample

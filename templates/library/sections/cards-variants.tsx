@@ -11,6 +11,17 @@
  * them can be chosen at a time. Make it the app's own: pick one kind per list and keep it. Mixing clickable and plain
  * cards in one grid confuses.
  */
+/**
+ * How to try it
+ * - Press a clickable card, or focus one and press Enter: it says what it opened.
+ * - Choose a selectable card: they are one radio group, so choosing one lets go of the last.
+ * - Cells that say "not applicable" are states that kind of card cannot reach.
+ *
+ * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths rather
+ * than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
+ * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
+ * it runs here.
+ */
 import { useState } from "react";
 import { Icon } from "./icons";
 

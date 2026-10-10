@@ -13,6 +13,16 @@
  *
  * Make it the app's own: under a second, show nothing. Over ten, show a percentage or say what is happening.
  */
+/**
+ * How to try it
+ * - Press "Run it": the bar, the ring and the step name all follow one run, which can be paused and restarted.
+ * - "Back to nothing" resets it.
+ * - The indeterminate bar has no percentage on purpose: that absence is what says "unknown".
+ *
+ * Dependencies: React (useEffect, useState). Nothing else — no package to install and nothing fetched at run time. The
+ * styles are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs
+ * in a built app exactly as it runs here.
+ */
 import { useEffect, useState } from "react";
 
 // flowcode:sample

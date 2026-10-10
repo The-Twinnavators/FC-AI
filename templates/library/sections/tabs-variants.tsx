@@ -9,6 +9,15 @@
  *
  * Make it the app's own: keep one look across the app, and keep the counts only on tabs that filter a list.
  */
+/**
+ * How to try it
+ * - Press any tab, or focus one and use the arrow keys: the panel below it changes.
+ * - Only one tab in each set is in the tab order; the arrows move between them.
+ *
+ * Dependencies: React (useState). Nothing else — no package to install and nothing fetched at run time. The styles are the
+ * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
+ * exactly as it runs here.
+ */
 import { useState } from "react";
 
 // flowcode:sample

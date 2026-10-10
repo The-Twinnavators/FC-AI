@@ -13,6 +13,18 @@
  *
  * Make it the app's own: one kind per list. The commonest fault is a hover state on a row that cannot be pressed.
  */
+/**
+ * How to try it
+ * - Press a message row: it is a link, and the one you are on stays marked.
+ * - Press Download or the x on a file row: the row's buttons act, the row itself does not.
+ * - Move a part of the day up or down: reordering works from the keyboard, not only by dragging.
+ * - The first list is facts and reacts to nothing, on purpose.
+ *
+ * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths rather
+ * than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
+ * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
+ * it runs here.
+ */
 import { useState } from "react";
 import { Icon } from "./icons";
 

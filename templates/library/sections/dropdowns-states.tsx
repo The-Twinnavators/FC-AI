@@ -12,6 +12,19 @@
  *
  * Make it the app's own: replace the options. Keep the chosen option marked with a tick, not with color alone.
  */
+/**
+ * How to try it
+ * - Open any select or type in any combo box in the matrix.
+ * - "Choose one": arrow keys and Home/End move the highlight, Enter chooses, and the tick follows.
+ * - "Choose several": the count follows the boxes, and Clear empties them.
+ * - "Combo box, open": type and the list narrows; an empty result says so.
+ * - "Overflow menu": the kebab opens and closes it, arrows skip the disabled item, Escape shuts it.
+ *
+ * Dependencies: React (useEffect, useState), and the library's own inline icon set ("./icons"), which is a table of SVG
+ * paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are
+ * the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built
+ * app exactly as it runs here.
+ */
 import { useEffect, useState } from "react";
 import { Icon } from "./icons";
 

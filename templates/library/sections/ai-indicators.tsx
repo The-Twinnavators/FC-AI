@@ -16,6 +16,17 @@
  *
  * Make it the app's own: label the output, not the button. The person reading it later is the one who needs to know.
  */
+/**
+ * How to try it
+ * - Press Tab in the empty brief field to take the suggestion, or just type over it.
+ * - Press "Ask it": the answer arrives a few letters at a time and can be stopped partway.
+ * - Press a source to open it. Every mark says what it is in words as well as in color.
+ *
+ * Dependencies: React (useEffect, useState), and the library's own inline icon set ("./icons"), which is a table of SVG
+ * paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are
+ * the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built
+ * app exactly as it runs here.
+ */
 import { useEffect, useState } from "react";
 import { Icon } from "./icons";
 

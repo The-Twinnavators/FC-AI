@@ -11,6 +11,16 @@
  * Make it the app's own: keep the close button, the title, and Escape. A drawer that cannot be closed by keyboard is
  * a trap. Motion is skipped for anyone who asks for less of it.
  */
+/**
+ * How to try it
+ * - Press Open on any of the three: it slides in over a scrim.
+ * - Press the scrim, the close button, or Escape to shut whichever is open.
+ *
+ * Dependencies: React (useEffect, useState), and the library's own inline icon set ("./icons"), which is a table of SVG
+ * paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are
+ * the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built
+ * app exactly as it runs here.
+ */
 import { useEffect, useState } from "react";
 import { Icon } from "./icons";
 

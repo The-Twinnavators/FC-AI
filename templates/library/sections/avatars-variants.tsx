@@ -13,6 +13,17 @@
  *
  * Make it the app's own: replace the people. Keep the initials fallback; roughly one picture in twenty will not load.
  */
+/**
+ * How to try it
+ * - Nothing to press: this one is about what happens without you.
+ * - The second avatar under "When the picture is not there" loads a broken address on purpose, so you see the fallback
+ *   happen rather than being told about it.
+ * - Initials are worked out from the name, so one name gives one letter and no name gives a shape.
+ *
+ * Dependencies: React (useState). Nothing else — no package to install and nothing fetched at run time. The styles are the
+ * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
+ * exactly as it runs here.
+ */
 import { useState } from "react";
 
 // flowcode:sample
