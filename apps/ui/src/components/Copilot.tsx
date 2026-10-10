@@ -13,7 +13,7 @@ import { navigate } from "../router";
 import { ResizeHandle, usePersistedWidth } from "./ResizeHandle";
 import { playSound } from "./sounds";
 import { NARRATE, startJourney } from "./CopilotDriver";
-import { CATALOG, DRAFT_LABEL, draftJourney, matchDraft, matchJourney, moreJourneys, stepsJourney, type JourneyMatch } from "./copilotJourneys";
+import { CATALOG, DRAFT_LABEL, draftJourney, matchDraft, matchJourney, moreJourneys, nextInBuild, stepsJourney, type JourneyMatch } from "./copilotJourneys";
 import { ChatAuthor, ChatText, JumpToLatest, useStickyScroll } from "./ChatParts";
 
 interface Msg {
@@ -34,6 +34,8 @@ interface Msg {
   journey?: JourneyMatch;
   /** After a journey ends: other things the Copilot can do for you (catalog ids). */
   more?: string[];
+  /** The next stage of the build after the journey that just finished, with the reason it follows. */
+  next?: { id: string; why: string };
 }
 
 /** The structured run facts behind a status answer (from the daemon's runFacts). */
@@ -317,11 +319,15 @@ export function Copilot({ route, projectId, runId, open, setOpen }: { route: str
       const d = (e as CustomEvent<{ id?: string; title: string; i: number; n: number; say: string; final?: boolean; note?: string; ended?: "done" | "stopped" }>).detail;
       const content = d.ended === "stopped" ? `Stopped at step ${d.i + 1} of ${d.n}. You've got the controls; ask me again any time.` : `Step ${d.i + 1} of ${d.n}: ${d.say}${d.note ? ` (${d.note})` : ""}${d.final ? " The final button is yours to press." : ""}`;
       setMsgs((m) => [...m, { role: "assistant", content, source: "drive" }]);
-      // When a journey finishes (or you stop it), offer four other things the Copilot can do.
+      // A finished journey hands you to the next stage of the build; a stopped one does not push you onward.
       if (d.ended === "stopped" || d.i === d.n - 1) {
+        const next = d.ended === "stopped" ? undefined : nextInBuild(d.id);
+        if (next) {
+          setMsgs((m) => [...m, { role: "assistant", content: `Next: ${next.entry.label.toLowerCase()}. ${next.why}`, source: "drive", next: { id: next.entry.id, why: next.why } }]);
+        }
         const more = moreJourneys(d.title, recentMore.current, d.id);
         recentMore.current = [...more, ...recentMore.current].slice(0, 8);
-        setMsgs((m) => [...m, { role: "assistant", content: "I can also do these for you in the app:", source: "drive", more }]);
+        setMsgs((m) => [...m, { role: "assistant", content: next ? "Or go somewhere else:" : "I can also do these for you in the app:", source: "drive", more }]);
       }
     };
     window.addEventListener(NARRATE, on);
@@ -433,6 +439,13 @@ export function Copilot({ route, projectId, runId, open, setOpen }: { route: str
                     </button>
                   ) : null}
                   {m.draft ? <DraftCard draft={m.draft} onSend={(text) => sendDraft(i, text)} /> : null}
+                  {m.next ? (
+                    <div className="copilot__journey">
+                      <button type="button" className="btn btn--sm btn--primary" onClick={() => offer(m.next!.id)}>
+                        Take me there
+                      </button>
+                    </div>
+                  ) : null}
                   {m.more?.length ? (
                     <div className="copilot__more" role="group" aria-label="Other things the Copilot can do">
                       {m.more.map((id) => {

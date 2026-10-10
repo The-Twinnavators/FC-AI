@@ -292,6 +292,39 @@ export const CATALOG: Array<{ id: string; group: string; label: string; match: R
  * Four other journeys to offer after one ends: two from the same area as the one just done (its group), two from
  * elsewhere, skipping the one just done and any offered recently, so each time shows something new.
  */
+/**
+ * What comes next, once a stage is done. The spine is the build itself - a problem becomes a PRD, a PRD becomes a
+ * build, a build waits on your decisions, then you try it, then you change it or ship it - and the rest are on-ramps
+ * that join it. Without this a journey ended on its last button and offered four unrelated things, which told you
+ * what else the Copilot could do and nothing about what you were in the middle of.
+ *
+ * `why` is said in the chat, so the next step reads as the next step and not as another suggestion.
+ */
+export const NEXT_IN_BUILD: Record<string, { id: string; why: string }> = {
+  // The spine.
+  "create-prd": { id: "new-build", why: "A finished PRD is what a build starts from." },
+  "new-build": { id: "approve", why: "A build stops for your decisions; that is where it will wait for you." },
+  approve: { id: "preview", why: "Once it is past your decisions, see what it actually built." },
+  preview: { id: "change", why: "Anything you want different, ask for it here." },
+  change: { id: "preview", why: "Try the change once it has been built and checked." },
+  // On-ramps that join the spine.
+  "prd-build": { id: "approve", why: "The build stops for your decisions once it is under way." },
+  "style-new-build": { id: "approve", why: "The build stops for your decisions once it is under way." },
+  "open-folder": { id: "flowreport", why: "A folder you have just opened is worth reading before you change it." },
+  flowreport: { id: "new-build", why: "With the report read, a build can start from what it found." },
+  "build-idea": { id: "preview", why: "See the idea in the app once it is built." },
+  undo: { id: "preview", why: "Check the app is back where you wanted it." },
+  plan: { id: "approve", why: "The plan runs as far as its first decision, which is yours." },
+  reports: { id: "launch", why: "The checks passing is what launch readiness is measured against." },
+};
+
+/** The next stage after `id`, when there is one, as a catalog entry plus the reason to go there now. */
+export function nextInBuild(id?: string): { entry: (typeof CATALOG)[number]; why: string } | undefined {
+  const next = id ? NEXT_IN_BUILD[id] : undefined;
+  const entry = next && CATALOG.find((c) => c.id === next.id);
+  return entry && next ? { entry, why: next.why } : undefined;
+}
+
 export function moreJourneys(doneTitle: string, recent: string[] = [], doneId?: string): string[] {
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z ]/g, "");
   const done = CATALOG.find((c) => c.id === doneId) ?? CATALOG.find((c) => norm(c.label) === norm(doneTitle) || norm(doneTitle).includes(norm(c.label)) || norm(c.label).includes(norm(doneTitle)));
