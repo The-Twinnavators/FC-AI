@@ -1363,6 +1363,21 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       return fail(e);
     }
   });
+  add("POST /topics/:id/hide", ({ params, body }) => {
+    const b = parse(z.object({ url: z.string().url().max(2000), hidden: z.boolean() }), body);
+    try {
+      return web.hideItem(params.id, b.url, b.hidden);
+    } catch (e) {
+      return fail(e);
+    }
+  });
+  add("POST /web/block", ({ body }) => {
+    try {
+      return web.blockSource(parse(z.object({ host: z.string().min(1).max(253) }), body).host);
+    } catch (e) {
+      return fail(e);
+    }
+  });
   add("POST /topics/:id/analyze", async ({ params }) => {
     try {
       return await web.analyzeTopic(params.id);

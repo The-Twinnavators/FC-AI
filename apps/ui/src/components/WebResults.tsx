@@ -3,7 +3,7 @@
  * Thumbnails load through the daemon's proxy (blocked hosts are never contacted; the page's CSP stays local-only).
  */
 import { useState } from "react";
-import { Bookmark, BookmarkCheck, BookOpen, FileText, Globe, Newspaper, Play, Users } from "lucide-react";
+import { Ban, Bookmark, BookmarkCheck, BookOpen, EyeOff, FileText, Globe, Newspaper, Play, Users } from "lucide-react";
 import { conn } from "../api";
 import { ResultModal } from "./ResultModal";
 
@@ -28,6 +28,8 @@ export interface Topic {
   updatedAt: string;
   results: WebResult[];
   fetchedAt?: string;
+  /** URLs hidden in this topic. Only Topic Search sets these. */
+  hidden?: string[];
   saved: WebResult[];
   analysis?: { markdown: string; generatedAt: string; model?: string; fallback?: boolean };
   knowledgeId?: string;
@@ -67,7 +69,21 @@ function Thumb({ r }: { r: WebResult }) {
   );
 }
 
-export function ResultCard({ r, saved, onToggleSave }: { r: WebResult; saved?: boolean; onToggleSave?: (r: WebResult, saved: boolean) => void }) {
+export function ResultCard({
+  r,
+  saved,
+  onToggleSave,
+  onHide,
+  onBlock,
+}: {
+  r: WebResult;
+  saved?: boolean;
+  onToggleSave?: (r: WebResult, saved: boolean) => void;
+  /** Hide this one post, here. Topic Search only. */
+  onHide?: (r: WebResult) => void;
+  /** Never show this source again, anywhere. Topic Search only. */
+  onBlock?: (r: WebResult) => void;
+}) {
   const Ico = TAB_ICON[r.tab];
   const [open, setOpen] = useState(false);
   return (
@@ -88,11 +104,23 @@ export function ResultCard({ r, saved, onToggleSave }: { r: WebResult; saved?: b
         {r.snippet ? <p className="web-card__snip">{r.snippet}</p> : null}
         <div className="web-card__foot">
           <span className="muted mono">{r.publishedAt ? r.publishedAt.slice(0, 10) : ""}</span>
-          {onToggleSave ? (
-            <button className={`icon-btn web-card__save${saved ? " is-saved" : ""}`} aria-pressed={!!saved} aria-label={saved ? `Remove "${r.title}" from saved` : `Save "${r.title}"`} title={saved ? "Saved — click to remove" : "Save to topic"} onClick={() => onToggleSave(r, !saved)}>
-              {saved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
-            </button>
-          ) : null}
+          <span className="web-card__acts">
+            {onHide ? (
+              <button className="icon-btn" aria-label={`Hide "${r.title}" from this topic`} title="Hide this post" onClick={() => onHide(r)}>
+                <EyeOff size={16} />
+              </button>
+            ) : null}
+            {onBlock ? (
+              <button className="icon-btn" aria-label={`Block ${r.source} everywhere`} title={`Block ${r.source}`} onClick={() => onBlock(r)}>
+                <Ban size={16} />
+              </button>
+            ) : null}
+            {onToggleSave ? (
+              <button className={`icon-btn web-card__save${saved ? " is-saved" : ""}`} aria-pressed={!!saved} aria-label={saved ? `Remove "${r.title}" from saved` : `Save "${r.title}"`} title={saved ? "Saved — click to remove" : "Save to topic"} onClick={() => onToggleSave(r, !saved)}>
+                {saved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+              </button>
+            ) : null}
+          </span>
         </div>
       </div>
     </article>

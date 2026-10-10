@@ -165,14 +165,43 @@ function TopicPage({ id }: { id: string }) {
   if (!t) return <div className="page">{error ? <p className="notice notice--bad" role="alert">{error}</p> : <SkeletonBlock rows={4} label="Loading topic" />}</div>;
 
   const savedUrls = new Set(t.saved.map((s) => s.url));
-  const all = [...t.results];
+  // Hidden posts are kept, so showing them again is instant; they are filtered here and nowhere else.
+  const hiddenUrls = new Set(t.hidden ?? []);
+  const all = t.results.filter((r) => !hiddenUrls.has(r.url));
+  const savedShown = t.saved.filter((r) => !hiddenUrls.has(r.url));
   const order: Array<"all" | ResultTab | "saved"> = ["all", "videos", "general", "pdfs", "news", "reference", "community", "saved"];
-  const counts = order.map((k) => [k, k === "all" ? all.length : k === "saved" ? t.saved.length : all.filter((r) => r.tab === k).length] as ["all" | ResultTab | "saved", number]);
-  const shown = tab === "all" ? all : tab === "saved" ? t.saved : all.filter((r) => r.tab === tab);
+  const counts = order.map((k) => [k, k === "all" ? all.length : k === "saved" ? savedShown.length : all.filter((r) => r.tab === k).length] as ["all" | ResultTab | "saved", number]);
+  const shown = tab === "all" ? all : tab === "saved" ? savedShown : all.filter((r) => r.tab === tab);
   const sources = new Map<string, number>();
   for (const r of all) sources.set(r.source, (sources.get(r.source) ?? 0) + 1);
   const top = [...sources.entries()].sort((a, b) => b[1] - a[1])[0];
   const toggle = async (r: WebResult, saved: boolean) => setT(await post<Topic>(`/topics/${t.id}/save`, { item: r, saved }));
+  const hiddenCount = t.hidden?.length ?? 0;
+  // Hiding is this topic's business and is undone from the line under the tabs; blocking changes
+  // the blocklist for the whole app, so it asks first and says what it took away.
+  const hide = async (r: WebResult) => {
+    setT(await post<Topic>(`/topics/${t.id}/hide`, { url: r.url, hidden: true }));
+    setNote(`Hidden: ${r.title}`);
+  };
+  const unhideAll = async () => {
+    let next = t;
+    for (const url of t.hidden ?? []) next = await post<Topic>(`/topics/${t.id}/hide`, { url, hidden: false });
+    setT(next);
+    setNote("Everything hidden here is back.");
+  };
+  const block = async (r: WebResult) => {
+    const host = (() => {
+      try {
+        return new URL(r.url).hostname.replace(/^www\./, "");
+      } catch {
+        return r.source;
+      }
+    })();
+    if (!confirm(`Block ${host} everywhere? It goes on your blocklist, and anything already saved from it is removed from every topic. You can take it off again in Settings.`)) return;
+    const res = await post<{ removed: number }>("/web/block", { host });
+    setT(await get<Topic>(`/topics/${t.id}`));
+    setNote(`${host} is blocked. ${res.removed} result${res.removed === 1 ? "" : "s"} removed across your topics.`);
+  };
 
   return (
     <div className="page">
@@ -287,10 +316,18 @@ function TopicPage({ id }: { id: string }) {
         </aside>
         <section style={{ minWidth: 0 }}>
           <ResultTabs label="Result type" value={tab} onChange={setTab} counts={counts} />
+          {hiddenCount ? (
+            <p className="muted" style={{ marginTop: 0 }}>
+              {hiddenCount} post{hiddenCount === 1 ? "" : "s"} hidden here, and a refresh will not bring {hiddenCount === 1 ? "it" : "them"} back.{" "}
+              <button className="btn btn--sm" onClick={() => void unhideAll()}>
+                Show them again
+              </button>
+            </p>
+          ) : null}
           {shown.length ? (
             <div className="web-grid web-grid--topic">
               {shown.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((r) => (
-                <ResultCard key={r.url} r={r} saved={savedUrls.has(r.url)} onToggleSave={toggle} />
+                <ResultCard key={r.url} r={r} saved={savedUrls.has(r.url)} onToggleSave={toggle} onHide={hide} onBlock={block} />
               ))}
             </div>
           ) : (

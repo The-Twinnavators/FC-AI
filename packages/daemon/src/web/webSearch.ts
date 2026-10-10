@@ -43,6 +43,8 @@ export interface Topic {
   results: WebResult[];
   fetchedAt?: string;
   saved: WebResult[];
+  /** URLs hidden in this topic. Kept rather than deleted, so a refresh cannot bring one back and it can be put back by hand. */
+  hidden?: string[];
   analysis?: { markdown: string; generatedAt: string; model?: string; fallback?: boolean };
   knowledgeId?: string;
 }
@@ -336,9 +338,39 @@ export class WebSearchService {
     const stale = !t.fetchedAt || Date.now() - new Date(t.fetchedAt).getTime() > 3600_000;
     if (!force && !stale) return t;
     const r = await this.search(t.query);
+    // Hidden posts are filtered when the topic is read, so a refresh can take whatever the search returns.
     t.results = r.results.slice(0, 60);
     t.fetchedAt = now();
     return this.put(t);
+  }
+
+  /**
+   * Hide one post in this topic, or put it back. The post is kept and filtered out when the topic is read, so
+   * showing it again works at once and does not depend on a fresh search returning the same thing.
+   */
+  hideItem(id: string, url: string, hidden: boolean): Topic {
+    const t = this.topic(id);
+    const list = new Set(t.hidden ?? []);
+    if (hidden) list.add(url);
+    else list.delete(url);
+    t.hidden = [...list];
+    return this.put(t);
+  }
+
+  /** Block a source everywhere: it goes on the blocklist, and every topic loses what it already had from it. */
+  blockSource(host: string): { settings: WebSettings; removed: number } {
+    const clean = host.trim().toLowerCase().replace(/^\*\./, "").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(clean)) throw new Error(`"${host}" is not a site address`);
+    const cur = this.settings();
+    const settings = cur.blocklist.some((d) => d.trim().toLowerCase() === clean) ? cur : this.saveSettings({ blocklist: [...cur.blocklist, clean] });
+    let removed = 0;
+    const keep = (r: WebResult) => {
+      if (!blockReason(r.url, settings)) return true;
+      removed += 1;
+      return false;
+    };
+    this.saveTopics(this.topics().map((t) => ({ ...t, results: t.results.filter(keep), saved: t.saved.filter(keep) })));
+    return { settings, removed };
   }
 
   saveItem(id: string, item: WebResult, saved: boolean): Topic {

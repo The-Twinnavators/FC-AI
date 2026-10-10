@@ -2858,6 +2858,21 @@ form .section__body,
   min-height: 28px;
   font-size: 11.5px;
 }
+/* Hide, block and save sit together at the end of the row; the quieter two appear on a topic card only. */
+.web-card__acts {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.web-card__acts .icon-btn {
+  opacity: 0.6;
+}
+.web-card__acts .icon-btn:hover,
+.web-card__acts .icon-btn:focus-visible,
+.web-card__acts .web-card__save.is-saved {
+  opacity: 1;
+}
 .icon-btn {
   width: 30px;
   height: 30px;
