@@ -78,6 +78,14 @@ const SUGGESTIONS: Record<string, string[]> = {
   settings: ["How do I set light or dark per page?", "What does the Copilot know about me?", "How do I change the PRD templates?"],
   primitives: ["What is on the Branding page?", "How do prototypes use these components?"],
   guide: ["Where should I start?", "How do I build a prototype from a PRD?", "What does Create PRD do?"],
+  // These six had no entry and fell through to the Dashboard's four, so the Copilot opened on Approvals asking how
+  // to start a prototype. A page you are standing on is the thing you are most likely to be asking about.
+  approvals: ["What is waiting on me?", "What happens if I deny this?", "Why does FlowCode need my OK for this?", "Where do I see what I decided before?"],
+  components: ["What is the component library for?", "How do agents choose a component?", "What is the approval shelf?", "Can I use these in my own app?"],
+  pipeline: ["What does the skill pipeline show?", "How does a skill get proposed?", "How do I approve a skill?"],
+  journal: ["What goes in the journal?", "How do I write a decision?", "Where do notes show up later?"],
+  flowreport: ["What does a repo report cover?", "How long does a report take?", "What do the section scores mean?", "Is my code sent anywhere?"],
+  about: ["What is FlowCode?", "What runs on my computer?", "Which models does it use?"],
 };
 function suggestionsFor(route: string): string[] {
   const parts = route.replace(/^\//, "").split(/[/?]/).filter(Boolean);
@@ -107,6 +115,11 @@ function load(): Msg[] {
 }
 
 export function Copilot({ route, projectId, runId, open, setOpen }: { route: string; projectId?: string; runId?: string; open: boolean; setOpen: (fn: (o: boolean) => boolean) => void }) {
+  // What the chain needs to know before it sends you anywhere: how many decisions are actually waiting, and whether
+  // there is a project to go to. The same /approvals the nav badge reads, so the two can never disagree.
+  const waitingNow = useResource<Array<{ status?: string }>>("/approvals", [], 0);
+  const state = useRef({ waiting: 0, hasProject: false });
+  state.current = { waiting: (waitingNow.data ?? []).filter((a) => (a.status ?? "pending") === "pending").length, hasProject: Boolean(projectId) };
   const [msgs, setMsgs] = useState<Msg[]>(load);
   /** The "Show me how to…" list, opened from the header's Show me. */
   const [showMenu, setShowMenu] = useState(false);
@@ -321,7 +334,7 @@ export function Copilot({ route, projectId, runId, open, setOpen }: { route: str
       setMsgs((m) => [...m, { role: "assistant", content, source: "drive" }]);
       // A finished journey hands you to the next stage of the build; a stopped one does not push you onward.
       if (d.ended === "stopped" || d.i === d.n - 1) {
-        const next = d.ended === "stopped" ? undefined : nextInBuild(d.id);
+        const next = d.ended === "stopped" ? undefined : nextInBuild(d.id, state.current);
         if (next) {
           setMsgs((m) => [...m, { role: "assistant", content: `Next: ${next.entry.label.toLowerCase()}. ${next.why}`, source: "drive", next: { id: next.entry.id, why: next.why } }]);
         }

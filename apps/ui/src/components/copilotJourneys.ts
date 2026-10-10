@@ -300,29 +300,39 @@ export const CATALOG: Array<{ id: string; group: string; label: string; match: R
  *
  * `why` is said in the chat, so the next step reads as the next step and not as another suggestion.
  */
-export const NEXT_IN_BUILD: Record<string, { id: string; why: string }> = {
+export const NEXT_IN_BUILD: Record<string, { id: string; why: string; /** Where to go instead when nothing is waiting on you, so the chain never sends you to an empty page. */ ifNothingWaiting?: { id: string; why: string } }> = {
   // The spine.
   "create-prd": { id: "new-build", why: "A finished PRD is what a build starts from." },
-  "new-build": { id: "approve", why: "A build stops for your decisions; that is where it will wait for you." },
+  "new-build": { id: "approve", why: "A build stops for your decisions; that is where it will wait for you.", ifNothingWaiting: { id: "preview", why: "Nothing is waiting on you, so go and see what it has built so far." } },
   approve: { id: "preview", why: "Once it is past your decisions, see what it actually built." },
   preview: { id: "change", why: "Anything you want different, ask for it here." },
   change: { id: "preview", why: "Try the change once it has been built and checked." },
   // On-ramps that join the spine.
-  "prd-build": { id: "approve", why: "The build stops for your decisions once it is under way." },
-  "style-new-build": { id: "approve", why: "The build stops for your decisions once it is under way." },
+  "prd-build": { id: "approve", why: "The build stops for your decisions once it is under way.", ifNothingWaiting: { id: "preview", why: "Nothing is waiting on you, so go and see what it has built so far." } },
+  "style-new-build": { id: "approve", why: "The build stops for your decisions once it is under way.", ifNothingWaiting: { id: "preview", why: "Nothing is waiting on you, so go and see what it has built so far." } },
   "open-folder": { id: "flowreport", why: "A folder you have just opened is worth reading before you change it." },
   flowreport: { id: "new-build", why: "With the report read, a build can start from what it found." },
   "build-idea": { id: "preview", why: "See the idea in the app once it is built." },
   undo: { id: "preview", why: "Check the app is back where you wanted it." },
-  plan: { id: "approve", why: "The plan runs as far as its first decision, which is yours." },
+  plan: { id: "approve", why: "The plan runs as far as its first decision, which is yours.", ifNothingWaiting: { id: "reports", why: "Nothing is waiting on you, so look at how the steps actually went." } },
   reports: { id: "launch", why: "The checks passing is what launch readiness is measured against." },
 };
 
-/** The next stage after `id`, when there is one, as a catalog entry plus the reason to go there now. */
-export function nextInBuild(id?: string): { entry: (typeof CATALOG)[number]; why: string } | undefined {
-  const next = id ? NEXT_IN_BUILD[id] : undefined;
-  const entry = next && CATALOG.find((c) => c.id === next.id);
-  return entry && next ? { entry, why: next.why } : undefined;
+/**
+ * The next stage after `id`, as a catalog entry plus the reason to go there now.
+ *
+ * `waiting` is how many decisions are actually waiting on you. Without it the chain pointed at Approvals whether or
+ * not there was anything there, which is worse than saying nothing: it sends you to an empty page and calls it the
+ * next step. A stage that needs a project is dropped when there is no project open rather than offered and refused.
+ */
+export function nextInBuild(id?: string, state?: { waiting?: number; hasProject?: boolean }): { entry: (typeof CATALOG)[number]; why: string } | undefined {
+  const link = id ? NEXT_IN_BUILD[id] : undefined;
+  if (!link) return undefined;
+  const target = link.ifNothingWaiting && state?.waiting === 0 ? link.ifNothingWaiting : link;
+  const entry = CATALOG.find((c) => c.id === target.id);
+  if (!entry) return undefined;
+  if (entry.project && state?.hasProject === false) return undefined;
+  return { entry, why: target.why };
 }
 
 export function moreJourneys(doneTitle: string, recent: string[] = [], doneId?: string): string[] {
