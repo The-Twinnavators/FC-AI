@@ -466,7 +466,7 @@ function CloudCoder({ onSaved }: { onSaved: () => void }) {
                 setAt(0);
                 setListOpen(true);
               }}
-              onMouseDown={() => options.length && setListOpen(true)}
+              onMouseDown={() => every.length && setListOpen(true)}
               onKeyDown={(e) => {
                 if (e.key === "ArrowDown" || e.key === "ArrowUp") {
                   e.preventDefault();
@@ -478,17 +478,19 @@ function CloudCoder({ onSaved }: { onSaved: () => void }) {
                 }
               }}
             />
-            <button
-              type="button"
-              className="cloud-picker__toggle"
-              tabIndex={-1}
-              aria-label={listOpen ? "Close the model list" : "Open the model list"}
-              aria-expanded={listOpen}
-              onClick={() => setListOpen((v) => !v)}
-            >
-              <ChevronDown size={16} aria-hidden="true" />
-            </button>
-            {listOpen ? (
+            {every.length ? (
+              <button
+                type="button"
+                className="cloud-picker__toggle"
+                tabIndex={-1}
+                aria-label={listOpen ? "Close the model list" : "Open the model list"}
+                aria-expanded={listOpen}
+                onClick={() => setListOpen((v) => !v)}
+              >
+                <ChevronDown size={16} aria-hidden="true" />
+              </button>
+            ) : null}
+            {listOpen && every.length ? (
               <ul className="cloud-models" id="cloud-model-list" role="listbox" aria-label="Models">
                 {options.length ? (
                   options.map((m, n) => (
@@ -515,7 +517,7 @@ function CloudCoder({ onSaved }: { onSaved: () => void }) {
                   ))
                 ) : (
                   <li className="cloud-models__none" aria-disabled="true">
-                    Nothing matches "{name.trim()}"
+                    No model matches "{name.trim()}". Clear the field to see all {every.length} of them.
                   </li>
                 )}
               </ul>
