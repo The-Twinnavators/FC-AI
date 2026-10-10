@@ -51,6 +51,20 @@ export function ModelsView() {
     }
   };
   const latestFor = (model: string) => caps.data?.find((c) => c.model === model);
+  /**
+   * Turn a hosted provider off, or back on. Off means no build can reach it even with a project's
+   * consent, which is the stronger of the two switches and the one that was missing.
+   */
+  const setProviderOn = async (p: ProviderConfig, enabled: boolean) => {
+    setError(undefined);
+    try {
+      await post("/models/providers", { id: p.id, kind: p.kind, label: p.label, baseUrl: p.baseUrl, enabled, hosted: p.hosted, apiKeyRef: p.apiKeyRef });
+      providers.reload();
+      roles.reload();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
   // Auto-assign: preview the proposed models per role, then apply on confirm.
   const [auto, setAuto] = useState<{ plan: Plan[]; warnings: string[] }>();
   const [applying, setApplying] = useState(false);
@@ -108,9 +122,19 @@ export function ModelsView() {
                 <div className="prov-row__main">
                   <div className="prov-row__top">
                     <strong>{p.label}</strong>
-                    <span className={`chip${on ? " chip--ok" : ""}`}>{on ? "On" : p.enabled ? "Not reachable" : "Off"}</span>
+                    {p.hosted ? (
+                      p.enabled && !p.health.ok ? <span className="chip">Not reachable</span> : null
+                    ) : (
+                      <span className={`chip${on ? " chip--ok" : ""}`}>{on ? "On" : p.enabled ? "Not reachable" : "Off"}</span>
+                    )}
+                    {p.hosted ? (
+                      <label className="check prov-row__switch" title={p.enabled ? `Switch ${p.label} off: no build can use it, whatever a project allows` : `Switch ${p.label} on: a build can use it when the project allows hosted models`}>
+                        <input type="checkbox" checked={p.enabled} onChange={(e) => void setProviderOn(p, e.target.checked)} />
+                        <span>{p.enabled ? "On" : "Off"}</span>
+                      </label>
+                    ) : null}
                   </div>
-                  <span className="prov-row__where">{p.hosted ? "In the cloud · used only when you choose it" : "On this computer"}</span>
+                  <span className="prov-row__where">{p.hosted ? "In the cloud · used only when you choose it, and only while this is on" : "On this computer · every role runs here, so it has no switch"}</span>
                   <span className="prov-row__detail">{detail}</span>
                 </div>
               </li>

@@ -15267,6 +15267,8 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .prov-row__main { display: grid; gap: 2px; min-width: 0; }
 .prov-row__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .prov-row__top strong { font-size: 14.5px; color: var(--text-0); }
+.prov-row__switch { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-1); cursor: pointer; }
+.prov-row__switch input { cursor: pointer; }
 .prov-row__where { font-size: 12.5px; color: var(--text-1); }
 .prov-row__detail { font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
 
