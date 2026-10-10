@@ -1,11 +1,27 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { spawn, type ChildProcess } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const DAEMON_PORT = process.env.FLOWCODE_PORT ?? "7457";
+
+/**
+ * Where node_modules actually is. In a normal checkout that is `root`; in a git worktree (.claude/worktrees/...) the
+ * worktree has none of its own and Node finds the main checkout's by walking up, so the fonts and the library's raw
+ * section sources Vite serves live there too. Without this, Vite's allow list is the worktree alone and refuses them.
+ */
+function depsRoot(from: string): string {
+  for (let dir = from; ; ) {
+    if (fs.existsSync(path.join(dir, "node_modules"))) return dir;
+    const up = path.dirname(dir);
+    if (up === dir) return from;
+    dir = up;
+  }
+}
+const deps = depsRoot(root);
 
 /**
  * Dev only: the page can't load without the daemon, so the UI dev server starts it (scripts/dev-daemon.mjs, the same
@@ -55,7 +71,7 @@ function autoDaemon(): Plugin {
 export default defineConfig({
   base: "./",
   plugins: [react(), autoDaemon()],
-  server: { port: 5199, strictPort: true, host: "127.0.0.1" },
+  server: { port: 5199, strictPort: true, host: "127.0.0.1", fs: { allow: [...new Set([root, deps])] } },
   // section-preview.html: the Component library shows each section in a page of its own.
   build: { outDir: "dist", sourcemap: true, rollupOptions: { input: { main: path.resolve(root, "apps/ui/index.html"), sectionPreview: path.resolve(root, "apps/ui/section-preview.html") } } },
 });
