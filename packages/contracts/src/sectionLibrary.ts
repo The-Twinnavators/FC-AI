@@ -245,7 +245,9 @@ export const LIBRARY_SECTIONS: LibrarySection[] = [
  * Empty: the thirty-four component specimens were approved on 10 October 2026 and are in the catalog above. The
  * Component library hides the shelf while this is empty, so the next batch of proposals brings it back.
  */
-export const PROPOSED_SECTIONS: LibrarySection[] = [];
+export const PROPOSED_SECTIONS: LibrarySection[] = [
+  { id: "landing-product-clothing", name: "Product page: a garment", category: "landings", description: "A product page for clothing: size and colour are not independent, so the size row knows what is left in the colour you picked; a size guide opens with the measurements; the fit note says what the model is wearing; fabric, care and origin sit beside the price; and a sold-out size offers to tell you when it is back.", tags: ["landing", "product", "clothing", "ecommerce", "size", "size guide", "stock", "variant", "page template"], useCases: ["clothing product page", "fashion ecommerce", "apparel store", "shoes", "size and colour picker", "direct-to-consumer clothing"], jobs: ["find the size that fits me", "see whether my size is left in the colour I want", "know how it is cut before I buy", "hear when my size is back"] },
+];
 
 /** The sections whose tags appear in some text (a request or a screen's spec), best matches first. */
 export function sectionsFor(text: string, max = 6): LibrarySection[] {

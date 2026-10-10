@@ -26,8 +26,12 @@
 }
 .fl-st .fl-input[aria-invalid="true"] { border-color: var(--color-danger); }
 .fl-st-err { margin: 0; font-size: var(--text-sm); color: var(--color-danger); line-height: var(--leading-snug); }
-.fl-st-row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
-.fl-st-row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.fl-st-row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--space-4); }
+/* A date input will not go below the width of mm/dd/yyyy and its picker, so minmax(0, 1fr) let it overflow its
+   column and close the gap to the field beside it. The floor is wide enough for a date, and the row wraps rather
+   than squeezing - which also means it no longer waits on a viewport media query it cannot see from inside a card. */
+.fl-st-row3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-4); }
+.fl-st-row2 > *, .fl-st-row3 > * { min-width: 0; }
 .fl-st-fieldset { margin: 0; padding: 0; border: 0; display: grid; gap: var(--space-3); min-width: 0; }
 .fl-st-fieldset legend { padding: 0; margin-bottom: var(--space-2); font-weight: var(--weight-semibold); font-size: var(--text-sm); }
 .fl-st-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }

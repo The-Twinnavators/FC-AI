@@ -223,3 +223,41 @@ input:checked + .fl-ld-option { border-color: var(--color-accent); box-shadow: i
   .fl-ld-refer { flex-direction: column; }
   .fl-ld-bar__aside .fl-ld-hide-sm { display: none; }
 }
+
+/* ── Product page: a garment ──────────────────────────────────────────────────
+   The lamp page's gallery, swatches and buy row are reused as they are. What is new is everything the size decision
+   needs: a size row that shows what is gone, a guide with the measurements, the fit note, and the fabric facts that
+   belong beside the price rather than inside a tab. */
+.fl-ld-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--space-3); margin: 0; }
+.fl-ld-price strong { font: var(--weight-bold) var(--text-xl) / 1 var(--font-display); }
+.fl-ld-price s { color: var(--color-text-muted); }
+.fl-ld-sizehead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); width: 100%; }
+.fl-ld-guidelink { border: 0; background: none; padding: 0; color: var(--color-accent); font: inherit; font-size: var(--text-sm); text-decoration: underline; cursor: pointer; }
+.fl-ld-sizes { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fl-ld-size { position: relative; display: grid; place-items: center; min-width: 3.25rem; min-height: var(--control-lg); padding-inline: var(--space-3); border: 1px solid var(--color-border-strong); border-radius: var(--control-radius, var(--radius-sm)); background: var(--color-surface); font-weight: var(--weight-semibold); cursor: pointer; }
+.fl-ld-size:has(input:checked) { border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+.fl-ld-size:has(input:focus-visible) { box-shadow: var(--focus-ring); }
+/* Sold out is struck through, not merely greyed: colour alone would not say it, and the size stays pressable so the
+   page can offer to tell you when it is back. */
+.fl-ld-size.is-gone { color: var(--color-text-muted); border-style: dashed; }
+.fl-ld-size.is-gone > span:first-of-type { text-decoration: line-through; }
+.fl-ld-notify { display: grid; gap: var(--space-2); }
+.fl-ld-status { min-height: 1.5em; margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-ld-fit { display: grid; gap: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-ld-fit p { margin: 0; font-size: var(--text-sm); line-height: var(--leading-relaxed); }
+.fl-ld-fit .fl-ld-fine svg { width: 1rem; height: 1rem; vertical-align: -0.2em; }
+.fl-ld-fabric { display: grid; gap: var(--space-2); margin: 0; font-size: var(--text-sm); }
+.fl-ld-fabric > div { display: grid; grid-template-columns: minmax(5rem, 7rem) minmax(0, 1fr); gap: var(--space-3); }
+.fl-ld-fabric dt { color: var(--color-text-muted); }
+.fl-ld-fabric dd { margin: 0; }
+/* The size guide: a dialog, because the measurements are a detour from buying and have to be dismissable. */
+.fl-ld-guide-scrim { position: absolute; inset: 0; z-index: 60; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.fl-ld-guide { display: grid; gap: var(--space-3); width: min(34rem, 100%); max-height: 100%; overflow: auto; border-radius: var(--radius-lg); background: var(--color-surface); padding: var(--space-5); }
+.fl-ld-guide-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.fl-ld-guide-head .fl-title { margin: 0; font-size: var(--text-lg); }
+.fl-ld-guide-wrap { overflow-x: auto; }
+.fl-ld-guide-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.fl-ld-guide-table th, .fl-ld-guide-table td { padding: var(--space-2) var(--space-3); text-align: right; border-bottom: 1px solid var(--color-border); font-variant-numeric: tabular-nums; }
+.fl-ld-guide-table th:first-child, .fl-ld-guide-table thead th:first-child { text-align: left; }
+.fl-ld-guide-table thead th { color: var(--color-text-muted); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; }
+.fl-ld-guide-table tbody tr.is-on { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
