@@ -4,27 +4,73 @@
  * Keywords: tabs, underline, pills, enclosed, selected, disabled, badge
  */
 /**
- * Three looks for the same control, in every state, with and without counts. Tabs switch between parts of one thing;
- * if the parts are separate pages, use navigation instead.
+ * Three looks for one control, and all three work: click a tab or use the arrow keys, and the panel below changes.
+ * Tabs switch between parts of one thing. If the parts are separate pages, that is navigation, not tabs.
  *
- * Make it the app's own: keep one look across the app. Counts belong on tabs that filter a list, not on every tab.
+ * Make it the app's own: keep one look across the app, and keep the counts only on tabs that filter a list.
  */
+import { useState } from "react";
 
 // flowcode:sample
 const SAMPLE = {
   looks: [
-    { id: "underline", label: "Underline", what: "A rule under the chosen tab" },
+    { id: "underline", label: "Underline", what: "A rule under the selected tab" },
     { id: "pills", label: "Pills", what: "A filled pill: good on a tinted surface" },
     { id: "enclosed", label: "Enclosed", what: "Folder tabs joined to the panel" },
   ],
   tabs: [
-    { id: "all", label: "All", count: 24, state: "rest" },
-    { id: "open", label: "Open", count: 6, state: "selected" },
-    { id: "done", label: "Done", count: 18, state: "rest" },
-    { id: "archive", label: "Archive", count: 0, state: "disabled" },
+    { id: "all", label: "All", count: 24, body: "Every booking, newest first." },
+    { id: "open", label: "Open", count: 6, body: "Six bookings still waiting on someone." },
+    { id: "done", label: "Done", count: 18, body: "Eighteen finished and delivered." },
+    { id: "archive", label: "Archive", count: 0, body: "Nothing archived yet.", disabled: true },
   ],
   sizes: [32, 40, 44],
 };
+
+function TabSet({ look, size = "" }: { look: { id: string; label: string }; size?: string }) {
+  const d = SAMPLE;
+  const [on, setOn] = useState("open");
+  const usable = d.tabs.filter((t) => !t.disabled);
+  const move = (dir: number) => {
+    const i = usable.findIndex((t) => t.id === on);
+    setOn(usable[(i + dir + usable.length) % usable.length]!.id);
+  };
+  const current = d.tabs.find((t) => t.id === on);
+  return (
+    <>
+      <div
+        className={`fl-ctl-tabset fl-ctl-tabset--${look.id} ${size}`}
+        role="tablist"
+        aria-label={`${look.label} tabs`}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowRight") (e.preventDefault(), move(1));
+          if (e.key === "ArrowLeft") (e.preventDefault(), move(-1));
+        }}
+      >
+        {d.tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            id={`tab-${look.id}-${t.id}`}
+            aria-selected={on === t.id}
+            aria-controls={`panel-${look.id}`}
+            tabIndex={on === t.id ? 0 : -1}
+            disabled={t.disabled}
+            className={`fl-ctl-tab${on === t.id ? " is-on" : ""}`}
+            onClick={() => setOn(t.id)}
+          >
+            {t.label}
+            <span className="fl-ctl-tab-count">{t.count}</span>
+          </button>
+        ))}
+      </div>
+      <div className="fl-ctl-tabpanel" role="tabpanel" id={`panel-${look.id}`} aria-labelledby={`tab-${look.id}-${on}`} tabIndex={0}>
+        <span className="fl-ctl-matrix-what">{current?.body}</span>
+      </div>
+    </>
+  );
+}
 
 export default function TabsVariants() {
   const d = SAMPLE;
@@ -34,25 +80,8 @@ export default function TabsVariants() {
         {d.looks.map((l) => (
           <li key={l.id}>
             <p className="fl-ctl-matrix-kind">{l.label}</p>
-            <p className="fl-ctl-matrix-what">{l.what}</p>
-            <div className={`fl-ctl-tabset fl-ctl-tabset--${l.id}`} role="tablist" aria-label={`${l.label} tabs`}>
-              {d.tabs.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={t.state === "selected"}
-                  disabled={t.state === "disabled"}
-                  className={`fl-ctl-tab${t.state === "selected" ? " is-on" : ""}${t.id === "done" ? " is-hover" : ""}`}
-                >
-                  {t.label}
-                  <span className="fl-ctl-tab-count">{t.count}</span>
-                </button>
-              ))}
-            </div>
-            <div className="fl-ctl-tabpanel" role="tabpanel">
-              <span className="fl-ctl-matrix-what">The panel the chosen tab belongs to.</span>
-            </div>
+            <p className="fl-ctl-matrix-what">{l.what} \u00b7 click a tab, or use the arrow keys.</p>
+            <TabSet look={l} />
           </li>
         ))}
       </ul>
@@ -63,13 +92,8 @@ export default function TabsVariants() {
         <ul className="fl-ctl-size-list">
           {d.sizes.map((px) => (
             <li key={px}>
-              <span className={`fl-ctl-tabset fl-ctl-tabset--underline fl-ctl-tabset--${px}`} role="tablist" aria-label={`${px} px tabs`}>
-                <button type="button" role="tab" aria-selected="true" className="fl-ctl-tab is-on">
-                  Open
-                </button>
-                <button type="button" role="tab" aria-selected="false" className="fl-ctl-tab">
-                  Done
-                </button>
+              <span className="fl-ctl-tab-sample">
+                <TabSet look={{ id: "underline", label: `${px} px` }} size={`fl-ctl-tabset--${px}`} />
               </span>
               <span className="fl-ctl-btn-what">{px} px</span>
             </li>

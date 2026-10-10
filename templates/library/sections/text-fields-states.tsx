@@ -8,8 +8,10 @@
  * invalid with its message, disabled and read-only. Focus is drawn on purpose so the set reads without tabbing.
  *
  * Make it the app's own: keep the look your forms use and delete the other two. The invalid row shows where the
- * message goes and how it is tied to the field for a screen reader.
+ * message goes and how it is tied to the field for a screen reader. Underneath, the same field live: the error
+ * appears when you leave it empty or half-written, and goes when the address is whole.
  */
+import { useState } from "react";
 
 // flowcode:sample
 const SAMPLE = {
@@ -38,6 +40,12 @@ const SAMPLE = {
 
 export default function TextFieldsStates() {
   const d = SAMPLE;
+  // The live field: it only complains once you have left it, which is the rule the matrix cannot draw.
+  const [email, setEmail] = useState("");
+  const [touched, setTouched] = useState(false);
+  const [note, setNote] = useState("");
+  const emailBad = touched && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
+  const left = 140 - note.length;
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-matrix-wrap">
@@ -94,6 +102,48 @@ export default function TextFieldsStates() {
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>The same field, live</h3>
+        <p className="fl-ctl-btn-what">
+          A field that validates on the way out, not on every keystroke, and a note with a count that turns into an
+          error when you go past the limit. Both are the states above, arriving in order.
+        </p>
+        <div className="fl-ctl-live-form">
+          <p>
+            <label htmlFor="fld-live-email">Email address</label>
+            <input
+              id="fld-live-email"
+              className={`fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--40${emailBad ? " is-invalid" : ""}`}
+              type="email"
+              value={email}
+              placeholder="you@example.com"
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setTouched(true)}
+              aria-invalid={emailBad || undefined}
+              aria-describedby="fld-live-email-msg"
+            />
+            <span className={`fl-ctl-field-msg${emailBad ? "" : " is-quiet"}`} id="fld-live-email-msg">
+              {emailBad ? "Finish the address, like ana@northlight.example" : "We only use this to send booking confirmations."}
+            </span>
+          </p>
+          <p>
+            <label htmlFor="fld-live-note">Anything we should know?</label>
+            <textarea
+              id="fld-live-note"
+              className={`fl-input fl-ctl-field fl-ctl-field--outlined${left < 0 ? " is-invalid" : ""}`}
+              rows={3}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              aria-invalid={left < 0 || undefined}
+              aria-describedby="fld-live-note-count"
+            />
+            <span className={`fl-ctl-field-msg${left < 0 ? "" : " is-quiet"}`} id="fld-live-note-count" role="status" aria-live="polite">
+              {left < 0 ? `${-left} characters too many` : `${left} characters left`}
+            </span>
+          </p>
+        </div>
       </div>
 
       <div className="fl-ctl-sizes">

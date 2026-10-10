@@ -7,8 +7,11 @@
  * A card is a surface, and what matters is whether it does anything. A plain card holds content; a clickable card is
  * a link or a button and so has hover, focus and pressed states; a chosen card is a radio in disguise.
  *
- * Make it the app's own: pick one kind per list and keep it. Mixing clickable and plain cards in one grid confuses.
+ * The clickable cards here report what they opened and the selectable ones are one real radio group, so only one of
+ * them can be chosen at a time. Make it the app's own: pick one kind per list and keep it. Mixing clickable and plain
+ * cards in one grid confuses.
  */
+import { useState } from "react";
 import { Icon } from "./icons";
 
 // flowcode:sample
@@ -29,10 +32,15 @@ const SAMPLE = {
     { id: "raised", label: "Raised", what: "A soft shadow: the default card" },
     { id: "floating", label: "Floating", what: "A deeper shadow: something over the page" },
   ],
+  shoot: { name: "Riverside wedding", meta: "12 June · 420 photos" },
 };
 
 export default function CardsVariants() {
   const d = SAMPLE;
+  // One radio group across the whole column: choosing one card lets go of the last.
+  const [picked, setPicked] = useState("selected");
+  const [said, setSaid] = useState("");
+
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-matrix-wrap">
@@ -56,11 +64,12 @@ export default function CardsVariants() {
                   <span className="fl-ctl-matrix-kind">{s.label}</span>
                 </th>
                 {d.kinds.map((k) => {
-                  const on = s.id === "selected";
                   const off = s.id === "disabled";
-                  const cls = `fl-ctl-card fl-ctl-card--${k.id}${s.id === "hover" ? " is-hover" : ""}${on && k.id === "selectable" ? " is-on" : ""}${off ? " is-off" : ""}`;
+                  const on = k.id === "selectable" && picked === s.id;
+                  const hovered = s.id === "hover" ? " is-hover" : "";
+                  const cls = `fl-ctl-card fl-ctl-card--${k.id}${hovered}${on ? " is-on" : ""}${off ? " is-off" : ""}`;
                   // A plain card reacts to nothing, and only the selectable one can stay chosen.
-                  const why = k.id === "plain" && s.id !== "rest" ? "Not applicable" : k.id === "clickable" && on ? "Not applicable: opens something" : "";
+                  const why = k.id === "plain" && s.id !== "rest" ? "Not applicable" : k.id === "clickable" && s.id === "selected" ? "Not applicable: opens something" : "";
                   if (why) {
                     return (
                       <td key={k.id} data-state={k.label}>
@@ -68,17 +77,65 @@ export default function CardsVariants() {
                       </td>
                     );
                   }
+
+                  if (k.id === "selectable") {
+                    return (
+                      <td key={k.id} data-state={k.label}>
+                        <label className={cls} aria-disabled={off || undefined}>
+                          <strong>{d.shoot.name}</strong>
+                          <span className="fl-ctl-matrix-what">{d.shoot.meta}</span>
+                          <span className="fl-ctl-card-pick">
+                            <input
+                              type="radio"
+                              name="card-pick"
+                              className="fl-ctl-check fl-ctl-check--16"
+                              checked={on}
+                              disabled={off}
+                              onChange={() => {
+                                setPicked(s.id);
+                                setSaid(`Chose the ${s.label.toLowerCase()} card`);
+                              }}
+                              aria-label={`Choose the ${s.label.toLowerCase()} card`}
+                            />
+                          </span>
+                        </label>
+                      </td>
+                    );
+                  }
+
+                  if (k.id === "clickable") {
+                    const open = () => {
+                      if (off) return;
+                      setSaid(`Opened ${d.shoot.name}`);
+                    };
+                    return (
+                      <td key={k.id} data-state={k.label}>
+                        <div
+                          className={cls}
+                          role="button"
+                          tabIndex={off ? -1 : 0}
+                          aria-disabled={off || undefined}
+                          onClick={open}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              open();
+                            }
+                          }}
+                        >
+                          <strong>{d.shoot.name}</strong>
+                          <span className="fl-ctl-matrix-what">{d.shoot.meta}</span>
+                          <Icon name="arrow" />
+                        </div>
+                      </td>
+                    );
+                  }
+
                   return (
                     <td key={k.id} data-state={k.label}>
-                      <div className={cls} aria-disabled={off || undefined}>
-                        <strong>Riverside wedding</strong>
-                        <span className="fl-ctl-matrix-what">12 June · 420 photos</span>
-                        {k.id === "selectable" ? (
-                          <span className="fl-ctl-card-pick">
-                            <input type="radio" name={`card-${s.id}`} className="fl-ctl-check fl-ctl-check--16" defaultChecked={on} disabled={off} aria-label="Choose Riverside wedding" />
-                          </span>
-                        ) : null}
-                        {k.id === "clickable" ? <Icon name="arrow" /> : null}
+                      <div className={cls}>
+                        <strong>{d.shoot.name}</strong>
+                        <span className="fl-ctl-matrix-what">{d.shoot.meta}</span>
                       </div>
                     </td>
                   );
@@ -88,6 +145,10 @@ export default function CardsVariants() {
           </tbody>
         </table>
       </div>
+
+      <p className="fl-ctl-status" role="status" aria-live="polite">
+        {said || "Open a clickable card, or choose a selectable one."}
+      </p>
 
       <div className="fl-ctl-sizes">
         <h3>Elevation</h3>

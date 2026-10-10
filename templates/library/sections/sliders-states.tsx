@@ -9,6 +9,7 @@
  *
  * Make it the app's own: set the min, max and step, and keep the value text. A stepped slider should say its steps.
  */
+import { useState } from "react";
 
 // flowcode:sample
 const SAMPLE = {
@@ -25,6 +26,11 @@ const SAMPLE = {
 
 export default function SlidersStates() {
   const d = SAMPLE;
+  const [vals, setVals] = useState<Record<string, number>>({});
+  const [low, setLow] = useState(25);
+  const [high, setHigh] = useState(75);
+  const at = (id: string, fallback: number) => (id in vals ? vals[id] : fallback);
+  const put = (id: string, n: number) => setVals((v) => ({ ...v, [id]: n }));
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-matrix-wrap">
@@ -63,12 +69,15 @@ export default function SlidersStates() {
                           type="range"
                           min={stepped ? 1 : 0}
                           max={stepped ? 5 : 100}
-                          step={stepped ? 1 : 1}
-                          defaultValue={stepped ? 3 : 60}
+                          step={1}
+                          value={at(id, stepped ? 3 : 60)}
                           list={stepped ? "guest-steps" : undefined}
                           disabled={s.id === "disabled"}
+                          onChange={(e) => put(id, Number(e.target.value))}
                         />
-                        <output className="fl-ctl-slider-value">{stepped ? "3 guests" : "$600"}</output>
+                        <output className="fl-ctl-slider-value" htmlFor={id}>
+                          {stepped ? `${at(id, 3)} guest${at(id, 3) === 1 ? "" : "s"}` : `$${at(id, 60) * 10}`}
+                        </output>
                       </span>
                     </td>
                   );
@@ -91,12 +100,14 @@ export default function SlidersStates() {
           <label className="fl-sr" htmlFor="sl-min">
             Lowest price
           </label>
-          <input id="sl-min" className="fl-ctl-range" type="range" min={0} max={100} defaultValue={25} />
+          <input id="sl-min" className="fl-ctl-range" type="range" min={0} max={100} value={low} onChange={(e) => setLow(Math.min(Number(e.target.value), high))} />
           <label className="fl-sr" htmlFor="sl-max">
             Highest price
           </label>
-          <input id="sl-max" className="fl-ctl-range" type="range" min={0} max={100} defaultValue={75} />
-          <output className="fl-ctl-slider-value">$250 to $750</output>
+          <input id="sl-max" className="fl-ctl-range" type="range" min={0} max={100} value={high} onChange={(e) => setHigh(Math.max(Number(e.target.value), low))} />
+          <output className="fl-ctl-slider-value" htmlFor="sl-min sl-max">
+            ${low * 10} to ${high * 10}
+          </output>
         </span>
       </div>
     </section>

@@ -454,3 +454,34 @@ input.fl-ctl-field--56 { height: 56px; min-height: 56px; padding-inline: var(--s
   .fl-ctl-slider--range { max-width: none; }
   .fl-ctl-menu { max-width: none; }
 }
+
+/* A live filter chip: the label toggles, the x removes, and they are separate buttons. */
+.fl-ctl-chip-face { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+.fl-ctl-chip-item:has(.fl-ctl-chip-face) { padding-right: var(--space-2); }
+
+/* ── The live dropzone, and a textarea that matches the fields ─────────────── */
+.fl-ctl-zone--live { cursor: pointer; }
+.fl-ctl-zone--live:hover { border-color: var(--color-accent); }
+.fl-ctl-zone--live:focus-within { outline: none; box-shadow: var(--focus-ring); border-color: var(--color-accent); }
+textarea.fl-ctl-field { min-height: 5rem; padding: var(--space-3); line-height: 1.5; resize: vertical; }
+
+/* A message that is guidance rather than an error reads as guidance. */
+.fl-ctl-field-msg.is-quiet { color: var(--color-text-muted); }
+
+/* The live form: label, field, message, stacked, two across when there is room. */
+.fl-ctl-live-form { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); margin-top: var(--space-3); }
+.fl-ctl-live-form > p { display: grid; gap: var(--space-2); margin: 0; }
+.fl-ctl-live-form label { font-size: var(--text-sm); font-weight: 600; }
+
+/* Select all sits above its rows, separated by a line, not by guesswork. */
+.fl-ctl-selectall { margin-top: var(--space-3); }
+.fl-ctl-selectall > .fl-ctl-choice { padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border); }
+.fl-ctl-selectall > .fl-ctl-choice-list { margin-top: var(--space-3); padding-left: var(--space-5); }
+
+/* The combo box with its list open, drawn inline under the field. */
+.fl-ctl-combo-open { display: grid; gap: var(--space-2); }
+
+/* Options are pressable now, so they say so, and the menus can hold focus. */
+.fl-ctl-menu:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-ctl-menu li[role="option"], .fl-ctl-menu li[role="menuitem"] { cursor: pointer; }
+.fl-ctl-menu li.is-disabled, .fl-ctl-menu li[aria-disabled="true"] { cursor: not-allowed; }

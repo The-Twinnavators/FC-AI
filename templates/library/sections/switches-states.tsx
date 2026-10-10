@@ -7,8 +7,12 @@
  * A switch changes something straight away, so it has no Save button: that is what separates it from a checkbox.
  * Here it is in every state, at three heights, and in the settings row it usually lives in.
  *
+ * The settings rows are live, and each one says it has been saved as it moves, because that is the whole difference
+ * between a switch and a checkbox.
+ *
  * Make it the app's own: replace the settings and their descriptions. If a change needs saving, use a checkbox.
  */
+import { useState } from "react";
 
 // flowcode:sample
 const SAMPLE = {
@@ -33,10 +37,14 @@ const SAMPLE = {
   ],
 };
 
-function Switch({ on, disabled, cls = "", label }: { on: boolean; disabled?: boolean; cls?: string; label: string }) {
+function Switch({ on, disabled, cls = "", label, onToggle }: { on: boolean; disabled?: boolean; cls?: string; label: string; onToggle?: (next: boolean) => void }) {
   return (
     <span className={`fl-ctl-switch ${cls}`}>
-      <input type="checkbox" defaultChecked={on} disabled={disabled} aria-label={label} />
+      {onToggle ? (
+        <input type="checkbox" checked={on} disabled={disabled} aria-label={label} onChange={(e) => onToggle(e.target.checked)} />
+      ) : (
+        <input type="checkbox" defaultChecked={on} disabled={disabled} aria-label={label} />
+      )}
       <span className="fl-ctl-switch-track" aria-hidden="true">
         <span className="fl-ctl-switch-thumb" />
       </span>
@@ -46,6 +54,8 @@ function Switch({ on, disabled, cls = "", label }: { on: boolean; disabled?: boo
 
 export default function SwitchesStates() {
   const d = SAMPLE;
+  const [on, setOn] = useState<Record<string, boolean>>(() => Object.fromEntries(SAMPLE.settings.map((s) => [s.id, s.on])));
+  const [said, setSaid] = useState("");
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-matrix-wrap">
@@ -88,10 +98,21 @@ export default function SwitchesStates() {
                 <strong>{s.name}</strong>
                 <span className="fl-ctl-matrix-what">{s.what}</span>
               </span>
-              <Switch on={s.on} disabled={s.disabled} label={s.name} />
+              <Switch
+                on={Boolean(on[s.id])}
+                disabled={s.disabled}
+                label={s.name}
+                onToggle={(next) => {
+                  setOn((v) => ({ ...v, [s.id]: next }));
+                  setSaid(`${next ? "Turned on" : "Turned off"}: ${s.name}. Saved.`);
+                }}
+              />
             </li>
           ))}
         </ul>
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "A switch saves as it moves, so there is no Save button here."}
+        </p>
       </div>
     </section>
   );

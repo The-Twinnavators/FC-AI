@@ -7,9 +7,12 @@
  * Checkboxes for several choices, radios for one, each in every state including the indeterminate checkbox a
  * "select all" box needs when only some rows are chosen. Real inputs, so keyboard and screen readers work.
  *
+ * Underneath, a working select all: tick some of the rows and the box above them goes indeterminate on its own,
+ * which is the one state a static picture can only assert.
+ *
  * Make it the app's own: replace the labels. Keep the description under a label where the choice needs explaining.
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // flowcode:sample
 const SAMPLE = {
@@ -38,6 +41,55 @@ function Box({ state, name, kind }: { state: string; name: string; kind: "checkb
       disabled={state.startsWith("disabled")}
       aria-label={`${kind}, ${state}`}
     />
+  );
+}
+
+/** A select all whose own state is worked out from the rows under it. */
+function SelectAll() {
+  const rows = ["Riverside wedding", "Harbour engagement", "Studio headshots", "Vineyard anniversary"];
+  const [on, setOn] = useState<string[]>([rows[0]]);
+  const head = useRef<HTMLInputElement>(null);
+  const some = on.length > 0 && on.length < rows.length;
+
+  useEffect(() => {
+    if (head.current) head.current.indeterminate = some;
+  }, [some]);
+
+  return (
+    <div className="fl-ctl-selectall">
+      <label className="fl-ctl-choice">
+        <input
+          ref={head}
+          type="checkbox"
+          className="fl-ctl-check fl-ctl-check--18"
+          checked={on.length === rows.length}
+          onChange={() => setOn(on.length === rows.length ? [] : rows)}
+        />
+        <span>
+          <strong>Select all</strong>
+          <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
+            {on.length === 0 ? "None chosen" : on.length === rows.length ? "All four chosen" : `${on.length} of ${rows.length} chosen, so this box is indeterminate`}
+          </span>
+        </span>
+      </label>
+      <ul className="fl-ctl-choice-list">
+        {rows.map((r) => (
+          <li key={r}>
+            <label className="fl-ctl-choice">
+              <input
+                type="checkbox"
+                className="fl-ctl-check fl-ctl-check--18"
+                checked={on.includes(r)}
+                onChange={() => setOn((v) => (v.includes(r) ? v.filter((x) => x !== r) : [...v, r]))}
+              />
+              <span>
+                <strong>{r}</strong>
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -107,6 +159,15 @@ export default function CheckboxesRadios() {
             </label>
           </li>
         </ul>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Select all, in practice</h3>
+        <p className="fl-ctl-btn-what">
+          Tick one or two rows and the box above them goes indeterminate; tick them all and it fills. Pressing it when
+          it is indeterminate chooses everything, which is what people expect.
+        </p>
+        <SelectAll />
       </div>
 
       <div className="fl-ctl-sizes">

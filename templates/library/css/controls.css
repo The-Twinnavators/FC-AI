@@ -343,3 +343,24 @@
   .fl-btn.fl-ctl-btn--destructive.is-armed { animation: none; }
   .fl-ctl-try .fl-btn { transition: none; }
 }
+
+/* ── Drawers that actually open: the motion is the difference between them ── */
+.fl-ctl-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); }
+.fl-ctl-panel-head > span { display: grid; }
+.fl-ctl-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.32); animation: fl-ctl-fade var(--duration-med, 220ms) var(--easing, ease); }
+.fl-ctl-panel { transition: transform var(--duration-med, 220ms) var(--easing, ease), opacity var(--duration-fast, 150ms) var(--easing, ease); }
+.fl-ctl-stage--side .fl-ctl-panel { transform: translateX(100%); opacity: 0; }
+.fl-ctl-stage--bottom .fl-ctl-panel { transform: translateY(100%); opacity: 0; }
+.fl-ctl-stage--inline .fl-ctl-panel { transform: translateX(8%); opacity: 0; }
+.fl-ctl-panel.is-open { transform: none; opacity: 1; }
+.fl-ctl-panel[aria-hidden="true"] { pointer-events: none; }
+@keyframes fl-ctl-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .fl-ctl-panel { transition: none; }
+  .fl-ctl-scrim { animation: none; }
+}
+/* Tab samples in the height list keep their own column. */
+.fl-ctl-tab-sample { flex: none; min-width: 0; width: 18rem; }
+
+/* Folding the trail back up is a text button, set apart from the trail itself. */
+.fl-ctl-crumb-fold { margin-top: var(--space-2); text-decoration: underline; }

@@ -4,25 +4,33 @@
  * Keywords: chip, tag, filter, label, dismiss, remove
  */
 /**
- * Three jobs that look alike and behave differently: a filter chip you switch on and off, a chosen chip you can take
- * off again, and a label that is only a label. Filters are buttons; labels are not, so they are not focusable.
+ * Three things that look alike and behave differently: a filter chip you switch on and off, an input chip you can
+ * take off again, and a static chip that is only a label. The filter bar below is live: switch filters, remove them,
+ * clear them, and the count follows.
  *
- * Make it the app's own: replace the words. Keep the dismiss button inside the chip labelled with what it removes.
+ * Make it the app's own: replace the words. Keep the remove button inside the chip labelled with what it removes.
  */
+import { useState } from "react";
 import { Icon } from "./icons";
 
 // flowcode:sample
 const SAMPLE = {
   kinds: [
     { id: "filter", label: "Filter chip", what: "Turns a filter on and off" },
-    { id: "removable", label: "Selected", what: "A selected filter, with a way to remove it" },
-    { id: "label", label: "Static chip", what: "Says something; not interactive" },
+    { id: "input", label: "Input chip", what: "A selected filter, with a way to remove it" },
+    { id: "static", label: "Static chip", what: "Says something; not interactive" },
   ],
   states: [
-    { id: "rest", label: "Enabled" },
-    { id: "hover", label: "Hovered" },
-    { id: "on", label: "Selected" },
+    { id: "enabled", label: "Enabled" },
+    { id: "hovered", label: "Hovered" },
+    { id: "selected", label: "Selected" },
     { id: "disabled", label: "Disabled" },
+  ],
+  filters: [
+    { id: "f1", label: "Wedding", on: true },
+    { id: "f2", label: "This year", on: true },
+    { id: "f3", label: "Portrait", on: false },
+    { id: "f4", label: "Commercial", on: false },
   ],
   sizes: [
     { px: 20, note: "Inside a table cell, beside the text it labels" },
@@ -35,6 +43,12 @@ const SAMPLE = {
 
 export default function ChipsTags() {
   const d = SAMPLE;
+  const [filters, setFilters] = useState(d.filters);
+  const [removed, setRemoved] = useState<string[]>([]);
+  const [status, setStatus] = useState("");
+  const shown = filters.filter((f) => !removed.includes(f.id));
+  const onCount = shown.filter((f) => f.on).length;
+
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-matrix-wrap">
@@ -58,16 +72,16 @@ export default function ChipsTags() {
                   <span className="fl-ctl-matrix-kind">{s.label}</span>
                 </th>
                 {d.kinds.map((k) => {
-                  const on = s.id === "on";
-                  const cls = `fl-ctl-chip-item${on ? " is-on" : ""}${s.id === "hover" ? " is-hover" : ""}`;
-                  if (k.id === "label") {
+                  const on = s.id === "selected";
+                  const cls = `fl-ctl-chip-item${on ? " is-on" : ""}${s.id === "hovered" ? " is-hover" : ""}`;
+                  if (k.id === "static") {
                     return (
                       <td key={k.id} data-state={k.label}>
-                        {s.id === "rest" || s.id === "on" ? <span className={`fl-ctl-chip-item fl-ctl-chip-item--label${on ? " is-on" : ""}`}>Wedding</span> : <span className="fl-ctl-matrix-what">Not a control</span>}
+                        {s.id === "enabled" || on ? <span className={`fl-ctl-chip-item fl-ctl-chip-item--label${on ? " is-on" : ""}`}>Wedding</span> : <span className="fl-ctl-matrix-what">Not applicable</span>}
                       </td>
                     );
                   }
-                  if (k.id === "removable") {
+                  if (k.id === "input") {
                     return (
                       <td key={k.id} data-state={k.label}>
                         <span className={cls}>
@@ -93,26 +107,57 @@ export default function ChipsTags() {
         </table>
       </div>
 
-      <div className="fl-ctl-sizes">
-        <h3>In a filter bar</h3>
-        <p className="fl-ctl-btn-what">How they sit together: what is on, what is off, and one way to clear the lot.</p>
+      <div className="fl-ctl-sizes fl-ctl-try">
+        <h3>A filter bar you can use</h3>
+        <p className="fl-ctl-btn-what">Switch a filter on or off, take one off the bar, or clear the lot. The count follows what is on.</p>
         <div className="fl-ctl-chip-bar">
-          <button type="button" className="fl-ctl-chip-item is-on" aria-pressed="true">
-            Wedding
-          </button>
-          <button type="button" className="fl-ctl-chip-item is-on" aria-pressed="true">
-            This year
-          </button>
-          <button type="button" className="fl-ctl-chip-item" aria-pressed="false">
-            Portrait
-          </button>
-          <button type="button" className="fl-ctl-chip-item" aria-pressed="false">
-            Commercial
-          </button>
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32">
-            Clear all
-          </button>
+          {shown.map((f) => (
+            <span key={f.id} className={`fl-ctl-chip-item${f.on ? " is-on" : ""}`}>
+              <button
+                type="button"
+                className="fl-ctl-chip-face"
+                aria-pressed={f.on}
+                onClick={() => {
+                  setFilters((list) => list.map((x) => (x.id === f.id ? { ...x, on: !x.on } : x)));
+                  setStatus(`${f.label} ${f.on ? "off" : "on"}.`);
+                }}
+              >
+                {f.label}
+              </button>
+              <button
+                type="button"
+                className="fl-ctl-chip-x"
+                aria-label={`Remove the ${f.label} filter`}
+                onClick={() => {
+                  setRemoved((r) => [...r, f.id]);
+                  setStatus(`${f.label} removed from the bar.`);
+                }}
+              >
+                <Icon name="close" />
+              </button>
+            </span>
+          ))}
+          {shown.length ? (
+            <button
+              type="button"
+              className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32"
+              onClick={() => {
+                setFilters((list) => list.map((x) => ({ ...x, on: false })));
+                setStatus("All filters off.");
+              }}
+            >
+              Clear all
+            </button>
+          ) : null}
+          {removed.length ? (
+            <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => (setRemoved([]), setStatus("Filters put back."))}>
+              Put them back
+            </button>
+          ) : null}
         </div>
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {status} {onCount} of {shown.length} on.
+        </p>
       </div>
 
       <div className="fl-ctl-sizes">
@@ -133,7 +178,7 @@ export default function ChipsTags() {
                 </span>
               </span>
               <span className="fl-ctl-btn-what">
-                {z.px} px · {z.note}
+                {z.px} px \u00b7 {z.note}
               </span>
             </li>
           ))}

@@ -9,6 +9,7 @@
  *
  * Make it the app's own: replace the levels. Keep aria-current on the last one.
  */
+import { useState } from "react";
 import { Icon } from "./icons";
 
 // flowcode:sample
@@ -17,6 +18,45 @@ const SAMPLE = {
   folded: ["Projects", "…", "Riverside wedding", "Delivery"],
   sizes: [14, 16],
 };
+
+function Folded() {
+  const [open, setOpen] = useState(false);
+  const items = open ? SAMPLE.full : SAMPLE.folded;
+  return (
+    <nav className="fl-ctl-crumbs" aria-label="Folded trail">
+      <ol>
+        {items.map((it, n) => {
+          const last = n === items.length - 1;
+          return (
+            <li key={it + n}>
+              {n > 0 ? <Icon name="chevron-down" /> : null}
+              {last ? (
+                <span aria-current="page">{it}</span>
+              ) : it === "\u2026" ? (
+                <button
+                  type="button"
+                  className="fl-ctl-crumb-more"
+                  aria-expanded={false}
+                  aria-label="Show the levels in between"
+                  onClick={() => setOpen(true)}
+                >
+                  {it}
+                </button>
+              ) : (
+                <a href="#top">{it}</a>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      {open ? (
+        <button type="button" className="fl-ctl-crumb-more fl-ctl-crumb-fold" aria-expanded onClick={() => setOpen(false)}>
+          Fold it back
+        </button>
+      ) : null}
+    </nav>
+  );
+}
 
 function Trail({ items, label, size = "" }: { items: string[]; label: string; size?: string }) {
   return (
@@ -57,8 +97,8 @@ export default function BreadcrumbsVariants() {
         </li>
         <li>
           <p className="fl-ctl-matrix-kind">Folded</p>
-          <p className="fl-ctl-matrix-what">The middle levels behind a button, when they do not.</p>
-          <Trail items={d.folded} label="Folded trail" />
+          <p className="fl-ctl-matrix-what">The middle levels behind a button, when they do not. Press it to open them.</p>
+          <Folded />
         </li>
         <li>
           <p className="fl-ctl-matrix-kind">On a phone</p>
