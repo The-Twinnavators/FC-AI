@@ -204,14 +204,37 @@ export class CapabilityLab {
     return this.store.capabilities.where("provider_id = ? AND model = ? AND config_hash = ? ORDER BY created_at DESC", assignment.providerId, assignment.model, hash)[0];
   }
 
+  /** A passing record for this model under some other configuration: what to tell the person instead of "never tested". */
+  private passedElsewhere(assignment: ModelAssignment): CapabilityRecord | undefined {
+    const hash = ModelRouter.configHash(assignment);
+    return this.store.capabilities
+      .where("provider_id = ? AND model = ? ORDER BY created_at DESC", assignment.providerId, assignment.model)
+      .find((r) => r.passed && r.configHash !== hash);
+  }
+
   /** FR-M2: only a model with a passing record for this exact configuration may act as Coder. */
   coderEligibility(assignment: ModelAssignment): { eligible: boolean; reason: string; record?: CapabilityRecord } {
     const rec = this.latest(assignment);
-    if (!rec) return { eligible: false, reason: `No capability record for ${assignment.model}. Run the Coder capability test first.` };
+    if (!rec) {
+      // The commonest case: it passed with reasoning on and is being assigned with reasoning off, or the other way
+      // round. Saying "never tested" sends people back to a test they have already run and watched pass.
+      const other = this.passedElsewhere(assignment);
+      if (other?.reasoning !== undefined && other.reasoning !== (assignment.reasoning ?? false)) {
+        const want = other.reasoning ? "with reasoning on" : "with reasoning off";
+        return { eligible: false, reason: `${assignment.model} passed ${want}, and this would run it ${other.reasoning ? "with reasoning off" : "with reasoning on"}. Assign it ${want}, or test it again in this configuration.`, record: other };
+      }
+      if (other) return { eligible: false, reason: `${assignment.model} passed in a different configuration (temperature or context window). Test it again as it would be run.`, record: other };
+      return { eligible: false, reason: `No capability record for ${assignment.model}. Run the Coder capability test first.` };
+    }
     if (!rec.nativeToolCalls) return { eligible: false, reason: `${assignment.model} made no tool calls FlowCode could run`, record: rec };
     if (!rec.passed) {
       const failed = rec.results.filter((r) => !r.passed).map((r) => r.probe);
-      return { eligible: false, reason: `${assignment.model} failed probes: ${failed.join(", ")}`, record: rec };
+      // It may well have passed in another configuration; not saying so sends people back to a test they have passed.
+      const other = this.passedElsewhere(assignment);
+      const elsewhere = other
+        ? ` It passed ${other.reasoning === undefined ? "in a different configuration" : `with reasoning ${other.reasoning ? "on" : "off"}`} on ${other.createdAt.slice(0, 10)}; assign it that way, or test it again as it would be run here.`
+        : "";
+      return { eligible: false, reason: `${assignment.model} failed probes: ${failed.join(", ")}.${elsewhere}`, record: rec };
     }
     return { eligible: true, reason: `Passed ${rec.results.length}/${rec.results.length} probes on ${rec.createdAt.slice(0, 10)}`, record: rec };
   }
@@ -315,6 +338,7 @@ export class CapabilityLab {
       model: assignment.model,
       modelVersion: info?.digest?.slice(0, 12) ?? assignment.version,
       configHash: ModelRouter.configHash(assignment),
+      reasoning: assignment.reasoning ?? false,
       passed: results.length === PROBES.length && results.every((r) => r.passed),
       nativeToolCalls: nativeAny,
       vision: !!info?.capabilities?.includes("vision"),

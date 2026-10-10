@@ -226,6 +226,8 @@ export const CapabilityRecord = z.object({
   model: z.string(),
   modelVersion: z.string().optional(),
   configHash: z.string(),
+  /** Whether the probe ran with the model's reasoning on. The config hash counts it, so a record only fits an assignment that matches. */
+  reasoning: z.boolean().optional(),
   passed: z.boolean(),
   nativeToolCalls: z.boolean(),
   vision: z.boolean(),

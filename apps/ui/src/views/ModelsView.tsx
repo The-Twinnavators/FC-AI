@@ -33,10 +33,16 @@ export function ModelsView() {
     const r = await post<{ waiting?: boolean }>("/models/capabilities/probe", { assignment: { providerId: "ollama", model, temperature: 0.1, ...(reasoning ? { reasoning: true } : {}) } });
     setWaiting(!!r.waiting);
   };
+  /** The configuration a model actually passed in, so assigning it uses the one the lab approved. */
+  const passedWith = (model: string) => caps.data?.find((c) => c.model === model && c.providerId === "ollama" && c.passed);
+  const assignmentFor = (role: string, model: string) => {
+    const rec = passedWith(model);
+    return { providerId: "ollama", model, temperature: role === "planner" ? 0.2 : 0.1, ...(rec?.reasoning ? { reasoning: true } : {}) };
+  };
   const assign = async (role: string, model: string) => {
     setError(undefined);
     try {
-      const r = await post<{ switched?: number }>("/models/roles", { role, assignment: { providerId: "ollama", model, temperature: role === "planner" ? 0.2 : 0.1 } });
+      const r = await post<{ switched?: number }>("/models/roles", { role, assignment: assignmentFor(role, model) });
       roles.reload();
       // Builds still going switch too: say so, so the change is never silent.
       setAutoDone(r.switched ? `${model} is the ${role.replace(/_/g, " ")} now, and ${r.switched === 1 ? "the build that's running uses" : `${r.switched} running builds use`} it from the next model call.` : undefined);
@@ -62,7 +68,7 @@ export function ModelsView() {
     try {
       const changes = auto.plan.filter((p) => p.to !== p.from);
       let switched = 0;
-      for (const p of changes) switched = Math.max(switched, (await post<{ switched?: number }>("/models/roles", { role: p.role, assignment: { providerId: "ollama", model: p.to, temperature: p.role === "planner" ? 0.2 : 0.1 } })).switched ?? 0);
+      for (const p of changes) switched = Math.max(switched, (await post<{ switched?: number }>("/models/roles", { role: p.role, assignment: assignmentFor(p.role, p.to) })).switched ?? 0);
       roles.reload();
       setAutoDone(changes.length ? `Updated ${changes.length} role${changes.length === 1 ? "" : "s"}${switched ? `; ${switched === 1 ? "the running build uses" : `${switched} running builds use`} them from the next model call` : ""}.` : "Everything was already set this way.");
       setAuto(undefined);
@@ -123,7 +129,7 @@ export function ModelsView() {
         <div className="section__head">
           <h2 className="section__title">Coder capability lab</h2>
           <label className="check" style={{ marginLeft: "auto" }} title="Runs the eight probes with the model's own thinking turned on. FlowCode keeps thinking off for normal work — it is slower, and the runtime checks results itself — so a pass here is recorded against this setting, not the one the Coder runs with.">
-            <input type="checkbox" checked={reasoning} onChange={(e) => setReasoning(e.target.checked)} /> Probe with reasoning enabled
+            <input type="checkbox" checked={reasoning} onChange={(e) => setReasoning(e.target.checked)} /> Probe with reasoning enabled — a model that passes this way is assigned this way
           </label>
         </div>
         <div className="section__body" style={{ display: "grid", gap: 12 }}>
@@ -144,7 +150,13 @@ export function ModelsView() {
                       {m.family} {m.parameterSize}
                     </span>
                     {rec ? <StatusChip status={rec.passed ? "passed" : "failed"} /> : <span className="chip">not tested</span>}
-                    {rec ? <span className="muted" style={{ fontSize: 12 }}>{rec.results.filter((r) => r.passed).length}/{rec.results.length} · {rec.nativeToolCalls ? "native tool calls" : "no native tool calls"} · {ago(rec.createdAt)}</span> : null}
+                    {rec ? (
+                      <span className="muted" style={{ fontSize: 12 }}>
+                        {rec.results.filter((r) => r.passed).length}/{rec.results.length} · {rec.nativeToolCalls ? "native tool calls" : "no native tool calls"} ·{" "}
+                        {rec.reasoning === undefined ? null : <>reasoning {rec.reasoning ? "on" : "off"} · </>}
+                        {ago(rec.createdAt)}
+                      </span>
+                    ) : null}
                     <button className="btn btn--sm" style={{ marginLeft: "auto" }} disabled={!!probing} onClick={() => probe(m.name)}>
                       {probing === m.name ? (waiting ? "Waits for the build to finish…" : "Probing…") : "Run capability test"}
                     </button>
