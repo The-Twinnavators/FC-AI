@@ -62,7 +62,7 @@ import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js"
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
 import { APP_LAYOUT, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
-import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
+import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, sameFailureTwice, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
@@ -1573,11 +1573,16 @@ export class Orchestrator {
       this.undoBlockedStep(run, task.id, jail);
       if (await this.splitStep(run, this.d.store.tasks.require(task.id), jail, signal)) return;
     }
-    if (task.attempts >= attemptBudget || verdict.noProgress) {
+    // The same failure twice running: every attempt after the first runs as the debugger, the biggest single cost in a
+    // build, so spending the rest of the budget on a wall it has already hit twice buys nothing but latency.
+    const signatures = [...this.d.store.getSetting<string[]>(`taskSignatures:${task.id}`, []), failureSignature(why)].slice(-4);
+    this.d.store.setSetting(`taskSignatures:${task.id}`, signatures);
+    const sameWall = task.attempts >= 2 && sameFailureTwice(signatures);
+    if (task.attempts >= attemptBudget || verdict.noProgress || sameWall) {
       this.updateTask(task, {
         status: "blocked",
         blocker: {
-          reason: verdict.noProgress ? `No progress: ${why.join("; ")}` : `Acceptance criteria not met after ${task.attempts} attempts: ${why.join("; ")}`,
+          reason: verdict.noProgress ? `No progress: ${why.join("; ")}` : sameWall && task.attempts < attemptBudget ? `The same failure twice running, so the remaining attempts were not spent on it: ${why.join("; ")}` : `Acceptance criteria not met after ${task.attempts} attempts: ${why.join("; ")}`,
           category: verdict.noProgress ? "no_progress" : "verification",
           evidenceRefs: verdict.evidenceRefs,
           nextAction: "Review the diff and failing evidence, adjust the request or approve a revised approach, then retry the task.",

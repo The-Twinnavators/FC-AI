@@ -114,7 +114,10 @@ describe("design studio", () => {
     const { app } = makeApp();
     const { jail } = makeProject(app, { "src/styles/tokens.css": TOKENS });
     expect(designComponents(jail).components).toBeUndefined();
-    expect(designBrief(jail)).toBe("");
+    // Nothing picked: the builder is still told what to build from. An empty brief dropped the step back to generic
+    // guidance, and that is how a build came to write its own screens beside the library it was given.
+    expect(designBrief(jail)).toMatch(/whole starter kit/);
+    expect(designBrief(jail)).toMatch(/don.t make new ones/);
     const picked = setDesignComponents(jail, ["ui-btn", "ui-card", "ui-nope", "ui-btn"]);
     expect(picked.components).toEqual(["ui-btn", "ui-card"]);
     expect(designBrief(jail)).toMatch(/Button \(\.ui-btn\), Card \(\.ui-card\)/);

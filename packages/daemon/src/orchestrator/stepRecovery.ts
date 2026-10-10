@@ -240,6 +240,39 @@ export const guardStops = (findings: string[]) => findings.filter((f) => GUARD_S
 /** The guard's own words, for the notice: "18 reads in a row and no change made" and the like. */
 export const guardOf = (findings: string[]) => (findings.filter((f) => GUARD_STOP.test(f)).pop() ?? "").replace(/^agent outcome: no_action \(No progress: /, "").replace(/\)$/, "").replace(/\. Either the step.*$/, "").slice(0, 160);
 
+/**
+ * One attempt's failure, reduced to what makes it that failure. Counts, line numbers, paths and quoted snippets change
+ * between attempts without the failure being any different ("renders <X> 5 times" then "7 times"), so they are dropped,
+ * and the order of several failures is ignored.
+ */
+export function failureSignature(why: string[]): string {
+  return why
+    .map((w) =>
+      w
+        .toLowerCase()
+        .replace(/["'`][^"'`]*["'`]/g, "-")
+        .replace(/\b[\w./\\-]+\.(tsx?|jsx?|css|scss|json|html)\b/g, "-")
+        .replace(/\d+/g, "#")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 160),
+    )
+    .filter(Boolean)
+    .sort()
+    .join(" | ");
+}
+
+/**
+ * Two attempts in a row that ended the same way. Every attempt after the first runs as the debugger, which is the
+ * largest single cost in a build, so a retry that produces the identical complaint is paying that cost for nothing:
+ * the step stops and asks instead of spending the rest of its budget on the same wall.
+ */
+export function sameFailureTwice(signatures: string[]): boolean {
+  const n = signatures.length;
+  if (n < 2) return false;
+  const last = signatures[n - 1];
+  return !!last && last === signatures[n - 2];
+}
 /** Where FlowCode keeps the times its own limits stopped a step (System Health → Stuck steps). */
 export const FLOWCODE_LIMITS_KEY = "flowcodeLimits";
 export interface FlowCodeLimitHit {

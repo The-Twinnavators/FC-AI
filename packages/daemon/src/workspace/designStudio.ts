@@ -262,10 +262,20 @@ export function setDesignComponents(jail: PathJail, components: string[]): Desig
   return designComponents(jail);
 }
 
-/** For the builder: the building blocks the user chose for this app. Empty until they choose. */
+/**
+ * For the builder: the building blocks to build this app from. The studio's picks when the user made them, and
+ * otherwise the whole starter kit, because sending nothing is what let a build improvise its own screens beside the
+ * library it had been given (Prayer app: design.json held a palette and no components, so this brief was empty, the
+ * step fell back to generic guidance, and the nine sections copied into src/sections were never imported).
+ */
 export function designBrief(jail: PathJail): string {
   const { components } = designComponents(jail);
-  if (!components?.length) return "";
+  if (!components?.length) {
+    const kit = Object.keys(uiGallery());
+    return kit.length
+      ? `No building blocks were picked in the design studio, so the app's whole starter kit is what to build with (use these from src/components/ui for these jobs; don't make new ones): ${kit.map((c) => `${blockLabel(c)} (.${c})`).join(", ")}.`
+      : "";
+  }
   const kit = components.filter((c) => c.startsWith("ui-"));
   // Picks from the Add components catalogue that the starter kit doesn't have (dropdowns, sliders, steppers…).
   const wanted = components.filter((c) => !c.startsWith("ui-") && /^[a-z]+(-[a-z]+)*$/.test(c));

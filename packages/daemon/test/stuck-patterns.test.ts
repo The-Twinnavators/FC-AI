@@ -8,7 +8,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { duplicateScreens, screenKey } from "../src/quality/appWiring.js";
 import { contentProblems } from "../src/quality/contentCheck.js";
-import { foldReadOnlySteps } from "../src/orchestrator/guards.js";
+import { foldReadOnlySteps, syntaxGuard } from "../src/orchestrator/guards.js";
+import { failureSignature, sameFailureTwice } from "../src/orchestrator/stepRecovery.js";
 import { PathJail } from "../src/security/pathJail.js";
 
 const project = (files: Record<string, string>) => {
@@ -148,5 +149,63 @@ describe("a designed screen whose class names nothing styles", () => {
     expect(found[0]!.classes).not.toContain("is-active");
     expect(unstyledMessage(found, 4)).toMatch(/copy the real piece from \.flowcode\/sections\//);
     expect(unstyledMessage([{ file: "x.tsx", classes: ["a", "b"] }], 4)).toBeUndefined();
+  });
+});
+
+describe("the same failure attempt after attempt", () => {
+  // The debugger runs on every attempt after the first and is the single biggest cost in a build (46.8% of model
+  // calls). A retry that ends in the identical complaint spends that cost for nothing, so two in a row stops the step.
+  it("reads two attempts that failed the same way as the same failure", () => {
+    const first = failureSignature(["src/App.tsx renders <DashboardScreen> 5 times. Show each screen once."]);
+    const again = failureSignature(["src/App.tsx renders <DashboardScreen> 7 times. Show each screen once."]);
+    expect(again).toBe(first);
+    expect(sameFailureTwice([first, again])).toBe(true);
+  });
+
+  it("does not stop a step that is failing a different way each time", () => {
+    const a = failureSignature(["typecheck failed: Cannot find name 'Field'"]);
+    const b = failureSignature(["3 of 12 acceptance tests fail"]);
+    expect(sameFailureTwice([a, b])).toBe(false);
+    expect(sameFailureTwice([a])).toBe(false);
+    expect(sameFailureTwice([])).toBe(false);
+  });
+
+  it("ignores line numbers, paths and quoted snippets, which vary without the failure differing", () => {
+    const one = failureSignature(['tokens.css line 161: unknown word "contrast"']);
+    const two = failureSignature(['tokens.css line 204: unknown word "color-mix"']);
+    expect(sameFailureTwice([one, two])).toBe(true);
+  });
+
+  it("treats the order of several failures as the same failure", () => {
+    const a = failureSignature(["typecheck failed", "2 tests fail"]);
+    const b = failureSignature(["9 tests fail", "typecheck failed"]);
+    expect(sameFailureTwice([a, b])).toBe(true);
+  });
+});
+
+describe("a stylesheet an edit leaves unparseable", () => {
+  // tokens.css line 161 held a word PostCSS could not read. Every build failed from then on, so no acceptance test
+  // could pass whatever the agent wrote; it spent four attempts on App.tsx, which was never the cause, then stopped
+  // using its tools. syntaxGuard refused exactly this shape of breakage already, but only for .ts/.tsx files.
+  const ok = ":root {\n  --color-accent: #15803d;\n}\n";
+
+  it("refuses a declaration with no value, the shape that broke tokens.css", () => {
+    const msg = syntaxGuard("src/styles/tokens.css", ok, ":root {\n  --color-accent: #15803d;\n  contrast;\n}\n");
+    expect(msg, "expected a refusal").toBeTruthy();
+    expect(msg).toContain("line 3");
+  });
+
+  it("refuses unbalanced braces", () => {
+    expect(syntaxGuard("src/styles/app.css", ok, ".a { color: red;\n")).toBeTruthy();
+  });
+
+  it("leaves valid stylesheets alone, including nesting, at-rules and comments", () => {
+    const fine = "@media (min-width: 40rem) {\n  .a { color: red; }\n}\n/* note */\n.b { &:hover { color: blue; } }\n@import url('x.css');\n";
+    expect(syntaxGuard("src/styles/app.css", ok, fine)).toBeUndefined();
+  });
+
+  it("does not block an edit that reduces the damage it inherited", () => {
+    const broken = ".a { color: red;\n.b { color: blue;\n";
+    expect(syntaxGuard("src/styles/app.css", broken, ".a { color: red; }\n.b { color: blue;\n")).toBeUndefined();
   });
 });

@@ -27,8 +27,15 @@ describe("syntax guard", () => {
     expect(syntaxGuard("src/App.tsx", broken, good)).toBeUndefined();
   });
 
-  it("ignores files that aren't TypeScript or JavaScript, and new files that parse", () => {
-    expect(syntaxGuard("src/styles/app.css", undefined, "a {")).toBeUndefined();
+  it("ignores files it does not parse, and new files that parse", () => {
+    expect(syntaxGuard("README.md", undefined, "# Title { unbalanced")).toBeUndefined();
+    expect(syntaxGuard("src/styles/app.css", undefined, ".a { color: red; }")).toBeUndefined();
     expect(syntaxGuard("src/New.tsx", undefined, good)).toBeUndefined();
+  });
+
+  // A stylesheet is checked too: one that will not parse fails every later build, so no acceptance test can pass
+  // whatever is written next, and the step chases the wrong file (tokens.css, four attempts spent on App.tsx).
+  it("refuses a stylesheet that does not parse", () => {
+    expect(syntaxGuard("src/styles/app.css", undefined, "a {")).toBeTruthy();
   });
 });

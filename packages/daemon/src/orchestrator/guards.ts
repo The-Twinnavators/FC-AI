@@ -582,6 +582,7 @@ export { testFailureDigest } from "../quality/testDigest.js";
 
 /** Syntax errors in a TypeScript/JavaScript file's text (it doesn't parse), first ones first, one per line. */
 export function syntaxErrors(file: string, text: string): Array<{ line: number; col: number; message: string; source: string }> {
+  if (/\.(css|scss|pcss)$/i.test(file)) return cssErrors(text);
   const kind = /\.tsx$/i.test(file) ? ts.ScriptKind.TSX : /\.jsx$/i.test(file) ? ts.ScriptKind.JSX : /\.(m|c)?js$/i.test(file) ? ts.ScriptKind.JS : ts.ScriptKind.TS;
   const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, kind);
   const diags = (sf as unknown as { parseDiagnostics?: ts.DiagnosticWithLocation[] }).parseDiagnostics ?? [];
@@ -601,8 +602,58 @@ export function syntaxErrors(file: string, text: string): Array<{ line: number; 
  * small models answer those by rewriting the file with the same mistake (Kids cash app: `onClick={</Button>}` written
  * again round after round, 2-3 minutes each). The file stays as it was, and the agent sees the exact broken lines.
  */
+/**
+ * A stylesheet an edit leaves unreadable fails every later build, so no acceptance test can pass whatever the agent
+ * writes next: it chases the wrong file instead (tokens.css held a valueless word, and the build spent four attempts
+ * on App.tsx). Only definite breakage is reported, never a guess about what is valid CSS: unclosed braces, comments or
+ * strings, and a statement inside a block that declares nothing.
+ */
+export function cssErrors(text: string): Array<{ line: number; col: number; message: string; source: string }> {
+  const lines = text.split(/\r?\n/);
+  const out: Array<{ line: number; col: number; message: string; source: string }> = [];
+  const at = (i: number, message: string) => out.push({ line: i + 1, col: 1, message, source: lines[i] ?? "" });
+  // Strip comments and strings first; what is left is structure.
+  let bare = "";
+  const open: number[] = [];
+  let statement = "";
+  let statementLine = 0;
+  let i = 0;
+  let line = 0;
+  while (i < text.length) {
+    const c = text[i]!;
+    if (c === "\n") { line++; i++; bare += "\n"; statement += " "; continue; }
+    if (c === "/" && text[i + 1] === "*") {
+      const end = text.indexOf("*/", i + 2);
+      if (end < 0) { at(line, "unclosed /* comment"); return out; }
+      for (let k = i; k < end; k++) if (text[k] === "\n") line++;
+      i = end + 2; continue;
+    }
+    if (c === '"' || c === "'") {
+      const end = text.indexOf(c, i + 1);
+      const nl = text.indexOf("\n", i + 1);
+      if (end < 0 || (nl >= 0 && nl < end)) { at(line, `unclosed ${c === '"' ? "double" : "single"} quote`); return out; }
+      statement += "-"; i = end + 1; continue;
+    }
+    if (c === "{") { open.push(line); statement = ""; i++; continue; }
+    if (c === "}") {
+      if (!open.length) { at(line, "a } with no matching {"); return out; }
+      open.pop();
+      statement = ""; i++; continue;
+    }
+    if (c === ";") {
+      // Inside a block, a statement that declares nothing (no colon, not an at-rule) is the tokens.css breakage.
+      const s = statement.trim();
+      if (open.length > 0 && s && !s.includes(":") && !s.startsWith("@")) at(statementLine, `"${s.slice(0, 40)}" declares nothing (a property needs "name: value")`);
+      statement = ""; i++; continue;
+    }
+    if (!statement.trim() && c.trim()) statementLine = line;
+    statement += c; bare += c; i++;
+  }
+  for (const l of open) at(l, "the block opened here is never closed");
+  return out;
+}
 export function syntaxGuard(file: string, before: string | undefined, after: string): string | undefined {
-  if (!/\.(tsx?|jsx?|mts|cts|mjs|cjs)$/i.test(file)) return undefined;
+  if (!/\.(tsx?|jsx?|mts|cts|mjs|cjs|css|scss|pcss)$/i.test(file)) return undefined;
   const now = syntaxErrors(file, after);
   if (!now.length) return undefined;
   const was = before === undefined ? 0 : syntaxErrors(file, before).length;
