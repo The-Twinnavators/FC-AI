@@ -142,8 +142,13 @@
 textarea.fl-input { min-height: 8rem; resize: vertical; }
 /* One height for every single-line field, so a date picker or select sits level with the text box beside it. */
 input.fl-input:where(:not([type="checkbox"], [type="radio"], [type="range"])), select.fl-input { height: var(--control-md); padding-block: 0; }
-.fl-inline-form { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+.fl-inline-form { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: stretch; }
 .fl-inline-form .fl-input { flex: 1 1 16rem; width: auto; }
+/* The field and the button beside it are one control to the eye, so they share a height: the button's, because
+   shrinking the button to the field's would weaken the thing being asked for. Height, not min-height, because the
+   rule above sets height outright. */
+.fl-inline-form input.fl-input:where(:not([type="checkbox"], [type="radio"], [type="range"])),
+.fl-inline-form select.fl-input { height: var(--control-lg); }
 .fl-note { font-size: var(--text-sm); color: var(--color-text-muted); }
 .fl-done { padding: var(--space-4); border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--color-success); font-weight: var(--weight-semibold); }
 
