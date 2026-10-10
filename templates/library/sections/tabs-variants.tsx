@@ -66,7 +66,7 @@ function TabSet({ look, size = "" }: { look: { id: string; label: string }; size
             aria-controls={`panel-${look.id}`}
             tabIndex={on === t.id ? 0 : -1}
             disabled={t.disabled}
-            className={`fl-ctl-tab${on === t.id ? " is-on" : ""}`}
+            className={`fl-spec-tab${on === t.id ? " is-on" : ""}`}
             onClick={() => setOn(t.id)}
           >
             {t.label}

@@ -180,7 +180,7 @@ export default function TablesStates() {
           ) : null}
         </table>
         {rows.length ? null : (
-          <div className="fl-ctl-empty">
+          <div className="fl-spec-empty">
             <span className="fl-ctl-empty-art" aria-hidden="true">
               <Icon name="search" />
             </span>

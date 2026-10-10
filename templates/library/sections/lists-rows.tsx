@@ -95,7 +95,7 @@ export default function ListsRows() {
                 <li key={m.id}>
                   <a
                     href="#top"
-                    className={`fl-ctl-row${m.id === open ? " is-on" : ""}${unread ? " is-unread" : ""}`}
+                    className={`fl-spec-row${m.id === open ? " is-on" : ""}${unread ? " is-unread" : ""}`}
                     aria-current={m.id === open ? "true" : undefined}
                     onClick={(e) => {
                       e.preventDefault();
@@ -128,7 +128,7 @@ export default function ListsRows() {
           <p className="fl-ctl-matrix-what">The row itself does nothing; the buttons do. They stay visible, because hover does not exist on a phone.</p>
           <ul className="fl-ctl-rows">
             {files.map((f) => (
-              <li key={f.id} className="fl-ctl-row fl-ctl-row--static">
+              <li key={f.id} className="fl-spec-row fl-ctl-row--static">
                 <span className="fl-ctl-row-icon" aria-hidden="true">
                   <Icon name="folder" />
                 </span>
@@ -154,7 +154,7 @@ export default function ListsRows() {
               </li>
             ))}
             {files.length ? null : (
-              <li className="fl-ctl-row fl-ctl-row--static">
+              <li className="fl-spec-row fl-ctl-row--static">
                 <span className="fl-ctl-matrix-what">Nothing attached.</span>
                 <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => setFiles(d.files)}>
                   Put them back
@@ -169,7 +169,7 @@ export default function ListsRows() {
           <p className="fl-ctl-matrix-what">A handle, and two buttons that do the same job for anyone who cannot drag.</p>
           <ol className="fl-ctl-rows fl-ctl-rows--order">
             {order.map((o, n) => (
-              <li key={o} className="fl-ctl-row fl-ctl-row--static">
+              <li key={o} className="fl-spec-row fl-ctl-row--static">
                 <span className="fl-ctl-row-grip" aria-hidden="true">
                   <Icon name="more" />
                 </span>

@@ -140,9 +140,9 @@ export default function SidebarNavVariants() {
         <div className="fl-ctl-side-page">
           <p className="fl-ctl-matrix-kind">The page beside it</p>
           <p className="fl-ctl-matrix-what">Folding the sidebar gives this back about 150 px, which is why apps offer it at all.</p>
-          <span className="fl-ctl-skel" />
-          <span className="fl-ctl-skel" />
-          <span className="fl-ctl-skel fl-ctl-skel--short" />
+          <span className="fl-spec-skel" />
+          <span className="fl-spec-skel" />
+          <span className="fl-spec-skel fl-ctl-skel--short" />
         </div>
       </div>
 

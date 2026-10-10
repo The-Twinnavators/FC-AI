@@ -123,10 +123,10 @@ export default function ProgressIndicators() {
           decoration, so it is hidden from screen readers and one line of text does the announcing.
         </p>
         <div className="fl-ctl-skel-card" aria-hidden="true">
-          <span className="fl-ctl-skel fl-ctl-skel--avatar" />
+          <span className="fl-spec-skel fl-ctl-skel--avatar" />
           <span className="fl-ctl-skel-lines">
-            <span className="fl-ctl-skel" />
-            <span className="fl-ctl-skel fl-ctl-skel--short" />
+            <span className="fl-spec-skel" />
+            <span className="fl-spec-skel fl-ctl-skel--short" />
           </span>
         </div>
         <p className="fl-ctl-matrix-what" role="status" aria-live="polite">

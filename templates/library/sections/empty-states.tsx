@@ -45,7 +45,7 @@ export default function EmptyStates() {
         <li>
           <p className="fl-ctl-matrix-kind">Nothing yet</p>
           <p className="fl-ctl-matrix-what">A new account. There is nothing because nothing has been made.</p>
-          <div className="fl-ctl-empty">
+          <div className="fl-spec-empty">
             <span className="fl-ctl-empty-art" aria-hidden="true">
               <Icon name="image" />
             </span>
@@ -60,7 +60,7 @@ export default function EmptyStates() {
         <li>
           <p className="fl-ctl-matrix-kind">Nothing found</p>
           <p className="fl-ctl-matrix-what">There is something, but not this. Type a word that is not there.</p>
-          <div className="fl-ctl-empty">
+          <div className="fl-spec-empty">
             <span className="fl-ctl-combo fl-ctl-empty-search">
               <label className="fl-sr" htmlFor="empty-q">
                 Search shoots
@@ -99,7 +99,7 @@ export default function EmptyStates() {
         <li>
           <p className="fl-ctl-matrix-kind">Nothing left</p>
           <p className="fl-ctl-matrix-what">Finished, not broken. This is the only empty that should feel good.</p>
-          <div className="fl-ctl-empty fl-ctl-empty--good">
+          <div className="fl-spec-empty fl-ctl-empty--good">
             <span className="fl-ctl-empty-art" aria-hidden="true">
               <Icon name="check" />
             </span>
@@ -111,7 +111,7 @@ export default function EmptyStates() {
         <li>
           <p className="fl-ctl-matrix-kind">Nothing worked</p>
           <p className="fl-ctl-matrix-what">Empty because something failed. Say so, and offer the retry.</p>
-          <div className={`fl-ctl-empty${broke ? " fl-ctl-empty--bad" : ""}`}>
+          <div className={`fl-spec-empty${broke ? " fl-ctl-empty--bad" : ""}`}>
             {broke ? (
               <>
                 <span className="fl-ctl-empty-art" aria-hidden="true">

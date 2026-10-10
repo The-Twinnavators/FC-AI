@@ -250,36 +250,36 @@
 .fl-ctl-stage-page span { display: block; height: 0.6rem; border-radius: 999px; background: var(--color-border); }
 .fl-ctl-stage-page span:nth-child(2) { width: 70%; }
 .fl-ctl-stage-page span:nth-child(3) { width: 45%; }
-.fl-ctl-panel { position: absolute; display: flex; flex-direction: column; background: var(--color-surface); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18); }
-.fl-ctl-stage--side .fl-ctl-panel { inset: 0 0 0 62%; }
-.fl-ctl-stage--bottom .fl-ctl-panel { inset: auto 0 0 0; max-height: 80%; border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.18); }
-.fl-ctl-stage--inline .fl-ctl-panel { inset: 0 0 0 58%; border-left: 1px solid var(--color-border); box-shadow: none; }
-.fl-ctl-panel header { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); }
+.fl-spec-panel { position: absolute; display: flex; flex-direction: column; background: var(--color-surface); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18); }
+.fl-ctl-stage--side .fl-spec-panel { inset: 0 0 0 62%; }
+.fl-ctl-stage--bottom .fl-spec-panel { inset: auto 0 0 0; max-height: 80%; border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.18); }
+.fl-ctl-stage--inline .fl-spec-panel { inset: 0 0 0 58%; border-left: 1px solid var(--color-border); box-shadow: none; }
+.fl-spec-panel header { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); }
 .fl-ctl-panel-body { flex: 1 1 auto; min-height: 0; display: grid; gap: var(--space-2); align-content: start; padding: var(--space-4); overflow: auto; }
-.fl-ctl-panel footer { flex: none; display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-spec-panel footer { flex: none; display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); }
 
 /* ── Tabs: three looks, one behaviour ── */
 .fl-ctl-tabs-list { display: grid; gap: var(--space-6); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
 .fl-ctl-tabs-list > li, .fl-ctl-size-list > li { min-width: 0; }
 .fl-ctl-tabset { max-width: 100%; }
 .fl-ctl-tabset { display: flex; flex-wrap: wrap; gap: var(--space-1, 0.25rem); margin-top: var(--space-2); }
-.fl-ctl-tab { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-4); border: 1px solid transparent; background: none; color: var(--color-text-muted); font: inherit; font-weight: var(--weight-medium); cursor: pointer; }
-.fl-ctl-tab:disabled { opacity: 0.5; cursor: not-allowed; }
+.fl-spec-tab { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-4); border: 1px solid transparent; background: none; color: var(--color-text-muted); font: inherit; font-weight: var(--weight-medium); cursor: pointer; }
+.fl-spec-tab:disabled { opacity: 0.5; cursor: not-allowed; }
 .fl-ctl-tab-count { padding: 0 var(--space-2); border-radius: 999px; background: var(--color-surface-sunken); font-size: var(--text-xs, 0.78rem); }
 .fl-ctl-tabset--underline { border-bottom: 1px solid var(--color-border); gap: var(--space-2); }
-.fl-ctl-tabset--underline .fl-ctl-tab { border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.fl-ctl-tabset--underline .fl-ctl-tab.is-on { color: var(--color-accent); border-bottom-color: var(--color-accent); }
-.fl-ctl-tabset--underline .fl-ctl-tab.is-hover { color: var(--color-text); }
+.fl-ctl-tabset--underline .fl-spec-tab { border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.fl-ctl-tabset--underline .fl-spec-tab.is-on { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.fl-ctl-tabset--underline .fl-spec-tab.is-hover { color: var(--color-text); }
 .fl-ctl-tabset--pills { gap: var(--space-2); }
-.fl-ctl-tabset--pills .fl-ctl-tab { border-radius: 999px; }
-.fl-ctl-tabset--pills .fl-ctl-tab.is-on { background: var(--color-accent); color: var(--color-on-accent); }
-.fl-ctl-tabset--pills .fl-ctl-tab.is-hover { background: var(--color-surface-sunken); }
+.fl-ctl-tabset--pills .fl-spec-tab { border-radius: 999px; }
+.fl-ctl-tabset--pills .fl-spec-tab.is-on { background: var(--color-accent); color: var(--color-on-accent); }
+.fl-ctl-tabset--pills .fl-spec-tab.is-hover { background: var(--color-surface-sunken); }
 .fl-ctl-tabset--enclosed { gap: 0; border-bottom: 1px solid var(--color-border); }
-.fl-ctl-tabset--enclosed .fl-ctl-tab { border: 1px solid transparent; border-radius: var(--radius-md) var(--radius-md) 0 0; margin-bottom: -1px; }
-.fl-ctl-tabset--enclosed .fl-ctl-tab.is-on { border-color: var(--color-border); border-bottom-color: var(--color-surface); background: var(--color-surface); color: var(--color-text); }
-.fl-ctl-tabset--32 .fl-ctl-tab { min-height: 32px; font-size: var(--text-sm); }
-.fl-ctl-tabset--40 .fl-ctl-tab { min-height: 40px; }
-.fl-ctl-tabset--44 .fl-ctl-tab { min-height: 44px; }
+.fl-ctl-tabset--enclosed .fl-spec-tab { border: 1px solid transparent; border-radius: var(--radius-md) var(--radius-md) 0 0; margin-bottom: -1px; }
+.fl-ctl-tabset--enclosed .fl-spec-tab.is-on { border-color: var(--color-border); border-bottom-color: var(--color-surface); background: var(--color-surface); color: var(--color-text); }
+.fl-ctl-tabset--32 .fl-spec-tab { min-height: 32px; font-size: var(--text-sm); }
+.fl-ctl-tabset--40 .fl-spec-tab { min-height: 40px; }
+.fl-ctl-tabset--44 .fl-spec-tab { min-height: 44px; }
 .fl-ctl-tabpanel { padding: var(--space-4); border: 1px solid var(--color-border); border-top: 0; border-radius: 0 0 var(--radius-md) var(--radius-md); }
 
 /* ── Breadcrumbs ── */
@@ -310,9 +310,9 @@
 /* ── Specimens on a narrow screen ──────────────────────────────────────────── */
 @container specimen (max-width: 760px) {
   /* A drawer on a phone covers nearly everything; an inline panel has nowhere to go but full width. */
-  .fl-ctl-stage--side .fl-ctl-panel { inset: 0 0 0 10%; }
-  .fl-ctl-stage--inline .fl-ctl-panel { inset: 0; border-left: 0; }
-  .fl-ctl-stage--bottom .fl-ctl-panel { max-height: 90%; }
+  .fl-ctl-stage--side .fl-spec-panel { inset: 0 0 0 10%; }
+  .fl-ctl-stage--inline .fl-spec-panel { inset: 0; border-left: 0; }
+  .fl-ctl-stage--bottom .fl-spec-panel { max-height: 90%; }
   .fl-ctl-stage { height: 17rem; }
 
   /* One column for anything laid out in several. */
@@ -329,7 +329,7 @@
 
   /* Tabs scroll sideways only here, where there is genuinely no room to wrap a tab row. */
   .fl-ctl-tabset { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
-  .fl-ctl-tab { flex: none; }
+  .fl-spec-tab { flex: none; }
 }
 /* ── The live half of a specimen: real presses, real motion ── */
 .fl-ctl-try .fl-actions { align-items: center; }
@@ -348,15 +348,15 @@
 .fl-ctl-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); }
 .fl-ctl-panel-head > span { display: grid; }
 .fl-ctl-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.32); animation: fl-ctl-fade var(--duration-med, 220ms) var(--easing, ease); }
-.fl-ctl-panel { transition: transform var(--duration-med, 220ms) var(--easing, ease), opacity var(--duration-fast, 150ms) var(--easing, ease); }
-.fl-ctl-stage--side .fl-ctl-panel { transform: translateX(100%); opacity: 0; }
-.fl-ctl-stage--bottom .fl-ctl-panel { transform: translateY(100%); opacity: 0; }
-.fl-ctl-stage--inline .fl-ctl-panel { transform: translateX(8%); opacity: 0; }
-.fl-ctl-panel.is-open { transform: none; opacity: 1; }
-.fl-ctl-panel[aria-hidden="true"] { pointer-events: none; }
+.fl-spec-panel { transition: transform var(--duration-med, 220ms) var(--easing, ease), opacity var(--duration-fast, 150ms) var(--easing, ease); }
+.fl-ctl-stage--side .fl-spec-panel { transform: translateX(100%); opacity: 0; }
+.fl-ctl-stage--bottom .fl-spec-panel { transform: translateY(100%); opacity: 0; }
+.fl-ctl-stage--inline .fl-spec-panel { transform: translateX(8%); opacity: 0; }
+.fl-spec-panel.is-open { transform: none; opacity: 1; }
+.fl-spec-panel[aria-hidden="true"] { pointer-events: none; }
 @keyframes fl-ctl-fade { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .fl-ctl-panel { transition: none; }
+  .fl-spec-panel { transition: none; }
   .fl-ctl-scrim { animation: none; }
 }
 /* Tab samples in the height list keep their own column. */

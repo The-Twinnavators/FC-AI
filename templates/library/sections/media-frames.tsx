@@ -110,7 +110,7 @@ export default function MediaFrames() {
               <figure className="fl-ctl-media-fig">
                 <span className="fl-ctl-media fl-ctl-media--4-3">
                   {loading && n % 2 === 0 ? (
-                    <span className="fl-ctl-skel fl-ctl-media-skel" aria-hidden="true" />
+                    <span className="fl-spec-skel fl-ctl-media-skel" aria-hidden="true" />
                   ) : broken && n % 3 === 0 ? (
                     <span className="fl-ctl-media-gone">
                       <Icon name="image" />

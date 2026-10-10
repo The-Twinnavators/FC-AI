@@ -79,7 +79,7 @@ export default function PanelsDrawers() {
                 <span />
               </div>
               {k.id !== "inline" && open[k.id] ? <div className="fl-ctl-scrim" onClick={() => toggle(k.id, k.label)} aria-hidden="true" /> : null}
-              <div className={`fl-ctl-panel${open[k.id] ? " is-open" : ""}`} role="group" aria-label={k.label} aria-hidden={!open[k.id]}>
+              <div className={`fl-spec-panel${open[k.id] ? " is-open" : ""}`} role="group" aria-label={k.label} aria-hidden={!open[k.id]}>
                 <header>
                   <strong>{d.record.title}</strong>
                   <button
