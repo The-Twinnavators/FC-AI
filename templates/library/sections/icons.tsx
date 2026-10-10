@@ -4,6 +4,14 @@
  */
 const PATHS: Record<string, string> = {
   check: "M5 12.5 10 17l9-10",
+  plus: "M5 12h14M12 5v14",
+  trash: "M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6",
+  pencil: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
+  download: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
+  "chevron-down": "M6 9l6 6 6-6",
+  more: "M5 12h.01M12 12h.01M19 12h.01",
+  close: "M18 6 6 18M6 6l12 12",
+  search: "M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM21 21l-4.3-4.3",
   bolt: "M13 2 4 14h7l-1 8 9-12h-7z",
   shield: "M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z",
   chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",

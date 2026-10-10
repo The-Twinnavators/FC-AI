@@ -320,3 +320,137 @@ select.fl-in-trigger option { color: var(--color-text); }
   .fl-in-split { display: flex; }
   .fl-in-split__main { flex: 1; }
 }
+
+/* ── Catalog specimens: fields, checkboxes, radios and switches in every state ── */
+.fl-ctl-field { width: 100%; min-width: 0; }
+.fl-ctl-field--outlined { border: 1px solid var(--color-border-strong, var(--color-border)); background: var(--color-surface); }
+.fl-ctl-field--filled { border: 1px solid transparent; background: var(--color-surface-sunken); }
+.fl-ctl-field--underlined { border: 0; border-bottom: 1px solid var(--color-border-strong, var(--color-border)); border-radius: 0; background: transparent; }
+/* Focus is drawn, not only applied, so the row reads without tabbing to it. */
+.fl-ctl-field.is-focus, .fl-ctl-field:focus-visible { outline: none; box-shadow: var(--focus-ring); border-color: var(--color-accent); }
+.fl-ctl-field.is-invalid { border-color: var(--color-danger, #b42318); }
+.fl-ctl-field.is-invalid.is-focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger, #b42318) 25%, transparent); }
+.fl-ctl-field:disabled { opacity: 0.6; cursor: not-allowed; }
+.fl-ctl-field[readonly] { background: var(--color-surface-sunken); }
+.fl-ctl-field-msg { display: block; margin-top: var(--space-2); color: var(--color-danger, #b42318); font-size: var(--text-sm); }
+
+/* Checkboxes and radios: the browser's own controls, tinted to the app's accent. */
+.fl-ctl-check { width: 18px; height: 18px; accent-color: var(--color-accent); cursor: pointer; }
+.fl-ctl-check:disabled { cursor: not-allowed; opacity: 0.6; }
+.fl-ctl-choice-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.fl-ctl-choice { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; }
+.fl-ctl-choice:hover { background: var(--color-surface-sunken); }
+.fl-ctl-choice strong { display: block; }
+
+/* Switch: a track and a thumb, with the real checkbox on top of it and invisible. */
+.fl-ctl-switch { position: relative; display: inline-flex; --fl-switch-h: 32px; }
+.fl-ctl-switch--14 { --fl-switch-h: 14px; }
+.fl-ctl-switch--16 { --fl-switch-h: 16px; }
+.fl-ctl-switch--18 { --fl-switch-h: 18px; }
+.fl-ctl-switch--20 { --fl-switch-h: 20px; }
+.fl-ctl-switch--24 { --fl-switch-h: 24px; }
+.fl-ctl-switch--32 { --fl-switch-h: 32px; }
+.fl-ctl-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.fl-ctl-switch input:disabled { cursor: not-allowed; }
+.fl-ctl-switch-track { display: inline-flex; align-items: center; width: calc(var(--fl-switch-h) * 1.75); height: var(--fl-switch-h); padding: calc(var(--fl-switch-h) * 0.1); border-radius: 999px; background: var(--color-border-strong, #9aa1ad); transition: background var(--duration-fast) var(--easing); }
+.fl-ctl-switch-thumb { width: calc(var(--fl-switch-h) * 0.8); height: calc(var(--fl-switch-h) * 0.8); border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: transform var(--duration-fast) var(--easing); }
+.fl-ctl-switch input:checked + .fl-ctl-switch-track { background: var(--color-accent); }
+.fl-ctl-switch input:checked + .fl-ctl-switch-track .fl-ctl-switch-thumb { transform: translateX(calc(var(--fl-switch-h) * 0.75)); }
+.fl-ctl-switch input:focus-visible + .fl-ctl-switch-track { box-shadow: var(--focus-ring); }
+.fl-ctl-switch input:disabled + .fl-ctl-switch-track { opacity: 0.5; }
+.fl-ctl-setting-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.fl-ctl-setting-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.fl-ctl-setting-list strong { display: block; }
+@media (prefers-reduced-motion: reduce) { .fl-ctl-switch-track, .fl-ctl-switch-thumb { transition: none; } }
+/* The same six heights as the buttons, so a field and a button line up in a row. */
+input.fl-ctl-field--24 { height: 24px; min-height: 24px; padding-inline: var(--space-2); font-size: var(--text-xs, 0.78rem); }
+input.fl-ctl-field--32 { height: 32px; min-height: 32px; padding-inline: var(--space-3); font-size: var(--text-sm); }
+input.fl-ctl-field--40 { height: 40px; min-height: 40px; padding-inline: var(--space-3); font-size: var(--text-sm); }
+input.fl-ctl-field--44 { height: 44px; min-height: 44px; padding-inline: var(--space-4); }
+input.fl-ctl-field--48 { height: 48px; min-height: 48px; padding-inline: var(--space-4); }
+input.fl-ctl-field--56 { height: 56px; min-height: 56px; padding-inline: var(--space-5); }
+.fl-ctl-size-list li > .fl-ctl-field { flex: none; width: 17rem; }
+
+/* ── Checkbox and radio sizes: they sit beside text, so the scale is small ── */
+.fl-ctl-check--14 { width: 14px; height: 14px; }
+.fl-ctl-check--16 { width: 16px; height: 16px; }
+.fl-ctl-check--18 { width: 18px; height: 18px; }
+.fl-ctl-check--20 { width: 20px; height: 20px; }
+.fl-ctl-check--24 { width: 24px; height: 24px; }
+
+/* ── Combo box: the field with its chevron sitting inside ── */
+/* Select and combo box: the chevron is drawn, not the browser's, and sits 8px from the right edge. */
+.fl-ctl-combo, .fl-ctl-select { position: relative; display: block; }
+.fl-ctl-combo svg, .fl-ctl-select svg { position: absolute; right: 8px; top: 50%; width: 1rem; height: 1rem; transform: translateY(-50%); pointer-events: none; color: var(--color-text-muted); }
+.fl-ctl-combo .fl-ctl-field, .fl-ctl-select select { padding-right: calc(8px + 1rem + var(--space-2)); }
+.fl-ctl-select select { appearance: none; -webkit-appearance: none; cursor: pointer; }
+
+/* ── The open menu, drawn in place so it can be read ── */
+.fl-ctl-menu { max-width: 22rem; margin: 0; padding: var(--space-2); list-style: none; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,.12)); }
+.fl-ctl-menu li { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); }
+.fl-ctl-menu li.is-hover { background: var(--color-surface-sunken); }
+.fl-ctl-menu li[aria-selected="true"] { font-weight: var(--weight-semibold); }
+.fl-ctl-menu-tick { display: inline-grid; place-items: center; width: 1.1em; }
+.fl-ctl-menu-tick svg { width: 1em; height: 1em; }
+
+/* ── Sliders: the value is always written out beside the track ── */
+.fl-ctl-slider { display: grid; gap: var(--space-2); }
+.fl-ctl-range { width: 100%; accent-color: var(--color-accent); }
+.fl-ctl-range.is-focus { outline: none; box-shadow: var(--focus-ring); border-radius: 999px; }
+.fl-ctl-range:disabled { opacity: 0.55; cursor: not-allowed; }
+.fl-ctl-slider-value { font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-ctl-slider--range { max-width: 26rem; }
+
+/* ── Chips: a filter is a button, a label is not ── */
+.fl-ctl-chip-item { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-3); border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: 999px; background: var(--color-surface); color: var(--color-text); font-size: var(--text-sm); cursor: pointer; }
+.fl-ctl-chip-item.is-hover, .fl-ctl-chip-item:hover:not(:disabled) { background: var(--color-surface-sunken); }
+.fl-ctl-chip-item.is-on { background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface)); border-color: var(--color-accent); color: var(--color-accent); font-weight: var(--weight-semibold); }
+.fl-ctl-chip-item:disabled { opacity: 0.55; cursor: not-allowed; }
+.fl-ctl-chip-item--label { cursor: default; }
+.fl-ctl-chip-x { display: inline-grid; place-items: center; width: 1.25em; height: 1.25em; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+.fl-ctl-chip-x:hover:not(:disabled) { background: color-mix(in srgb, currentColor 18%, transparent); }
+.fl-ctl-chip-x svg { width: 0.9em; height: 0.9em; }
+.fl-ctl-chip-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+
+/* ── Dropzone and the files under it ── */
+.fl-ctl-zone-grid { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
+.fl-ctl-zone-grid > li { display: grid; gap: var(--space-1, 0.25rem); }
+.fl-ctl-zone { display: grid; justify-items: center; gap: var(--space-2); margin-top: var(--space-2); padding: var(--space-6) var(--space-4); border: 2px dashed var(--color-border-strong, var(--color-border)); border-radius: var(--radius-lg); background: var(--color-surface); text-align: center; }
+.fl-ctl-zone svg { width: 1.5rem; height: 1.5rem; color: var(--color-text-muted); }
+.fl-ctl-zone.is-over { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface)); }
+.fl-ctl-zone.is-busy { border-style: solid; }
+.fl-ctl-zone.is-error { border-color: var(--color-danger, #b42318); background: color-mix(in srgb, var(--color-danger, #b42318) 6%, var(--color-surface)); }
+.fl-ctl-zone.is-error svg { color: var(--color-danger, #b42318); }
+.fl-ctl-bar { display: block; width: 100%; max-width: 14rem; height: 6px; border-radius: 999px; background: var(--color-surface-sunken); overflow: hidden; }
+.fl-ctl-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--color-accent); }
+.fl-ctl-file-list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-ctl-file-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.fl-ctl-file-list li.is-error { border-color: var(--color-danger, #b42318); }
+.fl-ctl-file-main { display: grid; gap: var(--space-1, 0.25rem); min-width: 0; }
+/* Three menus side by side, each one drawn open so it can be read here. */
+.fl-ctl-menu-grid { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); align-items: start; }
+.fl-ctl-menu ul { margin: 0; padding: 0; list-style: none; }
+.fl-ctl-menu-check { display: flex; align-items: center; gap: var(--space-2); width: 100%; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); cursor: pointer; }
+.fl-ctl-menu-check:hover { background: var(--color-surface-sunken); }
+.fl-ctl-menu-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--color-border); }
+.fl-ctl-menu--actions li { gap: var(--space-3); cursor: pointer; }
+.fl-ctl-menu--actions svg { width: 1rem; height: 1rem; flex: none; color: var(--color-text-muted); }
+.fl-ctl-menu--actions li.is-danger { color: var(--color-danger, #b42318); margin-top: var(--space-2); padding-top: calc(var(--space-2) + var(--space-2)); border-top: 1px solid var(--color-border); border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+.fl-ctl-menu--actions li.is-danger svg { color: inherit; }
+.fl-ctl-menu--actions li.is-disabled { opacity: 0.5; cursor: not-allowed; }
+.fl-ctl-menu-keys { margin-left: auto; padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-muted); font-size: var(--text-xs, 0.78rem); font-family: var(--font-mono, ui-monospace, monospace); }
+/* Chip heights: the lower half of the button scale, so a chip and a button line up in a filter bar. */
+.fl-ctl-chip-item--20 { min-height: 20px; padding-inline: var(--space-2); font-size: var(--text-xs, 0.78rem); gap: var(--space-1, 0.25rem); }
+.fl-ctl-chip-item--24 { min-height: 24px; padding-inline: var(--space-2); font-size: var(--text-xs, 0.78rem); }
+.fl-ctl-chip-item--32 { min-height: 32px; }
+.fl-ctl-chip-item--40 { min-height: 40px; padding-inline: var(--space-4); }
+.fl-ctl-chip-item--44 { min-height: 44px; padding-inline: var(--space-4); font-size: var(--text-md); }
+
+/* ── Input specimens on a narrow screen ────────────────────────────────────── */
+@media (max-width: 760px) {
+  .fl-ctl-chip-bar { gap: var(--space-2); }
+  .fl-ctl-file-list li { flex-wrap: wrap; }
+  .fl-ctl-setting-list li { flex-wrap: wrap; gap: var(--space-3); }
+  .fl-ctl-slider--range { max-width: none; }
+  .fl-ctl-menu { max-width: none; }
+}

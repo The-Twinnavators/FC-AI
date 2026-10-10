@@ -7,6 +7,8 @@
 /* ── Section frame ── */
 .fl-section { padding-block: var(--space-9); padding-inline: var(--space-5); }
 .fl-section--tint { background: var(--color-surface-sunken); }
+/* A specimen of the building blocks themselves (the catalog's own pieces): even padding, no page rhythm. */
+.fl-section--specimen { padding: var(--space-5); }
 .fl-section--accent { background: var(--color-accent); color: var(--color-on-accent); }
 .fl-wrap { width: 100%; max-width: var(--content-max, 72rem); margin-inline: auto; }
 .fl-wrap--narrow { max-width: 48rem; }

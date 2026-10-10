@@ -19,6 +19,9 @@ committed, not shipped); every converted item keeps its source's licence notice,
 | HyperUI (`github.com/markmead/hyperui`) | MIT | Shop, input, display and app-screen pieces and a neobrutalism kit, rewritten in token CSS | Keep the MIT notice |
 | Uiverse galaxy (`github.com/uiverse-io/galaxy`) | MIT | Allowed, but not used: tried 2026-10-08 and judged too dated for the library | Keep the MIT notice and credit authors if any element is ever used |
 | Creative Tim, UIdeck, TailAwesome, Windy Toolbox listings, GitHub topic `tailwind-template` | Per repo | Templates | Only repos with an MIT (or similar) licence file; a repo with no licence is all rights reserved |
+| shadcn/ui (`github.com/shadcn-ui/ui`) | MIT | Application shells, sidebars, dashboards, sign-in, and the data table (search, sort, paging, row selection) | Keep the MIT notice (Copyright (c) 2023 shadcn). Official repo only: blocks.so and shadcn.io Pro are other projects with their own terms |
+| Tremor (`github.com/tremorlabs/tremor`) | Apache-2.0 | Dashboard, table and chart patterns | Keep the Apache-2.0 notice and state changes; it also carries MIT subcomponents (Radix Primitives by WorkOS) whose notices must stay |
+| Flowbite library (`github.com/themesberg/flowbite`) | MIT | Components, and the blocks published as MIT | Keep the MIT notice (Copyright (c) 2023 Bergside Inc.). The MIT repo only — see Flowbite Pro below |
 
 ## Not allowed
 
@@ -31,6 +34,7 @@ committed, not shipped); every converted item keeps its source's licence notice,
 | Meraki UI templates (site) | Paid, or no licence stated (so all rights reserved) |
 | MagicPattern (`magicpattern.design`: CSS patterns and generators) | Terms: no copying or reuse for commercial purposes without written permission, and no use of its assets to train AI models |
 | 21st.dev (marketplace) | Its terms: content belongs to the authors and 21st Labs; no redistribution without authorisation, no scraping or automated collection, and no use to train AI, without written consent. Use the open-source (MIT) repositories behind individual components instead, each checked on its own |
+| Flowbite Pro (`flowbite.com/pro`) | Its EULA forbids repositories of Pro elements for public distribution, alternative versions of Flowbite Pro, and website builder projects that could be considered direct competitors. FlowCode is a builder, so Pro is out even though the free library is MIT |
 
-Checked 2026-10-08 against each site's licence page or repository. Not legal advice; re-check a source before adding
+Checked 2026-10-08 against each site's licence page or repository; shadcn/ui, Tremor and Flowbite checked 2026-10-10 against their LICENSE files. Not legal advice; re-check a source before adding
 more of it if its terms may have changed.

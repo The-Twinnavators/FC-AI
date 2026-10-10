@@ -175,3 +175,171 @@
   .fl-ctl-fade-in { animation: none; }
   .fl-ctl-tabs__bar, .fl-ctl-tab, .fl-ctl-seg__opt, .fl-ctl-small-btn { transition: none; }
 }
+
+
+/* ── Buttons: the variants and states the library piece shows (buttons-variants) ── */
+.fl-ctl-btn-what { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+/* Tertiary: no fill until it is pointed at, for quiet actions in a toolbar. */
+.fl-btn.fl-ctl-btn--tertiary { background: transparent; color: var(--color-text); border-color: transparent; box-shadow: none; }
+.fl-btn.fl-ctl-btn--tertiary:hover, .fl-btn.fl-ctl-btn--tertiary.is-hover { background: var(--color-surface-sunken); }
+/* Destructive: the one button that should never be mistaken for the primary action. */
+.fl-btn.fl-ctl-btn--destructive { background: var(--color-danger, #b42318); color: var(--color-on-accent, #fff); border-color: transparent; }
+.fl-btn.fl-ctl-btn--destructive:hover, .fl-btn.fl-ctl-btn--destructive.is-hover { filter: brightness(0.92); }
+/* Drawn states, so the set reads without a pointer. */
+.fl-btn.is-hover { transform: translateY(var(--hover-lift, -1px)); box-shadow: var(--control-shadow-hover, none); }
+.fl-btn.is-active { transform: scale(var(--press-scale, 0.98)); }
+.fl-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.fl-ctl-btn--24 { min-height: 24px; padding-inline: var(--space-2); font-size: var(--text-xs, 0.78rem); gap: var(--space-1, 0.25rem); }
+.fl-ctl-btn--32 { min-height: 32px; padding-inline: var(--space-3); font-size: var(--text-sm); gap: var(--space-2); }
+.fl-ctl-btn--40 { min-height: 40px; padding-inline: var(--space-4); font-size: var(--text-sm); }
+.fl-ctl-btn--44 { min-height: 44px; padding-inline: var(--space-4); font-size: var(--text-md); }
+.fl-ctl-btn--48 { min-height: 48px; padding-inline: var(--control-pad-lg); }
+.fl-ctl-btn--56 { min-height: 56px; padding-inline: calc(var(--control-pad-lg) + 0.5rem); }
+.fl-ctl-spinner { width: 0.9em; height: 0.9em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; display: inline-block; animation: fl-ctl-spin 0.7s linear infinite; }
+@keyframes fl-ctl-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .fl-ctl-spinner { animation: none; } }
+
+/* ── Buttons matrix: state across the top, kind down the side (buttons-variants) ── */
+/* The matrix fits its width: columns share the space and cells shrink, so the page scrolls down, never across. */
+.fl-ctl-matrix-wrap { max-width: 100%; }
+.fl-ctl-matrix { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.fl-ctl-matrix th, .fl-ctl-matrix td { padding: var(--space-3) var(--space-5) var(--space-3) 0; text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
+.fl-ctl-matrix th:last-child, .fl-ctl-matrix td:last-child { padding-right: 0; }
+.fl-ctl-matrix thead th { color: var(--color-text-muted); font-size: var(--text-sm); font-weight: var(--weight-medium); border-bottom: 1px solid var(--color-border); white-space: nowrap; }
+.fl-ctl-matrix tbody tr + tr th, .fl-ctl-matrix tbody tr + tr td { border-top: 1px solid var(--color-border); }
+.fl-ctl-matrix tbody th { font-weight: var(--weight-semibold); width: 9.5rem; }
+.fl-ctl-matrix-kind { display: block; }
+.fl-ctl-matrix-what { display: block; color: var(--color-text-muted); font-size: var(--text-sm); font-weight: var(--weight-regular, 400); }
+.fl-ctl-sizes { margin-top: var(--space-6); display: grid; gap: var(--space-3); }
+.fl-ctl-sizes h3 { margin: 0; font-size: var(--text-md); }
+/* Narrow screens: the matrix becomes one block per kind, so nothing is cut off. */
+@media (max-width: 860px) {
+  .fl-ctl-matrix thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .fl-ctl-matrix tbody tr { display: grid; gap: var(--space-2); padding-block: var(--space-4); border-top: 1px solid var(--color-border); }
+  .fl-ctl-matrix tbody th, .fl-ctl-matrix tbody td { border: 0; padding: 0; }
+  .fl-ctl-matrix tbody td { display: flex; align-items: center; gap: var(--space-3); }
+  .fl-ctl-matrix tbody td::before { content: attr(data-state); color: var(--color-text-muted); font-size: var(--text-sm); min-width: 5rem; }
+}
+.fl-ctl-size-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.fl-ctl-size-list li { display: flex; align-items: center; gap: var(--space-4); }
+.fl-ctl-size-list li > .fl-btn { flex: none; min-width: 6rem; }
+.fl-ctl-icon-row .fl-btn { min-width: 0; flex: none; }
+/* Icon-only: square at whatever height the size modifier sets, and the icon scales with it. */
+.fl-ctl-btn--icon { padding-inline: 0; aspect-ratio: 1; justify-content: center; }
+.fl-ctl-btn--icon svg { width: 1.25em; height: 1.25em; }
+.fl-ctl-btn--icon.fl-ctl-btn--24 svg { width: 1em; height: 1em; }
+.fl-ctl-icon-row { display: inline-flex; align-items: center; gap: var(--space-3); }
+
+/* ── Cards: a surface, and whether it does anything ── */
+.fl-ctl-card { position: relative; display: grid; gap: var(--space-1, 0.25rem); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.fl-ctl-card--clickable { cursor: pointer; }
+.fl-ctl-card--clickable svg { position: absolute; right: var(--space-3); top: var(--space-4); width: 1rem; height: 1rem; color: var(--color-text-muted); }
+.fl-ctl-card.is-hover { border-color: var(--color-border-strong); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+.fl-ctl-card.is-on { border-color: var(--color-accent); box-shadow: 0 0 0 1px var(--color-accent); }
+.fl-ctl-card.is-off { opacity: 0.55; }
+.fl-ctl-card-pick { position: absolute; right: var(--space-3); top: var(--space-4); }
+.fl-ctl-card--flat { box-shadow: none; }
+.fl-ctl-card--raised { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.fl-ctl-card--floating { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18); }
+.fl-ctl-elev-list { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); margin: 0; padding: 0; list-style: none; }
+
+/* ── Panels and drawers, each drawn open over a sketch of the page ── */
+.fl-ctl-panel-grid { display: grid; gap: var(--space-6); grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
+.fl-ctl-stage { position: relative; height: 19rem; margin-top: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-sunken); overflow: hidden; }
+.fl-ctl-stage-page { display: grid; gap: var(--space-3); padding: var(--space-4); }
+.fl-ctl-stage-page span { display: block; height: 0.6rem; border-radius: 999px; background: var(--color-border); }
+.fl-ctl-stage-page span:nth-child(2) { width: 70%; }
+.fl-ctl-stage-page span:nth-child(3) { width: 45%; }
+.fl-ctl-panel { position: absolute; display: flex; flex-direction: column; background: var(--color-surface); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18); }
+.fl-ctl-stage--side .fl-ctl-panel { inset: 0 0 0 62%; }
+.fl-ctl-stage--bottom .fl-ctl-panel { inset: auto 0 0 0; max-height: 80%; border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.18); }
+.fl-ctl-stage--inline .fl-ctl-panel { inset: 0 0 0 58%; border-left: 1px solid var(--color-border); box-shadow: none; }
+.fl-ctl-panel header { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); }
+.fl-ctl-panel-body { flex: 1 1 auto; min-height: 0; display: grid; gap: var(--space-2); align-content: start; padding: var(--space-4); overflow: auto; }
+.fl-ctl-panel footer { flex: none; display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); }
+
+/* ── Tabs: three looks, one behaviour ── */
+.fl-ctl-tabs-list { display: grid; gap: var(--space-6); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
+.fl-ctl-tabs-list > li, .fl-ctl-size-list > li { min-width: 0; }
+.fl-ctl-tabset { max-width: 100%; }
+.fl-ctl-tabset { display: flex; flex-wrap: wrap; gap: var(--space-1, 0.25rem); margin-top: var(--space-2); }
+.fl-ctl-tab { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-4); border: 1px solid transparent; background: none; color: var(--color-text-muted); font: inherit; font-weight: var(--weight-medium); cursor: pointer; }
+.fl-ctl-tab:disabled { opacity: 0.5; cursor: not-allowed; }
+.fl-ctl-tab-count { padding: 0 var(--space-2); border-radius: 999px; background: var(--color-surface-sunken); font-size: var(--text-xs, 0.78rem); }
+.fl-ctl-tabset--underline { border-bottom: 1px solid var(--color-border); gap: var(--space-2); }
+.fl-ctl-tabset--underline .fl-ctl-tab { border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.fl-ctl-tabset--underline .fl-ctl-tab.is-on { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.fl-ctl-tabset--underline .fl-ctl-tab.is-hover { color: var(--color-text); }
+.fl-ctl-tabset--pills { gap: var(--space-2); }
+.fl-ctl-tabset--pills .fl-ctl-tab { border-radius: 999px; }
+.fl-ctl-tabset--pills .fl-ctl-tab.is-on { background: var(--color-accent); color: var(--color-on-accent); }
+.fl-ctl-tabset--pills .fl-ctl-tab.is-hover { background: var(--color-surface-sunken); }
+.fl-ctl-tabset--enclosed { gap: 0; border-bottom: 1px solid var(--color-border); }
+.fl-ctl-tabset--enclosed .fl-ctl-tab { border: 1px solid transparent; border-radius: var(--radius-md) var(--radius-md) 0 0; margin-bottom: -1px; }
+.fl-ctl-tabset--enclosed .fl-ctl-tab.is-on { border-color: var(--color-border); border-bottom-color: var(--color-surface); background: var(--color-surface); color: var(--color-text); }
+.fl-ctl-tabset--32 .fl-ctl-tab { min-height: 32px; font-size: var(--text-sm); }
+.fl-ctl-tabset--40 .fl-ctl-tab { min-height: 40px; }
+.fl-ctl-tabset--44 .fl-ctl-tab { min-height: 44px; }
+.fl-ctl-tabpanel { padding: var(--space-4); border: 1px solid var(--color-border); border-top: 0; border-radius: 0 0 var(--radius-md) var(--radius-md); }
+
+/* ── Breadcrumbs ── */
+.fl-ctl-crumb-list { display: grid; gap: var(--space-5); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
+.fl-ctl-crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1, 0.25rem); margin: var(--space-2) 0 0; padding: 0; list-style: none; }
+.fl-ctl-crumbs li { display: inline-flex; align-items: center; gap: var(--space-1, 0.25rem); }
+.fl-ctl-crumbs svg { width: 0.9em; height: 0.9em; color: var(--color-text-muted); transform: rotate(-90deg); }
+.fl-ctl-crumbs a { color: var(--color-text-muted); text-decoration: none; }
+.fl-ctl-crumbs a:hover { color: var(--color-text); text-decoration: underline; }
+.fl-ctl-crumbs [aria-current="page"] { font-weight: var(--weight-semibold); }
+.fl-ctl-crumb-more { border: 0; background: none; color: var(--color-text-muted); font: inherit; cursor: pointer; padding: 0 var(--space-1, 0.25rem); }
+.fl-ctl-crumbs--14 { font-size: 14px; }
+.fl-ctl-crumbs--16 { font-size: 16px; }
+
+/* ── Pagination ── */
+.fl-ctl-paging-list { display: grid; gap: var(--space-6); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
+.fl-ctl-paging { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin: var(--space-2) 0; }
+.fl-ctl-paging ol { display: flex; align-items: center; gap: var(--space-1, 0.25rem); margin: 0; padding: 0; list-style: none; }
+.fl-ctl-paging-num { min-width: 32px; min-height: 32px; padding: 0 var(--space-2); border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--color-text); font: inherit; cursor: pointer; }
+.fl-ctl-paging-num:hover { background: var(--color-surface-sunken); }
+.fl-ctl-paging-num.is-on { background: var(--color-accent); color: var(--color-on-accent); font-weight: var(--weight-semibold); }
+.fl-ctl-paging-gap { padding: 0 var(--space-2); color: var(--color-text-muted); }
+.fl-ctl-paging--more { flex-direction: column; align-items: flex-start; }
+.fl-ctl-paging-size { max-width: 7rem; }
+.fl-ctl-paging svg { width: 0.9em; height: 0.9em; }
+.fl-ctl-paging button:first-child svg { transform: rotate(180deg); }
+
+/* ── Specimens on a narrow screen ──────────────────────────────────────────── */
+@media (max-width: 760px) {
+  /* A drawer on a phone covers nearly everything; an inline panel has nowhere to go but full width. */
+  .fl-ctl-stage--side .fl-ctl-panel { inset: 0 0 0 10%; }
+  .fl-ctl-stage--inline .fl-ctl-panel { inset: 0; border-left: 0; }
+  .fl-ctl-stage--bottom .fl-ctl-panel { max-height: 90%; }
+  .fl-ctl-stage { height: 17rem; }
+
+  /* One column for anything laid out in several. */
+  .fl-ctl-panel-grid, .fl-ctl-elev-list, .fl-ctl-zone-grid, .fl-ctl-menu-grid { grid-template-columns: minmax(0, 1fr); }
+
+  /* Rows of samples wrap instead of squeezing their labels to nothing. */
+  .fl-ctl-size-list li { flex-wrap: wrap; align-items: flex-start; }
+  .fl-ctl-size-list li > .fl-btn, .fl-ctl-size-list li > .fl-ctl-field { width: 100%; }
+  .fl-ctl-icon-row { flex-wrap: wrap; }
+
+  /* Paging: the numbers keep their line, the buttons take the next one. */
+  .fl-ctl-paging { gap: var(--space-2); }
+  .fl-ctl-paging ol { flex-wrap: wrap; }
+
+  /* Tabs scroll sideways only here, where there is genuinely no room to wrap a tab row. */
+  .fl-ctl-tabset { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; }
+  .fl-ctl-tab { flex: none; }
+}
+/* ── The live half of a specimen: real presses, real motion ── */
+.fl-ctl-try .fl-actions { align-items: center; }
+.fl-ctl-status { min-height: 1.5em; margin: var(--space-3) 0 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+/* A destructive action that has been armed says so, and keeps saying so until it is used or times out. */
+.fl-btn.fl-ctl-btn--destructive.is-armed { animation: fl-ctl-nudge var(--duration-fast, 150ms) var(--easing, ease) 2; }
+@keyframes fl-ctl-nudge { 50% { transform: translateX(2px); } }
+/* Pressing any specimen button pushes it, the way the neobrutal kit does. */
+.fl-ctl-try .fl-btn:active:not(:disabled) { transform: scale(var(--press-scale, 0.98)); }
+@media (prefers-reduced-motion: reduce) {
+  .fl-btn.fl-ctl-btn--destructive.is-armed { animation: none; }
+  .fl-ctl-try .fl-btn { transition: none; }
+}
