@@ -34,6 +34,9 @@ interface GuideEntry {
   description: string;
   /** Words someone would actually search for, including the wrong ones. */
   keywords: string[];
+  /** The controls inside it, named as they appear on screen. See below - this is the layer people
+   *  actually right-click, and the layer specs like this one usually forget. */
+  parts?: Array<{ name: string; what: string }>;
 }
 
 export const APP_GUIDE: GuideEntry[] = [ /* ... */ ];
@@ -49,6 +52,53 @@ Writing the descriptions is most of the work, and it is not filler:
   "audit", put "audit" in.
 - **One registry, used by everything** — this menu, in-app search, and any assistant you add later.
   Two descriptions of the same feature will disagree within a month.
+
+### Parts: the layer people actually right-click
+
+Nobody right-clicks a feature. They right-click a column heading, a toggle, a badge they do not
+recognise. A registry that stops at the feature can only answer with the feature's description,
+which is a paragraph about something larger than what they asked about.
+
+```ts
+parts: [
+  { name: "Works",       what: "The lowest setup it runs on: 16 GB of memory, no graphics card needed" },
+  { name: "Recommended", what: "What it is tested on: 32 GB, an 8 GB card" },
+  { name: "Peak",        what: "The most capable setup, not peak usage: 64 GB, a 24 GB card or more" },
+]
+```
+
+- **The `name` must be the words on the screen.** It is matched against what was clicked and echoed
+  back in the menu — *Explain "Peak"*. A name that is close but not exact sends someone hunting for
+  a control with that label.
+- **Dynamic labels: store the stable part.** A button that reads `Show 3 unused` is stored as
+  "Show unused"; match on the stem, not the whole string.
+- **`what` answers the question, not the label.** The label is already on screen. "Marks it as
+  checked by you **and keeps it for good, so it is no longer temporary**" — the second half is the
+  reason they asked.
+- **Say what it is *not* when the name invites a wrong reading.** "Peak" in a table of hardware
+  setups reads as peak usage. The description says "the most capable setup, not peak usage" for
+  exactly that reason. If you can predict the misreading, answer it in the text.
+- **Cover the parts people ask about, not all of them.** An uncovered part is handled honestly
+  (Part 6). An unnecessary one is noise you will have to keep true.
+
+### Keep it true: the drift check
+
+A part name that has been renamed is worse than one that was never written. A missing entry produces
+"this is not covered yet". A stale one produces a confident answer about a control that is not there.
+
+Two checks, both cheap, both worth running in CI:
+
+```ts
+it("every anchor in the registry exists in the UI", () => { /* grep data-guide out of source */ });
+it("every part name appears in the UI source", () => { /* grep each name; report, do not fail */ });
+```
+
+The first is a fact: an anchor nothing carries means the menu points at nothing. **Fail the build on
+it.** The second is a *suspicion* — descriptive names ("File tree", "Time bar") are legitimate and
+will never match a literal label — so print the list for a person to read rather than failing. Two
+details save most of the noise: normalise HTML entities before comparing (`Confirm it&apos;s right`
+must match `Confirm it's right`), and skip entries that describe how the engine behaves rather than
+what is on a screen.
 
 ---
 
@@ -184,6 +234,35 @@ Keep the registry description as the fallback when the assistant is unavailable,
 off. The feature must work with the model turned off — that is what makes it documentation rather
 than a demo.
 
+### The rule that keeps the answers honest
+
+**When the registry does not cover the part, the model must not guess.** Say so in the prompt, in
+those words, and give it the exact sentence to reply with instead:
+
+```ts
+known
+  ? "Answer from the guide line above. Do not add capabilities it does not mention."
+  : `You have NOT been told what this ${kind} does. Work it out ONLY from the text shown next to it
+     on the page, and only if that makes it plain. If it does not, reply exactly: "The guide doesn't
+     cover this one yet, so I'd be guessing." Never infer meaning from the name alone.`
+```
+
+> This is the failure that is hardest to notice, because nothing looks broken. A column headed
+> **Peak** in a table of three hardware setups was explained as "the highest resource usage, like CPU
+> or memory, during a run". Fluent, confident, and invented from the word — Peak is the name of the
+> 64 GB setup. Two causes: no registry entry for that page, and a prompt that ended with a mild
+> "if you're not sure, say so plainly", which a small local model will not do. It pattern-matches
+> instead.
+
+Three things follow:
+
+- **A soft hedge is not an instruction.** "If unsure, say so" loses to the model's pull toward
+  fluency. Give it the literal reply text.
+- **Name the only admissible source.** Surrounding on-screen text, and nothing else — explicitly not
+  the control's own name, which is what it will otherwise reason from.
+- **A wrong answer about the user's own product is worse than no answer.** They cannot tell it is
+  wrong; that is why they asked.
+
 ---
 
 ## Build order
@@ -191,9 +270,11 @@ than a demo.
 1. The registry, with entries for **every page** and the test from Part 4.
 2. The menu component: page fallback only, `null` when empty, native menu on Shift and in inputs.
 3. `data-guide` on feature containers, most-used screens first.
-4. Part-level naming (`KINDS`).
+4. Part-level naming (`KINDS`), and `parts` in the registry for the screens people ask about.
 5. `data-ctx-*` quick links on tables and lists.
 6. Keyboard access — before launch, not after.
-7. The assistant hand-off, if there is one, with the registry still answering when it is not there.
+7. The assistant hand-off, if there is one, with the registry still answering when it is not there —
+   and the no-guessing rule from Part 6 written into the prompt the first time you send one.
+8. The drift checks from Part 1, in CI, once there is enough in the registry to drift.
 
 Steps 1 and 2 alone are a working feature on every page. Everything after that is depth.
