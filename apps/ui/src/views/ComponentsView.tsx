@@ -226,6 +226,7 @@ export function ComponentsView() {
           label={`${SECTION_CATEGORIES.find((c) => c.id === open.category)?.label ?? "Section"} · ${showCode ? "code" : "preview"}`}
           onClose={() => setOpen(undefined)}
           toolbar={showCode ? undefined : <PreviewSizes value={device} onChange={setDevice} />}
+          scrollKey={`${open.id}:${showCode ? "code" : "preview"}`}
           actions={
             <>
               <span className="cl-detail__nav">

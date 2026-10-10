@@ -3,7 +3,7 @@
  * with its robot head; LibModal is the modal a card opens (a small label and a close button on top, a body that
  * scrolls, and an optional action bar pinned to the bottom).
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Copy, X } from "lucide-react";
 import { useResource } from "../api";
 import { effectiveRoles } from "@flowcode/contracts";
@@ -99,8 +99,16 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
   );
 }
 
-/** `toolbar`: controls for what the modal is showing (the component library puts the preview sizes there). */
-export function LibModal({ label, onClose, actions, toolbar, children }: { label: string; onClose: () => void; actions?: React.ReactNode; toolbar?: React.ReactNode; children: React.ReactNode }) {
+/**
+ * `toolbar`: controls for what the modal is showing (the component library puts the preview sizes there).
+ * `scrollKey`: what is being shown. When it changes the body goes back to the top, so stepping to the next piece
+ * starts at its beginning rather than wherever the last one was left.
+ */
+export function LibModal({ label, onClose, actions, toolbar, scrollKey, children }: { label: string; onClose: () => void; actions?: React.ReactNode; toolbar?: React.ReactNode; scrollKey?: string; children: React.ReactNode }) {
+  const body = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (body.current) body.current.scrollTop = 0;
+  }, [scrollKey]);
   return (
     <Modal onClose={onClose} className="lib-modal" labelledBy="lib-modal-title">
       <header className="lib-modal__bar">
@@ -112,7 +120,7 @@ export function LibModal({ label, onClose, actions, toolbar, children }: { label
           <X size={16} aria-hidden="true" />
         </button>
       </header>
-      <div className="lib-modal__body">
+      <div className="lib-modal__body" ref={body}>
         <div className="lib-modal__content">
           {children}
           {actions ? <div className="detail-actions">{actions}</div> : null}
