@@ -107,7 +107,7 @@ export function ModelsView() {
       <div className="models-col models-col--side">
       <section className="section models-providers">
         <div className="section__head">
-          <h2 className="section__title">Providers</h2>
+          <h2 className="section__title">AI providers</h2>
         </div>
         {/* One row per provider: name and state on one line, where it runs and its details below (a 4-column table
             squeezed the names into tall wrapped blocks). */}
@@ -115,7 +115,7 @@ export function ModelsView() {
           {providers.data?.map((p) => {
             const on = p.enabled && p.health.ok;
             // The daemon's note for a hosted provider that isn't set up points at "the Models page": we're on it.
-            const detail = p.hosted && !p.enabled ? "Not set up. Choose a provider and model under Cloud model, below." : p.health.detail;
+            const detail = p.hosted && !p.enabled ? "Not set up. Choose a provider and model under AI cloud models, below." : p.health.detail;
             return (
               <li key={p.id} className="prov-row">
                 <Led status={p.health.ok ? "passed" : p.enabled ? "failed" : undefined} />
@@ -419,7 +419,7 @@ function CloudCoder({ onSaved }: { onSaved: () => void }) {
   return (
     <section className="section" data-guide="models.cloud">
       <div className="section__head">
-        <h2 className="section__title">Cloud model</h2>
+        <h2 className="section__title">AI cloud models</h2>
         <span className="chip" style={{ marginLeft: "auto" }}>{cfg.data?.ready ? `ready · ${cfg.data.model}` : "not set up"}</span>
       </div>
       <div className="section__body" style={{ display: "grid", gap: 12 }}>
