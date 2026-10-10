@@ -2,7 +2,7 @@
   "name": "flowcode",
   "private": true,
   "version": "0.1.0",
-  "description": "FlowCode \u2014 local-first, AI-native IDE with a governed multi-agent runtime",
+  "description": "FlowCode — local-first, AI-native IDE with a governed multi-agent runtime",
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -26,8 +26,8 @@
     "build:ui-gallery": "node scripts/ui-gallery/build.mjs"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4",
-    "@types/node": "^24.3.0"
+    "vitest": "^5.0.3"
   }
 }

@@ -1,10 +1,12 @@
-node_modules/
+﻿node_modules/
 dist/
 dist-electron/
 *.tsbuildinfo
 .flowcode-data/
 .flowcode-data-empty/
-benchmarks/runs/*/workspace/node_modules/
+# Benchmark output: a whole generated workspace, lockfile included. Committed, it is a second dependency tree
+# for Dependabot to raise alerts against, and nothing reads it back.
+benchmarks/runs/
 test-results/
 .env*
 !.env.example
