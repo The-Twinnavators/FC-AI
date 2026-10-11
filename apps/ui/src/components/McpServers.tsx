@@ -42,6 +42,8 @@ interface Preset extends Omit<Server, "enabled" | "disabledTools" | "status"> {
   setupUrl?: string;
   /** What that link leads to, since most connectors want no key at all. */
   setupLabel?: string;
+  /** The one variable this server reads, when it reads one. Most read none. */
+  envPlaceholder?: string;
 }
 interface Data {
   servers: Server[];
@@ -373,7 +375,7 @@ function ServerForm({ server, preset, onCancel, onSaved }: { server?: Server; pr
       <div className="mcp-form__row">
         <label className="field">
           <span className="field__label">Environment variables (optional, one NAME=value per line)</span>
-          <textarea className="input mono" rows={3} value={env} onChange={(e) => setEnv(e.target.value)} placeholder="API_KEY=…" />
+          <textarea className="input mono" rows={3} value={env} onChange={(e) => setEnv(e.target.value)} placeholder={preset?.envPlaceholder ?? "NAME=value"} />
         </label>
         {transport === "http" ? (
           <label className="field">

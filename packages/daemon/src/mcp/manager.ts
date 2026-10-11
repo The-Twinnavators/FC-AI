@@ -49,7 +49,7 @@ export interface McpServerStatus {
 }
 
 /** Ready-made servers from the AgenticSkills MCP directory that help build prototypes (all free). */
-export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools"> & { summary: string; needs?: string; setupUrl?: string; setupLabel?: string }> = [
+export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools"> & { summary: string; needs?: string; setupUrl?: string; setupLabel?: string; envPlaceholder?: string }> = [
   {
     id: "context7",
     name: "Context7",
@@ -63,6 +63,7 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     needs: "Node.js (installed). Works without a key; a free one raises the rate limits (pass it as CONTEXT7_API_KEY).",
     setupUrl: "https://context7.com/dashboard",
     setupLabel: "Get a key (optional)",
+    envPlaceholder: "CONTEXT7_API_KEY=…",
   },
   {
     id: "markitdown",
