@@ -192,6 +192,13 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
   }, [view?.approvals.filter((a) => a.status === "pending").length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pendingApprovals = view?.approvals.filter((a) => a.status === "pending") ?? [];
+  // An approval the build is stopped on interrupts: nothing moves until it is decided, and a toast beside a chip is
+  // easy to miss while watching a build (a plan approval sat unseen for an hour on the Approvals page). The routine
+  // ones - a command, a file - keep the toast and the "Needs you" chip, because a queue of them as modals would be
+  // its own problem. Dismissing leaves the chip, so the plan can be read before deciding.
+  const BLOCKING_APPROVALS = ["plan", "dependency_install", "retry_override"];
+  const [approvalDismissed, setApprovalDismissed] = useState("");
+  const blockingApproval = pendingApprovals.find((a) => BLOCKING_APPROVALS.includes(a.kind) && a.id !== approvalDismissed);
   const changedPaths = useMemo(() => new Set(view?.snapshots.filter((s) => !s.restoredAt).map((s) => s.relativePath) ?? []), [view?.snapshots]);
   const project = projectRes.data?.project;
 
@@ -256,6 +263,11 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
 
   return (
     <div className={`ws${wsLayout.layout.strip === "top" ? " ws--strip-top" : ""}`} style={wsLayout.style}>
+      {blockingApproval ? (
+        <Modal onClose={() => setApprovalDismissed(blockingApproval.id)} className="approval-modal" labelledBy={`apr-${blockingApproval.id}`}>
+          <ApprovalCard approval={blockingApproval} onDecided={() => { setApprovalDismissed(""); runRes.reload(); }} />
+        </Modal>
+      ) : null}
       <section className="ws__col" data-guide="ws.files" data-panel="files" style={{ order: wsLayout.orderOf("files") }} aria-label="Files and knowledge">
         <PanelGrip id="files" layout={wsLayout.layout} onMove={wsLayout.movePanel} />
         {resizers("files")}

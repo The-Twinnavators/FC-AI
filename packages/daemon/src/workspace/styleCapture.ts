@@ -449,7 +449,7 @@ export function applyCapturedStyle(jail: PathJail, ops: FileOperations, ctx: { p
   const done: string[] = [];
   if (style.brand.length) {
     applyPalette(jail, ops, ctx, { brand: style.brand.map((hex, i) => ({ hex, role: BRAND_ROLES[i] })), neutral: "brand" });
-    done.push(`colours ${style.brand.join(", ")}`);
+    done.push(`colors ${style.brand.join(", ")}`);
   }
   const values: Record<string, string> = {};
   const googleFonts: string[] = [];
