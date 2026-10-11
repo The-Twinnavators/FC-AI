@@ -53,6 +53,7 @@ import { cleanupReport, scanCleanup } from "../quality/cleanupScan.js";
 import { cloudCoder } from "../models/cloud.js";
 import { directionBrief, type DesignDirection } from "../knowledge/designDirection.js";
 import { contentProblems } from "../quality/contentCheck.js";
+import { hollowTests, missingDeliverables } from "../quality/deliverables.js";
 import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
@@ -1507,6 +1508,16 @@ export class Orchestrator {
       if (problems.length) {
         verdict = { ...verdict, allMet: false, failures: [...verdict.failures, ...problems.slice(0, 4).map((p) => p.message)] };
         this.d.bus.emit({ ...ev, type: "verification.completed", message: `Content check on "${task.title}": ${problems.length} problem(s), e.g. ${problems[0].message.slice(0, 160)}`, level: "warning" });
+      }
+    }
+    // The work itself: a step can meet its own acceptance criteria without building anything. On the Non-GMO brand
+    // finder, two steps planned src/screens/NonGMOBrandsScreen.tsx, wrote only a test, and the test rendered its own
+    // markup instead of the screen - so it passed against a project that had no such screen, twice.
+    if (verdict.allMet && task.role === "coder") {
+      const undone = [...missingDeliverables(jail, task.expectedPaths), ...hollowTests(jail, changed)];
+      if (undone.length) {
+        verdict = { ...verdict, allMet: false, failures: [...verdict.failures, ...undone.slice(0, 4).map((p) => p.message)] };
+        this.d.bus.emit({ ...ev, type: "verification.completed", message: `Deliverables check on "${task.title}": ${undone.length} problem(s), e.g. ${undone[0].message.slice(0, 160)}`, level: "warning" });
       }
     }
     // Consistency: a step that writes raw colours or sizes, changes the token scales unasked, or renders unstyled
