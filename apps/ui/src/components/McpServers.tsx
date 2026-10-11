@@ -40,6 +40,8 @@ interface Preset extends Omit<Server, "enabled" | "disabledTools" | "status"> {
   needs?: string;
   /** Where its key or its prerequisite comes from: nobody should have to go looking. */
   setupUrl?: string;
+  /** What that link leads to, since most connectors want no key at all. */
+  setupLabel?: string;
 }
 interface Data {
   servers: Server[];
@@ -201,7 +203,7 @@ export function McpServers() {
                       Needs: {p.needs}{" "}
                       {p.setupUrl ? (
                         <a href={p.setupUrl} target="_blank" rel="noreferrer noopener">
-                          Set it up →
+                          {p.setupLabel ?? "Set it up"} →
                         </a>
                       ) : null}
                     </span>
@@ -380,14 +382,17 @@ function ServerForm({ server, preset, onCancel, onSaved }: { server?: Server; pr
           </label>
         ) : null}
       </div>
-      <p className="muted mcp-form__note">
-        Keys are stored on this computer only and shown masked. A masked value left as it is keeps the saved key.{" "}
-        {preset?.setupUrl ? (
-          <a href={preset.setupUrl} target="_blank" rel="noreferrer noopener">
-            Where to get this one →
-          </a>
-        ) : null}
-      </p>
+      {preset?.needs ? (
+        <p className="muted mcp-form__note">
+          {preset.needs}{" "}
+          {preset.setupUrl ? (
+            <a href={preset.setupUrl} target="_blank" rel="noreferrer noopener">
+              {preset.setupLabel ?? "Set it up"} →
+            </a>
+          ) : null}
+        </p>
+      ) : null}
+      <p className="muted mcp-form__note">Anything typed above is stored on this computer only and shown masked. A masked value left as it is keeps what was saved.</p>
       {err ? (
         <p className="mcp__error" role="alert">
           {err}

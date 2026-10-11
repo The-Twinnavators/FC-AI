@@ -49,7 +49,7 @@ export interface McpServerStatus {
 }
 
 /** Ready-made servers from the AgenticSkills MCP directory that help build prototypes (all free). */
-export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools"> & { summary: string; needs?: string; setupUrl?: string }> = [
+export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools"> & { summary: string; needs?: string; setupUrl?: string; setupLabel?: string }> = [
   {
     id: "context7",
     name: "Context7",
@@ -62,6 +62,7 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     summary: "Current documentation for libraries (React, Vite, Testing Library…), so builders use today's APIs instead of guessing.",
     needs: "Node.js (installed). Works without a key; a free one raises the rate limits (pass it as CONTEXT7_API_KEY).",
     setupUrl: "https://context7.com/dashboard",
+    setupLabel: "Get a key (optional)",
   },
   {
     id: "markitdown",
@@ -75,6 +76,7 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     summary: "Turns Word, PDF, PowerPoint and Excel files into clean Markdown that agents can read.",
     needs: "Python's uv (uvx). Install it, then Test again. No key.",
     setupUrl: "https://docs.astral.sh/uv/getting-started/installation/",
+    setupLabel: "Install uv",
   },
   {
     id: "playwright",
@@ -88,6 +90,7 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     summary: "Opens the running prototype in a browser and clicks through it like a person.",
     needs: "Node.js (installed). Downloads a browser the first time. No key.",
     setupUrl: "https://playwright.dev/docs/intro",
+    setupLabel: "About Playwright",
   },
   {
     id: "figma",
@@ -100,6 +103,7 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     summary: "Builds screens from your Figma frames: their layout, spacing and text, the file's variables as tokens, and a screenshot to compare against. Put Figma links in the PRD or request.",
     needs: "The Figma desktop app, on a Dev or Full seat. Switch to Dev Mode and turn the MCP server on from the Dev Mode panel, then keep Figma open while building. No key: it runs on this computer.",
     setupUrl: "https://help.figma.com/hc/en-us/articles/39890361040535",
+    setupLabel: "Turn on Dev Mode",
   },
   {
     id: "github",
@@ -113,6 +117,7 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     summary: "Repositories, issues and pull requests: push a finished build or file issues.",
     needs: "A GitHub personal access token: paste it after \"Bearer \" in the Authorization header.",
     setupUrl: "https://github.com/settings/tokens",
+    setupLabel: "Get a token",
   },
 ];
 
@@ -348,7 +353,11 @@ function explain(cfg: McpServerConfig, err: Error, stderr?: string): string {
   if (/connection closed/i.test(m) && printed) return `The server stopped while starting: ${printed}`;
   if (/ENOENT|not recognized|spawn .* ENOENT/i.test(m)) return `"${cfg.command}" isn't installed on this computer.${cfg.preset === "markitdown" ? " Install Python's uv (docs.astral.sh/uv), then Test again." : ""}`;
   if (/401|403|unauthori[sz]ed|forbidden/i.test(m)) return "The server refused the key. Check the token in the headers or environment.";
-  if (cfg.preset === "figma" && /ECONNREFUSED|fetch failed|connect/i.test(m)) return "Figma isn't answering. Open the Figma desktop app, turn on the Dev Mode MCP server (Figma menu → Preferences), keep Figma open, then Test again.";
+  if (cfg.preset === "figma" && /ECONNREFUSED|fetch failed|connect/i.test(m))
+    return "Figma isn't answering. Open the Figma desktop app, switch to Dev Mode and turn its MCP server on from the Dev Mode panel, keep Figma open, then Test again. It needs a Dev or Full seat.";
+  // Asked without a token, GitHub closes the POST rather than answering 401, so the message says nothing useful.
+  if (cfg.preset === "github" && !/\S/.test((cfg.headers?.Authorization ?? "").replace(/^Bearer\s*/i, "")))
+    return "GitHub needs a personal access token after \"Bearer \" in the Authorization header (github.com/settings/tokens), then Test again.";
   if (/ENOTFOUND|EAI_AGAIN|fetch failed/i.test(m)) return "Couldn't reach the server. Check the URL and your internet connection.";
   return m.slice(0, 300);
 }
