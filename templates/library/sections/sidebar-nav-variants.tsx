@@ -1,4 +1,10 @@
 /** @flowcode-library sidebar-nav-variants · Sidebar: groups, collapsing and the icon rail (Navigation)
+ * Catalog ID: p.side-nav (pattern)
+ * Function: The app shell's side navigation (p.side-nav): grouped, collapsible sections with a current item, count badges and an icon-rail fold, shown beside a stand-in page.
+ * Use it as: import { SideNav } from "./sidebar-nav-variants"; <SideNav title="Name" groups={[{ id, label, items: [{ id, label, icon, count?, disabled? }] }]} current?="item-id" collapsed? onSelect?={(item) => ...} onToggle?={(collapsed) => ...} />
+ * Built from: c.button.tertiary
+ * Look: A vertical list of grouped sections with icons, the current one highlighted and a count badge where something waits; it folds to an icon rail and its groups open and shut.
+ * Tokens: --color-accent --color-border --color-on-accent --color-surface --color-surface-sunken --color-text --duration-fast --duration-med --easing --focus-ring --radius-lg --space-1 --space-2 --space-3 --space-4 --space-5 --text-xs
  * Use cases: app shell sidebar; admin navigation; docs chapters; project areas; collapsed rail
  * Jobs to be done: reach any area in one press; fold the sidebar away for room; see where I am
  * Keywords: sidebar, side nav, rail, collapse, groups, active, badge, aria-current
@@ -19,16 +25,112 @@
  * - Press any area: the current one is marked with aria-current, not only with color.
  * - Folded, every label is still there for the pointer and for screen readers, and counts become dots.
  *
- * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths rather
- * than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
+ * Dependencies: React (useState), the library's own inline icon set ("./icons"), which is a table of SVG paths rather
+ * than an icon package, and the library's Button ("./buttons-variants"). Nothing else — no package to install and nothing fetched at run time. The styles are the library's
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
 import { useState } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+
+// ── p.side-nav: the vertical navigation. Built from c.button (the fold button); groups and items live inside it. ──
+
+export type SideNavItem = { id: string; label: string; icon: string; count?: number; disabled?: boolean };
+export type SideNavGroup = { id: string; label: string; items: SideNavItem[] };
+export type SideNavProps = {
+  /** Name shown at the top, and the nav's accessible name. */
+  title: string;
+  groups: SideNavGroup[];
+  /** Id of the current item; marked with aria-current="page". */
+  current?: string;
+  /** Start folded to an icon rail. The fold button toggles it. */
+  collapsed?: boolean;
+  /** Called with the item chosen, or a message when the sidebar folds or opens. */
+  onSelect?: (item: SideNavItem) => void;
+  onToggle?: (collapsed: boolean) => void;
+  className?: string;
+};
+
+export function SideNav({ title, groups, current, collapsed = false, onSelect, onToggle, className }: SideNavProps) {
+  const [here, setHere] = useState(current);
+  const [folded, setFolded] = useState(collapsed);
+  const [shut, setShut] = useState<string[]>([]);
+
+  return (
+    <nav className={`fl-ctl-side${folded ? " is-folded" : ""}${className ? ` ${className}` : ""}`} aria-label={title} data-fl="p.side-nav">
+      <div className="fl-ctl-side-top">
+        {folded ? null : <span className="fl-ctl-side-title">{title}</span>}
+        <Button
+          variant="tertiary"
+          size={32}
+          icon="menu"
+          iconOnly
+          aria-expanded={!folded}
+          onClick={() => {
+            setFolded(!folded);
+            onToggle?.(!folded);
+          }}
+        >
+          {folded ? "Open the sidebar" : "Fold the sidebar"}
+        </Button>
+      </div>
+
+      {groups.map((g) => {
+        const closed = shut.includes(g.id);
+        return (
+          <div className="fl-ctl-side-group" key={g.id}>
+            {folded ? (
+              <hr className="fl-ctl-side-rule" />
+            ) : (
+              <button
+                type="button"
+                className="fl-ctl-side-head"
+                aria-expanded={!closed}
+                aria-controls={`side-${g.id}`}
+                onClick={() => setShut((v) => (v.includes(g.id) ? v.filter((x) => x !== g.id) : [...v, g.id]))}
+              >
+                <Icon name="chevron-down" />
+                {g.label}
+              </button>
+            )}
+            <ul id={`side-${g.id}`} hidden={closed && !folded}>
+              {g.items.map((it) => (
+                <li key={it.id}>
+                  <a
+                    href="#top"
+                    className={`fl-ctl-side-item${it.id === here ? " is-on" : ""}${it.disabled ? " is-off" : ""}`}
+                    aria-current={it.id === here ? "page" : undefined}
+                    aria-disabled={it.disabled || undefined}
+                    title={folded ? it.label : undefined}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (it.disabled) return;
+                      setHere(it.id);
+                      onSelect?.(it);
+                    }}
+                  >
+                    <Icon name={it.icon} />
+                    <span className={folded ? "fl-sr" : undefined}>{it.label}</span>
+                    {it.count ? (
+                      <span className={`fl-ctl-side-count${folded ? " is-dot" : ""}`}>
+                        {folded ? <span className="fl-sr">{it.count} waiting</span> : it.count}
+                      </span>
+                    ) : null}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
+  title: "Northlight",
   groups: [
     {
       id: "work",
@@ -61,81 +163,18 @@ const SAMPLE = {
 
 export default function SidebarNavVariants() {
   const d = SAMPLE;
-  const [here, setHere] = useState("shoots");
-  const [folded, setFolded] = useState(false);
-  const [shut, setShut] = useState<string[]>([]);
   const [said, setSaid] = useState("");
 
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-side-stage">
-        <nav className={`fl-ctl-side${folded ? " is-folded" : ""}`} aria-label="Studio">
-          <div className="fl-ctl-side-top">
-            {folded ? null : <span className="fl-ctl-side-title">Northlight</span>}
-            <button
-              type="button"
-              className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32"
-              aria-expanded={!folded}
-              aria-label={folded ? "Open the sidebar" : "Fold the sidebar"}
-              title={folded ? "Open the sidebar" : "Fold the sidebar"}
-              onClick={() => {
-                setFolded((v) => !v);
-                setSaid(folded ? "Sidebar open" : "Sidebar folded to a rail");
-              }}
-            >
-              <Icon name="menu" />
-            </button>
-          </div>
-
-          {d.groups.map((g) => {
-            const closed = shut.includes(g.id);
-            return (
-              <div className="fl-ctl-side-group" key={g.id}>
-                {folded ? (
-                  <hr className="fl-ctl-side-rule" />
-                ) : (
-                  <button
-                    type="button"
-                    className="fl-ctl-side-head"
-                    aria-expanded={!closed}
-                    aria-controls={`side-${g.id}`}
-                    onClick={() => setShut((v) => (v.includes(g.id) ? v.filter((x) => x !== g.id) : [...v, g.id]))}
-                  >
-                    <Icon name="chevron-down" />
-                    {g.label}
-                  </button>
-                )}
-                <ul id={`side-${g.id}`} hidden={closed && !folded}>
-                  {g.items.map((it) => (
-                    <li key={it.id}>
-                      <a
-                        href="#top"
-                        className={`fl-ctl-side-item${it.id === here ? " is-on" : ""}${it.disabled ? " is-off" : ""}`}
-                        aria-current={it.id === here ? "page" : undefined}
-                        aria-disabled={it.disabled || undefined}
-                        title={folded ? it.label : undefined}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (it.disabled) return;
-                          setHere(it.id);
-                          setSaid(`Went to ${it.label}`);
-                        }}
-                      >
-                        <Icon name={it.icon} />
-                        <span className={folded ? "fl-sr" : undefined}>{it.label}</span>
-                        {it.count ? (
-                          <span className={`fl-ctl-side-count${folded ? " is-dot" : ""}`}>
-                            {folded ? <span className="fl-sr">{it.count} waiting</span> : it.count}
-                          </span>
-                        ) : null}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </nav>
+        <SideNav
+          title={d.title}
+          groups={d.groups}
+          current="shoots"
+          onSelect={(it) => setSaid(`Went to ${it.label}`)}
+          onToggle={(c) => setSaid(c ? "Sidebar folded to a rail" : "Sidebar open")}
+        />
 
         <div className="fl-ctl-side-page">
           <p className="fl-ctl-matrix-kind">The page beside it</p>

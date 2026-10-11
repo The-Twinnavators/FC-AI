@@ -130,6 +130,22 @@ export function syncedLibraryCss(root: string): string | undefined {
 export const sectionFile = (id: string) => `src/sections/${id.split("-").map((w) => w[0]!.toUpperCase() + w.slice(1)).join("")}.tsx`;
 export const keptSection = (id: string) => `.flowcode/sections/${id}.tsx.txt`;
 
+/**
+ * A piece and every library piece it imports (a template's blocks, a block's components), as the app gets them: each at
+ * its src/sections/ path, with `from "./hero-centered"` pointed at the copied name ("./HeroCentered"). icons.tsx is
+ * copied on its own and keeps its name.
+ */
+export function pieceFiles(id: string, seen = new Set<string>()): Array<{ id: string; rel: string; content: string }> {
+  if (seen.has(id)) return [];
+  seen.add(id);
+  const file = path.join(sectionsDir(), "sections", `${id}.tsx`);
+  if (!fs.existsSync(file)) return [];
+  const src = fs.readFileSync(file, "utf8");
+  const deps = [...src.matchAll(/from "\.\/([a-z0-9]+(?:-[a-z0-9]+)+)"/g)].map((m) => m[1]!);
+  const content = src.replace(/from "\.\/([a-z0-9]+(?:-[a-z0-9]+)+)"/g, (_, dep: string) => `from "./${path.basename(sectionFile(dep), ".tsx")}"`);
+  return [{ id, rel: sectionFile(id), content }, ...deps.flatMap((d) => pieceFiles(d, seen))];
+}
+
 /** What the coder is told: a starting point it reshapes, never a template to fill in. */
 export function sectionGuidance(picks: SectionPick[]): string {
   // No section picked: the library is still in the app, with an index, for any screen that needs a ready piece.
@@ -211,11 +227,14 @@ async function addSections({ deps, run, task, jail, onChanged }: RuntimeStepArgs
     const src = fs.readFileSync(path.join(lib, "sections", `${s.id}.tsx`), "utf8");
     write(keptSection(s.id), src);
     if (planned.has(s.id)) {
-      const res = write(sectionFile(s.id), src);
-      if (!res.ok) return { kind: "blocked", reason: `Couldn't add ${sectionFile(s.id)}: ${res.message}`, nextAction: "Retry this step" };
+      // The piece and the pieces it's built from (a template's blocks, a block's components).
+      for (const f of pieceFiles(s.id)) {
+        const res = write(f.rel, f.content);
+        if (!res.ok) return { kind: "blocked", reason: `Couldn't add ${f.rel}: ${res.message}`, nextAction: "Retry this step" };
+        usedSource += f.content;
+      }
       added.push(s.name);
       recordUse(deps.store, run.id, { id: s.id, by: "flowcode", step: task.title, reason: plannedPicks.find((p) => p.id === s.id)?.reason });
-      usedSource += src;
     }
   }
   // Only the styles the copied pieces use (and the page backgrounds); kept in sync as agents add more pieces.

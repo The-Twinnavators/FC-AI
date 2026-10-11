@@ -1,4 +1,10 @@
 /** @flowcode-library chips-tags · Chips and tags: filters, choices and labels (Forms)
+ * Catalog ID: c.chip (component)
+ * Function: The chip component (c.chip): the reference sheet shows filter, input and static chips in every state, a live filter bar, and the five heights.
+ * Use it as: import { Chip } from "./chips-tags"; <Chip variant?="filter"|"input"|"static" selected? size?={20|24|32|40|44} disabled? onClick? onToggle? onRemove? removeLabel?>Label</Chip>
+ * Variants: c.chip.filter - switches a filter on and off in a filter bar: a pill button that fills with the accent when selected; c.chip.input - a chosen value that can be taken off again: a pill with a small remove x; give onToggle and the label also switches on and off; c.chip.static - only a label such as a category tag on a card: a pill that is not interactive
+ * Look: A rounded pill with a short label in five heights from 20 to 44 px, filled with the accent when selected, with an optional small x to remove it.
+ * Tokens: --color-accent --color-on-accent --color-surface --color-surface-sunken --color-text --color-text-muted --color-border --color-border-strong --control-md --control-sm --control-pad-sm --control-radius --text-sm --text-xs --weight-medium --focus-ring --duration-fast
  * Use cases: filter bar; chosen filters; labels on a card; category tags; removable selections
  * Jobs to be done: narrow a list; see what I have already narrowed it by; take a filter off again
  * Keywords: chip, tag, filter, label, dismiss, remove
@@ -21,8 +27,76 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+
+// ── c.chip: the one chip. Every piece's filters and tags are this component; the specimen shows every variant. ──
+
+export type ChipVariant = "filter" | "input" | "static";
+export type ChipSize = 20 | 24 | 32 | 40 | 44;
+
+// Written out in full (not built from the size) so a build finds every class the chip needs.
+const SIZE: Record<ChipSize, string> = {
+  20: "fl-ctl-chip-item--20",
+  24: "fl-ctl-chip-item--24",
+  32: "",
+  40: "fl-ctl-chip-item--40",
+  44: "fl-ctl-chip-item--44",
+};
+
+type ChipProps = {
+  variant?: ChipVariant;
+  /** Height in px; 32 when left out. */
+  size?: ChipSize;
+  /** On: filled with the accent. A filter chip also reports it as aria-pressed. */
+  selected?: boolean;
+  disabled?: boolean;
+  /** filter: pressing the chip. */
+  onClick?: () => void;
+  /** input: when given, the label itself is a button that switches the chip on and off. */
+  onToggle?: () => void;
+  /** input: pressing the x. */
+  onRemove?: () => void;
+  /** input: the x button's name; defaults to "Remove the <label> filter". */
+  removeLabel?: string;
+  className?: string;
+  children?: ReactNode;
+};
+
+export function Chip({ variant = "filter", size = 32, selected, disabled, onClick, onToggle, onRemove, removeLabel, className, children }: ChipProps) {
+  const cls = ["fl-ctl-chip-item", SIZE[size], variant === "static" ? "fl-ctl-chip-item--label" : "", selected ? "is-on" : "", className ?? ""].filter(Boolean).join(" ");
+  const fl = `c.chip.${variant}`;
+  if (variant === "static") {
+    return (
+      <span className={cls} data-fl={fl}>
+        {children}
+      </span>
+    );
+  }
+  if (variant === "filter") {
+    return (
+      <button type="button" className={cls} data-fl={fl} aria-pressed={!!selected} disabled={disabled} onClick={onClick}>
+        {children}
+      </button>
+    );
+  }
+  const name = removeLabel ?? `Remove the ${typeof children === "string" ? children : "chip"} filter`;
+  return (
+    <span className={cls} data-fl={fl}>
+      {onToggle ? (
+        <button type="button" className="fl-ctl-chip-face" aria-pressed={!!selected} disabled={disabled} onClick={onToggle}>
+          {children}
+        </button>
+      ) : (
+        children
+      )}
+      <button type="button" className="fl-ctl-chip-x" aria-label={name} disabled={disabled} onClick={onRemove}>
+        <Icon name="close" />
+      </button>
+    </span>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -44,11 +118,11 @@ const SAMPLE = {
     { id: "f4", label: "Commercial", on: false },
   ],
   sizes: [
-    { px: 20, note: "Inside a table cell, beside the text it labels" },
-    { px: 24, note: "In a table row or a dense toolbar" },
-    { px: 32, note: "Default: a filter bar above a list" },
-    { px: 40, note: "Beside 40 px buttons and fields" },
-    { px: 44, note: "Comfortable to tap" },
+    { px: 20 as const, note: "Inside a table cell, beside the text it labels" },
+    { px: 24 as const, note: "In a table row or a dense toolbar" },
+    { px: 32 as const, note: "Default: a filter bar above a list" },
+    { px: 40 as const, note: "Beside 40 px buttons and fields" },
+    { px: 44 as const, note: "Comfortable to tap" },
   ],
 };
 
@@ -84,31 +158,25 @@ export default function ChipsTags() {
                 </th>
                 {d.kinds.map((k) => {
                   const on = s.id === "selected";
-                  const cls = `fl-ctl-chip-item${on ? " is-on" : ""}${s.id === "hovered" ? " is-hover" : ""}`;
+                  const hover = s.id === "hovered" ? "is-hover" : undefined;
                   if (k.id === "static") {
                     return (
                       <td key={k.id} data-state={k.label}>
-                        {s.id === "enabled" || on ? <span className={`fl-ctl-chip-item fl-ctl-chip-item--label${on ? " is-on" : ""}`}>Wedding</span> : <span className="fl-ctl-matrix-what">Not applicable</span>}
-                      </td>
-                    );
-                  }
-                  if (k.id === "input") {
-                    return (
-                      <td key={k.id} data-state={k.label}>
-                        <span className={cls}>
-                          Wedding
-                          <button type="button" className="fl-ctl-chip-x" aria-label="Remove the Wedding filter" disabled={s.id === "disabled"}>
-                            <Icon name="close" />
-                          </button>
-                        </span>
+                        {s.id === "enabled" || on ? (
+                          <Chip variant="static" selected={on}>
+                            Wedding
+                          </Chip>
+                        ) : (
+                          <span className="fl-ctl-matrix-what">Not applicable</span>
+                        )}
                       </td>
                     );
                   }
                   return (
                     <td key={k.id} data-state={k.label}>
-                      <button type="button" className={cls} aria-pressed={on} disabled={s.id === "disabled"}>
+                      <Chip variant={k.id === "input" ? "input" : "filter"} selected={on} className={hover} disabled={s.id === "disabled"}>
                         Wedding
-                      </button>
+                      </Chip>
                     </td>
                   );
                 })}
@@ -123,47 +191,38 @@ export default function ChipsTags() {
         <p className="fl-ctl-btn-what">Switch a filter on or off, take one off the bar, or clear the lot. The count follows what is on.</p>
         <div className="fl-ctl-chip-bar">
           {shown.map((f) => (
-            <span key={f.id} className={`fl-ctl-chip-item${f.on ? " is-on" : ""}`}>
-              <button
-                type="button"
-                className="fl-ctl-chip-face"
-                aria-pressed={f.on}
-                onClick={() => {
-                  setFilters((list) => list.map((x) => (x.id === f.id ? { ...x, on: !x.on } : x)));
-                  setStatus(`${f.label} ${f.on ? "off" : "on"}.`);
-                }}
-              >
-                {f.label}
-              </button>
-              <button
-                type="button"
-                className="fl-ctl-chip-x"
-                aria-label={`Remove the ${f.label} filter`}
-                onClick={() => {
-                  setRemoved((r) => [...r, f.id]);
-                  setStatus(`${f.label} removed from the bar.`);
-                }}
-              >
-                <Icon name="close" />
-              </button>
-            </span>
+            <Chip
+              key={f.id}
+              variant="input"
+              selected={f.on}
+              onToggle={() => {
+                setFilters((list) => list.map((x) => (x.id === f.id ? { ...x, on: !x.on } : x)));
+                setStatus(`${f.label} ${f.on ? "off" : "on"}.`);
+              }}
+              onRemove={() => {
+                setRemoved((r) => [...r, f.id]);
+                setStatus(`${f.label} removed from the bar.`);
+              }}
+            >
+              {f.label}
+            </Chip>
           ))}
           {shown.length ? (
-            <button
-              type="button"
-              className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32"
+            <Button
+              variant="tertiary"
+              size={32}
               onClick={() => {
                 setFilters((list) => list.map((x) => ({ ...x, on: false })));
                 setStatus("All filters off.");
               }}
             >
               Clear all
-            </button>
+            </Button>
           ) : null}
           {removed.length ? (
-            <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => (setRemoved([]), setStatus("Filters put back."))}>
+            <Button variant="secondary" size={32} onClick={() => (setRemoved([]), setStatus("Filters put back."))}>
               Put them back
-            </button>
+            </Button>
           ) : null}
         </div>
         <p className="fl-ctl-status" role="status" aria-live="polite">
@@ -178,15 +237,10 @@ export default function ChipsTags() {
           {d.sizes.map((z) => (
             <li key={z.px}>
               <span className="fl-ctl-icon-row">
-                <button type="button" className={`fl-ctl-chip-item fl-ctl-chip-item--${z.px}`} aria-pressed="false">
-                  Wedding
-                </button>
-                <span className={`fl-ctl-chip-item fl-ctl-chip-item--${z.px} is-on`}>
+                <Chip size={z.px}>Wedding</Chip>
+                <Chip variant="input" size={z.px} selected removeLabel="Remove the Booked filter">
                   Booked
-                  <button type="button" className="fl-ctl-chip-x" aria-label="Remove the Booked filter">
-                    <Icon name="close" />
-                  </button>
-                </span>
+                </Chip>
               </span>
               <span className="fl-ctl-btn-what">
                 {z.px} px \u00b7 {z.note}

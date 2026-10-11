@@ -1,4 +1,10 @@
 /** @flowcode-library shop-collection · Collection with filters (Shop)
+ * Catalog ID: b.shop-collection (block)
+ * Function: A filterable, sortable shop category page (b.shop-collection) with live result count and filter chips.
+ * Use it as: import { ShopCollection } from "./shop-collection"; <ShopCollection eyebrow? heading lede? currency? sizes={["S","M"]} colors={[{id,name}]} products={[{id,name,price(cents),colour(a colors id),sizes,inStock,added}]}/>
+ * Built from: c.button.primary, c.button.secondary, c.badge.status, c.chip.input, c.text-field.outlined, c.select.outlined, c.checkbox
+ * Look: A title, then a filter sidebar (price, size, color, in stock) beside a toolbar with count and sort, removable filter chips and a grid of product tiles; filters fold into a drawer on phones and an empty state appears when nothing matches.
+ * Tokens: --space-4 --space-5 --color-accent --color-surface --color-border --color-text-muted --radius-md --control-md
  * Use cases: product catalog; category page; search results; filtered listing; shop by category; online store; product browsing
  * Jobs to be done: find products that fit my size; filter products by price; sort products by what matters to me; narrow down a big range
  * Keywords: collection, category page, filters, sort, chips, product grid, drawer, shop
@@ -10,13 +16,14 @@
  * the app's own: replace SAMPLE with the real products and the filters that matter for them; keep filters to a handful.
  */
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Chip } from "./chips-tags";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Checkbox } from "./checkboxes-radios";
 
-// flowcode:sample
-const SAMPLE = {
-  eyebrow: "Shop",
-  heading: "Studio wear",
-  lede: "Aprons, overshirts and tees made for clay, paint and long afternoons at the bench.",
-  currency: "$",
+const LABELS = {
   filtersTitle: "Filters",
   price: { legend: "Price", min: "Min", max: "Max", error: "Min price must be lower than max price." },
   sizesLegend: "Size",
@@ -37,25 +44,32 @@ const SAMPLE = {
   emptyTitle: "No products match",
   emptyText: "Try a wider price range or fewer sizes and colors.",
   emptyAction: "Clear filters",
-  sizes: ["XS", "S", "M", "L", "XL"],
-  colors: [
-    { id: "oat", name: "Oat" },
-    { id: "clay", name: "Clay" },
-    { id: "sage", name: "Sage" },
-    { id: "charcoal", name: "Charcoal" },
-    { id: "ink", name: "Ink" },
-  ],
-  products: [
-    { id: "p1", name: "Canvas cross-back apron", price: 5200, colour: "clay", sizes: ["S", "M", "L"], inStock: true, added: 3 },
-    { id: "p2", name: "Linen work overshirt", price: 8900, colour: "oat", sizes: ["S", "M", "L", "XL"], inStock: true, added: 8 },
-    { id: "p3", name: "Heavy cotton studio tee", price: 3200, colour: "charcoal", sizes: ["XS", "S", "M", "L", "XL"], inStock: true, added: 5 },
-    { id: "p4", name: "Waxed half apron", price: 4400, colour: "ink", sizes: ["M", "L"], inStock: false, added: 1 },
-    { id: "p5", name: "Garment-dyed tee", price: 3400, colour: "sage", sizes: ["S", "M", "L"], inStock: true, added: 9 },
-    { id: "p6", name: "Quilted bench vest", price: 9800, colour: "charcoal", sizes: ["M", "L", "XL"], inStock: true, added: 7 },
-    { id: "p7", name: "Cotton bucket hat", price: 2600, colour: "oat", sizes: ["S", "M"], inStock: false, added: 4 },
-    { id: "p8", name: "Ripstop painter trousers", price: 7600, colour: "sage", sizes: ["XS", "S", "M", "L"], inStock: true, added: 6 },
-    { id: "p9", name: "Bib apron with pockets", price: 5800, colour: "ink", sizes: ["S", "M", "L", "XL"], inStock: true, added: 2 },
-  ],
+};
+
+export type CollectionProduct = {
+  id: string;
+  name: string;
+  /** In cents. */
+  price: number;
+  /** The id of one of the colors. */
+  colour: string;
+  sizes: string[];
+  inStock: boolean;
+  /** How recently it arrived; a bigger number sorts first under Newest. */
+  added: number;
+};
+
+export type ShopCollectionProps = {
+  eyebrow?: string;
+  heading: string;
+  lede?: string;
+  /** Currency symbol before prices; "$" when left out. */
+  currency?: string;
+  /** The size filter's choices, e.g. ["S", "M", "L"]. */
+  sizes: string[];
+  /** The color filter's choices; each id also picks the picture tone. */
+  colors: { id: string; name: string }[];
+  products: CollectionProduct[];
 };
 
 type Filters = { min: string; max: string; sizes: string[]; colors: string[]; inStock: boolean };
@@ -110,9 +124,7 @@ function useModal(open: boolean, onClose: () => void, returnTo: RefObject<HTMLEl
   return panelRef;
 }
 
-function money(cents: number) {
-  return `${SAMPLE.currency}${(cents / 100).toFixed(0)}`;
-}
+const money = (cents: number, currency: string) => `${currency}${(cents / 100).toFixed(0)}`;
 
 function toggle(list: string[], value: string) {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -145,8 +157,8 @@ function SearchOffIcon() {
   );
 }
 
-function FilterFields({ prefix, f, set, priceError, counts }: { prefix: string; f: Filters; set: (next: Filters) => void; priceError: boolean; counts: Record<string, number> }) {
-  const d = SAMPLE;
+function FilterFields({ prefix, f, set, priceError, counts, currency, sizes, colors }: { prefix: string; f: Filters; set: (next: Filters) => void; priceError: boolean; counts: Record<string, number> } & Pick<ShopCollectionProps, "sizes" | "colors"> & { currency: string }) {
+  const d = LABELS;
   return (
     <div className="fl-shop-filters">
       <fieldset className="fl-shop-fieldset">
@@ -154,36 +166,34 @@ function FilterFields({ prefix, f, set, priceError, counts }: { prefix: string; 
         <div className="fl-shop-range">
           <div className="fl-field">
             <label htmlFor={`${prefix}-min`}>
-              {d.price.min} ({d.currency})
+              {d.price.min} ({currency})
             </label>
-            <input
+            <TextField
               id={`${prefix}-min`}
-              className="fl-input"
               type="number"
               inputMode="numeric"
               min={0}
               placeholder="0"
               value={f.min}
               onChange={(e) => set({ ...f, min: e.target.value })}
-              aria-invalid={priceError ? true : undefined}
+              invalid={priceError}
               aria-describedby={priceError ? `${prefix}-price-error` : undefined}
             />
           </div>
           <span aria-hidden="true">–</span>
           <div className="fl-field">
             <label htmlFor={`${prefix}-max`}>
-              {d.price.max} ({d.currency})
+              {d.price.max} ({currency})
             </label>
-            <input
+            <TextField
               id={`${prefix}-max`}
-              className="fl-input"
               type="number"
               inputMode="numeric"
               min={0}
               placeholder="100"
               value={f.max}
               onChange={(e) => set({ ...f, max: e.target.value })}
-              aria-invalid={priceError ? true : undefined}
+              invalid={priceError}
               aria-describedby={priceError ? `${prefix}-price-error` : undefined}
             />
           </div>
@@ -198,7 +208,7 @@ function FilterFields({ prefix, f, set, priceError, counts }: { prefix: string; 
       <fieldset className="fl-shop-fieldset">
         <legend>{d.sizesLegend}</legend>
         <div className="fl-shop-pills">
-          {d.sizes.map((s) => (
+          {sizes.map((s) => (
             <label key={s} className="fl-shop-pill">
               <input type="checkbox" checked={f.sizes.includes(s)} onChange={() => set({ ...f, sizes: toggle(f.sizes, s) })} />
               <span>{s}</span>
@@ -210,7 +220,7 @@ function FilterFields({ prefix, f, set, priceError, counts }: { prefix: string; 
       <fieldset className="fl-shop-fieldset">
         <legend>{d.coloursLegend}</legend>
         <ul className="fl-shop-list">
-          {d.colors.map((c) => (
+          {colors.map((c) => (
             <li key={c.id}>
               <label className="fl-shop-check">
                 <input type="checkbox" checked={f.colors.includes(c.id)} onChange={() => set({ ...f, colors: toggle(f.colors, c.id) })} />
@@ -227,21 +237,18 @@ function FilterFields({ prefix, f, set, priceError, counts }: { prefix: string; 
       </fieldset>
 
       <div>
-        <label className="fl-shop-check">
-          <input type="checkbox" checked={f.inStock} onChange={() => set({ ...f, inStock: !f.inStock })} />
-          {d.stockLabel}
-        </label>
+        <Checkbox label={d.stockLabel} checked={f.inStock} onChange={() => set({ ...f, inStock: !f.inStock })} />
       </div>
     </div>
   );
 }
 
-export default function ShopCollection() {
-  const d = SAMPLE;
+export function ShopCollection({ eyebrow, heading, lede, currency = "$", sizes, colors, products }: ShopCollectionProps) {
+  const d = LABELS;
   const [f, setF] = useState<Filters>(NO_FILTERS);
   const [sort, setSort] = useState(d.sorts[0].id);
   const [drawer, setDrawer] = useState(false);
-  const filterBtnRef = useRef<HTMLButtonElement>(null);
+  const filterBtnRef = useRef<HTMLElement | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const panelRef = useModal(drawer, () => setDrawer(false), filterBtnRef);
 
@@ -259,7 +266,7 @@ export default function ShopCollection() {
   const priceError = min !== null && max !== null && min > max;
 
   const results = useMemo(() => {
-    const list = d.products.filter((p) => {
+    const list = products.filter((p) => {
       if (!priceError && min !== null && p.price < min) return false;
       if (!priceError && max !== null && p.price > max) return false;
       if (f.sizes.length && !p.sizes.some((s) => f.sizes.includes(s))) return false;
@@ -271,22 +278,22 @@ export default function ShopCollection() {
     if (sort === "high") return [...list].sort((a, b) => b.price - a.price);
     if (sort === "new") return [...list].sort((a, b) => b.added - a.added);
     return list;
-  }, [d.products, f, sort, min, max, priceError]);
+  }, [products, f, sort, min, max, priceError]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
-    d.products.forEach((p) => (c[p.colour] = (c[p.colour] ?? 0) + 1));
+    products.forEach((p) => (c[p.colour] = (c[p.colour] ?? 0) + 1));
     return c;
-  }, [d.products]);
+  }, [products]);
 
   const chips: { key: string; label: string; clear: () => void }[] = [];
   if (!priceError && (min !== null || max !== null)) {
-    const label = min !== null && max !== null ? `${money(min)}–${money(max)}` : min !== null ? `From ${money(min)}` : `Up to ${money(max ?? 0)}`;
+    const label = min !== null && max !== null ? `${money(min, currency)}–${money(max, currency)}` : min !== null ? `From ${money(min, currency)}` : `Up to ${money(max ?? 0, currency)}`;
     chips.push({ key: "price", label, clear: () => setF((x) => ({ ...x, min: "", max: "" })) });
   }
   f.sizes.forEach((s) => chips.push({ key: `size-${s}`, label: `Size ${s}`, clear: () => setF((x) => ({ ...x, sizes: x.sizes.filter((v) => v !== s) })) }));
   f.colors.forEach((c) =>
-    chips.push({ key: `colour-${c}`, label: d.colors.find((x) => x.id === c)?.name ?? c, clear: () => setF((x) => ({ ...x, colors: x.colors.filter((v) => v !== c) })) }),
+    chips.push({ key: `colour-${c}`, label: colors.find((x) => x.id === c)?.name ?? c, clear: () => setF((x) => ({ ...x, colors: x.colors.filter((v) => v !== c) })) }),
   );
   if (f.inStock) chips.push({ key: "stock", label: d.stockLabel, clear: () => setF((x) => ({ ...x, inStock: false })) });
 
@@ -297,14 +304,14 @@ export default function ShopCollection() {
   const countText = `${results.length} ${results.length === 1 ? d.result : d.results}`;
 
   return (
-    <section className="fl-section" aria-labelledby="shop-collection-title">
+    <section className="fl-section" aria-labelledby="shop-collection-title" data-fl="b.shop-collection">
       <div className="fl-wrap fl-shop-stage">
         <div className="fl-shop-bar__title">
-          <span className="fl-eyebrow">{d.eyebrow}</span>
+          {eyebrow ? <span className="fl-eyebrow">{eyebrow}</span> : null}
           <h2 id="shop-collection-title" className="fl-title fl-title--md" ref={headingRef} tabIndex={-1} style={{ outline: "none" }}>
-            {d.heading}
+            {heading}
           </h2>
-          <p className="fl-text">{d.lede}</p>
+          {lede ? <p className="fl-text">{lede}</p> : null}
         </div>
 
         <div className="fl-shop-collection">
@@ -312,7 +319,7 @@ export default function ShopCollection() {
             <h3 id="shop-collection-filters" className="fl-sr">
               {d.filtersTitle}
             </h3>
-            <FilterFields prefix="shop-collection-side" f={f} set={setF} priceError={priceError} counts={counts} />
+            <FilterFields prefix="shop-collection-side" f={f} set={setF} priceError={priceError} counts={counts} currency={currency} sizes={sizes} colors={colors} />
           </aside>
 
           <div style={{ display: "grid", gap: "var(--space-5)", minWidth: 0 }}>
@@ -321,29 +328,29 @@ export default function ShopCollection() {
                 <strong style={{ color: "var(--color-text)" }}>{results.length}</strong> {results.length === 1 ? d.result : d.results}
               </p>
               <div className="fl-shop-toolbar__end">
-                <button
-                  ref={filterBtnRef}
-                  type="button"
-                  className="fl-btn fl-btn--secondary fl-shop-btn--sm fl-shop-filter-btn"
+                <Button
+                  variant="secondary"
+                  size={40}
+                  className="fl-shop-btn--sm fl-shop-filter-btn"
                   aria-haspopup="dialog"
                   aria-expanded={drawer}
-                  onClick={() => setDrawer(true)}
+                  onClick={(e) => {
+                    filterBtnRef.current = e.currentTarget;
+                    setDrawer(true);
+                  }}
                 >
                   <SlidersIcon />
                   {d.filtersTitle}
-                  {chips.length > 0 && <span className="fl-badge">{chips.length}</span>}
-                </button>
+                  {chips.length > 0 && <Badge>{chips.length}</Badge>}
+                </Button>
                 <div className="fl-shop-sort">
                   <label htmlFor="shop-collection-sort">{d.sortLabel}</label>
-                  <span className="fl-shop-select">
-                    <select id="shop-collection-sort" value={sort} onChange={(e) => setSort(e.target.value)}>
-                      {d.sorts.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </span>
+                  <Select
+                    id="shop-collection-sort"
+                    options={d.sorts.map((s) => s.name)}
+                    value={d.sorts.find((s) => s.id === sort)?.name}
+                    onChange={(e) => setSort(d.sorts.find((s) => s.name === e.target.value)?.id ?? d.sorts[0].id)}
+                  />
                 </div>
               </div>
             </div>
@@ -352,19 +359,17 @@ export default function ShopCollection() {
               <ul id="shop-collection-chips" className="fl-shop-chips" aria-label="Active filters">
                 {chips.map((c) => (
                   <li key={c.key}>
-                    <button
-                      type="button"
-                      className="fl-shop-chip"
-                      aria-label={`Remove filter: ${c.label}`}
-                      onClick={() => {
+                    <Chip
+                      variant="input"
+                      removeLabel={`Remove filter: ${c.label}`}
+                      onRemove={() => {
                         c.clear();
                         // Keep focus in the chip row (or on the heading once the last chip goes).
-                        window.setTimeout(() => (document.querySelector<HTMLElement>("#shop-collection-chips .fl-shop-chip") ?? headingRef.current)?.focus(), 0);
+                        window.setTimeout(() => (document.querySelector<HTMLElement>("#shop-collection-chips .fl-ctl-chip-x") ?? headingRef.current)?.focus(), 0);
                       }}
                     >
                       {c.label}
-                      <CloseIcon />
-                    </button>
+                    </Chip>
                   </li>
                 ))}
                 <li>
@@ -382,9 +387,9 @@ export default function ShopCollection() {
                 </span>
                 <strong>{d.emptyTitle}</strong>
                 <span>{d.emptyText}</span>
-                <button type="button" className="fl-btn fl-btn--primary" onClick={clearAll}>
+                <Button variant="primary" onClick={clearAll}>
                   {d.emptyAction}
-                </button>
+                </Button>
               </div>
             ) : (
               <ul className="fl-shop-grid">
@@ -400,9 +405,9 @@ export default function ShopCollection() {
                       </a>
                     </h3>
                     <span className="fl-meta">
-                      {d.colors.find((c) => c.id === p.colour)?.name} · {p.sizes.join(", ")}
+                      {colors.find((c) => c.id === p.colour)?.name} · {p.sizes.join(", ")}
                     </span>
-                    <span className="fl-shop-price">{money(p.price)}</span>
+                    <span className="fl-shop-price">{money(p.price, currency)}</span>
                   </li>
                 ))}
               </ul>
@@ -428,19 +433,50 @@ export default function ShopCollection() {
               </button>
             </div>
             <div className="fl-shop-drawer__body">
-              <FilterFields prefix="shop-collection-drawer" f={f} set={setF} priceError={priceError} counts={counts} />
+              <FilterFields prefix="shop-collection-drawer" f={f} set={setF} priceError={priceError} counts={counts} currency={currency} sizes={sizes} colors={colors} />
             </div>
             <div className="fl-shop-drawer__foot" style={{ gridTemplateColumns: "auto 1fr" }}>
-              <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setF(NO_FILTERS)} disabled={chips.length === 0 && !priceError}>
+              <Button variant="secondary" onClick={() => setF(NO_FILTERS)} disabled={chips.length === 0 && !priceError}>
                 {d.clearAll}
-              </button>
-              <button type="button" className="fl-btn fl-btn--primary" onClick={() => setDrawer(false)}>
+              </Button>
+              <Button variant="primary" onClick={() => setDrawer(false)}>
                 {d.showResults} {countText}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE: ShopCollectionProps = {
+  eyebrow: "Shop",
+  heading: "Studio wear",
+  lede: "Aprons, overshirts and tees made for clay, paint and long afternoons at the bench.",
+  currency: "$",
+  sizes: ["XS", "S", "M", "L", "XL"],
+  colors: [
+    { id: "oat", name: "Oat" },
+    { id: "clay", name: "Clay" },
+    { id: "sage", name: "Sage" },
+    { id: "charcoal", name: "Charcoal" },
+    { id: "ink", name: "Ink" },
+  ],
+  products: [
+    { id: "p1", name: "Canvas cross-back apron", price: 5200, colour: "clay", sizes: ["S", "M", "L"], inStock: true, added: 3 },
+    { id: "p2", name: "Linen work overshirt", price: 8900, colour: "oat", sizes: ["S", "M", "L", "XL"], inStock: true, added: 8 },
+    { id: "p3", name: "Heavy cotton studio tee", price: 3200, colour: "charcoal", sizes: ["XS", "S", "M", "L", "XL"], inStock: true, added: 5 },
+    { id: "p4", name: "Waxed half apron", price: 4400, colour: "ink", sizes: ["M", "L"], inStock: false, added: 1 },
+    { id: "p5", name: "Garment-dyed tee", price: 3400, colour: "sage", sizes: ["S", "M", "L"], inStock: true, added: 9 },
+    { id: "p6", name: "Quilted bench vest", price: 9800, colour: "charcoal", sizes: ["M", "L", "XL"], inStock: true, added: 7 },
+    { id: "p7", name: "Cotton bucket hat", price: 2600, colour: "oat", sizes: ["S", "M"], inStock: false, added: 4 },
+    { id: "p8", name: "Ripstop painter trousers", price: 7600, colour: "sage", sizes: ["XS", "S", "M", "L"], inStock: true, added: 6 },
+    { id: "p9", name: "Bib apron with pockets", price: 5800, colour: "ink", sizes: ["S", "M", "L", "XL"], inStock: true, added: 2 },
+  ],
+};
+
+export default function ShopCollectionPreview() {
+  return <ShopCollection {...SAMPLE} />;
 }

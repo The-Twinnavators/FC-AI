@@ -229,6 +229,8 @@
 .fl-ctl-btn--icon svg { width: 1.25em; height: 1.25em; }
 .fl-ctl-btn--icon.fl-ctl-btn--24 svg { width: 1em; height: 1em; }
 .fl-ctl-icon-row { display: inline-flex; align-items: center; gap: var(--space-3); }
+/* The accent-band variants (on-accent, ghost-on-accent) need the accent behind them to be seen. */
+.fl-ctl-accent-band { padding: var(--space-5); border-radius: var(--surface-radius, var(--radius-lg)); }
 
 /* ── Cards: a surface, and whether it does anything ── */
 .fl-ctl-card { position: relative; display: grid; gap: var(--space-1, 0.25rem); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }

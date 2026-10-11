@@ -1,4 +1,9 @@
 /** @flowcode-library switches-states · Switches: every state and size (Forms)
+ * Catalog ID: c.switch (component)
+ * Function: The switch (c.switch) for a setting that takes effect immediately; the reference sheet shows every state at every size and the settings row it usually lives in.
+ * Use it as: import { Switch } from "./switches-states"; <Switch on={bool} label="Setting name" size?={14|16|18|20|24|32} disabled? onToggle?={(next) => ...}/>
+ * Look: A pill-shaped track with a white round thumb that slides right and turns accent-colored when on; six heights from 14 to 32 px, dimmed when disabled, focus ring on keyboard focus.
+ * Tokens: --color-accent --color-border-strong --focus-ring --duration-fast --easing
  * Use cases: settings screen; feature on or off; notification preferences; privacy choice; row-level toggle
  * Jobs to be done: turn something on or off; see at a glance what is on; know a setting is locked
  * Keywords: switch, toggle, on off, setting, disabled
@@ -33,12 +38,12 @@ const SAMPLE = {
     { id: "on-disabled", label: "On, disabled", on: true, disabled: true },
   ],
   sizes: [
-    { id: "s14", label: "14 px", cls: "fl-ctl-switch--14" },
-    { id: "s16", label: "16 px", cls: "fl-ctl-switch--16" },
-    { id: "s18", label: "18 px", cls: "fl-ctl-switch--18" },
-    { id: "s20", label: "20 px", cls: "fl-ctl-switch--20" },
-    { id: "s24", label: "24 px", cls: "fl-ctl-switch--24" },
-    { id: "s32", label: "32 px", cls: "fl-ctl-switch--32" },
+    { id: "s14", label: "14 px", px: 14 as SwitchSize },
+    { id: "s16", label: "16 px", px: 16 as SwitchSize },
+    { id: "s18", label: "18 px", px: 18 as SwitchSize },
+    { id: "s20", label: "20 px", px: 20 as SwitchSize },
+    { id: "s24", label: "24 px", px: 24 as SwitchSize },
+    { id: "s32", label: "32 px", px: 32 as SwitchSize },
   ],
   settings: [
     { id: "s1", name: "Text me when a booking is cancelled", what: "Only cancellations. Everything else is email.", on: true, disabled: false },
@@ -47,9 +52,15 @@ const SAMPLE = {
   ],
 };
 
-function Switch({ on, disabled, cls = "", label, onToggle }: { on: boolean; disabled?: boolean; cls?: string; label: string; onToggle?: (next: boolean) => void }) {
+export type SwitchSize = 14 | 16 | 18 | 20 | 24 | 32;
+
+// Written out in full (not built from the size) so a build finds every class the switch needs.
+const SIZE: Record<SwitchSize, string> = { 14: "fl-ctl-switch--14", 16: "fl-ctl-switch--16", 18: "fl-ctl-switch--18", 20: "fl-ctl-switch--20", 24: "fl-ctl-switch--24", 32: "fl-ctl-switch--32" };
+
+/** c.switch: an on/off setting that takes effect as it moves. Pass `on` + `onToggle` to control it, or `on` alone for the starting state. */
+export function Switch({ on, disabled, size = 32, label, onToggle, className }: { on: boolean; disabled?: boolean; size?: SwitchSize; label: string; onToggle?: (next: boolean) => void; className?: string }) {
   return (
-    <span className={`fl-ctl-switch ${cls}`}>
+    <span className={["fl-ctl-switch", SIZE[size], className ?? ""].filter(Boolean).join(" ")} data-fl="c.switch">
       {onToggle ? (
         <input type="checkbox" checked={on} disabled={disabled} aria-label={label} onChange={(e) => onToggle(e.target.checked)} />
       ) : (
@@ -89,7 +100,7 @@ export default function SwitchesStates() {
                 </th>
                 {d.states.map((s) => (
                   <td key={s.id} data-state={s.label}>
-                    <Switch on={s.on} disabled={s.disabled} cls={z.cls} label={`${z.label}, ${s.label}`} />
+                    <Switch on={s.on} disabled={s.disabled} size={z.px} label={`${z.label}, ${s.label}`} />
                   </td>
                 ))}
               </tr>

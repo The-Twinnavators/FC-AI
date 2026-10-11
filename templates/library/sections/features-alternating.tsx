@@ -1,4 +1,9 @@
 /** @flowcode-library features-alternating · Alternating features (Features)
+ * Catalog ID: b.features-alternating (block)
+ * Function: The alternating features block (b.features-alternating): picture-and-story rows that show how the product works.
+ * Use it as: import { FeaturesAlternating } from "./features-alternating"; <FeaturesAlternating label? rows={[{eyebrow,title,text,points:[string],media}]} />
+ * Look: Two-column rows with a picture on one side and eyebrow, title, sentence and ticked points on the other, flipping sides every row.
+ * Tokens: --space-9 --color-surface-sunken --color-accent --color-border --color-text-muted --radius-lg
  * Use cases: how it works; product tour; feature showcase; step by step guide; onboarding overview; case study story; service process
  * Jobs to be done: understand how the product works; see each feature in action; follow the process step by step; picture using it in my day
  * Keywords: features, how it works, steps, showcase
@@ -10,32 +15,18 @@
  */
 import { Tick } from "./icons";
 
-// flowcode:sample
-const SAMPLE = {
-  rows: [
-    {
-      eyebrow: "Plan",
-      title: "See the whole week at once",
-      text: "Drag a booking to move it. Everyone involved is told, and nothing double-books.",
-      points: ["Week and day views", "Color by service", "Holidays blocked automatically"],
-      media: "The week view with bookings color-coded by service",
-    },
-    {
-      eyebrow: "Get paid",
-      title: "Deposits without the awkward chase",
-      text: "Ask for a deposit when someone books. It's taken off the final bill.",
-      points: ["Card or bank transfer", "Refunds in one click", "Receipts sent for you"],
-      media: "A booking confirmation showing the deposit paid",
-    },
-  ],
+export type FeaturesAlternatingProps = {
+  /** The section's accessible name. "How it works" when left out. */
+  label?: string;
+  /** Each row: eyebrow, title, a sentence, ticked points, and a description of its picture (shown as a placeholder, used as alt text). */
+  rows: { eyebrow: string; title: string; text: string; points: string[]; media: string }[];
 };
 
-export default function FeaturesAlternating() {
-  const d = SAMPLE;
+export function FeaturesAlternating({ label = "How it works", rows }: FeaturesAlternatingProps) {
   return (
-    <section className="fl-section" aria-label="How it works">
+    <section className="fl-section" aria-label={label} data-fl="b.features-alternating">
       <div className="fl-wrap" style={{ display: "grid", gap: "var(--space-9)" }}>
-        {d.rows.map((r, i) => (
+        {rows.map((r, i) => (
           <article key={r.title} className="fl-split">
             <div className="fl-media" role="img" aria-label={r.media} style={{ order: i % 2 ? 2 : 0 }}>
               {r.media}
@@ -58,4 +49,28 @@ export default function FeaturesAlternating() {
       </div>
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE: FeaturesAlternatingProps = {
+  rows: [
+    {
+      eyebrow: "Plan",
+      title: "See the whole week at once",
+      text: "Drag a booking to move it. Everyone involved is told, and nothing double-books.",
+      points: ["Week and day views", "Color by service", "Holidays blocked automatically"],
+      media: "The week view with bookings color-coded by service",
+    },
+    {
+      eyebrow: "Get paid",
+      title: "Deposits without the awkward chase",
+      text: "Ask for a deposit when someone books. It's taken off the final bill.",
+      points: ["Card or bank transfer", "Refunds in one click", "Receipts sent for you"],
+      media: "A booking confirmation showing the deposit paid",
+    },
+  ],
+};
+
+export default function FeaturesAlternatingPreview() {
+  return <FeaturesAlternating {...SAMPLE} />;
 }

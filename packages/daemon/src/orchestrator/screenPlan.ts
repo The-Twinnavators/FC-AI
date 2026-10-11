@@ -15,7 +15,7 @@ import type { RuntimeStepArgs } from "./templates.js";
 import { LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { recordUse } from "./libraryUse.js";
 import { screenPicks, type ScreenPick } from "./screenPicks.js";
-import { sectionFile, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
+import { pieceFiles, sectionFile, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
 
 /** The library pieces matched to the planned screens (kept by planning, read by the layout step). */
 export const screenPicksKey = (runId: string) => `screenPicks:${runId}`;
@@ -219,10 +219,11 @@ export function layoutStep(plan: ScreenPlan) {
         if (!plan.screens.some((s) => s.label === p.screen)) continue;
         const rel = sectionFile(p.id);
         const component = path.basename(rel, ".tsx");
-        for (const [need, from] of [["src/sections/icons.tsx", "icons.tsx"], [rel, `${p.id}.tsx`]] as const) {
-          if (fs.existsSync(path.join(jail.root, need))) continue;
-          const res = deps.ops.create_file(ctx, { path: need, content: fs.readFileSync(path.join(lib, from), "utf8") });
-          if (res.ok) changed.push(need);
+        // The piece, the pieces it's built from, and the icons they share.
+        for (const f of [{ rel: "src/sections/icons.tsx", content: fs.readFileSync(path.join(lib, "icons.tsx"), "utf8") }, ...pieceFiles(p.id)]) {
+          if (fs.existsSync(path.join(jail.root, f.rel))) continue;
+          const res = deps.ops.create_file(ctx, { path: f.rel, content: f.content });
+          if (res.ok) changed.push(f.rel);
         }
         if (!fs.existsSync(path.join(jail.root, rel))) continue;
         recordUse(deps.store, run.id, { id: p.id, by: "flowcode", step: task.title, reason: p.reason });

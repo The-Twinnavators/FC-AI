@@ -1,4 +1,10 @@
 /** @flowcode-library dividers-rules · Dividers: horizontal, vertical, with a label, and when to use none (Small components)
+ * Catalog ID: c.divider (component)
+ * Function: The divider (c.divider): the rule that separates groups, and a reference sheet of its weights, vertical form, labelled form and when to use space instead.
+ * Use it as: import { Divider } from "./dividers-rules"; <Divider variant?="horizontal"|"vertical"|"labelled" weight?="hair"|"regular"|"heavy"|"dash" label? labelAt?="center"|"start" decorative? />
+ * Variants: c.divider.horizontal - between sections or list rows: a full-width line in one of four weights (hair, regular, heavy, dash); c.divider.vertical - between groups in a toolbar: a thin upright line the height of its row; c.divider.labelled - an "or" between two ways to do something, or a day marker in a feed: a line with a word in it, centered or at the start
+ * Look: A one-pixel line in the border color, horizontal, vertical, or broken by a short word.
+ * Tokens: --color-border --color-border-strong --color-text-muted --text-sm --space-2 --space-3 --space-4
  * Use cases: between list rows; between toolbar groups; an or between two ways to sign in; a section break
  * Jobs to be done: see where one group ends; separate a toolbar's groups; break a long page up
  * Keywords: divider, rule, separator, hr, horizontal rule, vertical rule, spacing
@@ -23,8 +29,54 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useState } from "react";
+import { useState, type HTMLAttributes } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+
+// ── c.divider: the one rule. Pieces that separate groups use this component; the specimen below shows every kind. ──
+
+export type DividerVariant = "horizontal" | "vertical" | "labelled";
+export type DividerWeight = "hair" | "regular" | "heavy" | "dash";
+
+// Written out in full (not built from the weight name) so a build finds every class the divider needs.
+const WEIGHT: Record<DividerWeight, string> = {
+  hair: "fl-ctl-rule--hair",
+  regular: "",
+  heavy: "fl-ctl-rule--heavy",
+  dash: "fl-ctl-rule--dash",
+};
+
+type DividerProps = {
+  variant?: DividerVariant;
+  /** Horizontal only: hairline in a card, regular between sections, heavy almost never, dashed for provisional. */
+  weight?: DividerWeight;
+  /** Labelled only: the word on the line. It is real text, so it is read out. */
+  label?: string;
+  /** Labelled only: where the word sits. Center when left out. */
+  labelAt?: "center" | "start";
+  /** Hide it from screen readers. On by default for vertical, off for the others. */
+  decorative?: boolean;
+  className?: string;
+} & Omit<HTMLAttributes<HTMLElement>, "className" | "children">;
+
+export function Divider({ variant = "horizontal", weight = "regular", label, labelAt = "center", decorative, className, ...rest }: DividerProps) {
+  const hidden = (decorative ?? variant === "vertical") || undefined;
+  const fl = `c.divider.${variant}`;
+  if (variant === "vertical") {
+    const cls = ["fl-ctl-vrule", className ?? ""].filter(Boolean).join(" ");
+    return <span {...rest} className={cls} data-fl={fl} aria-hidden={hidden} />;
+  }
+  if (variant === "labelled") {
+    const cls = ["fl-ctl-rule-label", labelAt === "start" ? "fl-ctl-rule-label--start" : "", className ?? ""].filter(Boolean).join(" ");
+    return (
+      <span {...rest} className={cls} data-fl={fl} aria-hidden={hidden}>
+        <span>{label}</span>
+      </span>
+    );
+  }
+  const cls = ["fl-ctl-rule", WEIGHT[weight], className ?? ""].filter(Boolean).join(" ");
+  return <hr {...rest} className={cls} data-fl={fl} aria-hidden={hidden} />;
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -65,13 +117,13 @@ export default function DividersRules() {
         <p className="fl-ctl-btn-what">Three weights. Pick one for the whole app: hairline inside a card, regular between sections, heavy almost never.</p>
         <div className="fl-ctl-div-weights">
           <span className="fl-ctl-matrix-what">Hairline</span>
-          <hr className="fl-ctl-rule fl-ctl-rule--hair" />
+          <Divider weight="hair" />
           <span className="fl-ctl-matrix-what">Regular</span>
-          <hr className="fl-ctl-rule" />
+          <Divider />
           <span className="fl-ctl-matrix-what">Heavy</span>
-          <hr className="fl-ctl-rule fl-ctl-rule--heavy" />
+          <Divider weight="heavy" />
           <span className="fl-ctl-matrix-what">Dashed, for something provisional</span>
-          <hr className="fl-ctl-rule fl-ctl-rule--dash" />
+          <Divider weight="dash" />
         </div>
       </div>
 
@@ -79,23 +131,23 @@ export default function DividersRules() {
         <h3>Vertical</h3>
         <p className="fl-ctl-btn-what">Between groups in a toolbar, so a row of buttons reads as two or three sets rather than seven buttons.</p>
         <div className="fl-ctl-div-bar">
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32" aria-label="New" title="New">
-            <Icon name="plus" />
-          </button>
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32" aria-label="Rename" title="Rename">
-            <Icon name="pencil" />
-          </button>
-          <span className="fl-ctl-vrule" aria-hidden="true" />
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32" aria-label="Download" title="Download">
-            <Icon name="download" />
-          </button>
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32" aria-label="Share" title="Share">
-            <Icon name="send" />
-          </button>
-          <span className="fl-ctl-vrule" aria-hidden="true" />
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32" aria-label="Delete" title="Delete">
-            <Icon name="trash" />
-          </button>
+          <Button variant="tertiary" size={32} icon="plus" iconOnly>
+            New
+          </Button>
+          <Button variant="tertiary" size={32} icon="pencil" iconOnly>
+            Rename
+          </Button>
+          <Divider variant="vertical" />
+          <Button variant="tertiary" size={32} icon="download" iconOnly>
+            Download
+          </Button>
+          <Button variant="tertiary" size={32} icon="send" iconOnly>
+            Share
+          </Button>
+          <Divider variant="vertical" />
+          <Button variant="tertiary" size={32} icon="trash" iconOnly>
+            Delete
+          </Button>
         </div>
       </div>
 
@@ -103,19 +155,15 @@ export default function DividersRules() {
         <h3>With a label</h3>
         <p className="fl-ctl-btn-what">A line with a word in it, for when the break itself means something. The word is real text, so it is read out.</p>
         <div className="fl-ctl-div-labelled">
-          <button type="button" className="fl-btn fl-btn--primary fl-ctl-btn--44">
+          <Button size={44}>
             Continue with email
-          </button>
-          <span className="fl-ctl-rule-label">
-            <span>or</span>
-          </span>
-          <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--44">
-            <Icon name="globe" /> Continue with your studio account
-          </button>
+          </Button>
+          <Divider variant="labelled" label="or" />
+          <Button variant="secondary" size={44} icon="globe">
+            Continue with your studio account
+          </Button>
         </div>
-        <span className="fl-ctl-rule-label fl-ctl-rule-label--start">
-          <span>Last month</span>
-        </span>
+        <Divider variant="labelled" label="Last month" labelAt="start" />
         <p className="fl-ctl-matrix-what">Aligned to the start, this is how a long feed marks where one day ends and the next begins.</p>
       </div>
     </section>

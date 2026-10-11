@@ -15852,6 +15852,12 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .cl-tile__text .muted { font-size: 12.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .cl-detail { display: grid; gap: 14px; }
 .modal-box.lib-modal:has(.cl-detail) { width: min(1180px, calc(100vw - 32px)); }
+/* A piece's catalog ID (copyable), its variants, what it uses and what uses it. */
+.cl-refs { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 12px 0 0; }
+.cl-refs > div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cl-refs dt { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.cl-refs dd { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.cl-ref { font: 12px/1 var(--font-mono, ui-monospace, monospace); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--text-1); }
 @media (prefers-reduced-motion: reduce) { .cl-tile { transition: none; } .cl-tile:hover { transform: none; } }
 .cl-detail__nav { display: inline-flex; align-items: center; gap: 10px; margin-right: auto; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 

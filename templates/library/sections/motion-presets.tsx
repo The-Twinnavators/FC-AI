@@ -1,4 +1,9 @@
 /** @flowcode-library motion-presets · Motion: durations, easings and the handful of animations worth keeping (Small components)
+ * Catalog ID: tokens.motion (tokens)
+ * Function: The motion scale (tokens.motion): the reference sheet plays six presets against any duration and easing, with a reduced-motion switch that turns movement into a cross-fade.
+ * Use it as: Not a component: transition with var(--duration-fast) (120ms, hovers), var(--duration-base) (200ms, menus, toasts) or var(--duration-slow) (320ms, drawers) and var(--easing); wrap movement in @media (prefers-reduced-motion: reduce) and drop it to a short fade or nothing; keep every animation under 400 ms.
+ * Look: Four durations and four easings applied to six small movements: fade, rise, slide in, scale, collapse and pulse.
+ * Tokens: --duration-instant --duration-fast --duration-base --duration-slow --easing --ease-out --ease-spring
  * Use cases: a design system's motion scale; a drawer opening; a toast arriving; a row being removed; a page change
  * Jobs to be done: pick a duration that feels right; use the same easing everywhere; switch motion off properly
  * Keywords: animation, motion, transition, duration, easing, keyframes, reduced motion, fade, slide
@@ -27,6 +32,7 @@
  */
 import { useState, type CSSProperties } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
 
 // flowcode:sample
 const SAMPLE = {
@@ -99,9 +105,9 @@ export default function MotionPresets() {
             <Icon name="chevron-down" />
           </span>
         </span>
-        <button type="button" className="fl-btn fl-btn--primary fl-ctl-btn--32" onClick={() => setRun((n) => n + 1)}>
-          <Icon name="refresh" /> Play them all
-        </button>
+        <Button size={32} icon="refresh" onClick={() => setRun((n) => n + 1)}>
+          Play them all
+        </Button>
         <label className="fl-ctl-choice fl-ctl-choice--inline">
           <span className="fl-ctl-switch fl-ctl-switch--20">
             <input type="checkbox" checked={calm} onChange={(e) => setCalm(e.target.checked)} />
@@ -130,9 +136,9 @@ export default function MotionPresets() {
                 <span>{m.label}</span>
               </span>
             </span>
-            <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32" onClick={() => setRun((n) => n + 1)}>
+            <Button variant="tertiary" size={32} onClick={() => setRun((n) => n + 1)}>
               Play
-            </button>
+            </Button>
           </li>
         ))}
       </ul>

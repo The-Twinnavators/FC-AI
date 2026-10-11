@@ -52,10 +52,20 @@ ro.observe(document.documentElement);
 void document.fonts.ready.then(report);
 
 const file = `../../../templates/library/sections/${id}.tsx`;
+
+// A piece's source with the sources of the library pieces it imports (a template built from blocks, a block built from
+// components), so the styles those use load too.
+const withImports = async (path: string, seen = new Set<string>()): Promise<string> => {
+  if (seen.has(path) || !sources[path]) return "";
+  seen.add(path);
+  const text = await sources[path]!();
+  const deps = [...text.matchAll(/from "\.\/([a-z0-9-]+)"/g)].map((m) => `../../../templates/library/sections/${m[1]}.tsx`);
+  return [text, ...(await Promise.all(deps.map((d) => withImports(d, seen))))].join("\n");
+};
 const load = modules[file];
 const root = createRoot(document.getElementById("root")!);
 if (load)
-  void Promise.all([load(), sources[file]!()]).then(([m, used]) => {
+  void Promise.all([load(), withImports(file)]).then(([m, used]) => {
     addStyles(used);
     root.render(<m.default />);
     requestAnimationFrame(report);

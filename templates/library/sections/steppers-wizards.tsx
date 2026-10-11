@@ -1,4 +1,11 @@
 /** @flowcode-library steppers-wizards · Steppers: numbered, with a bar, and vertical (Tabs, breadcrumbs and paging)
+ * Catalog ID: p.stepper (pattern)
+ * Function: The step indicator (p.stepper) for multi-step flows in numbered, bar and vertical shapes; the reference sheet pairs it with working Back and Next buttons and a way to fail a step.
+ * Use it as: import { Stepper } from "./steppers-wizards"; <Stepper variant?="numbered"|"bar"|"vertical" steps={[{ id, label, what }]} current={index} failed?={index} onStep?={(index) => ...} />
+ * Variants: p.stepper.numbered - a wizard where steps have names: a numbered row, finished steps ticked and reachable, steps ahead disabled; p.stepper.bar - a flow where step names do not matter: a plain progress bar with Step N of M beside it; p.stepper.vertical - steps that each need a line of explanation: a numbered list down the page with a status under each
+ * Built from: c.progress.bar, c.button.primary, c.button.secondary, c.button.tertiary
+ * Look: Numbered circles joined in a row (or column) with the current step accented, finished steps ticked and a failed step marked in the danger color; or a thin progress bar.
+ * Tokens: --color-accent --color-border --color-danger --color-on-accent --color-surface-sunken --focus-ring --radius-lg --radius-md --space-2 --space-3 --space-4 --space-5
  * Use cases: checkout; onboarding; a long form split up; an import wizard; a booking flow
  * Jobs to be done: see how many steps are left; go back to a step I finished; know which step failed
  * Keywords: stepper, wizard, steps, progress, multi-step, back, next, current step
@@ -18,13 +25,87 @@
  * - Press a finished step to go back to it; steps ahead cannot be jumped to.
  * - Press "Make this step fail" to see the failed state on a real step.
  *
- * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of SVG paths rather
- * than an icon package. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
+ * Dependencies: React (useState), the library's own inline icon set ("./icons"), which is a table of SVG paths rather
+ * than an icon package, and the library's Button and Progress. Nothing else — no package to install and nothing fetched at run time. The styles are the library's
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
 import { useState } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Progress } from "./progress-indicators";
+
+// ── p.stepper: where you are in a flow. Built from c.progress for the bar; the wizard's own buttons are c.button. ──
+
+export type StepperVariant = "numbered" | "bar" | "vertical";
+export type Step = { id: string; label: string; what: string };
+export type StepperProps = {
+  /** numbered: named steps across the top, finished ones reachable; bar: a plain bar; vertical: a list with a line under each. */
+  variant?: StepperVariant;
+  steps: Step[];
+  /** Index of the step the person is on. */
+  current: number;
+  /** Index of a step left in an error, if any. */
+  failed?: number;
+  /** Called with the index of a finished or current step that was pressed (numbered only). */
+  onStep?: (index: number) => void;
+  className?: string;
+};
+
+export function Stepper({ variant = "numbered", steps, current, failed = -1, onStep, className }: StepperProps) {
+  const extra = className ? ` ${className}` : "";
+  const fl = `p.stepper.${variant}`;
+  const state = (n: number) => (n === failed ? "error" : n < current ? "done" : n === current ? "here" : "ahead");
+
+  if (variant === "bar") {
+    return (
+      <div className={`fl-ctl-step-bar${extra}`} data-fl={fl}>
+        <Progress value={((current + 1) / steps.length) * 100} label="How far through" thin />
+        <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
+          Step {current + 1} of {steps.length}
+        </span>
+      </div>
+    );
+  }
+
+  const down = variant === "vertical";
+  return (
+    <ol className={`fl-ctl-steps${down ? " fl-ctl-steps--down" : ""}${extra}`} data-fl={fl}>
+      {steps.map((s, n) => {
+        const st = state(n);
+        const mark = (
+          <span className="fl-ctl-step-mark" aria-hidden="true">
+            {st === "done" ? <Icon name="check" /> : st === "error" ? <Icon name="alert" /> : n + 1}
+          </span>
+        );
+        const note = down
+          ? st === "done" ? "Finished" : st === "here" ? "You are here" : st === "error" ? "Needs fixing" : s.what
+          : st === "error" ? "Something here needs fixing" : s.what;
+        const text = (
+          <span className="fl-ctl-step-text">
+            <strong>{s.label}</strong>
+            <span className="fl-ctl-matrix-what">{note}</span>
+          </span>
+        );
+        return (
+          <li key={s.id} className={`is-${st}`}>
+            {down ? (
+              <span className="fl-ctl-step">
+                {mark}
+                {text}
+              </span>
+            ) : (
+              <button type="button" className="fl-ctl-step" aria-current={st === "here" ? "step" : undefined} disabled={st === "ahead"} onClick={() => onStep?.(n)}>
+                {mark}
+                {text}
+              </button>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -43,37 +124,12 @@ export default function SteppersWizards() {
   const last = d.steps.length - 1;
   const here = d.steps[at];
 
-  const state = (n: number) => (n === failed ? "error" : n < at ? "done" : n === at ? "here" : "ahead");
-
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-step-block">
         <p className="fl-ctl-matrix-kind">Numbered</p>
         <p className="fl-ctl-matrix-what">Every step named, finished ones ticked and still reachable. Steps ahead cannot be jumped to.</p>
-        <ol className="fl-ctl-steps">
-          {d.steps.map((s, n) => {
-            const st = state(n);
-            return (
-              <li key={s.id} className={`is-${st}`}>
-                <button
-                  type="button"
-                  className="fl-ctl-step"
-                  aria-current={st === "here" ? "step" : undefined}
-                  disabled={st === "ahead"}
-                  onClick={() => setAt(n)}
-                >
-                  <span className="fl-ctl-step-mark" aria-hidden="true">
-                    {st === "done" ? <Icon name="check" /> : st === "error" ? <Icon name="alert" /> : n + 1}
-                  </span>
-                  <span className="fl-ctl-step-text">
-                    <strong>{s.label}</strong>
-                    <span className="fl-ctl-matrix-what">{st === "error" ? "Something here needs fixing" : s.what}</span>
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
+        <Stepper steps={d.steps} current={at} failed={failed} onStep={setAt} />
       </div>
 
       <div className="fl-ctl-step-panel">
@@ -82,56 +138,28 @@ export default function SteppersWizards() {
           Step {at + 1} of {d.steps.length}. {here.what}.
         </p>
         <div className="fl-ctl-step-actions">
-          <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--40" disabled={at === 0} onClick={() => setAt((n) => Math.max(0, n - 1))}>
-            <Icon name="arrow" /> Back
-          </button>
-          <button type="button" className="fl-btn fl-btn--primary fl-ctl-btn--40" disabled={at === last} onClick={() => setAt((n) => Math.min(last, n + 1))}>
-            {at === last - 1 ? "Review and pay" : "Next"} <Icon name="arrow" />
-          </button>
-          <button
-            type="button"
-            className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--40"
-            onClick={() => setFailed((f) => (f === at ? -1 : at))}
-          >
+          <Button variant="secondary" size={40} icon="arrow" disabled={at === 0} onClick={() => setAt((n) => Math.max(0, n - 1))}>
+            Back
+          </Button>
+          <Button size={40} icon="arrow" iconAt="end" disabled={at === last} onClick={() => setAt((n) => Math.min(last, n + 1))}>
+            {at === last - 1 ? "Review and pay" : "Next"}
+          </Button>
+          <Button variant="tertiary" size={40} onClick={() => setFailed((f) => (f === at ? -1 : at))}>
             {failed === at ? "Clear this step's error" : "Make this step fail"}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="fl-ctl-sizes">
         <h3>Just a bar</h3>
         <p className="fl-ctl-btn-what">When the step names do not help, say how far along it is and nothing else.</p>
-        <div className="fl-ctl-step-bar">
-          <span className="fl-ctl-bar" role="progressbar" aria-valuenow={at + 1} aria-valuemin={1} aria-valuemax={d.steps.length} aria-label="How far through">
-            <span style={{ width: `${((at + 1) / d.steps.length) * 100}%` }} />
-          </span>
-          <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
-            Step {at + 1} of {d.steps.length}
-          </span>
-        </div>
+        <Stepper variant="bar" steps={d.steps} current={at} />
       </div>
 
       <div className="fl-ctl-sizes">
         <h3>Vertical</h3>
         <p className="fl-ctl-btn-what">For steps that each need a line of explanation, or that are read before they are done.</p>
-        <ol className="fl-ctl-steps fl-ctl-steps--down">
-          {d.steps.map((s, n) => {
-            const st = state(n);
-            return (
-              <li key={s.id} className={`is-${st}`}>
-                <span className="fl-ctl-step">
-                  <span className="fl-ctl-step-mark" aria-hidden="true">
-                    {st === "done" ? <Icon name="check" /> : st === "error" ? <Icon name="alert" /> : n + 1}
-                  </span>
-                  <span className="fl-ctl-step-text">
-                    <strong>{s.label}</strong>
-                    <span className="fl-ctl-matrix-what">{st === "done" ? "Finished" : st === "here" ? "You are here" : st === "error" ? "Needs fixing" : s.what}</span>
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        </ol>
+        <Stepper variant="vertical" steps={d.steps} current={at} failed={failed} />
       </div>
     </section>
   );

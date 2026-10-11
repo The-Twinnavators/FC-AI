@@ -1,4 +1,10 @@
 /** @flowcode-library dropdowns-states · Dropdowns: select, combo box and the open menu (Forms)
+ * Catalog ID: c.select (component)
+ * Function: The native select (c.select; the combo box and open menus on the sheet are custom, not part of the export) with a reference sheet showing a select and a combo box in every state plus four open menus.
+ * Use it as: import { Select } from "./dropdowns-states"; <Select options={["A", "B"]} variant?="outlined"|"filled"|"underlined" invalid? disabled? id? defaultValue? value? onChange?/>
+ * Variants: c.select.outlined - the default field in a form: a bordered box on the surface color; c.select.filled - a quiet field on a tinted background with no visible border; c.select.underlined - a dense field in a toolbar or table: only a bottom line
+ * Look: A native select styled like the text fields, with a chevron 8px from the right edge; accent focus ring, danger border when invalid, dimmed when disabled.
+ * Tokens: --color-surface --color-surface-sunken --color-border --color-border-strong --color-accent --color-danger --color-text-muted --focus-ring --space-2
  * Use cases: country picker; status filter; assignee picker; sort order; settings choice
  * Jobs to be done: choose one from many; find an option by typing; see what is chosen now
  * Keywords: select, dropdown, combo box, menu, option, disabled
@@ -25,8 +31,44 @@
  * the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built
  * app exactly as it runs here.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SelectHTMLAttributes } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+
+// ── c.select: the native select. Every piece's dropdown fields are this; the combo box and open menus below are custom. ──
+
+export type SelectVariant = "outlined" | "filled" | "underlined";
+
+// Written out in full (not built from the variant name) so a build finds every class the select needs.
+const VARIANT: Record<SelectVariant, string> = {
+  outlined: "fl-ctl-field--outlined",
+  filled: "fl-ctl-field--filled",
+  underlined: "fl-ctl-field--underlined",
+};
+
+type SelectOwn = {
+  variant?: SelectVariant;
+  /** The choices, as plain strings. */
+  options: string[];
+  /** Draw the error state; pair it with a message under the field. */
+  invalid?: boolean;
+  /** Goes on the select itself, e.g. is-focus to draw the focus ring. */
+  className?: string;
+};
+
+export function Select({ variant = "outlined", options, invalid, className, ...rest }: SelectOwn & Omit<SelectHTMLAttributes<HTMLSelectElement>, keyof SelectOwn>) {
+  const cls = ["fl-input", "fl-ctl-field", VARIANT[variant], invalid ? "is-invalid" : "", className ?? ""].filter(Boolean).join(" ");
+  return (
+    <span className="fl-ctl-select" data-fl={`c.select.${variant}`}>
+      <select {...rest} className={cls} aria-invalid={invalid || undefined}>
+        {options.map((o) => (
+          <option key={o}>{o}</option>
+        ))}
+      </select>
+      <Icon name="chevron-down" />
+    </span>
+  );
+}
 
 type Action = { id: string; label: string; icon: string; keys: string; disabled?: boolean; danger?: boolean };
 
@@ -128,9 +170,9 @@ function ChooseSeveral({ say }: { say: (s: string) => void }) {
         <span className="fl-ctl-matrix-what">
           {on.length} of {all.length} chosen
         </span>
-        <button
-          type="button"
-          className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32"
+        <Button
+          variant="tertiary"
+          size={32}
           disabled={!on.length}
           onClick={() => {
             setOn([]);
@@ -138,7 +180,7 @@ function ChooseSeveral({ say }: { say: (s: string) => void }) {
           }}
         >
           Clear
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -177,17 +219,18 @@ function OverflowMenu({ say }: { say: (s: string) => void }) {
   return (
     <>
       <span className="fl-ctl-icon-row">
-        <button
-          type="button"
-          className={`fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32${open ? " is-hover" : ""}`}
-          aria-label="More actions"
+        <Button
+          variant="tertiary"
+          size={32}
+          icon="more"
+          iconOnly
+          className={open ? "is-hover" : undefined}
           aria-expanded={open}
           aria-haspopup="menu"
-          title="More actions"
           onClick={() => setOpen((v) => !v)}
         >
-          <Icon name="more" />
-        </button>
+          More actions
+        </Button>
       </span>
       {open ? (
         <ul
@@ -264,21 +307,15 @@ export default function DropdownsStates() {
                         Status, {k.label}, {s.label}
                       </label>
                       {k.id === "select" ? (
-                        <span className="fl-ctl-select">
-                          <select
-                            id={id}
-                            className={cls}
-                            disabled={s.id === "disabled"}
-                            defaultValue={s.id === "chosen" ? "Booked" : "Any status"}
-                            aria-invalid={invalid || undefined}
-                            onChange={(e) => setSaid(`Status: ${e.target.value}`)}
-                          >
-                            {d.options.map((o) => (
-                              <option key={o}>{o}</option>
-                            ))}
-                          </select>
-                          <Icon name="chevron-down" />
-                        </span>
+                        <Select
+                          id={id}
+                          className={s.id === "focus" ? "is-focus" : undefined}
+                          options={d.options}
+                          disabled={s.id === "disabled"}
+                          defaultValue={s.id === "chosen" ? "Booked" : "Any status"}
+                          invalid={invalid}
+                          onChange={(e) => setSaid(`Status: ${e.target.value}`)}
+                        />
                       ) : (
                         <Combo id={id} cls={cls} state={s.id} invalid={invalid} say={setSaid} />
                       )}

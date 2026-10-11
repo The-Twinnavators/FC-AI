@@ -1,4 +1,10 @@
 /** @flowcode-library shop-product-cards · Product cards (Shop)
+ * Catalog ID: b.shop-product-cards (block)
+ * Function: A strip of shop product cards (b.shop-product-cards) in three card styles with add to bag, wishlist and color choice.
+ * Use it as: import { ShopProductCards } from "./shop-product-cards"; <ShopProductCards eyebrow? heading bagLabel? currency? products={[{id,name,price(cents),kind:"photo"|"row"|"minimal",tone?,note?,flag?,was?,rating?,reviews?,colours?:[{id,name,inStock}]}]}/>
+ * Built from: c.button.primary, c.badge.status
+ * Look: A section title with a bag-count pill over a row of product cards: tall photo with flag and heart, a side-by-side card with stars and a struck-through price, and a plain card with round color swatches; Add to bag goes from adding to added.
+ * Tokens: --space-2 --space-3 --space-5 --color-accent --color-surface --color-border --color-text-muted --color-success --radius-md
  * Use cases: product grid; product listing; featured products; related products; wishlist; shop catalog; sale items
  * Jobs to be done: browse products; save items to my wishlist; add a product to my bag; pick the color i want
  * Keywords: product card, wishlist, rating, swatches, add to bag, sale, shop
@@ -11,13 +17,10 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Tick } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
 
-// flowcode:sample
-const SAMPLE = {
-  eyebrow: "New this week",
-  heading: "Fresh from the kiln",
-  bagLabel: "In your bag",
-  currency: "$",
+const LABELS = {
   add: "Add to bag",
   adding: "Adding",
   added: "Added",
@@ -27,36 +30,36 @@ const SAMPLE = {
   saved: "saved to your wishlist.",
   unsaved: "removed from your wishlist.",
   addedTo: "added to your bag.",
-  photo: {
-    id: "carafe",
-    name: "Ribbed water carafe",
-    note: "Glazed stoneware · 1 liter",
-    price: 4200,
-    flag: "New",
-    tone: "ink",
-  },
-  rated: {
-    id: "plates",
-    name: "Side plates, set of 4",
-    note: "Matte white with a raw edge, dishwasher safe.",
-    price: 3600,
-    was: 4400,
-    flag: "Sale",
-    rating: 4.6,
-    reviews: 128,
-    tone: "oat",
-  },
-  swatch: {
-    id: "throw",
-    name: "Washed linen throw",
-    price: 6800,
-    colours: [
-      { id: "oat", name: "Oat", inStock: true },
-      { id: "sage", name: "Sage", inStock: true },
-      { id: "clay", name: "Clay", inStock: true },
-      { id: "charcoal", name: "Charcoal", inStock: false },
-    ],
-  },
+};
+
+export type ProductCard = {
+  id: string;
+  name: string;
+  /** In cents. */
+  price: number;
+  /** photo: tall picture with a heart. row: picture beside the words, with stars. minimal: plain, with color swatches. */
+  kind: "photo" | "row" | "minimal";
+  /** The picture's color tone (a swatch name such as "oat", "ink", "sage"). */
+  tone?: string;
+  note?: string;
+  /** A corner flag: "New", "Sale". */
+  flag?: string;
+  /** The old price in cents, struck through. */
+  was?: number;
+  rating?: number;
+  reviews?: number;
+  /** minimal: the color choices; an out-of-stock color cannot be added. */
+  colours?: { id: string; name: string; inStock: boolean }[];
+};
+
+export type ShopProductCardsProps = {
+  eyebrow?: string;
+  heading: string;
+  /** The count pill's label, e.g. "In your bag". */
+  bagLabel?: string;
+  /** Currency symbol before prices; "$" when left out. */
+  currency?: string;
+  products: ProductCard[];
 };
 
 type AddState = "idle" | "adding" | "added";
@@ -96,13 +99,13 @@ function Stars({ rating, reviews }: { rating: number; reviews: number }) {
 
 /** Add-to-bag button with a short "adding" step, then "added" for a moment. */
 function AddButton({ label, state, disabled, onAdd }: { label: string; state: AddState; disabled?: boolean; onAdd: () => void }) {
-  const d = SAMPLE;
+  const d = LABELS;
   return (
-    <button
-      type="button"
-      className="fl-btn fl-btn--primary fl-shop-add fl-shop-btn--block"
+    <Button
+      variant="primary"
+      className="fl-shop-add fl-shop-btn--block"
       data-state={state}
-      aria-busy={state === "adding" ? true : undefined}
+      busy={state === "adding"}
       disabled={disabled}
       onClick={() => {
         if (state === "idle") onAdd();
@@ -111,10 +114,7 @@ function AddButton({ label, state, disabled, onAdd }: { label: string; state: Ad
       {disabled ? (
         d.soldOut
       ) : state === "adding" ? (
-        <>
-          <span className="fl-shop-spin" aria-hidden="true" />
-          {d.adding}
-        </>
+        d.adding
       ) : state === "added" ? (
         <>
           <Tick />
@@ -124,16 +124,16 @@ function AddButton({ label, state, disabled, onAdd }: { label: string; state: Ad
         d.add
       )}
       <span className="fl-sr"> {label}</span>
-    </button>
+    </Button>
   );
 }
 
-export default function ShopProductCards() {
-  const d = SAMPLE;
+export function ShopProductCards({ eyebrow, heading, bagLabel = "In your bag", currency = "$", products }: ShopProductCardsProps) {
+  const d = LABELS;
   const [bag, setBag] = useState(0);
   const [states, setStates] = useState<Record<string, AddState>>({});
-  const [wished, setWished] = useState(false);
-  const [color, setColour] = useState(d.swatch.colours[0].id);
+  const [wished, setWished] = useState<Record<string, boolean>>({});
+  const [colour, setColour] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("");
   const timers = useRef<number[]>([]);
 
@@ -151,108 +151,131 @@ export default function ShopProductCards() {
     );
   };
 
-  const chosen = d.swatch.colours.find((c) => c.id === color) ?? d.swatch.colours[0];
   const state = (id: string): AddState => states[id] ?? "idle";
-  const money = (cents: number) => `${d.currency}${(cents / 100).toFixed(2)}`;
+  const money = (cents: number) => `${currency}${(cents / 100).toFixed(2)}`;
 
   return (
-    <section className="fl-section" aria-labelledby="shop-product-cards-title">
+    <section className="fl-section" aria-labelledby="shop-product-cards-title" data-fl="b.shop-product-cards">
       <div className="fl-wrap fl-shop-stage">
         <div className="fl-shop-bar">
           <div className="fl-shop-bar__title">
-            <span className="fl-eyebrow">{d.eyebrow}</span>
+            {eyebrow ? <span className="fl-eyebrow">{eyebrow}</span> : null}
             <h2 id="shop-product-cards-title" className="fl-title fl-title--md">
-              {d.heading}
+              {heading}
             </h2>
           </div>
-          <span className="fl-badge" aria-live="polite">
-            {d.bagLabel}: {bag}
-          </span>
+          <Badge aria-live="polite">
+            {bagLabel}: {bag}
+          </Badge>
         </div>
 
         <ul className="fl-grid fl-grid--3" style={{ margin: 0, padding: 0, listStyle: "none", alignItems: "start" }}>
-          <li className="fl-shop-card">
-            <div className="fl-shop-card__media">
-              <span className="fl-shop-flag">{d.photo.flag}</span>
-              <span className={`fl-shop-img fl-shop-img--tall fl-shop-tone--${d.photo.tone}`} aria-hidden="true" />
-              <button
-                type="button"
-                className="fl-shop-icon-btn fl-shop-heart"
-                aria-pressed={wished}
-                aria-label={`${wished ? d.wishRemove : d.wishAdd}: ${d.photo.name}`}
-                onClick={() => {
-                  setWished((w) => !w);
-                  setStatus(`${d.photo.name} ${wished ? d.unsaved : d.saved}`);
-                }}
-              >
-                <HeartIcon />
-              </button>
-            </div>
-            <div className="fl-shop-card__row">
-              <h3>{d.photo.name}</h3>
-              <span className="fl-shop-price">{money(d.photo.price)}</span>
-            </div>
-            <span className="fl-meta" style={{ marginTop: "calc(-1 * var(--space-2))" }}>
-              {d.photo.note}
-            </span>
-            <AddButton label={d.photo.name} state={state(d.photo.id)} onAdd={() => add(d.photo.id, d.photo.name)} />
-          </li>
-
-          <li className="fl-shop-card fl-shop-card--row">
-            <div className="fl-shop-card__media">
-              <span className={`fl-shop-img fl-shop-tone--${d.rated.tone}`} aria-hidden="true" />
-            </div>
-            <div className="fl-shop-card__body">
-              <span className="fl-shop-flag fl-shop-flag--sale" style={{ position: "static", justifySelf: "start" }}>
-                {d.rated.flag}
-              </span>
-              <h3>{d.rated.name}</h3>
-              <Stars rating={d.rated.rating} reviews={d.rated.reviews} />
-              <p className="fl-meta" style={{ margin: 0 }}>
-                {d.rated.note}
-              </p>
-              <span className="fl-shop-price">
-                {money(d.rated.price)}
-                <s>
-                  <span className="fl-sr">was </span>
-                  {money(d.rated.was)}
-                </s>
-              </span>
-              <AddButton label={d.rated.name} state={state(d.rated.id)} onAdd={() => add(d.rated.id, d.rated.name)} />
-            </div>
-          </li>
-
-          <li className="fl-shop-card fl-shop-card--minimal">
-            <span className={`fl-shop-img fl-shop-tone--${chosen.id}`} aria-hidden="true" />
-            <div className="fl-shop-card__row">
-              <h3>{d.swatch.name}</h3>
-              <span className="fl-shop-price">{money(d.swatch.price)}</span>
-            </div>
-            <fieldset className="fl-shop-swatches">
-              <legend>
-                Colour: <span style={{ fontWeight: "var(--weight-regular)" }}>{chosen.name}{!chosen.inStock && ` (${d.soldOut.toLowerCase()})`}</span>
-              </legend>
-              {d.swatch.colours.map((c) => (
-                <label key={c.id} className={`fl-shop-swatch fl-shop-tone--${c.id}${c.inStock ? "" : " fl-shop-swatch--out"}`} title={c.inStock ? c.name : `${c.name}, ${d.soldOut.toLowerCase()}`}>
-                  <input
-                    type="radio"
-                    name="shop-product-cards-colour"
-                    value={c.id}
-                    checked={color === c.id}
-                    onChange={() => setColour(c.id)}
-                    aria-label={c.inStock ? c.name : `${c.name}, ${d.soldOut.toLowerCase()}`}
-                  />
-                  <span />
-                </label>
-              ))}
-            </fieldset>
-            <AddButton
-              label={`${d.swatch.name}, ${chosen.name}`}
-              state={state(`${d.swatch.id}-${chosen.id}`)}
-              disabled={!chosen.inStock}
-              onAdd={() => add(`${d.swatch.id}-${chosen.id}`, `${d.swatch.name} (${chosen.name})`)}
-            />
-          </li>
+          {products.map((p) => {
+            if (p.kind === "photo") {
+              const isWished = !!wished[p.id];
+              return (
+                <li key={p.id} className="fl-shop-card">
+                  <div className="fl-shop-card__media">
+                    {p.flag ? <span className="fl-shop-flag">{p.flag}</span> : null}
+                    <span className={`fl-shop-img fl-shop-img--tall fl-shop-tone--${p.tone ?? "oat"}`} aria-hidden="true" />
+                    <button
+                      type="button"
+                      className="fl-shop-icon-btn fl-shop-heart"
+                      aria-pressed={isWished}
+                      aria-label={`${isWished ? d.wishRemove : d.wishAdd}: ${p.name}`}
+                      onClick={() => {
+                        setWished((w) => ({ ...w, [p.id]: !isWished }));
+                        setStatus(`${p.name} ${isWished ? d.unsaved : d.saved}`);
+                      }}
+                    >
+                      <HeartIcon />
+                    </button>
+                  </div>
+                  <div className="fl-shop-card__row">
+                    <h3>{p.name}</h3>
+                    <span className="fl-shop-price">{money(p.price)}</span>
+                  </div>
+                  {p.note ? (
+                    <span className="fl-meta" style={{ marginTop: "calc(-1 * var(--space-2))" }}>
+                      {p.note}
+                    </span>
+                  ) : null}
+                  <AddButton label={p.name} state={state(p.id)} onAdd={() => add(p.id, p.name)} />
+                </li>
+              );
+            }
+            if (p.kind === "row") {
+              return (
+                <li key={p.id} className="fl-shop-card fl-shop-card--row">
+                  <div className="fl-shop-card__media">
+                    <span className={`fl-shop-img fl-shop-tone--${p.tone ?? "oat"}`} aria-hidden="true" />
+                  </div>
+                  <div className="fl-shop-card__body">
+                    {p.flag ? (
+                      <span className="fl-shop-flag fl-shop-flag--sale" style={{ position: "static", justifySelf: "start" }}>
+                        {p.flag}
+                      </span>
+                    ) : null}
+                    <h3>{p.name}</h3>
+                    {p.rating !== undefined ? <Stars rating={p.rating} reviews={p.reviews ?? 0} /> : null}
+                    {p.note ? (
+                      <p className="fl-meta" style={{ margin: 0 }}>
+                        {p.note}
+                      </p>
+                    ) : null}
+                    <span className="fl-shop-price">
+                      {money(p.price)}
+                      {p.was !== undefined ? (
+                        <s>
+                          <span className="fl-sr">was </span>
+                          {money(p.was)}
+                        </s>
+                      ) : null}
+                    </span>
+                    <AddButton label={p.name} state={state(p.id)} onAdd={() => add(p.id, p.name)} />
+                  </div>
+                </li>
+              );
+            }
+            const colours = p.colours ?? [];
+            const chosen = colours.find((c) => c.id === colour[p.id]) ?? colours[0];
+            const key = chosen ? `${p.id}-${chosen.id}` : p.id;
+            return (
+              <li key={p.id} className="fl-shop-card fl-shop-card--minimal">
+                <span className={`fl-shop-img fl-shop-tone--${chosen?.id ?? p.tone ?? "oat"}`} aria-hidden="true" />
+                <div className="fl-shop-card__row">
+                  <h3>{p.name}</h3>
+                  <span className="fl-shop-price">{money(p.price)}</span>
+                </div>
+                {chosen ? (
+                  <fieldset className="fl-shop-swatches">
+                    <legend>
+                      Colour: <span style={{ fontWeight: "var(--weight-regular)" }}>{chosen.name}{!chosen.inStock && ` (${d.soldOut.toLowerCase()})`}</span>
+                    </legend>
+                    {colours.map((c) => (
+                      <label key={c.id} className={`fl-shop-swatch fl-shop-tone--${c.id}${c.inStock ? "" : " fl-shop-swatch--out"}`} title={c.inStock ? c.name : `${c.name}, ${d.soldOut.toLowerCase()}`}>
+                        <input
+                          type="radio"
+                          name={`shop-product-cards-colour-${p.id}`}
+                          value={c.id}
+                          checked={chosen.id === c.id}
+                          onChange={() => setColour((m) => ({ ...m, [p.id]: c.id }))}
+                          aria-label={c.inStock ? c.name : `${c.name}, ${d.soldOut.toLowerCase()}`}
+                        />
+                        <span />
+                      </label>
+                    ))}
+                  </fieldset>
+                ) : null}
+                <AddButton
+                  label={chosen ? `${p.name}, ${chosen.name}` : p.name}
+                  state={state(key)}
+                  disabled={chosen ? !chosen.inStock : false}
+                  onAdd={() => add(key, chosen ? `${p.name} (${chosen.name})` : p.name)}
+                />
+              </li>
+            );
+          })}
         </ul>
 
         <p className="fl-shop-status fl-shop-status--ok" role="status" aria-live="polite">
@@ -261,4 +284,43 @@ export default function ShopProductCards() {
       </div>
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE: ShopProductCardsProps = {
+  eyebrow: "New this week",
+  heading: "Fresh from the kiln",
+  bagLabel: "In your bag",
+  currency: "$",
+  products: [
+    { id: "carafe", kind: "photo", name: "Ribbed water carafe", note: "Glazed stoneware · 1 liter", price: 4200, flag: "New", tone: "ink" },
+    {
+      id: "plates",
+      kind: "row",
+      name: "Side plates, set of 4",
+      note: "Matte white with a raw edge, dishwasher safe.",
+      price: 3600,
+      was: 4400,
+      flag: "Sale",
+      rating: 4.6,
+      reviews: 128,
+      tone: "oat",
+    },
+    {
+      id: "throw",
+      kind: "minimal",
+      name: "Washed linen throw",
+      price: 6800,
+      colours: [
+        { id: "oat", name: "Oat", inStock: true },
+        { id: "sage", name: "Sage", inStock: true },
+        { id: "clay", name: "Clay", inStock: true },
+        { id: "charcoal", name: "Charcoal", inStock: false },
+      ],
+    },
+  ],
+};
+
+export default function ShopProductCardsPreview() {
+  return <ShopProductCards {...SAMPLE} />;
 }

@@ -1,4 +1,10 @@
 /** @flowcode-library shop-cart-drawer · Cart drawer (Shop)
+ * Catalog ID: b.shop-cart-drawer (block)
+ * Function: A Bag button that opens the shopping bag in a slide-over drawer (b.shop-cart-drawer) with steppers, remove and undo, and a checkout confirmation.
+ * Use it as: import { ShopCartDrawer } from "./shop-cart-drawer"; <ShopCartDrawer shop? heading lede? currency? freeDeliveryAt?(cents) maxQty? items={[{id,name,variant,price(cents),qty,tone?}]}/>
+ * Built from: c.button.primary, c.button.secondary, c.button.tertiary
+ * Look: A section title beside a primary Bag (count) button; opened, a tall panel slides in from the right over a dimmed page with the lines, a free-delivery bar, the subtotal and a full-width Check out button.
+ * Tokens: --space-4 --space-5 --color-surface --color-border --color-text-muted --color-accent --color-success --radius-md --shadow-lg
  * Use cases: shopping cart; mini cart; slide-out cart; online store; basket; checkout; order review
  * Jobs to be done: check what is in my bag; change quantities before buying; reach free delivery; check out quickly
  * Keywords: cart, bag, drawer, slide-over, checkout, quantity, undo, free delivery, shop
@@ -11,16 +17,11 @@
  */
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
 
-// flowcode:sample
-const SAMPLE = {
-  shop: "Kiln & Thread",
-  heading: "Small things for slow mornings",
-  lede: "Your bag stays here while you browse. Open it to change anything.",
+const LABELS = {
   bag: "Bag",
   drawerTitle: "Your bag",
-  currency: "$",
-  freeDeliveryAt: 6000,
   freeAway: "away from free delivery",
   freeDone: "Free delivery unlocked",
   subtotal: "Subtotal",
@@ -36,15 +37,26 @@ const SAMPLE = {
   doneText: "This is a preview, so no payment was taken. A confirmation would go to your email.",
   orderRef: "Order",
   done: "Done",
-  maxQty: 9,
-  items: [
-    { id: "mug", name: "Speckled stoneware mug", variant: "Oat · 350 ml", price: 2400, qty: 1, tone: "oat" },
-    { id: "apron", name: "Linen studio apron", variant: "Clay · One size", price: 3800, qty: 1, tone: "clay" },
-    { id: "candle", name: "Fig leaf candle", variant: "Sage · 200 g", price: 1600, qty: 1, tone: "sage" },
-  ],
 };
 
-type Item = (typeof SAMPLE.items)[number];
+export type CartDrawerLine = { id: string; name: string; variant: string; price: number; qty: number; tone?: string };
+
+export type ShopCartDrawerProps = {
+  /** Small line above the heading: the shop's name. */
+  shop?: string;
+  heading: string;
+  lede?: string;
+  /** Currency symbol before prices; "$" when left out. */
+  currency?: string;
+  /** The subtotal that unlocks free delivery, in cents. Leave out to hide the bar. */
+  freeDeliveryAt?: number;
+  /** Largest quantity per line; 9 when left out. */
+  maxQty?: number;
+  /** The bag's lines. Prices are in cents. */
+  items: CartDrawerLine[];
+};
+
+type Item = CartDrawerLine;
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -95,23 +107,11 @@ function useModal(open: boolean, onClose: () => void, returnTo: RefObject<HTMLEl
   return panelRef;
 }
 
-function money(cents: number) {
-  return `${SAMPLE.currency}${(cents / 100).toFixed(2)}`;
-}
-
 function BagIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M5 8h14l-1 12H6L5 8z" />
       <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
-      <path d="M6 6l12 12M18 6L6 18" />
     </svg>
   );
 }
@@ -142,19 +142,20 @@ function QtyStepper({ id, label, value, max, onChange }: { id: string; label: st
   );
 }
 
-export default function ShopCartDrawer() {
-  const d = SAMPLE;
-  const [items, setItems] = useState<Item[]>(d.items);
+export function ShopCartDrawer({ shop, heading, lede, currency = "$", freeDeliveryAt, maxQty = 9, items: initial }: ShopCartDrawerProps) {
+  const d = LABELS;
+  const money = (cents: number) => `${currency}${(cents / 100).toFixed(2)}`;
+  const [items, setItems] = useState<Item[]>(initial);
   const [open, setOpen] = useState(false);
   const [removed, setRemoved] = useState<{ item: Item; index: number } | null>(null);
   const [placed, setPlaced] = useState<string | null>(null);
   const [status, setStatus] = useState("");
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   const count = items.reduce((n, i) => n + i.qty, 0);
   const subtotal = items.reduce((n, i) => n + i.qty * i.price, 0);
-  const away = Math.max(0, d.freeDeliveryAt - subtotal);
-  const progress = Math.min(100, Math.round((subtotal / d.freeDeliveryAt) * 100));
+  const away = Math.max(0, (freeDeliveryAt ?? 0) - subtotal);
+  const progress = freeDeliveryAt ? Math.min(100, Math.round((subtotal / freeDeliveryAt) * 100)) : 100;
 
   const close = () => {
     setOpen(false);
@@ -193,23 +194,22 @@ export default function ShopCartDrawer() {
   };
 
   return (
-    <section className="fl-section fl-section--tint" aria-labelledby="shop-cart-drawer-title">
+    <section className="fl-section fl-section--tint" aria-labelledby="shop-cart-drawer-title" data-fl="b.shop-cart-drawer">
       <div className="fl-wrap fl-shop-stage">
         <div className="fl-shop-bar">
           <div className="fl-shop-bar__title">
-            <span className="fl-eyebrow">{d.shop}</span>
+            {shop ? <span className="fl-eyebrow">{shop}</span> : null}
             <h2 id="shop-cart-drawer-title" className="fl-title fl-title--md">
-              {d.heading}
+              {heading}
             </h2>
-            <p className="fl-text">{d.lede}</p>
+            {lede ? <p className="fl-text">{lede}</p> : null}
           </div>
-          <button
-            ref={triggerRef}
-            type="button"
-            className="fl-btn fl-btn--primary"
+          <Button
+            variant="primary"
             aria-haspopup="dialog"
             aria-expanded={open}
-            onClick={() => {
+            onClick={(e) => {
+              triggerRef.current = e.currentTarget;
               setStatus("");
               setOpen(true);
             }}
@@ -217,7 +217,7 @@ export default function ShopCartDrawer() {
             <BagIcon />
             {d.bag} ({count})
             <span className="fl-sr">{count === 1 ? "item" : "items"}</span>
-          </button>
+          </Button>
         </div>
         <p className={`fl-shop-status${status ? " fl-shop-status--ok" : ""}`} role="status" aria-live="polite">
           {status}
@@ -236,9 +236,9 @@ export default function ShopCartDrawer() {
               <h2 id="shop-cart-drawer-dialog-title" className="fl-shop-dialog-title">
                 {d.drawerTitle} {!placed && <span className="fl-meta">({count})</span>}
               </h2>
-              <button type="button" className="fl-shop-icon-btn" aria-label="Close bag" onClick={close}>
-                <CloseIcon />
-              </button>
+              <Button variant="tertiary" size={40} icon="close" iconOnly onClick={close}>
+                Close bag
+              </Button>
             </div>
 
             <div className="fl-shop-drawer__body">
@@ -253,7 +253,7 @@ export default function ShopCartDrawer() {
                 </div>
               ) : (
                 <>
-                  {items.length > 0 && (
+                  {items.length > 0 && freeDeliveryAt ? (
                     <div className={`fl-shop-progress${away === 0 ? " fl-shop-progress--done" : ""}`}>
                       <span aria-live="polite">
                         {away === 0 ? (
@@ -268,7 +268,7 @@ export default function ShopCartDrawer() {
                         <div className="fl-shop-progress__fill" style={{ width: `${progress}%` }} />
                       </div>
                     </div>
-                  )}
+                  ) : null}
 
                   <div aria-live="polite">
                     {removed && (
@@ -295,7 +295,7 @@ export default function ShopCartDrawer() {
                     <ul className="fl-shop-lines">
                       {items.map((i) => (
                         <li key={i.id} className="fl-shop-line">
-                          <span className={`fl-shop-img fl-shop-img--thumb fl-shop-tone--${i.tone}`} aria-hidden="true" />
+                          <span className={`fl-shop-img fl-shop-img--thumb fl-shop-tone--${i.tone ?? "oat"}`} aria-hidden="true" />
                           <div className="fl-shop-line__main">
                             <div className="fl-shop-line__top">
                               <h3 className="fl-shop-line__name">{i.name}</h3>
@@ -306,7 +306,7 @@ export default function ShopCartDrawer() {
                               {i.qty > 1 && ` · ${money(i.price)} each`}
                             </span>
                             <div className="fl-shop-line__actions">
-                              <QtyStepper id={`shop-cart-drawer-qty-${i.id}`} label={i.name} value={i.qty} max={d.maxQty} onChange={(n) => setQty(i.id, n)} />
+                              <QtyStepper id={`shop-cart-drawer-qty-${i.id}`} label={i.name} value={i.qty} max={maxQty} onChange={(n) => setQty(i.id, n)} />
                               <button type="button" className="fl-shop-link fl-shop-link--muted" data-remove={i.id} onClick={() => remove(i.id)}>
                                 {d.remove}
                                 <span className="fl-sr"> {i.name}</span>
@@ -323,13 +323,13 @@ export default function ShopCartDrawer() {
 
             <div className="fl-shop-drawer__foot">
               {placed ? (
-                <button type="button" className="fl-btn fl-btn--primary fl-shop-btn--block" data-done onClick={close}>
+                <Button variant="primary" className="fl-shop-btn--block" data-done onClick={close}>
                   {d.done}
-                </button>
+                </Button>
               ) : items.length === 0 ? (
-                <button type="button" className="fl-btn fl-btn--primary fl-shop-btn--block" onClick={close}>
+                <Button variant="primary" className="fl-shop-btn--block" onClick={close}>
                   {d.keepShopping}
-                </button>
+                </Button>
               ) : (
                 <>
                   <dl className="fl-shop-sum">
@@ -341,12 +341,12 @@ export default function ShopCartDrawer() {
                   <p className="fl-note" style={{ margin: 0 }}>
                     {d.taxNote}
                   </p>
-                  <button type="button" className="fl-btn fl-btn--primary fl-shop-btn--block" onClick={checkout}>
+                  <Button variant="primary" className="fl-shop-btn--block" onClick={checkout}>
                     {d.checkout}
-                  </button>
-                  <button type="button" className="fl-btn fl-btn--secondary fl-shop-btn--block" onClick={close}>
+                  </Button>
+                  <Button variant="secondary" className="fl-shop-btn--block" onClick={close}>
                     {d.keepShopping}
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
@@ -355,4 +355,23 @@ export default function ShopCartDrawer() {
       )}
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE: ShopCartDrawerProps = {
+  shop: "Kiln & Thread",
+  heading: "Small things for slow mornings",
+  lede: "Your bag stays here while you browse. Open it to change anything.",
+  currency: "$",
+  freeDeliveryAt: 6000,
+  maxQty: 9,
+  items: [
+    { id: "mug", name: "Speckled stoneware mug", variant: "Oat \u00b7 350 ml", price: 2400, qty: 1, tone: "oat" },
+    { id: "apron", name: "Linen studio apron", variant: "Clay \u00b7 One size", price: 3800, qty: 1, tone: "clay" },
+    { id: "candle", name: "Fig leaf candle", variant: "Sage \u00b7 200 g", price: 1600, qty: 1, tone: "sage" },
+  ],
+};
+
+export default function ShopCartDrawerPreview() {
+  return <ShopCartDrawer {...SAMPLE} />;
 }

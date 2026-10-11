@@ -1,4 +1,10 @@
 /** @flowcode-library badges-status · Badges: status pills, counts and dots (Small components)
+ * Catalog ID: c.badge (component)
+ * Function: The badge component (c.badge): the reference sheet shows status pills in five tones and three looks, counts that cap at 99+, and live-state dots.
+ * Use it as: import { Badge } from "./badges-status"; <Badge variant?="status"|"count"|"dot" tone?="neutral"|"info"|"success"|"warning"|"danger"|"online"|"away"|"offline" look?="soft"|"solid"|"outline" count?={n} label?>Label</Badge>
+ * Variants: c.badge.status - the state a row is in, read as words: a small pill in a tone (neutral, info, success, warning, danger) and a look (soft tint, solid fill, outline); c.badge.count - how many are waiting: a small round number on the corner of an icon; renders nothing at 0 and reads 99+ past 99; c.badge.dot - live or away at a glance: a tiny colored dot (online, away, offline) that needs a word nearby or a label prop
+ * Look: A small rounded pill with a short label in a tone color, a round count on an icon, or a tiny colored dot.
+ * Tokens: --color-accent --color-danger --color-success --color-surface --color-surface-sunken --color-text --color-text-muted --color-border --color-on-accent --text-xs --weight-semibold --radius-sm --space-1 --space-2
  * Use cases: a row's status; unread counts; an online dot; a plan label; a new flag
  * Jobs to be done: see the state of a row at a glance; see how many are waiting; tell live from stale
  * Keywords: badge, pill, status, count, dot, notification, label, tone
@@ -22,27 +28,84 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useState } from "react";
+import { useState, type HTMLAttributes, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+
+// ── c.badge: the one badge. Every piece's pills, counts and dots are this component; the specimen shows every variant. ──
+
+export type BadgeVariant = "status" | "count" | "dot";
+export type BadgeTone = "neutral" | "info" | "success" | "warning" | "danger";
+export type BadgeLook = "soft" | "solid" | "outline";
+export type BadgeLive = "online" | "away" | "offline";
+
+// Written out in full (not built from the names) so a build finds every class the badge needs.
+const TONE: Record<BadgeTone, string> = {
+  neutral: "fl-ctl-badge--neutral",
+  info: "fl-ctl-badge--info",
+  success: "fl-ctl-badge--success",
+  warning: "fl-ctl-badge--warning",
+  danger: "fl-ctl-badge--danger",
+};
+const LOOK: Record<BadgeLook, string> = { soft: "fl-ctl-badge--soft", solid: "fl-ctl-badge--solid", outline: "fl-ctl-badge--outline" };
+const LIVE: Record<BadgeLive, string> = { online: "fl-ctl-dot--online", away: "fl-ctl-dot--away", offline: "fl-ctl-dot--offline" };
+
+type BadgeProps = {
+  variant?: BadgeVariant;
+  /** status: the color. dot: online, away or offline. Defaults to neutral (status) or offline (dot). */
+  tone?: BadgeTone | BadgeLive;
+  /** status only: soft tint (default), solid fill or outline. */
+  look?: BadgeLook;
+  /** count only: the number. 0 renders nothing; past 99 it reads 99+. */
+  count?: number;
+  /** dot only: the word a screen reader hears, such as "Online". */
+  label?: string;
+  className?: string;
+  /** status only: the words in the pill. */
+  children?: ReactNode;
+} & Omit<HTMLAttributes<HTMLSpanElement>, "children" | "className">;
+
+export function Badge({ variant = "status", tone, look = "soft", count = 0, label, className, children, ...rest }: BadgeProps) {
+  const extra = className ? ` ${className}` : "";
+  if (variant === "count") {
+    if (!count) return null;
+    return (
+      <span {...rest} className={`fl-ctl-badge-count${extra}`} data-fl="c.badge.count" aria-hidden="true">
+        {count > 99 ? "99+" : count}
+      </span>
+    );
+  }
+  if (variant === "dot") {
+    const live = LIVE[(tone as BadgeLive) ?? "offline"] ?? LIVE.offline;
+    const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true as const };
+    return <span {...rest} {...a11y} className={`fl-ctl-dot ${live}${extra}`} data-fl="c.badge.dot" />;
+  }
+  const t = TONE[(tone as BadgeTone) ?? "neutral"] ?? TONE.neutral;
+  return (
+    <span {...rest} className={`fl-ctl-badge ${LOOK[look]} ${t}${extra}`} data-fl="c.badge.status">
+      {children}
+    </span>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
   tones: [
-    { id: "neutral", label: "Draft", what: "Nothing has happened to it yet" },
-    { id: "info", label: "In review", what: "Waiting on somebody" },
-    { id: "success", label: "Approved", what: "Finished, and good" },
-    { id: "warning", label: "Needs changes", what: "Finished, and not good" },
-    { id: "danger", label: "Rejected", what: "Stopped" },
+    { id: "neutral" as const, label: "Draft", what: "Nothing has happened to it yet" },
+    { id: "info" as const, label: "In review", what: "Waiting on somebody" },
+    { id: "success" as const, label: "Approved", what: "Finished, and good" },
+    { id: "warning" as const, label: "Needs changes", what: "Finished, and not good" },
+    { id: "danger" as const, label: "Rejected", what: "Stopped" },
   ],
   looks: [
-    { id: "soft", label: "Soft", what: "A tinted pill: the default, quiet enough for a whole column" },
-    { id: "solid", label: "Solid", what: "Filled: for one row that needs pulling out" },
-    { id: "outline", label: "Outline", what: "A border only: for a dense table where fills would be noise" },
+    { id: "soft" as const, label: "Soft", what: "A tinted pill: the default, quiet enough for a whole column" },
+    { id: "solid" as const, label: "Solid", what: "Filled: for one row that needs pulling out" },
+    { id: "outline" as const, label: "Outline", what: "A border only: for a dense table where fills would be noise" },
   ],
   live: [
-    { id: "online", label: "Online", what: "Here now" },
-    { id: "away", label: "Away", what: "Signed in, not at the desk" },
-    { id: "offline", label: "Offline", what: "Not here" },
+    { id: "online" as const, label: "Online", what: "Here now" },
+    { id: "away" as const, label: "Away", what: "Signed in, not at the desk" },
+    { id: "offline" as const, label: "Offline", what: "Not here" },
   ],
 };
 
@@ -75,7 +138,9 @@ export default function BadgesStatus() {
                 </th>
                 {d.looks.map((l) => (
                   <td key={l.id} data-state={l.label}>
-                    <span className={`fl-ctl-badge fl-ctl-badge--${l.id} fl-ctl-badge--${t.id}`}>{t.label}</span>
+                    <Badge look={l.id} tone={t.id}>
+                      {t.label}
+                    </Badge>
                   </td>
                 ))}
               </tr>
@@ -93,29 +158,25 @@ export default function BadgesStatus() {
         <div className="fl-ctl-badge-count-row">
           {[0, 1, 9, 42, 128].map((c) => (
             <span key={c} className="fl-ctl-badge-host">
-              <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--40" aria-label={`Messages, ${c} unread`}>
-                <Icon name="mail" />
-              </button>
-              {c ? <span className="fl-ctl-badge-count" aria-hidden="true">{c > 99 ? "99+" : c}</span> : null}
+              <Button variant="tertiary" size={40} icon="mail" iconOnly>{`Messages, ${c} unread`}</Button>
+              <Badge variant="count" count={c} />
             </span>
           ))}
         </div>
         <div className="fl-ctl-badge-count-row">
-          <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => setN((v) => Math.max(0, v - 1))}>
+          <Button variant="secondary" size={32} onClick={() => setN((v) => Math.max(0, v - 1))}>
             One fewer
-          </button>
+          </Button>
           <span className="fl-ctl-badge-host">
-            <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--40" aria-label={`Notifications, ${n} unread`}>
-              <Icon name="bell" />
-            </button>
-            {n ? <span className="fl-ctl-badge-count" aria-hidden="true">{n > 99 ? "99+" : n}</span> : null}
+            <Button variant="tertiary" size={40} icon="bell" iconOnly>{`Notifications, ${n} unread`}</Button>
+            <Badge variant="count" count={n} />
           </span>
-          <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => setN((v) => v + 1)}>
+          <Button variant="secondary" size={32} onClick={() => setN((v) => v + 1)}>
             One more
-          </button>
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32" onClick={() => setN(120)}>
+          </Button>
+          <Button variant="tertiary" size={32} onClick={() => setN(120)}>
             Jump past 99
-          </button>
+          </Button>
           <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
             {n === 0 ? "Nothing unread, so no badge at all" : `${n} unread`}
           </span>
@@ -131,7 +192,7 @@ export default function BadgesStatus() {
         <ul className="fl-ctl-dot-list">
           {d.live.map((s) => (
             <li key={s.id}>
-              <span className={`fl-ctl-dot fl-ctl-dot--${s.id}`} aria-hidden="true" />
+              <Badge variant="dot" tone={s.id} />
               <span>
                 <strong>{s.label}</strong>
                 <span className="fl-ctl-matrix-what">{s.what}</span>

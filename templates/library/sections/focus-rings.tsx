@@ -1,4 +1,9 @@
 /** @flowcode-library focus-rings · Focus rings: thickness, offset, color and where they break (Small components)
+ * Catalog ID: tokens.focus-ring (tokens)
+ * Function: The focus-ring rule (tokens.focus-ring): the reference sheet compares thin, 2 px offset, two-tone and inset rings on plain, panel and busy backgrounds, and :focus against :focus-visible.
+ * Use it as: Not a component: on every interactive element use :focus-visible { outline: none; box-shadow: var(--focus-ring); } (never plain :focus, never outline: none without a replacement); the ring color is --color-focus; on edge-flush controls use an inset outline instead.
+ * Look: A solid ring about 3 px thick in the focus color, clear of the control's own border, shown only to keyboard users.
+ * Tokens: --focus-ring --color-focus --color-accent --color-text --color-surface
  * Use cases: an accessible design system; a keyboard audit; a dark theme; a dense toolbar; a custom control
  * Jobs to be done: see where the keyboard is; pick a ring that works on every background; stop hiding focus
  * Keywords: focus ring, focus-visible, outline, keyboard, accessibility, contrast, offset
@@ -28,6 +33,7 @@
  */
 import { useState } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
 
 // flowcode:sample
 const SAMPLE = {
@@ -77,9 +83,9 @@ export default function FocusRings() {
                 {d.grounds.map((g) => (
                   <td key={g.id} data-state={g.label}>
                     <span className={`fl-ctl-ring-ground fl-ctl-ring-ground--${g.id}`}>
-                      <button type="button" className={`fl-btn fl-btn--secondary fl-ctl-btn--32 fl-ctl-focus fl-ctl-focus--${r.id}${mouseToo ? " is-mouse" : ""}`}>
+                      <Button variant="secondary" size={32} className={`fl-ctl-focus fl-ctl-focus--${r.id}${mouseToo ? " is-mouse" : ""}`}>
                         Tab to me
-                      </button>
+                      </Button>
                     </span>
                   </td>
                 ))}
@@ -115,12 +121,12 @@ export default function FocusRings() {
         <h3>Everything that takes focus</h3>
         <p className="fl-ctl-btn-what">A ring has to work on all of these, not only on buttons. Tab across the row.</p>
         <div className="fl-ctl-focus-row">
-          <button type="button" className="fl-btn fl-btn--primary fl-ctl-btn--40">
+          <Button size={40}>
             A button
-          </button>
-          <a className="fl-btn fl-btn--secondary fl-ctl-btn--40" href="#top">
+          </Button>
+          <Button variant="secondary" size={40} href="#top">
             A link
-          </a>
+          </Button>
           <input className="fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--40" placeholder="A field" aria-label="A field" />
           <span className="fl-ctl-select">
             <label className="fl-sr" htmlFor="focus-select">

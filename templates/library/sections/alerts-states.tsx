@@ -1,4 +1,10 @@
 /** @flowcode-library alerts-states · Alerts: four tones, inline, banner and toast (Alerts and states)
+ * Catalog ID: c.alert (component)
+ * Function: The alert (c.alert) in four tones and three places (inline, banner, toast); the reference sheet shows each, the roles that announce them, and a live banner and toast stack.
+ * Use it as: import { Alert } from "./alerts-states"; <Alert variant?="info"|"success"|"warning"|"danger" placement?="inline"|"banner"|"toast" title="Shoot saved" onDismiss? dismissLabel? action?>Detail text</Alert>
+ * Variants: c.alert.info - neutral news that needs no action: accent tint with an i icon; c.alert.success - something worked: green tint with a check icon; c.alert.warning - take care before going on: amber tint with an alert icon; c.alert.danger - something failed and needs a fix: red tint, announced at once (role alert)
+ * Look: A rounded, tinted box with a round tone icon, a bold title and a line of detail; inline it can carry an action button, as a banner it spans the page with a dismiss button, as a toast it is a one-line pill with a small x.
+ * Tokens: --color-accent --color-success --color-warning --color-danger --color-border --color-surface --color-surface-sunken --color-text-muted --radius-lg --radius-md --space-1 --space-2 --space-3 --space-4 --duration-med --easing
  * Use cases: form saved; something failed; a warning before an action; a tip; a site-wide notice
  * Jobs to be done: know something happened; understand what went wrong; get told without losing my place
  * Keywords: alert, toast, banner, notice, success, warning, error, info, dismiss
@@ -25,23 +31,102 @@
  * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
  * built app exactly as it runs here.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+
+// ── c.alert: the one alert. Every piece's messages are this component; the specimen below shows every tone and place. ──
+
+export type AlertVariant = "info" | "success" | "warning" | "danger";
+export type AlertPlacement = "inline" | "banner" | "toast";
+
+// Written out in full (not built from the variant name) so a build finds every class the alert needs.
+const TONE: Record<AlertVariant, string> = {
+  info: "fl-ctl-alert--info",
+  success: "fl-ctl-alert--success",
+  warning: "fl-ctl-alert--warning",
+  danger: "fl-ctl-alert--danger",
+};
+const TONE_ICON: Record<AlertVariant, string> = { info: "info", success: "check", warning: "alert", danger: "close" };
+const PLACE: Record<AlertPlacement, string> = { inline: "fl-ctl-alert", banner: "fl-ctl-banner", toast: "fl-ctl-toast" };
+
+type AlertProps = {
+  variant?: AlertVariant;
+  /** Inline sits in the flow; banner spans the page; toast is a one-line pill (render it inside a <ul>). */
+  placement?: AlertPlacement;
+  title: string;
+  /** Set it and a dismiss button appears (banner and toast). */
+  onDismiss?: () => void;
+  dismissLabel?: string;
+  /** A button for the person to act on, inline only. */
+  action?: ReactNode;
+  className?: string;
+  /** The detail line under (inline) or after (banner) the title. */
+  children?: ReactNode;
+} & Omit<HTMLAttributes<HTMLElement>, "title" | "children" | "className">;
+
+export function Alert({ variant = "info", placement = "inline", title, onDismiss, dismissLabel, action, className, children, ...rest }: AlertProps) {
+  const cls = [PLACE[placement], TONE[variant], className ?? ""].filter(Boolean).join(" ");
+  const icon = (
+    <span className="fl-ctl-alert-icon" aria-hidden="true">
+      <Icon name={TONE_ICON[variant]} />
+    </span>
+  );
+  const own = { className: cls, "data-fl": `c.alert.${variant}` };
+  if (placement === "toast") {
+    return (
+      <li {...(rest as HTMLAttributes<HTMLLIElement>)} {...own}>
+        {icon}
+        {title}
+        {onDismiss ? (
+          <button type="button" className="fl-ctl-toast-x" aria-label={dismissLabel ?? `Dismiss: ${title}`} onClick={onDismiss}>
+            <Icon name="close" />
+          </button>
+        ) : null}
+      </li>
+    );
+  }
+  if (placement === "banner") {
+    return (
+      <div role="status" {...rest} {...own}>
+        {icon}
+        <span>
+          <strong>{title}</strong> {children}
+        </span>
+        {onDismiss ? (
+          <Button variant="tertiary" size={32} icon="close" iconOnly onClick={onDismiss}>
+            {dismissLabel ?? "Dismiss this notice"}
+          </Button>
+        ) : null}
+      </div>
+    );
+  }
+  return (
+    <div role={variant === "danger" ? "alert" : "status"} {...rest} {...own}>
+      {icon}
+      <span className="fl-ctl-alert-text">
+        <strong>{title}</strong>
+        {children ? <span className="fl-ctl-matrix-what">{children}</span> : null}
+      </span>
+      {action}
+    </div>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
   tones: [
-    { id: "info", label: "Information", icon: "info", title: "Your plan renews on 1 July", body: "Nothing to do. We will email the invoice when it is ready." },
-    { id: "success", label: "Success", icon: "check", title: "Shoot saved", body: "Riverside wedding is in your calendar for 12 June." },
-    { id: "warning", label: "Warning", icon: "alert", title: "This shoot is in three days", body: "Changing the date now will email the client straight away." },
-    { id: "danger", label: "Error", icon: "close", title: "We could not save that", body: "The deposit has to be a number. Nothing else was lost." },
+    { id: "info" as const, label: "Information", icon: "info", title: "Your plan renews on 1 July", body: "Nothing to do. We will email the invoice when it is ready." },
+    { id: "success" as const, label: "Success", icon: "check", title: "Shoot saved", body: "Riverside wedding is in your calendar for 12 June." },
+    { id: "warning" as const, label: "Warning", icon: "alert", title: "This shoot is in three days", body: "Changing the date now will email the client straight away." },
+    { id: "danger" as const, label: "Error", icon: "close", title: "We could not save that", body: "The deposit has to be a number. Nothing else was lost." },
   ],
 };
 
 export default function AlertsStates() {
   const d = SAMPLE;
-  const [banner, setBanner] = useState("warning");
-  const [toasts, setToasts] = useState<{ id: number; tone: string; title: string }[]>([]);
+  const [banner, setBanner] = useState<AlertVariant | "">("warning");
+  const [toasts, setToasts] = useState<{ id: number; tone: AlertVariant; title: string }[]>([]);
   const seq = useRef(0);
 
   // A toast says its piece and leaves; anything that needs acting on belongs inline.
@@ -51,7 +136,7 @@ export default function AlertsStates() {
     return () => window.clearTimeout(t);
   }, [toasts]);
 
-  const toast = (tone: string, title: string) => {
+  const toast = (tone: AlertVariant, title: string) => {
     seq.current += 1;
     setToasts((v) => [...v, { id: seq.current, tone, title }].slice(-3));
   };
@@ -65,20 +150,19 @@ export default function AlertsStates() {
       <ul className="fl-ctl-alert-list">
         {d.tones.map((t) => (
           <li key={t.id}>
-            <div className={`fl-ctl-alert fl-ctl-alert--${t.id}`} role={t.id === "danger" ? "alert" : "status"}>
-              <span className="fl-ctl-alert-icon" aria-hidden="true">
-                <Icon name={t.icon} />
-              </span>
-              <span className="fl-ctl-alert-text">
-                <strong>{t.title}</strong>
-                <span className="fl-ctl-matrix-what">{t.body}</span>
-              </span>
-              {t.id === "danger" ? (
-                <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32">
-                  Fix it
-                </button>
-              ) : null}
-            </div>
+            <Alert
+              variant={t.id}
+              title={t.title}
+              action={
+                t.id === "danger" ? (
+                  <Button variant="secondary" size={32}>
+                    Fix it
+                  </Button>
+                ) : undefined
+              }
+            >
+              {t.body}
+            </Alert>
             <p className="fl-ctl-matrix-what">
               {t.label} &middot; {t.id === "danger" ? 'role="alert", announced at once' : 'role="status", announced in a gap'}
             </p>
@@ -91,26 +175,18 @@ export default function AlertsStates() {
         <p className="fl-ctl-btn-what">Across the top of the page, about the whole app rather than one field. It can be dismissed; it should not come back on the next page.</p>
         <div className="fl-ctl-alert-pick">
           {d.tones.map((t) => (
-            <button key={t.id} type="button" className={`fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32${banner === t.id ? " is-on" : ""}`} aria-pressed={banner === t.id} onClick={() => setBanner(t.id)}>
+            <Button key={t.id} variant="tertiary" size={32} className={banner === t.id ? "is-on" : undefined} aria-pressed={banner === t.id} onClick={() => setBanner(t.id)}>
               {t.label}
-            </button>
+            </Button>
           ))}
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32" aria-pressed={banner === ""} onClick={() => setBanner("")}>
+          <Button variant="tertiary" size={32} aria-pressed={banner === ""} onClick={() => setBanner("")}>
             None
-          </button>
+          </Button>
         </div>
         {bannerTone ? (
-          <div className={`fl-ctl-banner fl-ctl-alert--${bannerTone.id}`} role="status">
-            <span className="fl-ctl-alert-icon" aria-hidden="true">
-              <Icon name={bannerTone.icon} />
-            </span>
-            <span>
-              <strong>{bannerTone.title}</strong> {bannerTone.body}
-            </span>
-            <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32" aria-label="Dismiss this notice" onClick={() => setBanner("")}>
-              <Icon name="close" />
-            </button>
-          </div>
+          <Alert variant={bannerTone.id} placement="banner" title={bannerTone.title} onDismiss={() => setBanner("")}>
+            {bannerTone.body}
+          </Alert>
         ) : (
           <p className="fl-ctl-matrix-what">Dismissed. Pick a tone to bring it back.</p>
         )}
@@ -123,28 +199,20 @@ export default function AlertsStates() {
           most, oldest first, and never an error.
         </p>
         <div className="fl-ctl-alert-pick">
-          <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => toast("success", "Shoot saved")}>
+          <Button variant="secondary" size={32} onClick={() => toast("success", "Shoot saved")}>
             Save something
-          </button>
-          <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => toast("info", "Copied to the clipboard")}>
+          </Button>
+          <Button variant="secondary" size={32} onClick={() => toast("info", "Copied to the clipboard")}>
             Copy something
-          </button>
-          <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => toast("warning", "Working offline")}>
+          </Button>
+          <Button variant="secondary" size={32} onClick={() => toast("warning", "Working offline")}>
             Lose the connection
-          </button>
+          </Button>
         </div>
         <div className="fl-ctl-toast-stage">
           <ul className="fl-ctl-toasts" role="status" aria-live="polite" aria-label="Notifications">
             {toasts.map((t) => (
-              <li key={t.id} className={`fl-ctl-toast fl-ctl-alert--${t.tone}`}>
-                <span className="fl-ctl-alert-icon" aria-hidden="true">
-                  <Icon name={t.tone === "success" ? "check" : t.tone === "warning" ? "alert" : "info"} />
-                </span>
-                {t.title}
-                <button type="button" className="fl-ctl-toast-x" aria-label={`Dismiss: ${t.title}`} onClick={() => setToasts((v) => v.filter((x) => x.id !== t.id))}>
-                  <Icon name="close" />
-                </button>
-              </li>
+              <Alert key={t.id} variant={t.tone} placement="toast" title={t.title} onDismiss={() => setToasts((v) => v.filter((x) => x.id !== t.id))} />
             ))}
           </ul>
           {toasts.length ? null : <p className="fl-ctl-matrix-what">Nothing showing. Press one of the buttons above.</p>}

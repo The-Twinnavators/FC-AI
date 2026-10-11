@@ -1,4 +1,10 @@
 /** @flowcode-library accordion-variants · Accordion styles (FAQ)
+ * Catalog ID: c.accordion (component)
+ * Function: The open-and-close question list (c.accordion) in three looks, one at a time or several open; the reference sheet shows all three side by side.
+ * Use it as: import { Accordion } from "./accordion-variants"; <Accordion variant?="bordered"|"cards"|"icons" items={[{q,a,icon?}]} multiple? defaultOpen?={[0]} open?={number[]} onOpenChange? />
+ * Variants: c.accordion.bordered - help and policies: one bordered box with dividers between questions; c.accordion.cards - friendly FAQs: each question is its own card with space between; c.accordion.icons - scannable topics: a round icon before each question, rows divided by rules
+ * Look: Question rows with a chevron that turns when open; the answer opens in place below, and arrow keys move between questions.
+ * Tokens: --color-border --color-surface --color-surface-sunken --color-accent --color-text-muted --radius-lg --space-3 --space-4 --duration-fast --focus-ring
  * Use cases: faq; help center; policies; product details; terms summary; knowledge base; support questions
  * Jobs to be done: find answers to my questions; read only the part i need; scan policies quickly
  * Keywords: accordion, faq, collapse, expand, disclosure, questions
@@ -9,8 +15,91 @@
  * keyboards and screen readers work; arrow keys move between questions. Use it for help, policies or details people
  * scan. Make it the app's own: replace SAMPLE and keep the one look that suits the page.
  */
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { Icon } from "./icons";
+
+// ── c.accordion: the one open-and-close list. Every FAQ is this component; the sheet below shows each look. ──
+
+export type AccordionVariant = "bordered" | "cards" | "icons";
+export type AccordionItem = { q: string; a: string; /** An icon name from ./icons; shown by the icons look. */ icon?: string };
+
+// Written out in full (not built from the variant name) so a build finds every class it needs.
+const VARIANT: Record<AccordionVariant, string> = { bordered: "fl-dsp-acc--bordered", cards: "fl-dsp-acc--cards", icons: "fl-dsp-acc--icons" };
+
+export type AccordionProps = {
+  variant?: AccordionVariant;
+  items: AccordionItem[];
+  /** Let several questions stay open; otherwise opening one closes the others. */
+  multiple?: boolean;
+  /** Indexes open at first (uncontrolled). */
+  defaultOpen?: number[];
+  /** Controlled: the open indexes, with onOpenChange to receive the next ones. */
+  open?: number[];
+  onOpenChange?: (open: number[]) => void;
+  className?: string;
+};
+
+const Chevron = () => (
+  <svg className="fl-dsp-acc__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
+export function Accordion({ variant = "bordered", items, multiple, defaultOpen = [], open: controlled, onOpenChange, className }: AccordionProps) {
+  const uid = useId();
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [inner, setInner] = useState<number[]>(defaultOpen);
+  const open = controlled ?? inner;
+  const set = (next: number[]) => {
+    if (controlled === undefined) setInner(next);
+    onOpenChange?.(next);
+  };
+  const toggle = (i: number) => set(open.includes(i) ? open.filter((k) => k !== i) : multiple ? [...open, i] : [i]);
+  function onKey(e: KeyboardEvent<HTMLButtonElement>, i: number) {
+    const n = items.length;
+    const to = e.key === "ArrowDown" ? (i + 1) % n : e.key === "ArrowUp" ? (i - 1 + n) % n : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : -1;
+    if (to < 0) return;
+    e.preventDefault();
+    refs.current[to]?.focus();
+  }
+  return (
+    <div className={["fl-dsp-acc", VARIANT[variant], className ?? ""].filter(Boolean).join(" ")} data-fl={`c.accordion.${variant}`}>
+      {items.map((it, i) => {
+        const isOpen = open.includes(i);
+        const key = `${uid}-${i}`;
+        return (
+          <div key={key} className="fl-dsp-acc__item" data-open={isOpen}>
+            <h4>
+              <button
+                ref={(el) => {
+                  refs.current[i] = el;
+                }}
+                type="button"
+                id={`${key}-btn`}
+                className="fl-dsp-acc__trigger"
+                aria-expanded={isOpen}
+                aria-controls={`${key}-panel`}
+                onClick={() => toggle(i)}
+                onKeyDown={(e) => onKey(e, i)}
+              >
+                {it.icon && (
+                  <span className="fl-dsp-acc__lead" aria-hidden="true">
+                    <Icon name={it.icon} />
+                  </span>
+                )}
+                <span>{it.q}</span>
+                <Chevron />
+              </button>
+            </h4>
+            <div id={`${key}-panel`} role="region" aria-labelledby={`${key}-btn`} className="fl-dsp-acc__panel" hidden={!isOpen}>
+              <p>{it.a}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -20,7 +109,7 @@ const SAMPLE = {
   collapse: "Close all",
   groups: [
     {
-      id: "bordered",
+      id: "bordered" as const,
       label: "Bordered",
       items: [
         { q: "What should I wear?", a: "Clothes you don't mind getting clay on, and short nails if you can. We have aprons for everyone." },
@@ -29,7 +118,7 @@ const SAMPLE = {
       ],
     },
     {
-      id: "cards",
+      id: "cards" as const,
       label: "Separated cards",
       items: [
         { q: "When can I collect my pots?", a: "About three weeks after your class, once they've been glazed and fired. We'll text you when they're ready." },
@@ -38,7 +127,7 @@ const SAMPLE = {
       ],
     },
     {
-      id: "icons",
+      id: "icons" as const,
       label: "With icons",
       items: [
         { q: "Is the studio accessible?", a: "Step-free from the side door, with a height-adjustable wheel and an accessible toilet.", icon: "users" },
@@ -49,81 +138,16 @@ const SAMPLE = {
   ],
 };
 
-type Group = (typeof SAMPLE.groups)[number];
-
-const Chevron = () => (
-  <svg className="fl-dsp-acc__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M6 9l6 6 6-6" />
-  </svg>
-);
-
-function Accordion({ group, multi, open, toggle }: { group: Group; multi: boolean; open: string[]; toggle: (key: string, multi: boolean) => void }) {
-  const refs = useRef<(HTMLButtonElement | null)[]>([]);
-  function onKey(e: KeyboardEvent<HTMLButtonElement>, i: number) {
-    const n = group.items.length;
-    const to = e.key === "ArrowDown" ? (i + 1) % n : e.key === "ArrowUp" ? (i - 1 + n) % n : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : -1;
-    if (to < 0) return;
-    e.preventDefault();
-    refs.current[to]?.focus();
-  }
-  return (
-    <div className={`fl-dsp-acc fl-dsp-acc--${group.id}`}>
-      {group.items.map((it, i) => {
-        const key = `${group.id}-${i}`;
-        const isOpen = open.includes(key);
-        const icon = "icon" in it ? (it as { icon: string }).icon : null;
-        return (
-          <div key={key} className="fl-dsp-acc__item" data-open={isOpen}>
-            <h4>
-              <button
-                ref={(el) => {
-                  refs.current[i] = el;
-                }}
-                type="button"
-                id={`acc-${key}-btn`}
-                className="fl-dsp-acc__trigger"
-                aria-expanded={isOpen}
-                aria-controls={`acc-${key}-panel`}
-                onClick={() => toggle(key, multi)}
-                onKeyDown={(e) => onKey(e, i)}
-              >
-                {icon && (
-                  <span className="fl-dsp-acc__lead" aria-hidden="true">
-                    <Icon name={icon} />
-                  </span>
-                )}
-                <span>{it.q}</span>
-                <Chevron />
-              </button>
-            </h4>
-            <div id={`acc-${key}-panel`} role="region" aria-labelledby={`acc-${key}-btn`} className="fl-dsp-acc__panel" hidden={!isOpen}>
-              <p>{it.a}</p>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function AccordionVariants() {
   const d = SAMPLE;
   const [multi, setMulti] = useState(false);
-  const [open, setOpen] = useState<string[]>(["bordered-0", "cards-0", "icons-0"]);
+  const [open, setOpen] = useState<Record<string, number[]>>({ bordered: [0], cards: [0], icons: [0] });
+  const count = Object.values(open).reduce((n, l) => n + l.length, 0);
 
-  function toggle(key: string, many: boolean) {
-    const group = key.slice(0, key.lastIndexOf("-"));
-    setOpen((cur) => {
-      if (cur.includes(key)) return cur.filter((k) => k !== key);
-      return many ? [...cur, key] : [...cur.filter((k) => !k.startsWith(`${group}-`)), key];
-    });
-  }
   function setMode(many: boolean) {
     setMulti(many);
-    if (!many) {
-      // Going back to one at a time: keep only the first open question in each style.
-      setOpen((cur) => d.groups.map((g) => cur.find((k) => k.startsWith(`${g.id}-`))).filter((k): k is string => !!k));
-    }
+    // Going back to one at a time: keep only the first open question in each style.
+    if (!many) setOpen((cur) => Object.fromEntries(Object.entries(cur).map(([k, l]) => [k, l.slice(0, 1)])));
   }
 
   return (
@@ -145,7 +169,7 @@ export default function AccordionVariants() {
                 {d.modes.multi}
               </button>
             </div>
-            <button type="button" className="fl-dsp-btn fl-dsp-btn--ghost" onClick={() => setOpen([])} disabled={open.length === 0}>
+            <button type="button" className="fl-dsp-btn fl-dsp-btn--ghost" onClick={() => setOpen({ bordered: [], cards: [], icons: [] })} disabled={count === 0}>
               {d.collapse}
             </button>
           </div>
@@ -154,7 +178,7 @@ export default function AccordionVariants() {
           {d.groups.map((g) => (
             <div key={g.id} className="fl-dsp-acc-col">
               <h3>{g.label}</h3>
-              <Accordion group={g} multi={multi} open={open} toggle={toggle} />
+              <Accordion variant={g.id} items={g.items} multiple={multi} open={open[g.id]} onOpenChange={(l) => setOpen((cur) => ({ ...cur, [g.id]: l }))} />
             </div>
           ))}
         </div>

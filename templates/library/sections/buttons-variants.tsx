@@ -1,4 +1,10 @@
 /** @flowcode-library buttons-variants · Buttons: every variant and state (Forms)
+ * Catalog ID: c.button (component)
+ * Function: The one button every piece uses (c.button), and its reference sheet: six variants, six heights, icon and icon-only, and the states a button passes through: rest, hover, pressed, disabled and working.
+ * Use it as: import { Button } from "./buttons-variants"; <Button variant?="primary"|"secondary"|"tertiary"|"destructive"|"on-accent"|"ghost-on-accent" size?={24|32|40|44|48|56} icon? iconAt?="start"|"end" iconOnly? busy? href? type? onClick?>Label</Button>
+ * Variants: c.button.primary - the one action a screen is for: filled with the accent color; c.button.secondary - beside the primary action: a surface with a border; c.button.tertiary - quiet actions in a row or toolbar: no fill until pointed at; c.button.destructive - removes something for good: filled with the danger color; c.button.on-accent - the main action on an accent band: filled with the on-accent color; c.button.ghost-on-accent - a second action on an accent band: transparent and outlined
+ * Look: A rounded rectangle with a semibold one-line label and an optional icon; six heights from 24 to 56 px, square when icon-only; lifts on hover, presses in on click, a spinner while busy, the focus ring on keyboard focus.
+ * Tokens: --control-lg --control-pad-lg --control-radius --control-text-lg --control-border --control-shadow --color-accent --color-accent-hover --color-on-accent --color-surface --color-text --color-border --color-danger --focus-ring
  * Use cases: action button set; destructive confirm; form submit states; disabled action; toolbar actions
  * Jobs to be done: pick the right button for an action; show an action is unavailable; warn before something destructive
  * Keywords: button, primary, secondary, destructive, disabled, states
@@ -23,8 +29,65 @@
  * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
  * built app exactly as it runs here.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { Icon } from "./icons";
+
+// ── c.button: the one button. Every piece's buttons are this component; the specimen below shows every variant. ──
+
+export type ButtonVariant = "primary" | "secondary" | "tertiary" | "destructive" | "on-accent" | "ghost-on-accent";
+export type ButtonSize = 24 | 32 | 40 | 44 | 48 | 56;
+
+// Written out in full (not built from the variant name) so a build finds every class the button needs.
+const VARIANT: Record<ButtonVariant, string> = {
+  primary: "fl-btn--primary",
+  secondary: "fl-btn--secondary",
+  tertiary: "fl-ctl-btn--tertiary",
+  destructive: "fl-ctl-btn--destructive",
+  "on-accent": "fl-btn--on-accent",
+  "ghost-on-accent": "fl-btn--ghost-on-accent",
+};
+const SIZE: Record<ButtonSize, string> = { 24: "fl-ctl-btn--24", 32: "fl-ctl-btn--32", 40: "fl-ctl-btn--40", 44: "fl-ctl-btn--44", 48: "", 56: "fl-ctl-btn--56" };
+
+type ButtonOwn = {
+  variant?: ButtonVariant;
+  /** Height in px; 48 when left out. */
+  size?: ButtonSize;
+  /** An icon name from ./icons. Before the label it says what kind of action; after it, where it leads. */
+  icon?: string;
+  iconAt?: "start" | "end";
+  /** Square, icon only. The children are still required: they become the name screen readers and the tooltip use. */
+  iconOnly?: boolean;
+  /** Working: a spinner, the button disabled and marked busy. */
+  busy?: boolean;
+  className?: string;
+  children?: ReactNode;
+};
+type AsLink = ButtonOwn & { href: string } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof ButtonOwn>;
+type AsButton = ButtonOwn & { href?: undefined } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof ButtonOwn>;
+
+export function Button(props: AsLink | AsButton) {
+  const { variant = "primary", size = 48, icon, iconAt = "start", iconOnly, busy, className, children, ...rest } = props;
+  const cls = ["fl-btn", VARIANT[variant], SIZE[size], iconOnly ? "fl-ctl-btn--icon" : "", className ?? ""].filter(Boolean).join(" ");
+  const name = typeof children === "string" ? children : undefined;
+  const glyph = busy ? <span className="fl-ctl-spinner" aria-hidden="true" /> : icon ? <Icon name={icon} /> : null;
+  const inner = iconOnly ? glyph : iconAt === "end" ? <>{children}{glyph}</> : <>{glyph}{children}</>;
+  // Icon-only: the label names it for screen readers and the tooltip, unless the caller already gave it a name.
+  const given = rest as { "aria-label"?: string; title?: string };
+  const own = { className: cls, "data-fl": `c.button.${variant}`, ...(iconOnly ? { "aria-label": given["aria-label"] ?? name, title: given.title ?? name } : {}) };
+  if (typeof rest.href === "string") {
+    return (
+      <a {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)} {...own}>
+        {inner}
+      </a>
+    );
+  }
+  const { type = "button", disabled, ...btn } = rest as ButtonHTMLAttributes<HTMLButtonElement>;
+  return (
+    <button {...btn} {...own} type={type} disabled={disabled || busy} aria-busy={busy || undefined}>
+      {inner}
+    </button>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -36,22 +99,22 @@ const SAMPLE = {
     { id: "busy", label: "Loading" },
   ],
   kinds: [
-    { id: "primary", label: "Primary", verb: "Save", className: "fl-btn fl-btn--primary", what: "The one action a screen is for" },
-    { id: "secondary", label: "Secondary", verb: "Preview", className: "fl-btn fl-btn--secondary", what: "Sits beside the primary action" },
-    { id: "tertiary", label: "Tertiary", verb: "Rename", className: "fl-btn fl-ctl-btn--tertiary", what: "Quiet actions in a row or toolbar" },
-    { id: "destructive", label: "Destructive", verb: "Delete", className: "fl-btn fl-ctl-btn--destructive", what: "Removes something for good" },
+    { id: "primary", label: "Primary", verb: "Save", variant: "primary" as const, what: "The one action a screen is for" },
+    { id: "secondary", label: "Secondary", verb: "Preview", variant: "secondary" as const, what: "Sits beside the primary action" },
+    { id: "tertiary", label: "Tertiary", verb: "Rename", variant: "tertiary" as const, what: "Quiet actions in a row or toolbar" },
+    { id: "destructive", label: "Destructive", verb: "Delete", variant: "destructive" as const, what: "Removes something for good" },
   ],
   sizes: [
-    { px: 24, mod: " fl-ctl-btn--24", note: "Dense toolbars and table rows" },
-    { px: 32, mod: " fl-ctl-btn--32", note: "Compact filters and chips" },
-    { px: 40, mod: " fl-ctl-btn--40", note: "Forms on a desktop screen" },
-    { px: 44, mod: " fl-ctl-btn--44", note: "Comfortable to tap" },
-    { px: 48, mod: " fl-ctl-btn--48", note: "Default" },
-    { px: 56, mod: " fl-ctl-btn--56", note: "A screen's main action" },
+    { px: 24 as const, note: "Dense toolbars and table rows" },
+    { px: 32 as const, note: "Compact filters and chips" },
+    { px: 40 as const, note: "Forms on a desktop screen" },
+    { px: 44 as const, note: "Comfortable to tap" },
+    { px: 48 as const, note: "Default" },
+    { px: 56 as const, note: "A screen's main action" },
   ],
 };
 
-const stateClass = (id: string) => (id === "hover" ? " is-hover" : id === "active" ? " is-active" : "");
+const stateClass = (id: string) => (id === "hover" ? "is-hover" : id === "active" ? "is-active" : undefined);
 
 export default function ButtonsVariants() {
   const d = SAMPLE;
@@ -102,18 +165,11 @@ export default function ButtonsVariants() {
                   <span className="fl-ctl-matrix-what">{k.what}</span>
                 </th>
                 {d.states.map((s) => {
-                  const off = s.id === "disabled" || s.id === "busy";
                   return (
                     <td key={s.id} data-state={s.label}>
-                      <button type="button" className={k.className + stateClass(s.id)} disabled={off} aria-busy={s.id === "busy" || undefined}>
-                        {s.id === "busy" ? (
-                          <>
-                            <span className="fl-ctl-spinner" aria-hidden="true" /> Saving
-                          </>
-                        ) : (
-                          k.verb
-                        )}
-                      </button>
+                      <Button variant={k.variant} className={stateClass(s.id)} disabled={s.id === "disabled"} busy={s.id === "busy"}>
+                        {s.id === "busy" ? "Saving" : k.verb}
+                      </Button>
                     </td>
                   );
                 })}
@@ -129,9 +185,7 @@ export default function ButtonsVariants() {
         <ul className="fl-ctl-size-list">
           {d.sizes.map((s) => (
             <li key={s.px}>
-              <button type="button" className={"fl-btn fl-btn--primary" + s.mod}>
-                {s.px} px
-              </button>
+              <Button size={s.px}>{`${s.px} px`}</Button>
               <span className="fl-ctl-btn-what">{s.note}</span>
             </li>
           ))}
@@ -142,18 +196,16 @@ export default function ButtonsVariants() {
         <h3>With an icon</h3>
         <p className="fl-ctl-btn-what">An icon before the label says what kind of action it is; after the label, where it leads. Never both.</p>
         <div className="fl-actions">
-          <button type="button" className="fl-btn fl-btn--primary">
-            <Icon name="plus" /> New booking
-          </button>
-          <button type="button" className="fl-btn fl-btn--secondary">
-            <Icon name="download" /> Export
-          </button>
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary">
-            Continue <Icon name="arrow" />
-          </button>
-          <button type="button" className="fl-btn fl-ctl-btn--destructive">
-            <Icon name="trash" /> Delete
-          </button>
+          <Button icon="plus">New booking</Button>
+          <Button variant="secondary" icon="download">
+            Export
+          </Button>
+          <Button variant="tertiary" icon="arrow" iconAt="end">
+            Continue
+          </Button>
+          <Button variant="destructive" icon="trash">
+            Delete
+          </Button>
         </div>
       </div>
 
@@ -167,23 +219,38 @@ export default function ButtonsVariants() {
           {d.sizes.map((s) => (
             <li key={s.px}>
               <span className="fl-ctl-icon-row">
-                <button type="button" className={"fl-btn fl-btn--primary fl-ctl-btn--icon" + s.mod} aria-label="Add" title="Add">
-                  <Icon name="plus" />
-                </button>
-                <button type="button" className={"fl-btn fl-btn--secondary fl-ctl-btn--icon" + s.mod} aria-label="Edit" title="Edit">
-                  <Icon name="pencil" />
-                </button>
-                <button type="button" className={"fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon" + s.mod} aria-label="More actions" title="More actions">
-                  <Icon name="more" />
-                </button>
-                <button type="button" className={"fl-btn fl-ctl-btn--destructive fl-ctl-btn--icon" + s.mod} aria-label="Delete" title="Delete">
-                  <Icon name="trash" />
-                </button>
+                <Button size={s.px} icon="plus" iconOnly>
+                  Add
+                </Button>
+                <Button size={s.px} variant="secondary" icon="pencil" iconOnly>
+                  Edit
+                </Button>
+                <Button size={s.px} variant="tertiary" icon="more" iconOnly>
+                  More actions
+                </Button>
+                <Button size={s.px} variant="destructive" icon="trash" iconOnly>
+                  Delete
+                </Button>
               </span>
               <span className="fl-ctl-btn-what">{s.px} px</span>
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>On an accent band</h3>
+        <p className="fl-ctl-btn-what">Two more variants for a section filled with the accent color, where primary would disappear.</p>
+        <div className="fl-section--accent fl-ctl-accent-band">
+          <div className="fl-actions">
+            <Button variant="on-accent" href="#join">
+              Join the beta
+            </Button>
+            <Button variant="ghost-on-accent" href="#roles">
+              See open roles
+            </Button>
+          </div>
+        </div>
       </div>
 
       <div className="fl-ctl-sizes fl-ctl-try">
@@ -193,45 +260,32 @@ export default function ButtonsVariants() {
           once before it acts, and a slow action goes to loading and stays done so the state can be read.
         </p>
         <div className="fl-actions">
-          <button type="button" className="fl-btn fl-btn--primary" onClick={() => say("Saved.")}>
-            Save
-          </button>
-          <button type="button" className="fl-btn fl-btn--secondary" onClick={() => say("Opened the preview.")}>
+          <Button onClick={() => say("Saved.")}>Save</Button>
+          <Button variant="secondary" onClick={() => say("Opened the preview.")}>
             Preview
-          </button>
-          <button
-            type="button"
-            className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon"
+          </Button>
+          <Button
+            variant="tertiary"
+            icon="heart"
+            iconOnly
             aria-pressed={saved}
-            aria-label={saved ? "Remove from saved" : "Save to your list"}
-            title={saved ? "Remove from saved" : "Save to your list"}
             onClick={() => {
               setSaved((v) => !v);
               say(saved ? "Removed from your list." : "Added to your list.");
             }}
           >
-            <Icon name="heart" />
-          </button>
-          <button type="button" className={`fl-btn fl-ctl-btn--destructive${armed ? " is-armed" : ""}`} onClick={onDelete}>
-            <Icon name="trash" /> {armed ? "Press again to delete" : "Delete"}
-          </button>
-          <button type="button" className="fl-btn fl-btn--primary" onClick={onPay} disabled={pay !== "idle"} aria-busy={pay === "loading" || undefined}>
-            {pay === "loading" ? (
-              <>
-                <span className="fl-ctl-spinner" aria-hidden="true" /> Paying
-              </>
-            ) : pay === "done" ? (
-              <>
-                <Icon name="check" /> Paid
-              </>
-            ) : (
-              "Pay deposit"
-            )}
-          </button>
+            {saved ? "Remove from saved" : "Save to your list"}
+          </Button>
+          <Button variant="destructive" icon="trash" className={armed ? "is-armed" : undefined} onClick={onDelete}>
+            {armed ? "Press again to delete" : "Delete"}
+          </Button>
+          <Button onClick={onPay} busy={pay === "loading"} disabled={pay === "done"} icon={pay === "done" ? "check" : undefined}>
+            {pay === "loading" ? "Paying" : pay === "done" ? "Paid" : "Pay deposit"}
+          </Button>
           {pay === "done" ? (
-            <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32" onClick={() => (setPay("idle"), say(""))}>
+            <Button variant="tertiary" size={32} onClick={() => (setPay("idle"), say(""))}>
               Reset
-            </button>
+            </Button>
           ) : null}
         </div>
         <p className="fl-ctl-status" role="status" aria-live="polite">

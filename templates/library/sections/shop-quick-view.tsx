@@ -1,4 +1,10 @@
 /** @flowcode-library shop-quick-view · Quick view (Shop)
+ * Catalog ID: b.shop-quick-view (block)
+ * Function: A shop grid where Quick view opens a product dialog (b.shop-quick-view) with gallery, color and size choice and add to bag.
+ * Use it as: import { ShopQuickView } from "./shop-quick-view"; <ShopQuickView eyebrow? heading bagLabel? currency? maxQty? products={[{id,name,price(cents),text,colours:[{id,name}],sizes:[{id,inStock}]}]}/>
+ * Built from: c.button.primary, c.button.secondary, c.button.tertiary, c.badge.status
+ * Look: A grid of product tiles, each with a Quick view button; the dialog is a two-column card with a photo gallery on the left and color, size, quantity and an Add button showing the price on the right.
+ * Tokens: --space-3 --space-5 --color-surface --color-border --color-text-muted --color-accent --color-danger --radius-md --radius-lg --shadow-lg
  * Use cases: quick view; product grid; product preview; shop catalog; fast add to cart; category browsing
  * Jobs to be done: check a product without leaving the page; pick a size and color; add a product to my bag quickly
  * Keywords: quick view, product dialog, modal, gallery, size, color, add to bag, shop
@@ -12,92 +18,48 @@
  */
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import { Tick } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
 
-// flowcode:sample
-const SAMPLE = {
-  eyebrow: "The bench collection",
-  heading: "Tools and wear for the studio",
-  bagLabel: "In your bag",
-  currency: "$",
+const LABELS = {
   quickView: "Quick view",
   views: ["Front", "Side", "Detail"],
   colourLegend: "Colour",
   sizeLegend: "Size",
   qtyLabel: "Quantity",
-  maxQty: 5,
   add: "Add to bag",
   details: "Full details",
   sizeError: "Choose a size to continue.",
   soldOut: "sold out",
   addedTo: "added to your bag.",
-  products: [
-    {
-      id: "apron",
-      name: "Canvas cross-back apron",
-      price: 5200,
-      text: "Heavy cotton canvas with two deep pockets and straps that cross at the back, so nothing pulls on your neck.",
-      colours: [
-        { id: "clay", name: "Clay" },
-        { id: "charcoal", name: "Charcoal" },
-        { id: "oat", name: "Oat" },
-      ],
-      sizes: [
-        { id: "S", inStock: true },
-        { id: "M", inStock: true },
-        { id: "L", inStock: false },
-      ],
-    },
-    {
-      id: "shirt",
-      name: "Linen work overshirt",
-      price: 8900,
-      text: "Washed linen that softens with wear. Roomy enough to layer, with a chest pocket for pencils.",
-      colours: [
-        { id: "oat", name: "Oat" },
-        { id: "sage", name: "Sage" },
-      ],
-      sizes: [
-        { id: "S", inStock: true },
-        { id: "M", inStock: false },
-        { id: "L", inStock: true },
-        { id: "XL", inStock: true },
-      ],
-    },
-    {
-      id: "tee",
-      name: "Heavy cotton studio tee",
-      price: 3200,
-      text: "A thick, boxy tee that keeps its shape through a hundred washes and plenty of clay.",
-      colours: [
-        { id: "charcoal", name: "Charcoal" },
-        { id: "ink", name: "Ink" },
-        { id: "oat", name: "Oat" },
-      ],
-      sizes: [
-        { id: "XS", inStock: true },
-        { id: "S", inStock: true },
-        { id: "M", inStock: true },
-        { id: "L", inStock: true },
-      ],
-    },
-    {
-      id: "hat",
-      name: "Cotton bucket hat",
-      price: 2600,
-      text: "Soft brim, stitched in rows. Packs flat into a bag for days out sketching.",
-      colours: [
-        { id: "sage", name: "Sage" },
-        { id: "ink", name: "Ink" },
-      ],
-      sizes: [
-        { id: "S/M", inStock: true },
-        { id: "L/XL", inStock: true },
-      ],
-    },
-  ],
 };
 
-type Product = (typeof SAMPLE.products)[number];
+export type QuickViewProduct = {
+  id: string;
+  name: string;
+  /** In cents. */
+  price: number;
+  /** A sentence or two shown in the dialog. */
+  text: string;
+  /** Color choices; each id also picks the picture tone (oat, clay, sage, charcoal, ink). */
+  colours: { id: string; name: string }[];
+  /** Size choices; an out-of-stock size is grayed and cannot be picked. */
+  sizes: { id: string; inStock: boolean }[];
+};
+
+export type ShopQuickViewProps = {
+  eyebrow?: string;
+  heading: string;
+  /** The count pill's label, e.g. "In your bag". */
+  bagLabel?: string;
+  /** Currency symbol before prices; "$" when left out. */
+  currency?: string;
+  /** Largest quantity in the dialog; 5 when left out. */
+  maxQty?: number;
+  products: QuickViewProduct[];
+};
+
+type Product = QuickViewProduct;
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -148,18 +110,6 @@ function useModal(open: boolean, onClose: () => void, returnTo: RefObject<HTMLEl
   return panelRef;
 }
 
-function money(cents: number) {
-  return `${SAMPLE.currency}${(cents / 100).toFixed(2)}`;
-}
-
-function CloseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
-      <path d="M6 6l12 12M18 6L6 18" />
-    </svg>
-  );
-}
-
 function EyeIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -177,8 +127,9 @@ function MinusPlus({ plus }: { plus?: boolean }) {
   );
 }
 
-function QuickView({ product, onClose, onAdd, returnTo }: { product: Product; onClose: () => void; onAdd: (text: string, qty: number) => void; returnTo: RefObject<HTMLElement | null> }) {
-  const d = SAMPLE;
+function QuickView({ product, currency, maxQty, onClose, onAdd, returnTo }: { product: Product; currency: string; maxQty: number; onClose: () => void; onAdd: (text: string, qty: number) => void; returnTo: RefObject<HTMLElement | null> }) {
+  const d = LABELS;
+  const money = (cents: number) => `${currency}${(cents / 100).toFixed(2)}`;
   const [view, setView] = useState(0);
   const [color, setColour] = useState(product.colours[0].id);
   const [size, setSize] = useState<string | null>(null);
@@ -186,7 +137,7 @@ function QuickView({ product, onClose, onAdd, returnTo }: { product: Product; on
   const [error, setError] = useState(false);
   const panelRef = useModal(true, onClose, returnTo);
   const colourName = product.colours.find((c) => c.id === color)?.name ?? "";
-  const setQ = (n: number) => setQty(Math.min(d.maxQty, Math.max(1, Number.isFinite(n) ? Math.round(n) : 1)));
+  const setQ = (n: number) => setQty(Math.min(maxQty, Math.max(1, Number.isFinite(n) ? Math.round(n) : 1)));
 
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -206,9 +157,9 @@ function QuickView({ product, onClose, onAdd, returnTo }: { product: Product; on
       }}
     >
       <div ref={panelRef} className="fl-shop-dialog" role="dialog" aria-modal="true" aria-labelledby="shop-quick-view-dialog-title" tabIndex={-1}>
-        <button type="button" className="fl-shop-icon-btn" aria-label="Close quick view" onClick={onClose}>
-          <CloseIcon />
-        </button>
+        <Button variant="tertiary" size={40} icon="close" iconOnly style={{ position: "absolute", top: "var(--space-3)", right: "var(--space-3)", zIndex: 2, background: "var(--color-surface)" }} onClick={onClose}>
+          Close quick view
+        </Button>
 
         <div className="fl-shop-gallery">
           <span
@@ -282,14 +233,14 @@ function QuickView({ product, onClose, onAdd, returnTo }: { product: Product; on
               <label htmlFor="shop-quick-view-qty" className="fl-sr">
                 {d.qtyLabel}
               </label>
-              <input id="shop-quick-view-qty" type="number" inputMode="numeric" min={1} max={d.maxQty} value={qty} onChange={(e) => setQ(Number(e.target.value))} />
-              <button type="button" aria-label="One more" disabled={qty >= d.maxQty} onClick={() => setQ(qty + 1)}>
+              <input id="shop-quick-view-qty" type="number" inputMode="numeric" min={1} max={maxQty} value={qty} onChange={(e) => setQ(Number(e.target.value))} />
+              <button type="button" aria-label="One more" disabled={qty >= maxQty} onClick={() => setQ(qty + 1)}>
                 <MinusPlus plus />
               </button>
             </div>
-            <button type="submit" className="fl-btn fl-btn--primary">
+            <Button type="submit" variant="primary">
               {d.add} · {money(product.price * qty)}
-            </button>
+            </Button>
           </div>
           <a className="fl-link" href={`#${product.id}`} style={{ justifySelf: "start", fontSize: "var(--text-sm)" }}>
             {d.details}
@@ -300,37 +251,38 @@ function QuickView({ product, onClose, onAdd, returnTo }: { product: Product; on
   );
 }
 
-export default function ShopQuickView() {
-  const d = SAMPLE;
+export function ShopQuickView({ eyebrow, heading, bagLabel = "In your bag", currency = "$", maxQty = 5, products }: ShopQuickViewProps) {
+  const d = LABELS;
+  const money = (cents: number) => `${currency}${(cents / 100).toFixed(2)}`;
   const [openId, setOpenId] = useState<string | null>(null);
   const [bag, setBag] = useState(0);
   const [status, setStatus] = useState("");
   const openerRef = useRef<HTMLElement | null>(null);
-  const product = d.products.find((p) => p.id === openId) ?? null;
+  const product = products.find((p) => p.id === openId) ?? null;
 
   return (
-    <section className="fl-section fl-section--tint" aria-labelledby="shop-quick-view-title">
+    <section className="fl-section fl-section--tint" aria-labelledby="shop-quick-view-title" data-fl="b.shop-quick-view">
       <div className="fl-wrap fl-shop-stage">
         <div className="fl-shop-bar">
           <div className="fl-shop-bar__title">
-            <span className="fl-eyebrow">{d.eyebrow}</span>
+            {eyebrow ? <span className="fl-eyebrow">{eyebrow}</span> : null}
             <h2 id="shop-quick-view-title" className="fl-title fl-title--md">
-              {d.heading}
+              {heading}
             </h2>
           </div>
-          <span className="fl-badge">
-            {d.bagLabel}: {bag}
-          </span>
+          <Badge>
+            {bagLabel}: {bag}
+          </Badge>
         </div>
 
         <ul className="fl-shop-grid">
-          {d.products.map((p) => (
+          {products.map((p) => (
             <li key={p.id} className="fl-shop-tile">
               <div className="fl-shop-tile__media">
                 <span className={`fl-shop-img fl-shop-img--tall fl-shop-tone--${p.colours[0].id}`} aria-hidden="true" />
-                <button
-                  type="button"
-                  className="fl-btn fl-btn--secondary fl-shop-quick"
+                <Button
+                  variant="secondary"
+                  className="fl-shop-quick"
                   aria-haspopup="dialog"
                   onClick={(e) => {
                     openerRef.current = e.currentTarget;
@@ -341,7 +293,7 @@ export default function ShopQuickView() {
                   <EyeIcon />
                   {d.quickView}
                   <span className="fl-sr">: {p.name}</span>
-                </button>
+                </Button>
               </div>
               <h3>{p.name}</h3>
               <span className="fl-meta">
@@ -362,6 +314,8 @@ export default function ShopQuickView() {
         <QuickView
           key={product.id}
           product={product}
+          currency={currency}
+          maxQty={maxQty}
           returnTo={openerRef}
           onClose={() => setOpenId(null)}
           onAdd={(text, qty) => {
@@ -373,4 +327,82 @@ export default function ShopQuickView() {
       )}
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE: ShopQuickViewProps = {
+  eyebrow: "The bench collection",
+  heading: "Tools and wear for the studio",
+  bagLabel: "In your bag",
+  currency: "$",
+  maxQty: 5,
+  products: [
+    {
+      id: "apron",
+      name: "Canvas cross-back apron",
+      price: 5200,
+      text: "Heavy cotton canvas with two deep pockets and straps that cross at the back, so nothing pulls on your neck.",
+      colours: [
+        { id: "clay", name: "Clay" },
+        { id: "charcoal", name: "Charcoal" },
+        { id: "oat", name: "Oat" },
+      ],
+      sizes: [
+        { id: "S", inStock: true },
+        { id: "M", inStock: true },
+        { id: "L", inStock: false },
+      ],
+    },
+    {
+      id: "shirt",
+      name: "Linen work overshirt",
+      price: 8900,
+      text: "Washed linen that softens with wear. Roomy enough to layer, with a chest pocket for pencils.",
+      colours: [
+        { id: "oat", name: "Oat" },
+        { id: "sage", name: "Sage" },
+      ],
+      sizes: [
+        { id: "S", inStock: true },
+        { id: "M", inStock: false },
+        { id: "L", inStock: true },
+        { id: "XL", inStock: true },
+      ],
+    },
+    {
+      id: "tee",
+      name: "Heavy cotton studio tee",
+      price: 3200,
+      text: "A thick, boxy tee that keeps its shape through a hundred washes and plenty of clay.",
+      colours: [
+        { id: "charcoal", name: "Charcoal" },
+        { id: "ink", name: "Ink" },
+        { id: "oat", name: "Oat" },
+      ],
+      sizes: [
+        { id: "XS", inStock: true },
+        { id: "S", inStock: true },
+        { id: "M", inStock: true },
+        { id: "L", inStock: true },
+      ],
+    },
+    {
+      id: "hat",
+      name: "Cotton bucket hat",
+      price: 2600,
+      text: "Soft brim, stitched in rows. Packs flat into a bag for days out sketching.",
+      colours: [
+        { id: "sage", name: "Sage" },
+        { id: "ink", name: "Ink" },
+      ],
+      sizes: [
+        { id: "S/M", inStock: true },
+        { id: "L/XL", inStock: true },
+      ],
+    },
+  ],
+};
+
+export default function ShopQuickViewPreview() {
+  return <ShopQuickView {...SAMPLE} />;
 }

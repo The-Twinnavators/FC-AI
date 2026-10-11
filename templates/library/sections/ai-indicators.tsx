@@ -1,4 +1,10 @@
 /** @flowcode-library ai-indicators · AI indicators: what a model made, what it is doing, and how sure it is (Small components)
+ * Catalog ID: c.ai-indicator (component)
+ * Function: The AI indicator (c.ai-indicator), the words-and-color marks for generated, in-progress and confidence; the reference sheet also shows a draft card, a field suggestion, a streaming answer and sources as specimen markup.
+ * Use it as: import { AiIndicator } from "./ai-indicators"; <AiIndicator variant?="generated"|"working"|"confidence" label="AI draft" level?="high"|"mid"|"low" percent?={64}>what it is based on</AiIndicator>
+ * Variants: c.ai-indicator.generated - mark text a model wrote: a small accent pill with a sparkle and words like AI draft, placed on the output itself; c.ai-indicator.working - show the model is busy: the same pill reading Thinking with a pulsing dot beside it; c.ai-indicator.confidence - say how sure the model is: a bold level, a percentage, a colored bar and one sentence on its basis (use as an <li> inside <ul className="fl-ctl-ai-sure">)
+ * Look: A rounded accent-tinted pill with a sparkle icon and a short bold label; the confidence form is a labeled bar with a sentence.
+ * Tokens: --color-accent --color-text-muted --color-surface --color-border --radius-md --space-1 --space-2 --space-3 --text-xs --text-sm --focus-ring
  * Use cases: a generated draft; a suggestion in a field; a streaming answer; a citation; a confidence note
  * Jobs to be done: tell generated text from written text; see the model working; decide whether to trust it
  * Keywords: AI, generated, suggestion, streaming, confidence, provenance, citation, disclosure
@@ -27,8 +33,58 @@
  * the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built
  * app exactly as it runs here.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+
+// ── c.ai-indicator: the marks that say a model was involved, always in words as well as color. ──
+
+export type AiIndicatorVariant = "generated" | "working" | "confidence";
+export type AiConfidenceLevel = "high" | "mid" | "low";
+
+// Written out in full (not built from the level name) so a build finds every class the meter needs.
+const BAR: Record<AiConfidenceLevel, string> = { high: "fl-ctl-bar--high", mid: "fl-ctl-bar--mid", low: "fl-ctl-bar--low" };
+
+export function AiIndicator({ variant = "generated", label, level = "mid", percent = 0, className, children }: {
+  variant?: AiIndicatorVariant;
+  /** The words on the badge: "AI draft", "Thinking". For confidence, the level in words: "Fairly sure". */
+  label: string;
+  /** Confidence only: which bar color. */
+  level?: AiConfidenceLevel;
+  /** Confidence only: 0 to 100. */
+  percent?: number;
+  className?: string;
+  /** Confidence only: one sentence on what the answer is based on. */
+  children?: ReactNode;
+}) {
+  const fl = `c.ai-indicator.${variant}`;
+  const badge = (
+    <span className={["fl-ctl-ai-badge", variant === "generated" ? (className ?? "") : ""].filter(Boolean).join(" ")} {...(variant === "generated" ? { "data-fl": fl } : {})}>
+      <Icon name="sparkle" /> {label}
+    </span>
+  );
+  if (variant === "generated") return badge;
+  if (variant === "working") {
+    return (
+      <span className={["fl-ctl-ai-head", className ?? ""].filter(Boolean).join(" ")} data-fl={fl}>
+        {badge}
+        <span className="fl-ctl-ai-pulse" aria-hidden="true" />
+      </span>
+    );
+  }
+  return (
+    <li className={className} data-fl={fl}>
+      <span className="fl-ctl-ai-sure-top">
+        <strong>{label}</strong>
+        <span className="fl-ctl-matrix-what">{percent}%</span>
+      </span>
+      <span className={`fl-ctl-bar ${BAR[level]}`} role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label={`${label}, ${percent} percent`}>
+        <span style={{ width: `${percent}%` }} />
+      </span>
+      <span className="fl-ctl-matrix-what">{children}</span>
+    </li>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -40,9 +96,9 @@ const SAMPLE = {
     { id: "s2", title: "Your last three wet-weather shoots", when: "2024–2025" },
   ],
   sure: [
-    { id: "high", label: "Confident", pct: 92, what: "Drawn straight from your own venue notes." },
-    { id: "mid", label: "Fairly sure", pct: 64, what: "Pieced together from similar shoots, not this one." },
-    { id: "low", label: "Guessing", pct: 28, what: "Nothing in your notes covers this. Check it before you send it." },
+    { id: "high" as const, label: "Confident", pct: 92, what: "Drawn straight from your own venue notes." },
+    { id: "mid" as const, label: "Fairly sure", pct: 64, what: "Pieced together from similar shoots, not this one." },
+    { id: "low" as const, label: "Guessing", pct: 28, what: "Nothing in your notes covers this. Check it before you send it." },
   ],
 };
 
@@ -73,22 +129,20 @@ export default function AiIndicators() {
       <p className="fl-ctl-btn-what">A badge on the output itself. It survives being copied into a document, which is the whole point of putting it there and not on the button.</p>
       <div className="fl-ctl-ai-card">
         <div className="fl-ctl-ai-head">
-          <span className="fl-ctl-ai-badge">
-            <Icon name="sparkle" /> AI draft
-          </span>
+          <AiIndicator label="AI draft" />
           <span className="fl-ctl-matrix-what">Written by a model from your venue notes. Check it before it goes out.</span>
         </div>
         <p>{d.answer}</p>
         <div className="fl-ctl-ai-foot">
-          <button type="button" className="fl-btn fl-btn--primary fl-ctl-btn--32" onClick={() => setAccepted("Kept the draft")}>
+          <Button size={32} onClick={() => setAccepted("Kept the draft")}>
             Keep it
-          </button>
-          <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => setAccepted("Asked for another one")}>
-            <Icon name="refresh" /> Try again
-          </button>
-          <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32" onClick={() => setAccepted("Discarded the draft")}>
+          </Button>
+          <Button variant="secondary" size={32} icon="refresh" onClick={() => setAccepted("Asked for another one")}>
+            Try again
+          </Button>
+          <Button variant="tertiary" size={32} onClick={() => setAccepted("Discarded the draft")}>
             Discard
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -131,10 +185,7 @@ export default function AiIndicators() {
         <p className="fl-ctl-btn-what">Text arriving a few letters at a time, and a way to stop it. The region is polite, so it does not interrupt a screen reader on every word.</p>
         <div className="fl-ctl-ai-stream">
           <div className="fl-ctl-ai-head">
-            <span className="fl-ctl-ai-badge">
-              <Icon name="sparkle" /> {running ? "Thinking" : shown ? "Finished" : "Ready"}
-            </span>
-            {running ? <span className="fl-ctl-ai-pulse" aria-hidden="true" /> : null}
+            {running ? <AiIndicator variant="working" label="Thinking" /> : <AiIndicator label={shown ? "Finished" : "Ready"} />}
           </div>
           <p aria-live="polite" aria-busy={running}>
             {d.answer.slice(0, shown)}
@@ -143,20 +194,20 @@ export default function AiIndicators() {
           </p>
           <div className="fl-ctl-ai-foot">
             {running ? (
-              <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => setRunning(false)}>
+              <Button variant="secondary" size={32} onClick={() => setRunning(false)}>
                 Stop
-              </button>
+              </Button>
             ) : (
-              <button
-                type="button"
-                className="fl-btn fl-btn--primary fl-ctl-btn--32"
+              <Button
+                size={32}
+                icon="sparkle"
                 onClick={() => {
                   setShown(0);
                   setRunning(true);
                 }}
               >
-                <Icon name="sparkle" /> {shown ? "Run it again" : "Ask it"}
-              </button>
+                {shown ? "Run it again" : "Ask it"}
+              </Button>
             )}
             <span className="fl-ctl-matrix-what">
               {shown ? `${Math.round((shown / d.answer.length) * 100)}% of the answer` : "Not started"}
@@ -170,16 +221,9 @@ export default function AiIndicators() {
         <p className="fl-ctl-btn-what">A bar is not enough. Each level says, in a sentence, what it is based on - which is the thing people actually need in order to decide.</p>
         <ul className="fl-ctl-ai-sure">
           {d.sure.map((s) => (
-            <li key={s.id}>
-              <span className="fl-ctl-ai-sure-top">
-                <strong>{s.label}</strong>
-                <span className="fl-ctl-matrix-what">{s.pct}%</span>
-              </span>
-              <span className={`fl-ctl-bar fl-ctl-bar--${s.id}`} role="progressbar" aria-valuenow={s.pct} aria-valuemin={0} aria-valuemax={100} aria-label={`${s.label}, ${s.pct} percent`}>
-                <span style={{ width: `${s.pct}%` }} />
-              </span>
-              <span className="fl-ctl-matrix-what">{s.what}</span>
-            </li>
+            <AiIndicator key={s.id} variant="confidence" label={s.label} level={s.id} percent={s.pct}>
+              {s.what}
+            </AiIndicator>
           ))}
         </ul>
       </div>

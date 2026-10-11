@@ -1,17 +1,24 @@
 /** @flowcode-library home-saas · SaaS homepage (Homepages)
+ * Catalog ID: t.home-saas (template)
+ * Function: A whole homepage for scheduling software for small studios, with a centered hero over a calendar preview drawn in CSS, integrations, a bento grid of features, a tabbed how-it-works, pricing with a monthly/yearly switch, FAQ, a trial sign-up and a column footer.
+ * Use it as: Copy home-saas.tsx (FlowCode brings hero-centered.tsx and buttons-variants.tsx with it); replace SAMPLE with the product's plans, features and wording; redraw the picture inside HeroCentered as the product's main screen.
+ * Built from: b.hero-centered, c.button.primary, c.button.secondary
+ * Look: Light and open: a faint grid behind a centered hero, a browser-window picture of the product, feature cards on a soft surface below.
  * Use cases: saas homepage; software product site; b2b marketing site; booking software; scheduling tool; pricing plans; free trial; product marketing
  * Jobs to be done: understand what the software does; compare plans for my budget; see how it fits my tools; start a free trial
  * Keywords: page, homepage, saas, landing, pricing, tabs, faq, signup, b2b
  */
 /**
- * Page template: SaaS homepage. A whole landing page for a software product sold on a subscription, here booking and
- * scheduling software for small studios: navigation, a centered hero over a live-looking product preview, the tools it
- * connects to, a bento grid of features, a tabbed "how it works", pricing with a monthly/yearly switch, questions, a
- * trial sign-up and a footer. Suits any B2B or prosumer SaaS. Make it the app's own: replace SAMPLE with the product's
- * real plans, features and wording, and redraw the preview as the product's main screen.
+ * Assembled from: nav > b.hero-centered (picture: the product's main screen) > integrations strip > features bento >
+ * how-it-works tabs > pricing > FAQ > trial sign-up > footer. The parts other than the hero are still written out
+ * inline; each becomes its own block next. Every button is c.button.
+ * To make it the app's own: replace SAMPLE with the product's real plans, features and wording, and redraw the picture
+ * inside HeroCentered as the product's main screen. Don't restyle the blocks or buttons: change the tokens.
  */
 import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { Icon, Tick } from "./icons";
+import { Button } from "./buttons-variants";
+import { HeroCentered } from "./hero-centered";
 
 // flowcode:sample
 const SAMPLE = {
@@ -167,12 +174,12 @@ export default function HomeSaas() {
             <a className="fl-link fl-hp-hide-sm" href="#signin">
               {d.signIn}
             </a>
-            <a className="fl-btn fl-btn--primary fl-hp-hide-sm" href="#hp-saas-trial">
+            <Button variant="primary" className="fl-hp-hide-sm" href="#hp-saas-trial">
               {d.cta}
-            </a>
-            <button type="button" className="fl-btn fl-btn--secondary fl-nav__menu" aria-expanded={menu} aria-controls="hp-saas-menu" aria-label="Menu" onClick={() => setMenu((o) => !o)}>
+            </Button>
+            <Button variant="secondary" className="fl-nav__menu" aria-expanded={menu} aria-controls="hp-saas-menu" aria-label="Menu" onClick={() => setMenu((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </nav>
         <ul id="hp-saas-menu" className="fl-hp-menu" data-open={menu}>
@@ -187,68 +194,55 @@ export default function HomeSaas() {
       </header>
 
       <main>
-        <section className="fl-hp-saas-hero fl-bg-grid" aria-labelledby="hp-saas-title">
-          <div className="fl-wrap">
-            <div className="fl-head fl-head--center">
-              <a className="fl-hp-kicker" href="#hp-saas-features">
-                <b>{d.kicker.tag}</b>
-                {d.kicker.text}
-              </a>
-              <h1 id="hp-saas-title" className="fl-title fl-title--xl">
-                {d.title}
-              </h1>
-              <p className="fl-lede">{d.lede}</p>
-              <div className="fl-actions">
-                <a className="fl-btn fl-btn--primary" href="#hp-saas-trial">
-                  {d.cta}
-                  <Icon name="arrow" />
-                </a>
-                <a className="fl-btn fl-btn--secondary" href="#hp-saas-how">
-                  {d.secondary}
-                </a>
-              </div>
-              <p className="fl-meta">{d.trust}</p>
-            </div>
-            <figure className="fl-hp-window" style={{ margin: "0 auto" }}>
-              <div className="fl-hp-window__bar" aria-hidden="true">
-                <span className="fl-hp-window__dot" />
-                <span className="fl-hp-window__dot" />
-                <span className="fl-hp-window__dot" />
-                <span style={{ marginLeft: "var(--space-3)" }}>{d.preview.url}</span>
-                <span>{d.preview.week}</span>
-              </div>
-              <div className="fl-hp-cal-wrap" tabIndex={0} aria-label="Sample week in the Slotwise calendar, scrolls sideways">
-                <div className="fl-hp-cal">
-                  <span className="fl-hp-cal__day" style={{ gridColumn: 1, gridRow: 1, borderLeft: 0 }} />
-                  {d.preview.days.map((day, i) => (
-                    <span key={day} className="fl-hp-cal__day" style={{ gridColumn: i + 2, gridRow: 1 }}>
-                      {day}
-                    </span>
-                  ))}
-                  {d.preview.times.map((t, r) => (
-                    <span key={t} className="fl-hp-cal__time" style={{ gridColumn: 1, gridRow: r + ROW_HEIGHT_OFFSET }}>
-                      {t}
-                    </span>
-                  ))}
-                  {d.preview.times.flatMap((t, r) =>
-                    d.preview.days.map((day, c) => <span key={`${t}-${day}`} className="fl-hp-cal__cell" style={{ gridColumn: c + 2, gridRow: r + ROW_HEIGHT_OFFSET }} />),
-                  )}
-                  {d.preview.events.map((ev) => (
-                    <div
-                      key={`${ev.day}-${ev.row}`}
-                      className={`fl-hp-cal__event${ev.kind ? ` fl-hp-cal__event--${ev.kind}` : ""}`}
-                      style={{ gridColumn: ev.day + 2, gridRow: `${ev.row + ROW_HEIGHT_OFFSET} / span ${ev.span}` }}
-                    >
-                      <strong>{ev.title}</strong>
-                      <span>{ev.note}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <figcaption className="fl-sr">A week of classes and private sessions, with seats taken shown on each booking.</figcaption>
-            </figure>
+        <HeroCentered
+          id="hp-saas"
+          background="grid"
+          kicker={{ ...d.kicker, href: "#hp-saas-features" }}
+          title={d.title}
+          lede={d.lede}
+          primary={{ label: d.cta, href: "#hp-saas-trial" }}
+          secondary={{ label: d.secondary, href: "#hp-saas-how" }}
+          note={d.trust}
+        >
+        <figure className="fl-hp-window">
+          <div className="fl-hp-window__bar" aria-hidden="true">
+            <span className="fl-hp-window__dot" />
+            <span className="fl-hp-window__dot" />
+            <span className="fl-hp-window__dot" />
+            <span style={{ marginLeft: "var(--space-3)" }}>{d.preview.url}</span>
+            <span>{d.preview.week}</span>
           </div>
-        </section>
+          <div className="fl-hp-cal-wrap" tabIndex={0} aria-label="Sample week in the Slotwise calendar, scrolls sideways">
+            <div className="fl-hp-cal">
+              <span className="fl-hp-cal__day" style={{ gridColumn: 1, gridRow: 1, borderLeft: 0 }} />
+              {d.preview.days.map((day, i) => (
+                <span key={day} className="fl-hp-cal__day" style={{ gridColumn: i + 2, gridRow: 1 }}>
+                  {day}
+                </span>
+              ))}
+              {d.preview.times.map((t, r) => (
+                <span key={t} className="fl-hp-cal__time" style={{ gridColumn: 1, gridRow: r + ROW_HEIGHT_OFFSET }}>
+                  {t}
+                </span>
+              ))}
+              {d.preview.times.flatMap((t, r) =>
+                d.preview.days.map((day, c) => <span key={`${t}-${day}`} className="fl-hp-cal__cell" style={{ gridColumn: c + 2, gridRow: r + ROW_HEIGHT_OFFSET }} />),
+              )}
+              {d.preview.events.map((ev) => (
+                <div
+                  key={`${ev.day}-${ev.row}`}
+                  className={`fl-hp-cal__event${ev.kind ? ` fl-hp-cal__event--${ev.kind}` : ""}`}
+                  style={{ gridColumn: ev.day + 2, gridRow: `${ev.row + ROW_HEIGHT_OFFSET} / span ${ev.span}` }}
+                >
+                  <strong>{ev.title}</strong>
+                  <span>{ev.note}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <figcaption className="fl-sr">A week of classes and private sessions, with seats taken shown on each booking.</figcaption>
+        </figure>
+        </HeroCentered>
 
         <section className="fl-section" style={{ paddingBlock: "var(--space-7)", borderBlock: "1px solid var(--color-border)" }} aria-labelledby="hp-saas-int">
           <div className="fl-wrap" style={{ display: "grid", gap: "var(--space-4)", textAlign: "center" }}>
@@ -384,9 +378,9 @@ export default function HomeSaas() {
                       </li>
                     ))}
                   </ul>
-                  <a className={`fl-btn ${p.featured ? "fl-btn--primary" : "fl-btn--secondary"}`} href="#hp-saas-trial">
+                  <Button variant={p.featured ? "primary" : "secondary"} href="#hp-saas-trial">
                     Try {p.name} free
-                  </a>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -441,9 +435,9 @@ export default function HomeSaas() {
                   aria-invalid={error ? true : undefined}
                   aria-describedby={error ? "hp-saas-email-error" : "hp-saas-email-note"}
                 />
-                <button type="submit" className="fl-btn fl-btn--primary">
+                <Button variant="primary" type="submit">
                   {d.cta}
-                </button>
+                </Button>
               </form>
             )}
             <div aria-live="polite">

@@ -1,4 +1,10 @@
 /** @flowcode-library lists-rows · Lists: plain rows, rows that open, rows you act on, and rows you reorder (Tables and lists)
+ * Catalog ID: c.list-row (component)
+ * Function: The list row (c.list-row), one component for rows that state a fact, open something, carry actions or reorder; the reference sheet shows all four lists working.
+ * Use it as: import { ListRow } from "./lists-rows"; <ul className="fl-ctl-rows"><ListRow variant?="fact"|"link"|"action"|"reorder" title meta? aside? icon? actions?={<Button…/>} href? current? unread? onClick?>fact value</ListRow></ul>
+ * Variants: c.list-row.fact - a label and its value, nothing to press (use inside <dl className="fl-ctl-rows fl-ctl-rows--facts">): two columns, no hover; c.list-row.link - a row that opens one thing: whole row is a link with title, subtitle, time at the right, an unread dot and a marked current row; c.list-row.action - a row you act on through its buttons: optional leading icon, title and meta, icon Buttons at the right that stay visible; c.list-row.reorder - a row you reorder: a drag grip at the left, the title, and move up/down icon Buttons at the right
+ * Look: Bordered, divided rows with a title, quieter second line and optional leading icon and trailing controls; only link rows react to the pointer.
+ * Tokens: --color-border --color-surface-sunken --color-accent --color-text --color-text-muted --radius-lg --space-2 --space-3 --text-sm --focus-ring
  * Use cases: a settings list; an inbox; search results; a queue; a playlist
  * Jobs to be done: scan a list; open one; act on one without opening it; put them in my own order
  * Keywords: list, rows, list item, divider, hover, selected, reorder, drag handle
@@ -25,8 +31,87 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useState } from "react";
+import { useState, type MouseEventHandler, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+
+// ── c.list-row: one row of a list. The kind says what pressing it does. ──
+
+export type ListRowVariant = "fact" | "link" | "action" | "reorder";
+
+// Written out in full (not built from the variant name) so a build finds every class the row needs.
+const ROW: Record<ListRowVariant, string> = { fact: "", link: "fl-spec-row", action: "fl-spec-row fl-ctl-row--static", reorder: "fl-spec-row fl-ctl-row--static" };
+
+/**
+ * Put rows inside a list that carries the row classes: <ul className="fl-ctl-rows"> (add fl-ctl-rows--links for links,
+ * fl-ctl-rows--order for an <ol> of reorderable rows), or <dl className="fl-ctl-rows fl-ctl-rows--facts"> for facts.
+ */
+export function ListRow({ variant = "action", title, meta, aside, icon, actions, href, current, unread, onClick, className, children }: {
+  variant?: ListRowVariant;
+  /** The row's main text. For a fact, its label. */
+  title: ReactNode;
+  /** A quiet second line under the title. */
+  meta?: ReactNode;
+  /** Quiet text at the right end of a link row, such as a time. */
+  aside?: ReactNode;
+  /** An icon name from ./icons, before the text of an action row. */
+  icon?: string;
+  /** Buttons at the right end of an action or reorder row. They stay visible, because hover does not exist on touch. */
+  actions?: ReactNode;
+  /** Link rows: where it goes. */
+  href?: string;
+  /** Link rows: the one you are looking at stays marked. */
+  current?: boolean;
+  /** Link rows: bold, with a dot, until it has been opened. */
+  unread?: boolean;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
+  className?: string;
+  /** For a fact, its value. */
+  children?: ReactNode;
+}) {
+  const fl = `c.list-row.${variant}`;
+  if (variant === "fact") {
+    return (
+      <div data-fl={fl} className={className}>
+        <dt>{title}</dt>
+        <dd>{children}</dd>
+      </div>
+    );
+  }
+  const main = (
+    <span className="fl-ctl-row-main">
+      <strong>{title}</strong>
+      {meta ? <span className="fl-ctl-matrix-what">{meta}</span> : null}
+    </span>
+  );
+  if (variant === "link") {
+    return (
+      <li data-fl={fl} className={className}>
+        <a href={href ?? "#top"} className={`${ROW.link}${current ? " is-on" : ""}${unread ? " is-unread" : ""}`} aria-current={current ? "true" : undefined} onClick={onClick}>
+          <span className="fl-ctl-row-unread" aria-hidden="true" />
+          {unread ? <span className="fl-sr">Unread. </span> : null}
+          {main}
+          {aside ? <span className="fl-ctl-matrix-what">{aside}</span> : null}
+        </a>
+      </li>
+    );
+  }
+  return (
+    <li data-fl={fl} className={[ROW[variant], className ?? ""].filter(Boolean).join(" ")}>
+      {variant === "reorder" ? (
+        <span className="fl-ctl-row-grip" aria-hidden="true">
+          <Icon name="more" />
+        </span>
+      ) : icon ? (
+        <span className="fl-ctl-row-icon" aria-hidden="true">
+          <Icon name={icon} />
+        </span>
+      ) : null}
+      {main}
+      {actions}
+    </li>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -75,10 +160,9 @@ export default function ListsRows() {
           <p className="fl-ctl-matrix-what">Facts about one thing. Nothing here can be pressed, so nothing here reacts to the pointer.</p>
           <dl className="fl-ctl-rows fl-ctl-rows--facts">
             {d.facts.map((f) => (
-              <div key={f.k}>
-                <dt>{f.k}</dt>
-                <dd>{f.v}</dd>
-              </div>
+              <ListRow key={f.k} variant="fact" title={f.k}>
+                {f.v}
+              </ListRow>
             ))}
           </dl>
         </li>
@@ -92,34 +176,28 @@ export default function ListsRows() {
             {d.mail.map((m) => {
               const unread = m.unread && !read.includes(m.id);
               return (
-                <li key={m.id}>
-                  <a
-                    href="#top"
-                    className={`fl-spec-row${m.id === open ? " is-on" : ""}${unread ? " is-unread" : ""}`}
-                    aria-current={m.id === open ? "true" : undefined}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setOpen(m.id);
-                      setRead((v) => (v.includes(m.id) ? v : [...v, m.id]));
-                      setSaid(`Opened: ${m.sub}`);
-                    }}
-                  >
-                    <span className="fl-ctl-row-unread" aria-hidden="true" />
-                    {unread ? <span className="fl-sr">Unread. </span> : null}
-                    <span className="fl-ctl-row-main">
-                      <strong>{m.who}</strong>
-                      <span className="fl-ctl-matrix-what">{m.sub}</span>
-                    </span>
-                    <span className="fl-ctl-matrix-what">{m.when}</span>
-                  </a>
-                </li>
+                <ListRow
+                  key={m.id}
+                  variant="link"
+                  title={m.who}
+                  meta={m.sub}
+                  aside={m.when}
+                  current={m.id === open}
+                  unread={unread}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpen(m.id);
+                    setRead((v) => (v.includes(m.id) ? v : [...v, m.id]));
+                    setSaid(`Opened: ${m.sub}`);
+                  }}
+                />
               );
             })}
           </ul>
           {read.length ? (
-            <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--32" onClick={() => setRead([])}>
+            <Button variant="tertiary" size={32} onClick={() => setRead([])}>
               Mark them unread again
-            </button>
+            </Button>
           ) : null}
         </li>
 
@@ -128,37 +206,39 @@ export default function ListsRows() {
           <p className="fl-ctl-matrix-what">The row itself does nothing; the buttons do. They stay visible, because hover does not exist on a phone.</p>
           <ul className="fl-ctl-rows">
             {files.map((f) => (
-              <li key={f.id} className="fl-spec-row fl-ctl-row--static">
-                <span className="fl-ctl-row-icon" aria-hidden="true">
-                  <Icon name="folder" />
-                </span>
-                <span className="fl-ctl-row-main">
-                  <strong>{f.name}</strong>
-                  <span className="fl-ctl-matrix-what">{f.meta}</span>
-                </span>
-                <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32" aria-label={`Download ${f.name}`} title="Download" onClick={() => setSaid(`Downloading ${f.name}`)}>
-                  <Icon name="download" />
-                </button>
-                <button
-                  type="button"
-                  className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32"
-                  aria-label={`Remove ${f.name}`}
-                  title="Remove"
-                  onClick={() => {
-                    setFiles((v) => v.filter((x) => x.id !== f.id));
-                    setSaid(`Removed ${f.name}`);
-                  }}
-                >
-                  <Icon name="close" />
-                </button>
-              </li>
+              <ListRow
+                key={f.id}
+                variant="action"
+                icon="folder"
+                title={f.name}
+                meta={f.meta}
+                actions={
+                  <>
+                    <Button variant="tertiary" size={32} icon="download" iconOnly onClick={() => setSaid(`Downloading ${f.name}`)}>
+                      {`Download ${f.name}`}
+                    </Button>
+                    <Button
+                      variant="tertiary"
+                      size={32}
+                      icon="close"
+                      iconOnly
+                      onClick={() => {
+                        setFiles((v) => v.filter((x) => x.id !== f.id));
+                        setSaid(`Removed ${f.name}`);
+                      }}
+                    >
+                      {`Remove ${f.name}`}
+                    </Button>
+                  </>
+                }
+              />
             ))}
             {files.length ? null : (
               <li className="fl-spec-row fl-ctl-row--static">
                 <span className="fl-ctl-matrix-what">Nothing attached.</span>
-                <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" onClick={() => setFiles(d.files)}>
+                <Button variant="secondary" size={32} onClick={() => setFiles(d.files)}>
                   Put them back
-                </button>
+                </Button>
               </li>
             )}
           </ul>
@@ -169,22 +249,21 @@ export default function ListsRows() {
           <p className="fl-ctl-matrix-what">A handle, and two buttons that do the same job for anyone who cannot drag.</p>
           <ol className="fl-ctl-rows fl-ctl-rows--order">
             {order.map((o, n) => (
-              <li key={o} className="fl-spec-row fl-ctl-row--static">
-                <span className="fl-ctl-row-grip" aria-hidden="true">
-                  <Icon name="more" />
-                </span>
-                <span className="fl-ctl-row-main">
-                  <strong>
-                    {n + 1}. {o}
-                  </strong>
-                </span>
-                <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32 fl-ctl-row-up" aria-label={`Move ${o} up`} title="Move up" disabled={n === 0} onClick={() => shift(n, -1)}>
-                  <Icon name="chevron-down" />
-                </button>
-                <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32" aria-label={`Move ${o} down`} title="Move down" disabled={n === order.length - 1} onClick={() => shift(n, 1)}>
-                  <Icon name="chevron-down" />
-                </button>
-              </li>
+              <ListRow
+                key={o}
+                variant="reorder"
+                title={`${n + 1}. ${o}`}
+                actions={
+                  <>
+                    <Button variant="tertiary" size={32} icon="chevron-down" iconOnly className="fl-ctl-row-up" disabled={n === 0} onClick={() => shift(n, -1)}>
+                      {`Move ${o} up`}
+                    </Button>
+                    <Button variant="tertiary" size={32} icon="chevron-down" iconOnly disabled={n === order.length - 1} onClick={() => shift(n, 1)}>
+                      {`Move ${o} down`}
+                    </Button>
+                  </>
+                }
+              />
             ))}
           </ol>
         </li>

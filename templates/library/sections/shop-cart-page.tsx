@@ -1,4 +1,10 @@
 /** @flowcode-library shop-cart-page · Cart page (Shop)
+ * Catalog ID: b.shop-cart-page (block)
+ * Function: The full shopping bag page (b.shop-cart-page) with working quantities, undo, promo code, delivery options and totals.
+ * Use it as: import { ShopCartPage } from "./shop-cart-page"; <ShopCartPage heading lede? currency? maxQty? items={[{id,name,variant,price(cents),qty,tone?}]} promo?={{code,percent}} delivery={[{id,name,note,price,freeOver?}]}/>
+ * Built from: c.button.primary, c.button.secondary, c.button.tertiary, c.text-field.outlined
+ * Look: A title over two columns: a bordered table of bag lines with quantity steppers and remove buttons, and a summary panel with promo code, delivery choices, totals and a full-width checkout button.
+ * Tokens: --space-4 --space-5 --color-surface --color-border --color-text-muted --color-accent --color-success --color-danger --radius-md
  * Use cases: cart page; shopping basket; checkout review; order summary; promo code; delivery options; online store
  * Jobs to be done: review my order before paying; apply a discount code; choose a delivery option; remove items i do not want
  * Keywords: cart, basket, promo code, delivery, order summary, table, checkout, shop
@@ -11,13 +17,10 @@
  */
 import { useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { TextField } from "./text-fields-states";
 
-// flowcode:sample
-const SAMPLE = {
-  heading: "Your bag",
-  lede: "Check sizes and quantities, then pick how you would like it delivered.",
-  currency: "$",
-  maxQty: 9,
+const LABELS = {
   cols: { product: "Product", price: "Price", qty: "Quantity", total: "Total" },
   remove: "Remove",
   removed: "removed.",
@@ -26,22 +29,11 @@ const SAMPLE = {
     label: "Promo code",
     placeholder: "e.g. WELCOME10",
     apply: "Apply",
-    validCode: "STUDIO10",
-    percent: 10,
-    applied: "10% off with STUDIO10",
     removeCode: "Remove code",
     errorEmpty: "Enter a promo code first.",
     errorInvalid: "That code is not valid. Check the spelling, or try another.",
   },
-  delivery: {
-    legend: "Delivery",
-    freeOver: 6000,
-    options: [
-      { id: "standard", name: "Standard", note: "3–5 working days · free over $60", price: 495 },
-      { id: "express", name: "Express", note: "Next working day if ordered by 2pm", price: 995 },
-      { id: "collect", name: "Collect from the studio", note: "Ready in 2 days · 14 Mill Lane", price: 0 },
-    ],
-  },
+  deliveryLegend: "Delivery",
   summary: { title: "Order summary", subtotal: "Subtotal", discount: "Discount", delivery: "Delivery", free: "Free", total: "Total" },
   checkout: "Go to checkout",
   secure: "No payment is taken in this preview.",
@@ -49,31 +41,31 @@ const SAMPLE = {
   emptyTitle: "Your bag is empty",
   emptyText: "Have a look around the shop. Anything you add will show up here.",
   browse: "Browse the shop",
-  items: [
-    { id: "bowl", name: "Hand-thrown serving bowl", variant: "Sage · Large", price: 4600, qty: 1, tone: "sage" },
-    { id: "towels", name: "Waffle tea towels, set of 2", variant: "Oat", price: 1800, qty: 2, tone: "oat" },
-    { id: "jug", name: "Pouring jug", variant: "Charcoal · 600 ml", price: 3200, qty: 1, tone: "charcoal" },
-  ],
 };
 
-type Item = (typeof SAMPLE.items)[number];
+export type CartLine = { id: string; name: string; variant: string; price: number; qty: number; tone?: string };
+export type DeliveryOption = { id: string; name: string; note: string; price: number; freeOver?: number };
 
-function money(cents: number) {
-  return `${SAMPLE.currency}${(cents / 100).toFixed(2)}`;
-}
+export type ShopCartPageProps = {
+  heading: string;
+  lede?: string;
+  /** Currency symbol before prices; "$" when left out. */
+  currency?: string;
+  /** Largest quantity per line; 9 when left out. */
+  maxQty?: number;
+  /** The bag's lines. Prices are in cents. */
+  items: CartLine[];
+  /** One working promo code and the percent it takes off. Leave out for no promo box. */
+  promo?: { code: string; percent: number };
+  delivery: DeliveryOption[];
+};
+
+type Item = CartLine;
 
 function MinusPlus({ plus }: { plus?: boolean }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
       <path d={plus ? "M5 12h14M12 5v14" : "M5 12h14"} />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
     </svg>
   );
 }
@@ -105,21 +97,23 @@ function QtyStepper({ id, label, value, max, onChange }: { id: string; label: st
   );
 }
 
-export default function ShopCartPage() {
-  const d = SAMPLE;
-  const [items, setItems] = useState<Item[]>(d.items);
+export function ShopCartPage({ heading, lede, currency = "$", maxQty = 9, items: initial, promo, delivery: deliveryOptions }: ShopCartPageProps) {
+  const d = LABELS;
+  const money = (cents: number) => `${currency}${(cents / 100).toFixed(2)}`;
+  const [items, setItems] = useState<Item[]>(initial);
   const [removed, setRemoved] = useState<{ item: Item; index: number } | null>(null);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState("");
   const [applied, setApplied] = useState(false);
-  const [delivery, setDelivery] = useState(d.delivery.options[0].id);
+  const [delivery, setDelivery] = useState(deliveryOptions[0]?.id ?? "");
   const [placed, setPlaced] = useState(false);
 
   const count = items.reduce((n, i) => n + i.qty, 0);
   const subtotal = items.reduce((n, i) => n + i.qty * i.price, 0);
-  const discount = applied ? Math.round((subtotal * d.promo.percent) / 100) : 0;
-  const option = d.delivery.options.find((o) => o.id === delivery) ?? d.delivery.options[0];
-  const deliveryCost = option.id === "standard" && subtotal - discount >= d.delivery.freeOver ? 0 : option.price;
+  const discount = applied && promo ? Math.round((subtotal * promo.percent) / 100) : 0;
+  const costOf = (o: DeliveryOption) => (o.freeOver !== undefined && subtotal - discount >= o.freeOver ? 0 : o.price);
+  const option = deliveryOptions.find((o) => o.id === delivery) ?? deliveryOptions[0];
+  const deliveryCost = option ? costOf(option) : 0;
   const total = subtotal - discount + deliveryCost;
 
   const setQty = (id: string, qty: number) => {
@@ -151,7 +145,7 @@ export default function ShopCartPage() {
       setCodeError(d.promo.errorEmpty);
       return;
     }
-    if (value !== d.promo.validCode) {
+    if (!promo || value !== promo.code) {
       setCodeError(d.promo.errorInvalid);
       return;
     }
@@ -162,10 +156,10 @@ export default function ShopCartPage() {
 
   if (items.length === 0 && !removed) {
     return (
-      <section className="fl-section" aria-labelledby="shop-cart-page-title">
+      <section className="fl-section" aria-labelledby="shop-cart-page-title" data-fl="b.shop-cart-page">
         <div className="fl-wrap fl-wrap--narrow fl-shop-stage">
           <h2 id="shop-cart-page-title" className="fl-title fl-title--md">
-            {d.heading}
+            {heading}
           </h2>
           <div className="fl-shop-empty">
             <span className="fl-icon">
@@ -173,9 +167,9 @@ export default function ShopCartPage() {
             </span>
             <strong>{d.emptyTitle}</strong>
             <span>{d.emptyText}</span>
-            <a className="fl-btn fl-btn--primary" href="#shop">
+            <Button variant="primary" href="#shop">
               {d.browse}
-            </a>
+            </Button>
           </div>
         </div>
       </section>
@@ -183,13 +177,13 @@ export default function ShopCartPage() {
   }
 
   return (
-    <section className="fl-section" aria-labelledby="shop-cart-page-title">
+    <section className="fl-section" aria-labelledby="shop-cart-page-title" data-fl="b.shop-cart-page">
       <div className="fl-wrap fl-shop-stage">
         <div className="fl-shop-bar__title">
           <h2 id="shop-cart-page-title" className="fl-title fl-title--md">
-            {d.heading} <span className="fl-meta">({count} {count === 1 ? "item" : "items"})</span>
+            {heading} <span className="fl-meta">({count} {count === 1 ? "item" : "items"})</span>
           </h2>
-          <p className="fl-text">{d.lede}</p>
+          {lede ? <p className="fl-text">{lede}</p> : null}
         </div>
 
         <div className="fl-shop-cart">
@@ -237,7 +231,7 @@ export default function ShopCartPage() {
                       <tr key={i.id}>
                         <th scope="row">
                           <div className="fl-shop-table__product">
-                            <span className={`fl-shop-img fl-shop-img--thumb fl-shop-tone--${i.tone}`} aria-hidden="true" />
+                            <span className={`fl-shop-img fl-shop-img--thumb fl-shop-tone--${i.tone ?? "oat"}`} aria-hidden="true" />
                             <span>
                               <strong>{i.name}</strong>
                               <span className="fl-meta">
@@ -248,13 +242,13 @@ export default function ShopCartPage() {
                         </th>
                         <td className="fl-shop-num fl-shop-price">{money(i.price)}</td>
                         <td>
-                          <QtyStepper id={`shop-cart-page-qty-${i.id}`} label={i.name} value={i.qty} max={d.maxQty} onChange={(n) => setQty(i.id, n)} />
+                          <QtyStepper id={`shop-cart-page-qty-${i.id}`} label={i.name} value={i.qty} max={maxQty} onChange={(n) => setQty(i.id, n)} />
                         </td>
                         <td className="fl-shop-num fl-shop-price">{money(i.price * i.qty)}</td>
                         <td>
-                          <button type="button" className="fl-shop-icon-btn" aria-label={`${d.remove} ${i.name}`} onClick={() => remove(i.id)}>
-                            <TrashIcon />
-                          </button>
+                          <Button variant="tertiary" size={40} icon="trash" iconOnly onClick={() => remove(i.id)}>
+                            {`${d.remove} ${i.name}`}
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -268,20 +262,19 @@ export default function ShopCartPage() {
             <div className="fl-shop-panel">
               <h3 id="shop-cart-page-summary">{d.summary.title}</h3>
 
-              {applied ? (
+              {promo && applied ? (
                 <div className="fl-shop-applied">
-                  <span>{d.promo.applied}</span>
+                  <span>{promo?.percent}% off with {promo?.code}</span>
                   <button type="button" className="fl-shop-link" onClick={() => setApplied(false)}>
                     {d.promo.removeCode}
                   </button>
                 </div>
-              ) : (
+              ) : promo ? (
                 <form className="fl-field" noValidate onSubmit={applyCode}>
                   <label htmlFor="shop-cart-page-code">{d.promo.label}</label>
                   <div className="fl-shop-promo">
-                    <input
+                    <TextField
                       id="shop-cart-page-code"
-                      className="fl-input"
                       value={code}
                       autoComplete="off"
                       placeholder={d.promo.placeholder}
@@ -289,12 +282,12 @@ export default function ShopCartPage() {
                         setCode(e.target.value);
                         if (codeError) setCodeError("");
                       }}
-                      aria-invalid={codeError ? true : undefined}
+                      invalid={!!codeError}
                       aria-describedby={codeError ? "shop-cart-page-code-error" : undefined}
                     />
-                    <button type="submit" className="fl-btn fl-btn--secondary fl-shop-btn--sm" style={{ minHeight: "var(--control-md)" }}>
+                    <Button type="submit" variant="secondary" size={40} className="fl-shop-btn--sm" style={{ minHeight: "var(--control-md)" }}>
                       {d.promo.apply}
-                    </button>
+                    </Button>
                   </div>
                   {codeError && (
                     <p id="shop-cart-page-code-error" className="fl-shop-error" role="alert">
@@ -302,12 +295,12 @@ export default function ShopCartPage() {
                     </p>
                   )}
                 </form>
-              )}
+              ) : null}
 
               <fieldset className="fl-shop-fieldset">
-                <legend>{d.delivery.legend}</legend>
-                {d.delivery.options.map((o) => {
-                  const cost = o.id === "standard" && subtotal - discount >= d.delivery.freeOver ? 0 : o.price;
+                <legend>{d.deliveryLegend}</legend>
+                {deliveryOptions.map((o) => {
+                  const cost = costOf(o);
                   return (
                     <label key={o.id} className="fl-shop-option">
                       <input type="radio" name="shop-cart-page-delivery" value={o.id} checked={delivery === o.id} onChange={() => setDelivery(o.id)} />
@@ -342,10 +335,9 @@ export default function ShopCartPage() {
                 </div>
               </dl>
 
-              <button type="button" className="fl-btn fl-btn--primary fl-shop-btn--block" disabled={items.length === 0} onClick={() => setPlaced(true)}>
-                <Icon name="lock" />
+              <Button variant="primary" className="fl-shop-btn--block" icon="lock" disabled={items.length === 0} onClick={() => setPlaced(true)}>
                 {d.checkout}
-              </button>
+              </Button>
               <p className={`fl-shop-status${placed ? " fl-shop-status--ok" : ""}`} role="status" aria-live="polite" style={{ marginTop: "calc(-1 * var(--space-2))" }}>
                 {placed ? d.placed : d.secure}
               </p>
@@ -355,4 +347,27 @@ export default function ShopCartPage() {
       </div>
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE: ShopCartPageProps = {
+  heading: "Your bag",
+  lede: "Check sizes and quantities, then pick how you would like it delivered.",
+  currency: "$",
+  maxQty: 9,
+  items: [
+    { id: "bowl", name: "Hand-thrown serving bowl", variant: "Sage · Large", price: 4600, qty: 1, tone: "sage" },
+    { id: "towels", name: "Waffle tea towels, set of 2", variant: "Oat", price: 1800, qty: 2, tone: "oat" },
+    { id: "jug", name: "Pouring jug", variant: "Charcoal · 600 ml", price: 3200, qty: 1, tone: "charcoal" },
+  ],
+  promo: { code: "STUDIO10", percent: 10 },
+  delivery: [
+    { id: "standard", name: "Standard", note: "3–5 working days · free over $60", price: 495, freeOver: 6000 },
+    { id: "express", name: "Express", note: "Next working day if ordered by 2pm", price: 995 },
+    { id: "collect", name: "Collect from the studio", note: "Ready in 2 days · 14 Mill Lane", price: 0 },
+  ],
+};
+
+export default function ShopCartPagePreview() {
+  return <ShopCartPage {...SAMPLE} />;
 }

@@ -1,4 +1,10 @@
 /** @flowcode-library chat-bubbles · Chat: bubbles, grouping, delivery and the message that failed (Small components)
+ * Catalog ID: c.chat-bubble (component)
+ * Function: The chat bubble (c.chat-bubble), one message in a thread with side, grouping, delivery status and typing; the reference sheet shows a live conversation (the thread and composer stay specimen markup).
+ * Use it as: import { ChatBubble } from "./chat-bubbles"; <ol className="fl-ctl-chat-log" role="log" aria-live="polite"><ChatBubble variant?="mine"|"theirs" name at? first? status?="sending"|"sent"|"read"|"failed" typing? onRetry?>message text</ChatBubble></ol>
+ * Variants: c.chat-bubble.mine - your own message: right-aligned, filled with the accent color, with a delivery line (Sending, Sent, Read, or Not sent with Try again); c.chat-bubble.theirs - someone else's message: left-aligned on a sunken surface with their avatar on the first of a run; typing shows animated dots
+ * Look: A rounded speech bubble on one side of a thread, with a name and time above the first of a run, a small avatar on their side and a delivery line under yours.
+ * Tokens: --color-accent --color-on-accent --color-surface-sunken --color-danger --color-text --color-text-muted --radius-lg --space-2 --space-3 --text-sm --text-xs
  * Use cases: a support thread; client messages; an assistant conversation; comments on a shoot; a team channel
  * Jobs to be done: follow who said what; know my message arrived; send another one; retry one that failed
  * Keywords: chat, message, bubble, thread, timestamp, delivered, read receipt, typing, retry
@@ -25,14 +31,86 @@
  * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
  * built app exactly as it runs here.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Avatar } from "./avatars-variants";
+import { Button } from "./buttons-variants";
+
+// ── c.chat-bubble: one message in a thread. Put these inside <ol className="fl-ctl-chat-log" role="log" aria-live="polite">. ──
+
+export type ChatBubbleVariant = "mine" | "theirs";
+export type ChatBubbleStatus = "sending" | "sent" | "read" | "failed";
+
+// Written out in full (not built from the variant name) so a build finds every class the bubble needs.
+const SIDE: Record<ChatBubbleVariant, string> = { mine: "fl-ctl-msg--me", theirs: "fl-ctl-msg--them" };
+const STATE_TEXT: Record<Exclude<ChatBubbleStatus, "failed">, string> = { sending: "Sending…", sent: "Sent", read: "Read" };
+
+export function ChatBubble({ variant = "theirs", name, at, first, status, typing, onRetry, className, children }: {
+  variant?: ChatBubbleVariant;
+  /** Who wrote it. Shown above the first message of a run, and by the avatar on their side. */
+  name: string;
+  /** When it was sent, shown beside the name. */
+  at?: string;
+  /** The first message of a run from one person: shows the name, time and (for theirs) the avatar. */
+  first?: boolean;
+  /** Delivery, for your own messages: sending, sent, read, or failed (which offers a retry). */
+  status?: ChatBubbleStatus;
+  /** Three animated dots instead of text: they are typing. */
+  typing?: boolean;
+  /** Pressed on "Try again" in a failed message. */
+  onRetry?: () => void;
+  className?: string;
+  children?: ReactNode;
+}) {
+  const cls = ["fl-ctl-msg", SIDE[variant], first || typing ? "is-first" : "", status === "failed" ? "is-failed" : "", className ?? ""].filter(Boolean).join(" ");
+  return (
+    <li className={cls} data-fl={`c.chat-bubble.${variant}`}>
+      {variant === "theirs" ? (
+        <span className="fl-ctl-msg-face" aria-hidden="true">
+          {first || typing ? <Avatar name={name} size={24} tone="a" decorative /> : null}
+        </span>
+      ) : null}
+      <span className="fl-ctl-msg-col">
+        {first && !typing ? (
+          <span className="fl-ctl-msg-who">
+            {variant === "mine" ? "You" : name}
+            {at ? <> &middot; {at}</> : null}
+          </span>
+        ) : null}
+        {typing ? (
+          <span className="fl-ctl-bubble fl-ctl-bubble--typing">
+            <span className="fl-sr">{name} is typing</span>
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+          </span>
+        ) : (
+          <span className="fl-ctl-bubble">{children}</span>
+        )}
+        {variant === "mine" && status ? (
+          <span className="fl-ctl-msg-state">
+            {status === "failed" ? (
+              <>
+                Not sent
+                <button type="button" className="fl-ctl-msg-retry" onClick={onRetry}>
+                  <Icon name="refresh" /> Try again
+                </button>
+              </>
+            ) : (
+              STATE_TEXT[status]
+            )}
+          </span>
+        ) : null}
+      </span>
+    </li>
+  );
+}
 
 type Msg = { id: number; who: "them" | "me"; text: string; at: string; state?: "sending" | "sent" | "read" | "failed" };
 
 // flowcode:sample
 const SAMPLE = {
-  them: { name: "Ana Moreau", initials: "AM" },
+  them: { name: "Ana Moreau" },
   start: [
     { id: 1, who: "them", text: "Morning! Are we still on for the 12th?", at: "9:02" },
     { id: 2, who: "them", text: "The venue just asked for a timing sheet.", at: "9:02" },
@@ -90,9 +168,7 @@ export default function ChatBubbles() {
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-chat">
         <div className="fl-ctl-chat-head">
-          <span className="fl-ctl-avatar fl-ctl-avatar--40 fl-ctl-avatar--a" aria-hidden="true">
-            <span>{d.them.initials}</span>
-          </span>
+          <Avatar name={d.them.name} size={40} tone="a" decorative />
           <span>
             <strong>{d.them.name}</strong>
             <span className="fl-ctl-matrix-what">
@@ -102,66 +178,20 @@ export default function ChatBubbles() {
         </div>
 
         <ol className="fl-ctl-chat-log" role="log" aria-live="polite" aria-label={`Conversation with ${d.them.name}`}>
-          {msgs.map((m, n) => {
-            const first = n === 0 || msgs[n - 1].who !== m.who;
-            return (
-              <li key={m.id} className={`fl-ctl-msg fl-ctl-msg--${m.who}${first ? " is-first" : ""}${m.state === "failed" ? " is-failed" : ""}`}>
-                {m.who === "them" ? (
-                  <span className="fl-ctl-msg-face" aria-hidden="true">
-                    {first ? (
-                      <span className="fl-ctl-avatar fl-ctl-avatar--24 fl-ctl-avatar--a">
-                        <span>{d.them.initials}</span>
-                      </span>
-                    ) : null}
-                  </span>
-                ) : null}
-                <span className="fl-ctl-msg-col">
-                  {first ? (
-                    <span className="fl-ctl-msg-who">
-                      {m.who === "me" ? "You" : d.them.name} &middot; {m.at}
-                    </span>
-                  ) : null}
-                  <span className="fl-ctl-bubble">{m.text}</span>
-                  {m.who === "me" ? (
-                    <span className="fl-ctl-msg-state">
-                      {m.state === "sending" ? "Sending…" : null}
-                      {m.state === "sent" ? "Sent" : null}
-                      {m.state === "read" ? "Read" : null}
-                      {m.state === "failed" ? (
-                        <>
-                          Not sent
-                          <button
-                            type="button"
-                            className="fl-ctl-msg-retry"
-                            onClick={() => setMsgs((v) => v.map((x) => (x.id === m.id ? { ...x, state: "sending" } : x)))}
-                          >
-                            <Icon name="refresh" /> Try again
-                          </button>
-                        </>
-                      ) : null}
-                    </span>
-                  ) : null}
-                </span>
-              </li>
-            );
-          })}
-          {typing ? (
-            <li className="fl-ctl-msg fl-ctl-msg--them is-first">
-              <span className="fl-ctl-msg-face" aria-hidden="true">
-                <span className="fl-ctl-avatar fl-ctl-avatar--24 fl-ctl-avatar--a">
-                  <span>{d.them.initials}</span>
-                </span>
-              </span>
-              <span className="fl-ctl-msg-col">
-                <span className="fl-ctl-bubble fl-ctl-bubble--typing">
-                  <span className="fl-sr">{d.them.name} is typing</span>
-                  <span aria-hidden="true" />
-                  <span aria-hidden="true" />
-                  <span aria-hidden="true" />
-                </span>
-              </span>
-            </li>
-          ) : null}
+          {msgs.map((m, n) => (
+            <ChatBubble
+              key={m.id}
+              variant={m.who === "me" ? "mine" : "theirs"}
+              name={d.them.name}
+              at={m.at}
+              first={n === 0 || msgs[n - 1].who !== m.who}
+              status={m.state}
+              onRetry={() => setMsgs((v) => v.map((x) => (x.id === m.id ? { ...x, state: "sending" } : x)))}
+            >
+              {m.text}
+            </ChatBubble>
+          ))}
+          {typing ? <ChatBubble name={d.them.name} typing /> : null}
         </ol>
 
         <form
@@ -175,9 +205,9 @@ export default function ChatBubbles() {
             Write a message
           </label>
           <input id="chat-text" className="fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--40" placeholder="Write a message" value={text} onChange={(e) => setText(e.target.value)} />
-          <button type="submit" className="fl-btn fl-btn--primary fl-ctl-btn--icon fl-ctl-btn--40" disabled={!text.trim()} aria-label="Send">
-            <Icon name="send" />
-          </button>
+          <Button type="submit" size={40} icon="send" iconOnly disabled={!text.trim()}>
+            Send
+          </Button>
         </form>
       </div>
 

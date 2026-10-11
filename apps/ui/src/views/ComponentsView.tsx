@@ -4,7 +4,7 @@
  * the section's styles never mix with FlowCode's. Read-only: builds copy the sections they need.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
+import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, usedBy, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
 import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
 import { Search } from "lucide-react";
@@ -260,11 +260,53 @@ export function ComponentsView() {
               <p className="dim" style={{ margin: "4px 0 0" }}>
                 {open.description} File: <span className="mono">templates/library/sections/{open.id}.tsx</span>
               </p>
+              <PieceRefs piece={open} />
             </div>
             {showCode ? <pre className="cl-code">{code ?? "Loading…"}</pre> : <SectionFrame id={open.id} styleId={styleId} title={open.name} width={deviceWidth(device)} />}
           </div>
         </LibModal>
       ) : null}
     </div>
+  );
+}
+
+/** A piece's catalog ID to copy, its variants' IDs, what it's built from and what uses it. */
+function PieceRefs({ piece }: { piece: LibrarySection }) {
+  if (!piece.ref) return null;
+  const users = usedBy(piece.ref);
+  const refs = (list: string[]) => list.map((r) => <code key={r} className="cl-ref">{r}</code>);
+  return (
+    <dl className="cl-refs">
+      <div>
+        <dt>Catalog ID</dt>
+        <dd>
+          <CopyButton text={piece.ref} label={piece.ref} />
+        </dd>
+      </div>
+      {piece.variants?.length ? (
+        <div>
+          <dt>Variants</dt>
+          <dd>{refs(piece.variants.map((v) => v.ref))}</dd>
+        </div>
+      ) : null}
+      {piece.also?.length ? (
+        <div>
+          <dt>Also</dt>
+          <dd>{refs(piece.also.flatMap((a) => [a.ref, ...(a.variants ?? []).map((v) => v.ref)]))}</dd>
+        </div>
+      ) : null}
+      {piece.uses?.length ? (
+        <div>
+          <dt>Uses</dt>
+          <dd>{refs(piece.uses)}</dd>
+        </div>
+      ) : null}
+      {users.length ? (
+        <div>
+          <dt>Used by</dt>
+          <dd>{refs(users.map((u) => u.ref ?? u.id))}</dd>
+        </div>
+      ) : null}
+    </dl>
   );
 }

@@ -1,4 +1,10 @@
 /** @flowcode-library cards-variants · Cards: kinds, elevation and states (Cards)
+ * Catalog ID: c.card (component)
+ * Function: The card (c.card) that holds a tile or list item, and its reference sheet: plain, clickable and selectable kinds across their states, and three elevations.
+ * Use it as: import { Card } from "./cards-variants"; <Card variant?="plain"|"clickable"|"selectable" elevation?="flat"|"raised"|"floating" selected? disabled? name? onSelect? pickLabel? onClick?>content</Card>
+ * Variants: c.card.plain - content that does nothing: a bordered surface; c.card.clickable - the whole card opens something: a bordered surface with an arrow, hover and focus states; c.card.selectable - one choice of a set: a bordered surface with a radio in the corner and an accent outline when chosen
+ * Look: A bordered surface with padded content, optionally lifted by a flat, raised or floating shadow; clickable ones show an arrow, selectable ones a radio.
+ * Tokens: --color-surface --color-border --color-border-strong --color-accent --color-text-muted --radius-md --space-1 --space-3 --space-4
  * Use cases: dashboard tiles; project list; article list; settings groups; pickable options
  * Jobs to be done: scan a list of things; open one of them; choose one of several
  * Keywords: card, tile, elevation, surface, clickable, selected
@@ -22,15 +28,87 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useState } from "react";
+import { useState, type HTMLAttributes, type ReactNode } from "react";
 import { Icon } from "./icons";
+
+// ── c.card: the one card. Every piece's tiles and list items are this component; the specimen below shows every variant. ──
+
+export type CardVariant = "plain" | "clickable" | "selectable" | "surface";
+export type CardElevation = "flat" | "raised" | "floating";
+
+// Written out in full (not built from the variant name) so a build finds every class the card needs.
+// surface: the card page sections are built on (.fl-card in library.css): roomier, a heading and text stacked, no app states.
+const VARIANT: Record<CardVariant, string> = { plain: "fl-ctl-card--plain", clickable: "fl-ctl-card--clickable", selectable: "fl-ctl-card--selectable", surface: "fl-card" };
+const ELEVATION: Record<CardElevation, string> = { flat: "fl-ctl-card--flat", raised: "fl-ctl-card--raised", floating: "fl-ctl-card--floating" };
+
+type CardOwn = {
+  variant?: CardVariant;
+  /** How far off the page it sits; none (the base border) when left out. */
+  elevation?: CardElevation;
+  /** Selectable: this card is the chosen one. */
+  selected?: boolean;
+  disabled?: boolean;
+  /** Selectable: the radio group name, shared by the cards that are one choice. */
+  name?: string;
+  /** Selectable: called when this card is chosen. */
+  onSelect?: () => void;
+  /** Selectable: the radio's accessible name, such as "Choose the Riverside wedding". */
+  pickLabel?: string;
+  className?: string;
+  children?: ReactNode;
+};
+
+export function Card(props: CardOwn & Omit<HTMLAttributes<HTMLElement>, keyof CardOwn>) {
+  const { variant = "plain", elevation, selected, disabled, name, onSelect, pickLabel, className, children, onClick, onKeyDown, ...rest } = props;
+  const cls = [variant === "surface" ? "" : "fl-ctl-card", VARIANT[variant], elevation ? ELEVATION[elevation] : "", selected && variant === "selectable" ? "is-on" : "", disabled ? "is-off" : "", className ?? ""].filter(Boolean).join(" ");
+  const own = { className: cls, "data-fl": `c.card.${variant}` };
+  if (variant === "selectable") {
+    return (
+      <label {...(rest as HTMLAttributes<HTMLLabelElement>)} {...own} aria-disabled={disabled || undefined}>
+        {children}
+        <span className="fl-ctl-card-pick">
+          <input type="radio" name={name} className="fl-ctl-check fl-ctl-check--16" checked={!!selected} disabled={disabled} onChange={() => onSelect?.()} aria-label={pickLabel} />
+        </span>
+      </label>
+    );
+  }
+  if (variant === "clickable") {
+    return (
+      <div
+        {...rest}
+        {...own}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled || undefined}
+        onClick={(e) => {
+          if (!disabled) onClick?.(e);
+        }}
+        onKeyDown={(e) => {
+          onKeyDown?.(e);
+          if (!disabled && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            e.currentTarget.click();
+          }
+        }}
+      >
+        {children}
+        <Icon name="arrow" />
+      </div>
+    );
+  }
+  return (
+    <div {...rest} {...own}>
+      {children}
+    </div>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
   kinds: [
-    { id: "plain", label: "Plain", what: "Holds content; does nothing" },
-    { id: "clickable", label: "Clickable", what: "The whole card opens something" },
-    { id: "selectable", label: "Selectable", what: "One of a set; a radio underneath" },
+    { id: "plain" as const, label: "Plain", what: "Holds content; does nothing" },
+    { id: "clickable" as const, label: "Clickable", what: "The whole card opens something" },
+    { id: "selectable" as const, label: "Selectable", what: "One of a set; a radio underneath" },
   ],
   states: [
     { id: "rest", label: "Enabled" },
@@ -39,9 +117,9 @@ const SAMPLE = {
     { id: "disabled", label: "Disabled" },
   ],
   elevations: [
-    { id: "flat", label: "Flat", what: "A line, no shadow: lists and dense grids" },
-    { id: "raised", label: "Raised", what: "A soft shadow: the default card" },
-    { id: "floating", label: "Floating", what: "A deeper shadow: something over the page" },
+    { id: "flat" as const, label: "Flat", what: "A line, no shadow: lists and dense grids" },
+    { id: "raised" as const, label: "Raised", what: "A soft shadow: the default card" },
+    { id: "floating" as const, label: "Floating", what: "A deeper shadow: something over the page" },
   ],
   shoot: { name: "Riverside wedding", meta: "12 June · 420 photos" },
 };
@@ -77,8 +155,7 @@ export default function CardsVariants() {
                 {d.kinds.map((k) => {
                   const off = s.id === "disabled";
                   const on = k.id === "selectable" && picked === s.id;
-                  const hovered = s.id === "hover" ? " is-hover" : "";
-                  const cls = `fl-ctl-card fl-ctl-card--${k.id}${hovered}${on ? " is-on" : ""}${off ? " is-off" : ""}`;
+                  const hovered = s.id === "hover" ? "is-hover" : undefined;
                   // A plain card reacts to nothing, and only the selectable one can stay chosen.
                   const why = k.id === "plain" && s.id !== "rest" ? "Not applicable" : k.id === "clickable" && s.id === "selected" ? "Not applicable: opens something" : "";
                   if (why) {
@@ -88,66 +165,24 @@ export default function CardsVariants() {
                       </td>
                     );
                   }
-
-                  if (k.id === "selectable") {
-                    return (
-                      <td key={k.id} data-state={k.label}>
-                        <label className={cls} aria-disabled={off || undefined}>
-                          <strong>{d.shoot.name}</strong>
-                          <span className="fl-ctl-matrix-what">{d.shoot.meta}</span>
-                          <span className="fl-ctl-card-pick">
-                            <input
-                              type="radio"
-                              name="card-pick"
-                              className="fl-ctl-check fl-ctl-check--16"
-                              checked={on}
-                              disabled={off}
-                              onChange={() => {
-                                setPicked(s.id);
-                                setSaid(`Chose the ${s.label.toLowerCase()} card`);
-                              }}
-                              aria-label={`Choose the ${s.label.toLowerCase()} card`}
-                            />
-                          </span>
-                        </label>
-                      </td>
-                    );
-                  }
-
-                  if (k.id === "clickable") {
-                    const open = () => {
-                      if (off) return;
-                      setSaid(`Opened ${d.shoot.name}`);
-                    };
-                    return (
-                      <td key={k.id} data-state={k.label}>
-                        <div
-                          className={cls}
-                          role="button"
-                          tabIndex={off ? -1 : 0}
-                          aria-disabled={off || undefined}
-                          onClick={open}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              open();
-                            }
-                          }}
-                        >
-                          <strong>{d.shoot.name}</strong>
-                          <span className="fl-ctl-matrix-what">{d.shoot.meta}</span>
-                          <Icon name="arrow" />
-                        </div>
-                      </td>
-                    );
-                  }
-
                   return (
                     <td key={k.id} data-state={k.label}>
-                      <div className={cls}>
+                      <Card
+                        variant={k.id}
+                        className={hovered}
+                        disabled={off}
+                        selected={on}
+                        name="card-pick"
+                        pickLabel={`Choose the ${s.label.toLowerCase()} card`}
+                        onSelect={() => {
+                          setPicked(s.id);
+                          setSaid(`Chose the ${s.label.toLowerCase()} card`);
+                        }}
+                        onClick={() => setSaid(`Opened ${d.shoot.name}`)}
+                      >
                         <strong>{d.shoot.name}</strong>
                         <span className="fl-ctl-matrix-what">{d.shoot.meta}</span>
-                      </div>
+                      </Card>
                     </td>
                   );
                 })}
@@ -167,10 +202,10 @@ export default function CardsVariants() {
         <ul className="fl-ctl-elev-list">
           {d.elevations.map((e) => (
             <li key={e.id}>
-              <div className={`fl-ctl-card fl-ctl-card--${e.id}`}>
+              <Card elevation={e.id}>
                 <strong>{e.label}</strong>
                 <span className="fl-ctl-matrix-what">{e.what}</span>
-              </div>
+              </Card>
             </li>
           ))}
         </ul>

@@ -1,4 +1,9 @@
 /** @flowcode-library tooltips-variants · Tooltips: placement, delay and what belongs in one (Alerts and states)
+ * Catalog ID: c.tooltip (component)
+ * Function: The tooltip (c.tooltip) that names a control on hover and keyboard focus; the reference sheet shows four placements, the delay and what does not belong in one.
+ * Use it as: import { Tooltip } from "./tooltips-variants"; <Tooltip tip="New shoot" place?="top"|"bottom"|"left"|"right"><button aria-label="New shoot">...</button></Tooltip>
+ * Look: A small dark label of a few words that fades in beside a control after a short delay and leaves at once.
+ * Tokens: --color-text --color-bg --radius-md --text-xs --duration-fast --easing --space-1 --space-2
  * Use cases: naming an icon button; a shortened cell in a table; a keyboard shortcut; a disabled control's reason
  * Jobs to be done: find out what this button does; read a name that was cut off; learn the shortcut
  * Keywords: tooltip, hint, title, hover, focus, placement, delay, aria-describedby
@@ -24,16 +29,17 @@
  * The styles are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece
  * runs in a built app exactly as it runs here.
  */
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
 
 // flowcode:sample
 const SAMPLE = {
   places: [
-    { id: "top", label: "Above", what: "The default: closest to the pointer" },
-    { id: "bottom", label: "Below", what: "When the control is near the top of the page" },
-    { id: "left", label: "Left", what: "For a control at the right edge" },
-    { id: "right", label: "Right", what: "For a control at the left edge" },
+    { id: "top" as const, label: "Above", what: "The default: closest to the pointer" },
+    { id: "bottom" as const, label: "Below", what: "When the control is near the top of the page" },
+    { id: "left" as const, label: "Left", what: "For a control at the right edge" },
+    { id: "right" as const, label: "Right", what: "For a control at the left edge" },
   ],
   bar: [
     { id: "add", icon: "plus", tip: "New shoot" },
@@ -44,7 +50,30 @@ const SAMPLE = {
   ],
 };
 
-function Tip({ place, tip, children, id }: { place: string; tip: string; id: string; children: ReactNode }) {
+// ── c.tooltip: the one tooltip. Every piece's tooltips are this component; the specimen below shows each placement. ──
+
+export type TooltipPlace = "top" | "bottom" | "left" | "right";
+
+// Written out in full (not built from the placement) so a build finds every class the tooltip needs.
+const PLACE: Record<TooltipPlace, string> = {
+  top: "fl-ctl-tip-wrap--top",
+  bottom: "fl-ctl-tip-wrap--bottom",
+  left: "fl-ctl-tip-wrap--left",
+  right: "fl-ctl-tip-wrap--right",
+};
+
+type TooltipProps = {
+  /** The name, in two or three words. */
+  tip: string;
+  /** Where it sits; above when left out. */
+  place?: TooltipPlace;
+  /** The control it names. Give that control its own aria-label too. */
+  children: ReactNode;
+  className?: string;
+};
+
+export function Tooltip({ tip, place = "top", children, className }: TooltipProps) {
+  const id = useId();
   const [open, setOpen] = useState(false);
   const timer = useRef<number | undefined>(undefined);
 
@@ -67,7 +96,7 @@ function Tip({ place, tip, children, id }: { place: string; tip: string; id: str
   };
 
   return (
-    <span className={`fl-ctl-tip-wrap fl-ctl-tip-wrap--${place}`} onMouseEnter={show} onMouseLeave={hide} onFocus={() => setOpen(true)} onBlur={hide}>
+    <span className={`fl-ctl-tip-wrap ${PLACE[place]}${className ? ` ${className}` : ""}`} data-fl="c.tooltip" onMouseEnter={show} onMouseLeave={hide} onFocus={() => setOpen(true)} onBlur={hide}>
       <span className="fl-ctl-tip-anchor" aria-describedby={open ? id : undefined}>
         {children}
       </span>
@@ -89,11 +118,11 @@ export default function TooltipsVariants() {
           <li key={p.id}>
             <p className="fl-ctl-matrix-kind">{p.label}</p>
             <p className="fl-ctl-matrix-what">{p.what}</p>
-            <Tip place={p.id} tip="New shoot" id={`tip-${p.id}`}>
-              <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--icon fl-ctl-btn--40" aria-label="New shoot">
-                <Icon name="plus" />
-              </button>
-            </Tip>
+            <Tooltip place={p.id} tip="New shoot">
+              <Button variant="secondary" size={40} icon="plus" iconOnly>
+                New shoot
+              </Button>
+            </Tooltip>
           </li>
         ))}
       </ul>
@@ -106,11 +135,11 @@ export default function TooltipsVariants() {
         </p>
         <div className="fl-ctl-tip-bar">
           {d.bar.map((b) => (
-            <Tip key={b.id} place="bottom" tip={b.tip} id={`tipbar-${b.id}`}>
-              <button type="button" className={`fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--40${b.id === "bin" ? " fl-ctl-btn--destructive" : ""}`} aria-label={b.tip}>
-                <Icon name={b.icon} />
-              </button>
-            </Tip>
+            <Tooltip key={b.id} place="bottom" tip={b.tip}>
+              <Button variant="tertiary" size={40} icon={b.icon} iconOnly className={b.id === "bin" ? "fl-ctl-btn--destructive" : undefined}>
+                {b.tip}
+              </Button>
+            </Tooltip>
           ))}
         </div>
       </div>

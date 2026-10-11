@@ -1,4 +1,9 @@
 /** @flowcode-library features-checklist · Feature checklist (Features)
+ * Catalog ID: b.features-checklist (block)
+ * Function: The feature checklist block (b.features-checklist): a heading beside a two-column list of what is included.
+ * Use it as: import { FeaturesChecklist } from "./features-checklist"; <FeaturesChecklist title lede? items={["Unlimited bookings", ...]} />
+ * Look: A tinted band with the heading at the left and a two-column list of accent ticks with short labels at the right.
+ * Tokens: --space-4 --space-6 --color-surface-sunken --color-accent --color-text-muted
  * Use cases: what's included; plan features; membership benefits; package contents; service inclusions; course syllabus; subscription perks
  * Jobs to be done: see everything that's included; check a must-have feature is covered; know what i get for the price; decide whether to sign up
  * Keywords: features, included, checklist, plan
@@ -9,26 +14,25 @@
  */
 import { Tick } from "./icons";
 
-// flowcode:sample
-const SAMPLE = {
-  title: "Included on every plan",
-  lede: "No add-ons, no surprise fees.",
-  items: ["Unlimited bookings", "Reminders by email and text", "Online deposits", "Team calendars", "Holiday and break blocking", "Weekly summary", "Export to your calendar", "Help from a real person"],
+export type FeaturesChecklistProps = {
+  title: string;
+  lede?: string;
+  /** What's included, one short line each (6 to 10 read best). */
+  items: string[];
 };
 
-export default function FeaturesChecklist() {
-  const d = SAMPLE;
+export function FeaturesChecklist({ title, lede, items }: FeaturesChecklistProps) {
   return (
-    <section className="fl-section fl-section--tint" aria-labelledby="features-checklist-title">
+    <section className="fl-section fl-section--tint" aria-labelledby="features-checklist-title" data-fl="b.features-checklist">
       <div className="fl-wrap fl-split fl-split--start">
         <div className="fl-head" style={{ marginBottom: 0 }}>
           <h2 id="features-checklist-title" className="fl-title">
-            {d.title}
+            {title}
           </h2>
-          <p className="fl-lede">{d.lede}</p>
+          {lede ? <p className="fl-lede">{lede}</p> : null}
         </div>
         <ul className="fl-checks fl-grid--2" style={{ display: "grid", gap: "var(--space-4) var(--space-6)" }}>
-          {d.items.map((item) => (
+          {items.map((item) => (
             <li key={item}>
               <Tick />
               {item}
@@ -38,4 +42,15 @@ export default function FeaturesChecklist() {
       </div>
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE: FeaturesChecklistProps = {
+  title: "Included on every plan",
+  lede: "No add-ons, no surprise fees.",
+  items: ["Unlimited bookings", "Reminders by email and text", "Online deposits", "Team calendars", "Holiday and break blocking", "Weekly summary", "Export to your calendar", "Help from a real person"],
+};
+
+export default function FeaturesChecklistPreview() {
+  return <FeaturesChecklist {...SAMPLE} />;
 }

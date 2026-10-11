@@ -1,4 +1,10 @@
 /** @flowcode-library pagination-variants · Pagination: numbered, simple and load more (Tabs, breadcrumbs and paging)
+ * Catalog ID: c.pagination (component)
+ * Function: The pager for long lists (c.pagination); the reference sheet shows numbered, previous/next and load-more paging and the rows-per-page select beside them.
+ * Use it as: import { Pagination } from "./pagination-variants"; <Pagination variant?="numbered"|"simple"|"load-more" page={n} pageCount={n} onPageChange={fn} prevLabel? nextLabel? /> or <Pagination variant="load-more" shown={n} total={n} step? onLoadMore={fn} />
+ * Variants: c.pagination.numbered - A list people come back to: page numbers with an ellipsis between Previous and Next, the current page filled with the accent color; c.pagination.simple - Only the movement matters: Newer/Previous and Older/Next buttons around "Page x of y"; c.pagination.load-more - A feed: one secondary button that says how many it adds, and a "shown of total" count beneath
+ * Look: A row of small bordered buttons with arrows and, when numbered, page numbers; the ends disable rather than disappear.
+ * Tokens: --color-accent --color-on-accent --color-text --color-text-muted --color-surface-sunken --radius-sm --space-1 --space-2 --space-3 --weight-semibold
  * Use cases: long lists; search results; tables; galleries; activity feeds
  * Jobs to be done: get to the next page; jump to a page; see how much there is left
  * Keywords: pagination, paging, next, previous, page size, load more
@@ -20,8 +26,106 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useState } from "react";
+import { useState, type HTMLAttributes } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+
+// ── c.pagination: the one pager. Every list's paging is this component; the specimen below shows every variant. ──
+
+export type PaginationVariant = "numbered" | "simple" | "load-more";
+
+// Written out in full (not built from the variant name) so a build finds every class the pager needs.
+const CLS: Record<PaginationVariant, string> = {
+  numbered: "fl-ctl-paging",
+  simple: "fl-ctl-paging",
+  "load-more": "fl-ctl-paging fl-ctl-paging--more",
+};
+
+type PaginationProps = {
+  variant?: PaginationVariant;
+  /** Current page, from 1 (numbered and simple). */
+  page?: number;
+  pageCount?: number;
+  onPageChange?: (page: number) => void;
+  /** Button text for simple: "Previous" and "Next" when left out. */
+  prevLabel?: string;
+  nextLabel?: string;
+  /** Load more: how many are shown, how many exist, how many one press adds. */
+  shown?: number;
+  total?: number;
+  step?: number;
+  onLoadMore?: () => void;
+  className?: string;
+} & Omit<HTMLAttributes<HTMLElement>, "className" | "onChange">;
+
+const fmt = (n: number) => n.toLocaleString("en-US");
+
+export function Pagination(props: PaginationProps) {
+  const { variant = "numbered", page = 1, pageCount = 1, onPageChange, prevLabel = "Previous", nextLabel = "Next", shown = 0, total = 0, step = 25, onLoadMore, className, ...rest } = props;
+  const cls = `${CLS[variant]}${className ? ` ${className}` : ""}`;
+  const fl = `c.pagination.${variant}`;
+  const go = (n: number) => onPageChange?.(Math.min(pageCount, Math.max(1, n)));
+  if (variant === "load-more") {
+    return (
+      <div {...(rest as HTMLAttributes<HTMLDivElement>)} className={cls} data-fl={fl}>
+        <Button variant="secondary" size={40} disabled={shown >= total} onClick={onLoadMore}>
+          {shown >= total ? "That is all of them" : `Load ${step} more`}
+        </Button>
+        <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
+          {fmt(shown)} of {fmt(total)} shown
+        </span>
+      </div>
+    );
+  }
+  const prev = (
+    <Button variant="secondary" size={32} icon="arrow" disabled={page <= 1} onClick={() => go(page - 1)}>
+      {prevLabel}
+    </Button>
+  );
+  const next = (
+    <Button variant="secondary" size={32} icon="arrow" iconAt="end" disabled={page >= pageCount} onClick={() => go(page + 1)}>
+      {nextLabel}
+    </Button>
+  );
+  if (variant === "simple") {
+    return (
+      <nav aria-label="Pages, simple" {...rest} className={cls} data-fl={fl}>
+        {prev}
+        <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
+          Page {page} of {pageCount}
+        </span>
+        {next}
+      </nav>
+    );
+  }
+  const run = page <= 3 ? [1, 2, 3, 4] : page >= pageCount - 2 ? [pageCount - 3, pageCount - 2, pageCount - 1, pageCount] : [page - 1, page, page + 1];
+  const pages = run.map(String).concat(run[run.length - 1] < pageCount ? ["…", String(pageCount)] : []);
+  return (
+    <nav aria-label="Pages" {...rest} className={cls} data-fl={fl}>
+      {prev}
+      <ol>
+        {pages.map((p, n) => (
+          <li key={p + n}>
+            {p === "…" ? (
+              <span className="fl-ctl-paging-gap">{p}</span>
+            ) : (
+              <button
+                type="button"
+                className={`fl-ctl-paging-num${Number(p) === page ? " is-on" : ""}`}
+                aria-current={Number(p) === page ? "page" : undefined}
+                aria-label={`Page ${p}`}
+                onClick={() => go(Number(p))}
+              >
+                {p}
+              </button>
+            )}
+          </li>
+        ))}
+      </ol>
+      {next}
+    </nav>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -40,41 +144,13 @@ export default function PaginationVariants() {
   const [shown, setShown] = useState(75);
   const first = (page - 1) * perPage + 1;
   const upTo = Math.min(page * perPage, count);
-  const run = page <= 3 ? [1, 2, 3, 4] : page >= last - 2 ? [last - 3, last - 2, last - 1, last] : [page - 1, page, page + 1];
-  const pages = run.map(String).concat(run[run.length - 1] < last ? ["\u2026", String(last)] : []);
   return (
     <section className="fl-section fl-section--specimen">
       <ul className="fl-ctl-paging-list">
         <li>
           <p className="fl-ctl-matrix-kind">Numbered</p>
           <p className="fl-ctl-matrix-what">For lists people come back to. The ends disable rather than disappear.</p>
-          <nav className="fl-ctl-paging" aria-label="Pages">
-            <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" disabled={page === 1} onClick={() => setPage((n) => Math.max(1, n - 1))}>
-              <Icon name="arrow" /> Previous
-            </button>
-            <ol>
-              {pages.map((p, n) => (
-                <li key={p + n}>
-                  {p === "\u2026" ? (
-                    <span className="fl-ctl-paging-gap">{p}</span>
-                  ) : (
-                    <button
-                      type="button"
-                      className={`fl-ctl-paging-num${Number(p) === page ? " is-on" : ""}`}
-                      aria-current={Number(p) === page ? "page" : undefined}
-                      aria-label={`Page ${p}`}
-                      onClick={() => setPage(Number(p))}
-                    >
-                      {p}
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ol>
-            <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" disabled={page === last} onClick={() => setPage((n) => Math.min(last, n + 1))}>
-              Next <Icon name="arrow" />
-            </button>
-          </nav>
+          <Pagination page={page} pageCount={last} onPageChange={setPage} />
           <p className="fl-ctl-matrix-what" role="status" aria-live="polite">
             Showing {first.toLocaleString("en-US")} to {upTo.toLocaleString("en-US")} of {count.toLocaleString("en-US")}
           </p>
@@ -83,35 +159,13 @@ export default function PaginationVariants() {
         <li>
           <p className="fl-ctl-matrix-kind">Previous and next</p>
           <p className="fl-ctl-matrix-what">When the page number does not matter, only the movement.</p>
-          <nav className="fl-ctl-paging" aria-label="Pages, simple">
-            <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" disabled={simple === 1} onClick={() => setSimple((n) => Math.max(1, n - 1))}>
-              <Icon name="arrow" /> Newer
-            </button>
-            <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
-              Page {simple} of {last}
-            </span>
-            <button type="button" className="fl-btn fl-btn--secondary fl-ctl-btn--32" disabled={simple === last} onClick={() => setSimple((n) => Math.min(last, n + 1))}>
-              Older <Icon name="arrow" />
-            </button>
-          </nav>
+          <Pagination variant="simple" page={simple} pageCount={last} onPageChange={setSimple} prevLabel="Newer" nextLabel="Older" />
         </li>
 
         <li>
           <p className="fl-ctl-matrix-kind">Load more</p>
           <p className="fl-ctl-matrix-what">For a feed. It says what is left, so it is never a mystery button.</p>
-          <div className="fl-ctl-paging fl-ctl-paging--more">
-            <button
-              type="button"
-              className="fl-btn fl-btn--secondary fl-ctl-btn--40"
-              disabled={shown >= count}
-              onClick={() => setShown((n) => Math.min(count, n + 25))}
-            >
-              {shown >= count ? "That is all of them" : "Load 25 more"}
-            </button>
-            <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
-              {shown.toLocaleString("en-US")} of {count.toLocaleString("en-US")} shown
-            </span>
-          </div>
+          <Pagination variant="load-more" shown={shown} total={count} onLoadMore={() => setShown((n) => Math.min(count, n + 25))} />
         </li>
       </ul>
 

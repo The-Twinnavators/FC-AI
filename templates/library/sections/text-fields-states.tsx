@@ -1,4 +1,10 @@
 /** @flowcode-library text-fields-states · Text fields: every variant and state (Forms)
+ * Catalog ID: c.text-field (component)
+ * Function: The text field (c.text-field) in three looks and six heights; the reference sheet shows rest, focused, filled, invalid, disabled and read-only states plus a live field with message and counter.
+ * Use it as: import { TextField } from "./text-fields-states"; <TextField variant?="outlined"|"filled"|"underlined" size?={24|32|40|44|48|56} multiline? invalid? id name type value placeholder disabled readOnly aria-label? aria-describedby? onChange? />
+ * Variants: c.text-field.outlined - the default for forms: a visible border on every side; c.text-field.filled - dense or dark screens: a tinted box, no border until focus; c.text-field.underlined - sparse, editorial forms: a single rule under the text
+ * Look: A full-width one-line input (or multi-line textarea) with an accent focus ring, a danger border when invalid, dimmed when disabled and a sunken tint when read-only.
+ * Tokens: --color-border --color-border-strong --color-surface --color-surface-sunken --color-accent --color-danger --color-text-muted --focus-ring --space-2 --space-3 --space-4 --space-5 --text-sm --text-xs
  * Use cases: sign-up form; settings form; search box; validation messages; read-only record
  * Jobs to be done: fill in a form; understand why an entry was refused; see a field I cannot change
  * Keywords: input, text field, validation, invalid, disabled, focus
@@ -22,14 +28,54 @@
  * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
  * exactly as it runs here.
  */
-import { useState } from "react";
+import { useState, type InputHTMLAttributes, type TextareaHTMLAttributes } from "react";
+
+// ── c.text-field: the one text field. Every form's inputs are this component; the specimen below shows every look and state. ──
+
+export type TextFieldVariant = "outlined" | "filled" | "underlined";
+export type TextFieldSize = 24 | 32 | 40 | 44 | 48 | 56;
+
+// Written out in full (not built from the variant name) so a build finds every class the field needs.
+const VARIANT: Record<TextFieldVariant, string> = {
+  outlined: "fl-ctl-field--outlined",
+  filled: "fl-ctl-field--filled",
+  underlined: "fl-ctl-field--underlined",
+};
+const SIZE: Record<TextFieldSize, string> = {
+  24: "fl-ctl-field--24",
+  32: "fl-ctl-field--32",
+  40: "fl-ctl-field--40",
+  44: "fl-ctl-field--44",
+  48: "fl-ctl-field--48",
+  56: "fl-ctl-field--56",
+};
+
+type TextFieldOwn = {
+  variant?: TextFieldVariant;
+  /** Height in px for a one-line field; the stylesheet's own height when left out. */
+  size?: TextFieldSize;
+  /** Rejected: danger border and aria-invalid. Point aria-describedby at the message. */
+  invalid?: boolean;
+  className?: string;
+};
+type AsInput = TextFieldOwn & { multiline?: false } & Omit<InputHTMLAttributes<HTMLInputElement>, keyof TextFieldOwn>;
+type AsTextarea = TextFieldOwn & { multiline: true } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, keyof TextFieldOwn>;
+
+/** Give it a label (a <label htmlFor> or aria-label); the field does not draw one. */
+export function TextField(props: AsInput | AsTextarea) {
+  const { variant = "outlined", size, invalid, className, multiline, ...rest } = props;
+  const cls = ["fl-input", "fl-ctl-field", VARIANT[variant], size && !multiline ? SIZE[size] : "", invalid ? "is-invalid" : "", className ?? ""].filter(Boolean).join(" ");
+  const own = { className: cls, "data-fl": `c.text-field.${variant}`, "aria-invalid": invalid || undefined };
+  if (multiline) return <textarea {...(rest as TextareaHTMLAttributes<HTMLTextAreaElement>)} {...own} />;
+  return <input {...(rest as InputHTMLAttributes<HTMLInputElement>)} {...own} />;
+}
 
 // flowcode:sample
 const SAMPLE = {
   looks: [
-    { id: "outlined", label: "Outlined", cls: "fl-ctl-field--outlined", what: "A visible border on every side" },
-    { id: "filled", label: "Filled", cls: "fl-ctl-field--filled", what: "A tinted box, no border until focus" },
-    { id: "underlined", label: "Underlined", cls: "fl-ctl-field--underlined", what: "A single rule under the text" },
+    { id: "outlined" as const, label: "Outlined", what: "A visible border on every side" },
+    { id: "filled" as const, label: "Filled", what: "A tinted box, no border until focus" },
+    { id: "underlined" as const, label: "Underlined", what: "A single rule under the text" },
   ],
   states: [
     { id: "rest", label: "Enabled", what: "Empty", value: "", placeholder: "you@example.com" },
@@ -40,12 +86,12 @@ const SAMPLE = {
     { id: "readonly", label: "Read-only", what: "Shown, not editable", value: "ana@northlight.example", placeholder: "" },
   ],
   sizes: [
-    { px: 24, cls: "fl-ctl-field--24", note: "Dense toolbars and table rows" },
-    { px: 32, cls: "fl-ctl-field--32", note: "Compact filters" },
-    { px: 40, cls: "fl-ctl-field--40", note: "Forms on a desktop screen" },
-    { px: 44, cls: "fl-ctl-field--44", note: "Comfortable to tap" },
-    { px: 48, cls: "fl-ctl-field--48", note: "Default" },
-    { px: 56, cls: "fl-ctl-field--56", note: "A single prominent field" },
+    { px: 24 as const, note: "Dense toolbars and table rows" },
+    { px: 32 as const, note: "Compact filters" },
+    { px: 40 as const, note: "Forms on a desktop screen" },
+    { px: 44 as const, note: "Comfortable to tap" },
+    { px: 48 as const, note: "Default" },
+    { px: 56 as const, note: "A single prominent field" },
   ],
 };
 
@@ -89,15 +135,16 @@ export default function TextFieldsStates() {
                         <label className="fl-sr" htmlFor={id}>
                           Email address, {l.label}, {s.label}
                         </label>
-                        <input
+                        <TextField
                           id={id}
-                          className={`fl-input fl-ctl-field ${l.cls}${s.id === "focus" ? " is-focus" : ""}${invalid ? " is-invalid" : ""}`}
+                          variant={l.id}
+                          className={s.id === "focus" ? "is-focus" : undefined}
+                          invalid={invalid}
                           type="email"
                           defaultValue={s.value}
                           placeholder={s.placeholder || undefined}
                           disabled={s.id === "disabled"}
                           readOnly={s.id === "readonly"}
-                          aria-invalid={invalid || undefined}
                           aria-describedby={invalid ? `${id}-msg` : undefined}
                         />
                         {invalid ? (
@@ -124,15 +171,15 @@ export default function TextFieldsStates() {
         <div className="fl-ctl-live-form">
           <p>
             <label htmlFor="fld-live-email">Email address</label>
-            <input
+            <TextField
               id="fld-live-email"
-              className={`fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--40${emailBad ? " is-invalid" : ""}`}
+              size={40}
+              invalid={emailBad}
               type="email"
               value={email}
               placeholder="you@example.com"
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => setTouched(true)}
-              aria-invalid={emailBad || undefined}
               aria-describedby="fld-live-email-msg"
             />
             <span className={`fl-ctl-field-msg${emailBad ? "" : " is-quiet"}`} id="fld-live-email-msg">
@@ -141,13 +188,13 @@ export default function TextFieldsStates() {
           </p>
           <p>
             <label htmlFor="fld-live-note">Anything we should know?</label>
-            <textarea
+            <TextField
+              multiline
               id="fld-live-note"
-              className={`fl-input fl-ctl-field fl-ctl-field--outlined${left < 0 ? " is-invalid" : ""}`}
+              invalid={left < 0}
               rows={3}
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              aria-invalid={left < 0 || undefined}
               aria-describedby="fld-live-note-count"
             />
             <span className={`fl-ctl-field-msg${left < 0 ? "" : " is-quiet"}`} id="fld-live-note-count" role="status" aria-live="polite">
@@ -163,12 +210,7 @@ export default function TextFieldsStates() {
         <ul className="fl-ctl-size-list">
           {d.sizes.map((z) => (
             <li key={z.px}>
-              <input
-                className={`fl-input fl-ctl-field fl-ctl-field--outlined ${z.cls}`}
-                type="email"
-                defaultValue="ana@northlight.example"
-                aria-label={`Email address, ${z.px} px`}
-              />
+              <TextField size={z.px} type="email" defaultValue="ana@northlight.example" aria-label={`Email address, ${z.px} px`} />
               <span className="fl-ctl-btn-what">
                 {z.px} px · {z.note}
               </span>

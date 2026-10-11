@@ -1,4 +1,9 @@
 /** @flowcode-library stats-band · Stats band (Stats)
+ * Catalog ID: b.stats-band (block)
+ * Function: The stats band block (b.stats-band): a heading and up to four big numbers on the accent color.
+ * Use it as: import { StatsBand } from "./stats-band"; <StatsBand id title stats={[{value,label}]} />
+ * Look: A solid accent band; a heading, then four bold numbers in a row (two by two on a phone) with a small label under each.
+ * Tokens: --color-accent --color-on-accent --space-6 --text-2xl --font-display
  * Use cases: results section; company milestones; impact numbers; social proof metrics; about us figures; nonprofit impact; growth highlights
  * Jobs to be done: see the results in numbers; judge how established the company is; trust the product with proof; understand the scale of impact
  * Keywords: stats, numbers, results, metrics
@@ -7,27 +12,23 @@
  * Stats: band. Four numbers on the accent color, a strong break between sections. Make it the app's own: replace
  * SAMPLE with numbers the PRD actually gives; never invent results.
  */
-// flowcode:sample
-const SAMPLE = {
-  title: "Studios run calmer with it",
-  stats: [
-    { value: "2,400", label: "bookings a week" },
-    { value: "38%", label: "fewer no-shows" },
-    { value: "6 hrs", label: "saved each week" },
-    { value: "98%", label: "would recommend it" },
-  ],
+export type StatsBandProps = {
+  /** Used for the heading's id, so the section can be labelled by it. */
+  id: string;
+  title: string;
+  /** Up to four numbers; each is a bold value and what it counts. */
+  stats: { value: string; label: string }[];
 };
 
-export default function StatsBand() {
-  const d = SAMPLE;
+export function StatsBand({ id, title, stats }: StatsBandProps) {
   return (
-    <section className="fl-section fl-section--accent" aria-labelledby="stats-band-title">
+    <section className="fl-section fl-section--accent" aria-labelledby={`${id}-title`} data-fl="b.stats-band">
       <div className="fl-wrap">
-        <h2 id="stats-band-title" className="fl-title fl-title--md" style={{ marginBottom: "var(--space-6)" }}>
-          {d.title}
+        <h2 id={`${id}-title`} className="fl-title fl-title--md" style={{ marginBottom: "var(--space-6)" }}>
+          {title}
         </h2>
         <dl className="fl-grid fl-grid--4" style={{ margin: 0 }}>
-          {d.stats.map((s) => (
+          {stats.map((s) => (
             <div key={s.label} className="fl-stat">
               {/* The label comes first for screen readers; the number shows first. */}
               <dt style={{ order: 2 }}>
@@ -42,4 +43,20 @@ export default function StatsBand() {
       </div>
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE: StatsBandProps = {
+  id: "stats-band",
+  title: "Studios run calmer with it",
+  stats: [
+    { value: "2,400", label: "bookings a week" },
+    { value: "38%", label: "fewer no-shows" },
+    { value: "6 hrs", label: "saved each week" },
+    { value: "98%", label: "would recommend it" },
+  ],
+};
+
+export default function StatsBandPreview() {
+  return <StatsBand {...SAMPLE} />;
 }

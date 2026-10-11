@@ -1,4 +1,10 @@
 /** @flowcode-library command-palette · Command palette: search, groups, keyboard and the empty result (Small components)
+ * Catalog ID: p.command-palette (pattern)
+ * Function: The command palette pattern (p.command-palette) that opens on Ctrl+K; the reference sheet shows it open with grouped results, keyboard use, marked matches and an empty result that says what it searched.
+ * Use it as: import { CommandPalette } from "./command-palette"; <CommandPalette groups={[{ name: "Go to", items: [{ id, label, icon?, keys? }] }]} onSelect={(item, group) => ...} onClose? placeholder? searched? autoFocus? />
+ * Built from: c.text-field.outlined, c.button.tertiary
+ * Look: A bordered panel with a search field on top, grouped results (icon, marked match, shortcut at the right) and a footer of key hints; the arrow keys move the highlight while focus stays in the field.
+ * Tokens: --color-surface --color-border --color-text --color-text-muted --color-accent --radius-lg --space-3 --space-4 --text-md --focus-ring
  * Use cases: a power-user shortcut; jump to a record; run an action by name; a docs search; an admin console
  * Jobs to be done: get anywhere by typing; run a command without finding the menu; see what the shortcut is
  * Keywords: command palette, command k, quick search, fuzzy, keyboard, shortcut, results, recent
@@ -22,13 +28,164 @@
  * - Arrow keys move the highlight while focus stays in the field; Enter runs; Escape closes.
  * - Type something that matches nothing: it says what it looked through.
  *
- * Dependencies: React (useEffect, useMemo, useRef, useState), and the library's own inline icon set ("./icons"), which is a
+ * Dependencies: React (useEffect, useId, useMemo, useState), and the library's own inline icon set ("./icons"), which is a
  * table of SVG paths rather than an icon package. Nothing else — no package to install and nothing fetched at run time. The
  * styles are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs
  * in a built app exactly as it runs here.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { TextField } from "./text-fields-states";
+
+// ── p.command-palette: the search box and its grouped results. Built from c.text-field and c.button. ──
+
+export type PaletteItem = { id: string; label: string; icon?: string; keys?: string };
+export type PaletteGroup = { name: string; items: PaletteItem[] };
+
+type PaletteProps = {
+  /** Results in the order shown; each group gets a heading. */
+  groups: PaletteGroup[];
+  /** Called with the item and its group name when one is chosen (Enter or click). */
+  onSelect: (item: PaletteItem, group: string) => void;
+  /** Called on Escape or the close button. Leave out to hide the close button. */
+  onClose?: () => void;
+  placeholder?: string;
+  /** Said under "Nothing matches" so an empty result names what was searched. */
+  searched?: string;
+  /** Focus the field when it first appears. */
+  autoFocus?: boolean;
+  className?: string;
+};
+
+/** The matched part of a label, marked so it can be seen without being announced twice. */
+function Marked({ text, q }: { text: string; q: string }) {
+  const at = q ? text.toLowerCase().indexOf(q.toLowerCase()) : -1;
+  if (at < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, at)}
+      <mark>{text.slice(at, at + q.length)}</mark>
+      {text.slice(at + q.length)}
+    </>
+  );
+}
+
+/** Keyboard: arrows move the highlight while focus stays in the field; Enter chooses; Escape closes. */
+export function CommandPalette({ groups: all, onSelect, onClose, placeholder = "Type a command, or part of a name", searched, autoFocus, className }: PaletteProps) {
+  const uid = useId();
+  const [q, setQ] = useState("");
+  const [at, setAt] = useState(0);
+
+  const total = useMemo(() => all.reduce((n, g) => n + g.items.length, 0), [all]);
+  const groups = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    if (!t) return all;
+    return all.map((g) => ({ name: g.name, items: g.items.filter((i) => i.label.toLowerCase().includes(t)) })).filter((g) => g.items.length);
+  }, [q, all]);
+  const hits = useMemo(() => groups.flatMap((g) => g.items.map((item) => ({ item, group: g.name }))), [groups]);
+
+  useEffect(() => setAt(0), [q]);
+
+  const run = (n: number) => {
+    const hit = hits[n];
+    if (!hit) return;
+    onSelect(hit.item, hit.group);
+    setQ("");
+  };
+
+  return (
+    <div className={`fl-ctl-cmd${className ? ` ${className}` : ""}`} data-fl="p.command-palette">
+      <div className="fl-ctl-cmd-field">
+        <Icon name="search" />
+        <label className="fl-sr" htmlFor={`${uid}-q`}>
+          Search or run a command
+        </label>
+        <TextField
+          id={`${uid}-q`}
+          autoFocus={autoFocus}
+          role="combobox"
+          aria-expanded
+          aria-controls={`${uid}-list`}
+          aria-activedescendant={hits[at] ? `${uid}-${hits[at].item.id}` : undefined}
+          aria-autocomplete="list"
+          placeholder={placeholder}
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault();
+              setAt((n) => (e.key === "ArrowDown" ? Math.min(hits.length - 1, n + 1) : Math.max(0, n - 1)));
+            } else if (e.key === "Enter") {
+              e.preventDefault();
+              run(at);
+            } else if (e.key === "Escape") {
+              onClose?.();
+            }
+          }}
+        />
+        {onClose ? (
+          <Button variant="tertiary" size={32} icon="close" iconOnly onClick={onClose}>
+            Close
+          </Button>
+        ) : null}
+      </div>
+
+      <div className="fl-ctl-cmd-list" id={`${uid}-list`} role="listbox" aria-label="Commands">
+        {groups.length ? (
+          groups.map((g) => (
+            <div key={g.name} className="fl-ctl-cmd-group" role="group" aria-label={g.name}>
+              <p className="fl-ctl-cmd-head">{g.name}</p>
+              <ul>
+                {g.items.map((i) => {
+                  const n = hits.findIndex((h) => h.item === i);
+                  return (
+                    <li
+                      key={i.id}
+                      id={`${uid}-${i.id}`}
+                      role="option"
+                      aria-selected={n === at}
+                      className={n === at ? "is-on" : undefined}
+                      onMouseEnter={() => setAt(n)}
+                      onClick={() => run(n)}
+                    >
+                      {i.icon ? <Icon name={i.icon} /> : null}
+                      <span>
+                        <Marked text={i.label} q={q.trim()} />
+                      </span>
+                      {i.keys ? <kbd className="fl-ctl-menu-keys">{i.keys}</kbd> : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))
+        ) : (
+          <div className="fl-ctl-cmd-none">
+            <strong>Nothing matches "{q}"</strong>
+            <span className="fl-ctl-matrix-what">{searched ?? `Looked through ${total} commands. Try a shorter word.`}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="fl-ctl-cmd-foot">
+        <span>
+          <kbd className="fl-ctl-menu-keys">&uarr;</kbd>
+          <kbd className="fl-ctl-menu-keys">&darr;</kbd> to move
+        </span>
+        <span>
+          <kbd className="fl-ctl-menu-keys">Enter</kbd> to run
+        </span>
+        <span>
+          <kbd className="fl-ctl-menu-keys">Esc</kbd> to close
+        </span>
+        <span className="fl-ctl-matrix-what">
+          {hits.length} of {total}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -47,50 +204,27 @@ const SAMPLE = {
   ],
 };
 
-/** The matched part of a label, marked so it can be seen without being announced twice. */
-function Marked({ text, q }: { text: string; q: string }) {
-  const at = q ? text.toLowerCase().indexOf(q.toLowerCase()) : -1;
-  if (at < 0) return <>{text}</>;
-  return (
-    <>
-      {text.slice(0, at)}
-      <mark>{text.slice(at, at + q.length)}</mark>
-      {text.slice(at + q.length)}
-    </>
-  );
-}
+const SAMPLE_GROUPS: PaletteGroup[] = SAMPLE.items.reduce<PaletteGroup[]>((out, i) => {
+  const last = out[out.length - 1];
+  const item = { id: i.id, label: i.label, icon: i.icon, keys: i.keys };
+  if (last && last.name === i.group) last.items.push(item);
+  else out.push({ name: i.group, items: [item] });
+  return out;
+}, []);
 
-export default function CommandPalette() {
+export default function CommandPaletteSpecimen() {
   const d = SAMPLE;
   const [open, setOpen] = useState(true);
-  const [q, setQ] = useState("");
-  const [at, setAt] = useState(0);
   const [ran, setRan] = useState("");
-  const field = useRef<HTMLInputElement>(null);
-
-  const hits = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    return t ? d.items.filter((i) => i.label.toLowerCase().includes(t)) : d.items;
-  }, [q, d.items]);
-
-  const groups = useMemo(() => {
-    const out: { name: string; items: typeof d.items }[] = [];
-    for (const i of hits) {
-      const last = out[out.length - 1];
-      if (last && last.name === i.group) last.items.push(i);
-      else out.push({ name: i.group, items: [i] });
-    }
-    return out;
-  }, [hits]);
-
-  useEffect(() => setAt(0), [q]);
+  // Bumped each time the palette is opened on purpose, so it remounts empty with the field focused.
+  const [opened, setOpened] = useState(0);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setOpen(true);
-        window.setTimeout(() => field.current?.focus(), 0);
+        setOpened((k) => k + 1);
       }
       if (e.key === "Escape") setOpen(false);
     };
@@ -98,122 +232,38 @@ export default function CommandPalette() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const run = (n: number) => {
-    const item = hits[n];
-    if (!item) return;
-    setRan(`${item.group}: ${item.label}`);
-    setOpen(false);
-    setQ("");
-  };
-
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-cmd-open">
-        <button
-          type="button"
-          className="fl-btn fl-btn--secondary fl-ctl-btn--40"
+        <Button
+          variant="secondary"
+          size={40}
+          icon="search"
           onClick={() => {
             setOpen(true);
-            window.setTimeout(() => field.current?.focus(), 0);
+            setOpened((k) => k + 1);
           }}
         >
-          <Icon name="search" /> Search or run a command
+          Search or run a command
           <kbd className="fl-ctl-menu-keys">Ctrl K</kbd>
-        </button>
+        </Button>
         <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
           {ran ? `Ran: ${ran}` : "Ctrl+K opens it from anywhere on this page."}
         </span>
       </div>
 
       {open ? (
-        <div className="fl-ctl-cmd">
-          <div className="fl-ctl-cmd-field">
-            <Icon name="search" />
-            <label className="fl-sr" htmlFor="cmd-q">
-              Search or run a command
-            </label>
-            <input
-              id="cmd-q"
-              ref={field}
-              className="fl-input"
-              role="combobox"
-              aria-expanded
-              aria-controls="cmd-list"
-              aria-activedescendant={hits[at] ? `cmd-${hits[at].id}` : undefined}
-              aria-autocomplete="list"
-              placeholder="Type a command, or part of a name"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                  e.preventDefault();
-                  setAt((n) => (e.key === "ArrowDown" ? Math.min(hits.length - 1, n + 1) : Math.max(0, n - 1)));
-                } else if (e.key === "Enter") {
-                  e.preventDefault();
-                  run(at);
-                }
-              }}
-            />
-            <button type="button" className="fl-btn fl-ctl-btn--tertiary fl-ctl-btn--icon fl-ctl-btn--32" aria-label="Close" onClick={() => setOpen(false)}>
-              <Icon name="close" />
-            </button>
-          </div>
-
-          <div className="fl-ctl-cmd-list" id="cmd-list" role="listbox" aria-label="Commands">
-            {groups.length ? (
-              groups.map((g) => (
-                <div key={g.name} className="fl-ctl-cmd-group" role="group" aria-label={g.name}>
-                  <p className="fl-ctl-cmd-head">{g.name}</p>
-                  <ul>
-                    {g.items.map((i) => {
-                      const n = hits.indexOf(i);
-                      return (
-                        <li
-                          key={i.id}
-                          id={`cmd-${i.id}`}
-                          role="option"
-                          aria-selected={n === at}
-                          className={n === at ? "is-on" : undefined}
-                          onMouseEnter={() => setAt(n)}
-                          onClick={() => run(n)}
-                        >
-                          <Icon name={i.icon} />
-                          <span>
-                            <Marked text={i.label} q={q.trim()} />
-                          </span>
-                          {i.keys ? <kbd className="fl-ctl-menu-keys">{i.keys}</kbd> : null}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))
-            ) : (
-              <div className="fl-ctl-cmd-none">
-                <strong>Nothing matches "{q}"</strong>
-                <span className="fl-ctl-matrix-what">
-                  Looked through {d.items.length} commands, your sections and your recent shoots. Try a shorter word.
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="fl-ctl-cmd-foot">
-            <span>
-              <kbd className="fl-ctl-menu-keys">&uarr;</kbd>
-              <kbd className="fl-ctl-menu-keys">&darr;</kbd> to move
-            </span>
-            <span>
-              <kbd className="fl-ctl-menu-keys">Enter</kbd> to run
-            </span>
-            <span>
-              <kbd className="fl-ctl-menu-keys">Esc</kbd> to close
-            </span>
-            <span className="fl-ctl-matrix-what">
-              {hits.length} of {d.items.length}
-            </span>
-          </div>
-        </div>
+        <CommandPalette
+          key={opened}
+          groups={SAMPLE_GROUPS}
+          autoFocus={opened > 0}
+          searched={`Looked through ${d.items.length} commands, your sections and your recent shoots. Try a shorter word.`}
+          onSelect={(item, group) => {
+            setRan(`${group}: ${item.label}`);
+            setOpen(false);
+          }}
+          onClose={() => setOpen(false)}
+        />
       ) : null}
 
       <div className="fl-ctl-sizes">
