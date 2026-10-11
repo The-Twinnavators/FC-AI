@@ -87,7 +87,10 @@ export function screenPicks(screens: PlannedScreen[], already: string[] = [], mi
   const out: ScreenPick[] = [];
   for (const screen of screens) {
     const site = WEBSITE.test(`${screen.label} ${screen.purpose}`);
-    const ranked = LIBRARY_SECTIONS.filter((p) => (site ? forSite : forApp)(p) || (groupOf.get(p.category) !== "template" && p.category !== "backgrounds" && p.category !== "neobrutal" && intent(screen, p) >= 6))
+    // A specimen is every state of one component in a table, for people to look at and copy from. Seeded into a
+    // screen it becomes the screen, and the design step is then required to keep it there: a "Brands" screen came out
+    // as a chip state matrix labelled Wedding and Portrait. They stay in the library to browse; they never seed.
+    const ranked = LIBRARY_SECTIONS.filter((p) => !p.specimen).filter((p) => (site ? forSite : forApp)(p) || (groupOf.get(p.category) !== "template" && p.category !== "backgrounds" && p.category !== "neobrutal" && intent(screen, p) >= 6))
       .map((piece) => ({ piece, score: fit(screen, piece) }))
       .filter((r) => r.score >= min)
       .sort((a, b) => b.score - a.score);

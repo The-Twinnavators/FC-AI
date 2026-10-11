@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { screenPicks } from "../src/orchestrator/screenPicks.js";
+import { LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { picksIn, sectionsObjective } from "../src/orchestrator/sectionRecipes.js";
 import { libraryReport, pieceOf, recordUse } from "../src/orchestrator/libraryUse.js";
 import { PathJail } from "../src/security/pathJail.js";
@@ -98,5 +99,30 @@ describe("a screen's intent", () => {
   it("can use a piece from another shelf when its job matches, but never a whole website template", () => {
     expect(screenPicks([S("Contact", "Customers get in touch with the team")]).map((p) => p.id)).toEqual(["contact-split"]);
     expect(screenPicks([S("Plans", "Studio owners compare plans and pick one for their budget")]).map((p) => p.id)).toEqual(["pricing-tiers"]);
+  });
+});
+
+describe("specimens are never put into a screen", () => {
+  // A specimen is every state of one component in a table, for people to look at. Seeded into a screen it becomes the
+  // screen: a "Brands" screen came out as a chip state matrix labelled Wedding and Portrait, and the design step was
+  // then required to keep it there, because FlowCode had placed it.
+  const specimens = new Set(LIBRARY_SECTIONS.filter((p) => p.specimen).map((p) => p.id));
+
+  it("knows which pieces are specimens", () => {
+    expect(specimens.size).toBeGreaterThan(20);
+    for (const id of ["chips-tags", "buttons-variants", "tables-states", "progress-indicators"]) expect(specimens).toContain(id);
+  });
+
+  it("picks none of them for any screen", () => {
+    const screens = [
+      S("Brands", "Busy parents see a list of trusted non-GMO brands"),
+      S("Settings", "Change your account and notification preferences"),
+      S("Home", "Where someone starts and picks what to do next"),
+      S("Products", "Browse and filter the product catalog"),
+      S("Sign in", "Get into the app with an email and password"),
+    ];
+    const picked = screenPicks(screens).map((p) => p.id);
+    const bad = picked.filter((id) => specimens.has(id));
+    expect(bad, `specimens seeded into screens: ${bad.join(", ")}`).toEqual([]);
   });
 });
