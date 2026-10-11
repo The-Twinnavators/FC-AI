@@ -13,6 +13,10 @@ import { Empty } from "./ui";
 import { SkeletonBlock } from "./motion";
 import { type PreviewTheme } from "./PreviewTheme";
 import { DesignBoard } from "./DesignBoard";
+import cssvibesSvg from "../assets/brand/cssvibes.svg?raw";
+
+/** The mark is sized by the stylesheet, so drop the file's fixed width and height; the viewBox keeps its ratio. */
+const CSSVIBES = cssvibesSvg.replace(/<svg[^>]*>/, (tag) => tag.replace(/ (width|height)="[^"]*"/g, ""));
 
 interface Sample {
   label: string;
@@ -258,6 +262,8 @@ export function ComponentSheet({ projectId }: { projectId: string }) {
   return (
     <div className="sheet">
       <div className="styles-panel__bar">
+        {/* The brand mark, bundled from the app's own assets. Its "CSS" is drawn in currentColor so it reads in both themes. */}
+        <span className="sheet__brand" role="img" aria-label="CSSVibes" dangerouslySetInnerHTML={{ __html: CSSVIBES }} />
         <span className="muted" style={{ fontSize: 12.5 }}>
           {data.primitives.length} building blocks · {comps.length} components{pages.length ? ` · ${pages.length} pages` : ""}
         </span>

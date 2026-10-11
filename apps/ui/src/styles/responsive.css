@@ -3250,6 +3250,10 @@ form .section__body,
   gap: 20px;
   align-content: start;
 }
+/* The CSSVibes mark, at the head of the styles panel. Its wordmark draws "CSS" in currentColor, so it follows the
+   app's text colour and stays legible in the light theme; "Vibes" keeps the brand purple. */
+.sheet__brand { flex: none; display: block; height: 20px; color: var(--text-0); }
+.sheet__brand svg { display: block; height: 100%; width: auto; }
 .styles-panel__bar {
   display: flex;
   align-items: center;

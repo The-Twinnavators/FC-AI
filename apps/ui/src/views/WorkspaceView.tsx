@@ -193,12 +193,13 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
 
   const pendingApprovals = view?.approvals.filter((a) => a.status === "pending") ?? [];
   // An approval the build is stopped on interrupts: nothing moves until it is decided, and a toast beside a chip is
-  // easy to miss while watching a build (a plan approval sat unseen for an hour on the Approvals page). The routine
-  // ones - a command, a file - keep the toast and the "Needs you" chip, because a queue of them as modals would be
-  // its own problem. Dismissing leaves the chip, so the plan can be read before deciding.
-  const BLOCKING_APPROVALS = ["plan", "dependency_install", "retry_override"];
+  // easy to miss while watching a build (a plan approval sat unseen for an hour, then a package.json edit for another).
+  // The run's own status says whether it is stopped, so this does not go stale when a new kind of approval is added;
+  // approvals raised while the build carries on keep the toast and the "Needs you" chip. Dismissing leaves the chip,
+  // so the plan can be read before deciding.
   const [approvalDismissed, setApprovalDismissed] = useState("");
-  const blockingApproval = pendingApprovals.find((a) => BLOCKING_APPROVALS.includes(a.kind) && a.id !== approvalDismissed);
+  const halted = view?.run.status === "awaiting_approval";
+  const blockingApproval = halted ? pendingApprovals.find((a) => a.id !== approvalDismissed) : undefined;
   const changedPaths = useMemo(() => new Set(view?.snapshots.filter((s) => !s.restoredAt).map((s) => s.relativePath) ?? []), [view?.snapshots]);
   const project = projectRes.data?.project;
 
