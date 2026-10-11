@@ -13,8 +13,9 @@
   },
   "scripts": {
     "build": "tsc -b packages/contracts packages/daemon && npm run build -w @flowcode/ui && npm run build -w @flowcode/desktop",
-    "typecheck": "tsc -b packages/contracts packages/daemon && npm run typecheck -w @flowcode/ui && npm run typecheck -w @flowcode/desktop && npm run typecheck:library && npm run typecheck:guide",
+    "typecheck": "tsc -b packages/contracts packages/daemon && npm run typecheck -w @flowcode/ui && npm run typecheck -w @flowcode/desktop && npm run typecheck:library && npm run typecheck:layouts && npm run typecheck:guide",
     "typecheck:library": "node scripts/check-library-sections.mjs",
+    "typecheck:layouts": "node scripts/check-layouts.mjs",
     "typecheck:guide": "node scripts/audit-guide.mjs --strict",
     "test": "vitest run",
     "start": "npm run build && npm run start -w @flowcode/desktop",

@@ -21,3 +21,6 @@ data/*.sqlite*
 
 # Third-party sources kept as reference for the component library (licences travel with converted items)
 .vendor-sources/
+
+# Mirror tree the layout typecheck builds and removes (scripts/check-layouts.mjs)
+.layout-typecheck-*/
