@@ -5,7 +5,6 @@
  */
 import { appliesToRole, isFinishedRun } from "@flowcode/contracts";
 import fs from "node:fs";
-import os from "node:os";
 import { z } from "zod";
 import path from "node:path";
 import {
@@ -53,6 +52,7 @@ import { cleanupReport, scanCleanup } from "../quality/cleanupScan.js";
 import { cloudCoder } from "../models/cloud.js";
 import { directionBrief, type DesignDirection } from "../knowledge/designDirection.js";
 import { contentProblems } from "../quality/contentCheck.js";
+import { contextForCoding } from "../models/gpuMemory.js";
 import { hollowTests, missingDeliverables } from "../quality/deliverables.js";
 import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
@@ -1669,9 +1669,13 @@ export class Orchestrator {
       // every file the model read then pushed the last one out, and it read the same files for three attempts without
       // an edit (NOBIO, "Design the main screens": ~11,000 tokens to send, 8,800 of them the brief). Coding steps get
       // 32k when the model supports it and the computer has the memory (qwen3-coder:30b: about 1.5 GB more).
-      const bigger = !assignment.providerId.startsWith("hosted") && !base.contextWindow && (info?.maxContext ?? 0) >= 32_768 && os.totalmem() >= 24 * 2 ** 30;
-      if (bigger) assignment = { ...assignment, contextWindow: 32_768 };
-      this.d.bus.emit({ ...ev, type: "model.tier", message: `${role === "coder" ? "Coder" : "Debugger"} model for "${task.title}": ${assignment.model}${modelOverride ? " (the fast model you turned on in Speed & recovery)" : ""}${bigger ? ", with a 32k context" : ""}` });
+      // The window is held in graphics memory, not system RAM: this used to ask for 24 GB of RAM, and on a 31 GB
+      // machine with an 8 GB card it gave qwen3:14b a 32k window that left 9 of its 15 GB running on the CPU at
+      // 7.5 tokens a second. The size now follows the card, and never drops below the floor that keeps the step's
+      // prompt whole - Ollama cuts a prompt that does not fit the window without saying so.
+      const window = !assignment.providerId.startsWith("hosted") && !base.contextWindow && (info?.maxContext ?? 0) >= 32_768 ? await contextForCoding(info?.sizeBytes) : undefined;
+      if (window) assignment = { ...assignment, contextWindow: window };
+      this.d.bus.emit({ ...ev, type: "model.tier", message: `${role === "coder" ? "Coder" : "Debugger"} model for "${task.title}": ${assignment.model}${modelOverride ? " (the fast model you turned on in Speed & recovery)" : ""}${window ? `, with a ${Math.round(window / 1024)}k context` : ""}` });
     }
     const open = this.d.store.getSetting<string>(`openErrors:${task.id}`, "");
     const kit = kitFacts(jail, `${task.title}\n${task.objective}\n${task.acceptanceCriteria.map((c) => c.description).join("\n")}`);
