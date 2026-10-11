@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { applyComponentStyle, applyDesign, applyPalette, componentStylesOf, designBrief, designComponents, paletteOf, setDesignComponents } from "../src/workspace/designStudio.js";
+import { applyComponentStyle, applyDesign, applyPalette, componentStylesOf, designBrief, designComponents, paletteOf, setDesignComponents, tokenValues } from "../src/workspace/designStudio.js";
 import { makeApp, makeProject } from "./helpers.js";
 
 const TOKENS = `:root {\n  --color-text: #1e2421;\n  --font-sans: system-ui, sans-serif;\n  --text-md: 1rem;\n  --radius-xl: 10px;\n}\n\n@media (prefers-color-scheme: dark) {\n  :root {\n    --color-text: #ece6da;\n  }\n}\n`;
@@ -134,5 +134,23 @@ describe("design studio", () => {
     applyComponentStyle(jail, app.ops, { projectId: project.id, runId: "style_test" }, "ui-shell", { bar: "brand", current: "pill" });
     expect(read()).toContain(":root .ui-shell__header { background: var(--color-accent); color: var(--color-on-accent)");
     expect(read()).toContain(':root .ui-shell__link[aria-current="page"] { box-shadow: none;');
+  });
+});
+
+/**
+ * Picking a ready-made design style overwrites the app's tokens, so the values it replaces are kept first and
+ * "Custom" puts them back. Only the light theme's values are the app's look; the dark block is a variation of it.
+ */
+describe("the app's own look", () => {
+  it("reads the named tokens, ignores the dark block and leaves out what is not defined", () => {
+    const { app } = makeApp();
+    const { jail } = makeProject(app, { "src/styles/tokens.css": TOKENS });
+    expect(tokenValues(jail, ["--color-text", "--radius-xl", "--color-accent"])).toEqual({ "--color-text": "#1e2421", "--radius-xl": "10px" });
+  });
+
+  it("is empty when the app has no tokens to read", () => {
+    const { app } = makeApp();
+    const { jail } = makeProject(app, {});
+    expect(tokenValues(jail, ["--color-text"])).toEqual({});
   });
 });

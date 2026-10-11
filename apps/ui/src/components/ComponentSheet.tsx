@@ -54,6 +54,38 @@ export interface Library {
 export const STYLES_CHANGED = "fc:styles-changed";
 export const stylesChanged = () => window.dispatchEvent(new CustomEvent(STYLES_CHANGED));
 
+/**
+ * The panel's heading: the mark, what the project's library holds, and Re-scan. It sits above the panel's tabs, so it
+ * keeps its own copy of the list; Re-scan tells the Design view to read the list again too.
+ */
+export function StylesBar({ projectId }: { projectId: string }) {
+  const { data, reload, loading } = useResource<Library>(`/projects/${projectId}/components`, [projectId]);
+  useEffect(() => {
+    const again = () => reload();
+    window.addEventListener(STYLES_CHANGED, again);
+    return () => window.removeEventListener(STYLES_CHANGED, again);
+  }, [reload]);
+  const comps = data?.components.filter((c) => c.kind === "component") ?? [];
+  const pages = data?.components.filter((c) => c.kind === "page") ?? [];
+  return (
+    <div className="styles-panel__bar">
+      <div className="sheet__head">
+        {/* The brand mark, bundled from the app's own assets. Its "CSS" is drawn in currentColor so it reads in both themes. */}
+        <span className="sheet__brand" role="img" aria-label="CSSVibes" dangerouslySetInnerHTML={{ __html: CSSVIBES }} />
+        <div className="sheet__about">
+          <span className="muted" style={{ fontSize: 12.5 }}>
+            {data?.primitives.length ?? 0} building blocks · {comps.length} components{pages.length ? ` · ${pages.length} pages` : ""}
+          </span>
+          <span className="sheet__note muted">The builder gets this list with every interface step, so it reuses these instead of writing new ones.</span>
+        </div>
+      </div>
+      <button className="btn btn--sm" onClick={() => (reload(), stylesChanged())} disabled={loading} aria-label="Re-scan components">
+        <RefreshCw size={14} aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
 const openFile = (file: string) => window.dispatchEvent(new CustomEvent("fc:open-file", { detail: file }));
 const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -261,17 +293,6 @@ export function ComponentSheet({ projectId }: { projectId: string }) {
     );
   return (
     <div className="sheet">
-      <div className="styles-panel__bar">
-        {/* The brand mark, bundled from the app's own assets. Its "CSS" is drawn in currentColor so it reads in both themes. */}
-        <span className="sheet__brand" role="img" aria-label="CSSVibes" dangerouslySetInnerHTML={{ __html: CSSVIBES }} />
-        <span className="muted" style={{ fontSize: 12.5 }}>
-          {data.primitives.length} building blocks · {comps.length} components{pages.length ? ` · ${pages.length} pages` : ""}
-        </span>
-        <span className="sheet__note muted">The builder gets this list with every interface step, so it reuses these instead of writing new ones.</span>
-        <button className="btn btn--sm" onClick={reload} disabled={loading} aria-label="Re-scan components">
-          <RefreshCw size={14} aria-hidden="true" />
-        </button>
-      </div>
 
       {data.primitives.length ? (
         <section className="styles-group" aria-labelledby="sheet-blocks">

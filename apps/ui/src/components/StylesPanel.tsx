@@ -10,7 +10,7 @@ import { useMemo, useState, type CSSProperties } from "react";
 import { Boxes, Layers, Palette, RefreshCw, Sparkles, Undo2, Wand2 } from "lucide-react";
 import { ExtrasPanel } from "./ExtrasPanel";
 import { DESIGN_TEMPLATES } from "@flowcode/contracts";
-import { ComponentSheet, stylesChanged } from "./ComponentSheet";
+import { ComponentSheet, stylesChanged, StylesBar } from "./ComponentSheet";
 import { SurfacePanel } from "./SurfacePanel";
 import { StyleCapture } from "./StyleCapture";
 import { post, useResource } from "../api";
@@ -94,6 +94,7 @@ export function StylesPanel({ projectId }: { projectId: string }) {
   const [capturing, setCapturing] = useState(false);
   return (
     <div className="styles-wrap">
+      <StylesBar projectId={projectId} />
       <div className="styles-top">
       <div className="styles-views" data-cp="design-views" role="tablist" aria-label="Styles view">
         <button type="button" role="tab" aria-selected={view === "components"} className="styles-views__btn" onClick={() => setView("components")}>

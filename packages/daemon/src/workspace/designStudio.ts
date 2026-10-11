@@ -171,6 +171,25 @@ export function applyComponentStyle(jail: PathJail, ops: FileOperations, ctx: { 
 }
 
 /** The saved palette, or one started from the app's current accent colour. */
+/**
+ * What the app's tokens say now, for the named custom properties, in the light theme. Used to keep the look the
+ * person or the build gave an app before a ready-made design style overwrites it, so "Custom" can put it back.
+ * A name the stylesheet does not define is left out rather than guessed.
+ */
+export function tokenValues(jail: PathJail, names: readonly string[]): Record<string, string> {
+  let decls: ReturnType<typeof parseCustomProperties>;
+  try {
+    decls = parseCustomProperties(fs.readFileSync(path.join(jail.root, TOKENS), "utf8"));
+  } catch {
+    return {};
+  }
+  const out: Record<string, string> = {};
+  for (const name of names) {
+    const d = decls.find((x) => x.name === name && !isDark(x.selectors));
+    if (d) out[name] = d.value;
+  }
+  return out;
+}
 export function paletteOf(jail: PathJail): { config: PaletteConfig; saved: boolean } {
   const saved = readDesign(jail).palette as PaletteConfig | undefined;
   if (saved?.brand?.length) return { config: saved, saved: true };

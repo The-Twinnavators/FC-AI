@@ -39,7 +39,7 @@ import { ModelRouter } from "../models/router.js";
 import { aiEngine, checkNetwork, environment, systemHealth, toolCatalog } from "./system.js";
 import { STYLE_EDIT_RUN, editStyleToken, scanStyles, editFixedFontSize } from "../workspace/styleTokens.js";
 import { setSurfaceStyle, surfaceStyleOf } from "../workspace/surfaceStyle.js";
-import { applyComponentStyle, applyDesign, applyPalette, componentStylesOf, designComponents, paletteOf, setDesignComponents } from "../workspace/designStudio.js";
+import { applyComponentStyle, applyDesign, applyPalette, componentStylesOf, designComponents, paletteOf, setDesignComponents, tokenValues } from "../workspace/designStudio.js";
 import { FLOWCODE_LIMITS_KEY } from "../orchestrator/stepRecovery.js";
 import { browseFolder, folderRoots } from "../workspace/folderBrowser.js";
 import { applyCapturedStyle, captureStyle } from "../workspace/styleCapture.js";
@@ -560,10 +560,27 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   // corners into the tokens (snapshotted, so it can be undone).
   const markCustomDesign = (projectId: string) => app.store.setSetting(`designChoice:${projectId}`, { id: "custom", by: "you", at: new Date().toISOString() });
   add("GET /projects/:id/design/choice", ({ params }) => app.store.getSetting(`designChoice:${params.id}`, { id: "custom" }));
+  // Picking a style overwrites the app's own tokens, so the values it replaces are kept once - the look the person
+  // or the build gave this app. "Custom" puts them back, rather than only relabelling the dropdown.
   add("POST /projects/:id/design/choice", ({ params, body }) => {
     const b = parse(z.object({ id: z.string().max(60) }), body);
     const record = { id: b.id, by: "you", at: new Date().toISOString() };
-    if (b.id === "custom") return (app.store.setSetting(`designChoice:${params.id}`, record), { ...record, changed: [] });
+    const jail = app.projects.jail(params.id);
+    const ctx = { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) };
+    const customKey = `designCustom:${params.id}`;
+  
+    if (b.id === "custom") {
+      const own = app.store.getSetting<Record<string, string> | undefined>(customKey, undefined);
+      if (!own) return (app.store.setSetting(`designChoice:${params.id}`, record), { ...record, changed: [] });
+      try {
+        const back = applyDesign(jail, app.ops, ctx, { theme: "default", values: own });
+        app.store.setSetting(`designChoice:${params.id}`, record);
+        return { ...record, changed: back.changed };
+      } catch (e) {
+        throw new HttpError(400, (e as Error).message);
+      }
+    }
+  
     const t = designTemplate(b.id);
     if (!t) throw new HttpError(400, `Unknown design style "${b.id}"`);
     const c = t.colors;
@@ -574,8 +591,14 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       "--font-sans": t.fonts.sans, "--font-display": t.fonts.display,
       "--radius-sm": `${t.radii[0]}px`, "--radius-md": `${t.radii[1]}px`, "--radius-lg": `${t.radii[2]}px`, "--radius-xl": `${t.radii[3]}px`,
     };
+    // Only the app's own look is worth keeping: moving from one style to another must not record the first one as it.
+    const was = app.store.getSetting<{ id?: string }>(`designChoice:${params.id}`, { id: "custom" });
+    if ((was.id ?? "custom") === "custom" && !app.store.getSetting(customKey, undefined)) {
+      const own = tokenValues(jail, Object.keys(values));
+      if (Object.keys(own).length) app.store.setSetting(customKey, own);
+    }
     try {
-      const out = applyDesign(app.projects.jail(params.id), app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, { theme: "default", values });
+      const out = applyDesign(jail, app.ops, ctx, { theme: "default", values });
       app.store.setSetting(`designChoice:${params.id}`, record);
       return { ...record, changed: out.changed };
     } catch (e) {
