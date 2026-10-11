@@ -22,7 +22,7 @@ export interface LayoutVersion {
   bestFor: string;
 }
 export interface LayoutKind {
-  kind: "home" | "dashboard" | "settings" | "pricing" | "about" | "signin";
+  kind: "home" | "dashboard" | "settings" | "pricing" | "about" | "signin" | "list";
   /** File it becomes in the app. */
   screen: string;
   /** When the spec or request asks for this screen. */
@@ -84,6 +84,19 @@ export const LAYOUTS: LayoutKind[] = [
       { id: "about-team", name: "Team", bestFor: "organisations and services: mission, numbers, the people and how to get in touch" },
     ],
     pick: (t) => (/\b(team|staff|volunteers|members|contact us|get in touch)\b/i.test(t) ? "about-team" : "about-story"),
+  },
+  {
+    // A screen people browse to choose from: brands, products, requests, entries. Without this the runtime had no
+    // layout for it and fell through to the keyword picker, which seeded a "Brands" screen with a chip specimen.
+    kind: "list",
+    screen: "src/screens/ListScreen.tsx",
+    wanted: /\b(lists?|browse|directory|catalogu?e|search results?|all (the )?\w+s\b|find (a|an|the)? ?\w+|results? (screen|page)|index (screen|page)|feed)\b/i,
+    versions: [
+      { id: "list-cards", name: "Cards", bestFor: "things judged one at a time (brands, products, places, people): search, filters and a card each" },
+      { id: "list-rows", name: "Rows", bestFor: "records compared field by field (orders, requests, entries, logs): search, filters and a table" },
+    ],
+    // A table is for scanning columns; cards are for judging items. Status, owner and dates mean rows.
+    pick: (t) => (count(t, /\b(table|rows?|columns?|sort(ed|ing)?|status|owner|assigned|due|records?|entries|orders?|logs?|admin)\b/gi) >= 2 ? "list-rows" : "list-cards"),
   },
   {
     kind: "signin",
