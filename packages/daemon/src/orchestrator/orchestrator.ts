@@ -53,6 +53,7 @@ import { cloudCoder } from "../models/cloud.js";
 import { directionBrief, type DesignDirection } from "../knowledge/designDirection.js";
 import { contentProblems } from "../quality/contentCheck.js";
 import { contextForCoding } from "../models/gpuMemory.js";
+import { verticalSlices } from "./verticalSlices.js";
 import { hollowTests, missingDeliverables } from "../quality/deliverables.js";
 import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
@@ -655,11 +656,15 @@ export class Orchestrator {
       visualDirection(refs),
       lookGuidance(this.d.store.getSetting<BuildLook | undefined>(`runLook:${run.id}`, undefined), refs.some((r) => r.role === "css") || /#[0-9a-f]{6}\b[\s\S]*#[0-9a-f]{6}\b[\s\S]*#[0-9a-f]{6}\b/i.test(prdTextOf(refs)) ? undefined : designTemplate(this.d.store.getSetting<BuildLook | undefined>(`runLook:${run.id}`, undefined)?.template)),
       run.constraints.length ? `Constraints:\n${run.constraints.map((c) => `- ${c}`).join("\n")}` : "",
-      `The runtime has ALREADY planned these first tasks (do not repeat them): scaffold ${starter.starter.stack}, install dependencies, copy the reference files below into the workspace, and build the app layout and navigation (one screen component per main screen, shown one at a time). Your feature tasks fill those screens with real content and controls; name the screen each task works on.${screenPlan ? ` ${screenPlanNote(screenPlan)}` : ""} A final task wiring everything into ${starter.starter.entry} is also added for you.`,
+      `The runtime has ALREADY planned these first tasks (do not repeat them): scaffold ${starter.starter.stack}, install dependencies, copy the reference files below into the workspace, and build the app layout and navigation (one screen component per main screen, shown one at a time). Your feature tasks fill those screens with real content and controls; name the screen each task works on.${screenPlan ? ` ${screenPlanNote(screenPlan)}` : ""} Each of your tasks wires its own screen into ${starter.starter.entry} itself, so the app works after every task; the final task only checks the whole app over.`,
       `Reference files (readable by the coder with read_file):\n${refLines.join("\n") || "- none"}`,
       prd ? `PRD (${prd.name}):\n${untrusted(prd.name, prd.content.slice(0, 14_000))}` : "",
       requirements.length ? `Requirement lines extracted from the PRD:\n${requirements.slice(0, 60).map((r) => `${r.id}: ${r.text}`).join("\n")}` : "",
-      "Plan 3–7 FEATURE tasks that build the product described, in dependency order (first task may depend on nothing). Every task: expectedPaths under src/; acceptanceCriteria with at least one machine check (file_contains on a concrete file, or verification typecheck/lint/tests/build). " +
+      "Plan 3–7 FEATURE tasks, one user journey each, in dependency order (first task may depend on nothing). A task finishes one journey: the screen it needs with the spec's real content, its empty, loading and error states, its keyboard and small-screen behaviour, and the screen wired into " +
+        `${starter.starter.entry} so a person can open the app and use that journey the moment the task is done. ` +
+        "Do NOT plan a task for something that spans the app - no accessibility task, responsive task, analytics task or states task - and do not plan two tasks for the same screen: those requirements belong inside the journey that needs them. " +
+        "Every task: expectedPaths under src/, including the screen file it writes and " +
+        `${starter.starter.entry}; acceptanceCriteria with at least one machine check (file_contains on a concrete file, or verification typecheck/lint/tests/build). ` +
         (refs.some((r) => r.role === "html") ? `One early task must port the reference HTML into ${starter.starter.framework} components keeping EVERY word, link href and form field (name/type/label) — a fidelity check will compare them. ` : "") +
         `The last task must include verification ${starter.requiredChecks.includes("lint") ? "lint" : "tests"} and build. Use the JSON files in src/content/ as data where relevant. Return ONLY the JSON plan.`,
     ]
@@ -683,6 +688,15 @@ export class Orchestrator {
       plannerNote = (err as Error).message;
     }
     if (featureTasks) {
+      // One journey per step. A planner given a PRD with a section per quality plans a step per quality, and those
+      // steps retrofit screens the earlier ones wrote - or, on the Non-GMO build, a screen no step ever wrote.
+      const slices = verticalSlices(featureTasks);
+      if (slices.dropped.length) {
+        featureTasks = slices.kept;
+        const left = slices.dropped.map((t) => t.title).join("; ").slice(0, 160);
+        const note = `Left out ${slices.dropped.length} step(s) that cover the whole app rather than one user journey (${left}); each journey carries its own accessibility and responsive requirements instead`;
+        this.d.bus.emit({ type: "plan.proposed", projectId: run.projectId, runId: run.id, message: note, level: "warning" });
+      }
       const keys = new Set(featureTasks.map((t) => t.key));
       featureTasks = featureTasks.slice(0, 8).map((t, i) => {
         const deps = t.dependsOn.filter((d) => keys.has(d)).map((d) => `m_${d}`);

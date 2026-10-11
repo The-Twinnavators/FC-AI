@@ -1,4 +1,6 @@
 /** Local Ollama adapter (§8.1, §16). Native tool calls via /api/chat; models listed via /api/tags. */
+import fs from "node:fs";
+import path from "node:path";
 import type { ProviderConfig } from "@flowcode/contracts";
 import { ProviderError, type ChatRequest, type ChatResponse, type ModelInfo, type Provider, type ToolCall } from "./types.js";
 import { classifyError, withTimeout } from "./errors.js";
@@ -91,6 +93,19 @@ export class OllamaProvider implements Provider {
     // slower and the runtime verifies results independently of model reasoning.
     const caps: string[] = await this.capabilities(req.model).catch(() => []);
     if (caps.includes("thinking")) body.think = req.think ?? false;
+    // Set FLOWCODE_PROMPT_DUMP to a folder to write every prompt as it is sent, so what fills the context can be
+    // measured instead of guessed. Off unless the variable is set, and it never changes what is sent.
+    if (process.env.FLOWCODE_PROMPT_DUMP) {
+      try {
+        const dir = process.env.FLOWCODE_PROMPT_DUMP;
+        fs.mkdirSync(dir, { recursive: true });
+        const chars = messages.map((m) => ({ role: m.role, chars: String(m.content ?? '').length }));
+        const name = `${Date.now()}-${req.model.replace(/[^\w.-]/g, '_')}.json`;
+        fs.writeFileSync(path.join(dir, name), JSON.stringify({ model: req.model, numCtx: (body.options as { num_ctx: number }).num_ctx, totalChars: chars.reduce((a, c) => a + c.chars, 0), chars, messages }, null, 2));
+      } catch {
+        /* measuring must never break a build */
+      }
+    }
     await this.makeRoomFor(req.model, (body.options as { num_ctx: number }).num_ctx);
     const res = await this.post<{
       model: string;
