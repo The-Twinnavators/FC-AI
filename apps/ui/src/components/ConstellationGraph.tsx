@@ -48,15 +48,12 @@ interface Props {
   explode?: boolean;
 }
 
-/** Ease out with a small overshoot, so the burst lands and settles. */
-const easeOutBack = (u: number) => {
-  const c = 1.4;
-  return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2);
-};
-const EXPLODE_S = 0.9;
-/** A few orbs overshoot toward the viewer, streak past the camera, then fall back into place. */
-const FLY_S = 1.7;
-const FLYER_SHARE = 0.035;
+/** The opening pulls the view back from the core: it starts inside the constellation and the whole shape comes
+ *  into sight. Slower than a burst, and the orbs are never anywhere but where they belong. */
+const INTRO_S = 3.0;
+/** How much closer the view starts than it rests, as a multiple of the resting zoom. */
+const INTRO_ZOOM = 1.9;
+const easeOutCubic = (u: number) => 1 - Math.pow(1 - u, 3);
 
 const CAM_D = 4.2;
 const SPRING_K = 80;
@@ -300,23 +297,20 @@ export function ConstellationGraph(props: Props) {
 
     let raf = 0;
     let lastT = performance.now();
-    // The burst starts the first time the canvas is on screen, so it isn't over before anyone sees it.
+    // The opening waits for both the canvas to be on screen and the graph to have arrived: it is fetched, so on a
+    // cold load it used to run against an empty canvas and the constellation turned up afterwards, already at rest.
     let born = live.current.explode ? Infinity : performance.now();
+    let onScreen = !live.current.explode;
     const seen = new IntersectionObserver((entries) => {
       if (entries.some((e) => e.isIntersecting)) {
-        born = performance.now();
+        onScreen = true;
         seen.disconnect();
       }
     }, { threshold: 0.35 });
     if (live.current.explode) seen.observe(canvas);
-    // How far out from the core something is during the opening burst (1 once it's over). Each node starts a little
-    // after the last, by its phase, so the burst reads as a spray rather than one ring.
-    const spread = (now: number, delay = 0) => {
-      if (reduce || !live.current.explode) return 1;
-      const u = Math.max(0, Math.min(1, ((now - born) / 1000 - delay) / EXPLODE_S));
-      return u <= 0 ? 0.001 : easeOutBack(u);
-    };
-    // ── Demo cursor (preview only): once the burst has settled, a cursor shows how to explore the graph, on a loop:
+    // The opening moves the view, not the orbs, so every orb is at its own place from the first frame.
+    const spread = (_now?: number, _delay = 0) => 1;
+    // ── Demo cursor (preview only): once the opening has settled, a cursor shows how to explore the graph, on a loop:
     // drag down and up to tilt, drag sideways to turn, scroll to zoom in, move to an orb and click it (it lights up
     // with its name), then zoom back out. All scripted; nothing on the page is clicked.
     let demoSel: string | null = null;
@@ -329,7 +323,7 @@ export function ConstellationGraph(props: Props) {
     const ease = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
     const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
     const demoStep = (now: number) => {
-      const settleAt = born + (EXPLODE_S + FLY_S + 0.6) * 1000;
+      const settleAt = born + (INTRO_S + 0.4) * 1000;
       if (reduce || !Number.isFinite(born) || now < settleAt) return;
       const elapsed = (now - settleAt) / 1000;
       const cycle = Math.floor(elapsed / DEMO_CYCLE);
@@ -450,12 +444,9 @@ export function ConstellationGraph(props: Props) {
       ctx.fill();
       ctx.stroke();
     };
-    const flyAmount = (now: number, phase: number) => {
-      if (reduce || !live.current.explode || phase / 6.28 > FLYER_SHARE) return 0;
-      const u = ((now - born) / 1000 - 0.05) / FLY_S;
-      return u <= 0 || u >= 1 ? 0 : Math.pow(Math.sin(Math.PI * u), 1.6);
-    };
+    const flyAmount = (_now?: number, _phase?: number) => 0;
     const frame = (now: number) => {
+      if (born === Infinity && onScreen && live.current.nodes.length) born = now;
       const dt = Math.min(0.05, (now - lastT) / 1000);
       lastT = now;
       const t = now / 1000;
@@ -471,7 +462,14 @@ export function ConstellationGraph(props: Props) {
         if (Math.abs(target.y - rotY) < 0.002 && Math.abs(target.x - rotX) < 0.002) target = null;
       } else {
         if (!reduce && !dragging && now - lastInteract > 2500) rotY += dt * 0.05;
-        if (!selectedId) zoom += (zoomTarget - zoom) * Math.min(1, dt * 2);
+        // The opening: start close in on the core and ease out to the resting view. Once it is over (or when the
+        // person has reduced motion, or has moved the view themselves) the zoom settles the usual way.
+        const intro = live.current.explode && !reduce ? (now - born) / 1000 / INTRO_S : 2;
+        if (!selectedId && intro >= 0 && intro < 1 && !userMoved && !dragging) {
+          zoom = zoomTarget * (INTRO_ZOOM + (1 - INTRO_ZOOM) * easeOutCubic(intro));
+        } else if (!selectedId) {
+          zoom += (zoomTarget - zoom) * Math.min(1, dt * 2);
+        }
       }
       rotY += rotYVel * dt;
       rotX = Math.max(-1.15, Math.min(0.25, rotX + rotXVel * dt));
