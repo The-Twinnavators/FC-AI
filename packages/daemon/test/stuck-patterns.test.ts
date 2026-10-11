@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { duplicateScreens, screenKey } from "../src/quality/appWiring.js";
 import { contentProblems } from "../src/quality/contentCheck.js";
 import { foldReadOnlySteps, syntaxGuard } from "../src/orchestrator/guards.js";
-import { failureSignature, sameFailureTwice } from "../src/orchestrator/stepRecovery.js";
+import { failureSignature, sameFailureTwice, stopAtSameWall } from "../src/orchestrator/stepRecovery.js";
 import { PathJail } from "../src/security/pathJail.js";
 
 const project = (files: Record<string, string>) => {
@@ -207,5 +207,27 @@ describe("a stylesheet an edit leaves unparseable", () => {
   it("does not block an edit that reduces the damage it inherited", () => {
     const broken = ".a { color: red;\n.b { color: blue;\n";
     expect(syntaxGuard("src/styles/app.css", broken, ".a { color: red; }\n.b { color: blue;\n")).toBeUndefined();
+  });
+});
+
+describe("the wall a step is allowed to hit once more", () => {
+  const twice = [failureSignature(["agent outcome: no_action (No progress: 9 reads in a row and no change made)"]), failureSignature(["agent outcome: no_action (No progress: 12 reads in a row and no change made)"])];
+
+  it("stops a step that has hit the same wall twice", () => {
+    expect(stopAtSameWall(2, twice, 0)).toBe(true);
+  });
+
+  // A FlowCode guard that stopped the step twice earns it one attempt with that guard relaxed. Stopping first spends
+  // nothing and learns nothing: the relaxed attempt is the point (Money Tapp: "App layout and navigation").
+  it("stands aside for the attempt a twice-hit guard has just earned", () => {
+    expect(stopAtSameWall(2, twice, 2)).toBe(false);
+  });
+
+  it("stops again once that relaxed attempt has also failed", () => {
+    expect(stopAtSameWall(3, [...twice, twice[1]!], 3)).toBe(true);
+  });
+
+  it("never stops before a second attempt", () => {
+    expect(stopAtSameWall(1, twice, 0)).toBe(false);
   });
 });

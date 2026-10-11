@@ -267,6 +267,15 @@ export function failureSignature(why: string[]): string {
  * largest single cost in a build, so a retry that produces the identical complaint is paying that cost for nothing:
  * the step stops and asks instead of spending the rest of its budget on the same wall.
  */
+/**
+ * Whether to stop a step at a wall it has already hit twice. A guard stop that has just earned the step one attempt
+ * with that guard relaxed is not such a wall: that attempt is the whole point of the relaxation, and stopping first
+ * means it never runs (Money Tapp: "App layout and navigation" ended at 9 reads in a row with its relaxed retry
+ * unspent).
+ */
+export function stopAtSameWall(attempts: number, signatures: string[], guardHits: number): boolean {
+  return attempts >= 2 && guardHits !== 2 && sameFailureTwice(signatures);
+}
 export function sameFailureTwice(signatures: string[]): boolean {
   const n = signatures.length;
   if (n < 2) return false;
