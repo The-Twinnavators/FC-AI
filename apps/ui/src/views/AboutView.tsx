@@ -30,17 +30,21 @@ const FEATURES = [
 
 // Who FlowCode is for: people building on their own, without a team. The person with the idea first
 // (docs/flowcode-ai-opportunities.md: a product owner or designer-founder), then solo developers and vibe coders.
-/** The system setup, from the models FlowCode uses (setup.ts, router.ts) and the machine it's tested on. */
+/**
+ * The system setup, from the models FlowCode uses (setup.ts, router.ts) and the machine it's tested on. Each tier says
+ * what the person gets, not what the hardware is: a model only writes at speed while all of it is on the graphics card,
+ * and what fits is the model's own size plus its context (about 250 KB a token, so 32k costs roughly 8 GB).
+ */
 const SETUP: Array<{ tier: string; pick?: boolean; rows: Array<[string, string]>; note: string }> = [
   {
     tier: "Works",
     rows: [
       ["Memory", "16 GB"],
       ["Graphics", "None needed (runs on the processor)"],
-      ["Coder models", "qwen2.5-coder:7b, qwen3:8b or llama3.1:8b (about 5 GB each)"],
+      ["Coder models", "qwen3:8b or qwen2.5-coder:7b (about 5 GB each)"],
       ["Free disk", "20 GB"],
     ],
-    note: "Builds take much longer, and a smaller model needs more retries to get a step right.",
+    note: "Every model runs on the processor, so it writes a few tokens a second and a build takes hours. Enough to see what FlowCode does; not enough to work this way.",
   },
   {
     tier: "Recommended",
@@ -48,20 +52,20 @@ const SETUP: Array<{ tier: string; pick?: boolean; rows: Array<[string, string]>
     rows: [
       ["Memory", "32 GB"],
       ["Graphics", "NVIDIA with 8 GB of video memory (e.g. RTX 5070 laptop)"],
-      ["Coder models", "qwen3:14b (9 GB, the verified Coder) or gpt-oss:20b (13 GB)"],
+      ["Coder models", "qwen3:8b (5 GB), the verified Coder that fits an 8 GB card"],
       ["Free disk", "40 GB"],
     ],
-    note: "Runs every model FlowCode is tested with. Build time depends on the project and the models you choose. Add qwen2.5vl:3b so the design is checked on every screen.",
+    note: "Builds in tens of minutes rather than hours, with about a third of the Coder on the processor at the context a step needs. A 9 GB model does not fit: qwen3:14b with a 32k window measured 40% on this card and wrote 7.5 tokens a second. Add qwen2.5vl:3b so the design is checked on every screen.",
   },
   {
     tier: "Peak",
     rows: [
       ["Memory", "64 GB"],
       ["Graphics", "NVIDIA with 24 GB of video memory or more"],
-      ["Coder models", "qwen3-coder:30b (18 GB) or gpt-oss:20b (13 GB), fully on the graphics card"],
+      ["Coder models", "qwen3-coder:30b (18 GB) at 16k, or qwen3:14b at 32k with the design model beside it"],
       ["Free disk", "60 GB"],
     ],
-    note: "More GPU memory provides room for larger models and more demanding workloads. Actual build speed varies by model and project.",
+    note: "The whole Coder stays on the card, which is what costs the most: the same model fully on a card wrote more than twice as many tokens a second here as one left a third off it. It is also the largest Coder that passes every capability test, and the design model stays loaded beside it, so every screen is checked without swapping models.",
   },
 ];
 
