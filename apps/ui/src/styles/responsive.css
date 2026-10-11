@@ -14691,6 +14691,8 @@ section.dash { padding-top: 40px !important; }
    panels; larger labels, a clear line under the row, and a bold active tab with a 3px underline. ═══ */
 .page-tabs { display: grid; gap: 0; background: transparent; border: 0; box-shadow: none; }
 .page-tabs > .tabs { border-bottom: 1px solid var(--line-strong, var(--line)); margin-bottom: 24px; padding: 0; }
+/* The tabs stay at the top while the panel under them scrolls. */
+.page-tabs > .tabs { position: sticky; top: 0; z-index: 5; background: var(--bg-0); }
 .page-tabs > .tabs .tabs__list { gap: 8px; }
 .page-tabs > .tabs .tab { font-size: 15px; font-weight: 500; padding: 12px 14px; color: var(--text-1); }
 .page-tabs > .tabs .tab:hover { color: var(--text-0); }

@@ -76,7 +76,10 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     name: "MarkItDown",
     transport: "stdio",
     command: "uvx",
-    args: ["markitdown-mcp"],
+    // Run through Python, not the markitdown-mcp.exe launcher uv makes: Windows Application Control blocks that unsigned
+    // launcher on some computers, and Python itself runs. --system-certs: uv trusts the certificates Windows trusts, so
+    // antivirus or a proxy that inspects HTTPS doesn't stop it fetching the package.
+    args: ["--system-certs", "--from", "markitdown-mcp", "python", "-m", "markitdown_mcp"],
     roles: ["planner", "researcher", "coder"],
     approval: "ask",
     preset: "markitdown",
