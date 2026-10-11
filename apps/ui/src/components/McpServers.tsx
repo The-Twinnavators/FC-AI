@@ -38,6 +38,8 @@ interface Server {
 interface Preset extends Omit<Server, "enabled" | "disabledTools" | "status"> {
   summary: string;
   needs?: string;
+  /** Where its key or its prerequisite comes from: nobody should have to go looking. */
+  setupUrl?: string;
 }
 interface Data {
   servers: Server[];
@@ -180,7 +182,7 @@ export function McpServers() {
           {/* The modal is the edit page: how FlowCode starts or reaches the server is edited right here. */}
           <section className="mcp-detail__connection" aria-label="Connection">
             <span className="label">Connection</span>
-            <ServerForm key={openServer.id} server={openServer} onSaved={(id) => (reload(), void test(id))} />
+            <ServerForm key={openServer.id} server={openServer} preset={data.presets.find((p) => (p.preset ?? p.id) === openServer.preset)} onSaved={(id) => (reload(), void test(id))} />
           </section>
         </LibModal>
       ) : null}
@@ -194,7 +196,16 @@ export function McpServers() {
                 <div className="mcp-preset__body">
                   <strong>{p.name}</strong>
                   <span>{p.summary}</span>
-                  {p.needs ? <span className="muted mcp-preset__needs">Needs: {p.needs}</span> : null}
+                  {p.needs ? (
+                    <span className="muted mcp-preset__needs">
+                      Needs: {p.needs}{" "}
+                      {p.setupUrl ? (
+                        <a href={p.setupUrl} target="_blank" rel="noreferrer noopener">
+                          Set it up →
+                        </a>
+                      ) : null}
+                    </span>
+                  ) : null}
                 </div>
                 <button
                   type="button"
@@ -298,7 +309,7 @@ function ServerDetail({ server: s, busy, error, update }: { server: Server; busy
   );
 }
 
-function ServerForm({ server, onCancel, onSaved }: { server?: Server; onCancel?: () => void; onSaved: (id: string) => void }) {
+function ServerForm({ server, preset, onCancel, onSaved }: { server?: Server; preset?: Preset; onCancel?: () => void; onSaved: (id: string) => void }) {
   const [name, setName] = useState(server?.name ?? "");
   const [transport, setTransport] = useState<Server["transport"]>(server?.transport ?? "stdio");
   const [command, setCommand] = useState(server ? [server.command ?? "", ...(server.args ?? [])].join(" ").trim() : "");
@@ -369,7 +380,14 @@ function ServerForm({ server, onCancel, onSaved }: { server?: Server; onCancel?:
           </label>
         ) : null}
       </div>
-      <p className="muted mcp-form__note">Keys are stored on this computer only and shown masked. A masked value left as it is keeps the saved key.</p>
+      <p className="muted mcp-form__note">
+        Keys are stored on this computer only and shown masked. A masked value left as it is keeps the saved key.{" "}
+        {preset?.setupUrl ? (
+          <a href={preset.setupUrl} target="_blank" rel="noreferrer noopener">
+            Where to get this one →
+          </a>
+        ) : null}
+      </p>
       {err ? (
         <p className="mcp__error" role="alert">
           {err}

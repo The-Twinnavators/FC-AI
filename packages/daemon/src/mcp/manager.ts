@@ -49,7 +49,7 @@ export interface McpServerStatus {
 }
 
 /** Ready-made servers from the AgenticSkills MCP directory that help build prototypes (all free). */
-export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools"> & { summary: string; needs?: string }> = [
+export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools"> & { summary: string; needs?: string; setupUrl?: string }> = [
   {
     id: "context7",
     name: "Context7",
@@ -60,7 +60,8 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     approval: "ask",
     preset: "context7",
     summary: "Current documentation for libraries (React, Vite, Testing Library…), so builders use today's APIs instead of guessing.",
-    needs: "Node.js (installed). Uses the internet to fetch docs.",
+    needs: "Node.js (installed). Works without a key; a free one raises the rate limits (pass it as CONTEXT7_API_KEY).",
+    setupUrl: "https://context7.com/dashboard",
   },
   {
     id: "markitdown",
@@ -72,7 +73,8 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     approval: "ask",
     preset: "markitdown",
     summary: "Turns Word, PDF, PowerPoint and Excel files into clean Markdown that agents can read.",
-    needs: "Python's uv (uvx). Install it from docs.astral.sh/uv, then Test again.",
+    needs: "Python's uv (uvx). Install it, then Test again. No key.",
+    setupUrl: "https://docs.astral.sh/uv/getting-started/installation/",
   },
   {
     id: "playwright",
@@ -84,7 +86,8 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     approval: "ask",
     preset: "playwright",
     summary: "Opens the running prototype in a browser and clicks through it like a person.",
-    needs: "Node.js (installed). Downloads a browser the first time.",
+    needs: "Node.js (installed). Downloads a browser the first time. No key.",
+    setupUrl: "https://playwright.dev/docs/intro",
   },
   {
     id: "figma",
@@ -95,7 +98,8 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     approval: "ask",
     preset: "figma",
     summary: "Builds screens from your Figma frames: their layout, spacing and text, the file's variables as tokens, and a screenshot to compare against. Put Figma links in the PRD or request.",
-    needs: "The Figma desktop app on a plan with Dev Mode: open Figma, turn on the Dev Mode MCP server in Preferences, keep Figma open while building.",
+    needs: "The Figma desktop app, on a Dev or Full seat. Switch to Dev Mode and turn the MCP server on from the Dev Mode panel, then keep Figma open while building. No key: it runs on this computer.",
+    setupUrl: "https://help.figma.com/hc/en-us/articles/39890361040535",
   },
   {
     id: "github",
@@ -108,6 +112,7 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
     preset: "github",
     summary: "Repositories, issues and pull requests: push a finished build or file issues.",
     needs: "A GitHub personal access token: paste it after \"Bearer \" in the Authorization header.",
+    setupUrl: "https://github.com/settings/tokens",
   },
 ];
 
