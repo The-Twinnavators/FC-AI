@@ -12613,6 +12613,30 @@ p.nb__starter b {
   color: var(--brand-ink, var(--text-1));
 }
 .dboard__nav-group .label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+/* The components list in the design panel: one row per component, each removable, with Add at the end. It used to
+   be two lists - links here and chips above the cards - the same set with two different affordances. */
+.dboard__nav-list { display: grid; gap: 2px; }
+.dboard__nav-row { display: flex; align-items: center; gap: 2px; }
+.dboard__nav-row a { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dboard__nav-x {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  opacity: 0;
+  line-height: 1;
+}
+.dboard__nav-row:hover .dboard__nav-x,
+.dboard__nav-x:focus-visible { opacity: 1; }
+.dboard__nav-x:hover { background: var(--surface-2); color: var(--text-1); }
+.dboard__nav-list .btn { margin-top: 6px; justify-content: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .dboard__nav-x { transition: opacity 120ms ease; }
+}
 .dboard__nav a {
   padding: 5px 8px;
   border-radius: 6px;

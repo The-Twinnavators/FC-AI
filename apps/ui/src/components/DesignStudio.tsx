@@ -356,7 +356,7 @@ export function DesignControls({ projectId, theme, onDraft, only }: { projectId:
  * kit already has is stored as its building block, so it shows in the sheet; any other pick is stored by name and
  * the builder makes it from the tokens.
  */
-export function DesignComponentsBar({ projectId, used, onChange }: { projectId: string; used: string[]; onChange: (shown: string[]) => void }) {
+export function DesignComponentsBar({ projectId, used, onChange, variant = "bar" }: { projectId: string; used: string[]; onChange: (shown: string[]) => void; variant?: "bar" | "nav" }) {
   const { data, reload } = useResource<{ components?: string[]; catalogue: Array<{ block: string; label: string }> }>(`/projects/${projectId}/design/components`, [projectId]);
   const styles = useResource<{ tokens: Token[] }>(`/projects/${projectId}/styles`, [projectId]);
   const [adding, setAdding] = useState(false);
@@ -377,20 +377,46 @@ export function DesignComponentsBar({ projectId, used, onChange }: { projectId: 
     reload();
   };
   const configured = COMPONENT_CATALOG.filter((c) => shown.includes(c.id) || (KIT_BLOCK[c.id] && shown.includes(KIT_BLOCK[c.id]))).map((c) => c.id);
+  const add = (
+    <button type="button" className="btn btn--sm" aria-haspopup="dialog" onClick={() => setAdding(true)}>
+      + Add components
+    </button>
+  );
+  // In the design board''s own panel the list lives beside the cards it scrolls to, and that one list is where a
+  // component is added or removed. It used to be shown twice: once as links in the panel and again as chips above
+  // the cards, the same set with two different affordances.
+  const list =
+    variant === "nav" ? (
+      <>
+        {shown.map((b) => (
+          <span key={b} className="dboard__nav-row">
+            <a href={`#dcard-${b}`} onClick={(e) => (e.preventDefault(), document.getElementById(`dcard-${b}`)?.scrollIntoView({ behavior: "smooth", block: "start" }))}>
+              {label(b)}
+            </a>
+            <button type="button" className="dboard__nav-x" aria-label={`Remove ${label(b)}`} onClick={() => void save(shown.filter((x) => x !== b))}>
+              ×
+            </button>
+          </span>
+        ))}
+        {add}
+      </>
+    ) : (
+      <>
+        <span className="studio__parts-label">In this design</span>
+        {shown.map((b) => (
+          <span key={b} className="studio__part">
+            {label(b)}
+            <button type="button" aria-label={`Remove ${label(b)}`} onClick={() => void save(shown.filter((x) => x !== b))}>
+              ×
+            </button>
+          </span>
+        ))}
+        {add}
+      </>
+    );
   return (
-    <div className="studio__parts">
-      <span className="studio__parts-label">In this design</span>
-      {shown.map((b) => (
-        <span key={b} className="studio__part">
-          {label(b)}
-          <button type="button" aria-label={`Remove ${label(b)}`} onClick={() => void save(shown.filter((x) => x !== b))}>
-            ×
-          </button>
-        </span>
-      ))}
-      <button type="button" className="btn btn--sm" aria-haspopup="dialog" onClick={() => setAdding(true)}>
-        + Add components
-      </button>
+    <div className={variant === "nav" ? "dboard__nav-list" : "studio__parts"}>
+      {list}
       <ComponentPickerModal
         isOpen={adding}
         onClose={() => setAdding(false)}

@@ -66,21 +66,21 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
         {nav.map((g) => (
           <div key={g.group} className="dboard__nav-group">
             <span className="label">{g.group}</span>
-            {g.items.map((it) => (
-              <a key={it.id} href={`#dcard-${it.id}`} onClick={(e) => (e.preventDefault(), go(it.id))}>
-                {it.label}
-              </a>
-            ))}
+            {g.group === "Components" ? (
+              <DesignComponentsBar variant="nav" projectId={projectId} used={used.filter(isComponent)} onChange={onShown} />
+            ) : (
+              g.items.map((it) => (
+                <a key={it.id} href={`#dcard-${it.id}`} onClick={(e) => (e.preventDefault(), go(it.id))}>
+                  {it.label}
+                </a>
+              ))
+            )}
           </div>
         ))}
       </nav>
 
       <div className="dboard__cards">
-        {/* What's in this design, and adding more, first: everything below follows from it. */}
-        <div className="dboard__group-head dboard__group-head--top">
-          <h3 className="dboard__group-title">Components in this design</h3>
-          <DesignComponentsBar projectId={projectId} used={used.filter(isComponent)} onChange={onShown} />
-        </div>
+
         <DesignCard id="colours" title="Colors" group="Foundation" note="5 brand colors, 10 shades each; neutrals and status colors follow them" onConfigure={() => setEditor({ kind: "colours" })}>
           <PaletteSummary projectId={projectId} theme={theme} />
         </DesignCard>
