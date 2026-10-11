@@ -14,6 +14,8 @@ interface ToolInfo {
   description: string;
 }
 interface Status {
+  /** How it answered last time, kept across restarts: a server is only "ready" while it is connected. */
+  lastTest?: { ok: boolean; at: string; tools: number; error?: string };
   state: "off" | "connecting" | "ready" | "error";
   error?: string;
   tools: ToolInfo[];
@@ -125,7 +127,10 @@ export function McpServers() {
             <li key={s.id} className="has-switch">
               <button type="button" className={`lib-card${s.enabled ? "" : " is-off"}`} onClick={() => (setOpenId(s.id), setEditing(undefined), setConfirmRemove(undefined))}>
                 <span className="lib-card__top">
-                  <strong className="lib-card__title">{s.name}</strong>
+                  <strong className="lib-card__title">
+                    <span className={`led mcp-card__led ${LED[health(s, busy === `test:${s.id}`).tone]}`} aria-hidden="true" />
+                    {s.name}
+                  </strong>
                   <StatusChip server={s} testing={busy === `test:${s.id}`} />
                 </span>
                 <span className="lib-card__purpose mono mcp-card__cmd">{commandOf(s)}</span>
@@ -236,13 +241,30 @@ export function McpServers() {
   );
 }
 
+/** The signal dot’s colour: the app already has these three; an untried server keeps the plain off dot. */
+const LED = { ok: "led--ok", bad: "led--bad", busy: "led--run", none: "" } as const;
+
 const commandOf = (s: Server) => (s.transport === "http" ? s.url : [s.command, ...(s.args ?? [])].join(" "));
 
-function StatusChip({ server: s, testing }: { server: Server; testing: boolean }) {
+/** Connected now, or how it answered last time: a server is not connected until something calls it. */
+function health(s: Server, testing: boolean): { tone: "ok" | "bad" | "busy" | "none"; text: string; title: string } {
   const st = s.status;
+  if (testing || st.state === "connecting") return { tone: "busy", text: "Connecting…", title: "Testing this server now" };
+  if (st.state === "ready") return { tone: "ok", text: `Connected · ${st.tools.length} tool${st.tools.length === 1 ? "" : "s"}`, title: "Connected now" };
+  if (st.state === "error") return { tone: "bad", text: "Not working", title: st.error ?? "The last attempt failed" };
+  const last = st.lastTest;
+  if (!last) return { tone: "none", text: "Not tested", title: "Never tried: press Test to see its tools" };
+  const when = new Date(last.at).toLocaleString();
+  return last.ok
+    ? { tone: "ok", text: `Worked · ${last.tools} tool${last.tools === 1 ? "" : "s"}`, title: `Answered on ${when}. It connects again when an agent first calls it.` }
+    : { tone: "bad", text: "Didn't work", title: `${last.error ?? "Failed"} (${when})` };
+}
+
+function StatusChip({ server: s, testing }: { server: Server; testing: boolean }) {
+  const h = health(s, testing);
   return (
-    <span className={`chip ${st.state === "ready" ? "chip--ok" : st.state === "error" ? "chip--bad" : ""}`}>
-      {testing || st.state === "connecting" ? "Connecting…" : st.state === "ready" ? `Ready · ${st.tools.length} tool${st.tools.length === 1 ? "" : "s"}` : st.state === "error" ? "Not working" : "Not tested"}
+    <span className={`chip ${h.tone === "ok" ? "chip--ok" : h.tone === "bad" ? "chip--bad" : ""}`} title={h.title}>
+      {h.text}
     </span>
   );
 }

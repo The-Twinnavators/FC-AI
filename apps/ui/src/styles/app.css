@@ -243,6 +243,9 @@ a {
 }
 
 /* ─── Signals ─────────────────────────────────────────────────────── */
+/* The dot beside a connected server’s name. */
+.mcp-card__led { display: inline-block; margin-right: 8px; vertical-align: 1px; }
+
 .led {
   width: 8px;
   height: 8px;

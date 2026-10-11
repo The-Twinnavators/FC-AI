@@ -46,6 +46,12 @@ export interface McpServerStatus {
   error?: string;
   tools: McpToolInfo[];
   checkedAt?: string;
+  /**
+   * What happened the last time this server was reached, kept across restarts. A server is only "ready" while it is
+   * connected, which it is not after FlowCode starts again - but whether it worked an hour ago is worth knowing, and
+   * without it every server read "Not tested" however often it had been.
+   */
+  lastTest?: { ok: boolean; at: string; tools: number; error?: string };
 }
 
 /** Ready-made servers from the AgenticSkills MCP directory that help build prototypes (all free). */
@@ -122,6 +128,7 @@ export const MCP_PRESETS: Array<Omit<McpServerConfig, "enabled" | "disabledTools
   },
 ];
 
+const LAST_TEST = "mcpLastTest";
 const SETTING = "mcp.servers";
 const CONNECT_MS = 45_000;
 /** npx and uvx download the server the first time it starts, which can take a minute or two. */
@@ -201,7 +208,15 @@ export class McpManager {
     return this.list().find((s) => s.id === id);
   }
   status(id: string): McpServerStatus {
-    return this.live.get(id)?.status ?? { state: "off", tools: [] };
+    const live = this.live.get(id)?.status;
+    const lastTest = this.store.getSetting<Record<string, NonNullable<McpServerStatus["lastTest"]>>>(LAST_TEST, {})[id];
+    return { ...(live ?? { state: "off", tools: [] }), ...(lastTest ? { lastTest } : {}) };
+  }
+
+  /** Remembers how a server answered, so the card can say so after a restart. */
+  private remember(id: string, ok: boolean, tools: number, error?: string): void {
+    const all = this.store.getSetting<Record<string, NonNullable<McpServerStatus["lastTest"]>>>(LAST_TEST, {});
+    this.store.setSetting(LAST_TEST, { ...all, [id]: { ok, at: new Date().toISOString(), tools, ...(error ? { error } : {}) } });
   }
 
   /** Adds or updates a server. Masked secrets sent back by the UI keep their stored value. */
@@ -267,9 +282,11 @@ export class McpManager {
           checkedAt: new Date().toISOString(),
           tools: listed.tools.map((t) => ({ name: t.name, description: (t.description ?? "").replace(/\s+/g, " ").trim().slice(0, 400), inputSchema: (t.inputSchema ?? { type: "object", properties: {} }) as Record<string, unknown> })),
         };
+        this.remember(cfg.id, true, l.status.tools.length);
       } catch (err) {
         await client.close().catch(() => undefined);
         l.status = { state: "error", tools: [], error: explain(cfg, err as Error, l.stderr), checkedAt: new Date().toISOString() };
+        this.remember(cfg.id, false, 0, l.status.error);
       } finally {
         l.connecting = undefined;
       }
