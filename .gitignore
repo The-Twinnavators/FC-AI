@@ -1,8 +1,10 @@
-﻿node_modules/
+node_modules/
 dist/
 dist-electron/
 *.tsbuildinfo
 .flowcode-data/
+# Playwright's browsers, kept with the project so the daemon finds them whatever shell started it (scripts/dev-daemon.mjs)
+.playwright-browsers/
 .flowcode-data-empty/
 # Benchmark output: a whole generated workspace, lockfile included. Committed, it is a second dependency tree
 # for Dependabot to raise alerts against, and nothing reads it back.

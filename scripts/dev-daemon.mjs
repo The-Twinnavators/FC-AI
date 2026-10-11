@@ -4,6 +4,7 @@
 // Like the desktop shell, it supervises the daemon: exit code 75 (System → Restart daemon) starts it again, 76
 // (Stop daemon) ends the launcher. The daemon watches its stdin, so it also shuts down cleanly if this launcher is
 // killed instead of being left behind holding the port.
+import fs from "node:fs";
 import path from "node:path";
 import { execFileSync, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -30,6 +31,11 @@ const env = {
   FLOWCODE_PORT: process.env.FLOWCODE_PORT ?? "7457",
   FLOWCODE_TOKEN: process.env.FLOWCODE_TOKEN ?? "dev-token-flowcode",
   FLOWCODE_PARENT_STDIN: "1",
+  // Playwright's browsers, kept with the project when they are there. Started from a shell with a restricted view of
+  // the filesystem, the daemon could not see the default location under AppData: every browser check reported
+  // "missing", and style capture, screenshots and the preview checks failed with "Executable doesn't exist" for a
+  // file that was plainly on disk. Absent that folder, Playwright's own default is left alone.
+  ...(fs.existsSync(path.join(root, ".playwright-browsers")) ? { PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH ?? path.join(root, ".playwright-browsers") } : {}),
   // Trust the certificates Windows trusts: antivirus HTTPS scanning (Avast), company proxies and VPNs sign traffic
   // with their own root, which Node's built-in list rejects ("unable to verify the first certificate").
   NODE_USE_SYSTEM_CA: "1",
