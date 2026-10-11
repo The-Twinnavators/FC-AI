@@ -68,10 +68,15 @@ function autoDaemon(): Plugin {
 }
 
 // base "./" so the built UI loads from file:// inside Electron.
+// 5199 unless PORT says otherwise. The UI finds the daemon through ?port= and ?token= in its own URL and the daemon
+// has no origin allowlist, so nothing depends on the number - it is a convention, and two copies cannot share it.
+// strictPort stays on: being moved to a port you did not ask for, silently, is worse than being told.
+const uiPort = Number(process.env.PORT) || 5199;
+
 export default defineConfig({
   base: "./",
   plugins: [react(), autoDaemon()],
-  server: { port: 5199, strictPort: true, host: "127.0.0.1", fs: { allow: [...new Set([root, deps])] } },
+  server: { port: uiPort, strictPort: true, host: "127.0.0.1", fs: { allow: [...new Set([root, deps])] } },
   // section-preview.html: the Component library shows each section in a page of its own.
   build: { outDir: "dist", sourcemap: true, rollupOptions: { input: { main: path.resolve(root, "apps/ui/index.html"), sectionPreview: path.resolve(root, "apps/ui/section-preview.html") } } },
 });

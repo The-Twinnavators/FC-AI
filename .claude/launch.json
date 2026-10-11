@@ -19,7 +19,8 @@
         "-w",
         "@flowcode/ui"
       ],
-      "port": 5199
+      "port": 5199,
+      "autoPort": true
     },
     {
       "name": "pda-companion",
