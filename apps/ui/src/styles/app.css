@@ -231,7 +231,11 @@ a {
   background: transparent;
 }
 
+/* The page scrolls here, so this is also what absolutely positioned things inside it measure from. Without that, a
+   .sr-only label in a table header resolved against the document instead and gave the window a second scrollbar of
+   its own, 1,444px past the viewport. */
 .view {
+  position: relative;
   background: transparent;
   overflow: auto;
   min-height: 0;
