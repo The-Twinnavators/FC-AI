@@ -204,7 +204,8 @@ describe("a spec build plans from the checklist", () => {
   it("writes the checklist, builds its code tasks as steps and links each item to its step", async () => {
     const { app } = makeApp();
     const { project } = makeProject(app);
-    // The planner gets one feature section per call and leaves its last requirement out each time.
+    // The planner gets one screen's journey per call (this PRD has two feature sections but one screen, so they
+    // arrive together) and leaves its last requirement out.
     const sections: string[] = [];
     const screenNotes: boolean[] = [];
     app.router.register({
@@ -228,14 +229,14 @@ describe("a spec build plans from the checklist", () => {
     });
     const run = app.orchestrator.createRun({ projectId: project.id, objective: "Build the calendar in the PRD.", kind: "spec_build", references: [{ name: "prd.md", role: "prd", content: PRD }], constraints: [], attachedKnowledgeIds: [] });
     await app.orchestrator.plan(run.id);
-    // Goals never reach the planner; each call is one section.
+    // Goals never reach the planner; each call is one screen's journey, carrying every section that journey needs.
     expect(sections).toEqual(["4. Calendar views", "5. Events"]);
-    expect(screenNotes).toEqual([true, true]);
+    expect(screenNotes).toEqual([true]);
     expect(app.store.getSetting<{ screens: Array<{ file: string }> } | null>(`screenPlan:${run.id}`, null)?.screens.map((x) => x.file)).toEqual(["src/screens/CalendarScreen.tsx"]);
     const plan = app.store.getSetting<LrcPlan | null>(planKey(project.id), null)!;
     expect(plan.runId).toBe(run.id);
-    // The planner left one requirement out per section: FlowCode placed both, so every requirement has a home.
-    expect(plan.filledIn).toHaveLength(2);
+    // The planner left one requirement out of its call: FlowCode placed it, so every requirement has a home.
+    expect(plan.filledIn).toHaveLength(1);
     expect(new Set(plan.items.flatMap((i) => i.covers))).toEqual(new Set(plan.requirements.map((r) => r.id)));
     const tasks = app.orchestrator.graph.tasks(run.id).sort((a, b) => a.ordinal - b.ordinal);
     const views = plan.items.find((i) => i.title === "Calendar views")!;

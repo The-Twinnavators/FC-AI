@@ -794,13 +794,16 @@ export class Orchestrator {
     const filledIn: string[] = [];
     // Only feature sections go to the planner; goals, user stories, sprint plans, non-goals and open decisions are placed here.
     const bySection = placeBySection(requirements, cfg);
-    const batches = planBatches(bySection.features);
+    const screenPlan = react ? await this.decideScreens(run, requirements.slice(0, 80).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 220)}`).join("\n"), signal) : undefined;
+    // A batch becomes a build step, so batching by screen makes each step one finished journey rather than one
+    // PRD section - which is how "Ensure Accessibility Compliance" became a step of its own, run after the
+    // screens it was meant to apply to.
+    const batches = planBatches(bySection.features, screenPlan?.screens);
     // Each part is planned on its own, so every part also sees the PRD's functional requirements: its tests must agree
     // with them (Calculator test 3: the numeric-accuracy part expected "Infinity" for 1 ÷ 0, against F7's message).
     const core = requirements.filter((r) => /functional requirements?|features?$/i.test(r.section) && !/non-functional/i.test(r.section)).slice(0, 30);
-    const screenPlan = react ? await this.decideScreens(run, requirements.slice(0, 80).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 220)}`).join("\n"), signal) : undefined;
     const product = `Product request (summary):\n${untrusted("request", run.objective.slice(0, 1200))}\nScreens are already designed by an earlier step (one component per main screen in ${react ? "src/screens/" : "src/app/"}, with sample data); each task adds its feature into that design: name the screen file it works on.${screenPlan ? `\n${screenPlanNote(screenPlan)}` : ""}${core.length ? `\nThe PRD's functional requirements, for consistency (other parts may plan them; your tests must agree with them):\n${untrusted("functional-requirements", core.map((r) => `${r.id}: ${r.text}`).join("\n"))}` : ""}`;
-    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Writing the prototype plan from ${requirements.length} PRD requirements: ${bySection.features.length} describe features (planned in ${batches.length} part${batches.length === 1 ? "" : "s"}, one section each) and become build steps; ${bySection.items.length} are goals, restated stories, plans, decisions or later ideas, placed for a person to check` });
+    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Writing the prototype plan from ${requirements.length} PRD requirements: ${bySection.features.length} describe features (planned in ${batches.length} part${batches.length === 1 ? "" : "s"}, ${screenPlan?.screens.length ? "one screen each" : "one section each"}) and become build steps; ${bySection.items.length} are goals, restated stories, plans, decisions or later ideas, placed for a person to check` });
     const ask = async (part: Requirement[], label: string, temperature: number) => {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
         messages: [

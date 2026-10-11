@@ -105,8 +105,26 @@ export const isProjectSection = (section: string) => sectionRole(section) !== "f
 const slug = (s: string) => s.toLowerCase().replace(/^\d+(\.\d+)*[.)]?\s*/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "requirements";
 const cleanSection = (s: string) => s.replace(/^\d+(\.\d+)*[.)]?\s*/, "").trim() || "Requirements";
 
-/** Feature requirements in batches of one section each (a big section is split), for one planner call each. */
-export function planBatches(reqs: Requirement[]): Requirement[][] {
+/**
+ * A requirement about a quality the whole app has, rather than about something a person does on one screen. These used
+ * to get their own batch, because batching was by PRD section: the Non-GMO brand finder's §17 Accessibility and §18
+ * Responsive became the steps "Ensure Accessibility Compliance" and "Responsive Design", which ran after every screen
+ * was built and retrofitted them. They belong in each journey instead, so every screen is built accessible.
+ */
+const CROSS_CUTTING_REQ =
+  /\b(accessib|a11y|screen reader|keyboard|focus|aria|contrast|responsive|mobile|tablet|phone|breakpoint|viewport|analytic|telemetr|tracking|loading state|empty state|error state)/i;
+
+const isCrossCuttingReq = (r: Requirement) => CROSS_CUTTING_REQ.test(r.section) || CROSS_CUTTING_REQ.test(r.text);
+
+/** Splits a list into runs of at most BATCH. */
+const chunk = (list: Requirement[]): Requirement[][] => {
+  const out: Requirement[][] = [];
+  for (let i = 0; i < list.length; i += BATCH) out.push(list.slice(i, i + BATCH));
+  return out;
+};
+
+/** Requirements in batches of one PRD section each (a big section is split). The shape before screens were known. */
+function bySectionBatches(reqs: Requirement[]): Requirement[][] {
   const bySection = new Map<string, Requirement[]>();
   for (const r of reqs) {
     const k = r.section || "Requirements";
@@ -114,8 +132,36 @@ export function planBatches(reqs: Requirement[]): Requirement[][] {
     bySection.get(k)!.push(r);
   }
   const batches: Requirement[][] = [];
-  for (const list of bySection.values()) for (let i = 0; i < list.length; i += BATCH) batches.push(list.slice(i, i + BATCH));
+  for (const list of bySection.values()) batches.push(...chunk(list));
   return batches;
+}
+
+/**
+ * Feature requirements in batches, one planner call each, and so one build step each.
+ *
+ * With the app's screens known, a batch is one journey: the requirements that name that screen, plus the ones about a
+ * quality every screen needs, so the step that builds a screen builds it finished. Requirements that name no screen
+ * join the first screen, the one a person lands on. Without screens (a build that is not screen-based) the old shape
+ * is kept: one batch per PRD section.
+ */
+export function planBatches(reqs: Requirement[], screens: readonly { label: string }[] = []): Requirement[][] {
+  if (!screens.length) return bySectionBatches(reqs);
+
+  const shared = reqs.filter(isCrossCuttingReq);
+  const named = reqs.filter((r) => !isCrossCuttingReq(r));
+  const buckets = new Map<string, Requirement[]>(screens.map((s) => [s.label, []]));
+  const spare: Requirement[] = [];
+
+  for (const r of named) {
+    const hit = screens.find((s) => new RegExp(`\\b${s.label.replace(/[^\w\s]/g, " ").trim().split(/\s+/).join("\\s+")}\\b`, "i").test(`${r.section} ${r.text}`));
+    (hit ? buckets.get(hit.label)! : spare).push(r);
+  }
+  // A requirement that names no screen belongs to the journey a person starts on.
+  if (spare.length) buckets.get(screens[0].label)!.push(...spare);
+
+  const batches: Requirement[][] = [];
+  for (const list of buckets.values()) if (list.length) batches.push(...chunk([...list, ...shared]));
+  return batches.length ? batches : bySectionBatches(reqs);
 }
 
 /** Splits the PRD: feature requirements go to the planner; every other requirement is placed here. */
