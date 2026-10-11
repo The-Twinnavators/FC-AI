@@ -374,8 +374,16 @@ body::after {
   box-shadow: var(--glass-edge), var(--glass-shadow);
 }
 
+/* The constellation keeps its night sky in the light theme: its nodes are a star map's pale colours and have no
+   contrast on anything lighter. The sky has to be drawn solid here - the dark theme lets 45% black fall on a dark
+   page, but on a white card the same fill is a washed slate the stars disappear into. The label sits on the sky. */
 :root[data-theme="light"] .mini3d {
-  background: radial-gradient(60% 70% at 55% 45%, rgba(95, 127, 208, 0.08), transparent 70%), radial-gradient(50% 60% at 30% 60%, rgba(58, 96, 196, 0.12), transparent 70%), rgba(255, 255, 255, 0.6);
+  background: radial-gradient(60% 70% at 55% 45%, rgba(95, 127, 208, 0.14), transparent 70%), radial-gradient(50% 60% at 30% 60%, rgba(58, 96, 196, 0.22), transparent 70%), #0c1019;
+}
+
+:root[data-theme="light"] .mini3d__label,
+:root[data-theme="light"] .mini3d__label .label {
+  color: #eef1f8;
 }
 
 .mini3d__label {

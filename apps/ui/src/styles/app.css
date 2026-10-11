@@ -1574,8 +1574,9 @@ select option {
   box-shadow: var(--glass-edge), var(--glass-shadow-lg);
 }
 
+/* Solid in the light theme, for the same reason the dashboard's card is: see .mini3d in motion.css. */
 :root[data-theme="light"] .network__stage {
-  background: radial-gradient(60% 70% at 55% 45%, rgba(58, 96, 196, 0.1), transparent 70%), rgba(255, 255, 255, 0.5);
+  background: radial-gradient(60% 70% at 55% 45%, rgba(95, 127, 208, 0.16), transparent 70%), #0c1019;
 }
 
 .network__canvas {
