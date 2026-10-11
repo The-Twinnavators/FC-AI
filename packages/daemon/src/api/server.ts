@@ -15,7 +15,7 @@ import { setupStatus, testAndUse, useAsCoder } from "./setup.js";
 import { externalChanges, watchStops } from "../workspace/stamp.js";
 import { briefIdea } from "../orchestrator/ideaScout.js";
 import { BUILTIN_PROMPT_IDS } from "../orchestrator/prompts.js";
-import { isFinishedRun } from "@flowcode/contracts";
+import { isFinishedRun, paletteFromTokens, type PaletteConfig } from "@flowcode/contracts";
 import { designTemplate } from "@flowcode/contracts";
 import { execFileSync } from "node:child_process";
 import { createMobileApprovals } from "./mobile.js";
@@ -574,6 +574,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       if (!own) return (app.store.setSetting(`designChoice:${params.id}`, record), { ...record, changed: [] });
       try {
         const back = applyDesign(jail, app.ops, ctx, { theme: "default", values: own });
+        const mine = app.store.getSetting<PaletteConfig | undefined>(`designCustomPalette:${params.id}`, undefined);
+        if (mine?.brand?.length) applyPalette(jail, app.ops, ctx, mine);
         app.store.setSetting(`designChoice:${params.id}`, record);
         return { ...record, changed: back.changed };
       } catch (e) {
@@ -596,11 +598,14 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     if ((was.id ?? "custom") === "custom" && !app.store.getSetting(customKey, undefined)) {
       const own = tokenValues(jail, Object.keys(values));
       if (Object.keys(own).length) app.store.setSetting(customKey, own);
+      app.store.setSetting(`designCustomPalette:${params.id}`, paletteOf(jail).config);
     }
     try {
       const out = applyDesign(jail, app.ops, ctx, { theme: "default", values });
+      // The Colors card reads the saved ramps, not the theme tokens, so a style that only wrote tokens left them green.
+      const ramps = applyPalette(jail, app.ops, ctx, paletteFromTokens({ "--color-accent": c.accent }));
       app.store.setSetting(`designChoice:${params.id}`, record);
-      return { ...record, changed: out.changed };
+      return { ...record, changed: [...out.changed, ...ramps.changed] };
     } catch (e) {
       throw new HttpError(400, (e as Error).message);
     }
