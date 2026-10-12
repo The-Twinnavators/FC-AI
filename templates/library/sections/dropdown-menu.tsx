@@ -29,8 +29,8 @@ const SAMPLE = {
   ],
   actions: [
     { id: "rename", label: "Rename", icon: "pencil", keys: "R" },
-    { id: "duplicate", label: "Duplicate", icon: "copy", keys: "D" },
-    { id: "link", label: "Copy link", icon: "external", keys: "C" },
+    { id: "duplicate", label: "Duplicate", icon: "duplicate", keys: "D" },
+    { id: "link", label: "Copy link", icon: "link", keys: "C" },
     { id: "delete", label: "Delete class", icon: "trash", danger: true, separatorBefore: true },
   ],
   copySuffix: " (copy)",

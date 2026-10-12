@@ -426,7 +426,7 @@ const SAMPLE = {
   share: ["Anyone with the link", "Only the client", "Only me"],
   actions: [
     { id: "edit", label: "Edit shoot", icon: "pencil", keys: "E" },
-    { id: "duplicate", label: "Duplicate", icon: "copy", keys: "D" },
+    { id: "duplicate", label: "Duplicate", icon: "duplicate", keys: "D" },
     { id: "export", label: "Export photos", icon: "download", disabled: true },
     { id: "delete", label: "Delete shoot", icon: "trash", danger: true },
   ],
@@ -434,8 +434,8 @@ const SAMPLE = {
 
 const CLASSIC_ACTIONS: MenuItem[] = [
   { id: "rename", label: "Rename", icon: "pencil", keys: "R" },
-  { id: "duplicate", label: "Duplicate", icon: "copy", keys: "D" },
-  { id: "link", label: "Copy link", icon: "external", keys: "C" },
+  { id: "duplicate", label: "Duplicate", icon: "duplicate", keys: "D" },
+  { id: "link", label: "Copy link", icon: "link", keys: "C" },
   { id: "delete", label: "Delete class", icon: "trash", danger: true, separatorBefore: true },
 ];
 

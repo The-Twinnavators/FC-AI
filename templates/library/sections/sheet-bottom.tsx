@@ -26,9 +26,9 @@ const SAMPLE = {
   more: "More",
   sheetHint: "Choose what to do with this list.",
   options: [
-    { id: "share", label: "Share", hint: "Copy a link to send", icon: "send" },
-    { id: "duplicate", label: "Duplicate", hint: "Make a copy to edit", icon: "copy" },
-    { id: "archive", label: "Archive", hint: "Hide it from this page", icon: "folder", danger: true },
+    { id: "share", label: "Share", hint: "Copy a link to send", icon: "share" },
+    { id: "duplicate", label: "Duplicate", hint: "Make a copy to edit", icon: "duplicate" },
+    { id: "archive", label: "Archive", hint: "Hide it from this page", icon: "archive", danger: true },
   ],
   close: "Close",
   done: { share: "Link copied for", duplicate: "Made a copy of", archive: "Archived" },

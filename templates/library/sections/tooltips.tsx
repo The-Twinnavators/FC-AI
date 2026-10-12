@@ -98,7 +98,7 @@ export default function Tooltips() {
             {status || `${extra[week] ?? 0} drafts this week`}
           </p>
           <Tooltip version="arrow" place="right" tip={d.helpTip}>
-            <Button variant="tertiary" size={32} icon="info" iconOnly>
+            <Button variant="tertiary" size={32} icon="help" iconOnly>
               {d.helpLabel}
             </Button>
           </Tooltip>
