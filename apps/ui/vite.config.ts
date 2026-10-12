@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import { spawn, type ChildProcess } from "node:child_process";
+import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +22,25 @@ function depsRoot(from: string): string {
   }
 }
 const deps = depsRoot(root);
+
+/**
+ * The version FlowCode shows (footer, guide): the root package.json's version, and the code revision it was built from
+ * when this is a git checkout. Read at build or dev start, so it follows a version bump without a code change.
+ */
+const appVersion = (() => {
+  try {
+    return String(JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version ?? "0.0.0");
+  } catch {
+    return "0.0.0";
+  }
+})();
+const appBuild = (() => {
+  try {
+    return execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return "";
+  }
+})();
 
 /**
  * Dev only: the page can't load without the daemon, so the UI dev server starts it (scripts/dev-daemon.mjs, the same
@@ -75,6 +94,7 @@ const uiPort = Number(process.env.PORT) || 5199;
 
 export default defineConfig({
   base: "./",
+  define: { __APP_VERSION__: JSON.stringify(appVersion), __APP_BUILD__: JSON.stringify(appBuild) },
   plugins: [react(), autoDaemon()],
   server: { port: uiPort, strictPort: true, host: "127.0.0.1", fs: { allow: [...new Set([root, deps])] } },
   // section-preview.html: the Component library shows each section in a page of its own.

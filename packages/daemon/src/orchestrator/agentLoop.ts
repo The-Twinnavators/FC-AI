@@ -89,7 +89,7 @@ export interface AgentLoopResult {
 const toolSchemaCache = new Map<string, ToolDef>();
 const EDIT_TOOLS = new Set<string>(["apply_patch", "replace_file", "create_file", "edit_json", "edit_yaml", "edit_toml"]);
 /** Tools that only look (reading files, listing, searching). */
-const READ_TOOLS = new Set(["read_file", "list_files", "search_code"]);
+const READ_TOOLS = new Set(["read_file", "list_files", "search_code", "search_catalog", "get_catalog_contract"]);
 
 /**
  * Every tool call in the history gets its result right after the call, as OpenAI requires: a turn cut short by a guard
@@ -532,10 +532,10 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
           // Keyed by what was read: a file's path, or a search's query. Searches have no path, so they used to share
           // one key and eight different searches counted as "the same file read 8 times" (Calendar prototype: the
           // layout step was stopped three times while it explored the PRD, before it could write anything).
-          const args = parsed.data as { path?: unknown; query?: unknown; pattern?: unknown; from?: unknown; to?: unknown };
+          const args = parsed.data as { path?: unknown; query?: unknown; pattern?: unknown; id?: unknown; from?: unknown; to?: unknown };
           // Different parts of one long file (read_file from/to) are different reads, not rereading it.
           const range = args.from !== undefined || args.to !== undefined ? `#${String(args.from ?? "")}-${String(args.to ?? "")}` : "";
-          const p = args.path !== undefined && args.path !== null && String(args.path) !== "" ? `${String(args.path)}${range}` : `${name}:${String(args.query ?? args.pattern ?? "")}`;
+          const p = args.path !== undefined && args.path !== null && String(args.path) !== "" ? `${String(args.path)}${range}` : `${name}:${String(args.query ?? args.pattern ?? args.id ?? "")}`;
           const n = (readCounts.get(p) ?? 0) + 1;
           readCounts.set(p, n);
           maxReads = n;

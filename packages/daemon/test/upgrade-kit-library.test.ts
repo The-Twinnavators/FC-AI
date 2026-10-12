@@ -82,7 +82,7 @@ describe("the kit comes with the library it draws", () => {
 
   it("refreshing an old kit brings the library, keeping the app's sections and library.css rules", async () => {
     const current = fs.readFileSync(path.join(starter, "src/components/ui/index.tsx"), "utf8");
-    const old = current.replace("{screens.length > 1 ? (", "{true ? (");
+    const old = current.replace("{screens.filter((s) => !s.hidden).length > 1 ? (", "{true ? (");
     const { root, jail } = app({
       "src/components/ui/index.tsx": old,
       "src/sections/ButtonsVariants.tsx": "// the app's own Button\n",

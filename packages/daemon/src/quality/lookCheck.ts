@@ -227,7 +227,11 @@ async function settled(page: Page, ms = 400): Promise<void> {
     .catch(() => undefined);
 }
 
-export async function lookCheck(session: BrowserSession, url: string, opts: { account?: DemoAccount } = {}): Promise<LookResult> {
+/**
+ * routes: the build's planned screens by URL id (#/id). Each one the navigation didn't reach (a detail screen kept out
+ * of the menu, say) is opened by its address, and every one is also checked at phone width, not just the first.
+ */
+export async function lookCheck(session: BrowserSession, url: string, opts: { account?: DemoAccount; routes?: Array<{ name: string; id: string }> } = {}): Promise<LookResult> {
   const findings: LookFinding[] = [];
   const screens: LookResult["screens"] = [];
   const ctx = await session.browser.newContext({ viewport: { width: 1280, height: 860 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
@@ -251,6 +255,13 @@ export async function lookCheck(session: BrowserSession, url: string, opts: { ac
       for (const f of await page.evaluate(auditScreen)) findings.push({ screen: v.name, ...f });
       screens.push({ name: v.name, png: await page.screenshot({ fullPage: false }) });
     }
+    const base = url.replace(/#.*$/, "");
+    for (const r of (opts.routes ?? []).filter((r) => !visits.some((v) => v.name.toLowerCase() === r.name.toLowerCase()))) {
+      await page.goto(`${base}#/${r.id}`, { waitUntil: "networkidle", timeout: 30_000 }).catch(() => undefined);
+      await settled(page);
+      for (const f of await page.evaluate(auditScreen)) findings.push({ screen: r.name, ...f });
+      screens.push({ name: r.name, png: await page.screenshot({ fullPage: false }) });
+    }
     const appHasScreens = (await page.evaluate(() => document.querySelectorAll("main section, main h2").length)) >= 3;
     if (!items.length && appHasScreens) findings.push({ screen: "App", rule: "no-navigation", serious: false, message: "Several sections but no navigation: give the app a nav with one screen at a time." });
 
@@ -260,6 +271,11 @@ export async function lookCheck(session: BrowserSession, url: string, opts: { ac
     await settled(p2, 300);
     await signInIfAsked(p2, opts.account);
     for (const f of await p2.evaluate(auditPhone)) findings.push({ screen: "First screen (phone)", ...f });
+    for (const r of (opts.routes ?? []).slice(1)) {
+      await p2.goto(`${base}#/${r.id}`, { waitUntil: "networkidle", timeout: 30_000 }).catch(() => undefined);
+      await settled(p2, 300);
+      for (const f of await p2.evaluate(auditPhone)) findings.push({ screen: `${r.name} (phone)`, ...f });
+    }
     await phone.close();
   } finally {
     await ctx.close();

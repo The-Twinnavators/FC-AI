@@ -33,6 +33,8 @@ import { designResearchBrief, researchKey, type DesignResearch } from "./designR
 const VISUAL_RULES = new Set(["low-contrast", "small-targets", "repeated-controls", "repeated-empty-text", "sample-data-hidden", "contradictory-controls", "broken-image"]);
 import { ReportService } from "../reports/report.js";
 import { analyzeAppWiring } from "./appWiring.js";
+import { routeCoverage } from "./routeCoverage.js";
+import type { ScreenPlan } from "../orchestrator/screenPlan.js";
 import type { GateResult } from "../orchestrator/completionGate.js";
 import type { ArtifactRecord } from "../db/store.js";
 import type { PreflightRecord } from "@flowcode/contracts";
@@ -480,9 +482,17 @@ export class Verifier {
   }
 
   appWiringCheck(run: Run, taskId?: string): VerificationCheck {
-    const w = analyzeAppWiring(this.projects.jail(this.store.projects.require(run.projectId)));
-    const art = this.artifacts.save({ runId: run.id, kind: "other", label: "App wiring (reachability from the entry point)", mime: "application/json", content: JSON.stringify(w, null, 2) });
-    return this.record(run.id, "app_wiring", w.status, w.summary, [`artifact:${art.id}`], { taskId });
+    const jail = this.projects.jail(this.store.projects.require(run.projectId));
+    const w = analyzeAppWiring(jail);
+    // The pages this build planned: each in the navigation, reachable, and built (not left as the laid-out slots).
+    // Only once the screens are meant to be done: the final checks, or a step that finishes the design.
+    const plan = this.store.getSetting<ScreenPlan | null>(`screenPlan:${run.id}`, null);
+    const task = taskId ? this.store.tasks.get(taskId) : undefined;
+    const routes = plan?.screens.length && (!task || /^(Polish|Assemble)/i.test(task.title)) ? routeCoverage(jail.root, plan) : undefined;
+    const status = routes?.status === "failed" ? "failed" : w.status;
+    const summary = routes ? `${w.summary}. ${routes.summary}` : w.summary;
+    const art = this.artifacts.save({ runId: run.id, kind: "other", label: "App wiring (reachability from the entry point)", mime: "application/json", content: JSON.stringify({ ...w, routes }, null, 2) });
+    return this.record(run.id, "app_wiring", status, summary, [`artifact:${art.id}`], { taskId });
   }
 
   /** Runs the run's required verification matrix (and optional QA checks) with real adapters. */
@@ -716,7 +726,13 @@ export class Verifier {
     const project = this.store.projects.require(run.projectId);
     const jail = this.projects.jail(project);
     const pf = this.projects.preflight(project.id, run.id);
-    if (!pf.hasNodeModules || pf.previewStrategy === "none") return undefined;
+    // A look check that can't run is recorded as unavailable on the step, never as passed: the report lists it.
+    const unavailable = (why: string) => {
+      this.record(run.id, "design_qa", "skipped", `Look check unavailable for "${task.title}": ${why}`, [], { taskId: task.id });
+      return undefined;
+    };
+    if (!pf.hasNodeModules) return unavailable("the app's dependencies aren't installed");
+    if (pf.previewStrategy === "none") return unavailable("this project has no preview to open");
     const port = await freePort();
     const argv = previewArgv(pf, port);
     const server = await this.runner.run({
@@ -731,12 +747,14 @@ export class Verifier {
       signal,
       server: { readyPattern: /(Local:\s+https?:\/\/|ready in|started server on|Listening on)/i, readyTimeoutMs: 60_000 },
     });
-    if (server.record.status !== "succeeded" || !server.serverProcId) return undefined;
+    if (server.record.status !== "succeeded" || !server.serverProcId) return unavailable("the dev server didn't start");
     const url = server.serverUrl ?? `http://127.0.0.1:${port}/`;
     let session: BrowserSession | undefined;
     try {
       session = await BrowserSession.launch(run.id, this.processes);
-      const result = await lookCheck(session, url, { account: demoAccount(jail.root) });
+      // Every planned page by its address too, so a detail page kept out of the menu is looked at, at both widths.
+      const plan = this.store.getSetting<ScreenPlan | null>(`screenPlan:${run.id}`, null);
+      const result = await lookCheck(session, url, { account: demoAccount(jail.root), routes: plan?.screens.map((x) => ({ name: x.label, id: x.id })) });
       // Structure steps (App layout and its parts) wire screens into a temporary frame; the design steps that follow
       // own colour, contrast and composition. No BIO & GMO build: the layout step was blocked three times for the
       // ready-made Home layout's low-contrast eyebrow and avatar initials, which the design step redoes anyway.
@@ -786,7 +804,7 @@ export class Verifier {
       return result.findings;
     } catch (err) {
       this.bus.emit({ type: "verification.completed", projectId: project.id, runId: run.id, taskId: task.id, message: `Look check couldn't run: ${(err as Error).message.slice(0, 200)}`, level: "warning" });
-      return undefined;
+      return unavailable(`the browser couldn't open the app (${(err as Error).message.slice(0, 160)})`);
     } finally {
       await session?.close();
       await this.processes.killProcess(server.serverProcId);

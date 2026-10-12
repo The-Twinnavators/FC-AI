@@ -2,7 +2,12 @@
 import { navigate } from "../router";
 import { Logo } from "./ui";
 
-export const VERSION = "0.1.0";
+declare const __APP_VERSION__: string;
+declare const __APP_BUILD__: string;
+
+/** The running FlowCode's version, from package.json at build time (vite.config.ts), and the code revision it was built from. */
+export const VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "0.0.0";
+export const BUILD = typeof __APP_BUILD__ === "string" ? __APP_BUILD__ : "";
 
 export function AppFooter() {
   return (
@@ -17,7 +22,7 @@ export function AppFooter() {
       <p className="app-footer__note">
         <span className="led led--ok" aria-hidden="true" /> Runs locally — your code and models stay on this machine.
       </p>
-      <span className="app-footer__version">v{VERSION} · © {new Date().getFullYear()} The Twinnovators, LLC. · In God We Trust</span>
+      <span className="app-footer__version" title={BUILD ? `Built from ${BUILD}` : undefined}>v{VERSION}{BUILD ? ` (${BUILD})` : ""} · © {new Date().getFullYear()} The Twinnovators, LLC. · In God We Trust</span>
     </footer>
   );
 }

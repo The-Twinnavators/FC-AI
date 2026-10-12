@@ -103,3 +103,24 @@ describe("the screens a PRD names", () => {
     expect(parseScreenPlan(planner)!.screens.map((s) => s.label)).toEqual(["Brands"]);
   });
 });
+
+describe("a screen laid out from its brief", () => {
+  it("has the brief's sections in order, catalog pieces placed and component slots marked; a detail screen leaves the nav", () => {
+    const plan = parseScreenPlan({ product: "Brands", screens: [{ name: "Home", purpose: "Find a brand" }, { name: "Brand Detail", purpose: "Check one brand" }] })!;
+    const briefs = [
+      { screen: "Home", who: "Busy parents", goal: "Find a brand", workflow: ["Search"], firstView: "The list with a search box", primaryAction: "Open a brand", sections: [
+        { title: "Search", purpose: "Find by name", part: "c.text-field" },
+        { title: "Brands", purpose: "The list", part: "p.filterable-list" },
+      ] },
+    ];
+    const files = layoutFiles(plan, [{ screen: "Home", id: "list-stacked", component: "ListStacked", template: false }], briefs);
+    const home = files.find((f) => f.path.endsWith("HomeScreen.tsx"))!.content;
+    expect(home.indexOf("1. Search")).toBeLessThan(home.indexOf("<ListStacked />"));
+    expect(home).toContain("Build it with c.text-field:");
+    expect(home).toContain('import ListStacked from "../sections/ListStacked";');
+    expect(home).toContain('<PageHeader title="Home" />');
+    const app = files.find((f) => f.path === "src/App.tsx")!.content;
+    expect(app).toContain('{ id: "brand-detail", label: "Brand Detail", hidden: true, parent: "home" }');
+    expect(app).toContain('{ id: "home", label: "Home" }');
+  });
+});

@@ -55,6 +55,8 @@ export interface LrcPlan {
 }
 
 export const planKey = (projectId: string) => `lrcPlan:${projectId}`;
+/** The same plan kept per build, so a later build of the project doesn't overwrite what this one planned. */
+export const runPlanKey = (runId: string) => `lrcPlanRun:${runId}`;
 
 /** Build step numbers (1, 2, …) by step key, in the order the plan's items name their steps. */
 export function stepOrder(items: PlanItem[]): Map<string, number> {

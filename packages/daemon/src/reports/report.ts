@@ -2,6 +2,12 @@
  * Reports (FR-O1–O3). Reports are generated from normalized records (never from model prose),
  * use repository-relative paths, and are redacted again before export (Markdown and PDF).
  */
+import fs from "node:fs";
+import path from "node:path";
+import { checkCouldNotRun, runStatusLabel } from "@flowcode/contracts";
+import { getReview, needsHumanReview } from "../quality/humanReview.js";
+import { compositionKey, type CompositionManifest } from "../orchestrator/compositionManifest.js";
+import { coverageKey, type CoverageRow } from "../orchestrator/experienceMap.js";
 import { definitionOfDone, renderDefinitionOfDone, type DoneItem } from "./definitionOfDone.js";
 import type { Finding, ReferenceFile, Run } from "@flowcode/contracts";
 import { extractRequirements, referencePath, summarizeReference } from "../quality/spec.js";
@@ -38,6 +44,10 @@ export interface RunReportData {
   manualChecklist: string[];
   definitionOfDone: DoneItem[];
   spec?: { references: Array<{ name: string; role: string; path: string; summary: string }>; requirements: Array<{ id: string; text: string; section: string; tasks: string[] }> };
+  /** A prototype build's review by the person: until it is signed off, the build is not complete. */
+  humanReview?: { state: string; label: string; version: number; signedOff?: string };
+  /** What is simulated, and what wasn't checked or built: said plainly, never left out. */
+  limitations: string[];
 }
 
 export class ReportService {
@@ -122,8 +132,44 @@ export class ReportService {
       launch: pf?.packageManager && pf.packageManager !== "none" ? [`cd <your workspace>`, ...(pf.hasNodeModules ? [] : [`${pf.packageManager} install`]), devScript ? `${pf.packageManager} run ${devScript.name}` : `${pf.packageManager} start`] : ["Open index.html in a browser"],
       manualChecklist: MANUAL_A11Y_CHECKLIST,
       spec: this.specSection(run.id, tasks),
+      humanReview: this.reviewSection(run, !!gate && ["done", "done_with_warnings", "done_unverified"].includes(gate.status)),
+      limitations: this.limitations(run, this.projects.jail(project).root),
     };
     return redactValue(report);
+  }
+
+  /** Where the person's review stands (prototype builds). A build whose checks just passed is waiting for it. */
+  private reviewSection(run: Run, checksPassed: boolean): RunReportData["humanReview"] {
+    if (!needsHumanReview({ store: this.store }, run)) return undefined;
+    const r = getReview({ store: this.store }, run.id);
+    const state = r?.state ?? (checksPassed ? "ready_for_review" : undefined);
+    if (!state) return undefined;
+    return { state, label: runStatusLabel({ status: run.status, review: state }), version: r?.version ?? 1, signedOff: r?.signedOff ? `version ${r.signedOff.version} on ${r.signedOff.at}` : undefined };
+  }
+
+  /** The report's "Simulated and limitations": what the prototype only pretends to do, and what wasn't checked or built. */
+  private limitations(run: Run, root: string): string[] {
+    const out: string[] = [];
+    if (fs.existsSync(path.join(root, "src/sim"))) out.push("Data, sign-in and saving are simulated in the browser with sample data (src/sim); nothing reaches a server or a real account.");
+    if (needsHumanReview({ store: this.store }, run)) out.push("Accessibility: a visual audit and a contrast check only (a prototype); not a WCAG conformance claim.");
+    const all = this.store.checks.where("run_id = ? ORDER BY updated_at ASC", run.id);
+    const latest = new Map<string, (typeof all)[number]>();
+    for (const c of all) latest.set(`${c.taskId ?? ""}|${c.kind}`, c);
+    for (const c of latest.values()) {
+      if (checkCouldNotRun(c.status, c.summary) || (c.status === "skipped" && /unavailable/i.test(c.summary))) out.push(`Not checked: ${c.summary.slice(0, 240)}`);
+    }
+    const coverage = this.store.getSetting<CoverageRow[]>(coverageKey(run.id), []);
+    const later = coverage.filter((r) => r.status === "not in this release");
+    const person = coverage.filter((r) => r.status === "for a person to check");
+    const gaps = coverage.filter((r) => r.status === "no workflow" || r.status === "unplaced");
+    if (later.length) out.push(`Not in this release: ${later.map((r) => r.requirement).join(", ")}.`);
+    if (person.length) out.push(`For a person to check (not tested by FlowCode): ${person.map((r) => r.requirement).join(", ")}.`);
+    if (gaps.length) out.push(`Requirements without a user journey or a place in the plan: ${gaps.map((r) => r.requirement).join(", ")} (see the scope decisions on the plan).`);
+    const comp = this.store.getSetting<CompositionManifest | null>(compositionKey(run.id), null);
+    if (comp?.gaps.length) out.push(`Built by hand because no catalog part fits: ${comp.gaps.map((g) => `${g.page}: ${g.section}`).join("; ")}.`);
+    const unused = (comp?.entries ?? []).filter((e) => e.verification && !e.verification.usedBy.length);
+    if (unused.length) out.push(`Catalog parts planned but not used on a page: ${[...new Set(unused.map((e) => e.ref))].join(", ")}.`);
+    return out;
   }
 
   /** Spec references and PRD requirement → task traceability (keyword overlap heuristic, labelled as such). */
@@ -206,13 +252,15 @@ export function renderRunMarkdown(d: RunReportData): string {
   const L: string[] = [];
   L.push(`# FlowCode run report`, "");
   L.push(`**Objective:** ${d.run.objective}`, "");
-  L.push(`| | |`, `|---|---|`, `| Project | ${d.project.name} (${d.project.type ?? "unknown"}) |`, `| Run | \`${d.run.id}\` |`, `| Status | **${d.verdict?.status ?? d.run.status}** |`, `| Strategy | ${d.run.strategy ?? "-"}${d.run.template ? ` · template \`${d.run.template}\`` : ""} |`, `| Started | ${d.run.startedAt ?? "-"} |`, `| Completed | ${d.run.completedAt ?? "-"} |`, `| Generated | ${d.generatedAt} |`, "");
+  L.push(`| | |`, `|---|---|`, `| Project | ${d.project.name} (${d.project.type ?? "unknown"}) |`, `| Run | \`${d.run.id}\` |`, `| Status | **${d.humanReview && d.humanReview.state !== "signed_off" ? `${d.humanReview.label} (checks: ${d.verdict?.status ?? d.run.status})` : (d.verdict?.status ?? d.run.status)}** |`, `| Strategy | ${d.run.strategy ?? "-"}${d.run.template ? ` · template \`${d.run.template}\`` : ""} |`, `| Started | ${d.run.startedAt ?? "-"} |`, `| Completed | ${d.run.completedAt ?? "-"} |`, `| Generated | ${d.generatedAt} |`, "");
   if (d.verdict) {
     L.push(`## Completion gate`, "", `Computed deterministically from records — not from model output.`, "");
     if (d.verdict.unmet.length) L.push(`**Unmet requirements**`, ...d.verdict.unmet.map((u) => `- ${u}`), "");
     if (d.verdict.warnings.length) L.push(`**Warnings**`, ...d.verdict.warnings.map((u) => `- ${u}`), "");
-    if (!d.verdict.unmet.length && !d.verdict.warnings.length) L.push(`All required evidence present.`, "");
+    if (!d.verdict.unmet.length && !d.verdict.warnings.length) L.push(d.humanReview && d.humanReview.state !== "signed_off" ? `Every required check has its evidence. The prototype is not complete until you review every page and user journey and sign off.` : `All required evidence present.`, "");
   }
+  if (d.humanReview) L.push(`## Your review`, "", d.humanReview.signedOff ? `Signed off: ${d.humanReview.signedOff}.` : `${d.humanReview.label} (version ${d.humanReview.version}). Open the build's Details to approve each page and user journey or request changes, then sign off.`, "");
+  if (d.limitations?.length) L.push(`## Simulated and limitations`, "", ...d.limitations.map((l) => `- ${l}`), "");
   if (d.plan) L.push(`## Plan`, "", `- Goal: ${d.plan.goal}`, `- Risk: ${d.plan.risk}`, `- Approved: ${d.plan.approved ? "yes" : "no"}`, `- Rollback: ${d.plan.rollback}`, ...d.plan.assumptions.map((a) => `- Assumption: ${a}`), "");
   L.push(`## Agents and models`, "", d.agents.length ? `| Role | Provider | Model | Tool calls |\n|---|---|---|---|\n${d.agents.map((a) => `| ${a.role} | ${a.provider} | ${a.model}${a.version ? ` (${a.version})` : ""} | ${a.toolCalls} |`).join("\n")}` : "Runtime-only steps (no model tool calls).", "");
   if (d.definitionOfDone?.length) L.push(...renderDefinitionOfDone(d.definitionOfDone));

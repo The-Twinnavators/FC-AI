@@ -58,6 +58,7 @@ import { addContext, CONTEXT_CATEGORIES, deleteContext, getCopilotProfile, setAd
 import { libraryStats } from "./libraryStats.js";
 import { troubleshoot } from "../quality/troubleshoot.js";
 import { getRunReview, IMPROVEMENTS_KEY, recordRunReview, type Improvement } from "../quality/runReview.js";
+import { decideItem, refreshReview, signOff, submitReview } from "../quality/humanReview.js";
 import { governedRoute, listDecisions, logDecision } from "../governance/decisionLog.js";
 import { modelPerformance } from "../models/modelPerformance.js";
 import { libraryReport } from "../orchestrator/libraryUse.js";
@@ -909,6 +910,30 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     return a;
   });
   add("POST /runs/:id/review", ({ params }) => recordRunReview(app, params.id) ?? null);
+  // The person's review of a prototype build (quality/humanReview.ts): pages and journeys, notes, decisions, sign-off.
+  add("GET /runs/:id/signoff", ({ params }) => refreshReview(app, params.id) ?? null);
+  add("POST /runs/:id/signoff/items/:itemId", ({ params, body }) => {
+    const b = parse(z.object({ draft: z.string().max(4000).optional(), decision: z.enum(["pending", "approved", "changes_requested"]).optional(), note: z.string().max(4000).optional() }), body ?? {});
+    try {
+      return decideItem(app, params.id, decodeURIComponent(params.itemId), b);
+    } catch (e) {
+      throw new HttpError(400, (e as Error).message);
+    }
+  });
+  add("POST /runs/:id/signoff/submit", ({ params }) => {
+    try {
+      return submitReview(app, params.id);
+    } catch (e) {
+      throw new HttpError(400, (e as Error).message);
+    }
+  });
+  add("POST /runs/:id/signoff/sign", ({ params }) => {
+    try {
+      return signOff(app, params.id);
+    } catch (e) {
+      throw new HttpError(400, (e as Error).message);
+    }
+  });
   // The improvement backlog: proposals only; nothing in it is applied without approval.
   add("GET /improvements", () => app.store.getSetting(IMPROVEMENTS_KEY, []));
   add("GET /runs/:id/stop-report", async ({ params, query }) => (await buildStopReport(app, params.id, { explain: query.get("explain") !== "0" })) ?? null);

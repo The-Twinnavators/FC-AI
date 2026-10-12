@@ -63,6 +63,9 @@ import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, p
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
+import { EXPERIENCE_SCHEMA, EXPERIENCE_SYSTEM, JOURNEY_TESTS, coverageKey, journeyTestObjective, coverageMatrix, experienceKey, experienceNote, experienceRequest, parseExperienceMap, scopeDecisions, scopeKey, type ExperienceMap } from "./experienceMap.js";
+import { followUpFinished, needsHumanReview, openReview, type ReviewDeps } from "../quality/humanReview.js";
+import { compositionKey, entryFor, manifestFromBriefs, manifestNote, recordEntry, verifyManifest, type CompositionManifest } from "./compositionManifest.js";
 import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBriefs, prdForBrief, screenBriefKey, screenBriefNote } from "./screenBrief.js";
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
@@ -73,7 +76,7 @@ import { salvagePlan } from "./planSalvage.js";
 import { lookGuidance, visualDirection, type BuildLook } from "./starterIdentity.js";
 import { designTemplate, LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { extractRequirements, referencePath, summarizeReference, type Requirement } from "../quality/spec.js";
-import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchItems, groupSteps, parseBatch, planBatches, planKey, runtimeItems, stepsFromGroups, uniqueIds, type LrcPlan, type PlanItem } from "../quality/lrcPlan.js";
+import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchItems, groupSteps, parseBatch, planBatches, planKey, runPlanKey, runtimeItems, stepsFromGroups, uniqueIds, type LrcPlan, type PlanItem } from "../quality/lrcPlan.js";
 import { promptConfigFor } from "../quality/taskPrompt.js";
 import { isInterfaceStep, playbookFor } from "../knowledge/designPlaybook.js";
 import { protectedPolicyFor } from "../workspace/protectedFiles.js";
@@ -473,6 +476,11 @@ export class Orchestrator {
         }
       }
     }
+    // Requirements the plan can't carry as asked (experienceMap.ts): decisions for the person at plan approval.
+    {
+      const scope = this.d.store.getSetting<string[]>(scopeKey(runId), []);
+      if (scope.length) plan = { ...plan, scopeDecisions: [...new Set([...(plan.scopeDecisions ?? []), ...scope])] };
+    }
     // Shared types and models first: nothing may use a type before a task creates it.
     plan.tasks = typesFirst(plan.tasks);
     // Persist tasks (DAG).
@@ -524,7 +532,7 @@ export class Orchestrator {
     }
     // FR-A2: medium/high-risk plans need approval unless the project's autonomy level covers them.
     const level = project.settings.autonomy;
-    const autoReason = autoApprovalReason(level, { kind: "plan", risk: plan.risk, action: plan.goal, affected: plan.expectedChanges });
+    const autoReason = plan.scopeDecisions?.length ? undefined : autoApprovalReason(level, { kind: "plan", risk: plan.risk, action: plan.goal, affected: plan.expectedChanges });
     if (autoReason) {
       return this.approvePlan(runId, `auto-approved by ${level} policy: ${autoReason}`);
     }
@@ -533,7 +541,7 @@ export class Orchestrator {
       runId,
       kind: "plan",
       action: `Approve implementation plan: ${plan.goal}`,
-      reason: `${plan.tasks.length} tasks; risk ${plan.risk}${plan.riskNotes.length ? ` (${plan.riskNotes.join("; ")})` : ""}`,
+      reason: `${plan.tasks.length} tasks; risk ${plan.risk}${plan.riskNotes.length ? ` (${plan.riskNotes.join("; ")})` : ""}${plan.scopeDecisions?.length ? `; ${plan.scopeDecisions.length} scope decision${plan.scopeDecisions.length === 1 ? "" : "s"} for you` : ""}`,
       affected: plan.expectedChanges,
       risk: plan.risk,
       detail: renderPlan(plan),
@@ -712,7 +720,7 @@ export class Orchestrator {
     const features = featureTasks ?? specFallbackTasks(refs, starter.id, run.objective);
     const polish = polishTask(features.map((t) => t.key));
     const cleanup = cleanupTask([polish.key]);
-    const tasks = await this.withScreenBriefs(run, this.withScreenPicks(run, [...runtime, ...features, polish, cleanup, { ...assembleTask([cleanup.key], starter.id), key: "m_assemble" }], screenPlan), screenPlan, signal);
+    const tasks = await this.withScreenBriefs(run, this.withScreenPicks(run, [...runtime, ...features, polish, cleanup, { ...assembleTask([cleanup.key], starter.id), key: "m_assemble" }], screenPlan), screenPlan, signal, { requirements });
     return {
       goal: run.objective,
       assumptions: [
@@ -760,23 +768,56 @@ export class Orchestrator {
    * the screen as ordered sections built from its matched catalog parts. One planner call; the design steps get the
    * briefs as their target and the visual review judges against them. Without briefs the plan stands as it was.
    */
-  private async withScreenBriefs(run: Run, tasks: PlanTask[], screens: ScreenPlan | undefined, signal: AbortSignal): Promise<PlanTask[]> {
-    if (!screens?.screens.length || !tasks.some((t) => t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH)) return tasks;
+  private async withScreenBriefs(run: Run, tasks0: PlanTask[], screens: ScreenPlan | undefined, signal: AbortSignal, scope: { requirements?: Requirement[]; items?: PlanItem[] } = {}): Promise<PlanTask[]> {
+    if (!screens?.screens.length || !tasks0.some((t) => t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH)) return tasks0;
     const ev = { projectId: run.projectId, runId: run.id };
-    const prd = prdForBrief(prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, [])));
+    const prdAll = prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []));
+    const prd = prdForBrief(prdAll);
     const manifest = this.catalogManifestOf(run);
+    const map = await this.experienceMapFor(run, screens, prd, scope.requirements ?? [], signal);
+    const journeys = map ? experienceNote(map) : "";
+    // The coverage matrix and the scope decisions: only when the checklist placed every requirement (planChecklist).
+    if (scope.items && scope.requirements?.length) {
+      const rows = coverageMatrix(scope.requirements, scope.items, map);
+      this.d.store.setSetting(coverageKey(run.id), rows);
+      const decisions = scopeDecisions(rows);
+      this.d.store.setSetting(scopeKey(run.id), decisions);
+      const n = (st: string) => rows.filter((r) => r.status === st).length;
+      this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Coverage: ${rows.length} requirements; ${n("planned")} planned with a user journey, ${n("for a person to check")} for a person to check, ${n("not in this release")} not in this release${decisions.length ? `; ${decisions.length} need your decision at plan approval (${n("no workflow")} without a journey, ${n("unplaced")} not placed)` : ""}`, level: decisions.length ? "warning" : "info", data: { coverage: rows } });
+    }
+    // The journeys go to every step that builds screens or features, so each step makes its part of them work.
+    // Assembly then proves each journey with a test that clicks through the whole app.
+    const tasks = journeys
+      ? tasks0.map((t) =>
+          t.title.startsWith("Assemble the app") && t.title.includes("App.tsx")
+            ? {
+                ...t,
+                objective: `${t.objective}\n\n${journeyTestObjective(map!)}`,
+                expectedPaths: [...new Set([...t.expectedPaths, JOURNEY_TESTS])],
+                acceptanceCriteria: [
+                  ...t.acceptanceCriteria,
+                  { id: "asm_journeys_file", description: `The user-journey tests are written in ${JOURNEY_TESTS}`, check: { type: "file_exists" as const, path: JOURNEY_TESTS } },
+                  { id: "asm_journeys", description: "Every user journey can be clicked through end to end (its test passes)", check: { type: "verification" as const, kind: `tests:${JOURNEY_TESTS}` } },
+                ],
+              }
+            : t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH || (/^(m|lrc)_/.test(t.key) && t.key !== "m_assemble" && t.role === "coder")
+              ? { ...t, objective: `${t.objective}\n\n${journeys}` }
+              : t,
+        )
+      : tasks0;
     let briefs: ReturnType<typeof parseScreenBriefs> = [];
+    const dropped: Array<{ page: string; section: string; part: string }> = [];
     try {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, {
         messages: [
           { role: "system", content: SCREEN_BRIEF_SYSTEM },
-          { role: "user", content: untrusted("screen-brief", briefRequest(run.objective, prd, screens, manifest)) },
+          { role: "user", content: untrusted("screen-brief", briefRequest(run.objective, prd, screens, manifest, journeys)) },
         ],
         format: SCREEN_BRIEF_SCHEMA,
         timeoutMs: 180_000,
         signal,
       });
-      briefs = parseScreenBriefs(JSON.parse(extractJson(res.content)), screens, manifest);
+      briefs = parseScreenBriefs(JSON.parse(extractJson(res.content)), screens, manifest, dropped);
     } catch (err) {
       if (signal.aborted) throw err;
     }
@@ -786,8 +827,43 @@ export class Orchestrator {
     }
     this.d.store.setSetting(screenBriefKey(run.id), briefs);
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Screen briefs: ${briefs.map((b) => `${b.screen}: first view "${b.firstView.slice(0, 90)}", ${b.sections.length} sections (${b.sections.map((x) => x.part || x.title).join(", ")})`).join("; ")}`, data: { briefs } });
-    const note = screenBriefNote(briefs);
+    // The composition manifest: what each page is built from, by catalog ID, and the sections no catalog part fits.
+    const composition = manifestFromBriefs(briefs, dropped);
+    this.d.store.setSetting(compositionKey(run.id), composition);
+    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Composition manifest: ${composition.entries.length} catalog part${composition.entries.length === 1 ? "" : "s"} across ${briefs.length} page${briefs.length === 1 ? "" : "s"}${composition.gaps.length ? `; ${composition.gaps.length} catalog gap${composition.gaps.length === 1 ? "" : "s"} (${composition.gaps.map((g) => `${g.page}: ${g.section}`).join(", ")})` : ""}`, data: { composition } });
+    const note = [screenBriefNote(briefs), composition.gaps.length ? manifestNote({ entries: [], gaps: composition.gaps }) : ""].filter(Boolean).join("\n\n");
     return tasks.map((t) => (t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH ? { ...t, objective: `${t.objective}\n\n${note}` } : t));
+  }
+
+  /**
+   * The experience map (experienceMap.ts): roles, user journeys across the planned screens, data and permissions, from
+   * one planner call. Stored per run and announced; a map with no usable journey is reported, not invented.
+   */
+  private async experienceMapFor(run: Run, screens: ScreenPlan, prd: string, requirements: Requirement[], signal: AbortSignal): Promise<ExperienceMap | undefined> {
+    const ev = { projectId: run.projectId, runId: run.id };
+    let map: ExperienceMap | undefined;
+    try {
+      const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, {
+        messages: [
+          { role: "system", content: EXPERIENCE_SYSTEM },
+          { role: "user", content: untrusted("experience-map", experienceRequest(run.objective, prd, screens, requirements)) },
+        ],
+        format: EXPERIENCE_SCHEMA,
+        timeoutMs: 180_000,
+        signal,
+      });
+      map = parseExperienceMap(JSON.parse(extractJson(res.content)), screens, requirements.map((r) => r.id));
+    } catch (err) {
+      if (signal.aborted) throw err;
+    }
+    if (!map?.workflows.length) {
+      this.d.bus.emit({ ...ev, type: "plan.proposed", message: "No user journeys mapped this time (the planner's answer wasn't usable); pages are planned from the screen list", level: "warning" });
+      return map;
+    }
+    this.d.store.setSetting(experienceKey(run.id), map);
+    const unused = screens.screens.filter((s) => !map!.workflows.some((w) => w.entry === s.label || w.steps.some((x) => x.screen === s.label))).map((s) => s.label);
+    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Experience map: ${map.workflows.length} user journey${map.workflows.length === 1 ? "" : "s"} (${map.workflows.map((w) => w.name).join("; ")})${unused.length ? `; screens no journey reaches: ${unused.join(", ")}` : ""}`, level: unused.length ? "warning" : "info", data: { experience: map } });
+    return map;
   }
 
   /**
@@ -822,6 +898,17 @@ export class Orchestrator {
     }
     if (out.length) this.d.store.setSetting(catalogTriedKey(run.id), tried);
     return out;
+  }
+
+  /**
+   * The catalog section of a coder's or debugger's system prompt: the run's matched list (catalogMatch) for the screens
+   * the step names, or the step-matched brief when the run has none. Only in an app that has the library's styles.
+   */
+  catalogFor(run: Run, task: Pick<Task, "title" | "objective">, root: string): string {
+    if (!fs.existsSync(path.join(root, "src/styles/library.css"))) return "";
+    const step = `${task.title} ${task.objective}`;
+    const m = this.catalogManifestOf(run);
+    return m ? manifestBrief(m, step) : catalogBrief(step);
   }
 
   /** The run's catalog list: stored at planning, or matched now from the stored screens (a run planned before this existed). */
@@ -938,6 +1025,7 @@ export class Orchestrator {
     const fixed = [...runtime, ...(port ? [port] : [])];
     const plan: LrcPlan = { runId: run.id, createdAt: nowIso(), requirements, filledIn, items: uniqueIds([...runtimeItems(fixed, cfg), ...items, ...runtimeItems([polish, cleanup, assemble], cfg)]) };
     this.d.store.setSetting(planKey(run.projectId), plan);
+    this.d.store.setSetting(runPlanKey(run.id), plan);
     const counts = { code: items.filter((i) => i.executionType === "code").length, tests: items.reduce((n, i) => n + (i.tests?.length ?? 0), 0), review: items.filter((i) => i.executionType !== "code" && !i.later).length, later: items.filter((i) => i.later).length };
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Prototype plan written:${counts.code} item${counts.code === 1 ? "" : "s"} to build with ${counts.tests} acceptance test${counts.tests === 1 ? "" : "s"}, in ${features.length} build step${features.length === 1 ? "" : "s"}; ${counts.review} item${counts.review === 1 ? "" : "s"} for a person to check, ${counts.later} not for this release${filledIn.length ? `. FlowCode placed ${filledIn.length} requirement${filledIn.length === 1 ? "" : "s"} the planner left out` : ""}` });
     return {
@@ -953,7 +1041,7 @@ export class Orchestrator {
       riskNotes: ["Dependency installation (npm install) runs package lifecycle scripts and uses the network"],
       validationPlan: specRequiredChecks(refs, templateId),
       rollbackStrategy: "Every file change is snapshotted; restore the 'Plan approved' checkpoint to return to an empty workspace.",
-      tasks: await this.withScreenBriefs(run, this.withScreenPicks(run, [...fixed, ...features, polish, cleanup, assemble], screenPlan), screenPlan, signal),
+      tasks: await this.withScreenBriefs(run, this.withScreenPicks(run, [...fixed, ...features, polish, cleanup, assemble], screenPlan), screenPlan, signal, { requirements, items: plan.items }),
     };
   }
 
@@ -1275,6 +1363,12 @@ export class Orchestrator {
     return text.slice(0, 4000);
   }
 
+  /** What the human review needs from the orchestrator (quality/humanReview.ts). */
+  private reviewDeps() {
+    const deps: ReviewDeps = { store: this.d.store, projects: this.d.projects, orchestrator: this };
+    return deps;
+  }
+
   /** Builds the report and evaluates the deterministic Done gate. */
   async finalize(runId: string): Promise<Run> {
     const run = this.d.store.runs.require(runId);
@@ -1291,12 +1385,21 @@ export class Orchestrator {
     const reportArtifact = await this.d.verifier.generateReport(this.d.store.runs.require(runId), gate);
     this.d.bus.emit({ type: "report.ready", projectId: run.projectId, runId, message: `Final report ready (${gate.status})`, data: { artifactId: reportArtifact.id } });
     const status = gate.status;
-    const msg = isFinishedRun(status) ? `Done gate passed${gate.warnings.length ? ` with ${gate.warnings.length} warning(s)` : ""}${gate.unverified.length ? `; not fully verified: ${gate.unverified.join("; ")}` : ""}` : `Done gate not met: ${gate.unmet.slice(0, 3).join("; ")}`;
+    // A prototype build is the person's to judge: its checks passing makes it ready for their review, not complete.
+    const review = isFinishedRun(status) && needsHumanReview(this.reviewDeps(), run);
+    const msg = isFinishedRun(status) ? `${review ? "Checks passed; ready for your review (not complete until you approve every page and journey and sign off)" : "Done gate passed"}${gate.warnings.length ? ` with ${gate.warnings.length} warning(s)` : ""}${gate.unverified.length ? `; not fully verified: ${gate.unverified.join("; ")}` : ""}` : `Done gate not met: ${gate.unmet.slice(0, 3).join("; ")}`;
     const final = this.setStatus(runId, status, msg);
     if (isFinishedRun(status)) {
-      const cp = this.d.snapshots.createCheckpoint(runId, "Run verified", true);
-      this.d.store.runs.upsert({ ...final, safeCheckpointId: cp.id });
-      this.d.bus.emit({ type: "run.done", projectId: run.projectId, runId, message: msg, data: { status, warnings: gate.warnings } });
+      const cp = this.d.snapshots.createCheckpoint(runId, review ? "Ready for review (version 1)" : "Run verified", true);
+      const saved = this.d.store.runs.upsert({ ...final, safeCheckpointId: cp.id });
+      if (review) openReview(this.reviewDeps(), saved);
+      this.d.bus.emit({ type: "run.done", projectId: run.projectId, runId, message: msg, data: { status, warnings: gate.warnings, review: review ? "ready_for_review" : undefined } });
+    }
+    // A follow-up build from a review: the reviewed build is ready for another look (or back to its change requests).
+    {
+      const after = this.d.store.runs.require(runId);
+      const back = followUpFinished(this.reviewDeps(), after, isFinishedRun(status));
+      if (back) this.d.bus.emit({ type: "run.done", projectId: run.projectId, runId: back.runId, message: back.state === "awaiting_rereview" ? `Your changes are built: version ${back.version} is ready for another look` : "The follow-up build stopped; your change requests are kept", data: { review: back.state } });
     }
     await this.d.processes.cleanupRun(runId, "run finished");
     return this.d.store.runs.require(runId);
@@ -1420,8 +1523,12 @@ export class Orchestrator {
     // screens, broken images), which runs on it below even though it changed nothing. Kids cash app: "Improve hierarchy
     // and consistency" read 25 files three times, found nothing to change, and blocked the build on a type check alone.
     const polishPart = task.title === DESIGN_POLISH || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_POLISH;
+    // "Design the main screens" is never done without its own edit: the layout FlowCode wrote already passes its checks,
+    // so reading for an attempt and changing nothing passed it as "already done" and the screens stayed the bare starting
+    // layout, their briefs never built (Build tests 3 and 5: 41 and 46 reads, then verified with no change).
+    const designMain = task.title === DESIGN_SCREENS || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_SCREENS;
     // onlyRead comes from earlier attempts' notes, which a retry keeps (it resets the attempt count): check right away.
-    if ((task.attempts >= 2 || onlyRead) && (touched || (onlyRead && (ownCheck || kitDone || polishPart))) && task.acceptanceCriteria.some((c) => c.check.type !== "manual")) {
+    if ((task.attempts >= 2 || onlyRead) && (touched || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && task.acceptanceCriteria.some((c) => c.check.type !== "manual")) {
       const pre = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), this.d.store.tasks.require(task.id), { signal });
       // The same real-content check a finished step gets: template sample text or placeholders left in the step's own
       // screens mean it isn't done, whatever the type check says.
@@ -1671,6 +1778,13 @@ export class Orchestrator {
         verdict = { ...verdict, allMet: false, failures: [...verdict.failures, ...lookFails, ...options, ...(crits.length ? ["A design lead reviewed the screens: make these changes to raise the design to portfolio level (keep everything that works, and keep the tests passing):", ...crits] : [])] };
       }
       this.d.bus.emit({ ...ev, type: "verification.completed", message: look ? `Look check on "${task.title}": ${look.length ? `${serious.length} serious, ${look.length - serious.length} minor` : "looks right"}` : `Look check skipped for "${task.title}" (preview not available yet)`, level: serious.length ? "warning" : "info" });
+    }
+    const composition = this.d.store.getSetting<CompositionManifest | undefined>(compositionKey(run.id), undefined);
+    if (composition && [DESIGN_SCREENS, DESIGN_POLISH].some((d) => task.title === d || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === d)) {
+      const checked = verifyManifest(jail.root, composition);
+      this.d.store.setSetting(compositionKey(run.id), checked);
+      const unused = checked.entries.filter((e) => !e.verification?.usedBy.length);
+      this.d.bus.emit({ ...ev, type: "verification.completed", message: `Composition manifest after "${task.title}": ${checked.entries.length - unused.length} of ${checked.entries.length} catalog parts used in the app${unused.length ? ` (not used yet: ${[...new Set(unused.map((e) => e.ref))].slice(0, 6).join(", ")})` : ""}`, level: unused.length ? "warning" : "info", data: { composition: checked } });
     }
     if (verdict.allMet) {
       // Fix memory: a step that passes after failing keeps what went wrong and what fixed it, for later builds.
@@ -1934,7 +2048,7 @@ export class Orchestrator {
     const reuse = uiWork ? scanComponentLibrary(jail).brief : "";
     // An app with FlowCode's library gets the catalog too: the parts to assemble screens from, one line each, so the
     // agent adds a catalog piece instead of writing the markup (a build used the starter kit and nothing from it).
-    const catalog = uiWork && (role === "coder" || role === "debugger") && fs.existsSync(path.join(jail.root, "src/styles/library.css")) ? ((m) => (m ? manifestBrief(m, `${task.title} ${task.objective}`) : catalogBrief(`${task.title} ${task.objective}`)))(this.catalogManifestOf(run)) : "";
+    const catalog = uiWork && (role === "coder" || role === "debugger") ? this.catalogFor(run, task, jail.root) : "";
     const system = rolePrompt + renderSkills(skills) + (reuse ? `\n\n${reuse}` : "") + (catalog ? `\n\n${catalog}` : "");
     // Skills are guidance in the system prompt only. Their checklists used to be added to the step as "manual"
     // criteria that always counted as met: a dozen per step, none checked (Calculator test 1). A step's criteria are its
@@ -1984,6 +2098,14 @@ export class Orchestrator {
       createdInRun: (rel) => this.d.store.snapshots.where("run_id = ?", run.id).some((s) => s.relativePath === rel && s.contentHash === "absent"),
       typeErrorsAfterEdit: (paths) => this.d.verifier.newTypeErrors(this.d.store.runs.require(run.id), signal, paths),
       onNoProgress: () => this.d.store.setSetting(`taskCycled:${task.id}`, true),
+      // A part the agent put in: recorded in the composition manifest against the page and section it named.
+      onCatalogUse: (use) => {
+        const by = task.attempts > 1 ? "debugger" : task.role === "debugger" ? "debugger" : "coder";
+        const e = entryFor(use.ref, use.page ?? "(no page named)", use.section ?? "(no section named)", by, { mode: use.mode, why: use.why });
+        if (!e) return;
+        const now = this.d.store.getSetting<CompositionManifest>(compositionKey(run.id), { entries: [], gaps: [] });
+        this.d.store.setSetting(compositionKey(run.id), recordEntry(now, e));
+      },
       // An agent copying a library piece into src/sections/: recorded, so the Performance tab shows who used what.
       onSectionWritten: (rel, text) => {
         const piece = pieceOf(rel, text);
@@ -2029,7 +2151,9 @@ export class Orchestrator {
       role,
       assignment,
       extraTools,
-      relaxGuards: guardStops(this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, [])) >= 2,
+      // The design steps read widely before their first edit (the kit, the placed pieces, the styles, the brief's parts):
+      // a cloud coder reading four files a turn hit the read limit just before writing (Build test 5).
+      relaxGuards: guardStops(this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, [])) >= 2 || [DESIGN_SCREENS, DESIGN_POLISH].some((d) => task.title === d || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === d),
       system,
       user: brief.text,
       executor: dispatcher,
@@ -2252,6 +2376,7 @@ function renderPlan(plan: ImplementationPlan): string {
     `Validation: ${plan.validationPlan.join(", ")}`,
     `Rollback: ${plan.rollbackStrategy}`,
     ...(plan.brief ? [renderBrief(plan.brief)] : []),
+    plan.scopeDecisions?.length ? `Scope decisions for you (the plan can't carry these as asked):\n${plan.scopeDecisions.map((d) => `- ${d}`).join("\n")}` : "",
   ].filter(Boolean).join("\n\n");
 }
 

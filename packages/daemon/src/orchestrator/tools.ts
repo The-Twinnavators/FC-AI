@@ -20,7 +20,8 @@ import { isRootScratch } from "../quality/cleanupScan.js";
 import { findOpenImage } from "../workspace/openImages.js";
 import { errorFile } from "../quality/verification.js";
 import { screenKey } from "../quality/appWiring.js";
-import { catalogPiece, pieceFiles, pieceImport, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
+import { pieceFiles, pieceImport, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
+import { catalogContract, contractText, nearIds, resolveCatalogId, searchCatalog, searchText } from "./catalogContract.js";
 import { renderLoopNote } from "./renderLoops.js";
 import { afterEdit, syntaxGuard, testFailureDigest, buildingBlockImports, coverUpEdit, editGuard, nativeInWebApp, toTsPath, removesTokenInUse, workspaceTokenUsage, unredactLines } from "./guards.js";
 
@@ -50,6 +51,8 @@ export interface DispatchContext {
   onSectionWritten?: (rel: string, text: string) => void;
   /** The project as it is now (settings change mid-step: "allow external research" turned on during a design step). */
   currentProject?: () => Project;
+  /** A catalog part the agent put in with add_library_piece: recorded in the build's composition manifest. */
+  onCatalogUse?: (use: { ref: string; page?: string; section?: string; mode?: "whole" | "adapt" | "compose"; why?: string }) => void;
   /** Checks a candidate photo shows what was searched for (a vision model); find_image skips the ones that don't. */
   imageCheck?: (image: Buffer, query: string) => Promise<{ ok: boolean; reason: string }>;
 }
@@ -484,9 +487,27 @@ export function createDispatcher(ctx: DispatchContext) {
           if (res.paths.length) ctx.onPathsChanged(res.paths);
           return { ok: res.ok, content: res.message };
         }
+        case "search_catalog": {
+          const query = String(a.query ?? "");
+          return { ok: true, content: searchText(query, searchCatalog(query, { level: a.level as "component" | "pattern" | "block" | "template" | undefined, limit: typeof a.limit === "number" ? a.limit : undefined })) };
+        }
+        case "get_catalog_contract": {
+          const c = catalogContract(String(a.id ?? ""));
+          if (!c) {
+            const near = nearIds(String(a.id ?? ""));
+            return { ok: false, content: `"${a.id}" isn't in the FlowCode catalog.${near.length ? ` IDs that are: ${near.join(", ")}.` : ""} Use search_catalog to find a part by what it should do.` };
+          }
+          return { ok: true, content: contractText(c) };
+        }
         case "add_library_piece": {
-          const piece = catalogPiece(String(a.piece ?? ""));
-          if (!piece) return { ok: false, content: `No catalog piece called "${a.piece}". Use a catalog ID from your instructions (c.button, p.data-table, b.hero-split, t.home-saas) or a piece id.` };
+          // Exactly the ID asked for: an unknown variant ("c.button.huge") is an error, not its base component, so a
+          // part that doesn't exist is never reported as selected.
+          const resolved = resolveCatalogId(String(a.piece ?? ""));
+          const piece = resolved?.piece;
+          if (!piece) {
+            const near = nearIds(String(a.piece ?? ""));
+            return { ok: false, content: `No catalog part called "${a.piece}".${near.length ? ` Real IDs close to it: ${near.join(", ")}.` : ""} Use search_catalog to find one by what it should do, or get_catalog_contract to check an ID.` };
+          }
           // The piece, the pieces it is built from and the shared icons, each at its src/sections/ name. A file already
           // there stays as it is (the app may have made it its own).
           const files = [{ rel: "src/sections/icons.tsx", content: fs.readFileSync(path.join(sectionsDir(), "sections", "icons.tsx"), "utf8") }, ...pieceFiles(piece.id)];
@@ -498,7 +519,8 @@ export function createDispatcher(ctx: DispatchContext) {
             added.push(f.rel);
           }
           const how = piece.usage ? `\nUse it as: ${piece.usage}` : "";
-          return { ok: true, content: `${piece.ref ?? piece.id} (${piece.name}) is in the app${added.length ? `: added ${added.join(", ")}` : " already"}.\nImport it with: ${pieceImport(piece)}${how}\nFrom a file outside src/screens/, adjust the "../sections/" part of the path. Its styles are in src/styles/library.css; change the look through the design tokens, not by restyling it.` };
+          ctx.onCatalogUse?.({ ref: resolved.ref, page: a.page ? String(a.page) : undefined, section: a.section ? String(a.section) : undefined, mode: a.mode as "whole" | "adapt" | "compose" | undefined, why: a.why ? String(a.why) : undefined });
+          return { ok: true, content: `${resolved.ref} (${piece.name}) is in the app${added.length ? `: added ${added.join(", ")}` : " already"}.\nImport it with: ${pieceImport(piece)}${how}\nFrom a file outside src/screens/, adjust the "../sections/" part of the path. Its styles are in src/styles/library.css; change the look through the design tokens, not by restyling it.` };
         }
         case "create_file":
         case "apply_patch":

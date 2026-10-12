@@ -80,6 +80,18 @@ function reply(r: Run, v: View | undefined, events: FlowEvent[]): { text: string
     ]
       .filter(Boolean)
       .join("\n\n");
+  // A prototype build that passed its checks waits for the person's review: it is not "ready" until they sign off.
+  if (r.review && r.review !== "signed_off" && ["done", "done_with_warnings", "done_unverified"].includes(r.status)) {
+    const lead =
+      r.review === "updating"
+        ? "I'm building the changes from your review. The pages you asked about come back for another look when I'm done."
+        : r.review === "changes_requested"
+          ? "Your review has change requests. Send them from Your review in Details when you've decided every page and journey."
+          : r.review === "awaiting_rereview"
+            ? "Your changes are built. Open Your review in Details to look again and approve or ask for more."
+            : "The checks passed and the prototype is ready for your review. It isn't complete until you've looked at every page and user journey in Your review (Details), approved each or asked for changes, and signed off.";
+    return { text: r.review === "updating" ? lead : summary(lead), tone: "warn" };
+  }
   switch (r.status) {
     case "draft":
       return { text: "Reading your request and planning the work…", tone: "work" };

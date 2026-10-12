@@ -7,7 +7,7 @@ import type { Run, VerificationCheck, VerificationKind } from "@flowcode/contrac
 import { post } from "../api";
 import { Led, StatusChip, StatusText } from "./ui";
 import { BuildTimer } from "./BuildTimer";
-import { CHECKS, checkCouldNotRun, statusLabel } from "@flowcode/contracts";
+import { CHECKS, checkCouldNotRun, runStatusLabel, statusLabel } from "@flowcode/contracts";
 import { ROLE_COLOR, ROLE_LABEL, RobotHead } from "./RobotHead";
 
 const ORDER: VerificationKind[] = [
@@ -69,7 +69,7 @@ export function SignalStrip({ run, checks, active, resumable, paused, controls, 
   for (const c of checks) if (!c.taskId) latest.set(c.kind, c);
   const required = new Set(run?.strategy?.requiredChecks ?? []);
   const kinds = ORDER.filter((k) => required.has(k) || latest.has(k));
-  const label = !run ? "Not started" : resumable ? "Paused" : paused ? (agent ? "Pausing" : "Paused") : statusLabel(run.status);
+  const label = !run ? "Not started" : resumable ? "Paused" : paused ? (agent ? "Pausing" : "Paused") : runStatusLabel(run);
   return (
     <footer className="strip" data-guide="ws.strip" aria-label="Build status and checks" style={style}>
       {grip}

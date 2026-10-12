@@ -45,6 +45,10 @@ export interface Screen {
   id: string;
   label: string;
   icon?: ReactNode;
+  /** Reached from another screen (a detail page), not from the navigation. */
+  hidden?: boolean;
+  /** The screen whose link stays marked while this one is open (a detail page's list). */
+  parent?: string;
 }
 
 export function AppShell({ name, tagline, screens, current, onNavigate, actions, children }: { name: string; tagline?: string; screens: Screen[]; current: string; onNavigate: (id: string) => void; actions?: ReactNode; children: ReactNode }) {
@@ -58,14 +62,14 @@ export function AppShell({ name, tagline, screens, current, onNavigate, actions,
           <span className="ui-shell__name">{name}</span>
           {tagline ? <span className="ui-shell__tagline">{tagline}</span> : null}
         </div>
-        {screens.length > 1 ? (
+        {screens.filter((s) => !s.hidden).length > 1 ? (
           <nav className="ui-shell__nav" aria-label="Main">
-            {screens.map((s) => (
+            {screens.filter((s) => !s.hidden).map((s) => (
               <a
                 key={s.id}
                 href={`#/${s.id}`}
                 className="ui-shell__link"
-                aria-current={s.id === current ? "page" : undefined}
+                aria-current={s.id === current || screens.find((x) => x.id === current)?.parent === s.id ? "page" : undefined}
                 onClick={(e) => {
                   e.preventDefault();
                   onNavigate(s.id);

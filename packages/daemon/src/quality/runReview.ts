@@ -9,6 +9,9 @@
 import { TERMINAL_RUN_STATUSES, type Run, type Task } from "@flowcode/contracts";
 import type { App } from "../app.js";
 import { runPerformance } from "../api/performance.js";
+import { compositionKey, type CompositionManifest } from "../orchestrator/compositionManifest.js";
+import { coverageKey, type CoverageRow } from "../orchestrator/experienceMap.js";
+import { getReview } from "./humanReview.js";
 import { plainBlocker } from "./blockerText.js";
 import { checkName, checkState, latestRunChecks, verificationCompleteness, type CheckState } from "./checkState.js";
 
@@ -130,6 +133,90 @@ const PROPOSALS: Record<string, Omit<Improvement, "id" | "key" | "status" | "rel
     approvalRequired: true,
     rollback: "Revert if verified-first-try rates drop.",
   },
+  "layout:unbuilt": {
+    name: "Fill every laid-out section before a screen is called designed",
+    benefit: "Pages arrive built from their brief, not as the starter layout with empty sections.",
+    change: "Have the design step check its screens for empty numbered sections (the route coverage rule) before it finishes, and retry with the part's contract when one is left.",
+    target: "packages/daemon/src/orchestrator/orchestrator.ts (design steps) and quality/routeCoverage.ts",
+    owner: "Design steps",
+    priority: "next",
+    scope: "global",
+    baseline: "Assembly found sections laid out but never built on the runs listed.",
+    successMeasure: "Later runs reach assembly with no unbuilt sections.",
+    validation: "Compare the route coverage results of the next builds with the runs listed.",
+    approvalRequired: true,
+    rollback: "Remove the extra design-step check if it slows builds without fewer unbuilt sections.",
+  },
+  "catalog:unused": {
+    name: "Use the catalog parts a page was planned with, or record why not",
+    benefit: "What the plan chose from the catalog is what the person sees, or the change is explained.",
+    change: "When the composition manifest shows a planned part unused after the design steps, give the polish step the part's contract and ask it to use it or name the replacement with add_library_piece's 'why'.",
+    target: "packages/daemon/src/orchestrator/compositionManifest.ts and the polish step",
+    owner: "Catalog integration",
+    priority: "next",
+    scope: "global",
+    baseline: "Planned catalog parts not used on any page on the runs listed.",
+    successMeasure: "Fewer planned-but-unused parts per build, each remaining one with a recorded reason.",
+    validation: "Compare composition manifests of the next builds with the runs listed.",
+    approvalRequired: true,
+    rollback: "Drop the extra instruction if polish attempts rise without fewer unused parts.",
+  },
+  "catalog:gap": {
+    name: "Add catalog parts for the sections builds keep making by hand",
+    benefit: "Fewer hand-built sections; more pages built from tested parts.",
+    change: "List the recurring catalog gaps across builds and propose library pieces for them (to the approval shelf, never straight into the library).",
+    target: "templates/library (approval shelf)",
+    owner: "Library",
+    priority: "next",
+    scope: "global",
+    baseline: "Catalog gaps recorded in the composition manifests of the runs listed.",
+    successMeasure: "The same gap stops recurring once its piece is approved.",
+    validation: "Check later manifests for the gap.",
+    approvalRequired: true,
+    rollback: "Remove a proposed piece if the next builds don't use it.",
+  },
+  "catalog:invalid_id": {
+    name: "Show builders the real IDs before they guess one",
+    benefit: "Fewer refused add_library_piece calls and fewer turns lost to invented catalog IDs.",
+    change: "When a builder's add_library_piece is refused for an unknown ID, put the closest real IDs and their contracts in the next turn's brief for that screen.",
+    target: "packages/daemon/src/orchestrator/tools.ts (add_library_piece) and sectionRecipes.ts",
+    owner: "Catalog integration",
+    priority: "next",
+    scope: "global",
+    baseline: "Refused add_library_piece calls on the runs listed.",
+    successMeasure: "Fewer refused calls per build with the same models.",
+    validation: "Count refused calls in the next builds' tool records.",
+    approvalRequired: true,
+    rollback: "Revert if the brief grows without fewer refusals.",
+  },
+  "coverage:gap": {
+    name: "Plan a user journey for every requirement the build codes",
+    benefit: "Fewer scope decisions at plan approval, and every coded requirement tested in a journey.",
+    change: "Pass the uncovered requirement IDs back to the experience map call once, asking for the journey that carries them, before the plan goes to approval.",
+    target: "packages/daemon/src/orchestrator/experienceMap.ts and orchestrator.ts (withScreenBriefs)",
+    owner: "Planning",
+    priority: "next",
+    scope: "global",
+    baseline: "Requirements without a journey or a place in the plan on the runs listed.",
+    successMeasure: "Fewer coverage gaps per build.",
+    validation: "Compare the coverage matrices of the next builds with the runs listed.",
+    approvalRequired: true,
+    rollback: "Drop the second call if it adds planning time without fewer gaps.",
+  },
+  "review:revisions": {
+    name: "Learn from what people ask to change at review",
+    benefit: "The first version is closer to what the person wanted; fewer review rounds.",
+    change: "Collect the change requests from reviews into the taste memory for the project (with the page and part they were about) and show them to the screen brief call of later builds.",
+    target: "packages/daemon/src/quality/humanReview.ts and the screen brief call",
+    owner: "Planning",
+    priority: "next",
+    scope: "global",
+    baseline: "Review rounds and their change requests on the runs listed.",
+    successMeasure: "Fewer review rounds per build for the same person.",
+    validation: "Compare review rounds before and after on the person's next builds.",
+    approvalRequired: true,
+    rollback: "Stop feeding the requests if briefs drift from the PRD.",
+  },
   "performance:rework": {
     name: "Find where a run's work is undone and redone",
     benefit: "Shorter builds, by measuring the rework that dominates run time before changing anything.",
@@ -173,7 +260,21 @@ function issuesFor(app: App, run: Run, tasks: Task[], checks: RunReview["checks"
   if ((m.failedCommandMs ?? 0) > (m.succeededCommandMs ?? 0) && (m.failedCommandMs ?? 0) > 10 * 60_000) {
     out.push({ key: "performance:rework", category: "performance", what: "More command time went to failed attempts than successful ones", where: "Whole run", evidence: [`failed commands ${Math.round((m.failedCommandMs ?? 0) / 60000)} min vs successful ${Math.round((m.succeededCommandMs ?? 0) / 60000)} min; ${m.restores ?? 0} undos`], cause: { text: "Not established: retries and undone work, causes per step not yet measured", status: "suspected" }, recurrence: 0 });
   }
-  void app;
+  // Catalog and coverage: what was planned but not built from the catalog, and what the plan left without a journey.
+  const comp = app.store.getSetting<CompositionManifest | null>(compositionKey(run.id), null);
+  const unused = (comp?.entries ?? []).filter((e) => e.verification && !e.verification.usedBy.length);
+  if (unused.length) out.push({ key: "catalog:unused", category: "ux_design", what: `${unused.length} planned catalog part(s) weren't used on any page`, where: "Composition manifest", evidence: unused.slice(0, 6).map((e) => `${e.page}: ${e.section} → ${e.ref}`), cause: { text: "Not established: the design steps built these sections another way", status: "suspected" }, recurrence: 0 });
+  if (comp?.gaps.length) out.push({ key: "catalog:gap", category: "ux_design", what: `${comp.gaps.length} section(s) had no catalog part and were built by hand`, where: "Composition manifest", evidence: comp.gaps.slice(0, 6).map((g) => `${g.page}: ${g.section}`), cause: { text: "No part in the catalog fits these sections", status: "confirmed" }, recurrence: 0 });
+  const refused = app.store.toolCalls.where("run_id = ?", run.id).filter((c) => c.toolName === "add_library_piece" && c.status === "failed");
+  if (refused.length) out.push({ key: "catalog:invalid_id", category: "tools", what: `${refused.length} add_library_piece call(s) were refused`, where: "add_library_piece", evidence: refused.slice(0, 4).map((c) => (c.resultSummaryRedacted ?? "").slice(0, 160)), cause: { text: "The builder asked for an ID that isn't in the catalog, or a part that couldn't be added", status: "suspected" }, recurrence: 0 });
+  const coverage = app.store.getSetting<CoverageRow[]>(coverageKey(run.id), []);
+  const gaps = coverage.filter((r) => r.status === "no workflow" || r.status === "unplaced");
+  if (gaps.length) out.push({ key: "coverage:gap", category: "planning", what: `${gaps.length} requirement(s) had no user journey or no place in the plan`, where: "Coverage matrix", evidence: gaps.slice(0, 6).map((r) => `${r.requirement} (${r.status})`), cause: { text: "The experience map's journeys didn't name these requirements", status: "confirmed" }, recurrence: 0 });
+  const wiring = checks.find((c) => c.kind === "app_wiring");
+  if (wiring && /sections laid out but never built/.test(wiring.note)) out.push({ key: "layout:unbuilt", category: "ux_design", what: "Pages reached assembly with laid-out sections never built", where: "Route coverage", evidence: [wiring.note.slice(0, 300)], cause: { text: "The design steps left numbered sections of the layout empty", status: "confirmed" }, recurrence: 0 });
+  // Review revisions: what the person asked to change after the checks passed.
+  const review = getReview(app, run.id);
+  if (review?.rounds.length) out.push({ key: "review:revisions", category: "ux_design", what: `${review.rounds.length} review round(s) with change requests`, where: "Your review", evidence: review.rounds.flatMap((r) => r.requests.map((q) => `v${r.version} ${q.item}: ${q.note.slice(0, 140)}`)).slice(0, 6), cause: { text: "The first version didn't match what the person wanted on these pages", status: "confirmed" }, recurrence: 0 });
   return out;
 }
 

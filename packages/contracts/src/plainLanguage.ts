@@ -41,6 +41,23 @@ export function statusLabel(status: string | undefined): string {
   return STATUS[status] ?? status.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 }
 
+/** Where the person's review of a prototype build stands, in everyday words. */
+const REVIEW: Record<string, string> = {
+  ready_for_review: "Ready for your review",
+  changes_requested: "Changes requested",
+  updating: "Updating from your review",
+  awaiting_rereview: "Ready for another look",
+  signed_off: "Signed off",
+};
+
+/**
+ * A build's status as the person reads it. A prototype build that passed its checks is not "Ready" until they have
+ * reviewed it and signed off: until then its review state is what it shows.
+ */
+export function runStatusLabel(run: { status?: string; review?: string }): string {
+  return run.review && REVIEW[run.review] ? REVIEW[run.review]! : statusLabel(run.status);
+}
+
 /** The checks FlowCode runs on an app: a short name and one sentence a beginner understands. */
 export const CHECKS: Record<string, { name: string; short: string; explain: string }> = {
   project_preflight: { name: "Project ready", short: "Ready", explain: "FlowCode looked at the project's files to see how to run it." },

@@ -35,6 +35,7 @@ import { RunReview } from "../components/RunReview";
 import { RunActivity } from "../components/RunActivity";
 import { ScreenCoverage } from "../components/ScreenCoverage";
 import { ReviewPanel } from "../components/ReviewPanel";
+import { SignOff } from "../components/SignOff";
 import { Modal } from "../components/Modal";
 import { PanelGrip, StripGrip, useWsLayout, type PanelId } from "../components/WsLayout";
 
@@ -891,6 +892,8 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
         </section>
       ) : null}
 
+      {run.review ? <SignOff key={`signoff-${run.id}`} runId={run.id} projectId={run.projectId} checks={view.checks} onChanged={onChanged} /> : null}
+
       {run.status === "draft" ? (
         view.active ? (
           <div className="ov__working" role="status">
@@ -950,6 +953,14 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
             <dd title={run.plan.validationPlan.join(", ")}>{run.plan.validationPlan.map(checkName).join(", ")}</dd>
             <dt>How to undo</dt>
             <dd>{run.plan.rollbackStrategy}</dd>
+            {run.plan.scopeDecisions?.length ? (
+              <>
+                <dt>Scope decisions</dt>
+                <dd>
+                  <ul className="plan-brief">{run.plan.scopeDecisions.map((d) => <li key={d}>{d}</li>)}</ul>
+                </dd>
+              </>
+            ) : null}
             {run.plan.brief ? (
               <>
                 <dt>From the PRD</dt>

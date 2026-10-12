@@ -216,6 +216,10 @@ describe("a spec build plans from the checklist", () => {
         if (String(req.messages[0]?.content ?? "").startsWith("You decide which screens")) {
           return { content: JSON.stringify({ product: "Calendar", screens: [{ name: "Calendar", purpose: "See events by month, week or day." }] }), toolCalls: [], model: "stub", durationMs: 1 };
         }
+        // The experience map (user journeys), in a call of its own before the briefs.
+        if (String(req.messages[0]?.content ?? "").startsWith("You map a product's experience")) {
+          return { content: JSON.stringify({ roles: [{ name: "Planners", goals: ["See the week"] }], workflows: [{ name: "Check the week", role: "Planners", entry: "Calendar", steps: [{ screen: "Calendar", action: "Pick week view", result: "Sees this week's events" }], success: "Knows what's on", requirementIds: [] }], data: [], permissions: [] }), toolCalls: [], model: "stub", durationMs: 1 };
+        }
         // The screen briefs, in a call of their own after the plan.
         if (String(req.messages[0]?.content ?? "").startsWith("You plan the screens")) {
           return { content: JSON.stringify({ screens: [{ screen: "Calendar", who: "Planners", goal: "See the week", workflow: ["Pick a view"], firstView: "This week", primaryAction: "Add an event", sections: [{ title: "Week", purpose: "Events by day", part: "" }] }] }), toolCalls: [], model: "stub", durationMs: 1 };
@@ -252,6 +256,18 @@ describe("a spec build plans from the checklist", () => {
     expect(views.aiPrompt).toContain("R4: Users switch between Month, Week and Day views.");
     expect(feature.acceptanceCriteria.some((c) => c.check.type === "verification" && c.check.kind.startsWith("tests:src/acceptance/"))).toBe(true);
     expect(tasks.at(-1)?.title).toMatch(/^Assemble the app/);
+    // The experience map: kept per run, and its journeys reach the feature steps.
+    expect(app.store.getSetting<{ workflows: Array<{ name: string }> } | null>(`experienceMap:${run.id}`, null)?.workflows.map((w) => w.name)).toEqual(["Check the week"]);
+    expect(feature.objective).toContain("## Check the week (Planners; starts on Calendar)");
+    expect(app.store.getSetting<LrcPlan | null>(`lrcPlanRun:${run.id}`, null)?.runId).toBe(run.id);
+    // The coverage matrix: the journey names no requirement, so the coded ones have no workflow - each a decision for
+    // the person, shown on the plan, which is then never auto-approved.
+    const coverage = app.store.getSetting<Array<{ requirement: string; status: string }>>(`coverage:${run.id}`, []);
+    expect(coverage.map((c) => c.requirement)).toEqual(plan.requirements.map((x) => x.id));
+    expect(coverage.find((c) => c.requirement === "R4")?.status).toBe("no workflow");
+    const approved = app.store.runs.require(run.id);
+    expect(approved.plan?.scopeDecisions?.some((d) => d.startsWith("R4 is in the plan but no user journey covers it"))).toBe(true);
+    expect(approved.status).toBe("awaiting_approval");
     // No generic steps FlowCode adds on its own.
     expect(tasks.some((t) => t.title === "States, accessibility and edge cases")).toBe(false);
     // Every code item points at the step that does it.

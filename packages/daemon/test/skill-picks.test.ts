@@ -71,7 +71,7 @@ describe("building-block refresh", () => {
   const current = fs.readFileSync(path.join(starter, "src/components/ui/index.tsx"), "utf8");
 
   it("updates an old copy, leaves current and extended copies alone", () => {
-    const old = current.replace("{screens.length > 1 ? (", "{true ? (");
+    const old = current.replace("{screens.filter((s) => !s.hidden).length > 1 ? (", "{true ? (");
     // Kit files the app lacks (src/sim came later) are added too.
     expect(staleBlocks(app({ "src/components/ui/index.tsx": old }))).toEqual(expect.arrayContaining(["src/components/ui/index.tsx", "src/sim/index.ts"]));
     expect(staleBlocks(app({ "src/components/ui/index.tsx": current }))).not.toContain("src/components/ui/index.tsx");

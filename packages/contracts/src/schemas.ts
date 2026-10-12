@@ -24,6 +24,12 @@ export const RunStatus = z.enum([
   "cancelled",
 ]);
 export type RunStatus = z.infer<typeof RunStatus>;
+/**
+ * The person's review of a finished prototype build: its checks passed, and it is not complete until they approve every
+ * page and user journey and sign off. Kept beside the run's own status, which says what the engine did.
+ */
+export const ReviewState = z.enum(["ready_for_review", "changes_requested", "updating", "awaiting_rereview", "signed_off"]);
+export type ReviewState = z.infer<typeof ReviewState>;
 export const TERMINAL_RUN_STATUSES: readonly RunStatus[] = ["done", "done_with_warnings", "done_unverified", "failed", "cancelled"];
 /** Runs that finished their work (whether or not every check could run). */
 export const FINISHED_RUN_STATUSES: readonly RunStatus[] = ["done", "done_with_warnings", "done_unverified"];
@@ -379,6 +385,11 @@ export const ImplementationPlan = z.object({
   tasks: z.array(PlanTask).min(1),
   brief: PlanBrief.optional(),
   classification: PlanClassification.optional(),
+  /**
+   * Requirements the plan can't carry as asked (no user journey covers them, or nothing places them): each is a
+   * decision for the person at plan approval. A plan with any is never auto-approved.
+   */
+  scopeDecisions: z.array(z.string()).optional(),
 });
 export type ImplementationPlan = z.infer<typeof ImplementationPlan>;
 
@@ -400,6 +411,8 @@ export const Run = z.object({
   constraints: z.array(z.string()).default([]),
   createdAt: IsoDate,
   parentRunId: z.string().optional(),
+  /** Where the person's review of this build stands (prototype builds only); absent when it needs none. */
+  review: ReviewState.optional(),
   /** Who asked for this change: "you" when the person typed it (taste memory learns only from these), absent otherwise. */
   origin: z.enum(["you", "flowcode"]).optional(),
   attachedKnowledgeIds: z.array(z.string()).default([]),

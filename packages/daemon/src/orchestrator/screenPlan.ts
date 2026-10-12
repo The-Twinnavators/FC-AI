@@ -16,7 +16,8 @@ import { LIBRARY_SECTIONS, SECTION_CATEGORIES } from "@flowcode/contracts";
 import { LAYOUTS } from "./layoutRecipes.js";
 import { recordUse } from "./libraryUse.js";
 import { screenPicks, type ScreenPick } from "./screenPicks.js";
-import { pieceFiles, sectionFile, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
+import { catalogPiece, pieceFiles, sectionFile, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
+import { screenBriefKey, type ScreenBrief } from "./screenBrief.js";
 
 /** The library pieces matched to the planned screens (kept by planning, read by the layout step). */
 export const screenPicksKey = (runId: string) => `screenPicks:${runId}`;
@@ -189,9 +190,22 @@ export interface Placement {
   template: boolean;
 }
 
+/**
+ * A detail screen (one brand, one order) is reached from its list, not from the navigation: it leaves the top bar, and
+ * the list's link stays marked while it is open (Build test 5: "Brand Detail" sat in the nav as a page of its own).
+ */
+export const isDetailScreen = (plan: ScreenPlan, s: PlannedScreen) => plan.screens.indexOf(s) > 0 && /\bdetails?\b/i.test(s.label);
+
+/** A section's catalog part as a line the design step can act on: the component's usage, or how to add it. */
+function partSlot(ref: string): string {
+  const piece = catalogPiece(ref);
+  const use = (piece?.usage ?? "").replace(/^import \{[^}]*\} from "[^"]+";\s*/, "").replace(/\*\//g, "").slice(0, 180);
+  return use ? `${ref}: ${use}` : `${ref} (add_library_piece("${ref}"))`;
+}
+
 export const placedKey = (runId: string) => `placedPieces:${runId}`;
 
-export function layoutFiles(plan: ScreenPlan, placements: Placement[] = []): Array<{ path: string; content: string }> {
+export function layoutFiles(plan: ScreenPlan, placements: Placement[] = [], briefs: ScreenBrief[] = []): Array<{ path: string; content: string }> {
   // A screen that is a whole website page (a homepage, landing page or industry site template) brings its own header,
   // navigation and footer, so it is drawn outside the app shell instead of under a second header.
   const fullPage = plan.screens.filter((s) => placements.some((p) => p.screen === s.label && p.template && LIBRARY_SECTIONS.find((x) => x.id === p.id)?.category !== "apptemplates"));
@@ -202,7 +216,7 @@ export function layoutFiles(plan: ScreenPlan, placements: Placement[] = []): Arr
     `import { useScreen } from "./lib/screens";`,
     ...plan.screens.map((s) => `import ${s.component} from "./screens/${s.component}";`),
     ``,
-    `const SCREENS = [${plan.screens.map((s) => `{ id: ${q(s.id)}, label: ${q(s.label)} }`).join(", ")}];`,
+    `const SCREENS = [${plan.screens.map((s) => `{ id: ${q(s.id)}, label: ${q(s.label)}${isDetailScreen(plan, s) ? `, hidden: true, parent: ${q(plan.screens[0]!.id)}` : ""} }`).join(", ")}];`,
     `const SCREEN_IDS = SCREENS.map((s) => s.id);`,
     ...(fullPage.length ? [`/** Whole website pages: drawn on their own, with their own header and footer. */`, `const FULL_PAGE = [${fullPage.map((s) => q(s.id)).join(", ")}];`] : []),
     ``,
@@ -226,6 +240,40 @@ export function layoutFiles(plan: ScreenPlan, placements: Placement[] = []): Arr
     // A whole-screen template is the screen; components sit under the page header. Either way the design step replaces
     // their SAMPLE content with the spec's.
     const used = template ? [template] : pieces;
+    // With a brief, the screen is its sections in the brief's order: a catalog piece where the section has one in the
+    // app, a marked slot with the part's usage where it is a component the design step puts in, so the screen starts
+    // from the person's view (what they must see first) and the catalog, not from a title over a list.
+    const brief = briefs.find((b) => b.screen === s.label);
+    if (brief && !template) {
+      const placedFor = (ref: string) => pieces.find((p) => catalogPiece(ref)?.id === p.id);
+      const lines = brief.sections.flatMap((x, i) => {
+        const p = x.part ? placedFor(x.part) : undefined;
+        const note = `${i + 1}. ${x.title}: ${x.purpose}`.replace(/\*\//g, "");
+        return p ? [`      {/* ${note} */}`, `      <${p.component} />`] : [`      {/* ${note}${x.part ? ` Build it with ${partSlot(x.part)}` : ""} */}`];
+      });
+      const placedUsed = pieces.filter((p) => brief.sections.some((x) => x.part && placedFor(x.part) === p));
+      return {
+        path: s.file,
+        content: [
+          `import { PageHeader } from "../components/ui";`,
+          ...placedUsed.map((p) => `import ${p.component} from "../sections/${p.component}";`),
+          ``,
+          `/**`,
+          ` * ${s.label}${s.purpose ? `: ${s.purpose.replace(/\*\//g, "")}` : ""}`,
+          ` * For: ${brief.who.replace(/\*\//g, "")}. First view: ${brief.firstView.replace(/\*\//g, "")} Main action: ${brief.primaryAction.replace(/\*\//g, "")}`,
+          ` */`,
+          `export default function ${s.component}() {`,
+          `  return (`,
+          `    <>`,
+          `      <PageHeader title=${q(s.label)} />`,
+          ...lines,
+          `    </>`,
+          `  );`,
+          `}`,
+          ``,
+        ].join("\n"),
+      };
+    }
     const body = template
       ? [`  return <${template.component} />;`]
       : pieces.length
@@ -295,8 +343,17 @@ export function layoutStep(plan: ScreenPlan) {
     // The library pieces matched to each screen go into it, so the screens start from the library (the design step fills
     // in the content). Only when the app has the library's styles; a piece the library step didn't copy is copied here.
     const placements: Placement[] = [];
+    const briefs = deps.store.getSetting<ScreenBrief[]>(screenBriefKey(run.id), []);
     if (fs.existsSync(path.join(jail.root, "src/styles/library.css"))) {
-      const picks = deps.store.getSetting<ScreenPick[] | undefined>(screenPicksKey(run.id), undefined) ?? screenPicks(plan.screens);
+      const matched = deps.store.getSetting<ScreenPick[] | undefined>(screenPicksKey(run.id), undefined) ?? screenPicks(plan.screens);
+      // A screen with a brief takes the brief's pieces, in its order; one without keeps its matched starting pieces.
+      const fromBriefs: ScreenPick[] = briefs.flatMap((b) =>
+        b.sections.flatMap((x) => {
+          const piece = x.part ? catalogPiece(x.part) : undefined;
+          return piece && !piece.specimen ? [{ id: piece.id, screen: b.screen, score: 99, reason: `${b.screen}, section "${x.title}": ${piece.name}` }] : [];
+        }),
+      );
+      const picks = [...fromBriefs.filter((p, i, all) => all.findIndex((x) => x.id === p.id && x.screen === p.screen) === i), ...matched.filter((p) => !briefs.some((b) => b.screen === p.screen))];
       const lib = path.join(sectionsDir(), "sections");
       for (const p of picks) {
         if (!plan.screens.some((s) => s.label === p.screen)) continue;
@@ -316,7 +373,7 @@ export function layoutStep(plan: ScreenPlan) {
       if (css !== undefined && deps.ops.replaceContent(ctx, "src/styles/library.css", css).ok) changed.push("src/styles/library.css");
     }
     deps.store.setSetting(placedKey(run.id), placements.map((p) => ({ ...p, screenFile: plan.screens.find((s) => s.label === p.screen)!.file })));
-    for (const f of layoutFiles(plan, placements)) {
+    for (const f of layoutFiles(plan, placements, briefs)) {
       const exists = fs.existsSync(path.join(jail.root, f.path));
       // A ready-made screen layout already there is that screen's finished starting point: kept, not overwritten.
       if (exists && f.path !== "src/App.tsx" && LAYOUTS.some((l) => l.screen === f.path)) continue;

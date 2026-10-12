@@ -7,6 +7,7 @@
  * steps' target and the visual review's yardstick.
  */
 import { LIBRARY_SECTIONS } from "@flowcode/contracts";
+import { resolveCatalogId } from "./catalogContract.js";
 import type { CatalogManifest } from "./catalogMatch.js";
 import type { ScreenPlan } from "./screenPlan.js";
 
@@ -24,6 +25,14 @@ export interface ScreenBrief {
   firstView: string;
   primaryAction: string;
   sections: ScreenBriefSection[];
+  /** The page plan around the layout: how people get here and leave, its states, how it fits a phone, what proves it. */
+  navIn?: string[];
+  navOut?: string[];
+  states?: { loading: string; empty: string; error: string; success: string };
+  responsive?: string;
+  accessibility?: string;
+  /** Requirement IDs this page must satisfy (from the PRD). */
+  acceptance?: string[];
 }
 
 export const screenBriefKey = (runId: string) => `screenBrief:${runId}`;
@@ -37,7 +46,13 @@ For each screen you are given, decide:
 - the one main action;
 - the screen as 3 to 6 sections, top to bottom, each with a short title, its purpose for that person, and the catalog
   part that builds it, chosen ONLY from that screen's list of parts (use "" when a section is plain content). No
-  section the person doesn't need; no filler (no testimonials, stats or marketing on an app screen unless the PRD asks).
+  section the person doesn't need; no filler (no testimonials, stats or marketing on an app screen unless the PRD asks);
+- navIn / navOut: the screens people come from and go to (planned screens only), so every user journey can be clicked
+  through;
+- states: what the page shows while loading, when there is nothing yet (empty), when something fails (error), and after
+  the main action succeeds;
+- responsive: how it rearranges on a phone; accessibility: what must be reachable by keyboard and labelled;
+- acceptance: the requirement IDs (R1, R2...) this page must satisfy, when the user journeys give them.
 Use the PRD's real content and words. Answer with JSON only.`;
 
 export const SCREEN_BRIEF_SCHEMA = {
@@ -55,6 +70,12 @@ export const SCREEN_BRIEF_SCHEMA = {
           firstView: { type: "string" },
           primaryAction: { type: "string" },
           sections: { type: "array", items: { type: "object", properties: { title: { type: "string" }, purpose: { type: "string" }, part: { type: "string" } }, required: ["title", "purpose", "part"] } },
+          navIn: { type: "array", items: { type: "string" } },
+          navOut: { type: "array", items: { type: "string" } },
+          states: { type: "object", properties: { loading: { type: "string" }, empty: { type: "string" }, error: { type: "string" }, success: { type: "string" } } },
+          responsive: { type: "string" },
+          accessibility: { type: "string" },
+          acceptance: { type: "array", items: { type: "string" } },
         },
         required: ["screen", "who", "goal", "workflow", "firstView", "primaryAction", "sections"],
       },
@@ -83,17 +104,22 @@ export function prdForBrief(prd: string, max = 6000): string {
 }
 
 /** The user message for the brief call. */
-export function briefRequest(objective: string, prd: string, plan: ScreenPlan, manifest: CatalogManifest | undefined): string {
+export function briefRequest(objective: string, prd: string, plan: ScreenPlan, manifest: CatalogManifest | undefined, journeys = ""): string {
   const screens = plan.screens
     .map((s) => `## ${s.label}\nPurpose: ${s.purpose}\nParts for this screen:\n${briefParts(manifest, s.label).map((r) => `- ${r}: ${nameOf(r)}`).join("\n")}`)
     .join("\n\n");
-  return `Product: ${plan.product}\nRequest: ${objective.slice(0, 800)}\n\nPRD (people, goals, journeys, screens):\n${prd}\n\nScreens:\n${screens}`;
+  return `Product: ${plan.product}\nRequest: ${objective.slice(0, 800)}\n\nPRD (people, goals, journeys, screens):\n${prd}${journeys ? `\n\n${journeys}` : ""}\n\nScreens:\n${screens}`;
 }
 
 const text = (v: unknown, max: number) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
 
 /** The model's answer, kept to the planned screens and to each screen's own parts (an ID it made up is dropped). */
-export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: CatalogManifest | undefined): ScreenBrief[] {
+/**
+ * dropped (optional) collects the sections whose writer named a part that isn't in the catalog at all: those are
+ * catalog gaps for the composition manifest, not silent omissions. A real part from outside the screen's list is
+ * simply not used.
+ */
+export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: CatalogManifest | undefined, dropped?: Array<{ page: string; section: string; part: string }>): ScreenBrief[] {
   const list = Array.isArray((raw as { screens?: unknown })?.screens) ? ((raw as { screens: unknown[] }).screens as Array<Record<string, unknown>>) : [];
   const out: ScreenBrief[] = [];
   for (const s of plan.screens) {
@@ -102,9 +128,19 @@ export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: Cata
     const allowed = new Set(briefParts(manifest, s.label));
     const sections = (Array.isArray(r.sections) ? (r.sections as Array<Record<string, unknown>>) : [])
       .slice(0, 6)
-      .map((x) => ({ title: text(x.title, 60), purpose: text(x.purpose, 200), part: allowed.has(text(x.part, 80)) ? text(x.part, 80) : "" }))
+      .map((x) => {
+        const part = text(x.part, 80);
+        if (part && !allowed.has(part) && dropped && !resolveCatalogId(part)) dropped.push({ page: s.label, section: text(x.title, 60), part });
+        return { title: text(x.title, 60), purpose: text(x.purpose, 200), part: allowed.has(part) ? part : "" };
+      })
       .filter((x) => x.title);
     if (!sections.length) continue;
+    const screensOnly = (v: unknown) =>
+      (Array.isArray(v) ? v : [])
+        .map((n) => text(n, 60).toLowerCase().replace(/\s+(screen|page)$/, ""))
+        .map((n) => plan.screens.find((p) => p.label.toLowerCase() === n)?.label)
+        .filter((n): n is string => !!n && n !== s.label);
+    const st = (r.states ?? {}) as Record<string, unknown>;
     out.push({
       screen: s.label,
       who: text(r.who, 160),
@@ -113,6 +149,12 @@ export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: Cata
       firstView: text(r.firstView, 240),
       primaryAction: text(r.primaryAction, 100),
       sections,
+      navIn: [...new Set(screensOnly(r.navIn))],
+      navOut: [...new Set(screensOnly(r.navOut))],
+      states: { loading: text(st.loading, 160), empty: text(st.empty, 160), error: text(st.error, 160), success: text(st.success, 160) },
+      responsive: text(r.responsive, 200),
+      accessibility: text(r.accessibility, 200),
+      acceptance: [...new Set((Array.isArray(r.acceptance) ? r.acceptance : []).map((x) => text(x, 10).toUpperCase()).filter((x) => /^R\d+$/.test(x)))],
     });
   }
   return out;
@@ -132,6 +174,11 @@ export function screenBriefNote(briefs: ScreenBrief[]): string {
         `Main action: ${b.primaryAction}`,
         "Sections, top to bottom:",
         ...b.sections.map((x, i) => `${i + 1}. ${x.title}: ${x.purpose}${x.part ? ` [${x.part}]` : ""}`),
+        b.navIn?.length || b.navOut?.length ? `Navigation: from ${b.navIn?.join(", ") || "the menu"}; links on to ${b.navOut?.join(", ") || "nothing else"}` : "",
+        b.states && Object.values(b.states).some(Boolean) ? `States: ${(["loading", "empty", "error", "success"] as const).filter((k) => b.states![k]).map((k) => `${k}: ${b.states![k]}`).join("; ")}` : "",
+        b.responsive ? `On a phone: ${b.responsive}` : "",
+        b.accessibility ? `Accessibility: ${b.accessibility}` : "",
+        b.acceptance?.length ? `Must satisfy: ${b.acceptance.join(", ")}` : "",
       ]
         .filter(Boolean)
         .join("\n"),
