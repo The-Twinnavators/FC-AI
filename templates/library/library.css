@@ -34,18 +34,19 @@
   min-height: var(--control-lg); padding-inline: var(--control-pad-lg); border-radius: var(--control-radius, var(--radius-md));
   font: var(--weight-semibold) var(--control-text-lg, var(--text-md)) / 1 var(--font-sans); text-decoration: none; cursor: pointer;
   border: var(--control-border, 1px solid transparent); box-shadow: var(--control-shadow, none);
-  transition: background-color var(--duration-fast) var(--easing), transform var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
+  transition: background-color var(--duration-fast) var(--easing), transform var(--duration-fast) var(--easing), translate var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
 }
 /* An icon in a button keeps its size, and the label stays on one line (an unsized svg grew and squeezed "Start free trial" onto three). */
 .fl-btn { white-space: nowrap; }
 @media (max-width: 420px) { .fl-btn { white-space: normal; } }
 .fl-btn svg { width: 1.15em; height: 1.15em; flex: none; }
-.fl-btn:hover { transform: translateY(var(--hover-lift, -1px)); box-shadow: var(--control-shadow-hover, none); }
-.fl-btn:active { transform: scale(var(--press-scale, 0.98)); }
+.fl-btn:hover { transform: translateY(var(--hover-lift, -1px)); translate: var(--hover-shift, none); box-shadow: var(--control-shadow-hover, none); }
+.fl-btn:active { transform: scale(var(--press-scale, 0.98)); translate: var(--press-shift, none); box-shadow: var(--control-shadow-active, var(--control-shadow-hover, none)); }
 .fl-btn:focus-visible, .fl-link:focus-visible, .fl-nav a:focus-visible, .fl-faq summary:focus-visible, .fl-input:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-.fl-btn--primary { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); }
+.fl-btn:focus-visible, .fl-input:focus-visible { box-shadow: var(--control-shadow-focus, var(--focus-ring)); }
+.fl-btn--primary { background: var(--accent-bg, var(--color-accent)); color: var(--color-on-accent); border-color: var(--control-edge, var(--color-accent)); }
 .fl-btn--primary:hover { background: var(--color-accent-hover); }
-.fl-btn--secondary { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border); }
+.fl-btn--secondary { background: var(--control-bg, var(--color-surface)); color: var(--color-text); border-color: var(--control-edge, var(--color-border)); }
 .fl-btn--on-accent { background: var(--color-on-accent); color: var(--color-accent); border-color: var(--color-on-accent); }
 .fl-btn--ghost-on-accent { background: transparent; color: var(--color-on-accent); border-color: currentColor; }
 .fl-link { color: var(--color-accent); font-weight: var(--weight-semibold); text-decoration: none; border-radius: var(--radius-sm); }
@@ -55,16 +56,16 @@
 .fl-card {
   display: grid; gap: var(--space-3); align-content: start; padding: var(--space-6);
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
-  border-radius: var(--surface-radius, var(--radius-lg)); box-shadow: var(--surface-shadow, none);
+  border-radius: var(--surface-radius, var(--radius-lg)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
 .fl-card h3, .fl-card h4 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); font-weight: var(--type-h3-weight, var(--weight-semibold)); line-height: var(--leading-snug); }
 .fl-media {
   position: relative; display: grid; place-items: center; aspect-ratio: 4 / 3; max-width: 100%; overflow: hidden;
-  border-radius: var(--radius-lg); color: var(--color-text-muted); font-size: var(--text-sm); text-align: center; padding: var(--space-5);
+  border-radius: var(--surface-radius, var(--radius-lg)); color: var(--color-text-muted); font-size: var(--text-sm); text-align: center; padding: var(--space-5);
   background:
     radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-accent) 22%, transparent), transparent 60%),
     linear-gradient(135deg, var(--color-surface-sunken), var(--color-surface));
-  border: 1px solid var(--color-border);
+  border: var(--surface-border, 1px solid var(--color-border));
 }
 .fl-media--wide { aspect-ratio: 16 / 9; }
 .fl-media--square { aspect-ratio: 1; }
@@ -114,10 +115,10 @@
 /* ── Pricing ── */
 .fl-price { display: flex; align-items: baseline; gap: var(--space-2); }
 .fl-price strong { font: var(--weight-bold) var(--text-2xl) / 1 var(--font-display); font-variant-numeric: tabular-nums; }
-.fl-card--featured { border-color: var(--color-accent); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none)); position: relative; }
+.fl-card--featured { border-color: var(--surface-edge, var(--color-accent)); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none)); position: relative; }
 .fl-badge { justify-self: start; padding: var(--space-1) var(--space-3); border-radius: 999px; font: var(--weight-semibold) var(--text-xs) / 1.4 var(--font-sans); background: color-mix(in srgb, var(--color-accent) 14%, transparent); color: var(--color-accent); }
-.fl-toggle { display: inline-flex; padding: var(--space-1); gap: var(--space-1); border-radius: 999px; background: var(--color-surface-sunken); border: 1px solid var(--color-border); }
-.fl-toggle button { min-height: var(--control-sm); padding-inline: var(--space-5); border: 0; border-radius: 999px; background: transparent; color: var(--color-text-muted); font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); cursor: pointer; }
+.fl-toggle { display: inline-flex; padding: var(--space-1); gap: var(--space-1); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); border: 1px solid var(--color-border); box-shadow: var(--well-shadow, none); }
+.fl-toggle button { min-height: var(--control-sm); padding-inline: var(--space-5); border: 0; border-radius: var(--pill-radius, 999px); background: transparent; color: var(--color-text-muted); font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); cursor: pointer; }
 .fl-toggle button[aria-pressed="true"] { background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow, none); }
 .fl-toggle button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
@@ -137,7 +138,7 @@
 .fl-field label { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
 .fl-input {
   width: 100%; min-height: var(--control-md); padding: var(--space-3) var(--control-pad-md); border-radius: var(--control-radius, var(--radius-sm));
-  border: 1px solid var(--color-border-strong); background: var(--color-surface); color: var(--color-text); font: inherit;
+  border: var(--control-border, 1px solid var(--color-border-strong)); background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; box-shadow: var(--well-shadow, none);
 }
 textarea.fl-input { min-height: 8rem; resize: vertical; }
 /* One height for every single-line field, so a date picker or select sits level with the text box beside it. */

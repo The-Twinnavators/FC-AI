@@ -125,6 +125,24 @@
   --header-bg: var(--color-surface);
   --page-backdrop: none;
   --heading-weight: var(--weight-bold);
+  /* More surface-style traits (a style may set any; these defaults are the flat look; "initial" = not set) */
+  --control-bg: var(--color-surface);
+  --accent-bg: var(--color-accent);
+  --control-edge: initial;
+  --surface-edge: initial;
+  --control-shadow-active: var(--control-shadow-hover);
+  --control-shadow-focus: var(--focus-ring);
+  --well-shadow: var(--control-shadow);
+  --surface-shadow-selected: 0 0 0 1px var(--color-accent);
+  --surface-shadow-overlay: initial;
+  --surface-radius-sm: var(--radius-md);
+  --control-radius-sm: var(--radius-sm);
+  --pill-radius: 999px;
+  --edge-width: var(--border-width);
+  --overlay-border: initial;
+  --tag-tilt: 0deg;
+  --hover-shift: none;
+  --press-shift: none;
 
   /* Layout & motion */
   --content-max: 72rem;

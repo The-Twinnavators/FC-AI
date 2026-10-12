@@ -35,6 +35,27 @@ export const SURFACE_DEFAULTS: Record<string, string> = {
   "--header-bg": "var(--color-surface)",
   "--page-backdrop": "none",
   "--heading-weight": "var(--weight-bold)",
+  // Extra traits any style can set. The defaults reproduce the flat look; `initial` means "not set", so each
+  // component keeps its own colour (e.g. a variant's accent border) until a style provides one.
+  "--control-bg": "var(--color-surface)", // fill of fields, secondary buttons, chips
+  "--accent-bg": "var(--color-accent)", // fill of the primary action (a style can make it a gradient)
+  "--control-edge": "initial", // outline colour of every filled control, overriding the variant's own
+  "--surface-edge": "initial", // outline colour of tinted surfaces (alerts, selected cards), overriding the tone's own
+  "--control-shadow-active": "var(--control-shadow-hover)", // shadow while a control is pressed
+  "--control-shadow-focus": "var(--focus-ring)", // shadow while a control has keyboard focus (keep the ring in it)
+  "--well-shadow": "var(--control-shadow)", // shadow of fields and tracks (an inset for soft styles)
+  "--surface-shadow-selected": "0 0 0 1px var(--color-accent)", // shadow of a picked card or row
+  "--surface-shadow-overlay": "initial", // shadow of menus, popovers, dialogs, toasts; unset keeps the component's own
+  "--surface-radius-sm": "var(--radius-md)", // corners of small surfaces (toasts, banners, menus, wells)
+  "--control-radius-sm": "var(--radius-sm)", // corners of small controls (page numbers, menu items)
+  "--pill-radius": "999px", // corners of chips, badges and toggles
+  "--edge-width": "var(--border-width)", // thickness of tab, divider and small-control outlines
+  "--overlay-border": "initial", // outline of dialogs, drawers and sheets; unset draws none
+  "--hover-lift": "-1px", // controls rise this far on hover
+  "--press-scale": "0.98", // controls shrink to this on press
+  "--tag-tilt": "0deg", // tilt of a card's corner tag
+  "--hover-shift": "none", // extra diagonal move on hover, e.g. -2px -2px
+  "--press-shift": "none", // extra diagonal move on press, e.g. 4px 4px
 };
 
 export const STYLE_VIBES: StyleVibe[] = [
@@ -58,6 +79,12 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-radius": "10px",
       "--header-bg": "color-mix(in srgb, var(--color-surface) 70%, transparent)",
       "--page-backdrop": "radial-gradient(60% 55% at 8% 0%, color-mix(in srgb, var(--color-accent) 24%, transparent), transparent 70%), radial-gradient(50% 50% at 100% 35%, color-mix(in srgb, var(--color-focus) 18%, transparent), transparent 70%)",
+      "--control-bg": "color-mix(in srgb, var(--color-surface) 55%, transparent)",
+      "--surface-shadow-overlay": `0 18px 48px -14px ${T(45)}, inset 0 1px 0 ${W(40)}`,
+      "--surface-shadow-selected": `0 0 0 1px var(--color-accent), 0 10px 32px -14px ${T(35)}`,
+      "--surface-radius-sm": "10px",
+      "--control-radius-sm": "8px",
+      "--overlay-border": `1px solid color-mix(in srgb, var(--color-surface) 50%, var(--color-border))`,
     },
     match: /glass ?morphism|frosted glass|\bglass(y)? (ui|style|look|cards?|panels?)\b/i,
   },
@@ -74,6 +101,12 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-radius": "999px",
       "--header-bg": "color-mix(in srgb, var(--color-surface) 60%, transparent)",
       "--page-backdrop": "radial-gradient(55% 50% at 0% 0%, color-mix(in srgb, var(--color-accent) 26%, transparent), transparent 70%), radial-gradient(45% 45% at 100% 20%, color-mix(in srgb, var(--color-focus) 22%, transparent), transparent 70%), radial-gradient(50% 50% at 60% 100%, color-mix(in srgb, var(--color-success) 18%, transparent), transparent 70%)",
+      "--control-bg": "color-mix(in srgb, var(--color-surface) 45%, transparent)",
+      "--surface-shadow-overlay": `0 22px 56px -16px ${T(42)}, inset 0 1px 0 ${W(50)}`,
+      "--surface-shadow-selected": `0 0 0 1px var(--color-accent), 0 12px 36px -16px ${T(38)}`,
+      "--surface-radius-sm": "16px",
+      "--control-radius-sm": "999px",
+      "--overlay-border": `1px solid ${W(28)}`,
     },
     match: /liquid glass|iridescent/i,
   },
@@ -90,6 +123,15 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-shadow": `4px 4px 10px ${T(14)}, -3px -3px 8px color-mix(in srgb, #ffffff 70%, var(--color-bg))`,
       "--control-shadow-hover": `2px 2px 6px ${T(14)}, -2px -2px 6px color-mix(in srgb, #ffffff 70%, var(--color-bg))`,
       "--header-bg": "var(--color-bg)",
+      "--control-bg": "var(--color-bg)",
+      "--control-border": "1px solid transparent",
+      "--control-edge": "transparent",
+      "--well-shadow": `inset 3px 3px 7px ${T(16)}, inset -3px -3px 7px color-mix(in srgb, #ffffff 70%, var(--color-bg))`,
+      "--control-shadow-active": `inset 3px 3px 8px ${T(16)}, inset -3px -3px 8px color-mix(in srgb, #ffffff 70%, var(--color-bg))`,
+      "--surface-shadow-selected": `inset 5px 5px 12px ${T(16)}, inset -4px -4px 10px color-mix(in srgb, #ffffff 70%, var(--color-bg))`,
+      "--surface-shadow-overlay": `12px 12px 28px ${T(20)}, -8px -8px 22px color-mix(in srgb, #ffffff 70%, var(--color-bg))`,
+      "--surface-radius-sm": "12px",
+      "--control-radius-sm": "8px",
     },
     match: /neu?morph(ism|ic)|soft ui/i,
   },
@@ -105,6 +147,13 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-radius": "6px",
       "--control-shadow": `inset 0 1px 0 ${W(45)}, 0 1px 2px ${T(28)}`,
       "--control-shadow-hover": `inset 0 1px 0 ${W(45)}, 0 2px 5px ${T(30)}`,
+      "--control-bg": "linear-gradient(180deg, var(--color-surface), color-mix(in srgb, var(--color-surface) 88%, var(--color-text)))",
+      "--accent-bg": "linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 86%, #ffffff), var(--color-accent))",
+      "--well-shadow": `inset 0 1px 3px ${T(28)}`,
+      "--control-shadow-active": `inset 0 2px 4px ${T(30)}`,
+      "--surface-shadow-overlay": `0 8px 24px -6px ${T(35)}, inset 0 1px 0 ${W(55)}`,
+      "--surface-radius-sm": "6px",
+      "--overlay-border": `1px solid ${T(20)}`,
     },
     match: /skeuomorph|tactile|realistic textures?/i,
   },
@@ -123,6 +172,21 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-shadow": "4px 4px 0 var(--color-text)",
       "--control-shadow-hover": "6px 6px 0 var(--color-text)",
       "--heading-weight": "800",
+      "--control-edge": "var(--color-text)",
+      "--surface-edge": "var(--color-text)",
+      "--control-shadow-active": "0 0 0 var(--color-text)",
+      "--control-shadow-focus": "4px 4px 0 var(--color-text), var(--focus-ring)",
+      "--surface-shadow-selected": "8px 8px 0 var(--color-text)",
+      "--surface-shadow-overlay": "8px 8px 0 var(--color-text)",
+      "--surface-radius-sm": "4px",
+      "--control-radius-sm": "4px",
+      "--hover-lift": "0px",
+      "--press-scale": "1",
+      "--hover-shift": "-2px -2px",
+      "--press-shift": "4px 4px",
+      "--edge-width": "3px",
+      "--overlay-border": "3px solid var(--color-text)",
+      "--tag-tilt": "6deg",
     },
     match: /neo[- ]?brutal/i,
   },
@@ -137,6 +201,14 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-radius": "999px",
       "--control-shadow": `0 6px 14px -6px ${T(28)}, inset 0 -2px 4px ${T(10)}, inset 0 2px 4px ${W(45)}`,
       "--control-shadow-hover": `0 8px 18px -6px ${T(30)}, inset 0 -2px 4px ${T(10)}, inset 0 2px 4px ${W(45)}`,
+      "--control-border": "1px solid transparent",
+      "--control-edge": "transparent",
+      "--well-shadow": `inset 0 3px 6px ${T(12)}, inset 0 -2px 4px ${W(40)}`,
+      "--control-shadow-active": `inset 0 3px 6px ${T(18)}`,
+      "--surface-shadow-selected": `0 0 0 2px var(--color-accent), 0 12px 26px -10px ${T(24)}`,
+      "--surface-shadow-overlay": `0 20px 40px -12px ${T(30)}, inset 0 4px 8px ${W(55)}`,
+      "--surface-radius-sm": "18px",
+      "--control-radius-sm": "12px",
     },
     match: /clay ?morph|\bclay (ui|style|look)\b|puffy/i,
   },
@@ -151,6 +223,12 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-radius": "0",
       "--control-border": "2px solid var(--color-text)",
       "--heading-weight": "800",
+      "--surface-shadow-overlay": "none",
+      "--surface-radius-sm": "0",
+      "--control-radius-sm": "0",
+      "--pill-radius": "0",
+      "--edge-width": "2px",
+      "--overlay-border": "2px solid var(--color-text)",
     },
     match: /(?<!neo[- ]?)brutalis[mt]/i,
   },
@@ -168,6 +246,15 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-shadow": "0 3px 0 var(--color-text)",
       "--control-shadow-hover": "0 4px 0 var(--color-accent)",
       "--heading-weight": "800",
+      "--control-shadow-active": "0 0 0 var(--color-text)",
+      "--surface-shadow-selected": "0 0 0 2px var(--color-accent), 0 4px 0 var(--color-accent)",
+      "--surface-shadow-overlay": "0 8px 0 var(--color-accent)",
+      "--surface-radius-sm": "0",
+      "--control-radius-sm": "0",
+      "--pill-radius": "0",
+      "--press-shift": "0 3px",
+      "--edge-width": "2px",
+      "--overlay-border": "2px solid var(--color-text)",
     },
     match: /bauhaus|geometric (style|design|blocks)/i,
   },

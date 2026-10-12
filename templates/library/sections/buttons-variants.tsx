@@ -59,6 +59,8 @@ type ButtonOwn = {
   iconOnly?: boolean;
   /** Working: a spinner, the button disabled and marked busy. */
   busy?: boolean;
+  /** Fills the width of its container, for a form's submit or a card's call to action. */
+  block?: boolean;
   className?: string;
   children?: ReactNode;
 };
@@ -66,8 +68,8 @@ type AsLink = ButtonOwn & { href: string } & Omit<AnchorHTMLAttributes<HTMLAncho
 type AsButton = ButtonOwn & { href?: undefined } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof ButtonOwn>;
 
 export function Button(props: AsLink | AsButton) {
-  const { variant = "primary", size = 48, icon, iconAt = "start", iconOnly, busy, className, children, ...rest } = props;
-  const cls = ["fl-btn", VARIANT[variant], SIZE[size], iconOnly ? "fl-ctl-btn--icon" : "", className ?? ""].filter(Boolean).join(" ");
+  const { variant = "primary", size = 48, icon, iconAt = "start", iconOnly, busy, block, className, children, ...rest } = props;
+  const cls = ["fl-btn", VARIANT[variant], SIZE[size], iconOnly ? "fl-ctl-btn--icon" : "", block ? "fl-ctl-btn--block" : "", className ?? ""].filter(Boolean).join(" ");
   const name = typeof children === "string" ? children : undefined;
   const glyph = busy ? <span className="fl-ctl-spinner" aria-hidden="true" /> : icon ? <Icon name={icon} /> : null;
   const inner = iconOnly ? glyph : iconAt === "end" ? <>{children}{glyph}</> : <>{glyph}{children}</>;
@@ -236,6 +238,21 @@ export default function ButtonsVariants() {
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Full width</h3>
+        <p className="fl-ctl-btn-what">
+          <code>block</code> stretches a button to its container: a form&apos;s submit, or the call to action at the foot of a card.
+        </p>
+        <div className="fl-actions" style={{ maxWidth: "20rem" }}>
+          <Button block icon="arrow" iconAt="end">
+            Choose this plan
+          </Button>
+          <Button block variant="secondary">
+            Compare plans
+          </Button>
+        </div>
       </div>
 
       <div className="fl-ctl-sizes">

@@ -128,7 +128,7 @@
 .fl-in-qty {
   --fl-in-qty-h: var(--control-md);
   display: inline-flex; align-items: stretch; flex: none; height: var(--fl-in-qty-h);
-  border: 1px solid var(--color-border-strong); border-radius: var(--control-radius, var(--radius-md)); background: var(--color-surface); overflow: hidden;
+  border: var(--control-border, 1px solid var(--color-border-strong)); border-radius: var(--control-radius, var(--radius-md)); background: var(--control-bg, var(--color-surface)); overflow: hidden; box-shadow: var(--well-shadow, none);
 }
 .fl-in-qty--sm { --fl-in-qty-h: var(--control-sm); }
 .fl-in-qty--lg { --fl-in-qty-h: var(--control-lg); }
@@ -156,7 +156,7 @@
 
 /* ── Button groups ── */
 .fl-in-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-.fl-in-bgroup { display: inline-flex; border: 1px solid var(--color-border-strong); border-radius: var(--control-radius, var(--radius-md)); background: var(--color-surface); overflow: hidden; }
+.fl-in-bgroup { display: inline-flex; border: var(--control-border, 1px solid var(--color-border-strong)); border-radius: var(--control-radius, var(--radius-md)); background: var(--control-bg, var(--color-surface)); overflow: hidden; box-shadow: var(--well-shadow, none); }
 .fl-in-bgroup button {
   display: inline-grid; place-items: center; min-width: var(--control-md); height: var(--control-md); padding: 0 var(--space-3);
   border: 0; border-left: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted);
@@ -193,8 +193,8 @@
 .fl-in-menu, .fl-in-listbox {
   position: absolute; z-index: 20; top: calc(100% + var(--space-2)); left: 0; margin: 0; padding: var(--space-1); list-style: none;
   min-width: 14rem; max-width: calc(100vw - 2 * var(--space-5));
-  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md);
-  box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none));
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius-sm, var(--radius-md));
+  box-shadow: var(--surface-shadow-overlay, var(--surface-shadow-hover, var(--surface-shadow, none))); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
 .fl-in-menu button {
   display: block; width: 100%; padding: var(--space-3); border: 0; border-radius: var(--radius-sm); background: transparent; text-align: left;
@@ -242,10 +242,10 @@
 .fl-in-comment__meta { margin: 0 0 var(--space-1); font-size: var(--text-sm); }
 .fl-in-comment__text { margin: 0; line-height: var(--leading-relaxed); white-space: pre-wrap; overflow-wrap: anywhere; }
 .fl-in-cbox {
-  display: grid; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-surface);
-  transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
+  display: grid; border: var(--control-border, 1px solid var(--color-border-strong)); border-radius: var(--control-radius, var(--radius-md)); background: var(--control-bg, var(--color-surface));
+  transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing); box-shadow: var(--well-shadow, none);
 }
-.fl-in-cbox:focus-within { border-color: var(--color-accent); box-shadow: var(--focus-ring); }
+.fl-in-cbox:focus-within { border-color: var(--control-edge, var(--color-accent)); box-shadow: var(--control-shadow-focus, var(--focus-ring)); }
 .fl-in-cbox--invalid { border-color: var(--color-danger); }
 .fl-in-cbox__field {
   width: 100%; min-height: var(--control-lg); padding: var(--space-3) var(--space-4); border: 0; resize: none; overflow: hidden;
@@ -266,13 +266,13 @@
 .fl-in-select, .fl-in-native { position: relative; }
 .fl-in-trigger {
   display: flex; align-items: center; width: 100%; min-height: var(--control-md); padding: var(--space-2) 2.25rem var(--space-2) var(--control-pad-md);
-  border: 1px solid var(--color-border-strong); border-radius: var(--control-radius, var(--radius-sm)); background: var(--color-surface);
+  border: var(--control-border, 1px solid var(--color-border-strong)); border-radius: var(--control-radius, var(--radius-sm)); background: var(--control-bg, var(--color-surface));
   color: var(--color-text); font: inherit; text-align: left; cursor: pointer;
   -webkit-appearance: none; appearance: none;
-  transition: border-color var(--duration-fast) var(--easing);
+  transition: border-color var(--duration-fast) var(--easing); box-shadow: var(--well-shadow, none);
 }
 .fl-in-trigger:hover { border-color: var(--color-text-muted); }
-.fl-in-trigger:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-in-trigger:focus-visible { outline: none; box-shadow: var(--control-shadow-focus, var(--focus-ring)); }
 .fl-in-trigger--empty, select.fl-in-trigger:has(option[value=""]:checked) { color: var(--color-text-muted); }
 select.fl-in-trigger option { color: var(--color-text); }
 .fl-in-trigger__value { display: flex; align-items: center; gap: var(--space-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -323,12 +323,13 @@ select.fl-in-trigger option { color: var(--color-text); }
 
 /* ── Catalog specimens: fields, checkboxes, radios and switches in every state ── */
 .fl-ctl-field { width: 100%; min-width: 0; }
-.fl-ctl-field--outlined { border: 1px solid var(--color-border-strong, var(--color-border)); background: var(--color-surface); }
+.fl-ctl-field--outlined { border: var(--control-border, 1px solid var(--color-border-strong, var(--color-border))); background: var(--control-bg, var(--color-surface)); box-shadow: var(--well-shadow, none); }
 .fl-ctl-field--filled { border: 1px solid transparent; background: var(--color-surface-sunken); }
 .fl-ctl-field--underlined { border: 0; border-bottom: 1px solid var(--color-border-strong, var(--color-border)); border-radius: 0; background: transparent; }
 /* Focus is drawn, not only applied, so the row reads without tabbing to it. */
-.fl-ctl-field.is-focus, .fl-ctl-field:focus-visible { outline: none; box-shadow: var(--focus-ring); border-color: var(--color-accent); }
+.fl-ctl-field.is-focus, .fl-ctl-field:focus-visible { outline: none; box-shadow: var(--control-shadow-focus, var(--focus-ring)); border-color: var(--control-edge, var(--color-accent)); }
 .fl-ctl-field.is-invalid { border-color: var(--color-danger, #b42318); }
+.fl-ctl-field.is-valid { border-color: var(--color-success, #157f3d); }
 .fl-ctl-field.is-invalid.is-focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger, #b42318) 25%, transparent); }
 .fl-ctl-field:disabled { opacity: 0.6; cursor: not-allowed; }
 .fl-ctl-field[readonly] { background: var(--color-surface-sunken); }
@@ -338,7 +339,7 @@ select.fl-in-trigger option { color: var(--color-text); }
 .fl-ctl-check { width: 18px; height: 18px; accent-color: var(--color-accent); cursor: pointer; }
 .fl-ctl-check:disabled { cursor: not-allowed; opacity: 0.6; }
 .fl-ctl-choice-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
-.fl-ctl-choice { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; }
+.fl-ctl-choice { display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start; padding: var(--space-4); border: var(--edge-width, 1px) solid var(--control-edge, var(--color-border)); border-radius: var(--control-radius, var(--radius-md)); cursor: pointer; }
 .fl-ctl-choice:hover { background: var(--color-surface-sunken); }
 .fl-ctl-choice strong { display: block; }
 
@@ -352,14 +353,14 @@ select.fl-in-trigger option { color: var(--color-text); }
 .fl-ctl-switch--32 { --fl-switch-h: 32px; }
 .fl-ctl-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .fl-ctl-switch input:disabled { cursor: not-allowed; }
-.fl-ctl-switch-track { display: inline-flex; align-items: center; width: calc(var(--fl-switch-h) * 1.75); height: var(--fl-switch-h); padding: calc(var(--fl-switch-h) * 0.1); border-radius: 999px; background: var(--color-border-strong, #9aa1ad); transition: background var(--duration-fast) var(--easing); }
+.fl-ctl-switch-track { display: inline-flex; align-items: center; width: calc(var(--fl-switch-h) * 1.75); height: var(--fl-switch-h); padding: calc(var(--fl-switch-h) * 0.1); border-radius: 999px; background: var(--color-border-strong, #9aa1ad); transition: background var(--duration-fast) var(--easing); box-shadow: var(--well-shadow, none); }
 .fl-ctl-switch-thumb { width: calc(var(--fl-switch-h) * 0.8); height: calc(var(--fl-switch-h) * 0.8); border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: transform var(--duration-fast) var(--easing); }
 .fl-ctl-switch input:checked + .fl-ctl-switch-track { background: var(--color-accent); }
 .fl-ctl-switch input:checked + .fl-ctl-switch-track .fl-ctl-switch-thumb { transform: translateX(calc(var(--fl-switch-h) * 0.75)); }
 .fl-ctl-switch input:focus-visible + .fl-ctl-switch-track { box-shadow: var(--focus-ring); }
 .fl-ctl-switch input:disabled + .fl-ctl-switch-track { opacity: 0.5; }
 .fl-ctl-setting-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
-.fl-ctl-setting-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.fl-ctl-setting-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding: var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius-sm, var(--radius-md)); }
 .fl-ctl-setting-list strong { display: block; }
 @media (prefers-reduced-motion: reduce) { .fl-ctl-switch-track, .fl-ctl-switch-thumb { transition: none; } }
 /* The same six heights as the buttons, so a field and a button line up in a row. */
@@ -386,7 +387,7 @@ input.fl-ctl-field--56 { height: 56px; min-height: 56px; padding-inline: var(--s
 .fl-ctl-select select { appearance: none; -webkit-appearance: none; cursor: pointer; }
 
 /* ── The open menu, drawn in place so it can be read ── */
-.fl-ctl-menu { max-width: 22rem; margin: 0; padding: var(--space-2); list-style: none; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-md, 0 8px 24px rgba(0,0,0,.12)); }
+.fl-ctl-menu { max-width: 22rem; margin: 0; padding: var(--space-2); list-style: none; border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius-sm, var(--radius-md)); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow-overlay, var(--shadow-md, 0 8px 24px rgba(0,0,0,.12))); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-ctl-menu li { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); }
 .fl-ctl-menu li.is-hover { background: var(--color-surface-sunken); }
 .fl-ctl-menu li[aria-selected="true"] { font-weight: var(--weight-semibold); }
@@ -403,7 +404,7 @@ input.fl-ctl-field--56 { height: 56px; min-height: 56px; padding-inline: var(--s
 .fl-ctl-slider-ends { display: flex; justify-content: space-between; }
 
 /* ── Chips: a filter is a button, a label is not ── */
-.fl-ctl-chip-item { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-3); border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: 999px; background: var(--color-surface); color: var(--color-text); font-size: var(--text-sm); cursor: pointer; }
+.fl-ctl-chip-item { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-3); border: var(--control-border, 1px solid var(--color-border-strong, var(--color-border))); border-radius: var(--pill-radius, 999px); background: var(--control-bg, var(--color-surface)); color: var(--color-text); font-size: var(--text-sm); cursor: pointer; box-shadow: var(--control-shadow, none); }
 .fl-ctl-chip-item.is-hover, .fl-ctl-chip-item:hover:not(:disabled) { background: var(--color-surface-sunken); }
 .fl-ctl-chip-item.is-on { background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface)); border-color: var(--color-accent); color: var(--color-accent); font-weight: var(--weight-semibold); }
 .fl-ctl-chip-item:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -416,16 +417,16 @@ input.fl-ctl-field--56 { height: 56px; min-height: 56px; padding-inline: var(--s
 /* ── Dropzone and the files under it ── */
 .fl-ctl-zone-grid { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
 .fl-ctl-zone-grid > li { display: grid; gap: var(--space-1, 0.25rem); }
-.fl-ctl-zone { display: grid; justify-items: center; gap: var(--space-2); margin-top: var(--space-2); padding: var(--space-6) var(--space-4); border: 2px dashed var(--color-border-strong, var(--color-border)); border-radius: var(--radius-lg); background: var(--color-surface); text-align: center; }
+.fl-ctl-zone { display: grid; justify-items: center; gap: var(--space-2); margin-top: var(--space-2); padding: var(--space-6) var(--space-4); border: 2px dashed var(--color-border-strong, var(--color-border)); border-radius: var(--surface-radius, var(--radius-lg)); background: var(--surface-bg, var(--color-surface)); text-align: center; }
 .fl-ctl-zone svg { width: 1.5rem; height: 1.5rem; color: var(--color-text-muted); }
 .fl-ctl-zone.is-over { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface)); }
 .fl-ctl-zone.is-busy { border-style: solid; }
 .fl-ctl-zone.is-error { border-color: var(--color-danger, #b42318); background: color-mix(in srgb, var(--color-danger, #b42318) 6%, var(--color-surface)); }
 .fl-ctl-zone.is-error svg { color: var(--color-danger, #b42318); }
-.fl-ctl-bar { display: block; width: 100%; max-width: 14rem; height: 6px; border-radius: 999px; background: var(--color-surface-sunken); overflow: hidden; }
+.fl-ctl-bar { display: block; width: 100%; max-width: 14rem; height: 6px; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); overflow: hidden; box-shadow: var(--well-shadow, none); }
 .fl-ctl-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--color-accent); }
 .fl-ctl-file-list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.fl-ctl-file-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.fl-ctl-file-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius-sm, var(--radius-md)); }
 .fl-ctl-file-list li.is-error { border-color: var(--color-danger, #b42318); }
 .fl-ctl-file-main { display: grid; gap: var(--space-1, 0.25rem); min-width: 0; }
 /* Three menus side by side, each one drawn open so it can be read here. */
@@ -453,7 +454,7 @@ input.fl-ctl-field--56 { height: 56px; min-height: 56px; padding-inline: var(--s
   .fl-ctl-file-list li { flex-wrap: wrap; }
   .fl-ctl-setting-list li { flex-wrap: wrap; gap: var(--space-3); }
   .fl-ctl-slider--range { max-width: none; }
-  .fl-ctl-menu { max-width: none; }
+  .fl-ctl-menu { max-width: none; backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 }
 
 /* A live filter chip: the label toggles, the x removes, and they are separate buttons. */
@@ -487,3 +488,4 @@ textarea.fl-ctl-field { min-height: 5rem; padding: var(--space-3); line-height: 
 .fl-ctl-menu li[role="option"], .fl-ctl-menu li[role="menuitem"] { cursor: pointer; }
 .fl-ctl-menu li.is-disabled, .fl-ctl-menu li[aria-disabled="true"] { cursor: not-allowed; }
 .fl-in-option[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+.fl-ctl-field-msg.is-good { color: var(--color-success, #157f3d); }

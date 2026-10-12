@@ -23,7 +23,7 @@
 .fl-ctl-chip {
   --fl-ctl-tone: var(--color-text-muted);
   display: inline-flex; align-items: center; gap: var(--space-2); min-height: 1.5rem; padding: 0 var(--space-3);
-  border-radius: var(--radius-sm); border: 1px solid color-mix(in srgb, var(--fl-ctl-tone) 45%, transparent);
+  border-radius: var(--control-radius-sm, var(--radius-sm)); border: 1px solid color-mix(in srgb, var(--fl-ctl-tone) 45%, transparent);
   background: color-mix(in srgb, var(--fl-ctl-tone) 8%, transparent); color: var(--fl-ctl-tone);
   font: var(--weight-semibold) var(--text-xs) / 1 var(--font-mono); letter-spacing: var(--tracking-wide);
   text-transform: uppercase; white-space: nowrap;
@@ -35,8 +35,8 @@
 
 .fl-ctl-list {
   display: grid; margin: 0; padding: 0; list-style: none; border-radius: var(--surface-radius, var(--radius-lg));
-  background: var(--surface-bg, var(--color-surface)); border: 1px solid var(--surface-border, var(--color-border));
-  box-shadow: var(--surface-shadow, none); overflow: hidden;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  box-shadow: var(--surface-shadow, none); overflow: hidden; backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
 .fl-ctl-row {
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: var(--space-4); align-items: center;
@@ -49,9 +49,9 @@
 
 .fl-ctl-small-btn {
   min-height: var(--control-sm); padding-inline: var(--control-pad-sm); border-radius: var(--control-radius, var(--radius-sm));
-  border: 1px solid var(--color-border-strong); background: var(--color-surface); color: var(--color-text);
+  border: var(--control-border, 1px solid var(--color-border-strong)); background: var(--control-bg, var(--color-surface)); color: var(--color-text);
   font: var(--weight-medium) var(--text-sm) / 1 var(--font-sans); cursor: pointer; white-space: nowrap;
-  transition: background var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
+  transition: background var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing); box-shadow: var(--control-shadow, none);
 }
 .fl-ctl-small-btn:hover { background: var(--color-surface-sunken); }
 .fl-ctl-small-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
@@ -80,8 +80,8 @@
 .fl-ctl-card {
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-4); align-items: center;
   padding: var(--space-4) var(--space-5); border-radius: var(--surface-radius, var(--radius-lg));
-  background: var(--surface-bg, var(--color-surface)); border: 1px solid var(--surface-border, var(--color-border));
-  box-shadow: var(--surface-shadow, none);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
 .fl-ctl-card__lines { display: grid; gap: var(--space-2); min-width: 0; }
 .fl-ctl-card__avatar {
@@ -132,15 +132,17 @@
 .fl-ctl-seg-field legend { padding: 0; margin-bottom: var(--space-3); font-weight: var(--weight-semibold); font-size: var(--text-md); color: var(--color-text); }
 .fl-ctl-seg {
   display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--space-1); padding: var(--space-1);
-  border-radius: var(--radius-md); background: var(--color-surface-sunken); border: 1px solid var(--color-border);
+  border-radius: var(--control-radius, var(--radius-md)); background: var(--color-surface-sunken); border: var(--edge-width, 1px) solid var(--control-edge, var(--color-border)); box-shadow: var(--well-shadow, none);
 }
 .fl-ctl-seg__opt {
   position: relative; display: flex; align-items: center; justify-content: center; gap: var(--space-2);
-  min-height: var(--control-md); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
+  min-height: var(--control-md); padding: var(--space-2) var(--space-3); border-radius: var(--control-radius-sm, var(--radius-sm));
   color: var(--color-text-muted); font: var(--weight-medium) var(--text-sm) / var(--leading-tight) var(--font-sans);
   text-align: center; cursor: pointer;
   transition: background var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
 }
+.fl-ctl-seg--sm .fl-ctl-seg__opt { min-height: var(--control-sm); }
+.fl-ctl-seg--lg .fl-ctl-seg__opt { min-height: var(--control-lg); }
 .fl-ctl-seg__opt:hover { color: var(--color-text); }
 .fl-ctl-seg__opt input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .fl-ctl-seg__opt svg { width: 1rem; height: 1rem; flex: none; }
@@ -162,9 +164,9 @@
   .fl-ctl-row { grid-template-columns: auto minmax(0, 1fr); }
   .fl-ctl-row .fl-ctl-chip { grid-column: 2; justify-self: start; }
   .fl-ctl-row .fl-ctl-small-btn { grid-column: 2; justify-self: start; }
-  .fl-ctl-card { grid-template-columns: auto minmax(0, 1fr); }
+  .fl-ctl-card { grid-template-columns: auto minmax(0, 1fr); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
   .fl-ctl-card > :last-child { grid-column: 2; justify-self: start; }
-  .fl-ctl-seg { grid-auto-flow: row; grid-auto-columns: auto; }
+  .fl-ctl-seg { grid-auto-flow: row; grid-auto-columns: auto; box-shadow: var(--well-shadow, none); }
   .fl-ctl-seg__opt { justify-content: flex-start; }
 }
 
@@ -183,12 +185,12 @@
 .fl-btn.fl-ctl-btn--tertiary { background: transparent; color: var(--color-text); border-color: transparent; box-shadow: none; }
 .fl-btn.fl-ctl-btn--tertiary:hover, .fl-btn.fl-ctl-btn--tertiary.is-hover { background: var(--color-surface-sunken); }
 /* Destructive: the one button that should never be mistaken for the primary action. */
-.fl-btn.fl-ctl-btn--destructive { background: var(--color-danger, #b42318); color: var(--color-on-accent, #fff); border-color: transparent; }
+.fl-btn.fl-ctl-btn--destructive { background: var(--color-danger, #b42318); color: var(--color-on-accent, #fff); border-color: var(--control-edge, transparent); }
 .fl-btn.fl-ctl-btn--destructive:hover, .fl-btn.fl-ctl-btn--destructive.is-hover { filter: brightness(0.92); }
 /* Drawn states, so the set reads without a pointer. */
-.fl-btn.is-hover { transform: translateY(var(--hover-lift, -1px)); box-shadow: var(--control-shadow-hover, none); }
-.fl-btn.is-active { transform: scale(var(--press-scale, 0.98)); }
-.fl-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.fl-btn.is-hover { transform: translateY(var(--hover-lift, -1px)); box-shadow: var(--control-shadow-hover, none); translate: var(--hover-shift, none); }
+.fl-btn.is-active { transform: scale(var(--press-scale, 0.98)); translate: var(--press-shift, none); box-shadow: var(--control-shadow-active, var(--control-shadow-hover, none)); }
+.fl-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; translate: none; }
 .fl-ctl-btn--24 { min-height: 24px; padding-inline: var(--space-2); font-size: var(--text-xs, 0.78rem); gap: var(--space-1, 0.25rem); }
 .fl-ctl-btn--32 { min-height: 32px; padding-inline: var(--space-3); font-size: var(--text-sm); gap: var(--space-2); }
 .fl-ctl-btn--40 { min-height: 40px; padding-inline: var(--space-4); font-size: var(--text-sm); }
@@ -233,7 +235,7 @@
 .fl-ctl-accent-band { padding: var(--space-5); border-radius: var(--surface-radius, var(--radius-lg)); }
 
 /* ── Cards: a surface, and whether it does anything ── */
-.fl-ctl-card { position: relative; display: grid; gap: var(--space-1, 0.25rem); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.fl-ctl-card { position: relative; display: grid; gap: var(--space-1, 0.25rem); padding: var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius-sm, var(--radius-md)); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-ctl-card--clickable { cursor: pointer; }
 .fl-ctl-card--clickable svg { position: absolute; right: var(--space-3); top: var(--space-4); width: 1rem; height: 1rem; color: var(--color-text-muted); }
 .fl-ctl-card.is-hover { border-color: var(--color-border-strong); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
@@ -252,9 +254,9 @@
 .fl-ctl-stage-page span { display: block; height: 0.6rem; border-radius: 999px; background: var(--color-border); }
 .fl-ctl-stage-page span:nth-child(2) { width: 70%; }
 .fl-ctl-stage-page span:nth-child(3) { width: 45%; }
-.fl-spec-panel { position: absolute; display: flex; flex-direction: column; background: var(--color-surface); box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18); }
+.fl-spec-panel { position: absolute; display: flex; flex-direction: column; background: var(--color-surface); box-shadow: var(--surface-shadow-overlay, -8px 0 24px rgba(0, 0, 0, 0.18)); }
 .fl-ctl-stage--side .fl-spec-panel { inset: 0 0 0 62%; }
-.fl-ctl-stage--bottom .fl-spec-panel { inset: auto 0 0 0; max-height: 80%; border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.18); }
+.fl-ctl-stage--bottom .fl-spec-panel { inset: auto 0 0 0; max-height: 80%; border-radius: var(--surface-radius, var(--radius-lg)) var(--surface-radius, var(--radius-lg)) 0 0; box-shadow: var(--surface-shadow-overlay, 0 -8px 24px rgba(0, 0, 0, 0.18)); }
 .fl-ctl-stage--inline .fl-spec-panel { inset: 0 0 0 58%; border-left: 1px solid var(--color-border); box-shadow: none; }
 .fl-spec-panel header { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); }
 .fl-ctl-panel-body { flex: 1 1 auto; min-height: 0; display: grid; gap: var(--space-2); align-content: start; padding: var(--space-4); overflow: auto; }
@@ -267,22 +269,22 @@
 .fl-ctl-tabset { display: flex; flex-wrap: wrap; gap: var(--space-1, 0.25rem); margin-top: var(--space-2); }
 .fl-spec-tab { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-4); border: 1px solid transparent; background: none; color: var(--color-text-muted); font: inherit; font-weight: var(--weight-medium); cursor: pointer; }
 .fl-spec-tab:disabled { opacity: 0.5; cursor: not-allowed; }
-.fl-ctl-tab-count { padding: 0 var(--space-2); border-radius: 999px; background: var(--color-surface-sunken); font-size: var(--text-xs, 0.78rem); }
+.fl-ctl-tab-count { padding: 0 var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); font-size: var(--text-xs, 0.78rem); }
 .fl-ctl-tabset--underline { border-bottom: 1px solid var(--color-border); gap: var(--space-2); }
 .fl-ctl-tabset--underline .fl-spec-tab { border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .fl-ctl-tabset--underline .fl-spec-tab.is-on { color: var(--color-accent); border-bottom-color: var(--color-accent); }
 .fl-ctl-tabset--underline .fl-spec-tab.is-hover { color: var(--color-text); }
 .fl-ctl-tabset--pills { gap: var(--space-2); }
-.fl-ctl-tabset--pills .fl-spec-tab { border-radius: 999px; }
+.fl-ctl-tabset--pills .fl-spec-tab { border-radius: var(--pill-radius, 999px); }
 .fl-ctl-tabset--pills .fl-spec-tab.is-on { background: var(--color-accent); color: var(--color-on-accent); }
 .fl-ctl-tabset--pills .fl-spec-tab.is-hover { background: var(--color-surface-sunken); }
-.fl-ctl-tabset--enclosed { gap: 0; border-bottom: 1px solid var(--color-border); }
-.fl-ctl-tabset--enclosed .fl-spec-tab { border: 1px solid transparent; border-radius: var(--radius-md) var(--radius-md) 0 0; margin-bottom: -1px; }
-.fl-ctl-tabset--enclosed .fl-spec-tab.is-on { border-color: var(--color-border); border-bottom-color: var(--color-surface); background: var(--color-surface); color: var(--color-text); }
+.fl-ctl-tabset--enclosed { gap: 0; border-bottom: var(--edge-width, 1px) solid var(--surface-edge, var(--color-border)); }
+.fl-ctl-tabset--enclosed .fl-spec-tab { border: var(--edge-width, 1px) solid transparent; border-radius: var(--control-radius, var(--radius-md)) var(--control-radius, var(--radius-md)) 0 0; margin-bottom: calc(var(--edge-width, 1px) * -1); }
+.fl-ctl-tabset--enclosed .fl-spec-tab.is-on { border-color: var(--surface-edge, var(--color-border)); border-bottom-color: var(--color-surface); background: var(--color-surface); color: var(--color-text); }
 .fl-ctl-tabset--32 .fl-spec-tab { min-height: 32px; font-size: var(--text-sm); }
 .fl-ctl-tabset--40 .fl-spec-tab { min-height: 40px; }
 .fl-ctl-tabset--44 .fl-spec-tab { min-height: 44px; }
-.fl-ctl-tabpanel { padding: var(--space-4); border: 1px solid var(--color-border); border-top: 0; border-radius: 0 0 var(--radius-md) var(--radius-md); }
+.fl-ctl-tabpanel { padding: var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-top: 0; border-radius: 0 0 var(--surface-radius-sm, var(--radius-md)) var(--surface-radius-sm, var(--radius-md)); box-shadow: var(--surface-shadow, none); }
 
 /* ── Breadcrumbs ── */
 .fl-ctl-crumb-list { display: grid; gap: var(--space-5); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
@@ -300,7 +302,7 @@
 .fl-ctl-paging-list { display: grid; gap: var(--space-6); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
 .fl-ctl-paging { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin: var(--space-2) 0; }
 .fl-ctl-paging ol { display: flex; align-items: center; gap: var(--space-1, 0.25rem); margin: 0; padding: 0; list-style: none; }
-.fl-ctl-paging-num { min-width: 32px; min-height: 32px; padding: 0 var(--space-2); border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--color-text); font: inherit; cursor: pointer; }
+.fl-ctl-paging-num { min-width: 32px; min-height: 32px; padding: 0 var(--space-2); border: 1px solid transparent; border-radius: var(--control-radius-sm, var(--radius-sm)); background: none; color: var(--color-text); font: inherit; cursor: pointer; }
 .fl-ctl-paging-num:hover { background: var(--color-surface-sunken); }
 .fl-ctl-paging-num.is-on { background: var(--color-accent); color: var(--color-on-accent); font-weight: var(--weight-semibold); }
 .fl-ctl-paging-gap { padding: 0 var(--space-2); color: var(--color-text-muted); }
@@ -366,3 +368,19 @@
 
 /* Folding the trail back up is a text button, set apart from the trail itself. */
 .fl-ctl-crumb-fold { margin-top: var(--space-2); text-decoration: underline; }
+
+/* ── Added when the neobrutal kit folded into the catalog: full-width button, card icon tile and corner tag ── */
+.fl-ctl-btn--block { width: 100%; }
+.fl-ctl-card-tile {
+  display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem; margin-bottom: var(--space-2);
+  border: var(--edge-width, 1px) solid var(--control-edge, transparent); border-radius: var(--control-radius, var(--radius-md));
+  background: var(--accent-bg, var(--color-accent)); color: var(--color-on-accent); box-shadow: var(--control-shadow, none);
+}
+.fl-ctl-card-tile svg { width: 1.25rem; height: 1.25rem; }
+.fl-ctl-card-tag {
+  position: absolute; top: calc(var(--space-3) * -1); right: var(--space-4); transform: rotate(var(--tag-tilt, 0deg));
+  padding: var(--space-1) var(--space-3); border: var(--edge-width, 1px) solid var(--control-edge, transparent); border-radius: var(--control-radius-sm, var(--radius-sm));
+  background: var(--color-accent); color: var(--color-on-accent); box-shadow: var(--control-shadow, none);
+  font: var(--weight-semibold) var(--text-xs) / 1.2 var(--font-sans); letter-spacing: var(--tracking-wide); text-transform: uppercase;
+}
+.fl-card:has(> .fl-ctl-card-tag) { position: relative; }

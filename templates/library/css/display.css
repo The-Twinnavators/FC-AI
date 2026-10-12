@@ -4,7 +4,7 @@
 .fl-dsp-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
   min-height: var(--control-sm); padding-inline: var(--control-pad-sm); border-radius: var(--control-radius, var(--radius-sm));
-  border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text);
+  border: var(--edge-width, 1px) solid var(--control-edge, var(--color-border)); background: var(--control-bg, var(--color-surface)); color: var(--color-text);
   font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); text-decoration: none; cursor: pointer; white-space: nowrap;
   transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
 }
@@ -106,7 +106,7 @@
 .fl-dsp-bar-row { display: grid; gap: var(--space-2); }
 .fl-dsp-bar-row__top { display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--text-sm); }
 .fl-dsp-bar-row__top span:last-child { color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
-.fl-dsp-track { position: relative; display: flex; height: 0.625rem; border-radius: 999px; background: var(--color-surface-sunken); border: 1px solid var(--color-border); overflow: hidden; }
+.fl-dsp-track { position: relative; display: flex; height: 0.625rem; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); border: 1px solid var(--color-border); overflow: hidden; box-shadow: var(--well-shadow, none); }
 .fl-dsp-fill { height: 100%; border-radius: 999px; background: var(--color-accent); transition: width var(--duration-base) var(--easing); }
 .fl-dsp-fill--success { background: var(--color-success); }
 .fl-dsp-fill--danger { background: var(--color-danger); }
@@ -228,15 +228,15 @@
 .fl-dsp-acc__lead svg { width: 1.05rem; height: 1.05rem; }
 .fl-dsp-acc--icons .fl-dsp-acc__panel { padding-left: calc(var(--space-4) + 2rem + var(--space-3)); }
 .fl-dsp-acc--icons .fl-dsp-acc__item { border-bottom: 1px solid var(--color-border); }
-.fl-dsp-acc--bordered { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); overflow: hidden; }
+.fl-dsp-acc--bordered { border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius, var(--radius-lg)); background: var(--surface-bg, var(--color-surface)); overflow: hidden; box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-dsp-acc--bordered .fl-dsp-acc__item + .fl-dsp-acc__item { border-top: 1px solid var(--color-border); }
 .fl-dsp-acc--bordered .fl-dsp-acc__trigger { border-radius: 0; }
 .fl-dsp-acc--bordered .fl-dsp-acc__trigger[aria-expanded="true"] { background: var(--color-surface-sunken); }
 .fl-dsp-acc--bordered .fl-dsp-acc__panel { background: var(--color-surface-sunken); }
 .fl-dsp-acc--cards { gap: var(--space-3); }
-.fl-dsp-acc--cards .fl-dsp-acc__item { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--surface-shadow, none); transition: border-color var(--duration-fast) var(--easing); }
-.fl-dsp-acc--cards .fl-dsp-acc__item[data-open="true"] { border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border)); }
-.fl-dsp-acc--cards .fl-dsp-acc__trigger { border-radius: var(--radius-lg); }
+.fl-dsp-acc--cards .fl-dsp-acc__item { border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius, var(--radius-lg)); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); transition: border-color var(--duration-fast) var(--easing); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
+.fl-dsp-acc--cards .fl-dsp-acc__item[data-open="true"] { border-color: var(--surface-edge, color-mix(in srgb, var(--color-accent) 45%, var(--color-border))); }
+.fl-dsp-acc--cards .fl-dsp-acc__trigger { border-radius: var(--surface-radius, var(--radius-lg)); }
 
 /* ── Phone width ── */
 @media (max-width: 48rem) {

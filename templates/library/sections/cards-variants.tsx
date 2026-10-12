@@ -1,13 +1,13 @@
 /** @flowcode-library cards-variants · Cards: kinds, elevation and states (Cards)
  * Catalog ID: c.card (component)
  * Function: The card (c.card) that holds a tile or list item, and its reference sheet: plain, clickable and selectable kinds across their states, a priced choice group made of selectable cards, and three elevations.
- * Use it as: import { Card } from "./cards-variants"; <Card variant?="plain"|"clickable"|"selectable" elevation?="flat"|"raised"|"floating" selected? disabled? name? onSelect? pickLabel? onClick?>content</Card>
+ * Use it as: import { Card } from "./cards-variants"; <Card variant?="plain"|"clickable"|"selectable" elevation?="flat"|"raised"|"floating" selected? disabled? name? onSelect? pickLabel? icon? tag? onClick?>content</Card>
  * Variants: c.card.plain - content that does nothing: a bordered surface; c.card.clickable - the whole card opens something: a bordered surface with an arrow, hover and focus states; c.card.selectable - one choice of a set: a bordered surface with a radio in the corner and an accent outline when chosen
- * Look: A bordered surface with padded content, optionally lifted by a flat, raised or floating shadow; clickable ones show an arrow, selectable ones a radio.
- * Tokens: --color-surface --color-border --color-border-strong --color-accent --color-text-muted --radius-md --space-1 --space-3 --space-4
- * Use cases: dashboard tiles; project list; article list; settings groups; pickable options; plan selection; delivery options; shipping method; subscription tier; checkout options; membership choice; service package
- * Jobs to be done: scan a list of things; open one of them; choose one of several; pick the plan that suits me; choose how my order is delivered; compare options with prices; confirm my choice
- * Keywords: card, tile, elevation, surface, clickable, selected, radio, radio cards, plan picker, delivery options, fieldset, choice
+ * Look: A bordered surface with padded content, optionally lifted by a flat, raised or floating shadow; clickable ones show an arrow, selectable ones a radio; icon adds a tile at the top and tag pins a short label to the corner.
+ * Tokens: --accent-bg --color-accent --color-border --color-border-strong --color-surface --color-text-muted --control-edge --control-radius --control-radius-sm --control-shadow --edge-width --space-1 --space-3 --space-4 --surface-bg --surface-blur --surface-border --surface-edge --surface-radius --surface-radius-sm --surface-shadow --surface-shadow-selected --tag-tilt --radius-md
+ * Use cases: dashboard tiles; project list; article list; settings groups; pickable options; plan selection; delivery options; shipping method; subscription tier; checkout options; membership choice; service package; pricing card; profile card; feature card; plan picker; team member card; creator profile; bold product page
+ * Jobs to be done: scan a list of things; open one of them; choose one of several; pick the plan that suits me; choose how my order is delivered; compare options with prices; confirm my choice; choose a plan; follow a person i like; learn about a key feature
+ * Keywords: card, tile, elevation, surface, clickable, selected, radio, radio cards, plan picker, delivery options, fieldset, choice, cards, pricing, profile, feature, sticker, neobrutalism
  */
 /**
  * A card is a surface, and what matters is whether it does anything. A plain card holds content; a clickable card is
@@ -55,18 +55,30 @@ type CardOwn = {
   onSelect?: () => void;
   /** Selectable: the radio's accessible name, such as "Choose the Riverside wedding". */
   pickLabel?: string;
+  /** An icon name from ./icons, drawn as a tile at the top of the card (feature and benefit cards). */
+  icon?: string;
+  /** A short label pinned to the card's top corner, like "Most picked" (a style may tilt it like a sticker). */
+  tag?: string;
   className?: string;
   children?: ReactNode;
 };
 
 export function Card(props: CardOwn & Omit<HTMLAttributes<HTMLElement>, keyof CardOwn>) {
-  const { variant = "plain", elevation, selected, disabled, name, onSelect, pickLabel, className, children, onClick, onKeyDown, ...rest } = props;
+  const { variant = "plain", elevation, selected, disabled, name, onSelect, pickLabel, icon, tag, className, children, onClick, onKeyDown, ...rest } = props;
+  const head = icon ? (
+    <span className="fl-ctl-card-tile">
+      <Icon name={icon} />
+    </span>
+  ) : null;
+  const sticker = tag ? <span className="fl-ctl-card-tag">{tag}</span> : null;
   const cls = [variant === "surface" ? "" : "fl-ctl-card", VARIANT[variant], elevation ? ELEVATION[elevation] : "", selected && variant === "selectable" ? "is-on" : "", disabled ? "is-off" : "", className ?? ""].filter(Boolean).join(" ");
   const own = { className: cls, "data-fl": `c.card.${variant}` };
   if (variant === "selectable") {
     return (
       <label {...(rest as HTMLAttributes<HTMLLabelElement>)} {...own} aria-disabled={disabled || undefined}>
+        {head}
         {children}
+        {sticker}
         <span className="fl-ctl-card-pick">
           <input type="radio" name={name} className="fl-ctl-check fl-ctl-check--16" checked={!!selected} disabled={disabled} onChange={() => onSelect?.()} aria-label={pickLabel} />
         </span>
@@ -92,14 +104,18 @@ export function Card(props: CardOwn & Omit<HTMLAttributes<HTMLElement>, keyof Ca
           }
         }}
       >
+        {head}
         {children}
+        {sticker}
         <Icon name="arrow" />
       </div>
     );
   }
   return (
     <div {...rest} {...own}>
+      {head}
       {children}
+      {sticker}
     </div>
   );
 }
@@ -243,6 +259,28 @@ export default function CardsVariants() {
               </Card>
             </li>
           ))}
+        </ul>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Icon tile and corner tag</h3>
+        <p className="fl-ctl-btn-what">
+          <code>icon</code> puts a tile at the top of a feature card; <code>tag</code> pins a short label to the corner, for the plan
+          most people pick.
+        </p>
+        <ul className="fl-ctl-elev-list">
+          <li>
+            <Card icon="bolt">
+              <strong>Book in ten seconds</strong>
+              <span className="fl-ctl-matrix-what">Pick a class, pick a time, done.</span>
+            </Card>
+          </li>
+          <li>
+            <Card tag="Most picked">
+              <strong>Studio pass</strong>
+              <span className="fl-ctl-matrix-what">Four classes a month at either studio.</span>
+            </Card>
+          </li>
         </ul>
       </div>
     </section>

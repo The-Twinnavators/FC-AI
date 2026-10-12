@@ -1,13 +1,13 @@
 /** @flowcode-library text-fields-states · Text fields: every variant and state (Forms)
  * Catalog ID: c.text-field (component)
  * Function: The text field (c.text-field) in three looks and six heights, with an auto-growing multiline option; the reference sheet shows rest, focused, filled, invalid, disabled and read-only states plus a live field with message, counter and a note that grows as you type.
- * Use it as: import { TextField } from "./text-fields-states"; <TextField variant?="outlined"|"filled"|"underlined" size?={24|32|40|44|48|56} multiline? autoGrow? invalid? id name type value placeholder disabled readOnly aria-label? aria-describedby? onChange? />
+ * Use it as: import { TextField } from "./text-fields-states"; <TextField variant?="outlined"|"filled"|"underlined" size?={24|32|40|44|48|56} multiline? autoGrow? invalid? valid? id name type value placeholder disabled readOnly aria-label? aria-describedby? onChange? />
  * Variants: c.text-field.outlined - the default for forms: a visible border on every side; c.text-field.filled - dense or dark screens: a tinted box, no border until focus; c.text-field.underlined - sparse, editorial forms: a single rule under the text
- * Look: A full-width one-line input (or multi-line textarea) with an accent focus ring, a danger border when invalid, dimmed when disabled and a sunken tint when read-only.
- * Tokens: --color-border --color-border-strong --color-surface --color-surface-sunken --color-accent --color-danger --color-text-muted --focus-ring --space-2 --space-3 --space-4 --space-5 --text-sm --text-xs
- * Use cases: sign-up form; settings form; search box; validation messages; read-only record
- * Jobs to be done: fill in a form; understand why an entry was refused; see a field I cannot change
- * Keywords: input, text field, validation, invalid, disabled, focus
+ * Look: A full-width one-line input (or multi-line textarea) with an accent focus ring, a danger border when invalid, a success border when valid, dimmed when disabled and a sunken tint when read-only.
+ * Tokens: --color-accent --color-border --color-border-strong --color-danger --color-success --color-surface --color-surface-sunken --color-text-muted --control-bg --control-border --control-edge --control-radius --control-shadow-focus --focus-ring --space-2 --space-3 --space-4 --space-5 --text-sm --text-xs --well-shadow
+ * Use cases: sign-up form; settings form; search box; validation messages; read-only record; sign up form; club membership; waitlist form; class registration; event registration; application form; contact form
+ * Jobs to be done: fill in a form; understand why an entry was refused; see a field I cannot change; join a club or studio; register for a class; sign up for the waitlist; tell them about myself
+ * Keywords: input, text field, validation, invalid, disabled, focus, form, sign up, radio, checkbox, select, neobrutalism
  */
 /**
  * Text fields in three looks (outlined, filled, underlined) and every state a field reaches: rest, focused, filled,
@@ -56,6 +56,8 @@ type TextFieldOwn = {
   size?: TextFieldSize;
   /** Rejected: danger border and aria-invalid. Point aria-describedby at the message. */
   invalid?: boolean;
+  /** Accepted: success border. Pair it with a "Looks good" message. */
+  valid?: boolean;
   className?: string;
 };
 type AsInput = TextFieldOwn & { multiline?: false; autoGrow?: undefined } & Omit<InputHTMLAttributes<HTMLInputElement>, keyof TextFieldOwn>;
@@ -64,7 +66,7 @@ type AsTextarea = TextFieldOwn & { multiline: true; autoGrow?: boolean } & Omit<
 
 /** Give it a label (a <label htmlFor> or aria-label); the field does not draw one. */
 export function TextField(props: AsInput | AsTextarea) {
-  const { variant = "outlined", size, invalid, className, multiline, autoGrow, ...rest } = props;
+  const { variant = "outlined", size, invalid, valid, className, multiline, autoGrow, ...rest } = props;
   const area = useRef<HTMLTextAreaElement>(null);
   const grow = () => {
     const el = area.current;
@@ -76,7 +78,7 @@ export function TextField(props: AsInput | AsTextarea) {
   useLayoutEffect(() => {
     if (multiline && autoGrow) grow();
   }, [multiline, autoGrow, value]);
-  const cls = ["fl-input", "fl-ctl-field", VARIANT[variant], size && !multiline ? SIZE[size] : "", multiline && autoGrow ? "fl-in-grow" : "", invalid ? "is-invalid" : "", className ?? ""].filter(Boolean).join(" ");
+  const cls = ["fl-input", "fl-ctl-field", VARIANT[variant], size && !multiline ? SIZE[size] : "", multiline && autoGrow ? "fl-in-grow" : "", invalid ? "is-invalid" : valid ? "is-valid" : "", className ?? ""].filter(Boolean).join(" ");
   const own = { className: cls, "data-fl": `c.text-field.${variant}`, "aria-invalid": invalid || undefined };
   if (multiline) {
     const ta = rest as TextareaHTMLAttributes<HTMLTextAreaElement>;
@@ -127,6 +129,7 @@ export default function TextFieldsStates() {
   const [touched, setTouched] = useState(false);
   const [note, setNote] = useState("");
   const emailBad = touched && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
+  const emailGood = touched && !emailBad && email.trim() !== "";
   const left = 140 - note.length;
   return (
     <section className="fl-section fl-section--specimen">
@@ -200,6 +203,7 @@ export default function TextFieldsStates() {
               id="fld-live-email"
               size={40}
               invalid={emailBad}
+              valid={emailGood}
               type="email"
               value={email}
               placeholder="you@example.com"
@@ -207,8 +211,8 @@ export default function TextFieldsStates() {
               onBlur={() => setTouched(true)}
               aria-describedby="fld-live-email-msg"
             />
-            <span className={`fl-ctl-field-msg${emailBad ? "" : " is-quiet"}`} id="fld-live-email-msg">
-              {emailBad ? "Finish the address, like ana@northlight.example" : "We only use this to send booking confirmations."}
+            <span className={`fl-ctl-field-msg${emailBad ? "" : emailGood ? " is-good" : " is-quiet"}`} id="fld-live-email-msg">
+              {emailBad ? "Finish the address, like ana@northlight.example" : emailGood ? "Looks good." : "We only use this to send booking confirmations."}
             </span>
           </p>
           <p>
