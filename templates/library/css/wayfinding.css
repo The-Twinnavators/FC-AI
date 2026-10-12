@@ -25,7 +25,7 @@
 .fl-way-step-panel:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
 .fl-way-list {
-  display: grid; margin: 0; padding: 0; list-style: none; overflow: hidden;
+  display: grid; margin: 0; padding: 0; list-style: none;
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
   border-radius: min(var(--surface-radius, var(--radius-lg)), 24px);
 }
