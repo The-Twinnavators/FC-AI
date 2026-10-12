@@ -16,7 +16,7 @@ import { externalChanges, watchStops } from "../workspace/stamp.js";
 import { briefIdea } from "../orchestrator/ideaScout.js";
 import { BUILTIN_PROMPT_IDS } from "../orchestrator/prompts.js";
 import { isFinishedRun, paletteFromTokens, type PaletteConfig } from "@flowcode/contracts";
-import { designTemplate } from "@flowcode/contracts";
+import { designTemplate, templateTokens } from "@flowcode/contracts";
 import { execFileSync } from "node:child_process";
 import { createMobileApprovals } from "./mobile.js";
 import * as D from "../discovery/discovery.js";
@@ -585,11 +585,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   
     const t = designTemplate(b.id);
     if (!t) throw new HttpError(400, `Unknown design style "${b.id}"`);
-    const c = t.colors;
     const values: Record<string, string> = {
-      "--color-bg": c.bg, "--color-surface": c.surface, "--color-surface-sunken": c.surfaceSunken, "--color-text": c.text, "--color-text-muted": c.textMuted,
-      "--color-border": c.border, "--color-border-strong": c.borderStrong, "--color-accent": c.accent, "--color-accent-hover": c.accentHover, "--color-on-accent": c.onAccent,
-      "--color-focus": c.focus, "--color-success": c.success, "--color-danger": c.danger, "--color-danger-surface": c.dangerSurface,
+      ...templateTokens(t),
       "--font-sans": t.fonts.sans, "--font-display": t.fonts.display,
       "--radius-sm": `${t.radii[0]}px`, "--radius-md": `${t.radii[1]}px`, "--radius-lg": `${t.radii[2]}px`, "--radius-xl": `${t.radii[3]}px`,
     };
@@ -603,7 +600,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     try {
       const out = applyDesign(jail, app.ops, ctx, { theme: "default", values });
       // The Colors card reads the saved ramps, not the theme tokens, so a style that only wrote tokens left them green.
-      const ramps = applyPalette(jail, app.ops, ctx, paletteFromTokens({ "--color-accent": c.accent }));
+      const ramps = applyPalette(jail, app.ops, ctx, paletteFromTokens({ "--color-accent": t.colors.accent, "--color-secondary": t.colors.secondary }));
       app.store.setSetting(`designChoice:${params.id}`, record);
       return { ...record, changed: [...out.changed, ...ramps.changed] };
     } catch (e) {

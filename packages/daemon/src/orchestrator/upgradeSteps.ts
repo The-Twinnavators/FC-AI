@@ -63,6 +63,118 @@ export function staleBlocks(jail: PathJail): string[] {
   return out;
 }
 
+/**
+ * The kit draws the catalog's components, copied into the starter's src/sections/ and styled by src/styles/library.css
+ * (scripts/starter-library.mjs). An app that gets the kit gets those too, or the kit would import files it lacks.
+ */
+const KIT_SECTIONS_DIR = "src/sections";
+const KIT_LIBRARY_CSS = "src/styles/library.css";
+const LIBRARY_IMPORT = 'import "./styles/library.css";';
+
+const kitSectionFiles = (): string[] => {
+  try {
+    return fs.readdirSync(path.join(templatesRoot(), "react-vite-starter", KIT_SECTIONS_DIR)).filter((f) => /\.(tsx|jsx)$/.test(f)).sort().map((f) => `${KIT_SECTIONS_DIR}/${f}`);
+  } catch {
+    return [];
+  }
+};
+
+/** A stylesheet's top-level rules (comments dropped), each as one text; braces inside strings and comments don't count. */
+export function cssBlocks(css: string): string[] {
+  const out: string[] = [];
+  const clean = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, "").trim();
+  let depth = 0;
+  let start = -1;
+  for (let i = 0; i < css.length; i++) {
+    const ch = css[i];
+    if (ch === "/" && css[i + 1] === "*") {
+      const end = css.indexOf("*/", i + 2);
+      i = end < 0 ? css.length : end + 1;
+      continue;
+    }
+    if (start < 0 && !/\s/.test(ch)) start = i;
+    if (ch === '"' || ch === "'") {
+      for (i++; i < css.length && css[i] !== ch; i++) if (css[i] === "\\") i++;
+    } else if (ch === "{") depth++;
+    else if (ch === "}" && --depth <= 0) {
+      depth = 0;
+      out.push(clean(css.slice(start, i + 1)));
+      start = -1;
+    } else if (ch === ";" && depth === 0 && start >= 0) {
+      out.push(clean(css.slice(start, i + 1)));
+      start = -1;
+    }
+  }
+  return out.filter(Boolean);
+}
+const squash = (t: string) => t.replace(/\s+/g, " ");
+
+/** The app's library.css with whatever the kit needs and it lacks added at the end. The app's own rules stay as they are. */
+export function mergeLibraryCss(app: string | undefined, kit: string): string {
+  if (!app?.trim()) return kit;
+  const have = new Set(cssBlocks(app).map(squash));
+  const missing = cssBlocks(kit).filter((b) => !have.has(squash(b)));
+  if (!missing.length) return app;
+  return `${app.replace(/\s+$/, "")}\n\n/* Added with FlowCode's building blocks */\n${missing.join("\n")}\n`;
+}
+
+/** What bringing the kit to an app adds beside the kit's own files: sections it lacks, the merged library.css, the import. */
+export function kitLibraryPlan(jail: PathJail): { sections: string[]; css?: string; main?: string } {
+  const starter = path.join(templatesRoot(), "react-vite-starter");
+  const sections = kitSectionFiles().filter((rel) => !fs.existsSync(path.join(jail.root, rel)));
+  let kitCss: string;
+  try {
+    kitCss = fs.readFileSync(path.join(starter, KIT_LIBRARY_CSS), "utf8");
+  } catch {
+    return { sections };
+  }
+  const now = read(jail, KIT_LIBRARY_CSS);
+  const merged = mergeLibraryCss(now, kitCss);
+  const main = read(jail, "src/main.tsx");
+  let nextMain: string | undefined;
+  if (main !== undefined && !main.includes("./styles/library.css")) {
+    const t = main.replace(/(import "\.\/styles\/tokens\.css";\r?\n)/, `$1${LIBRARY_IMPORT}\n`);
+    // No tokens import to follow: load it first, with the app's other styles.
+    nextMain = t !== main ? t : `${LIBRARY_IMPORT}\n${main}`;
+  }
+  return { sections, css: merged === now ? undefined : merged, main: nextMain };
+}
+
+type KitOps = RuntimeStepArgs["deps"]["ops"];
+
+/** Writes the plan through the governed file operations; returns the paths changed, or the failure. */
+function applyKitLibrary(jail: PathJail, ops: KitOps, ctx: Parameters<KitOps["create_file"]>[0]): { changed: string[] } | { error: string } {
+  const plan = kitLibraryPlan(jail);
+  const starter = path.join(templatesRoot(), "react-vite-starter");
+  const changed: string[] = [];
+  // An existing src/sections/ file is the app's: never overwritten.
+  for (const rel of plan.sections) {
+    const res = ops.create_file(ctx, { path: rel, content: fs.readFileSync(path.join(starter, rel), "utf8") });
+    if (!res.ok) return { error: `Couldn't add ${rel}: ${res.message}` };
+    changed.push(rel);
+  }
+  if (plan.css !== undefined) {
+    const exists = fs.existsSync(path.join(jail.root, KIT_LIBRARY_CSS));
+    const res = exists ? ops.replace_file(ctx, { path: KIT_LIBRARY_CSS, content: plan.css, reason: "Add the styles the building blocks need" }) : ops.create_file(ctx, { path: KIT_LIBRARY_CSS, content: plan.css });
+    if (!res.ok) return { error: `Couldn't update ${KIT_LIBRARY_CSS}: ${res.message}` };
+    changed.push(KIT_LIBRARY_CSS);
+  }
+  if (plan.main !== undefined) {
+    const res = ops.replace_file(ctx, { path: "src/main.tsx", content: plan.main, reason: "Load the library's styles" });
+    if (!res.ok) return { error: `Couldn't load the library's styles: ${res.message}` };
+    changed.push("src/main.tsx");
+  }
+  return { changed };
+}
+
+/** Everything a refresh touches: the kit's stale files, and (when the kit itself is refreshed) the library files it draws. */
+export function refreshPaths(jail: PathJail): string[] {
+  const stale = staleBlocks(jail);
+  if (!stale.some((rel) => /^src\/components\/ui\//.test(rel))) return stale;
+  const plan = kitLibraryPlan(jail);
+  return [...stale, ...plan.sections, ...(plan.css !== undefined ? [KIT_LIBRARY_CSS] : []), ...(plan.main !== undefined ? ["src/main.tsx"] : [])];
+}
+
 const BLOCK_FILES = ["src/components/ui/index.tsx", "src/components/ui/screen-parts.tsx", "src/styles/screen-parts.css", "src/lib/screens.ts", "src/lib/screens.test.ts", "src/styles/components.css", "src/sim/index.ts"];
 /** The React starter's sample accent colour: an app still using it was never themed. */
 const STARTER_ACCENT = "#24423a";
@@ -105,7 +217,7 @@ export function upgradeTasks(jail: PathJail, objective: string): PlanTask[] {
       title: ADD_BLOCKS,
       objective: "Copy FlowCode's ready-made building blocks (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog, useScreen) into the app.",
       dependsOn: [],
-      expectedPaths: BLOCK_FILES,
+      expectedPaths: [...BLOCK_FILES, ...kitSectionFiles(), KIT_LIBRARY_CSS],
       acceptanceCriteria: [
         { id: "b1", description: "Building blocks added", check: { type: "file_exists", path: "src/components/ui/index.tsx" } },
         { id: "b2", description: "Their styles are loaded", check: { type: "file_contains", path: "src/main.tsx", text: "components.css" } },
@@ -114,13 +226,13 @@ export function upgradeTasks(jail: PathJail, objective: string): PlanTask[] {
       role: "coder",
     });
   }
-  else if (staleBlocks(jail).length) {
+  else if (refreshPaths(jail).length) {
     tasks.push({
       key: "fc_blocks_refresh",
       title: REFRESH_BLOCKS,
-      objective: `Bring FlowCode's building blocks up to date (${staleBlocks(jail).join(", ")}), keeping everything the app uses from them.`,
+      objective: `Bring FlowCode's building blocks up to date (${refreshPaths(jail).join(", ")}), keeping everything the app uses from them.`,
       dependsOn: [],
-      expectedPaths: staleBlocks(jail),
+      expectedPaths: refreshPaths(jail),
       acceptanceCriteria: [{ id: "r1", description: "The app still type-checks with the updated building blocks", check: { type: "verification", kind: "typecheck" } }],
       verification: ["typecheck"],
       role: "coder",
@@ -159,12 +271,15 @@ async function addBlocks({ deps, run, task, jail, onChanged }: RuntimeStepArgs):
     if (!res.ok) return { kind: "blocked", reason: `Couldn't add ${rel}: ${res.message}`, nextAction: "Check the workspace, then retry this step" };
     changed.push(rel);
   }
+  const lib = applyKitLibrary(jail, deps.ops, ctx);
+  if ("error" in lib) return { kind: "blocked", reason: lib.error, nextAction: "Check the workspace, then retry this step" };
+  changed.push(...lib.changed);
   const main = read(jail, "src/main.tsx") ?? "";
   if (!main.includes("components.css")) {
     const next = main.includes('import "./styles/app.css";') ? main.replace('import "./styles/app.css";', 'import "./styles/app.css";\nimport "./styles/components.css";') : `import "./styles/components.css";\n${main}`;
     const res = deps.ops.replace_file(ctx, { path: "src/main.tsx", content: next, reason: "Load the building blocks' styles" });
     if (!res.ok) return { kind: "blocked", reason: `Couldn't load the building blocks' styles: ${res.message}`, nextAction: "Add import \"./styles/components.css\" to src/main.tsx" };
-    changed.push("src/main.tsx");
+    if (!changed.includes("src/main.tsx")) changed.push("src/main.tsx");
   }
   onChanged(changed);
   deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Added FlowCode's building blocks (${changed.length} file(s))` });
@@ -180,6 +295,11 @@ async function refreshBlocks({ deps, run, task, jail, onChanged }: RuntimeStepAr
     const res = fs.existsSync(path.join(jail.root, rel)) ? deps.ops.replace_file(ctx, { path: rel, content, reason: "Update FlowCode's building block to the current version" }) : deps.ops.create_file(ctx, { path: rel, content });
     if (!res.ok) return { kind: "blocked", reason: `Couldn't update ${rel}: ${res.message}`, nextAction: "Retry this step" };
     changed.push(rel);
+  }
+  if (changed.some((rel) => /^src\/components\/ui\//.test(rel))) {
+    const lib = applyKitLibrary(jail, deps.ops, ctx);
+    if ("error" in lib) return { kind: "blocked", reason: lib.error, nextAction: "Retry this step" };
+    changed.push(...lib.changed);
   }
   onChanged(changed);
   deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Updated FlowCode's building blocks: ${changed.join(", ") || "already current"}` });

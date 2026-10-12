@@ -4,6 +4,10 @@
  *
  * How to use them (every screen follows these, so the app looks like one product):
  *  - Accent (--color-accent) is for the one main action per screen, links, the current navigation item and focus. Nothing else.
+ *  - Color follows 60/30/10: neutrals (bg, surface) cover about 60%; the secondary covers about 30% (supporting
+ *    areas: tinted panels with --color-secondary-surface and --color-secondary-border, secondary buttons, tags and
+ *    filters with --color-secondary / --color-on-secondary); the accent stays at about 10%. The secondary is traced
+ *    from the accent by a colour harmony, so the two belong together.
  *  - Success and danger colors are for status only (saved, done, error, delete). Never decoration.
  *  - Cards and panels use the surface color on the page background; wells, tracks and hover use surface-sunken.
  *  - Content uses the text color; descriptions, hints and labels use text-muted.
@@ -32,6 +36,12 @@
   --color-danger: #a3321f;
   --color-danger-surface: #f8e5df;
   --color-success: #2f6b4f;
+  /* Secondary (the 30%): analogous (+30°) to the accent, calmer than it */
+  --color-secondary: #3a5c60;
+  --color-secondary-hover: #2a4b4f;
+  --color-on-secondary: #ffffff;
+  --color-secondary-surface: #e7f3f4;
+  --color-secondary-border: #798e90;
 
   /* Type */
   --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
@@ -138,6 +148,7 @@
   --surface-radius-sm: var(--radius-md);
   --control-radius-sm: var(--radius-sm);
   --pill-radius: 999px;
+  --field-radius: min(var(--control-radius), 24px); /* text boxes: never a pill, never over 24px */
   --edge-width: var(--border-width);
   --overlay-border: initial;
   --tag-tilt: 0deg;
@@ -176,5 +187,10 @@
     --color-danger: #f08f7a;
     --color-danger-surface: #3a1f19;
     --color-success: #8fcfae;
+    --color-secondary: #799da1;
+    --color-secondary-hover: #8bb0b4;
+    --color-on-secondary: #111111;
+    --color-secondary-surface: #273031;
+    --color-secondary-border: #687c7e;
   }
 }

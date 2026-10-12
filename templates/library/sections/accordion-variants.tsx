@@ -1,9 +1,9 @@
 /** @flowcode-library accordion-variants · Accordion styles (FAQ)
  * Catalog ID: c.accordion (component)
  * Function: The open-and-close question list (c.accordion) in three looks, one at a time or several open; the reference sheet shows all three side by side.
- * Use it as: import { Accordion } from "./accordion-variants"; <Accordion variant?="bordered"|"cards"|"icons" items={[{q,a,icon?}]} multiple? defaultOpen?={[0]} open?={number[]} onOpenChange? />
+ * Use it as: import { Accordion } from "./accordion-variants"; <Accordion variant?="bordered"|"cards"|"icons" items={[{q,a,icon?,meta?}]} version?="neobrutal" (c.accordion@neobrutal: chunky bordered rows, accent-filled open header, plus turns to a cross) multiple? defaultOpen?={[0]} open?={number[]} onOpenChange? /> (a is text or any content such as a list; meta is shown at the end of the header, e.g. "4 lessons" or a price)
  * Variants: c.accordion.bordered - help and policies: one bordered box with dividers between questions; c.accordion.cards - friendly FAQs: each question is its own card with space between; c.accordion.icons - scannable topics: a round icon before each question, rows divided by rules
- * Look: Question rows with a chevron that turns when open; the answer opens in place below, and arrow keys move between questions.
+ * Look: Question rows with a chevron that turns when open; the answer opens in place below, and arrow keys move between questions. An item can carry a meta label (a count or price) before the chevron, and its answer can be rich content.
  * Tokens: --color-border --color-surface --color-surface-sunken --color-accent --color-text-muted --radius-lg --space-3 --space-4 --duration-fast --focus-ring
  * Use cases: faq; help center; policies; product details; terms summary; knowledge base; support questions
  * Jobs to be done: find answers to my questions; read only the part i need; scan policies quickly
@@ -21,6 +21,8 @@ import { Icon } from "./icons";
 // ── c.accordion: the one open-and-close list. Every FAQ is this component; the sheet below shows each look. ──
 
 export type AccordionVariant = "bordered" | "cards" | "icons";
+/** An alternative design of the whole list (c.accordion@<version>); left out = the variant's look. */
+export type AccordionVersion = "neobrutal";
 export type AccordionItem = {
   q: string;
   /** The answer: text, or any content such as a list of lessons. */
@@ -44,8 +46,16 @@ export type AccordionProps = {
   /** Controlled: the open indexes, with onOpenChange to receive the next ones. */
   open?: number[];
   onOpenChange?: (open: number[]) => void;
+  /** neobrutal: chunky bordered rows, the open header fills with the accent and its plus turns into a cross. variant is ignored. */
+  version?: AccordionVersion;
   className?: string;
 };
+
+const PlusSign = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" aria-hidden="true">
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
 
 const Chevron = () => (
   <svg className="fl-dsp-acc__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -53,7 +63,7 @@ const Chevron = () => (
   </svg>
 );
 
-export function Accordion({ variant = "bordered", items, multiple, defaultOpen = [], open: controlled, onOpenChange, className }: AccordionProps) {
+export function Accordion({ variant = "bordered", items, multiple, defaultOpen = [], open: controlled, onOpenChange, version, className }: AccordionProps) {
   const uid = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const [inner, setInner] = useState<number[]>(defaultOpen);
@@ -69,6 +79,43 @@ export function Accordion({ variant = "bordered", items, multiple, defaultOpen =
     if (to < 0) return;
     e.preventDefault();
     refs.current[to]?.focus();
+  }
+  if (version === "neobrutal") {
+    return (
+      <ul className={["fl-nb fl-nb-acc", className ?? ""].filter(Boolean).join(" ")} data-fl="c.accordion@neobrutal">
+        {items.map((it, i) => {
+          const isOpen = open.includes(i);
+          const key = `${uid}-${i}`;
+          return (
+            <li key={key} className="fl-nb-box fl-nb-acc__item">
+              <h4 style={{ margin: 0 }}>
+                <button
+                  ref={(el) => {
+                    refs.current[i] = el;
+                  }}
+                  type="button"
+                  id={`${key}-btn`}
+                  className="fl-nb-acc__btn"
+                  aria-expanded={isOpen}
+                  aria-controls={`${key}-panel`}
+                  onClick={() => toggle(i)}
+                  onKeyDown={(e) => onKey(e, i)}
+                >
+                  {it.q}
+                  {it.meta != null ? <span>{it.meta}</span> : null}
+                  <span className="fl-nb-acc__sign">
+                    <PlusSign />
+                  </span>
+                </button>
+              </h4>
+              <div id={`${key}-panel`} role="region" aria-labelledby={`${key}-btn`} className="fl-nb-acc__panel" hidden={!isOpen}>
+                {typeof it.a === "string" ? <p>{it.a}</p> : it.a}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    );
   }
   return (
     <div className={["fl-dsp-acc", VARIANT[variant], className ?? ""].filter(Boolean).join(" ")} data-fl={`c.accordion.${variant}`}>
@@ -201,6 +248,11 @@ export default function AccordionVariants() {
               <Accordion variant={g.id} items={g.items} multiple={multi} open={open[g.id]} onOpenChange={(l) => setOpen((cur) => ({ ...cur, [g.id]: l }))} />
             </div>
           ))}
+        </div>
+        <div className="fl-dsp-acc-col" style={{ marginTop: "var(--space-6)" }}>
+          <h3>c.accordion@neobrutal</h3>
+          <p className="fl-ctl-matrix-what">Chunky bordered rows; the open header fills with the accent and its plus turns into a cross. Several can stay open.</p>
+          <Accordion version="neobrutal" multiple defaultOpen={[0]} items={d.groups[1].items} />
         </div>
       </div>
     </section>

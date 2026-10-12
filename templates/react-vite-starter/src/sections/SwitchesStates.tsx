@@ -1,0 +1,140 @@
+/** @flowcode-library switches-states · Switches: every state and size (Forms)
+ * Catalog ID: c.switch (component)
+ * Function: The switch (c.switch) for a setting that takes effect immediately; the reference sheet shows every state at every size and the settings row it usually lives in.
+ * Use it as: import { Switch } from "./SwitchesStates"; <Switch on={bool} label="Setting name" size?={14|16|18|20|24|32} disabled? onToggle?={(next) => ...}/>
+ * Look: A pill-shaped track with a white round thumb that slides right and turns accent-colored when on; six heights from 14 to 32 px, dimmed when disabled, focus ring on keyboard focus.
+ * Tokens: --color-accent --color-border-strong --focus-ring --duration-fast --easing
+ * Use cases: settings screen; feature on or off; notification preferences; privacy choice; row-level toggle
+ * Jobs to be done: turn something on or off; see at a glance what is on; know a setting is locked
+ * Keywords: switch, toggle, on off, setting, disabled
+ */
+/**
+ * A switch changes something straight away, so it has no Save button: that is what separates it from a checkbox.
+ * Here it is in every state, at three heights, and in the settings row it usually lives in.
+ *
+ * The settings rows are live, and each one says it has been saved as it moves, because that is the whole difference
+ * between a switch and a checkbox.
+ *
+ * Make it the app's own: replace the settings and their descriptions. If a change needs saving, use a checkbox.
+ */
+/**
+ * How to try it
+ * - Flick any switch in the matrix, at any size.
+ * - Flick one in the settings list: it says it saved as it moved, which is the whole difference between a switch and a
+ *   checkbox.
+ *
+ * Dependencies: React (useState). Nothing else — no package to install and nothing fetched at run time. The styles are the
+ * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
+ * exactly as it runs here.
+ */
+import { useState } from "react";
+
+// flowcode:sample
+const SAMPLE = {
+  states: [
+    { id: "off", label: "Off", on: false, disabled: false },
+    { id: "on", label: "On", on: true, disabled: false },
+    { id: "off-disabled", label: "Off, disabled", on: false, disabled: true },
+    { id: "on-disabled", label: "On, disabled", on: true, disabled: true },
+  ],
+  sizes: [
+    { id: "s14", label: "14 px", px: 14 as SwitchSize },
+    { id: "s16", label: "16 px", px: 16 as SwitchSize },
+    { id: "s18", label: "18 px", px: 18 as SwitchSize },
+    { id: "s20", label: "20 px", px: 20 as SwitchSize },
+    { id: "s24", label: "24 px", px: 24 as SwitchSize },
+    { id: "s32", label: "32 px", px: 32 as SwitchSize },
+  ],
+  settings: [
+    { id: "s1", name: "Text me when a booking is cancelled", what: "Only cancellations. Everything else is email.", on: true, disabled: false },
+    { id: "s2", name: "Let clients reschedule themselves", what: "Up to 24 hours before the shoot.", on: false, disabled: false },
+    { id: "s3", name: "Two-factor sign-in", what: "Required by your studio's plan, so this cannot be turned off.", on: true, disabled: true },
+  ],
+};
+
+export type SwitchSize = 14 | 16 | 18 | 20 | 24 | 32;
+
+// Written out in full (not built from the size) so a build finds every class the switch needs.
+const SIZE: Record<SwitchSize, string> = { 14: "fl-ctl-switch--14", 16: "fl-ctl-switch--16", 18: "fl-ctl-switch--18", 20: "fl-ctl-switch--20", 24: "fl-ctl-switch--24", 32: "fl-ctl-switch--32" };
+
+/** c.switch: an on/off setting that takes effect as it moves. Pass `on` + `onToggle` to control it, or `on` alone for the starting state. */
+export function Switch({ on, disabled, size = 32, label, onToggle, className }: { on: boolean; disabled?: boolean; size?: SwitchSize; label: string; onToggle?: (next: boolean) => void; className?: string }) {
+  return (
+    <span className={["fl-ctl-switch", SIZE[size], className ?? ""].filter(Boolean).join(" ")} data-fl="c.switch">
+      {onToggle ? (
+        <input type="checkbox" checked={on} disabled={disabled} aria-label={label} onChange={(e) => onToggle(e.target.checked)} />
+      ) : (
+        <input type="checkbox" defaultChecked={on} disabled={disabled} aria-label={label} />
+      )}
+      <span className="fl-ctl-switch-track" aria-hidden="true">
+        <span className="fl-ctl-switch-thumb" />
+      </span>
+    </span>
+  );
+}
+
+export default function SwitchesStates() {
+  const d = SAMPLE;
+  const [on, setOn] = useState<Record<string, boolean>>(() => Object.fromEntries(SAMPLE.settings.map((s) => [s.id, s.on])));
+  const [said, setSaid] = useState("");
+  return (
+    <section className="fl-section fl-section--specimen">
+      <div className="fl-ctl-matrix-wrap">
+        <table className="fl-ctl-matrix">
+          <caption className="fl-sr">A switch in each state, at each size</caption>
+          <thead>
+            <tr>
+              <th scope="col">Size</th>
+              {d.states.map((s) => (
+                <th key={s.id} scope="col">
+                  {s.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {d.sizes.map((z) => (
+              <tr key={z.id}>
+                <th scope="row">
+                  <span className="fl-ctl-matrix-kind">{z.label}</span>
+                </th>
+                {d.states.map((s) => (
+                  <td key={s.id} data-state={s.label}>
+                    <Switch on={s.on} disabled={s.disabled} size={z.px} label={`${z.label}, ${s.label}`} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>In a settings row</h3>
+        <p className="fl-ctl-btn-what">Where a switch usually lives: the setting on the left, the switch on the right.</p>
+        <ul className="fl-ctl-setting-list">
+          {d.settings.map((s) => (
+            <li key={s.id}>
+              <span>
+                <strong>{s.name}</strong>
+                <span className="fl-ctl-matrix-what">{s.what}</span>
+              </span>
+              <Switch
+                on={Boolean(on[s.id])}
+                disabled={s.disabled}
+                label={s.name}
+                onToggle={(next) => {
+                  setOn((v) => ({ ...v, [s.id]: next }));
+                  setSaid(`${next ? "Turned on" : "Turned off"}: ${s.name}. Saved.`);
+                }}
+              />
+            </li>
+          ))}
+        </ul>
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "A switch saves as it moves, so there is no Save button here."}
+        </p>
+      </div>
+    </section>
+  );
+}

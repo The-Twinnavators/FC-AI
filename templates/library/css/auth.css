@@ -4,7 +4,7 @@
 .fl-auth { display: grid; place-items: center; min-height: 100%; }
 .fl-auth-card { width: 100%; max-width: 27rem; margin-inline: auto; gap: var(--space-5); padding: var(--space-7); }
 .fl-auth-brand { display: inline-flex; align-items: center; gap: var(--space-2); font: var(--weight-bold) var(--text-md) / 1 var(--font-display); color: var(--color-text); }
-.fl-auth-brand__mark { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: var(--radius-md); background: var(--color-accent); color: var(--color-on-accent); }
+.fl-auth-brand__mark { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: var(--radius-md); background: var(--color-secondary, var(--color-accent)); color: var(--color-on-secondary, var(--color-on-accent)); }
 .fl-auth-brand__mark svg { width: 1.1rem; height: 1.1rem; }
 .fl-auth-head { display: grid; gap: var(--space-2); }
 .fl-auth-head h1, .fl-auth-head h2 { margin: 0; font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: var(--leading-snug); letter-spacing: var(--tracking-tight); }
@@ -56,7 +56,7 @@
 .fl-auth-done__icon svg { width: 1.6rem; height: 1.6rem; }
 .fl-auth-done h2 { margin: 0; font: var(--weight-bold) var(--text-xl) / var(--leading-snug) var(--font-display); }
 .fl-auth-done p { margin: 0; color: var(--color-text-muted); line-height: var(--leading-normal); }
-.fl-auth-done--mail .fl-auth-done__icon { background: color-mix(in srgb, var(--color-accent) 14%, transparent); color: var(--color-accent); }
+.fl-auth-done--mail .fl-auth-done__icon { background: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 14%, transparent)); color: var(--color-secondary, var(--color-accent)); }
 
 /* ── Sign up: strength and rules ── */
 .fl-auth-meter { display: grid; gap: var(--space-2); }
@@ -76,28 +76,28 @@
 /* ── Split layout ── */
 .fl-auth-split {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); min-height: 36rem; overflow: hidden;
-  border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius, var(--radius-xl));
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-xl)), 24px);
   background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none);
 }
 .fl-auth-split__form { display: grid; align-content: center; gap: var(--space-5); padding: var(--space-8) var(--space-7); }
 .fl-auth-split__form > * { width: 100%; max-width: 24rem; margin-inline: auto; }
 .fl-auth-split__picture {
   position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--space-4);
-  padding: var(--space-8) var(--space-7); color: var(--color-on-accent);
+  padding: var(--space-8) var(--space-7); color: var(--color-on-secondary, var(--color-on-accent));
   background:
-    radial-gradient(80% 60% at 85% 10%, color-mix(in srgb, var(--color-on-accent) 22%, transparent), transparent 70%),
-    radial-gradient(70% 70% at 0% 100%, color-mix(in srgb, var(--color-accent-hover) 90%, transparent), transparent 75%),
-    linear-gradient(150deg, var(--color-accent), var(--color-accent-hover));
+    radial-gradient(80% 60% at 85% 10%, color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 22%, transparent), transparent 70%),
+    radial-gradient(70% 70% at 0% 100%, color-mix(in srgb, var(--color-secondary-hover, var(--color-accent-hover)) 90%, transparent), transparent 75%),
+    linear-gradient(150deg, var(--color-secondary, var(--color-accent)), var(--color-secondary-hover, var(--color-accent-hover)));
 }
 .fl-auth-split__picture::before {
-  content: ""; position: absolute; inset: var(--space-6); border-radius: var(--radius-xl);
-  border: 1px solid color-mix(in srgb, var(--color-on-accent) 22%, transparent); pointer-events: none;
+  content: ""; position: absolute; inset: var(--space-6); border-radius: min(var(--radius-xl), 24px);
+  border: 1px solid color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 22%, transparent); pointer-events: none;
 }
 .fl-auth-split__quote { position: relative; margin: 0; font: var(--weight-semibold) var(--text-xl) / var(--leading-snug) var(--font-display); text-wrap: balance; }
 .fl-auth-split__who { position: relative; display: flex; gap: var(--space-3); align-items: center; font-size: var(--text-sm); }
-.fl-auth-split__who span:first-child { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: color-mix(in srgb, var(--color-on-accent) 20%, transparent); font-weight: var(--weight-bold); }
+.fl-auth-split__who span:first-child { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 20%, transparent); font-weight: var(--weight-bold); }
 .fl-auth-split__who small { display: block; opacity: 0.8; font-size: var(--text-xs); }
-.fl-auth-split__tag { position: relative; align-self: flex-start; margin-bottom: auto; padding: var(--space-1) var(--space-3); border-radius: 999px; background: color-mix(in srgb, var(--color-on-accent) 16%, transparent); font: var(--weight-semibold) var(--text-xs) / 1.4 var(--font-sans); }
+.fl-auth-split__tag { position: relative; align-self: flex-start; margin-bottom: auto; padding: var(--space-1) var(--space-3); border-radius: 999px; background: color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 16%, transparent); font: var(--weight-semibold) var(--text-xs) / 1.4 var(--font-sans); }
 
 /* ── Forgot password: cooldown ── */
 .fl-auth-mailbox { margin: 0; padding: var(--space-2) var(--space-4); border-radius: 999px; background: var(--color-surface-sunken); font-weight: var(--weight-semibold); overflow-wrap: anywhere; }

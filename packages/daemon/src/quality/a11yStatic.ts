@@ -26,6 +26,8 @@ interface JsxEl {
   node: ts.JsxElement | ts.JsxSelfClosingElement;
   hasText: boolean;
   parentTags: string[];
+  /** Enclosing JSX elements, outermost first. */
+  ancestors: Array<{ tag: string; attrs: Map<string, ts.JsxAttributeLike> }>;
 }
 
 function attrName(a: ts.JsxAttributeLike): string | undefined {
@@ -39,9 +41,52 @@ function staticAttrValue(a: ts.JsxAttributeLike | undefined): string | undefined
   return undefined;
 }
 
+/** `aria-hidden`, `aria-hidden="true"` or `aria-hidden={true}`: the element is out of the accessibility tree. */
+function ariaHiddenTrue(a: ts.JsxAttributeLike | undefined): boolean {
+  if (!a || !ts.isJsxAttribute(a)) return false;
+  if (!a.initializer) return true;
+  if (staticAttrValue(a) === "true") return true;
+  return ts.isJsxExpression(a.initializer) && a.initializer.expression?.kind === ts.SyntaxKind.TrueKeyword;
+}
+
+/** `tabIndex={-1}` / `tabIndex="-1"`: reachable only from script, not from the Tab order. */
+function tabIndexMinusOne(a: ts.JsxAttributeLike | undefined): boolean {
+  if (!a || !ts.isJsxAttribute(a) || !a.initializer) return false;
+  if (staticAttrValue(a) === "-1") return true;
+  const x = ts.isJsxExpression(a.initializer) ? a.initializer.expression : undefined;
+  return !!x && ts.isPrefixUnaryExpression(x) && x.operator === ts.SyntaxKind.MinusToken && ts.isNumericLiteral(x.operand) && x.operand.text === "1";
+}
+
+/**
+ * ARIA composite widgets whose keyboard handling lives on the owning container (roving focus or
+ * aria-activedescendant), not on each item: an item role and the container roles that may own it.
+ */
+const COMPOSITE_OWNERS: Record<string, string[]> = {
+  option: ["listbox"],
+  menuitem: ["menu", "menubar"],
+  menuitemcheckbox: ["menu", "menubar"],
+  menuitemradio: ["menu", "menubar"],
+  treeitem: ["tree", "group"],
+  tab: ["tablist"],
+};
+
+/**
+ * A clickable item of a composite widget is keyboard-operable when its nearest ancestor with a role
+ * is an owner of that role (static), is focusable (tabIndex) and handles keys itself.
+ */
+function keyboardViaCompositeOwner(e: JsxEl): boolean {
+  const role = staticAttrValue(e.attrs.get("role"));
+  const owners = role ? COMPOSITE_OWNERS[role] : undefined;
+  if (!owners) return false;
+  const owner = [...e.ancestors].reverse().find((a) => a.attrs.has("role"));
+  if (!owner) return false;
+  const ownerRole = staticAttrValue(owner.attrs.get("role"));
+  return !!ownerRole && owners.includes(ownerRole) && owner.attrs.has("tabIndex") && (owner.attrs.has("onKeyDown") || owner.attrs.has("onKeyUp"));
+}
+
 function collectJsx(sf: ts.SourceFile): JsxEl[] {
   const out: JsxEl[] = [];
-  const visit = (node: ts.Node, parents: string[]) => {
+  const visit = (node: ts.Node, parents: string[], ancestors: JsxEl["ancestors"]) => {
     if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) {
       const opening = ts.isJsxElement(node) ? node.openingElement : node;
       const tag = opening.tagName.getText(sf);
@@ -52,13 +97,13 @@ function collectJsx(sf: ts.SourceFile): JsxEl[] {
         else attrs.set("{...spread}", a);
       }
       const hasText = ts.isJsxElement(node) && node.children.some((c) => (ts.isJsxText(c) && c.text.trim().length > 0) || ts.isJsxExpression(c) || ts.isJsxElement(c));
-      out.push({ tag, attrs, node, hasText, parentTags: parents });
-      ts.forEachChild(node, (c) => visit(c, [...parents, tag]));
+      out.push({ tag, attrs, node, hasText, parentTags: parents, ancestors });
+      ts.forEachChild(node, (c) => visit(c, [...parents, tag], [...ancestors, { tag, attrs }]));
       return;
     }
-    ts.forEachChild(node, (c) => visit(c, parents));
+    ts.forEachChild(node, (c) => visit(c, parents, ancestors));
   };
-  visit(sf, []);
+  visit(sf, [], []);
   return out;
 }
 
@@ -87,14 +132,20 @@ export function staticAccessibility(jail: PathJail): Finding[] {
       const has = (a: string) => e.attrs.has(a) || e.attrs.has("{...spread}");
       const ariaNamed = has("aria-label") || has("aria-labelledby") || has("title");
       if (e.tag === "img" && !has("alt")) findings.push(f({ rule: "img-alt", severity: "serious", confidence: "high", message: "<img> without alt text", path: rel, line: line(e.node), recommendation: 'Add alt="" for decorative images or a description for informative ones.' }));
-      if ((e.tag === "input" || e.tag === "select" || e.tag === "textarea") && staticAttrValue(e.attrs.get("type")) !== "hidden") {
+      // A control that is aria-hidden, out of the Tab order and read-only/disabled is decoration (e.g. a
+      // check mark drawn as a checkbox inside an option that carries the name): nobody operates it, so it needs no name.
+      const decorative = ariaHiddenTrue(e.attrs.get("aria-hidden")) && tabIndexMinusOne(e.attrs.get("tabIndex")) && (e.attrs.has("readOnly") || e.attrs.has("disabled"));
+      if ((e.tag === "input" || e.tag === "select" || e.tag === "textarea") && staticAttrValue(e.attrs.get("type")) !== "hidden" && !decorative) {
         const id = staticAttrValue(e.attrs.get("id"));
         const wrapped = e.parentTags.includes("label");
         const labelled = ariaNamed || wrapped || (id !== undefined && labelFor.has(id)) || (e.attrs.get("id") && labelFor.has("{dynamic}"));
         if (!labelled) findings.push(f({ rule: "form-label", severity: "serious", confidence: id ? "high" : "medium", message: `<${e.tag}> has no associated label`, path: rel, line: line(e.node), recommendation: "Associate a <label htmlFor> with the control id, wrap it in <label>, or add aria-label." }));
       }
       if (e.tag === "button" && !e.hasText && !ariaNamed) findings.push(f({ rule: "button-name", severity: "serious", confidence: "high", message: "<button> has no accessible name", path: rel, line: line(e.node), recommendation: "Add visible text or aria-label." }));
-      if ((e.tag === "div" || e.tag === "span" || e.tag === "li") && e.attrs.has("onClick") && !(e.attrs.has("role") && e.attrs.has("tabIndex") && (e.attrs.has("onKeyDown") || e.attrs.has("onKeyUp"))))
+      // Exempt: an empty aria-hidden element (a backdrop whose click only duplicates Escape/Close), and
+      // an item of a listbox/menu/tablist/tree whose owning container takes focus and handles the keys.
+      const emptyHiddenBackdrop = ariaHiddenTrue(e.attrs.get("aria-hidden")) && !e.attrs.has("{...spread}") && (ts.isJsxSelfClosingElement(e.node) || e.node.children.every((c) => ts.isJsxText(c) && !c.text.trim()));
+      if ((e.tag === "div" || e.tag === "span" || e.tag === "li") && e.attrs.has("onClick") && !(e.attrs.has("role") && e.attrs.has("tabIndex") && (e.attrs.has("onKeyDown") || e.attrs.has("onKeyUp"))) && !emptyHiddenBackdrop && !keyboardViaCompositeOwner(e))
         findings.push(f({ rule: "click-events-have-key-events", severity: "serious", confidence: "high", message: `Clickable <${e.tag}> is not keyboard accessible`, path: rel, line: line(e.node), recommendation: "Use a <button>, or add role, tabIndex=0 and key handlers." }));
       if (e.tag === "a" && !e.attrs.has("href") && !e.attrs.has("{...spread}")) findings.push(f({ rule: "anchor-is-valid", severity: "moderate", confidence: "high", message: "<a> without href", path: rel, line: line(e.node), recommendation: "Use a <button> for actions; links need href." }));
       if (e.tag === "a" && !e.hasText && !ariaNamed) findings.push(f({ rule: "link-name", severity: "serious", confidence: "high", message: "Link has no accessible name", path: rel, line: line(e.node) }));

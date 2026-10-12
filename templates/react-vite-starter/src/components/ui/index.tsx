@@ -1,25 +1,43 @@
 /**
  * Ready-made building blocks. Every app screen is composed from these, styled only with the design tokens
- * (src/styles/tokens.css) via src/styles/components.css. Prefer them over new one-off markup:
+ * (src/styles/tokens.css). Prefer them over new one-off markup.
+ *
+ * One component kit: where the FlowCode catalog has the part, the kit draws the catalog's component (copied into
+ * src/sections/ and styled by src/styles/library.css) under the kit's own name and props. Use either name; it is the
+ * same implementation:
+ *
+ *   <Card>          c.card (surface)         a surface for one item or one group of related things
+ *   <Button>        c.button                 primary (one per screen), secondary, ghost, danger
+ *   <EmptyState>    c.empty-state            what to do when there's nothing yet, with the next action
+ *   <Skeleton>      c.skeleton               loading placeholder shaped like the content
+ *   <Stat>          c.kpi                    a key number with its label
+ *   <Badge>         c.badge (status)         a short status label (never color alone)
+ *   <Notice>        c.alert (inline)         an inline message: info, success, warning, error
+ *   <Dialog>        c.modal                  a modal dialog with a title and actions
+ *   Progress (c.progress bar), DataTable (p.data-table), Avatar (c.avatar), Tabs (c.tabs) and Switch (c.switch) in
+ *   ./screen-parts.tsx are the catalog's too.
+ *
+ * The frame pieces are the kit's own (styled by src/styles/components.css and screen-parts.css); catalog parts go
+ * inside them:
  *
  *   <AppShell>      header with the product name, navigation, one screen at a time
  *   <PageHeader>    the screen's h1, a short description and its main action
  *   <Section>       a titled group on a screen (h2)
- *   <Card>          a surface for one item or one group of related things
- *   <Button>        primary (one per screen), secondary, ghost, danger
  *   <Field>         label + control + hint + error, wired for screen readers
- *   <EmptyState>    what to do when there's nothing yet, with the next action
- *   <Skeleton>      loading placeholder shaped like the content
  *   <DataState>     loading, error (with Try again), empty and ready for any data area, in one wrapper
- *   <Stat>          a key number with its label
- *   <Badge>         a short status label (never color alone)
- *   <Notice>        an inline message: info, success, warning, error
- *   <Dialog>        a modal dialog with a title and actions (native <dialog>)
  *
  * Screen parts for dashboards, home and settings screens (Grid, Trend, Progress, BarChart, DataTable, ActivityList, Checklist,
  * Avatar, Hero, ActionTile, Tabs, SettingsList, SettingRow, Switch) are in ./screen-parts.tsx and exported here too.
  */
 import { useEffect, useId, useRef, type ButtonHTMLAttributes, type ReactElement, type ReactNode } from "react";
+import { Alert } from "../../sections/AlertsStates";
+import { Badge as CatalogBadge } from "../../sections/BadgesStatus";
+import { Button as CatalogButton, type ButtonSize, type ButtonVariant as CatalogButtonVariant } from "../../sections/ButtonsVariants";
+import { Kpi } from "../../sections/CardKpi";
+import { Card as CatalogCard } from "../../sections/CardsVariants";
+import { EmptyState as CatalogEmptyState } from "../../sections/EmptyStates";
+import { Modal } from "../../sections/ModalsDialogs";
+import { Skeleton as CatalogSkeleton } from "../../sections/SkeletonLoading";
 
 export * from "./screen-parts";
 
@@ -101,24 +119,32 @@ export function Section({ title, description, action, children }: { title: strin
   );
 }
 
+/** c.card (surface). `as="li"` or `"article"` puts the card inside that element, so lists and feeds keep their semantics. */
 export function Card({ title, children, footer, as = "div", interactive = false }: { title?: ReactNode; children: ReactNode; footer?: ReactNode; as?: "div" | "article" | "li"; interactive?: boolean }) {
-  const Tag = as;
-  return (
-    <Tag className={`ui-card${interactive ? " ui-card--interactive" : ""}`}>
-      {title ? <h3 className="ui-card__title">{title}</h3> : null}
+  const card = (
+    <CatalogCard variant="surface" className={interactive ? "ui-card--interactive" : undefined}>
+      {title ? <h3>{title}</h3> : null}
       <div className="ui-card__body">{children}</div>
       {footer ? <div className="ui-card__footer">{footer}</div> : null}
-    </Tag>
+    </CatalogCard>
   );
+  if (as === "div") return card;
+  const Tag = as;
+  return <Tag className="ui-card-host">{card}</Tag>;
 }
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+// The kit's names for the catalog button's variants and heights.
+const BUTTON_VARIANT: Record<ButtonVariant, CatalogButtonVariant> = { primary: "primary", secondary: "secondary", ghost: "tertiary", danger: "destructive" };
+const BUTTON_SIZE: Record<"sm" | "md" | "lg" | "xl", ButtonSize> = { sm: 32, md: 40, lg: 48, xl: 56 };
+
+/** c.button. `icon` is any element (an svg or a lucide icon), drawn before the label. */
 export function Button({ variant = "secondary", size = "md", icon, children, type = "button", ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: "sm" | "md" | "lg" | "xl"; icon?: ReactNode }) {
   return (
-    <button type={type} className={`ui-btn ui-btn--${variant} ui-btn--${size}`} {...rest}>
+    <CatalogButton {...rest} type={type} variant={BUTTON_VARIANT[variant]} size={BUTTON_SIZE[size]}>
       {icon}
       {children}
-    </button>
+    </CatalogButton>
   );
 }
 
@@ -149,24 +175,20 @@ export function Field({ label, hint, error, required, children }: { label: strin
   );
 }
 
+/** c.empty-state (first use). `icon` is drawn in place of the catalog's round icon. */
 export function EmptyState({ title, message, action, icon }: { title: string; message: ReactNode; action?: ReactNode; icon?: ReactNode }) {
   return (
-    <div className="ui-empty">
-      {icon ? <div className="ui-empty__icon" aria-hidden="true">{icon}</div> : null}
-      <h3 className="ui-empty__title">{title}</h3>
-      <p className="ui-empty__message">{message}</p>
-      {action ? <div className="ui-empty__action">{action}</div> : null}
-    </div>
+    <CatalogEmptyState title={title} headingLevel={3} art={icon} action={action}>
+      {message}
+    </CatalogEmptyState>
   );
 }
 
-/** Loading placeholder shaped like the content. Announces "Loading" once for screen readers. */
+/** c.skeleton: loading placeholder shaped like the content. Announces "Loading" once for screen readers. */
 export function Skeleton({ lines = 3, card = false, label = "Loading" }: { lines?: number; card?: boolean; label?: string }) {
   return (
-    <div className={`ui-skeleton${card ? " ui-skeleton--card" : ""}`} role="status" aria-label={label}>
-      {Array.from({ length: lines }, (_, i) => (
-        <span key={i} className="ui-skeleton__line" style={{ width: `${i === lines - 1 ? 60 : 100}%` }} />
-      ))}
+    <div role="status" aria-label={label}>
+      {card ? <CatalogSkeleton variant="card" /> : <CatalogSkeleton variant="text" lines={lines} />}
     </div>
   );
 }
@@ -183,62 +205,81 @@ export function DataState({ loading, error, onRetry, empty, loadingLabel = "Load
   if (loading) return <Skeleton lines={skeleton.lines} card={skeleton.card} label={loadingLabel} />;
   if (error)
     return (
-      <div className="ui-notice ui-notice--error" role="alert">
-        <strong className="ui-notice__title">Couldn&apos;t load this</strong>
-        <div>{error}</div>
-        {onRetry ? (
-          <div className="ui-notice__actions">
+      <Notice
+        tone="error"
+        title="Couldn't load this"
+        action={
+          onRetry ? (
             <Button size="sm" onClick={onRetry}>
               Try again
             </Button>
-          </div>
-        ) : null}
-      </div>
+          ) : undefined
+        }
+      >
+        {error}
+      </Notice>
     );
   if (empty) return <>{empty}</>;
   return <>{children}</>;
 }
 
+/** c.kpi: a key number with its label; `note` is drawn under the number. */
 export function Stat({ label, value, note }: { label: string; value: ReactNode; note?: ReactNode }) {
-  return (
-    <div className="ui-stat">
-      <span className="ui-stat__label">{label}</span>
-      <span className="ui-stat__value">{value}</span>
-      {note ? <span className="ui-stat__note">{note}</span> : null}
-    </div>
-  );
+  // The KPI takes text; any node renders in the same place.
+  return <Kpi label={label} value={value as string} emptyNote={note as string | undefined} />;
 }
 
+const BADGE_TONE = { neutral: "neutral", accent: "info", success: "success", danger: "danger" } as const;
+
+/** c.badge (status). */
 export function Badge({ tone = "neutral", children }: { tone?: "neutral" | "accent" | "success" | "danger"; children: ReactNode }) {
-  return <span className={`ui-badge ui-badge--${tone}`}>{children}</span>;
+  return <CatalogBadge tone={BADGE_TONE[tone]}>{children}</CatalogBadge>;
 }
 
-export function Notice({ tone = "info", title, children }: { tone?: "info" | "success" | "warning" | "error"; title?: string; children: ReactNode }) {
-  return (
-    <div className={`ui-notice ui-notice--${tone}`} role={tone === "error" ? "alert" : "status"}>
-      {title ? <strong className="ui-notice__title">{title}</strong> : null}
-      <div>{children}</div>
-    </div>
+const NOTICE_TONE = { info: "info", success: "success", warning: "warning", error: "danger" } as const;
+
+/** c.alert (inline). Without a title the message is the alert's one line. `action` is a button for the person to act on. */
+export function Notice({ tone = "info", title, action, children }: { tone?: "info" | "success" | "warning" | "error"; title?: string; action?: ReactNode; children: ReactNode }) {
+  return title ? (
+    <Alert variant={NOTICE_TONE[tone]} title={title} action={action}>
+      {children}
+    </Alert>
+  ) : (
+    // The alert's title line takes text; a message of any kind renders in the same place.
+    <Alert variant={NOTICE_TONE[tone]} title={children as string} action={action} />
   );
 }
 
-/** Modal dialog on the native <dialog> element: focus trap, Escape to close and backdrop for free. */
-export function Dialog({ open, title, onClose, actions, children }: { open: boolean; title: string; onClose: () => void; actions?: ReactNode; children: ReactNode }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const titleId = useId();
+/**
+ * c.modal: focus moves in and stays inside, Escape and the backdrop close it, focus returns on close.
+ * Give it `confirmLabel` (and `onConfirm`) and it is the catalog's dialog as is: Cancel and the main button. Or give it
+ * `actions` (any buttons) and those replace the catalog's two buttons; with neither, the corner's Close button is the way out.
+ */
+export function Dialog({ open, title, onClose, actions, children, description, variant = "confirm", confirmLabel, cancelLabel, onConfirm }: { open: boolean; title: string; onClose: () => void; actions?: ReactNode; children: ReactNode; description?: ReactNode; variant?: "confirm" | "danger" | "form"; confirmLabel?: string; cancelLabel?: string; onConfirm?: (data: FormData) => void | false }) {
+  const host = useRef<HTMLDivElement>(null);
+  const own = !confirmLabel;
   useEffect(() => {
-    const d = ref.current;
-    if (!d) return;
-    if (open && !d.open) d.showModal();
-    if (!open && d.open) d.close();
-  }, [open]);
+    // The catalog's own two buttons give way to yours: hidden (for screen readers and tests too) and out of the focus order.
+    if (!open || !own) return;
+    const foot = host.current?.querySelector<HTMLElement>(".ui-dialog--own-actions > .fl-ctl-dlg-foot");
+    if (!foot) return;
+    foot.hidden = true;
+    foot.querySelectorAll("button").forEach((b) => (b.disabled = true));
+  }, [open, own]);
+  if (!open) return null;
   return (
-    <dialog ref={ref} className="ui-dialog" aria-labelledby={titleId} onClose={onClose} onCancel={onClose}>
-      <h2 id={titleId} className="ui-dialog__title">
-        {title}
-      </h2>
-      <div className="ui-dialog__body">{children}</div>
-      <div className="ui-dialog__actions">{actions ?? <Button onClick={onClose}>Close</Button>}</div>
-    </dialog>
+    <div ref={host} style={{ display: "contents" }}>
+      {own ? (
+        <Modal variant={variant === "danger" ? "danger" : "confirm"} title={title} description={description} confirmLabel="Close" onClose={onClose} className="ui-dialog--own-actions">
+          {children}
+          {/* No actions: the close button in the corner is the way out. */}
+          {actions ? <div className="fl-ctl-dlg-foot">{actions}</div> : null}
+        </Modal>
+      ) : (
+        <Modal variant={variant} title={title} description={description} confirmLabel={confirmLabel} cancelLabel={cancelLabel} onConfirm={onConfirm} onClose={onClose}>
+          {children}
+        </Modal>
+      )}
+    </div>
   );
 }

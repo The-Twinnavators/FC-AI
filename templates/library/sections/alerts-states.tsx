@@ -1,12 +1,12 @@
 /** @flowcode-library alerts-states · Alerts: four tones, inline, banner and toast (Alerts and states)
  * Catalog ID: c.alert (component)
- * Function: The alert (c.alert) in four tones and three places (inline, banner, bleed strip, toast), each dismissible and able to carry an action, plus the self-closing toast region (c.toast-stack); the reference sheet shows each, the roles that announce them, and a live banner, strip and toast stack.
- * Use it as: import { Alert } from "./alerts-states"; <Alert variant?="info"|"success"|"warning"|"danger" placement?="inline"|"banner"|"toast" bleed? tag? title="Shoot saved" onDismiss? dismissLabel? action?={<Button/> or a link}>Detail text</Alert>
+ * Function: The alert (c.alert) in four tones and three places (inline, banner, bleed strip, toast), each dismissible and able to carry an action, plus the self-closing toast region (c.toast-stack); the reference sheet shows each, the roles that announce them, and a live banner, strip and toast stack. Versions: tone-card, announcement and neobrutal; the sheet shows each and the toast-stack cards.
+ * Use it as: import { Alert } from "./alerts-states"; <Alert version?="tone-card"|"announcement"|"neobrutal" variant?="info"|"success"|"warning"|"danger" placement?="inline"|"banner"|"toast" bleed? tag? title="Shoot saved" onDismiss? dismissLabel? action?={<Button/> or a link}>Detail text</Alert> (tone-card also takes actionLabel? onAction? dismissible?; announcement takes rememberKey? restoreLabel? tag?; neobrutal takes icon? dismissible?)
  * Variants: c.alert.info - neutral news that needs no action: accent tint with an i icon; c.alert.success - something worked: green tint with a check icon; c.alert.warning - take care before going on: amber tint with an alert icon; c.alert.danger - something failed and needs a fix: red tint, announced at once (role alert)
  * Look: A rounded, tinted box with a round tone icon, a bold title and a line of detail; inline it can carry an action button and a dismiss x, as a banner it spans the page (or, with bleed, is a full-width accent strip with an optional tag) with a link and a dismiss button, as a toast it is a pill with a small x, an optional detail line and an action such as Undo.
- * Tokens: --color-accent --color-success --color-warning --color-danger --color-border --color-surface --color-surface-sunken --color-text-muted --radius-lg --radius-md --space-1 --space-2 --space-3 --space-4 --duration-med --easing --color-on-accent --color-text --surface-shadow-hover
+ * Tokens: --color-accent --color-success --color-warning --color-danger --color-border --color-surface --color-surface-sunken --color-text-muted --radius-lg --radius-md --space-1 --space-2 --space-3 --space-4 --duration-med --easing --color-on-accent --color-text --surface-shadow-hover --color-secondary --radius-sm --space-5 --weight-bold --text-xs --text-sm --text-md --tracking-wide --duration-fast --duration-base --focus-ring
  * Also: c.toast-stack (component)
- *   Use it as: import { ToastStack } from "./alerts-states"; <ToastStack toasts={[{id, variant?, title, text?, onUndo?}]} onDismiss={(id) => ...} max?={4} duration?={5000} contained? />
+ *   Use it as: import { ToastStack } from "./alerts-states"; <ToastStack version?="cards" toasts={[{id, variant?, title, text?, onUndo?}]} onDismiss={(id) => ...} max?={4} duration?={5000} contained? />
  *   Look: A column of toast cards in the page corner, each with a tone icon, title, optional second line and Undo, a close x and a thin bar along the bottom that shrinks as the toast counts down. Hover or focus pauses the count; Escape closes it; only the newest max show.
  * Use cases: form saved; something failed; a warning before an action; a tip; a site-wide notice; form errors; success message; warning notice; system status; account notices; payment failed; validation feedback; info message; announcement bar; promo banner; new feature announcement; maintenance notice; sale announcement; cookie or policy notice; event promotion; notifications; save confirmation; undo action; background task updates; activity alerts; error notifications; upload complete; alerts; status badges; upload progress; system messages; booking status; dashboard notices
  * Jobs to be done: know something happened; understand what went wrong; get told without losing my place; know what went wrong and fix it; confirm my change was saved; notice something that needs my attention; dismiss a message i've read; hear about what's new; find out about a sale or offer; learn about planned downtime; hide a notice i've seen; know my action worked; undo something i did by mistake; stay aware of updates while working; notice errors without losing my place; know if something worked; see the status of my booking; track an upload until it finishes; dismiss notices i have read
@@ -42,6 +42,12 @@ import { Button } from "./buttons-variants";
 
 export type AlertVariant = "info" | "success" | "warning" | "danger";
 export type AlertPlacement = "inline" | "banner" | "toast";
+/**
+ * Other designs of the same alert. "default" follows the app's tokens; "tone-card" is a list card with a colored left
+ * edge, a screen-reader tone word and a text action; "announcement" is the full-width accent strip that stays closed
+ * once dismissed; "neobrutal" is the neobrutalism kit's alert (thick ink border, hard shadow).
+ */
+export type AlertVersion = "default" | "tone-card" | "announcement" | "neobrutal";
 
 // Written out in full (not built from the variant name) so a build finds every class the alert needs.
 const TONE: Record<AlertVariant, string> = {
@@ -52,8 +58,22 @@ const TONE: Record<AlertVariant, string> = {
 };
 const TONE_ICON: Record<AlertVariant, string> = { info: "info", success: "check", warning: "alert", danger: "close" };
 const PLACE: Record<AlertPlacement, string> = { inline: "fl-ctl-alert", banner: "fl-ctl-banner", toast: "fl-ctl-toast" };
+// tone-card: the tone class sets the edge and icon color; the word is read by screen readers.
+const CARD_TONE: Record<AlertVariant, string> = { info: "fl-alr-tone-info", success: "fl-alr-tone-success", warning: "fl-alr-tone-warning", danger: "fl-alr-tone-error" };
+const TONE_WORD: Record<AlertVariant, string> = { info: "Information", success: "Success", warning: "Warning", danger: "Error" };
+const CARD_PATH: Record<AlertVariant, string> = {
+  info: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v5M12 8h.01",
+  success: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 12.5l2.5 2.5L16 9.5",
+  warning: "M12 4 2.5 20h19zM12 10v4M12 17h.01",
+  danger: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9 9l6 6M15 9l-6 6",
+};
+// neobrutal: the tone class sets the ink-box color and the icon tile.
+const NB_TONE: Record<AlertVariant, string> = { info: "fl-nb-tone-info", success: "fl-nb-tone-success", warning: "fl-nb-tone-warning", danger: "fl-nb-tone-error" };
+const NB_ICON: Record<AlertVariant, string> = { info: "sparkle", success: "check", warning: "clock", danger: "shield" };
 
 type AlertProps = {
+  /** Another design of the alert; "default" when left out. See AlertVersion. */
+  version?: AlertVersion;
   variant?: AlertVariant;
   /** Inline sits in the flow; banner spans the page; toast is a one-line pill (render it inside a <ul>). */
   placement?: AlertPlacement;
@@ -67,12 +87,177 @@ type AlertProps = {
   tag?: string;
   /** A button or link for the person to act on: Fix it (inline), See the timetable (banner), Undo (toast). */
   action?: ReactNode;
+  /** tone-card and neobrutal: show a dismiss x that hides the alert by itself (no onDismiss needed). */
+  dismissible?: boolean;
+  /** tone-card only: a text action button with this label (instead of an action node); onAction runs when pressed. */
+  actionLabel?: string;
+  onAction?: () => void;
+  /** neobrutal only: an icon name from ./icons to use instead of the tone's own. */
+  icon?: string;
+  /** announcement only: the key under which the dismissal is remembered on this device, so it stays closed. */
+  rememberKey?: string;
+  /** announcement only: the button that brings a dismissed announcement back (left out, nothing shows once closed). */
+  restoreLabel?: string;
   className?: string;
   /** The detail line under (inline) or after (banner) the title. */
   children?: ReactNode;
 } & Omit<HTMLAttributes<HTMLElement>, "title" | "children" | "className">;
 
-export function Alert({ variant = "info", placement = "inline", title, onDismiss, dismissLabel, action, bleed, tag, className, children, ...rest }: AlertProps) {
+function CloseGlyph({ width }: { width: number }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={width} strokeLinecap="round" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
+export function Alert(props: AlertProps) {
+  const { version = "default", ...own } = props;
+  if (version === "tone-card") return <ToneCardAlert {...own} />;
+  if (version === "announcement") return <Announcement {...own} />;
+  if (version === "neobrutal") return <NeobrutalAlert {...own} />;
+  return <BaseAlert {...own} />;
+}
+
+// c.alert@tone-card: a list card with a colored left edge, the tone as a hidden word, and a text action.
+function ToneCardAlert({ variant = "info", title, onDismiss, dismissible, dismissLabel, action, actionLabel, onAction, className, children, ...rest }: Omit<AlertProps, "version">) {
+  const [gone, setGone] = useState(false);
+  if (gone) return null;
+  const close = onDismiss || dismissible ? () => { onDismiss?.(); setGone(true); } : undefined;
+  const act = action ?? (actionLabel ? <button type="button" className="fl-alr__action" onClick={onAction}>{actionLabel}</button> : null);
+  const { bleed: _b, tag: _t, placement: _p, icon: _i, rememberKey: _r, restoreLabel: _rl, ...attrs } = rest as AlertProps;
+  return (
+    <div role={variant === "danger" ? "alert" : undefined} {...(attrs as HTMLAttributes<HTMLDivElement>)} className={["fl-alr", CARD_TONE[variant], className ?? ""].filter(Boolean).join(" ")} data-fl="c.alert@tone-card">
+      <span className="fl-alr__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d={CARD_PATH[variant]} />
+        </svg>
+      </span>
+      <div className="fl-alr__body">
+        <p className="fl-alr__title">
+          <span className="fl-sr">{TONE_WORD[variant]}: </span>
+          {title}
+        </p>
+        {children ? <p className="fl-alr__text">{children}</p> : null}
+        {act ? <div className="fl-alr__actions">{act}</div> : null}
+      </div>
+      {close ? (
+        <button type="button" className="fl-alr__close" aria-label={dismissLabel ?? `Dismiss: ${title}`} onClick={close}>
+          <CloseGlyph width={1.75} />
+        </button>
+      ) : (
+        <span />
+      )}
+    </div>
+  );
+}
+
+function readDismissed(key: string) {
+  try {
+    return localStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+// c.alert@announcement: the full-width accent strip across the top of a page; once closed it stays closed on this device.
+function Announcement({ title, tag, action, onDismiss, dismissLabel, rememberKey, restoreLabel, className, children }: Omit<AlertProps, "version">) {
+  const [dismissed, setDismissed] = useState(() => (rememberKey ? readDismissed(rememberKey) : false));
+  const [status, setStatus] = useState("");
+  const restoreRef = useRef<HTMLButtonElement>(null);
+  const movedFocus = useRef(false);
+
+  // After closing, focus goes to the restore button (if there is one) so keyboard focus is not lost.
+  useEffect(() => {
+    if (dismissed && movedFocus.current) {
+      restoreRef.current?.focus();
+      movedFocus.current = false;
+    }
+  }, [dismissed]);
+
+  const close = () => {
+    if (rememberKey) {
+      try {
+        localStorage.setItem(rememberKey, "1");
+      } catch {
+        /* storage unavailable: it closes for this visit only */
+      }
+    }
+    movedFocus.current = true;
+    setDismissed(true);
+    setStatus("Announcement dismissed.");
+    onDismiss?.();
+  };
+  const reopen = () => {
+    if (rememberKey) {
+      try {
+        localStorage.removeItem(rememberKey);
+      } catch {
+        /* nothing to clear */
+      }
+    }
+    setDismissed(false);
+    setStatus("Announcement shown again.");
+  };
+
+  return (
+    <div>
+      {dismissed ? (
+        restoreLabel ? (
+          <Button ref={restoreRef} variant="secondary" size={32} onClick={reopen}>
+            {restoreLabel}
+          </Button>
+        ) : null
+      ) : (
+        <section aria-label="Announcement" className={["fl-alr-banner", className ?? ""].filter(Boolean).join(" ")} data-fl="c.alert@announcement">
+          <div className="fl-alr-banner__row">
+            <p className="fl-alr-banner__msg">
+              {tag ? <span className="fl-alr-banner__tag">{tag}</span> : null}
+              <span>
+                {title}
+                {children ? <> {children}</> : null}
+              </span>
+              {action}
+            </p>
+            <button type="button" className="fl-alr__close" aria-label={dismissLabel ?? "Dismiss announcement"} onClick={close}>
+              <CloseGlyph width={1.75} />
+            </button>
+          </div>
+        </section>
+      )}
+      <span className="fl-sr" role="status" aria-live="polite">
+        {status}
+      </span>
+    </div>
+  );
+}
+
+// c.alert@neobrutal: the neobrutalism kit's alert, a thick-ink box with a colored icon tile and a hard shadow.
+function NeobrutalAlert({ variant = "info", title, onDismiss, dismissible, dismissLabel, icon, action, className, children, ...rest }: Omit<AlertProps, "version">) {
+  const [gone, setGone] = useState(false);
+  if (gone) return null;
+  const close = onDismiss || dismissible ? () => { onDismiss?.(); setGone(true); } : undefined;
+  const { bleed: _b, tag: _t, placement: _p, actionLabel: _a, onAction: _o, rememberKey: _r, restoreLabel: _rl, ...attrs } = rest as AlertProps;
+  return (
+    <div role={variant === "danger" ? "alert" : undefined} {...(attrs as HTMLAttributes<HTMLDivElement>)} className={["fl-nb", "fl-nb-box", "fl-nb-alert", NB_TONE[variant], className ?? ""].filter(Boolean).join(" ")} data-fl="c.alert@neobrutal">
+      <span className="fl-nb-alert__icon" aria-hidden="true">
+        <Icon name={icon ?? NB_ICON[variant]} />
+      </span>
+      <div className="fl-nb-alert__body">
+        <p className="fl-nb-alert__title">{title}</p>
+        {children ? <p className="fl-nb-alert__text">{children}</p> : null}
+        {action}
+      </div>
+      {close ? (
+        <button type="button" className="fl-nb-close" aria-label={dismissLabel ?? `Dismiss: ${title}`} onClick={close}>
+          <CloseGlyph width={2.5} />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function BaseAlert({ variant = "info", placement = "inline", title, onDismiss, dismissLabel, action, bleed, tag, className, children, dismissible: _d, actionLabel: _a, onAction: _o, icon: _i, rememberKey: _r, restoreLabel: _rl, ...rest }: Omit<AlertProps, "version">) {
   const cls = [PLACE[placement], TONE[variant], className ?? ""].filter(Boolean).join(" ");
   const icon = (
     <span className="fl-ctl-alert-icon" aria-hidden="true">
@@ -229,7 +414,11 @@ function ToastRow({ toast, duration, onClose }: { toast: ToastItem; duration: nu
   );
 }
 
-export function ToastStack({ toasts, onDismiss, max = 4, duration = 5000, contained, label = "Notifications" }: {
+export type ToastStackVersion = "default" | "cards";
+
+export function ToastStack({ toasts, onDismiss, max = 4, duration = 5000, contained, label = "Notifications", version = "default" }: {
+  /** "cards" names the toast cards with a countdown bar (c.toast-stack@cards), which is also what "default" draws. */
+  version?: ToastStackVersion;
   toasts: ToastItem[];
   /** Called with the toast's id when it times out, is closed, or Escape is pressed on it. */
   onDismiss: (id: number) => void;
@@ -243,7 +432,7 @@ export function ToastStack({ toasts, onDismiss, max = 4, duration = 5000, contai
 }) {
   const style = contained ? { position: "absolute" as const, right: "var(--space-4)", bottom: "var(--space-4)", width: "min(24rem, calc(100% - 2 * var(--space-4)))" } : undefined;
   return (
-    <div role="region" aria-label={label}>
+    <div role="region" aria-label={label} data-fl={version === "cards" ? "c.toast-stack@cards" : undefined}>
       <ol className="fl-alr-toasts" style={style} aria-live="polite" aria-relevant="additions">
         {toasts.slice(-max).map((t) => (
           <ToastRow key={t.id} toast={t} duration={duration} onClose={onDismiss} />
@@ -253,8 +442,89 @@ export function ToastStack({ toasts, onDismiss, max = 4, duration = 5000, contai
   );
 }
 
+// c.toast-stack@cards in use: a basket whose actions each confirm with a toast (toast-stack wraps this).
+export type ToastBasketProps = {
+  title: string;
+  lede: string;
+  basket: string[];
+  durationMs: number;
+  /** Sit the toasts inside the nearest positioned box instead of the page corner. */
+  contained?: boolean;
+  toasts: Record<"saved" | "removed" | "failed" | "reminder", { tone: string; title: string; text: string }>;
+};
+
+export function ToastBasket({ title, lede, basket: initial, durationMs, contained, toasts: copy }: ToastBasketProps) {
+  const [basket, setBasket] = useState<string[]>(initial);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const nextId = useRef(1);
+  const close = useRef((id: number) => setToasts((t) => t.filter((x) => x.id !== id))).current;
+  const push = (t: Omit<ToastItem, "id">) => setToasts((all) => [...all, { ...t, id: nextId.current++ }].slice(-4));
+  const asVariant = (tone: string): AlertVariant => (tone === "error" ? "danger" : tone === "success" || tone === "warning" ? tone : "info");
+
+  const removeLast = () => {
+    const item = basket[basket.length - 1];
+    if (!item) return;
+    const index = basket.length - 1;
+    setBasket((b) => b.slice(0, -1));
+    push({ variant: "info", title: copy.removed.title, text: item, onUndo: () => setBasket((b) => [...b.slice(0, index), item, ...b.slice(index)]) });
+  };
+  const show = (key: "saved" | "failed" | "reminder") => {
+    const t = copy[key];
+    push({ variant: asVariant(t.tone), title: t.title, text: t.text });
+  };
+
+  return (
+    <section className="fl-section" aria-labelledby="toast-basket-title" style={contained ? { position: "relative" } : undefined}>
+      <div className="fl-wrap fl-wrap--narrow">
+        <div className="fl-head">
+          <h2 id="toast-basket-title" className="fl-title fl-title--md">
+            {title}
+          </h2>
+          <p className="fl-text">{lede}</p>
+        </div>
+        <div className="fl-card" style={{ gap: "var(--space-5)" }}>
+          {basket.length === 0 ? (
+            <p className="fl-text">Your basket is empty. Undo the last removal to get a class back.</p>
+          ) : (
+            <ul className="fl-alr-log" aria-label="Classes in your basket">
+              {basket.map((b) => (
+                <li key={b}>{b}</li>
+              ))}
+            </ul>
+          )}
+          <div className="fl-actions">
+            <Button onClick={() => show("saved")}>Save details</Button>
+            <Button variant="secondary" onClick={removeLast} disabled={basket.length === 0}>
+              Remove last class
+            </Button>
+            <Button variant="secondary" onClick={() => show("reminder")}>
+              Set reminder
+            </Button>
+            <Button variant="secondary" onClick={() => show("failed")}>
+              Try a failed payment
+            </Button>
+          </div>
+        </div>
+      </div>
+      <ToastStack version="cards" toasts={toasts} onDismiss={close} duration={durationMs} contained={contained} />
+    </section>
+  );
+}
+
 // flowcode:sample
 const SAMPLE = {
+  basket: {
+    title: "Your basket",
+    lede: "Try the buttons: each one confirms with a toast.",
+    items: ["Pottery for beginners · Sat 11:00", "Life drawing · Tue 19:00", "Printmaking taster · Sun 14:00"],
+    durationMs: 5000,
+    toasts: {
+      saved: { tone: "success", title: "Details saved", text: "Your name and phone number are up to date." },
+      removed: { tone: "info", title: "Class removed", text: "" },
+      failed: { tone: "error", title: "Payment didn't go through", text: "Nothing was charged. Check the card details and try again." },
+      reminder: { tone: "info", title: "Reminder set", text: "We'll text you the evening before each class." },
+    },
+  },
   tones: [
     { id: "info" as const, label: "Information", icon: "info", title: "Your plan renews on 1 July", body: "Nothing to do. We will email the invoice when it is ready." },
     { id: "success" as const, label: "Success", icon: "check", title: "Shoot saved", body: "Riverside wedding is in your calendar for 12 June." },
@@ -269,6 +539,8 @@ export default function AlertsStates() {
   const [banner, setBanner] = useState<AlertVariant | "">("warning");
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [strip, setStrip] = useState(true);
+  const [cardGone, setCardGone] = useState<AlertVariant[]>([]);
+  const [nbGone, setNbGone] = useState<AlertVariant[]>([]);
   const seq = useRef(0);
 
   // A toast says its piece and leaves (ToastStack counts it down); anything that needs acting on belongs inline.
@@ -383,6 +655,70 @@ export default function AlertsStates() {
         <ul className="fl-ctl-toasts" style={{ position: "static", justifyItems: "start" }} aria-label="Compact toast">
           <Alert variant="success" placement="toast" title="Shoot saved" />
         </ul>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Versions</h3>
+        <p className="fl-ctl-btn-what">
+          Other designs of the same alert, chosen with <code>version</code>. Each keeps the four tones; pick the one that suits the app.
+        </p>
+
+        <p className="fl-ctl-matrix-kind">c.alert@tone-card</p>
+        <p className="fl-ctl-btn-what">A list card with a colored left edge; the tone is also a hidden word. Actions are small text buttons.</p>
+        <div className="fl-alr-stack">
+          {d.tones.filter((t) => !cardGone.includes(t.id)).map((t) => (
+            <Alert
+              key={t.id}
+              version="tone-card"
+              variant={t.id}
+              title={t.title}
+              actionLabel={t.id === "danger" ? "Fix it" : t.id === "info" ? "See details" : undefined}
+              onDismiss={t.id === "danger" ? undefined : () => setCardGone((v) => [...v, t.id])}
+            >
+              {t.body}
+            </Alert>
+          ))}
+        </div>
+        {cardGone.length ? (
+          <Button variant="tertiary" size={32} onClick={() => setCardGone([])}>
+            Show the cards again
+          </Button>
+        ) : null}
+
+        <p className="fl-ctl-matrix-kind">c.alert@announcement</p>
+        <p className="fl-ctl-btn-what">
+          The full-width strip for one short, time-limited notice. Once closed it stays closed on this device
+          (<code>rememberKey</code>); <code>restoreLabel</code> adds a button to bring it back.
+        </p>
+        <Alert version="announcement" rememberKey="alerts-states-sheet-announcement" restoreLabel="Show the announcement again" tag="New" title="Autumn term bookings are open." action={<a href="#timetable">See the timetable &rarr;</a>} />
+
+        <p className="fl-ctl-matrix-kind">c.alert@neobrutal</p>
+        <p className="fl-ctl-btn-what">The neobrutalism kit's alert: a thick ink border, a hard shadow and a colored icon tile.</p>
+        <div className="fl-nb-alerts">
+          {d.tones.filter((t) => !nbGone.includes(t.id)).map((t) => (
+            <Alert key={t.id} version="neobrutal" variant={t.id} title={t.title} onDismiss={() => setNbGone((v) => [...v, t.id])}>
+              {t.body}
+            </Alert>
+          ))}
+        </div>
+        {nbGone.length ? (
+          <Button variant="tertiary" size={32} onClick={() => setNbGone([])}>
+            Show the neobrutal alerts again
+          </Button>
+        ) : null}
+
+        <p className="fl-ctl-matrix-kind">c.toast-stack@cards</p>
+        <p className="fl-ctl-btn-what">Toast cards with a countdown bar, stacked in a corner (the version of the toast region above). Try the buttons.</p>
+        <div className="fl-ctl-toast-stage">
+          <ToastBasket
+            contained
+            title={SAMPLE.basket.title}
+            lede={SAMPLE.basket.lede}
+            basket={SAMPLE.basket.items}
+            durationMs={SAMPLE.basket.durationMs}
+            toasts={SAMPLE.basket.toasts}
+          />
+        </div>
       </div>
     </section>
   );

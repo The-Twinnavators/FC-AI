@@ -78,6 +78,29 @@ describe("library pieces placed in the screens", () => {
     expect(settings).not.toContain("PageHeader");
   });
 
+  it("counts every page template as a whole screen, not only app screens", async () => {
+    const { isPageTemplate } = await import("../src/orchestrator/screenPlan.js");
+    expect(isPageTemplate("site-cafe")).toBe(true);
+    expect(isPageTemplate("home-saas")).toBe(true);
+    expect(isPageTemplate("app-settings")).toBe(true);
+    expect(isPageTemplate("hero-split")).toBe(false);
+  });
+
+  it("draws a website page template on its own, outside the app shell's header, and app screens inside it", async () => {
+    const { layoutFiles, parseScreenPlan } = await import("../src/orchestrator/screenPlan.js");
+    const plan = parseScreenPlan({ product: "Bean & Bloom", screens: [{ name: "Home", purpose: "Visitors see the cafe and book a table." }, { name: "Settings", purpose: "Staff change opening hours." }] })!;
+    const [app, ...screens] = layoutFiles(plan, [
+      { screen: "Home", id: "site-cafe", component: "SiteCafe", template: true },
+      { screen: "Settings", id: "app-settings", component: "AppSettings", template: true },
+    ]);
+    expect(app!.content).toMatch(/const FULL_PAGE = \["home"\];/);
+    expect(app!.content.indexOf("FULL_PAGE.includes(current)")).toBeLessThan(app!.content.indexOf("<AppShell"));
+    const shell = app!.content.slice(app!.content.indexOf("<AppShell"));
+    expect(shell).toContain("<SettingsScreen />");
+    expect(shell).not.toContain("<HomeScreen />");
+    expect(screens.find((f) => f.path === "src/screens/HomeScreen.tsx")!.content).toContain("return <SiteCafe />;");
+  });
+
   it("asks for a clearer match for a screen's second piece", () => {
     expect(screenPicks([S("Orders", "Review, search and refund customer orders in a table")])).toHaveLength(1);
   });

@@ -88,6 +88,38 @@ fetch("http://api.example.com/data");
     expect(seoTriage(jail).map((f) => f.rule)).toEqual(expect.arrayContaining(["title", "meta-description"]));
   });
 
+  it("accepts correct ARIA patterns for clickable items, backdrops and decorative controls, and still flags the bad ones", () => {
+    const root = tmpDir();
+    const rulesAt = (src: string) => {
+      fs.mkdirSync(path.join(root, "src"), { recursive: true });
+      fs.writeFileSync(path.join(root, "src/P.tsx"), src);
+      return staticAccessibility(new PathJail(root)).filter((x) => x.rule === "click-events-have-key-events" || x.rule === "form-label").map((x) => `${x.rule}:${x.line}`);
+    };
+    // Menu items whose keys are handled on the focusable role="menu" container: correct.
+    expect(rulesAt(`export const M = ({ go }: { go: () => void }) => (
+<ul role="menu" tabIndex={0} onKeyDown={go}>
+<li role="menuitem" tabIndex={-1} onClick={go}>Rename</li>
+</ul>);`)).toEqual([]);
+    // The same items without the owner's key handling, under the wrong owner, or with no role: flagged.
+    expect(rulesAt(`export const M = ({ go }: { go: () => void }) => (
+<ul role="menu" tabIndex={0}>
+<li role="menuitem" onClick={go}>Rename</li>
+</ul>);`)).toEqual(["click-events-have-key-events:3"]);
+    expect(rulesAt(`export const M = ({ go }: { go: () => void }) => (
+<ul role="listbox" tabIndex={0} onKeyDown={go}>
+<li role="menuitem" onClick={go}>Rename</li>
+<li onClick={go}>Delete</li>
+</ul>);`)).toEqual(["click-events-have-key-events:3", "click-events-have-key-events:4"]);
+    // An empty aria-hidden backdrop that duplicates Escape/Close: correct. Visible, or with content: flagged.
+    expect(rulesAt(`export const S = ({ close }: { close: () => void }) => <div className="scrim" aria-hidden="true" onClick={close} />;`)).toEqual([]);
+    expect(rulesAt(`export const S = ({ close }: { close: () => void }) => <div className="scrim" onClick={close} />;`)).toEqual(["click-events-have-key-events:1"]);
+    expect(rulesAt(`export const S = ({ close }: { close: () => void }) => <div aria-hidden onClick={close}>Close</div>;`)).toEqual(["click-events-have-key-events:1"]);
+    // A read-only check mark hidden from assistive tech and the Tab order: decoration. A reachable or operable one: flagged.
+    expect(rulesAt(`export const C = ({ on }: { on: boolean }) => <li role="option" aria-selected={on}><input type="checkbox" tabIndex={-1} aria-hidden checked={on} readOnly />Apples</li>;`)).toEqual([]);
+    expect(rulesAt(`export const C = ({ on }: { on: boolean }) => <input type="checkbox" aria-hidden checked={on} readOnly />;`)).toEqual(["form-label:1"]);
+    expect(rulesAt(`export const C = ({ on, set }: { on: boolean; set: () => void }) => <input type="checkbox" tabIndex={-1} aria-hidden checked={on} onChange={set} />;`)).toEqual(["form-label:1"]);
+  });
+
   it("computes WCAG contrast ratios", () => {
     expect(contrastRatio("#000000", "#ffffff")!).toBeCloseTo(21, 0);
     expect(contrastRatio("#777777", "#888888")!).toBeLessThan(1.5);

@@ -181,6 +181,132 @@ export function buildPalette(cfg: PaletteConfig): Palette {
   return { brand, neutral, status };
 }
 
+// ───────────────────────── the 60/30/10 rule: a secondary traced from the accent ─────────────────────────
+//
+// 60% neutral (page and cards), 30% a secondary colour for supporting areas (tinted panels, secondary buttons, tags),
+// 10% the accent (the one main action, links, focus). The secondary is derived from the accent by a colour harmony in
+// OKLCH, so it is related to it rather than a second random hue, and is calmer (less chroma) so it never competes.
+
+export type HarmonyKind = "analogous" | "split-complementary" | "complementary" | "triadic";
+export interface Harmony {
+  kind: HarmonyKind;
+  /** e.g. "Analogous", "Split-complementary". */
+  name: string;
+  /** Hue offset from the accent in degrees (OKLCH), −180…180. */
+  offset: number;
+  hex: string;
+  /** One line on why it works next to the accent. */
+  why: string;
+}
+
+const HARMONY_SPECS: Array<{ kind: HarmonyKind; name: string; offset: number; chroma: number; why: string }> = [
+  { kind: "analogous", name: "Analogous", offset: 30, chroma: 0.75, why: "A neighbour on the colour wheel: calm and cohesive, it supports the accent without competing." },
+  { kind: "analogous", name: "Analogous", offset: -30, chroma: 0.75, why: "A neighbour on the colour wheel: calm and cohesive, it supports the accent without competing." },
+  { kind: "split-complementary", name: "Split-complementary", offset: 150, chroma: 0.6, why: "Beside the accent's opposite: lively contrast, softer than a straight complement." },
+  { kind: "split-complementary", name: "Split-complementary", offset: -150, chroma: 0.6, why: "Beside the accent's opposite: lively contrast, softer than a straight complement." },
+  { kind: "complementary", name: "Complementary", offset: 180, chroma: 0.5, why: "The accent's opposite: the strongest contrast, so it is muted to keep the accent the star." },
+  { kind: "triadic", name: "Triadic", offset: 120, chroma: 0.6, why: "A third of the wheel away: balanced and playful, muted so the accent still leads." },
+  { kind: "triadic", name: "Triadic", offset: -120, chroma: 0.6, why: "A third of the wheel away: balanced and playful, muted so the accent still leads." },
+];
+
+/** Hue used when the accent has almost no colour (black, grey): a cool slate reads as neutral-but-alive. */
+const ACHROMATIC_HUE = 250;
+
+/**
+ * Harmonious secondary colours traced from an accent: analogous (±30°), split-complementary (±150°), complementary
+ * (180°) and triadic (±120°), each at a lightness that works as a fill and with lower chroma than the accent, so the
+ * accent stays the one colour that shouts.
+ */
+export function harmonies(accentHex: string): Harmony[] {
+  const a = hexToOklch(normalizeHex(accentHex) ?? "#6d28d9");
+  const achromatic = a.c < 0.03;
+  const hue = achromatic ? ACHROMATIC_HUE : a.h;
+  const l = clamp(a.l, 0.45, 0.68);
+  return HARMONY_SPECS.map((s) => {
+    const c = achromatic ? 0.035 : clamp(a.c * s.chroma, 0.04, 0.16);
+    return { kind: s.kind, name: s.name, offset: s.offset, hex: oklchToHex({ l, c, h: (hue + s.offset + 360) % 360 }), why: s.why };
+  });
+}
+
+/** The status hues a secondary should stay clear of, so it never reads as an error or a warning. */
+const STATUS_HUES = [27, 75, 150];
+
+/** The default secondary for an accent: the analogous neighbour further from the status hues (red, amber, green). */
+export function defaultSecondary(accentHex: string): Harmony {
+  const options = harmonies(accentHex).filter((h) => h.kind === "analogous");
+  const clearance = (h: Harmony) => Math.min(...STATUS_HUES.map((s) => hueDist(hexToOklch(h.hex).h, s)));
+  return options.reduce((best, h) => (clearance(h) > clearance(best) ? h : best));
+}
+
+/** How a chosen secondary sits next to the accent: the nearest harmony, and a warning when it clashes. */
+export function secondaryFit(secondaryHex: string, accentHex: string): { harmony?: Harmony; delta: number; clash?: string } {
+  const s = hexToOklch(normalizeHex(secondaryHex) ?? "#808080");
+  const a = hexToOklch(normalizeHex(accentHex) ?? "#808080");
+  const delta = s.c < 0.03 || a.c < 0.03 ? 0 : Math.round(((s.h - a.h + 540) % 360) - 180);
+  const harmony = s.c < 0.03 || a.c < 0.03 ? undefined : harmonies(accentHex).reduce<Harmony | undefined>((best, h) => (Math.abs(h.offset - delta) <= 15 && (!best || Math.abs(h.offset - delta) < Math.abs(best.offset - delta)) ? h : best), undefined);
+  let clash: string | undefined;
+  if (s.c >= 0.03 && a.c >= 0.03 && Math.abs(delta) < 15 && Math.abs(s.c - a.c) < 0.05 && Math.abs(s.l - a.l) < 0.12)
+    clash = "Almost the same colour as the accent, so the main action stops standing out. Pick a harmony below, or a calmer shade.";
+  else if (s.c >= 0.03 && a.c >= 0.03 && s.c > a.c * 1.15 && s.c > 0.12)
+    clash = "More saturated than the accent, so it competes with the main action. A calmer shade keeps the accent the star.";
+  else if (s.c >= 0.03 && a.c >= 0.03 && !harmony)
+    clash = `${Math.abs(delta)}° from the accent, between harmonies, so the pair can look accidental. The suggestions below are traced from the accent.`;
+  return { harmony, delta, clash };
+}
+
+export interface SecondaryContext {
+  /** Cards and panels (default white, or a dark slate for dark themes). */
+  surface?: string;
+  /** Body text (checked on the secondary tint). */
+  text?: string;
+}
+
+/** Moves a colour's OKLCH lightness (keeping hue and chroma) in small steps until `ok` holds; the nearest passing shade. */
+function nudge(o: Oklch, dir: 1 | -1, ok: (hex: string) => boolean): string {
+  let hex = oklchToHex(o);
+  for (let i = 0; i < 100 && !ok(hex); i++) {
+    o = { ...o, l: clamp(o.l + dir * 0.01) };
+    hex = oklchToHex(o);
+  }
+  return hex;
+}
+
+/**
+ * The five secondary tokens for a theme, every pair checked against WCAG AA and nudged to the nearest passing shade:
+ * --color-secondary (fill, and readable as text on cards and on its tint, 4.5:1), --color-secondary-hover,
+ * --color-on-secondary (text on the fill, 4.5:1), --color-secondary-surface (a light tint, or a deep one in dark
+ * themes, for the 30% areas; body text on it 4.5:1) and --color-secondary-border (3:1 on that tint).
+ */
+export function secondaryTokens(secondaryHex: string, theme: "light" | "dark" = "light", ctx: SecondaryContext = {}): Record<string, string> {
+  const dark = theme === "dark";
+  const surface = normalizeHex(ctx.surface ?? "") ?? (dark ? "#171d2b" : "#ffffff");
+  const text = normalizeHex(ctx.text ?? "") ?? (dark ? "#e8ebf3" : "#111827");
+  const base = hexToOklch(normalizeHex(secondaryHex) ?? "#64748b");
+  const away: 1 | -1 = dark ? 1 : -1; // the direction that adds contrast against the surface
+  // 30% areas: a pale tint (light) or a deep one (dark), the body text readable on it.
+  const tint = nudge({ l: dark ? 0.3 : 0.955, c: Math.min(base.c * 0.3, dark ? 0.05 : 0.035), h: base.h }, dark ? -1 : 1, (h) => contrastRatio(text, h) >= 4.5);
+  // The fill: the user's own colour when it already reads on cards and on its tint, else the nearest shade that does.
+  const own = normalizeHex(secondaryHex);
+  const reads = (h: string) => contrastRatio(h, surface) >= 4.5 && contrastRatio(h, tint) >= 4.5;
+  let fill = own && reads(own) ? own : nudge(base, away, reads);
+  // Text on the fill: white or near-black, whichever reads; if neither reaches 4.5, keep nudging the fill.
+  let on = textOn(fill);
+  if (contrastRatio(on, fill) < 4.5) {
+    fill = nudge(hexToOklch(fill), on === "#ffffff" ? -1 : 1, (h) => reads(h) && contrastRatio(on, h) >= 4.5);
+    on = textOn(fill);
+  }
+  const f = hexToOklch(fill);
+  const hover = nudge({ ...f, l: clamp(f.l + away * 0.06) }, away, (h) => contrastRatio(on, h) >= 4.5);
+  const border = nudge({ l: dark ? 0.5 : 0.7, c: Math.min(base.c * 0.6, 0.1), h: base.h }, away, (h) => contrastRatio(h, tint) >= 3);
+  return {
+    "--color-secondary": fill,
+    "--color-secondary-hover": hover,
+    "--color-on-secondary": on,
+    "--color-secondary-surface": tint,
+    "--color-secondary-border": border,
+  };
+}
+
 // ───────────────────────── accessible shades and the app's tokens ─────────────────────────
 
 /** The shade of a ramp closest to `prefer` that reaches `min` contrast against `bg` (searching both ways). */
@@ -217,11 +343,14 @@ export function roleTokens(p: Palette, dark = false): Record<string, string> {
   const hoverStep = accentStep ? RAMP_STEPS[Math.max(0, Math.min(RAMP_STEPS.length - 1, RAMP_STEPS.indexOf(accentStep) + (dark ? -1 : 1)))] : undefined;
   const accentHover = primary && hoverStep ? primary.ramp[hoverStep] : accent;
   const status = (k: StatusKind) => pick(p.status[k].ramp, surface, 4.5, dark ? 300 : 600, dark ? "#ffffff" : "#111111");
+  const text = dark ? n[50] : n[900];
+  // 30% colour: the user's secondary brand colour, else one traced from the primary by the default harmony.
+  const secondary = secondaryOf(p);
   return {
     "--color-bg": bg,
     "--color-surface": surface,
     "--color-surface-sunken": sunken,
-    "--color-text": dark ? n[50] : n[900],
+    "--color-text": text,
     "--color-text-muted": pick(n, surface, 4.5, dark ? 300 : 600, dark ? n[200] : n[700]),
     "--color-border": dark ? n[700] : n[200],
     "--color-border-strong": pick(n, surface, 3, dark ? 500 : 500, dark ? n[400] : n[600]),
@@ -232,7 +361,18 @@ export function roleTokens(p: Palette, dark = false): Record<string, string> {
     "--color-success": status("success"),
     "--color-danger": status("error"),
     "--color-danger-surface": dark ? p.status.error.ramp[900] : p.status.error.ramp[50],
+    ...secondaryTokens(secondary.hex, dark ? "dark" : "light", { surface, text }),
   };
+}
+
+/** The palette's secondary colour: the user's own (BrandRole "secondary"), else derived from the primary. */
+export function secondaryOf(p: Palette): { hex: string; from: "you" | "derived"; harmony?: Harmony } {
+  const own = p.brand.find((b) => b.role === "secondary");
+  if (own) return { hex: own.hex, from: "you" };
+  const primary = p.brand[0];
+  if (!primary) return { hex: p.neutral[600], from: "derived" };
+  const h = defaultSecondary(primary.hex);
+  return { hex: h.hex, from: "derived", harmony: h };
 }
 
 /** Every ramp as CSS custom properties: --brand-primary-500, --neutral-200, --status-error-600 … */
@@ -271,6 +411,10 @@ export function contrastAudit(p: Palette, tokens: Record<string, string>): Contr
     ["danger-surface", "Error text on cards", t("--color-danger"), t("--color-surface"), 4.5, p.status.error.ramp],
     ["danger-on-tint", "Error text on its tint", t("--color-danger"), t("--color-danger-surface"), 4.5, p.status.error.ramp],
     ["border-surface", "Strong borders on cards", t("--color-border-strong"), t("--color-surface"), 3, p.neutral],
+    ["on-secondary", "Text on the secondary colour", t("--color-on-secondary"), t("--color-secondary"), 4.5, undefined],
+    ["secondary-surface", "Secondary text on cards", t("--color-secondary"), t("--color-surface"), 4.5, undefined],
+    ["text-secondary-surface", "Text on secondary areas", t("--color-text"), t("--color-secondary-surface"), 4.5, undefined],
+    ["secondary-border", "Borders on secondary areas", t("--color-secondary-border"), t("--color-secondary-surface"), 3, undefined],
   ];
   return rows
     .filter(([, , fg, bg]) => fg && bg)
@@ -290,5 +434,7 @@ export function contrastAudit(p: Palette, tokens: Record<string, string>): Contr
 /** A starting palette from an app's current accent (and status colours), before the user has chosen any. */
 export function paletteFromTokens(tokens: Record<string, string>): PaletteConfig {
   const accent = normalizeHex(tokens["--color-accent"] ?? "") ?? "#6d28d9";
-  return { brand: [{ hex: accent, role: "primary" }], neutral: "brand" };
+  // The app's secondary (the 30% colour) is kept when it has one, so its harmony isn't replaced by the default.
+  const secondary = normalizeHex(tokens["--color-secondary"] ?? "");
+  return { brand: secondary && secondary !== accent ? [{ hex: accent, role: "primary" }, { hex: secondary, role: "secondary" }] : [{ hex: accent, role: "primary" }], neutral: "brand" };
 }

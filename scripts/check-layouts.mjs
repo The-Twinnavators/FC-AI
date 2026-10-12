@@ -34,6 +34,9 @@ const blocks = path.join(tmp, "src/components/ui");
 fs.mkdirSync(screens, { recursive: true });
 fs.mkdirSync(blocks, { recursive: true });
 for (const f of fs.readdirSync(kit)) fs.copyFileSync(path.join(kit, f), path.join(blocks, f));
+// The kit draws the catalog's components, shipped in the starter's src/sections/ (scripts/starter-library.mjs).
+const kitSections = path.join(root, "templates/react-vite-starter/src/sections");
+if (fs.existsSync(kitSections)) fs.cpSync(kitSections, path.join(tmp, "src/sections"), { recursive: true });
 for (const f of names) fs.copyFileSync(path.join(dir, f), path.join(screens, f));
 
 const cfg = path.join(tmp, "tsconfig.json");

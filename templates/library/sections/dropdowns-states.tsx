@@ -1,12 +1,12 @@
 /** @flowcode-library dropdowns-states · Dropdowns: select, combo box and the open menu (Forms)
  * Catalog ID: c.select (component)
  * Function: The native select (c.select; the combo box and open menus on the sheet are custom, not part of the export) with a reference sheet showing a select and a combo box in every state, a select with a prompt and labeled options, and four open menus.
- * Use it as: import { Select } from "./dropdowns-states"; <Select options={["A", "B"] or [{ value, label, disabled? }]} placeholder? variant?="outlined"|"filled"|"underlined" invalid? disabled? id? defaultValue? value? onChange?/>
+ * Use it as: import { Select } from "./dropdowns-states"; <Select version?="default"|"classic" options={["A", "B"] or [{ value, label, disabled? }]} placeholder? variant?="outlined"|"filled"|"underlined" invalid? disabled? id? defaultValue? value? onChange?/>
  * Variants: c.select.outlined - the default field in a form: a bordered box on the surface color; c.select.filled - a quiet field on a tinted background with no visible border; c.select.underlined - a dense field in a toolbar or table: only a bottom line
  * Look: A native select styled like the text fields, with a chevron 8px from the right edge; accent focus ring, danger border when invalid, dimmed when disabled.
  * Tokens: --color-surface --color-surface-sunken --color-border --color-border-strong --color-accent --color-danger --color-text-muted --focus-ring --space-2
  * Also: c.combobox (component)
- *   Use it as: import { Combobox } from "./dropdowns-states"; <Combobox variant?="listbox"|"search" options={[{ value, label, detail?, avatar?: { name, src? }, disabled? }]} multiple? value?/defaultValue? (string, or string[] when multiple) onChange?(value) placeholder? emptyText? invalid? disabled? inline? id? label?/>
+ *   Use it as: import { Combobox } from "./dropdowns-states"; <Combobox version?="default"|"classic" variant?="listbox"|"search" options={[{ value, label, detail?, avatar?: { name, src? }, disabled? }]} multiple? value?/defaultValue? (string, or string[] when multiple) onChange?(value) placeholder? emptyText? invalid? disabled? inline? id? label?/>
  *   Variants: c.combobox.listbox - pick from a short or medium list of rich options (avatar and detail line per option): a button showing the choice that opens a styled list; arrows, Home/End, Enter, Escape and type-a-letter jump; c.combobox.search - pick from a long list by typing: a text field that narrows the list by label or detail as you type and says when nothing matches; focus stays in the field, arrows move the highlight
  *   Look: A bordered field (a button for listbox, a text input for search) with a chevron at the right edge and a floating list under it; each option can have an avatar, a second muted detail line and a tick when chosen; the highlighted option has an accent tint, unavailable options are dimmed. With multiple the list stays open and toggles options; with inline the list is drawn open in the page.
  * Use cases: country picker; status filter; assignee picker; sort order; settings choice; category select; searchable dropdown; form selects; timezone picker; settings options
@@ -44,6 +44,8 @@ import { Avatar } from "./avatars-variants";
 
 export type SelectVariant = "outlined" | "filled" | "underlined";
 export type SelectOption = { value: string; label: string; disabled?: boolean };
+/** default = the text-field-matched select; classic = the form-panel select drawn like the custom list's button (c.select@classic). */
+export type DropdownVersion = "default" | "classic";
 
 // Written out in full (not built from the variant name) so a build finds every class the select needs.
 const VARIANT: Record<SelectVariant, string> = {
@@ -53,6 +55,8 @@ const VARIANT: Record<SelectVariant, string> = {
 };
 
 type SelectOwn = {
+  /** "classic" draws the native select like the custom list's button (variant is ignored). */
+  version?: DropdownVersion;
   variant?: SelectVariant;
   /** The choices: plain strings, or { value, label } when the stored value differs from the words shown. */
   options: (string | SelectOption)[];
@@ -64,12 +68,14 @@ type SelectOwn = {
   className?: string;
 };
 
-export function Select({ variant = "outlined", options, placeholder, invalid, className, ...rest }: SelectOwn & Omit<SelectHTMLAttributes<HTMLSelectElement>, keyof SelectOwn>) {
-  const cls = ["fl-input", "fl-ctl-field", VARIANT[variant], invalid ? "is-invalid" : "", className ?? ""].filter(Boolean).join(" ");
+export function Select({ version = "default", variant = "outlined", options, placeholder, invalid, className, ...rest }: SelectOwn & Omit<SelectHTMLAttributes<HTMLSelectElement>, keyof SelectOwn>) {
+  const classic = version === "classic";
+  const cls = classic ? ["fl-in-trigger", className ?? ""].filter(Boolean).join(" ") :  ["fl-input", "fl-ctl-field", VARIANT[variant], invalid ? "is-invalid" : "", className ?? ""].filter(Boolean).join(" ");
   // A placeholder starts the field unchosen unless the caller sets a value.
   const start = placeholder && rest.value === undefined && rest.defaultValue === undefined ? { defaultValue: "" } : {};
+  const Wrap = classic ? "div" : "span";
   return (
-    <span className="fl-ctl-select" data-fl={`c.select.${variant}`}>
+    <Wrap className={classic ? "fl-in-native" : "fl-ctl-select"} data-fl={classic ? "c.select@classic" : `c.select.${variant}`}>
       <select {...start} {...rest} className={cls} aria-invalid={invalid || undefined}>
         {placeholder ? (
           <option value="" disabled>
@@ -85,8 +91,8 @@ export function Select({ variant = "outlined", options, placeholder, invalid, cl
           );
         })}
       </select>
-      <Icon name="chevron-down" />
-    </span>
+      {classic ? <Chevron /> : <Icon name="chevron-down" />}
+    </Wrap>
   );
 }
 
@@ -96,6 +102,8 @@ export type ComboboxVariant = "listbox" | "search";
 export type ComboOption = { value: string; label: string; detail?: string; avatar?: { name: string; src?: string }; disabled?: boolean };
 
 type ComboboxProps = {
+  /** "classic" draws the form-panel look: an initial-letter avatar chip, a magnifier in the search field. */
+  version?: DropdownVersion;
   /** listbox: a button that opens a styled list, with type-ahead. search: an input that narrows the list as you type. */
   variant?: ComboboxVariant;
   /** The choices; plain strings work when value and label are the same. */
@@ -116,6 +124,8 @@ type ComboboxProps = {
   inline?: boolean;
   /** Goes on the field, so a <label htmlFor> can name it. */
   id?: string;
+  /** The id of the error message under the field, read out with it when invalid. */
+  describedBy?: string;
   /** The list's accessible name. */
   label?: string;
   /** Goes on the field itself, e.g. is-focus to draw the focus ring. */
@@ -132,10 +142,11 @@ function Chevron() {
   );
 }
 
-export function Combobox({ variant = "listbox", options, value, defaultValue, onChange, multiple, placeholder, emptyText = "Nothing matches that", invalid, disabled, inline, id, label, className }: ComboboxProps) {
+export function Combobox({ version = "default", variant = "listbox", options, value, defaultValue, onChange, multiple, placeholder, emptyText = "Nothing matches that", invalid, disabled, inline, id, describedBy, label, className }: ComboboxProps) {
   const auto = useId();
   const fid = id ?? `cb${auto.replace(/:/g, "")}`;
   const search = variant === "search";
+  const classic = version === "classic";
   const opts: ComboOption[] = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   const [inner, setInner] = useState<string[]>(asList(defaultValue));
   const sel = value !== undefined ? asList(value) : inner;
@@ -258,12 +269,21 @@ export function Combobox({ variant = "listbox", options, value, defaultValue, on
     }
   }
 
+  // classic: a small initial-letter chip stands in for the avatar picture.
+  const chip = (o: ComboOption) =>
+    classic ? (
+      <span className="fl-person__avatar fl-in-mini" aria-hidden="true">
+        {(o.avatar?.name ?? o.label).slice(0, 1)}
+      </span>
+    ) : (
+      <Avatar name={o.avatar!.name} src={o.avatar!.src} size={24} decorative />
+    );
   const content = (o: ComboOption, plain: boolean) =>
     plain && !o.avatar && !o.detail ? (
       o.label
     ) : (
       <>
-        {o.avatar ? <Avatar name={o.avatar.name} src={o.avatar.src} size={24} decorative /> : null}
+        {o.avatar ? chip(o) : null}
         <span className="fl-in-option__text">
           <span>{o.label}</span>
           {o.detail ? <span className="fl-meta">{o.detail}</span> : null}
@@ -278,6 +298,7 @@ export function Combobox({ variant = "listbox", options, value, defaultValue, on
     "aria-controls": isOpen ? `${fid}-list` : undefined,
     "aria-activedescendant": isOpen && items[active] ? optId(active) : undefined,
     "aria-invalid": invalid || undefined,
+    "aria-describedby": invalid ? describedBy : undefined,
     disabled,
     onKeyDown: onKey,
   };
@@ -286,13 +307,19 @@ export function Combobox({ variant = "listbox", options, value, defaultValue, on
   let field = null;
   if (search) {
     field = (
-      <span className="fl-ctl-combo">
+      <span className={classic ? "fl-in-search" : "fl-ctl-combo"}>
+        {classic ? (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m20 20-4-4" />
+          </svg>
+        ) : null}
         <input
           {...common}
           type="text"
           autoComplete="off"
           aria-autocomplete="list"
-          className={`fl-input fl-ctl-field fl-ctl-field--outlined${invalid ? " is-invalid" : ""}${extra}`}
+          className={classic ? `fl-input${extra}` : `fl-input fl-ctl-field fl-ctl-field--outlined${invalid ? " is-invalid" : ""}${extra}`}
           placeholder={placeholder}
           value={query}
           onFocus={() => !inline && !disabled && setOpen(true)}
@@ -302,7 +329,7 @@ export function Combobox({ variant = "listbox", options, value, defaultValue, on
             if (!inline) setOpen(true);
           }}
         />
-        <Icon name={inline ? "search" : "chevron-down"} />
+        {classic ? <Chevron /> : <Icon name={inline ? "search" : "chevron-down"} />}
       </span>
     );
   } else if (!inline) {
@@ -321,7 +348,7 @@ export function Combobox({ variant = "listbox", options, value, defaultValue, on
               sel.length ? `${sel.length} chosen` : placeholder ?? "Choose"
             ) : one ? (
               <>
-                {one.avatar ? <Avatar name={one.avatar.name} src={one.avatar.src} size={24} decorative /> : null}
+                {one.avatar ? chip(one) : null}
                 {one.label}
               </>
             ) : (
@@ -390,7 +417,7 @@ export function Combobox({ variant = "listbox", options, value, defaultValue, on
   ) : null;
 
   return (
-    <div ref={root} className={inline ? "fl-ctl-combo-open" : "fl-in-select"} data-fl={`c.combobox.${variant}`}>
+    <div ref={root} className={inline ? "fl-ctl-combo-open" : "fl-in-select"} data-fl={classic ? "c.combobox@classic" : `c.combobox.${variant}`}>
       {field}
       {list}
       {inline && multiple ? (
@@ -410,10 +437,165 @@ export function Combobox({ variant = "listbox", options, value, defaultValue, on
   );
 }
 
+// ── c.combobox@classic and c.select@classic in use: the booking form's three selects (input-select wraps this). ──
+
+export type ClassicSelectsProps = {
+  title: string;
+  lede: string;
+  teacher: { label: string; placeholder: string; options: { id: string; label: string; meta: string }[] };
+  room: { label: string; placeholder: string; options: string[] };
+  klass: { label: string; placeholder: string; empty: string; options: string[] };
+  submit: string;
+  required: (what: string) => string;
+  done: string;
+};
+
+export function ClassicSelects(d: ClassicSelectsProps) {
+  const uid = useId();
+  const [teacher, setTeacher] = useState("");
+  const [room, setRoom] = useState("");
+  const [klass, setKlass] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [done, setDone] = useState(false);
+
+  function clear(key: string) {
+    setDone(false);
+    setErrors((e) => ({ ...e, [key]: "" }));
+  }
+  function save() {
+    const next: Record<string, string> = {};
+    if (!teacher) next.teacher = d.required(d.teacher.label);
+    if (!room) next.room = d.required(d.room.label);
+    if (!klass) next.klass = d.required(d.klass.label);
+    setErrors(next);
+    setDone(Object.keys(next).length === 0);
+  }
+  const err = (key: string, text?: string) =>
+    text ? (
+      <span id={`${uid}-${key}-err`} className="fl-in-error">
+        {text}
+      </span>
+    ) : null;
+
+  return (
+    <section className="fl-section fl-section--tint" aria-labelledby={`${uid}-title`}>
+      <div className="fl-wrap fl-wrap--narrow">
+        <div className="fl-head">
+          <h2 id={`${uid}-title`} className="fl-title fl-title--md">
+            {d.title}
+          </h2>
+          <p className="fl-text">{d.lede}</p>
+        </div>
+        <div className="fl-card fl-in-panel">
+          <div className="fl-in-selects">
+            <div className="fl-field">
+              <label htmlFor={`${uid}-teacher`}>{d.teacher.label}</label>
+              <Combobox
+                version="classic"
+                id={`${uid}-teacher`}
+                label={d.teacher.label}
+                placeholder={d.teacher.placeholder}
+                options={d.teacher.options.map((o) => ({ value: o.id, label: o.label, detail: o.meta, avatar: { name: o.label } }))}
+                value={teacher}
+                invalid={!!errors.teacher}
+                describedBy={`${uid}-teacher-err`}
+                onChange={(v) => {
+                  setTeacher(v as string);
+                  clear("teacher");
+                }}
+              />
+              {err("teacher", errors.teacher)}
+            </div>
+            <div className="fl-field">
+              <label htmlFor={`${uid}-room`}>{d.room.label}</label>
+              <Select
+                version="classic"
+                id={`${uid}-room`}
+                placeholder={d.room.placeholder}
+                options={d.room.options}
+                value={room}
+                invalid={!!errors.room}
+                aria-describedby={errors.room ? `${uid}-room-err` : undefined}
+                onChange={(e) => {
+                  setRoom(e.target.value);
+                  clear("room");
+                }}
+              />
+              {err("room", errors.room)}
+            </div>
+            <div className="fl-field fl-in-selects__wide">
+              <label htmlFor={`${uid}-class`}>{d.klass.label}</label>
+              <Combobox
+                version="classic"
+                variant="search"
+                id={`${uid}-class`}
+                label={d.klass.label}
+                placeholder={d.klass.placeholder}
+                emptyText={d.klass.empty}
+                options={d.klass.options}
+                value={klass}
+                invalid={!!errors.klass}
+                describedBy={`${uid}-class-err`}
+                onChange={(v) => {
+                  setKlass(v as string);
+                  clear("klass");
+                }}
+              />
+              {err("klass", errors.klass)}
+            </div>
+          </div>
+          {done ? (
+            <p className="fl-done" role="status">
+              {d.done}
+            </p>
+          ) : null}
+          <div className="fl-actions">
+            <Button onClick={save}>{d.submit}</Button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 type Action = { id: string; label: string; icon: string; keys: string; disabled?: boolean; danger?: boolean };
 
 // flowcode:sample
 const SAMPLE = {
+  classic: {
+    title: "Book a session",
+    lede: "Pick a teacher, a room and the class you're joining.",
+    teacher: {
+      label: "Teacher",
+      placeholder: "Choose a teacher",
+      options: [
+        { id: "ana", label: "Ana Ferreira", meta: "Wheel and glazing" },
+        { id: "ben", label: "Ben Okafor", meta: "Hand building" },
+        { id: "cleo", label: "Cleo Marsh", meta: "Beginners" },
+        { id: "dev", label: "Dev Patel", meta: "Raku firing" },
+        { id: "erin", label: "Erin Walsh", meta: "Sculpture" },
+      ],
+    },
+    room: { label: "Room", placeholder: "Choose a room", options: ["Front studio", "Kiln room", "Garden shed", "Upstairs loft"] },
+    klass: {
+      label: "Class",
+      placeholder: "Search classes",
+      empty: "No classes match. Try a shorter word.",
+      options: [
+        "Beginners wheel, Monday 6pm",
+        "Beginners wheel, Wednesday 10am",
+        "Hand building, Tuesday 7pm",
+        "Glazing workshop, Thursday 6pm",
+        "Raku evening, Friday 7pm",
+        "Family clay, Saturday 10am",
+        "Sculpture club, Saturday 2pm",
+        "Open studio, Sunday 11am",
+      ],
+    },
+    submit: "Save booking",
+    required: (what: string) => `Choose a ${what.toLowerCase()}.`,
+    done: "Booking saved. We've added it to your calendar on this device.",
+  },
   kinds: [
     { id: "select", label: "Select", what: "A short list, chosen from a menu" },
     { id: "combo", label: "Combo box", what: "Long lists: type to narrow" },
@@ -707,6 +889,15 @@ export default function DropdownsStates() {
           {said || "Nothing chosen yet."}
         </p>
       </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Version: classic (c.select@classic, c.combobox@classic)</h3>
+        <p className="fl-ctl-btn-what">
+          The form-panel look: a custom list whose options carry an initial-letter chip and a detail line, a native select drawn
+          to match it, and a search field with a magnifier that narrows as you type. Saving checks each was chosen.
+        </p>
+      </div>
+      <ClassicSelects {...d.classic} />
     </section>
   );
 }

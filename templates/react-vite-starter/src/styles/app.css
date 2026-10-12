@@ -132,7 +132,7 @@ h3 {
 .panel {
   background: var(--color-surface);
   border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: min(var(--radius-lg), 24px);
   padding: var(--space-5);
 }
 

@@ -14,7 +14,7 @@ export function metaBlock(s: LibrarySection, categoryLabel: string): string {
   const one = (label: string, text: string | undefined) => (text ? [` * ${label}: ${text}`] : []);
   return [
     `${META_START} ${s.id} · ${s.name} (${categoryLabel})`,
-    ...(s.ref ? [` * Catalog ID: ${s.ref} (${levelOf(s.ref) ?? "piece"})`, ...one("Function", s.description), ...one("Use it as", s.usage)] : []),
+    ...(s.ref ? [` * Catalog ID: ${s.ref} (${levelOf(s.ref) ?? "piece"}${s.versionOf ? " version" : ""})`, ...one("Version of", s.versionOf), ...one("Function", s.description), ...one("Use it as", s.usage)] : []),
     ...line("Variants", s.variants?.map((v) => `${v.ref} - ${v.look}`), "; "),
     ...line("Built from", s.uses, ", "),
     ...one("Look", s.look),

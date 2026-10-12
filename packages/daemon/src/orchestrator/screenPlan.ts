@@ -12,7 +12,7 @@ import path from "node:path";
 import type { PathJail } from "../security/pathJail.js";
 import type { AgentOutcome } from "./agentLoop.js";
 import type { RuntimeStepArgs } from "./templates.js";
-import { LIBRARY_SECTIONS } from "@flowcode/contracts";
+import { LIBRARY_SECTIONS, SECTION_CATEGORIES } from "@flowcode/contracts";
 import { recordUse } from "./libraryUse.js";
 import { screenPicks, type ScreenPick } from "./screenPicks.js";
 import { pieceFiles, sectionFile, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
@@ -132,6 +132,11 @@ export interface Placement {
 export const placedKey = (runId: string) => `placedPieces:${runId}`;
 
 export function layoutFiles(plan: ScreenPlan, placements: Placement[] = []): Array<{ path: string; content: string }> {
+  // A screen that is a whole website page (a homepage, landing page or industry site template) brings its own header,
+  // navigation and footer, so it is drawn outside the app shell instead of under a second header.
+  const fullPage = plan.screens.filter((s) => placements.some((p) => p.screen === s.label && p.template && LIBRARY_SECTIONS.find((x) => x.id === p.id)?.category !== "apptemplates"));
+  const pick = (list: typeof plan.screens, indent: string) => (list.length === 1 && plan.screens.length === 1 ? [`${indent}<${list[0]!.component} />`] : list.map((s) => `${indent}{current === ${q(s.id)} ? <${s.component} /> : null}`));
+  const shelled = plan.screens.filter((s) => !fullPage.includes(s));
   const app = [
     `import { AppShell } from "./components/ui";`,
     `import { useScreen } from "./lib/screens";`,
@@ -139,12 +144,14 @@ export function layoutFiles(plan: ScreenPlan, placements: Placement[] = []): Arr
     ``,
     `const SCREENS = [${plan.screens.map((s) => `{ id: ${q(s.id)}, label: ${q(s.label)} }`).join(", ")}];`,
     `const SCREEN_IDS = SCREENS.map((s) => s.id);`,
+    ...(fullPage.length ? [`/** Whole website pages: drawn on their own, with their own header and footer. */`, `const FULL_PAGE = [${fullPage.map((s) => q(s.id)).join(", ")}];`] : []),
     ``,
     `export default function App() {`,
     `  const [current, go] = useScreen(SCREEN_IDS);`,
+    ...(fullPage.length ? [`  if (FULL_PAGE.includes(current)) return (`, `    <>`, ...pick(fullPage, "      "), `    </>`, `  );`] : []),
     `  return (`,
     `    <AppShell name=${q(plan.product)} screens={SCREENS} current={current} onNavigate={go}>`,
-    ...(plan.screens.length === 1 ? [`      <${plan.screens[0]!.component} />`] : plan.screens.map((s) => `      {current === ${q(s.id)} ? <${s.component} /> : null}`)),
+    ...pick(shelled, "      "),
     `    </AppShell>`,
     `  );`,
     `}`,
@@ -204,6 +211,16 @@ export function layoutOpen(jail: PathJail): boolean {
   return !fs.existsSync(dir) || !fs.readdirSync(dir).some((f) => /\.(tsx|jsx)$/.test(f));
 }
 
+/**
+ * A whole-page template (an app screen, a homepage, a landing page, an industry site): it becomes the screen instead of
+ * sitting under its page header. Only app screens counted before, so a website screen that matched a homepage got the
+ * page title on top of a whole homepage.
+ */
+export const isPageTemplate = (id: string) => {
+  const category = LIBRARY_SECTIONS.find((x) => x.id === id)?.category;
+  return SECTION_CATEGORIES.find((c) => c.id === category)?.group === "template";
+};
+
 /** The layout step done by FlowCode: App.tsx with the app shell and every planned screen, plus each screen's file. */
 export function layoutStep(plan: ScreenPlan) {
   return async ({ deps, run, task, jail, onChanged }: RuntimeStepArgs): Promise<AgentOutcome> => {
@@ -227,7 +244,7 @@ export function layoutStep(plan: ScreenPlan) {
         }
         if (!fs.existsSync(path.join(jail.root, rel))) continue;
         recordUse(deps.store, run.id, { id: p.id, by: "flowcode", step: task.title, reason: p.reason });
-        placements.push({ screen: p.screen, id: p.id, component, template: LIBRARY_SECTIONS.find((x) => x.id === p.id)?.category === "apptemplates" });
+        placements.push({ screen: p.screen, id: p.id, component, template: isPageTemplate(p.id) });
       }
       const css = syncedLibraryCss(jail.root);
       if (css !== undefined && deps.ops.replaceContent(ctx, "src/styles/library.css", css).ok) changed.push("src/styles/library.css");

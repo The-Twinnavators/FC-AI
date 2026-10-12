@@ -17,4 +17,10 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrors: "none" }],
     },
   },
+  {
+    // FlowCode catalog pieces, copied as they are from the library: an import a piece's reference sheet no longer
+    // needs is the catalog's to tidy, not this app's.
+    files: ["src/sections/**/*.{ts,tsx}"],
+    rules: { "@typescript-eslint/no-unused-vars": "off" },
+  },
 );

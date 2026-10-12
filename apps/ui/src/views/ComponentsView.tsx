@@ -4,7 +4,7 @@
  * the section's styles never mix with FlowCode's. Read-only: builds copy the sections they need.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, STYLE_VIBES, TEMPLATE_VIBES, usedBy, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
+import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, STYLE_VIBES, TEMPLATE_VIBES, levelOf, usedBy, versionsOf, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
 import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
 import { Search } from "lucide-react";
@@ -73,9 +73,24 @@ function SectionThumb({ id, look, title }: { id: string; look: string; title: st
   );
 }
 
+/** The library's shelves by catalog level: whole pages, page sections, patterns, then components. */
+const LEVELS = [
+  ["template", "Page templates"],
+  ["block", "Page sections"],
+  ["pattern", "Patterns"],
+  ["component", "Components"],
+] as const;
+/** A piece's level group: its catalog ID's level (token sheets sit with the components). */
+const levelGroup = (s: LibrarySection) => {
+  const l = s.ref ? levelOf(s.ref) : undefined;
+  return l === "template" || l === "block" || l === "pattern" ? l : "component";
+};
+const shelfOf = (s: LibrarySection) => `${levelGroup(s)}:${s.category}`;
+
 export function ComponentsView() {
   // "proposed": new pieces waiting for the owner's approval, not in the library yet.
-  const [cat, setCat] = useState<SectionCategory | "all" | "proposed">("all");
+  // A shelf is a catalog level and a category in it ("component:forms"), or all pieces, or the approval queue.
+  const [cat, setCat] = useState<string>("all");
   const [styleId, setStyleId] = useState(() => {
     try {
       const saved = localStorage.getItem("flowcode.componentsStyle");
@@ -110,17 +125,22 @@ export function ComponentsView() {
     setCode(undefined);
     if (open) void sources[key(open.id)]?.().then(setCode);
   }, [open]);
-  const counts = useMemo(() => new Map(SECTION_CATEGORIES.map((c) => [c.id, LIBRARY_SECTIONS.filter((s) => s.category === c.id).length])), []);
+  const counts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of LIBRARY_SECTIONS) m.set(shelfOf(s), (m.get(shelfOf(s)) ?? 0) + 1);
+    return m;
+  }, []);
   const catOrder = useMemo(() => new Map(SECTION_CATEGORIES.map((c, i) => [c.id, i])), []);
   // Search: every word must appear in the piece's name, description, tags or shelf (within the shelf you're on).
   const [q, setQ] = useState("");
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-  const label = (c: string) => SECTION_CATEGORIES.find((x) => x.id === c)?.label ?? c;
+  const label = (c: string) => SECTION_CATEGORIES.find((x) => x.id === c.split(":").pop())?.label ?? c;
   const matches = (x: LibrarySection) => !words.length || words.every((w) => `${x.name} ${x.description} ${x.tags.join(" ")} ${label(x.category)}`.toLowerCase().includes(w));
   // The grid follows the shelves beside it: categories in their listed order, and inside one, the order they are
   // written in (sort is stable). On a single shelf every piece shares a category, so this changes nothing there.
-  const byCategory = (a: LibrarySection, b: LibrarySection) => (catOrder.get(a.category) ?? SECTION_CATEGORIES.length) - (catOrder.get(b.category) ?? SECTION_CATEGORIES.length);
-  const shown = (cat === "proposed" ? PROPOSED_SECTIONS.filter(matches) : LIBRARY_SECTIONS.filter((s) => (cat === "all" || s.category === cat) && matches(s))).sort(byCategory);
+  const byCategory = (a: LibrarySection, b: LibrarySection) =>
+    LEVELS.findIndex(([l]) => l === levelGroup(a)) - LEVELS.findIndex(([l]) => l === levelGroup(b)) || (catOrder.get(a.category) ?? SECTION_CATEGORIES.length) - (catOrder.get(b.category) ?? SECTION_CATEGORIES.length);
+  const shown = (cat === "proposed" ? PROPOSED_SECTIONS.filter(matches) : LIBRARY_SECTIONS.filter((s) => (cat === "all" || shelfOf(s) === cat) && matches(s))).sort(byCategory);
   // Previous and next in the details modal, through the pieces on the current shelf (← and → keys too).
   const at = open ? shown.findIndex((x) => x.id === open.id) : -1;
   const step = (d: number) => {
@@ -140,7 +160,7 @@ export function ComponentsView() {
     return () => removeEventListener("keydown", onKey);
   });
   // Choosing a shelf goes back up to the top of the list (just under the top bar); already above it, it stays put.
-  const pick = (id: SectionCategory | "all" | "proposed") => {
+  const pick = (id: string) => {
     setCat(id);
     const top = document.getElementById("cl-room-top");
     if (top && top.getBoundingClientRect().top < 72) top.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -201,13 +221,13 @@ export function ComponentsView() {
             <span className="lib-shelf__label">All sections</span>
             <span className="lib-shelf__count">{LIBRARY_SECTIONS.length}</span>
           </button>
-          {(["template", "page", "app"] as const).filter((g) => SECTION_CATEGORIES.some((c) => c.group === g && counts.get(c.id))).map((g) => (
-            <div key={g} className="cl-group">
-              <p className="lib-shelves__heading">{g === "template" ? "Page templates" : g === "page" ? "Page sections" : "App components"}</p>
-              {SECTION_CATEGORIES.filter((c) => c.group === g && counts.get(c.id)).map((c) => (
-                <button key={c.id} type="button" className="lib-shelf" aria-current={cat === c.id} onClick={() => pick(c.id)}>
+          {LEVELS.filter(([l]) => SECTION_CATEGORIES.some((c) => counts.get(`${l}:${c.id}`))).map(([l, heading]) => (
+            <div key={l} className="cl-group">
+              <p className="lib-shelves__heading">{heading}</p>
+              {SECTION_CATEGORIES.filter((c) => counts.get(`${l}:${c.id}`)).map((c) => (
+                <button key={c.id} type="button" className="lib-shelf" aria-current={cat === `${l}:${c.id}`} onClick={() => pick(`${l}:${c.id}`)}>
                   <span className="lib-shelf__label">{c.label}</span>
-                  <span className="lib-shelf__count">{counts.get(c.id)}</span>
+                  <span className="lib-shelf__count">{counts.get(`${l}:${c.id}`)}</span>
                 </button>
               ))}
             </div>
@@ -296,6 +316,7 @@ export function ComponentsView() {
 function PieceRefs({ piece }: { piece: LibrarySection }) {
   if (!piece.ref) return null;
   const users = usedBy(piece.ref);
+  const versions = versionsOf(piece.ref);
   const refs = (list: string[]) => list.map((r) => <code key={r} className="cl-ref">{r}</code>);
   return (
     <dl className="cl-refs">
@@ -315,6 +336,18 @@ function PieceRefs({ piece }: { piece: LibrarySection }) {
         <div>
           <dt>Also</dt>
           <dd>{refs(piece.also.flatMap((a) => [a.ref, ...(a.variants ?? []).map((v) => v.ref)]))}</dd>
+        </div>
+      ) : null}
+      {piece.versionOf ? (
+        <div>
+          <dt>Version of</dt>
+          <dd>{refs([piece.versionOf])}</dd>
+        </div>
+      ) : null}
+      {versions.length ? (
+        <div>
+          <dt>Versions</dt>
+          <dd>{refs(versions.map((v) => v.ref!))}</dd>
         </div>
       ) : null}
       {piece.uses?.length ? (

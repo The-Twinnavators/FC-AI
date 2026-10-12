@@ -1,7 +1,7 @@
 /** @flowcode-library tabs-variants · Horizontal tabs: underline, pills and enclosed (Tabs, breadcrumbs and paging)
  * Catalog ID: c.tabs (component)
  * Function: The one tabs control (c.tabs), horizontal or vertical; this sheet shows the three horizontal looks and three heights, with arrow-key navigation. It also shows controlled tabs driven by an outside button and a trailing button sharing the bar.
- * Use it as: import { Tabs } from "./tabs-variants"; <Tabs tabs={[{ id, label, count?, icon?, disabled?, panel? }]} label="Sections" orientation?="horizontal"|"vertical" variant?="underline"|"pills"|"enclosed"|"plain"|"filled" size?={32|40|44} defaultId? value? onChange?={(id) => ...} trailing?={node at the end of the bar} />
+ * Use it as: import { Tabs } from "./tabs-variants"; <Tabs tabs={[{ id, label, count?, icon?, disabled?, panel? }]} label="Sections" orientation?="horizontal"|"vertical" variant?="underline"|"pills"|"enclosed"|"plain"|"filled" size?={32|40|44} version?="underline-slide"|"pill"|"neobrutal" countNoun? defaultId? value? onChange?={(id) => ...} trailing?={node at the end of the bar} />
  * Variants: c.tabs.underline - the default across an app (horizontal): a rule under the selected tab; c.tabs.pills - tabs on a tinted surface (horizontal): a filled accent pill marks the selected tab; c.tabs.enclosed - tabs joined to the panel below (horizontal): folder tabs; c.tabs.plain - a long list of sections (vertical rail): a line down the side marks the selected tab; c.tabs.filled - a vertical rail on a busy page: the selected row is a tinted accent block
  * Look: A row or vertical rail of text tabs with an optional icon and count; the selected tab is marked and its panel sits below or beside the list.
  * Tokens: --color-accent --color-on-accent --color-text --color-text-muted --color-border --color-surface --color-surface-sunken --radius-md --radius-lg --space-2 --space-4 --weight-medium --text-sm --focus-ring
@@ -25,7 +25,7 @@
  * the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built
  * app exactly as it runs here.
  */
-import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 
@@ -34,6 +34,8 @@ import { Button } from "./buttons-variants";
 export type TabsOrientation = "horizontal" | "vertical";
 export type TabsVariant = "underline" | "pills" | "enclosed" | "plain" | "filled";
 export type TabsSize = 32 | 40 | 44;
+/** Alternative designs of the same control (c.tabs@<version>); left out = the default look. */
+export type TabsVersion = "underline-slide" | "pill" | "neobrutal";
 export type TabItem = {
   id: string;
   label: string;
@@ -54,6 +56,12 @@ const LOOK: Record<TabsVariant, string> = {
   plain: "fl-ctl-vtabs--plain",
   filled: "fl-ctl-vtabs--filled",
 };
+// Each version's own classes, written out in full. wrap surrounds the tab list only; root surrounds list and panel.
+const VERSION: Record<TabsVersion, { root: string; wrap: string; list: string; tab: string; count: string; panel: string }> = {
+  "underline-slide": { root: "", wrap: "fl-ctl-tabs", list: "fl-ctl-tablist", tab: "fl-ctl-tab", count: "fl-ctl-tab__count", panel: "fl-ctl-panel" },
+  pill: { root: "", wrap: "", list: "fl-way-pills", tab: "fl-way-pill", count: "fl-way-pill__count", panel: "fl-way-panel" },
+  neobrutal: { root: "fl-nb fl-nb-tabs", wrap: "", list: "fl-nb-tablist", tab: "fl-nb-tab", count: "", panel: "fl-nb-box fl-nb-panel" },
+};
 const SIZE: Record<TabsSize, string> = { 32: "fl-ctl-tabset--32", 40: "fl-ctl-tabset--40", 44: "fl-ctl-tabset--44" };
 
 type TabsProps = {
@@ -73,10 +81,14 @@ type TabsProps = {
   onChange?: (id: string) => void;
   /** Content at the end of the tab bar (a copy button, say), outside the tab list. Horizontal only. */
   trailing?: ReactNode;
+  /** An alternative design of the whole control (horizontal only): underline-slide, pill or neobrutal. */
+  version?: TabsVersion;
+  /** Screen-reader word after each count in a version ("items" reads "3 items"). */
+  countNoun?: string;
   className?: string;
 };
 
-export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 40, defaultId, value, onChange, trailing, className }: TabsProps) {
+export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 40, defaultId, value, onChange, trailing, version, countNoun, className }: TabsProps) {
   const vertical = orientation === "vertical";
   const look: TabsVariant = variant ?? (vertical ? "plain" : "underline");
   const uid = useId();
@@ -105,7 +117,25 @@ export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 
     e.preventDefault();
     setOn(next.id);
     refs.current[next.id]?.focus();
+    if (version) refs.current[next.id]?.scrollIntoView({ block: "nearest", inline: "nearest" });
   };
+
+  // underline-slide: move the underline under the open tab, and keep it there when the layout changes.
+  const [bar, setBar] = useState({ x: 0, w: 0 });
+  const slide = version === "underline-slide" && !vertical;
+  const openId = (tabs.find((t) => t.id === on) ?? tabs[0])?.id;
+  useLayoutEffect(() => {
+    if (!slide) return;
+    const place = () => {
+      const el = openId ? refs.current[openId] : null;
+      if (el) setBar({ x: el.offsetLeft, w: el.offsetWidth });
+    };
+    place();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(place);
+    Object.values(refs.current).forEach((el) => el && ro.observe(el));
+    return () => ro.disconnect();
+  }, [slide, openId, tabs]);
 
   const list = (
     <div
@@ -146,6 +176,51 @@ export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 
       })}
     </div>
   );
+
+  if (version && !vertical) {
+    const V = VERSION[version];
+    const tablist = (
+      <div className={V.list} role="tablist" aria-label={label} onKeyDown={onKey}>
+        {tabs.map((t) => {
+          const sel = t.id === here?.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              id={tabId(t.id)}
+              aria-selected={sel}
+              aria-controls={panelId}
+              disabled={t.disabled}
+              tabIndex={sel ? 0 : -1}
+              className={V.tab}
+              ref={(el) => {
+                refs.current[t.id] = el;
+              }}
+              onClick={() => !t.disabled && setOn(t.id)}
+            >
+              {t.label}
+              {V.count && t.count !== undefined ? (
+                <span className={V.count}>
+                  {t.count}
+                  {countNoun ? <span className="fl-sr"> {countNoun}</span> : null}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+        {slide ? <span className="fl-ctl-tabs__bar" aria-hidden="true" style={{ transform: `translateX(${bar.x}px)`, width: bar.w }} /> : null}
+      </div>
+    );
+    return (
+      <div className={[V.root, className ?? ""].filter(Boolean).join(" ") || undefined} data-fl={`c.tabs@${version}`}>
+        {V.wrap ? <div className={V.wrap}>{tablist}</div> : tablist}
+        <div className={V.panel} role="tabpanel" id={panelId} aria-labelledby={here ? tabId(here.id) : undefined} tabIndex={0}>
+          {typeof here?.panel === "string" ? <p>{here.panel}</p> : here?.panel}
+        </div>
+      </div>
+    );
+  }
 
   if (vertical) {
     return (
@@ -189,6 +264,16 @@ const SAMPLE = {
     { id: "archive", label: "Archive", count: 0, panel: "Nothing archived yet.", disabled: true },
   ],
   sizes: [32 as const, 40 as const, 44 as const],
+  versions: [
+    { id: "underline-slide" as const, what: "The underline slides and stretches to the open tab; counts read as items." },
+    { id: "pill" as const, what: "Rounded pills with a count bubble, for sorting one list into stages." },
+    { id: "neobrutal" as const, what: "Thick-inked folder tabs that join a hard-shadowed panel." },
+  ],
+  versionTabs: [
+    { id: "today", label: "Today", count: 3, panel: "Water the plants, take the recycling out, book the boiler check." },
+    { id: "week", label: "This week", count: 5, panel: "Clean the oven, change the sheets, pay the window cleaner." },
+    { id: "later", label: "Later", count: 2, panel: "Paint the hallway and clear out the shed." },
+  ],
 };
 
 export default function TabsVariants() {
@@ -233,6 +318,23 @@ export default function TabsVariants() {
             </Button>
           }
         />
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Versions</h3>
+        <p className="fl-ctl-btn-what">
+          Alternative designs of the same control, chosen by preference: version="underline-slide", "pill" or "neobrutal". Arrow keys,
+          Home and End work in each.
+        </p>
+        <ul className="fl-ctl-tabs-list">
+          {d.versions.map((v) => (
+            <li key={v.id}>
+              <p className="fl-ctl-matrix-kind">c.tabs@{v.id}</p>
+              <p className="fl-ctl-matrix-what">{v.what}</p>
+              <Tabs tabs={d.versionTabs} label={`${v.id} tabs`} version={v.id} countNoun="items" />
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="fl-ctl-sizes">

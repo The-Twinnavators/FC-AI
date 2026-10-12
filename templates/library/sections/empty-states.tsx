@@ -1,10 +1,10 @@
 /** @flowcode-library empty-states · Empty states: nothing yet, nothing found, nothing left, nothing worked (Alerts and states)
  * Catalog ID: c.empty-state (component)
- * Function: The empty state (c.empty-state), one component for the four different reasons a place is empty; the reference sheet shows nothing yet, nothing found (live search), nothing left and nothing worked.
- * Use it as: import { EmptyState } from "./empty-states"; <EmptyState variant?="first-use"|"no-results"|"done"|"error" title headingLevel?={2|3} align?="center"|"start" icon? art?={<svg/>} before? action?={<Button>…</Button>}>one sentence why</EmptyState>
+ * Function: The empty state (c.empty-state), one component for the four different reasons a place is empty; the reference sheet shows nothing yet, nothing found (live search), nothing left and nothing worked. Version: illustrated.
+ * Use it as: import { EmptyState } from "./empty-states"; <EmptyState version?="illustrated" variant?="first-use"|"no-results"|"done"|"error" title headingLevel?={2|3} align?="center"|"start" icon? art?={<svg/>} before? action?={<Button>…</Button>}>one sentence why</EmptyState>
  * Variants: c.empty-state.first-use - nothing has been made yet: a muted round icon, a bold title, one sentence and a primary Button that makes the first thing; c.empty-state.no-results - a search or filter matched nothing: a search icon, the title naming the query, and a Button that clears or widens it; c.empty-state.done - finished, nothing left to do: a green check icon and a calm sentence, usually no action; c.empty-state.error - empty because a load failed: a red-tinted border and alert icon, with a Try again Button
  * Look: A dashed-border panel with centered content: a round icon, a bold title, one muted sentence and the one action that fits.
- * Tokens: --color-surface-sunken --color-text-muted --color-success --color-danger --color-border --text-md --space-1 --space-2 --space-3 --radius-md
+ * Tokens: --color-surface-sunken --color-text-muted --color-success --color-danger --color-border --text-md --space-1 --space-2 --space-3 --radius-md --color-border-strong --color-accent --text-lg
  * Use cases: a new account's first screen; a search with no results; a cleared inbox; a failed load; a filtered table; empty list; first run; no projects yet; empty inbox; no tasks; empty cart; onboarding start; no saved items
  * Jobs to be done: understand why this is empty; know what to do next; get back to something that is not empty; add my first item; understand what goes here; get started with the product
  * Keywords: empty state, zero state, no results, first run, onboarding, error state, placeholder, list, zero data
@@ -30,19 +30,26 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { createElement, useState, type ReactNode } from "react";
+import { createElement, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 
 // ── c.empty-state: what a place shows when it has nothing to show. One for each reason it can be empty. ──
 
 export type EmptyStateVariant = "first-use" | "no-results" | "done" | "error";
+/**
+ * Other designs of the empty state. "default" is the compact dashed panel with a round icon; "illustrated" is the roomy
+ * first-run panel with a drawn illustration, a heading, a line and one primary action (the variant is ignored).
+ */
+export type EmptyStateVersion = "default" | "illustrated";
 
 // Written out in full (not built from the variant name) so a build finds every class the empty state needs.
 const VARIANT: Record<EmptyStateVariant, string> = { "first-use": "", "no-results": "", done: "fl-ctl-empty--good", error: "fl-ctl-empty--bad" };
 const ICON: Record<EmptyStateVariant, string> = { "first-use": "image", "no-results": "search", done: "check", error: "alert" };
 
-export function EmptyState({ variant = "first-use", title, icon, art, headingLevel, align = "center", before, action, className, children }: {
+export function EmptyState({ version = "default", variant = "first-use", title, icon, art, headingLevel, align = "center", before, action, className, children }: {
+  /** Another design of the empty state; "default" when left out. See EmptyStateVersion. */
+  version?: EmptyStateVersion;
   variant?: EmptyStateVariant;
   /** What is empty, in a few words: "No shoots yet". */
   title: string;
@@ -62,6 +69,20 @@ export function EmptyState({ variant = "first-use", title, icon, art, headingLev
   /** One sentence saying why it is empty. */
   children?: ReactNode;
 }) {
+  if (version === "illustrated") {
+    const Heading = `h${headingLevel ?? 3}` as "h2" | "h3";
+    return (
+      <div className={["fl-alr-empty", className ?? ""].filter(Boolean).join(" ")} data-fl="c.empty-state@illustrated">
+        {before}
+        {art ?? LIST_ART}
+        <Heading className="fl-title fl-title--md" style={{ fontSize: "var(--text-lg)" }}>
+          {title}
+        </Heading>
+        {children ? <p className="fl-text">{children}</p> : null}
+        {action}
+      </div>
+    );
+  }
   const cls = ["fl-spec-empty", VARIANT[variant], className ?? ""].filter(Boolean).join(" ");
   return (
     <div className={cls} data-fl={`c.empty-state.${variant}`} style={align === "start" ? { justifyItems: "start", textAlign: "left" } : undefined}>
@@ -83,6 +104,12 @@ export function EmptyState({ variant = "first-use", title, icon, art, headingLev
 // flowcode:sample
 const SAMPLE = {
   shoots: ["Riverside wedding", "Harbour engagement", "Studio headshots", "Vineyard anniversary"],
+  suggestions: [
+    { name: "Oat milk", note: "2 cartons" },
+    { name: "Washing-up liquid", note: "The unscented one" },
+    { name: "Sourdough loaf", note: "From the bakery on the corner" },
+    { name: "Bin bags", note: "Large, 30 pack" },
+  ],
 };
 
 // A drawn list with a plus: the illustration a first-use screen can carry in place of the round icon.
@@ -90,7 +117,7 @@ const LIST_ART = (
   <svg className="fl-alr-empty__art" viewBox="0 0 160 120" aria-hidden="true">
     <ellipse cx="80" cy="108" rx="58" ry="7" style={{ fill: "var(--color-surface-sunken)" }} />
     <rect x="38" y="18" width="84" height="88" rx="10" style={{ fill: "var(--color-surface)", stroke: "var(--color-border-strong)", strokeWidth: 2 }} />
-    <rect x="62" y="10" width="36" height="16" rx="6" style={{ fill: "color-mix(in srgb, var(--color-accent) 22%, var(--color-surface))", stroke: "var(--color-accent)", strokeWidth: 2 }} />
+    <rect x="62" y="10" width="36" height="16" rx="6" style={{ fill: "var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 22%, var(--color-surface)))", stroke: "var(--color-secondary-border, var(--color-accent))", strokeWidth: 2 }} />
     {[44, 62, 80].map((y, i) => (
       <g key={y}>
         <rect x="52" y={y - 5} width="10" height="10" rx="3" style={{ fill: "none", stroke: "var(--color-border-strong)", strokeWidth: 2 }} />
@@ -108,6 +135,22 @@ export default function EmptyStates() {
   const [broke, setBroke] = useState(true);
   const [said, setSaid] = useState("");
   const hits = d.shoots.filter((s) => s.toLowerCase().includes(q.trim().toLowerCase()));
+
+  // The illustrated version's live list: add fills it, removing every item brings the empty state back.
+  const [items, setItems] = useState<{ id: number; name: string; note: string }[]>([]);
+  const nextId = useRef(1);
+  const addRef = useRef<HTMLButtonElement>(null);
+  const addItem = () => {
+    const s = d.suggestions[(nextId.current - 1) % d.suggestions.length];
+    setItems((all) => [...all, { id: nextId.current++, ...s }]);
+    setSaid(`Added ${s.name}`);
+  };
+  const removeItem = (id: number, name: string) => {
+    const left = items.length - 1;
+    setItems((all) => all.filter((i) => i.id !== id));
+    setSaid(`Removed ${name}`);
+    if (left === 0) window.setTimeout(() => addRef.current?.focus(), 0);
+  };
 
   const search = (
     <span className="fl-ctl-combo fl-ctl-empty-search">
@@ -158,6 +201,43 @@ export default function EmptyStates() {
           >
             Everyone at home sees the same list, so nobody buys milk twice.
           </EmptyState>
+        </li>
+
+        <li>
+          <p className="fl-ctl-matrix-kind">c.empty-state@illustrated</p>
+          <p className="fl-ctl-matrix-what">version="illustrated": the roomy first-run panel. Add an item and the list appears; remove them all and it returns.</p>
+          {items.length === 0 ? (
+            <EmptyState
+              version="illustrated"
+              title="Nothing on the list yet"
+              action={
+                <Button ref={addRef} size={40} onClick={addItem}>
+                  Add your first item
+                </Button>
+              }
+            >
+              Add what the house needs this week. Everyone at home sees the same list, so nobody buys milk twice.
+            </EmptyState>
+          ) : (
+            <>
+              <ul className="fl-alr-empty__list" aria-label={`${items.length} ${items.length === 1 ? "item" : "items"} on the list`}>
+                {items.map((i) => (
+                  <li key={i.id}>
+                    <div>
+                      <strong>{i.name}</strong>
+                      <span className="fl-meta">{i.note}</span>
+                    </div>
+                    <Button variant="tertiary" size={32} icon="close" iconOnly onClick={() => removeItem(i.id, i.name)}>
+                      {`Remove ${i.name}`}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+              <Button size={40} onClick={addItem}>
+                Add another
+              </Button>
+            </>
+          )}
         </li>
 
         <li>

@@ -9,7 +9,7 @@
 }
 .fl-brd-chip::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: currentColor; flex: none; }
 .fl-brd-chip--ok { color: var(--color-success); }
-.fl-brd-chip--warn { color: var(--color-accent); }
+.fl-brd-chip--warn { color: var(--color-secondary, var(--color-accent)); }
 .fl-brd-chip--bad { color: var(--color-danger); background: var(--color-danger-surface); }
 .fl-brd-chip--plain::before { display: none; }
 .fl-brd-label {
@@ -20,7 +20,7 @@
 .fl-brd-error { margin: 0; font-size: var(--text-sm); color: var(--color-danger); }
 .fl-brd-empty {
   display: grid; justify-items: center; gap: var(--space-3); padding: var(--space-8) var(--space-5); text-align: center;
-  border: 1px dashed var(--color-border-strong); border-radius: var(--surface-radius, var(--radius-lg)); color: var(--color-text-muted);
+  border: 1px dashed var(--color-border-strong); border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); color: var(--color-text-muted);
 }
 .fl-brd-empty strong { color: var(--color-text); font-size: var(--text-lg); }
 .fl-brd-empty p { margin: 0; }
@@ -32,7 +32,7 @@
 .fl-brd-proj {
   position: relative; isolation: isolate; display: grid; gap: var(--space-4); align-content: start; padding: var(--space-5);
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
-  border-radius: var(--surface-radius, var(--radius-lg)); box-shadow: var(--surface-shadow, none);
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); box-shadow: var(--surface-shadow, none);
   transition: transform var(--duration-base) var(--easing), box-shadow var(--duration-base) var(--easing);
 }
 /* Faint grid that fades out from the top-left corner, as in the original card. */
@@ -100,13 +100,13 @@
 .fl-brd-steps li[data-state="current"] { background: var(--color-accent); }
 .fl-brd-steps li[data-state="done"] { background: var(--color-success); }
 .fl-brd-appr {
-  overflow: hidden; border-radius: var(--surface-radius, var(--radius-lg)); background: var(--surface-bg, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, var(--color-border)); box-shadow: var(--surface-shadow, none);
+  overflow: hidden; border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); background: var(--surface-bg, var(--color-surface));
+  border: 1px solid var(--color-secondary-border, color-mix(in srgb, var(--color-accent) 40%, var(--color-border))); box-shadow: var(--surface-shadow, none);
 }
 .fl-brd-appr--high { border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border)); }
 .fl-brd-appr__head {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-3) var(--space-5);
-  border-bottom: 1px solid var(--color-border); background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border-bottom: 1px solid var(--color-border); background: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 8%, transparent));
 }
 .fl-brd-appr--high .fl-brd-appr__head { background: var(--color-danger-surface); }
 .fl-brd-appr__head .fl-brd-label:last-child { margin-left: auto; }
@@ -152,11 +152,11 @@
   --fl-brd-surface: color-mix(in srgb, var(--color-text) 94%, var(--color-bg));
   --fl-brd-ink: var(--color-bg);
   --fl-brd-ink-muted: color-mix(in srgb, var(--color-bg) 72%, var(--color-text));
-  --fl-brd-from: color-mix(in oklab, var(--color-accent) 40%, var(--color-bg));
+  --fl-brd-from: color-mix(in oklab, var(--color-secondary, var(--color-accent)) 40%, var(--color-bg));
   --fl-brd-to: color-mix(in oklab, var(--color-success) 70%, var(--color-bg));
   position: relative; isolation: isolate; overflow: hidden; display: grid; gap: var(--space-5); justify-items: start;
   padding: clamp(var(--space-6), 6vw, var(--space-9)) clamp(var(--space-5), 5vw, var(--space-8));
-  border-radius: var(--radius-xl); background: var(--fl-brd-surface); color: var(--fl-brd-ink);
+  border-radius: min(var(--radius-xl), 24px); background: var(--fl-brd-surface); color: var(--fl-brd-ink);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fl-brd-ink) 12%, transparent);
 }
 @media (prefers-color-scheme: dark) {
@@ -164,7 +164,7 @@
     --fl-brd-surface: var(--color-surface-sunken);
     --fl-brd-ink: var(--color-text);
     --fl-brd-ink-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-bg));
-    --fl-brd-from: var(--color-accent);
+    --fl-brd-from: var(--color-secondary, var(--color-accent));
     --fl-brd-to: var(--color-success);
   }
 }
@@ -172,7 +172,7 @@
   --fl-brd-surface: var(--color-surface-sunken);
   --fl-brd-ink: var(--color-text);
   --fl-brd-ink-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-bg));
-  --fl-brd-from: var(--color-accent);
+  --fl-brd-from: var(--color-secondary, var(--color-accent));
   --fl-brd-to: var(--color-success);
 }
 /* Soft glow in the top-right corner and a fading grid, like the original banner, drawn only with tokens. */

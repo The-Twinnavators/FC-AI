@@ -1,7 +1,7 @@
 /** @flowcode-library tooltips-variants · Tooltips: placement, delay and what belongs in one (Alerts and states)
  * Catalog ID: c.tooltip (component)
  * Function: The tooltip (c.tooltip) that names a control on hover and keyboard focus; the reference sheet shows four placements, the delay (and none), a short sentence and what does not belong in one.
- * Use it as: import { Tooltip } from "./tooltips-variants"; <Tooltip tip="New shoot" place?="top"|"bottom"|"left"|"right" delay?={400}><button aria-label="New shoot">...</button></Tooltip>
+ * Use it as: import { Tooltip } from "./tooltips-variants"; <Tooltip tip="New shoot" place?="top"|"bottom"|"left"|"right" delay?={400} version?="standard"|"arrow"><button aria-label="New shoot">...</button></Tooltip>
  * Look: A small dark label of a few words that fades in beside a control after a short delay and leaves at once. It stays open while the pointer is on the label itself.
  * Tokens: --color-text --color-bg --radius-md --text-xs --duration-fast --easing --space-1 --space-2
  * Use cases: naming an icon button; a shortened cell in a table; a keyboard shortcut; a disabled control's reason; toolbar hints; icon buttons; calendar toolbar; editor toolbar; field help; control explanations; accessibility hints
@@ -62,11 +62,24 @@ const PLACE: Record<TooltipPlace, string> = {
   right: "fl-ctl-tip-wrap--right",
 };
 
+/** The design: standard (dark label, short delay) or arrow (a pointed label that opens at once, the original toolbar tooltip). */
+export type TooltipVersion = "standard" | "arrow";
+
+// Arrow version classes, written out in full (not built from the placement).
+const ARROW_TIP: Record<TooltipPlace, string> = {
+  top: "fl-way-tip fl-way-tip--top",
+  bottom: "fl-way-tip fl-way-tip--bottom",
+  left: "fl-way-tip fl-way-tip--left",
+  right: "fl-way-tip fl-way-tip--right",
+};
+
 type TooltipProps = {
   /** The name, in two or three words. A short sentence at most: it wraps at 14rem. */
   tip: ReactNode;
-  /** Milliseconds of rest before it opens on hover; 400 when left out. Keyboard focus opens it at once. */
+  /** Milliseconds of rest before it opens on hover; 400 when left out (0 in the arrow version). Keyboard focus opens it at once. */
   delay?: number;
+  /** Which design: "standard" (default) or "arrow". */
+  version?: TooltipVersion;
   /** Where it sits; above when left out. */
   place?: TooltipPlace;
   /** The one control it names (a single element, which gets aria-describedby). Give that control its own aria-label too. */
@@ -74,7 +87,7 @@ type TooltipProps = {
   className?: string;
 };
 
-export function Tooltip({ tip, place = "top", delay = 400, children, className }: TooltipProps) {
+export function Tooltip({ tip, place = "top", version = "standard", delay = version === "arrow" ? 0 : 400, children, className }: TooltipProps) {
   const id = useId();
   const [hover, setHover] = useState(false);
   const [focus, setFocus] = useState(false);
@@ -105,6 +118,32 @@ export function Tooltip({ tip, place = "top", delay = 400, children, className }
   // The control itself is described by the tooltip: clone the one child and merge any aria-describedby it has.
   const only = isValidElement(children) ? (children as ReactElement<{ "aria-describedby"?: string }>) : null;
   const described = only ? cloneElement(only, { "aria-describedby": [only.props["aria-describedby"], id].filter(Boolean).join(" ") }) : children;
+
+  if (version === "arrow") {
+    return (
+      <span
+        className={`fl-way-tip-wrap${className ? ` ${className}` : ""}`}
+        data-fl="c.tooltip@arrow"
+        onMouseEnter={enter}
+        onMouseLeave={leave}
+        onFocus={() => (setEsc(false), setFocus(true))}
+        onBlur={() => setFocus(false)}
+      >
+        {described}
+        <span
+          className={ARROW_TIP[place]}
+          id={id}
+          role="tooltip"
+          data-open={open}
+          style={{ pointerEvents: open ? "auto" : "none" }}
+          onMouseEnter={() => (window.clearTimeout(timer.current), setHover(true))}
+          onMouseLeave={leave}
+        >
+          {tip}
+        </span>
+      </span>
+    );
+  }
 
   return (
     <span
@@ -179,6 +218,23 @@ export default function TooltipsVariants() {
               Add a class
             </Button>
           </Tooltip>
+        </div>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>c.tooltip@arrow</h3>
+        <p className="fl-ctl-btn-what">
+          The original toolbar tooltip: a dark label with a pointer, on any side, that opens the moment you point at the control
+          or tab to it. Escape shuts it.
+        </p>
+        <div className="fl-ctl-tip-bar">
+          {d.places.map((p) => (
+            <Tooltip key={p.id} version="arrow" place={p.id} tip={d.bar[0].tip}>
+              <Button variant="secondary" size={40} icon="plus" iconOnly>
+                {d.bar[0].tip}
+              </Button>
+            </Tooltip>
+          ))}
         </div>
       </div>
 

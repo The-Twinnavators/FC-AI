@@ -292,15 +292,15 @@ export default function SiteEvent() {
               </div>
             </div>
             <svg className="fl-st2-ticketart" viewBox="0 0 320 220" aria-hidden="true">
-              <rect x="34" y="36" width="260" height="150" rx="18" transform="rotate(-6 164 111)" style={{ fill: "color-mix(in srgb, var(--color-accent) 22%, var(--color-surface))" }} />
+              <rect x="34" y="36" width="260" height="150" rx="18" transform="rotate(-6 164 111)" style={{ fill: "var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 22%, var(--color-surface)))" }} />
               <rect x="20" y="30" width="270" height="150" rx="18" style={{ fill: "var(--color-surface)", stroke: "var(--color-border)" }} />
               <line x1="200" y1="44" x2="200" y2="166" strokeDasharray="6 6" style={{ stroke: "var(--color-border-strong)" }} strokeWidth="2" />
               <rect x="44" y="58" width="120" height="14" rx="7" style={{ fill: "var(--color-accent)" }} />
               <rect x="44" y="86" width="90" height="10" rx="5" style={{ fill: "var(--color-text-muted)", opacity: 0.5 }} />
               <rect x="44" y="106" width="130" height="10" rx="5" style={{ fill: "var(--color-text-muted)", opacity: 0.35 }} />
               <rect x="44" y="140" width="56" height="20" rx="10" style={{ fill: "color-mix(in srgb, var(--color-success) 25%, transparent)" }} />
-              <circle cx="245" cy="88" r="22" style={{ fill: "none", stroke: "var(--color-accent)" }} strokeWidth="3" />
-              <path d="M235 88l7 7 13-14" style={{ fill: "none", stroke: "var(--color-accent)" }} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="245" cy="88" r="22" style={{ fill: "none", stroke: "var(--color-secondary, var(--color-accent))" }} strokeWidth="3" />
+              <path d="M235 88l7 7 13-14" style={{ fill: "none", stroke: "var(--color-secondary, var(--color-accent))" }} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
               <rect x="222" y="128" width="46" height="10" rx="5" style={{ fill: "var(--color-text-muted)", opacity: 0.35 }} />
             </svg>
           </div>

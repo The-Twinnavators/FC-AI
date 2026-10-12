@@ -26,6 +26,18 @@ await build({
 fs.symlinkSync(path.join(root, "node_modules"), path.join(path.dirname(out), "node_modules"), "junction");
 const { GALLERY } = await import(pathToFileURL(out).href);
 const { renderToStaticMarkup } = await import(pathToFileURL(path.join(root, "node_modules/react-dom/server.node.js")).href).catch(() => import("react-dom/server"));
+// A key only shows up when it is a block of the app's stylesheets (the kit's ui-* sheets, or the catalog's library.css).
+const styles = path.join(root, "templates/react-vite-starter/src/styles");
+const blocks = new Set();
+for (const f of fs.readdirSync(styles).filter((x) => x.endsWith(".css"))) {
+  const css = fs.readFileSync(path.join(styles, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const m of css.matchAll(/([^{}@;]+)\{/g)) for (const c of m[1].matchAll(/\.(-?[a-zA-Z_][\w-]*)/g)) blocks.add(c[1].split(/__|--/)[0]);
+}
+const unknown = Object.keys(GALLERY).filter((b) => !blocks.has(b));
+if (unknown.length) {
+  console.error(`ui-gallery: no starter stylesheet defines ${unknown.join(", ")}; key each example by the block its markup uses`);
+  process.exit(1);
+}
 const result = {};
 for (const [block, examples] of Object.entries(GALLERY)) result[block] = examples.map((x) => ({ label: x.label, html: renderToStaticMarkup(x.el) }));
 const dest = path.join(root, "templates/ui-gallery.json");

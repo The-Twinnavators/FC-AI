@@ -420,7 +420,7 @@ export default function HomeMobileApp() {
               <div key={s.label} className="fl-stat">
                 <dt className="fl-sr">{s.label}</dt>
                 <dd style={{ margin: 0, display: "grid", gap: "var(--space-1)" }}>
-                  <strong style={{ color: "var(--color-accent)" }}>{s.value}</strong>
+                  <strong style={{ color: "var(--color-text)" }}>{s.value}</strong>
                   <span aria-hidden="true">{s.label}</span>
                 </dd>
               </div>

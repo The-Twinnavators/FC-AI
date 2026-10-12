@@ -70,20 +70,22 @@ export const COMPONENT_CATALOG: CatalogItem[] = [
   { id: 'token-animations', label: 'Animations', icon: 'ri-movie-line', description: 'Opt-in CSS keyframe animations - select which presets to include in your export.', tokens: ['Motion', 'Easing'] },
 ];
 
-/** The starter-kit building block that draws each component in the sheet, where FlowCode has one. */
+/** The starter-kit building block that draws each component in the sheet, where FlowCode has one. Since the kit merged
+ * into the catalog, its Button, Card, Badge, Notice, Tabs, Switch, Progress, DataTable, EmptyState and Avatar draw the
+ * catalog components, so these name the catalog classes. */
 export const KIT_BLOCK: Record<string, string> = {
-  buttons: "ui-btn",
+  buttons: "fl-btn",
   "text-fields": "ui-field",
-  switches: "ui-switch",
-  cards: "ui-card",
-  tabs: "ui-tabs",
-  "alerts-tooltips": "ui-notice",
-  progress: "ui-progress",
-  badges: "ui-badge",
-  tables: "ui-table",
+  switches: "fl-ctl-switch",
+  cards: "fl-card",
+  tabs: "fl-ctl-tabset",
+  "alerts-tooltips": "fl-ctl-alert",
+  progress: "fl-ctl-bar",
+  badges: "fl-ctl-badge",
+  tables: "fl-ctl-tbl",
   lists: "ui-settings",
-  "empty-states": "ui-empty",
-  avatars: "ui-avatar",
+  "empty-states": "fl-spec-empty",
+  avatars: "fl-ctl-avatar",
   "top-nav": "ui-shell",
 };
 

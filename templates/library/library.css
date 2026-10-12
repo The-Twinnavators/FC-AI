@@ -6,7 +6,7 @@
 
 /* ── Section frame ── */
 .fl-section { padding-block: var(--space-9); padding-inline: var(--space-5); }
-.fl-section--tint { background: var(--color-surface-sunken); }
+.fl-section--tint { background: var(--color-secondary-surface, var(--color-surface-sunken)); }
 /* A specimen of the building blocks themselves (the catalog's own pieces): even padding, no page rhythm. */
 /* A piece is shown in a column far narrower than the window - a library card, a modal, a page beside a sidebar - so
    its own rules below ask its width, not the window's. That is what container-type gives them. */
@@ -16,7 +16,7 @@
 .fl-wrap--narrow { max-width: 48rem; }
 .fl-head { display: grid; gap: var(--space-3); max-width: var(--measure); margin-bottom: var(--space-7); }
 .fl-head--center { margin-inline: auto; text-align: center; justify-items: center; }
-.fl-eyebrow { font: var(--weight-semibold) var(--text-xs) / 1 var(--font-sans); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-accent); }
+.fl-eyebrow { font: var(--weight-semibold) var(--text-xs) / 1 var(--font-sans); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-secondary, var(--color-accent)); }
 .fl-section--accent .fl-eyebrow { color: var(--color-on-accent); opacity: 0.85; }
 .fl-title { margin: 0; font-family: var(--font-display); font-size: var(--type-h1-size, var(--text-2xl)); font-weight: var(--type-h1-weight, var(--heading-weight, var(--weight-bold))); line-height: var(--type-h1-leading, var(--leading-tight)); letter-spacing: var(--tracking-tight); text-wrap: balance; }
 .fl-title--xl { font-size: var(--type-display-size, var(--text-3xl)); line-height: var(--type-display-leading, var(--leading-tight)); }
@@ -54,16 +54,18 @@
 
 /* ── Surfaces ── */
 .fl-card {
-  display: grid; gap: var(--space-3); align-content: start; padding: var(--space-6);
+  /* Its corner and padding, exposed so what sits inside can nest its corners (see "Nested corners" below). */
+  --_r: min(var(--surface-radius, var(--radius-lg)), 24px); --_p: var(--space-6); --_in: clamp(calc(var(--_r) * 0.5), calc(var(--_r) - var(--_p)), calc(var(--_r) * 0.75));
+  display: grid; gap: var(--space-3); align-content: start; padding: var(--_p);
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
-  border-radius: var(--surface-radius, var(--radius-lg)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
+  border-radius: var(--_r); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
 .fl-card h3, .fl-card h4 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); font-weight: var(--type-h3-weight, var(--weight-semibold)); line-height: var(--leading-snug); }
 .fl-media {
   position: relative; display: grid; place-items: center; aspect-ratio: 4 / 3; max-width: 100%; overflow: hidden;
-  border-radius: var(--surface-radius, var(--radius-lg)); color: var(--color-text-muted); font-size: var(--text-sm); text-align: center; padding: var(--space-5);
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); color: var(--color-text-muted); font-size: var(--text-sm); text-align: center; padding: var(--space-5);
   background:
-    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-accent) 22%, transparent), transparent 60%),
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 22%, transparent), transparent 60%),
     linear-gradient(135deg, var(--color-surface-sunken), var(--color-surface));
   border: var(--surface-border, 1px solid var(--color-border));
 }
@@ -72,9 +74,17 @@
 .fl-media--round { aspect-ratio: 1; border-radius: 50%; padding: var(--space-2); }
 .fl-icon {
   display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)); color: var(--color-accent);
+  background: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 12%, var(--color-surface))); color: var(--color-secondary, var(--color-accent));
 }
 .fl-icon svg { width: 1.25rem; height: 1.25rem; }
+
+/* ── Nested corners ── A padded rounded container (card, dialog, panel, tile) sets --_r (its corner, never past 24px),
+   --_p (its padding) and --_in, the corner for what sits inside it: outer minus padding, kept between half and three
+   quarters of the outer so the two curves stay concentric. Low specificity, so a piece that sets its own corner wins. */
+:where(.fl-card, .fl-dlg-panel, .fl-dlg-sheet) :where(.fl-media:not(.fl-media--round), pre, .fl-well),
+:where(.fl-card, .fl-dlg-panel) > :where(img, picture, video) { border-radius: var(--_in); }
+/* A field inside a card or dialog: its own field corner, or the nested one when that is smaller. */
+:where(.fl-card, .fl-dlg-panel, .fl-dlg-sheet) .fl-input { border-radius: min(var(--field-radius, min(var(--control-radius, var(--radius-sm)), 24px)), var(--_in)); }
 
 /* ── Grids ── */
 .fl-grid { display: grid; gap: var(--space-5); }
@@ -103,7 +113,7 @@
 .fl-quote { margin: 0; font-size: var(--text-lg); line-height: var(--leading-relaxed); color: var(--color-text); }
 .fl-quote--xl { font-family: var(--font-display); font-size: var(--text-xl); line-height: var(--leading-snug); text-wrap: balance; }
 .fl-person { display: flex; gap: var(--space-3); align-items: center; }
-.fl-person__avatar { width: 2.75rem; height: 2.75rem; border-radius: 50%; display: grid; place-items: center; font-weight: var(--weight-bold); background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface)); color: var(--color-accent); flex: none; }
+.fl-person__avatar { width: 2.75rem; height: 2.75rem; border-radius: 50%; display: grid; place-items: center; font-weight: var(--weight-bold); background: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 18%, var(--color-surface))); color: var(--color-text); flex: none; }
 .fl-person strong { display: block; }
 .fl-person span { color: var(--color-text-muted); font-size: var(--text-sm); }
 .fl-stat { display: grid; gap: var(--space-1); }
@@ -116,7 +126,7 @@
 .fl-price { display: flex; align-items: baseline; gap: var(--space-2); }
 .fl-price strong { font: var(--weight-bold) var(--text-2xl) / 1 var(--font-display); font-variant-numeric: tabular-nums; }
 .fl-card--featured { border-color: var(--surface-edge, var(--color-accent)); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none)); position: relative; }
-.fl-badge { justify-self: start; padding: var(--space-1) var(--space-3); border-radius: 999px; font: var(--weight-semibold) var(--text-xs) / 1.4 var(--font-sans); background: color-mix(in srgb, var(--color-accent) 14%, transparent); color: var(--color-accent); }
+.fl-badge { justify-self: start; padding: var(--space-1) var(--space-3); border-radius: 999px; font: var(--weight-semibold) var(--text-xs) / 1.4 var(--font-sans); background: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 14%, transparent)); color: var(--color-text); }
 .fl-toggle { display: inline-flex; padding: var(--space-1); gap: var(--space-1); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); border: 1px solid var(--color-border); box-shadow: var(--well-shadow, none); }
 .fl-toggle button { min-height: var(--control-sm); padding-inline: var(--space-5); border: 0; border-radius: var(--pill-radius, 999px); background: transparent; color: var(--color-text-muted); font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); cursor: pointer; }
 .fl-toggle button[aria-pressed="true"] { background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow, none); }
@@ -127,7 +137,7 @@
 .fl-faq details { border-bottom: 1px solid var(--color-border); }
 .fl-faq summary { display: flex; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-5); font-weight: var(--weight-semibold); cursor: pointer; list-style: none; border-radius: var(--radius-sm); }
 .fl-faq summary::-webkit-details-marker { display: none; }
-.fl-faq summary::after { content: "+"; color: var(--color-accent); font-size: var(--text-lg); line-height: 1; transition: transform var(--duration-fast) var(--easing); }
+.fl-faq summary::after { content: "+"; color: var(--color-secondary, var(--color-accent)); font-size: var(--text-lg); line-height: 1; transition: transform var(--duration-fast) var(--easing); }
 .fl-faq details[open] summary::after { transform: rotate(45deg); }
 .fl-faq details p { margin: 0 0 var(--space-5); color: var(--color-text-muted); line-height: var(--leading-relaxed); max-width: var(--measure); }
 
@@ -137,7 +147,7 @@
 .fl-field { display: grid; gap: var(--space-2); align-content: start; }
 .fl-field label { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
 .fl-input {
-  width: 100%; min-height: var(--control-md); padding: var(--space-3) var(--control-pad-md); border-radius: var(--control-radius, var(--radius-sm));
+  width: 100%; min-height: var(--control-md); padding: var(--space-3) var(--control-pad-md); border-radius: var(--field-radius, min(var(--control-radius, var(--radius-sm)), 24px));
   border: var(--control-border, 1px solid var(--color-border-strong)); background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; box-shadow: var(--well-shadow, none);
 }
 textarea.fl-input { min-height: 8rem; resize: vertical; }

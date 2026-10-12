@@ -1,9 +1,9 @@
 /** @flowcode-library buttons-variants · Buttons: every variant and state (Forms)
  * Catalog ID: c.button (component)
  * Function: The one button every piece uses (c.button), and its reference sheet: six variants, six heights, icon and icon-only, toggle (star and heart), and the states a button passes through.
- * Use it as: import { Button } from "./buttons-variants"; <Button variant?="primary"|"secondary"|"tertiary"|"destructive"|"on-accent"|"ghost-on-accent" size?={24|32|40|44|48|56} icon? iconAt?="start"|"end" iconOnly? busy? pressed? block? href? type? ref? onClick?>Label</Button>  // pressed makes it a toggle (aria-pressed, icon drawn filled while pressed); ref reaches the <a> or <button>
+ * Use it as: import { Button } from "./buttons-variants"; <Button version?="default"|"neobrutal" variant?="primary"|"secondary"|"tertiary"|"destructive"|"on-accent"|"ghost-on-accent" size?={24|32|40|44|48|56} icon? iconAt?="start"|"end" iconOnly? busy? pressed? block? href? type? ref? onClick?>Label</Button>  // pressed makes it a toggle (aria-pressed, icon drawn filled while pressed); ref reaches the <a> or <button>
  * Variants: c.button.primary - the one action a screen is for: filled with the accent color; c.button.secondary - beside the primary action: a surface with a border; c.button.tertiary - quiet actions in a row or toolbar: no fill until pointed at; c.button.destructive - removes something for good: filled with the danger color; c.button.on-accent - the main action on an accent band: filled with the on-accent color; c.button.ghost-on-accent - a second action on an accent band: transparent and outlined
- * Look: A rounded rectangle with a semibold one-line label and an optional icon; six heights from 24 to 56 px, square when icon-only; lifts on hover, presses in on click, a spinner while busy, a filled icon when a toggle is pressed, the focus ring on keyboard focus.
+ * Look: A rounded rectangle with a semibold one-line label and an optional icon; six heights from 24 to 56 px, square when icon-only; lifts on hover, presses in on click, a spinner while busy, a filled icon when a toggle is pressed, the focus ring on keyboard focus. version="neobrutal" swaps in c.button@neobrutal: ink border, hard shadow, hatched disabled fill.
  * Tokens: --control-lg --control-pad-lg --control-radius --control-text-lg --control-border --control-shadow --color-accent --color-accent-hover --color-on-accent --color-surface --color-text --color-border --color-danger --focus-ring
  * Use cases: action button set; destructive confirm; form submit states; disabled action; toolbar actions
  * Jobs to be done: pick the right button for an action; show an action is unavailable; warn before something destructive
@@ -36,6 +36,8 @@ import { Icon } from "./icons";
 
 export type ButtonVariant = "primary" | "secondary" | "tertiary" | "destructive" | "on-accent" | "ghost-on-accent";
 export type ButtonSize = 24 | 32 | 40 | 44 | 48 | 56;
+/** "default" follows the app's tokens; "neobrutal" is the neobrutalism kit's button (thick ink border, hard shadow). */
+export type ButtonVersion = "default" | "neobrutal";
 
 // Written out in full (not built from the variant name) so a build finds every class the button needs.
 const VARIANT: Record<ButtonVariant, string> = {
@@ -48,7 +50,20 @@ const VARIANT: Record<ButtonVariant, string> = {
 };
 const SIZE: Record<ButtonSize, string> = { 24: "fl-ctl-btn--24", 32: "fl-ctl-btn--32", 40: "fl-ctl-btn--40", 44: "fl-ctl-btn--44", 48: "", 56: "fl-ctl-btn--56" };
 
+// c.button@neobrutal: the kit's own classes (templates/library/css/neobrutal.css). "fl-nb" supplies the kit's ink and shadow tokens.
+const NB_VARIANT: Record<ButtonVariant, string> = {
+  primary: "fl-nb-btn--primary",
+  secondary: "fl-nb-btn--secondary",
+  tertiary: "fl-nb-btn--plain",
+  destructive: "fl-nb-btn--danger",
+  "on-accent": "fl-nb-btn--plain",
+  "ghost-on-accent": "fl-nb-btn--plain",
+};
+const NB_SIZE: Record<ButtonSize, string> = { 24: "fl-nb-btn--sm", 32: "fl-nb-btn--sm", 40: "fl-nb-btn--sm", 44: "", 48: "", 56: "" };
+
 type ButtonOwn = {
+  /** "neobrutal" draws the neobrutalism kit's button whatever the surface style; "default" when left out. */
+  version?: ButtonVersion;
   variant?: ButtonVariant;
   /** Height in px; 48 when left out. */
   size?: ButtonSize;
@@ -71,14 +86,18 @@ type AsButton = ButtonOwn & { href?: undefined } & Omit<ButtonHTMLAttributes<HTM
 
 // The ref goes to the rendered <a> or <button>.
 export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, AsLink | AsButton>(function Button(props, ref) {
-  const { variant = "primary", size = 48, icon, iconAt = "start", iconOnly, busy, pressed, block, className, children, ...rest } = props;
-  const cls = ["fl-btn", VARIANT[variant], SIZE[size], iconOnly ? "fl-ctl-btn--icon" : "", block ? "fl-ctl-btn--block" : "", className ?? ""].filter(Boolean).join(" ");
+  const { version = "default", variant = "primary", size = 48, icon, iconAt = "start", iconOnly, busy, pressed, block, className, children, ...rest } = props;
+  const nb = version === "neobrutal";
+  const cls = (nb
+    ? ["fl-nb", "fl-nb-btn", NB_VARIANT[variant], NB_SIZE[size], iconOnly ? "fl-nb-btn--icon" : "", block ? "fl-nb-btn--block" : "", className ?? ""]
+    : ["fl-btn", VARIANT[variant], SIZE[size], iconOnly ? "fl-ctl-btn--icon" : "", block ? "fl-ctl-btn--block" : "", className ?? ""]
+  ).filter(Boolean).join(" ");
   const name = typeof children === "string" ? children : undefined;
-  const glyph = busy ? <span className="fl-ctl-spinner" aria-hidden="true" /> : icon ? <Icon name={icon} filled={pressed} /> : null;
+  const glyph = busy ? <span className={nb ? "fl-nb-spin" : "fl-ctl-spinner"} aria-hidden="true" /> : icon ? <Icon name={icon} filled={pressed} /> : null;
   const inner = iconOnly ? glyph : iconAt === "end" ? <>{children}{glyph}</> : <>{glyph}{children}</>;
   // Icon-only: the label names it for screen readers and the tooltip, unless the caller already gave it a name.
   const given = rest as { "aria-label"?: string; title?: string };
-  const own = { className: cls, "data-fl": `c.button.${variant}`, ...(pressed !== undefined ? { "aria-pressed": pressed } : {}), ...(iconOnly ? { "aria-label": given["aria-label"] ?? name, title: given.title ?? name } : {}) };
+  const own = { className: cls, "data-fl": nb ? "c.button@neobrutal" : `c.button.${variant}`, ...(pressed !== undefined ? { "aria-pressed": pressed } : {}), ...(iconOnly ? { "aria-label": given["aria-label"] ?? name, title: given.title ?? name } : {}) };
   if (typeof rest.href === "string") {
     return (
       <a {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)} {...own} ref={ref as Ref<HTMLAnchorElement>}>
@@ -93,6 +112,140 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, AsLink |
     </button>
   );
 });
+
+// ── c.button@neobrutal in use: the neobrutalism kit's buttons as a working sheet (nb-buttons wraps this). ──
+
+export type NeobrutalButtonsProps = {
+  eyebrow: string;
+  title: string;
+  lede: string;
+  primary: string;
+  secondary: string;
+  danger: string;
+  dangerConfirm: string;
+  favourite: string;
+  unfavourite: string;
+  share: string;
+  disabled: string;
+  disabledNote: string;
+  loadingIdle: string;
+  loadingBusy: string;
+  loadingDone: string;
+  messages: { primary: string; secondary: string; cancelled: string; saved: string; unsaved: string; shared: string; paid: string };
+};
+
+function ShareIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+    </svg>
+  );
+}
+
+export function NeobrutalButtons(d: NeobrutalButtonsProps) {
+  const [status, setStatus] = useState("");
+  const [armed, setArmed] = useState(false);
+  const [fav, setFav] = useState(false);
+  const [pay, setPay] = useState<"idle" | "busy" | "done">("idle");
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const onDanger = () => {
+    if (!armed) return setArmed(true);
+    setArmed(false);
+    setStatus(d.messages.cancelled);
+  };
+  const onPay = () => {
+    if (pay !== "idle") return;
+    setPay("busy");
+    setStatus("");
+    timer.current = window.setTimeout(() => (setPay("done"), setStatus(d.messages.paid)), 1600);
+  };
+  return (
+    <section className="fl-section fl-nb" aria-labelledby="nb-buttons-title">
+      <div className="fl-wrap fl-wrap--narrow fl-nb-stack">
+        <div className="fl-head">
+          <p className="fl-nb-kicker">{d.eyebrow}</p>
+          <h2 id="nb-buttons-title" className="fl-title">
+            {d.title}
+          </h2>
+          <p className="fl-lede">{d.lede}</p>
+        </div>
+
+        <div className="fl-nb-box" style={{ padding: "var(--space-6)", display: "grid", gap: "var(--space-6)" }}>
+          <div className="fl-nb-group">
+            <h3 className="fl-nb-group__label">Main actions</h3>
+            <div className="fl-nb-row">
+              <Button version="neobrutal" icon="arrow" iconAt="end" onClick={() => setStatus(d.messages.primary)}>
+                {d.primary}
+              </Button>
+              <Button version="neobrutal" variant="secondary" icon="clock" onClick={() => setStatus(d.messages.secondary)}>
+                {d.secondary}
+              </Button>
+            </div>
+          </div>
+
+          <div className="fl-nb-group">
+            <h3 className="fl-nb-group__label">Danger and icons</h3>
+            <div className="fl-nb-row">
+              <Button version="neobrutal" variant="destructive" icon="trash" onClick={onDanger} onBlur={() => setArmed(false)}>
+                {armed ? d.dangerConfirm : d.danger}
+              </Button>
+              <Button
+                version="neobrutal"
+                variant={fav ? "primary" : "tertiary"}
+                icon="heart"
+                iconOnly
+                pressed={fav}
+                title={fav ? d.unfavourite : d.favourite}
+                aria-label={d.favourite}
+                onClick={() => (setFav(!fav), setStatus(fav ? d.messages.unsaved : d.messages.saved))}
+              >
+                {d.favourite}
+              </Button>
+              <Button version="neobrutal" variant="secondary" className="fl-nb-btn--icon" title={d.share} aria-label={d.share} onClick={() => setStatus(d.messages.shared)}>
+                <ShareIcon />
+              </Button>
+            </div>
+          </div>
+
+          <div className="fl-nb-group">
+            <h3 className="fl-nb-group__label">Disabled and loading</h3>
+            <div className="fl-nb-row">
+              <Button version="neobrutal" variant="tertiary" disabled aria-describedby="nb-buttons-disabled-note">
+                {d.disabled}
+              </Button>
+              <Button
+                version="neobrutal"
+                variant={pay === "done" ? "secondary" : "primary"}
+                icon={pay === "done" ? "check" : undefined}
+                busy={pay === "busy"}
+                aria-disabled={pay !== "idle"}
+                onClick={onPay}
+              >
+                {pay === "idle" ? d.loadingIdle : pay === "busy" ? d.loadingBusy : d.loadingDone}
+              </Button>
+              {pay === "done" ? (
+                <Button version="neobrutal" variant="tertiary" size={40} onClick={() => (setPay("idle"), setStatus(""))}>
+                  Reset
+                </Button>
+              ) : null}
+            </div>
+            <p id="nb-buttons-disabled-note" className="fl-meta" style={{ margin: 0 }}>
+              {d.disabledNote}
+            </p>
+          </div>
+
+          <p className="fl-nb-status" role="status" aria-live="polite">
+            {status}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -271,6 +424,30 @@ export default function ButtonsVariants() {
               See open roles
             </Button>
           </div>
+        </div>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Versions</h3>
+        <p className="fl-ctl-btn-what">
+          <code>version</code> picks a whole design for the button. The default follows the app&apos;s tokens; c.button@neobrutal is the neobrutalism
+          kit&apos;s, with a thick ink border, a hard shadow that lifts on hover and presses flat, and a hatched fill when disabled. It stays neobrutal
+          under any surface style.
+        </p>
+        <div className="fl-nb fl-nb-row" style={{ padding: "var(--space-3) 0" }}>
+          <Button version="neobrutal">Book a session</Button>
+          <Button version="neobrutal" variant="secondary" icon="clock">
+            See the timetable
+          </Button>
+          <Button version="neobrutal" variant="destructive" icon="trash">
+            Cancel booking
+          </Button>
+          <Button version="neobrutal" variant="tertiary" disabled>
+            Fully booked
+          </Button>
+          <Button version="neobrutal" busy>
+            Paying
+          </Button>
         </div>
       </div>
 

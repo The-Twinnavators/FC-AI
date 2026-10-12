@@ -1,23 +1,29 @@
 /**
  * More building blocks for full screens (dashboards, home and settings), styled only with the design tokens via
- * src/styles/screen-parts.css. Use them with the blocks in ./index.tsx:
+ * src/styles/screen-parts.css. Use them with the blocks in ./index.tsx. Those marked with an ID draw the FlowCode
+ * catalog's component (src/sections/, styled by src/styles/library.css); the rest are the kit's own:
  *
  *   <Grid>          responsive columns: "stats" (key numbers), "cards", "split" (wide + narrow), "halves"
  *   <Trend>         change since last time, as text and arrow (never color alone)
- *   <Progress>      labelled progress bar with its value in words
+ *   <Progress>      c.progress (bar): labelled progress bar with its value in words
  *   <BarChart>      a small bar chart whose values are also readable as text
- *   <DataTable>     a captioned table that scrolls sideways on phones
+ *   <DataTable>     p.data-table: a captioned table that scrolls sideways on phones
  *   <ActivityList>  recent events: who, what and when
  *   <Checklist>     a short to-do list, done or not said in words too
- *   <Avatar>        initials in a circle
+ *   <Avatar>        c.avatar: initials in a circle
  *   <Hero>          the home screen's welcome: h1, description, actions and an optional side panel
  *   <ActionTile>    a large button for a main task ("Start a lesson")
- *   <Tabs>          switch between panels of one screen (arrow keys move between tabs)
+ *   <Tabs>          c.tabs: switch between panels of one screen (arrow keys move between tabs)
  *   <SettingsList>  a list of <SettingRow>s with dividers
  *   <SettingRow>    a setting's name, explanation and control (pass a <Switch>, select or input)
- *   <Switch>        an on/off control
+ *   <Switch>        c.switch: an on/off control
  */
-import { useId, useRef, type KeyboardEvent, type ReactElement, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactElement, type ReactNode } from "react";
+import { Avatar as CatalogAvatar } from "../../sections/AvatarsVariants";
+import { Progress as CatalogProgress } from "../../sections/ProgressIndicators";
+import { Switch as CatalogSwitch } from "../../sections/SwitchesStates";
+import { DataTable as CatalogTable, type TableColumn } from "../../sections/TablesStates";
+import { Tabs as CatalogTabs } from "../../sections/TabsVariants";
 import "../../styles/screen-parts.css";
 
 export function Grid({ kind = "cards", children, as = "div", label }: { kind?: "stats" | "cards" | "split" | "halves"; children: ReactNode; as?: "div" | "ul"; label?: string }) {
@@ -43,21 +49,17 @@ export function Trend({ value, unit = "%", label, goodWhen = "up" }: { value: nu
   );
 }
 
+/** c.progress (bar) under its label and value in words. The bar reads as a percentage of `max`. */
 export function Progress({ label, value, max = 100, valueText }: { label: string; value: number; max?: number; valueText?: string }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
   const text = valueText ?? `${Math.round(pct)}%`;
-  const id = useId();
   return (
     <div className="ui-progress">
-      <div className="ui-progress__head">
-        <span id={id} className="ui-progress__label">
-          {label}
-        </span>
+      <div className="ui-progress__head" aria-hidden="true">
+        <span className="ui-progress__label">{label}</span>
         <span className="ui-progress__value">{text}</span>
       </div>
-      <div className="ui-progress__track" role="progressbar" aria-labelledby={id} aria-valuemin={0} aria-valuemax={max} aria-valuenow={value} aria-valuetext={text}>
-        <span className="ui-progress__fill" style={{ width: `${pct}%` }} />
-      </div>
+      <CatalogProgress variant="bar" value={Math.round(pct)} label={`${label}: ${text}`} />
     </div>
   );
 }
@@ -88,34 +90,23 @@ export interface Column<T> {
   render?: (row: T) => ReactNode;
 }
 
-/** `showCaption={false}` keeps the caption for screen readers only, when a Section title above already says it. */
+/**
+ * p.data-table, in its fixed order (no sort buttons). The first column is each row's header for screen readers.
+ * `showCaption={false}` keeps the caption for screen readers only, when a Section title above already says it.
+ */
 export function DataTable<T extends Record<string, unknown>>({ caption, columns, rows, rowKey, empty, showCaption = true }: { caption: string; columns: Column<T>[]; rows: T[]; rowKey: (row: T) => string; empty?: ReactNode; showCaption?: boolean }) {
   if (!rows.length && empty) return <>{empty}</>;
+  // The catalog table keys rows by `id`; each keeps the caller's row whole, so a column named "id" still shows its own value.
+  const keyed = rows.map((row) => ({ id: rowKey(row), row }));
+  const cols: TableColumn<(typeof keyed)[number]>[] = columns.map((c) => ({ id: c.key, label: c.label, num: c.align === "end", render: (k) => (c.render ? c.render(k.row) : String(k.row[c.key] ?? "")) }));
   return (
-    <div className="ui-table-wrap" role="region" aria-label={caption} tabIndex={0}>
-      <table className="ui-table">
-        <caption className={showCaption ? "ui-table__caption" : "ui-sr-only"}>{caption}</caption>
-        <thead>
-          <tr>
-            {columns.map((c) => (
-              <th key={c.key} scope="col" className={c.align === "end" ? "ui-table__num" : undefined}>
-                {c.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={rowKey(r)}>
-              {columns.map((c) => (
-                <td key={c.key} className={c.align === "end" ? "ui-table__num" : undefined}>
-                  {c.render ? c.render(r) : String(r[c.key] ?? "")}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="ui-table">
+      {showCaption ? (
+        <p className="ui-table__caption" aria-hidden="true">
+          {caption}
+        </p>
+      ) : null}
+      <CatalogTable caption={caption} columns={cols} rows={keyed} sortable={false} emptyTitle="Nothing here yet" emptyHint="" />
     </div>
   );
 }
@@ -142,18 +133,11 @@ export function Checklist({ items, label }: { items: Array<{ id: string; title: 
   );
 }
 
+const AVATAR_SIZE = { sm: 32, md: 40, lg: 48 } as const;
+
+/** c.avatar: initials in a circle. Decorative: the name it stands for is written beside it. */
 export function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("");
-  return (
-    <span className={`ui-avatar ui-avatar--${size}`} aria-hidden="true">
-      {initials || "?"}
-    </span>
-  );
+  return <CatalogAvatar name={name} size={AVATAR_SIZE[size]} decorative />;
 }
 
 export function ActivityList({ items, label = "Recent activity" }: { items: Array<{ id: string; who: string; what: ReactNode; when: string }>; label?: string }) {
@@ -203,46 +187,12 @@ export function ActionTile({ title, description, icon, onClick }: { title: strin
   );
 }
 
-/** Tabs for panels of one screen. Arrow keys, Home and End move between tabs, as screen-reader users expect. */
+/**
+ * c.tabs, controlled: the open tab's panel is `children`. Arrow keys, Home and End move between tabs, as screen-reader
+ * users expect. A vertical rail also shows the open tab's label as its panel's heading.
+ */
 export function Tabs({ label, tabs, current, onChange, orientation = "horizontal", children }: { label: string; tabs: Array<{ id: string; label: string }>; current: string; onChange: (id: string) => void; orientation?: "horizontal" | "vertical"; children: ReactNode }) {
-  const base = useId();
-  const refs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const move = (e: KeyboardEvent, index: number) => {
-    const next = { ArrowRight: index + 1, ArrowDown: index + 1, ArrowLeft: index - 1, ArrowUp: index - 1, Home: 0, End: tabs.length - 1 }[e.key];
-    if (next === undefined) return;
-    e.preventDefault();
-    const tab = tabs[(next + tabs.length) % tabs.length];
-    onChange(tab.id);
-    refs.current[tab.id]?.focus();
-  };
-  return (
-    <div className={`ui-tabs ui-tabs--${orientation}`}>
-      <div className="ui-tabs__list" role="tablist" aria-label={label} aria-orientation={orientation}>
-        {tabs.map((t, i) => (
-          <button
-            key={t.id}
-            ref={(el) => {
-              refs.current[t.id] = el;
-            }}
-            type="button"
-            role="tab"
-            id={`${base}-tab-${t.id}`}
-            aria-controls={`${base}-panel`}
-            aria-selected={t.id === current}
-            tabIndex={t.id === current ? 0 : -1}
-            className="ui-tabs__tab"
-            onClick={() => onChange(t.id)}
-            onKeyDown={(e) => move(e, i)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <div className="ui-tabs__panel" role="tabpanel" id={`${base}-panel`} aria-labelledby={`${base}-tab-${current}`} tabIndex={0}>
-        {children}
-      </div>
-    </div>
-  );
+  return <CatalogTabs label={label} orientation={orientation} value={current} onChange={onChange} tabs={tabs.map((t) => ({ id: t.id, label: t.label, panel: t.id === current ? children : null }))} />;
 }
 
 export function SettingsList({ children }: { children: ReactNode }) {
@@ -270,11 +220,25 @@ export function SettingRow({ label, description, children }: { label: string; de
   );
 }
 
-export function Switch({ checked, onChange, id, ...aria }: { checked: boolean; onChange: (next: boolean) => void; id?: string; "aria-describedby"?: string; "aria-label"?: string }) {
+/**
+ * c.switch. Inside a SettingRow it takes the row's id and description, so the row's <label> names it; elsewhere give it
+ * an aria-label.
+ */
+export function Switch({ checked, onChange, id, "aria-describedby": describedBy, "aria-label": ariaLabel }: { checked: boolean; onChange: (next: boolean) => void; id?: string; "aria-describedby"?: string; "aria-label"?: string }) {
+  const host = useRef<HTMLSpanElement>(null);
+  // The catalog switch names itself with aria-label only: the row's id and description go onto its checkbox here.
+  useEffect(() => {
+    const input = host.current?.querySelector("input");
+    if (!input) return;
+    if (id) input.id = id;
+    else input.removeAttribute("id");
+    if (describedBy) input.setAttribute("aria-describedby", describedBy);
+    else input.removeAttribute("aria-describedby");
+  }, [id, describedBy]);
   return (
-    <button type="button" role="switch" id={id} aria-checked={checked} className="ui-switch" onClick={() => onChange(!checked)} {...aria}>
-      <span className="ui-switch__thumb" aria-hidden="true" />
-      <span className="ui-switch__text">{checked ? "On" : "Off"}</span>
-    </button>
+    <span ref={host} style={{ display: "contents" }}>
+      {/* An empty aria-label is skipped, so a SettingRow's <label for> names it. */}
+      <CatalogSwitch on={checked} onToggle={onChange} label={ariaLabel ?? ""} />
+    </span>
   );
 }

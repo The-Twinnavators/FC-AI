@@ -49,6 +49,9 @@ export const SURFACE_DEFAULTS: Record<string, string> = {
   "--surface-radius-sm": "var(--radius-md)", // corners of small surfaces (toasts, banners, menus, wells)
   "--control-radius-sm": "var(--radius-sm)", // corners of small controls (page numbers, menu items)
   "--pill-radius": "999px", // corners of chips, badges and toggles
+  // Corners of text boxes (inputs, textareas, selects, comboboxes): the control radius, but never past 24px, so a
+  // pill-shaped button style never turns a textarea into a pill.
+  "--field-radius": "min(var(--control-radius), 24px)",
   "--edge-width": "var(--border-width)", // thickness of tab, divider and small-control outlines
   "--overlay-border": "initial", // outline of dialogs, drawers and sheets; unset draws none
   "--hover-lift": "-1px", // controls rise this far on hover
@@ -106,6 +109,7 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--surface-shadow-selected": `0 0 0 1px var(--color-accent), 0 12px 36px -16px ${T(38)}`,
       "--surface-radius-sm": "16px",
       "--control-radius-sm": "999px",
+      "--field-radius": "14px",
       "--overlay-border": `1px solid ${W(28)}`,
     },
     match: /liquid glass|iridescent/i,
@@ -209,6 +213,7 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--surface-shadow-overlay": `0 20px 40px -12px ${T(30)}, inset 0 4px 8px ${W(55)}`,
       "--surface-radius-sm": "18px",
       "--control-radius-sm": "12px",
+      "--field-radius": "16px",
     },
     match: /clay ?morph|\bclay (ui|style|look)\b|puffy/i,
   },
@@ -219,14 +224,14 @@ export const STYLE_VIBES: StyleVibe[] = [
     tokens: {
       "--surface-border": "2px solid var(--color-text)",
       "--surface-shadow-hover": "none",
-      "--surface-radius": "0",
-      "--control-radius": "0",
+      "--surface-radius": "0px",
+      "--control-radius": "0px",
       "--control-border": "2px solid var(--color-text)",
       "--heading-weight": "800",
       "--surface-shadow-overlay": "none",
-      "--surface-radius-sm": "0",
-      "--control-radius-sm": "0",
-      "--pill-radius": "0",
+      "--surface-radius-sm": "0px",
+      "--control-radius-sm": "0px",
+      "--pill-radius": "0px",
       "--edge-width": "2px",
       "--overlay-border": "2px solid var(--color-text)",
     },
@@ -240,8 +245,8 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--surface-border": "2px solid var(--color-text)",
       "--surface-shadow": "0 4px 0 var(--color-accent)",
       "--surface-shadow-hover": "0 6px 0 var(--color-accent)",
-      "--surface-radius": "0",
-      "--control-radius": "0",
+      "--surface-radius": "0px",
+      "--control-radius": "0px",
       "--control-border": "2px solid var(--color-text)",
       "--control-shadow": "0 3px 0 var(--color-text)",
       "--control-shadow-hover": "0 4px 0 var(--color-accent)",
@@ -249,9 +254,9 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-shadow-active": "0 0 0 var(--color-text)",
       "--surface-shadow-selected": "0 0 0 2px var(--color-accent), 0 4px 0 var(--color-accent)",
       "--surface-shadow-overlay": "0 8px 0 var(--color-accent)",
-      "--surface-radius-sm": "0",
-      "--control-radius-sm": "0",
-      "--pill-radius": "0",
+      "--surface-radius-sm": "0px",
+      "--control-radius-sm": "0px",
+      "--pill-radius": "0px",
       "--press-shift": "0 3px",
       "--edge-width": "2px",
       "--overlay-border": "2px solid var(--color-text)",

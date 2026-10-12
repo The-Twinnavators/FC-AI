@@ -955,11 +955,31 @@ export function sameScreenFiles(abs: string): string[] {
 
 /**
  * A building-block class (`ui-skeleton`) is in a screen when the screen uses the kit component that draws it
- * (`<Skeleton>` renders `ui-skeleton`): the class lives in src/components/ui, never typed into the screen itself.
+ * (`<Skeleton>` renders `ui-skeleton`, or the catalog's `fl-ctl-skel` once the kit takes it from the catalog): the class
+ * lives in src/components/ui, never typed into the screen itself. Both generations count, so older apps keep working.
  * Kids cash app: a check for "ui-skeleton" in the coin screen failed for three hours while the screen used <Skeleton>.
  */
+const CATALOG_TWIN: Record<string, string[]> = {
+  "ui-btn": ["fl-btn"], "ui-card": ["fl-card"], "ui-empty": ["fl-spec-empty"], "ui-skeleton": ["fl-ctl-skel"], "ui-stat": ["fl-crd-kpi"],
+  "ui-badge": ["fl-ctl-badge"], "ui-notice": ["fl-ctl-alert"], "ui-dialog": ["fl-ctl-dlg"], "ui-progress": ["fl-ctl-bar"], "ui-table": ["fl-ctl-tbl"],
+  "ui-avatar": ["fl-ctl-avatar"], "ui-tabs": ["fl-ctl-tabset"], "ui-switch": ["fl-ctl-switch"],
+};
+/** The kit component that draws each building block, for the ones whose source no longer names the class (the catalog draws it). */
+const KIT_COMPONENT: Record<string, string> = {
+  "ui-btn": "Button", "ui-card": "Card", "ui-empty": "EmptyState", "ui-skeleton": "Skeleton", "ui-stat": "Stat", "ui-badge": "Badge", "ui-notice": "Notice",
+  "ui-dialog": "Dialog", "ui-progress": "Progress", "ui-table": "DataTable", "ui-avatar": "Avatar", "ui-tabs": "Tabs", "ui-switch": "Switch",
+};
+/** The class a replaced component renders now, and the one it rendered before the catalog merge: a check for either is met by the component. */
+const kitClassNames = (cls: string) => {
+  const twins = Object.entries(CATALOG_TWIN).filter(([old, now]) => old === cls || now.includes(cls));
+  return [...new Set([cls, ...twins.flatMap(([old, now]) => [old, ...now])])];
+};
 export function usesKitClass(body: string, text: string, root: string): boolean {
-  if (!body || !/^ui-[a-z0-9-]+$/i.test(text)) return false;
+  if (!body || !/^(?:ui|fl)-[a-z0-9-]+$/i.test(text)) return false;
+  const names = kitClassNames(text);
+  // A replaced component draws the catalog's class from a file in src/sections, so the kit's source no longer spells it out.
+  const drawn = Object.entries(KIT_COMPONENT).filter(([old]) => names.includes(old)).map(([, c]) => c);
+  if (drawn.some((c) => new RegExp(`<${c}[\\s/>]`).test(body))) return true;
   const kitDir = path.join(root, "src", "components", "ui");
   const files = fs.existsSync(kitDir) ? fs.readdirSync(kitDir).filter((f) => /\.(tsx|jsx)$/.test(f)).map((f) => path.join(kitDir, f)) : [];
   for (const f of files) {
@@ -968,7 +988,7 @@ export function usesKitClass(body: string, text: string, root: string): boolean 
     const parts = src.split(/(?=export (?:default )?function )/);
     for (const part of parts) {
       const name = /^export (?:default )?function ([A-Z]\w*)/.exec(part)?.[1];
-      if (name && part.includes(text) && new RegExp(`<${name}[\\s/>]`).test(body)) return true;
+      if (name && names.some((n) => part.includes(n)) && new RegExp(`<${name}[\\s/>]`).test(body)) return true;
     }
   }
   return false;

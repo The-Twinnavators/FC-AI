@@ -14,7 +14,12 @@ import {
   buildPalette,
   contrastAudit,
   contrastLevel,
+  contrastRatio,
+  defaultSecondary,
+  harmonies,
   normalizeHex,
+  secondaryFit,
+  secondaryTokens,
   rampTokens,
   roleTokens,
   type BrandColor,
@@ -88,7 +93,7 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
           {frame("type", undefined, 160)}
         </DesignCard>
         <DesignCard id="shape" title="Shape & style" group="Foundation" note="Surface style, corners and density" onConfigure={() => setEditor({ kind: "shape" })}>
-          {frame("shape", ["ui-btn", "ui-field", "ui-badge", "ui-switch", "ui-card"], 120)}
+          {frame("shape", ["fl-btn", "ui-field", "fl-ctl-badge", "fl-ctl-switch", "fl-card"], 120)}
         </DesignCard>
 
         {blocks.map((b) => (
@@ -105,7 +110,7 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
         ))}
       </div>
 
-      {editor?.kind === "colours" ? <ColoursEditor projectId={projectId} theme={theme} onDraft={setDraft} onClose={close} preview={frame("palette", ["ui-btn", "ui-badge", "ui-notice", "ui-field", "ui-switch"], 260)} /> : null}
+      {editor?.kind === "colours" ? <ColoursEditor projectId={projectId} theme={theme} onDraft={setDraft} onClose={close} preview={frame("palette", ["fl-btn", "fl-ctl-badge", "fl-ctl-alert", "ui-field", "fl-ctl-switch"], 260)} /> : null}
       {editor?.kind === "type" ? (
         <TypographyEditor
           projectId={projectId}
@@ -119,7 +124,7 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
         />
       ) : null}
       {editor?.kind === "shape" ? (
-        <ControlsEditor title="Shape & style" projectId={projectId} theme={theme} only={["style", "corners", "density"]} onDraft={setDraft} onClose={close} preview={frame("shape", ["ui-btn", "ui-field", "ui-badge", "ui-switch", "ui-card"], 260)} />
+        <ControlsEditor title="Shape & style" projectId={projectId} theme={theme} only={["style", "corners", "density"]} onDraft={setDraft} onClose={close} preview={frame("shape", ["fl-btn", "ui-field", "fl-ctl-badge", "fl-ctl-switch", "fl-card"], 260)} />
       ) : null}
       {editor?.kind === "block" && componentStyleSpec(editor.block) ? (
         <ComponentEditor projectId={projectId} block={editor.block} onCss={setComponentCss} onClose={close} preview={frame("blocks", [editor.block], 260)} />
@@ -193,6 +198,56 @@ function ControlsEditor({ title, projectId, theme, only, onDraft, onClose, previ
 }
 
 // ───────────────────────── Colors ─────────────────────────
+
+/**
+ * The 60/30/10 rule for the secondary: harmonies traced from the primary (accent) as swatches to pick, how the chosen
+ * secondary fits (and a note when it clashes or had to be nudged for contrast), and a strip showing the split.
+ */
+function SecondaryHarmonies({ primary, secondary, tokens, dark, onPick }: { primary: string; secondary?: string; tokens: Record<string, string>; dark: boolean; onPick: (hex: string) => void }) {
+  const options = useMemo(() => harmonies(primary), [primary]);
+  const fit = secondary ? secondaryFit(secondary, primary) : undefined;
+  const used = secondary ? secondaryTokens(secondary, dark ? "dark" : "light", { surface: tokens["--color-surface"], text: tokens["--color-text"] }) : undefined;
+  const fill = used?.["--color-secondary"];
+  const nudged = secondary && fill && fill !== normalizeHex(secondary);
+  return (
+    <div className="harmony">
+      <p className="dmodal__note muted">
+        60/30/10: neutrals cover about 60% of a screen, the secondary about 30% (tinted panels, secondary buttons, tags), the primary only 10% (the main action, links, focus). These secondaries are traced from your primary.
+      </p>
+      <div className="harmony__list" role="group" aria-label="Secondary colors traced from the primary">
+        {options.map((h) => {
+          const on = secondary ? normalizeHex(secondary) === h.hex : false;
+          return (
+            <button key={`${h.kind}${h.offset}`} type="button" className={`harmony__opt${on ? " is-on" : ""}`} aria-pressed={on} onClick={() => onPick(h.hex)} title={`${h.name} ${h.offset > 0 ? "+" : ""}${h.offset}° · ${h.hex}`}>
+              <span className="harmony__swatch" style={{ background: h.hex }} aria-hidden="true" />
+              <span className="harmony__name">
+                {h.name} <span className="muted mono">{h.offset > 0 ? "+" : "−"}{Math.abs(h.offset)}°</span>
+              </span>
+              <span className="harmony__why muted">{h.why}</span>
+            </button>
+          );
+        })}
+      </div>
+      {fit ? (
+        <p className={`harmony__fit${fit.clash ? " is-warn" : ""}`} role={fit.clash ? "status" : undefined}>
+          {fit.clash ?? (fit.harmony ? `${fit.harmony.name} to your primary (${fit.delta > 0 ? "+" : ""}${fit.delta}°), so the two belong together.` : "A near-neutral secondary: it stays out of the primary's way.")}
+        </p>
+      ) : null}
+      {nudged && used ? (
+        <p className="harmony__fit is-warn">
+          Used as {fill} in the {dark ? "dark" : "light"} theme so text and labels on it pass AA ({contrastRatio(used["--color-on-secondary"], fill)}:1).
+        </p>
+      ) : null}
+      {used ? (
+        <span className="harmony__split" aria-hidden="true">
+          <i style={{ flexGrow: 6, background: tokens["--color-surface"] }} />
+          <i style={{ flexGrow: 3, background: used["--color-secondary-surface"] }} />
+          <i style={{ flexGrow: 1, background: tokens["--color-accent"] }} />
+        </span>
+      ) : null}
+    </div>
+  );
+}
 
 const ROLE_LABEL: Record<string, string> = { primary: "Primary", secondary: "Secondary", tertiary: "Tertiary", "accent-1": "Accent 1", "accent-2": "Accent 2" };
 const STATUS_LABEL: Record<StatusKind, string> = { success: "Success", warning: "Warning", error: "Error", info: "Info" };
@@ -272,7 +327,12 @@ function ColoursEditor({ projectId, theme, onDraft, onClose, preview }: { projec
 
   const setBrand = (i: number, patch: Partial<BrandColor>) => setCfg({ ...cfg, brand: cfg.brand.map((b, j) => (j === i ? { ...b, ...patch } : b)) });
   const addBrand = () => {
-    // A starting suggestion: the primary's complement, so a new color is never a copy.
+    // The secondary starts traced from the primary by the default harmony (the 30% of 60/30/10).
+    if (cfg.brand.length === 1 && palette.brand[0]) {
+      setCfg({ ...cfg, brand: [...cfg.brand, { hex: defaultSecondary(palette.brand[0].hex).hex, role: "secondary" }] });
+      return;
+    }
+    // Later colors start from the primary's complement, so a new color is never a copy.
     const base = palette.brand[0]?.ramp[500] ?? "#6d28d9";
     const h = parseInt(base.slice(1), 16);
     const comp = `#${(0xffffff ^ h).toString(16).padStart(6, "0")}`;
@@ -336,9 +396,19 @@ function ColoursEditor({ projectId, theme, onDraft, onClose, preview }: { projec
                 </button>
               ) : null}
               {p ? <RampRow label="" ramp={p.ramp} base={p.baseStep} /> : null}
+              {b.role === "secondary" && palette.brand[0] ? <SecondaryHarmonies primary={palette.brand[0].hex} secondary={hex} tokens={tokens} dark={auditTheme === "dark"} onPick={(v) => setBrand(i, { hex: v })} /> : null}
             </div>
           );
         })}
+        {cfg.brand.length === 1 && palette.brand[0] ? (
+          <div className="brand-row">
+            <span className="brand-row__name">
+              Secondary
+              <span className="muted">not chosen yet, so FlowCode traces one from your primary</span>
+            </span>
+            <SecondaryHarmonies primary={palette.brand[0].hex} tokens={tokens} dark={auditTheme === "dark"} onPick={(v) => setCfg({ ...cfg, brand: [...cfg.brand, { hex: v, role: "secondary" }] })} />
+          </div>
+        ) : null}
         {cfg.brand.length < MAX_BRAND_COLORS ? (
           <button type="button" className="btn btn--sm brand-add" onClick={addBrand}>
             <Plus size={13} aria-hidden="true" /> Add a brand color

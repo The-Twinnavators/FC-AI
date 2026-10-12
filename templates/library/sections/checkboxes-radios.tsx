@@ -147,45 +147,45 @@ export function ChoiceGroup({
       <legend>{label}</legend>
       <div className={CG_ROW[variant]}>
         {options.map((o) => {
-          const input = <input type={type} name={group} value={o.value} checked={chosen.includes(o.value)} disabled={o.disabled} onChange={() => pick(o.value)} />;
-          if (variant === "tile") {
-            return (
-              <label key={o.value} className={`fl-in-rcard${o.disabled ? " fl-in-rcard--disabled" : ""}`}>
-                {input}
-                <span className="fl-in-rcard__mark" aria-hidden="true">
-                  <span className="fl-tick">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m5 12 5 5 9-10" />
-                    </svg>
-                  </span>
-                </span>
-                <span className="fl-in-rcard__body">
-                  <span className="fl-in-rcard__top">
-                    <strong className="fl-in-rcard__title">{o.label}</strong>
-                  </span>
-                  {o.text ? <span className="fl-in-rcard__text">{o.text}</span> : null}
-                </span>
-                {o.meta ? (
-                  <span className="fl-in-rcard__price">
-                    <strong>{o.meta}</strong>
-                  </span>
-                ) : null}
-              </label>
-            );
-          }
-          if (variant === "swatch") {
-            return (
-              <label key={o.value} className="fl-ctl-cg__opt" title={o.label} style={o.color ? ({ "--cg-color": o.color } as CSSProperties) : undefined}>
-                {input}
-                <span className="fl-ctl-cg__dot" aria-hidden="true" />
-                <span className="fl-sr">{o.label}</span>
-              </label>
-            );
-          }
+          const tile = variant === "tile";
+          const swatch = variant === "swatch";
           return (
-            <label key={o.value} className="fl-ctl-cg__opt">
-              {input}
-              <span className="fl-ctl-cg__chip">{o.label}</span>
+            <label
+              key={o.value}
+              className={tile ? `fl-in-rcard${o.disabled ? " fl-in-rcard--disabled" : ""}` : "fl-ctl-cg__opt"}
+              title={swatch ? o.label : undefined}
+              style={swatch && o.color ? ({ "--cg-color": o.color } as CSSProperties) : undefined}
+            >
+              <input type={type} name={group} value={o.value} checked={chosen.includes(o.value)} disabled={o.disabled} onChange={() => pick(o.value)} />
+              {tile ? (
+                <>
+                  <span className="fl-in-rcard__mark" aria-hidden="true">
+                    <span className="fl-tick">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m5 12 5 5 9-10" />
+                      </svg>
+                    </span>
+                  </span>
+                  <span className="fl-in-rcard__body">
+                    <span className="fl-in-rcard__top">
+                      <strong className="fl-in-rcard__title">{o.label}</strong>
+                    </span>
+                    {o.text ? <span className="fl-in-rcard__text">{o.text}</span> : null}
+                  </span>
+                  {o.meta ? (
+                    <span className="fl-in-rcard__price">
+                      <strong>{o.meta}</strong>
+                    </span>
+                  ) : null}
+                </>
+              ) : swatch ? (
+                <>
+                  <span className="fl-ctl-cg__dot" aria-hidden="true" />
+                  <span className="fl-sr">{o.label}</span>
+                </>
+              ) : (
+                <span className="fl-ctl-cg__chip">{o.label}</span>
+              )}
             </label>
           );
         })}

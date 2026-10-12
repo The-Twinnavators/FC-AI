@@ -6,47 +6,47 @@
   },
   {
    "label": "With an action",
-   "html": "<header class=\"ui-shell__header\"><div class=\"ui-shell__brand\"><span class=\"ui-shell__name\">Planner</span><span class=\"ui-shell__tagline\">Your week, in one place</span></div><nav class=\"ui-shell__nav\" aria-label=\"Main\"><a class=\"ui-shell__link\" href=\"#/calendar\" aria-current=\"page\">Calendar</a><a class=\"ui-shell__link\" href=\"#/tasks\">Tasks</a><a class=\"ui-shell__link\" href=\"#/settings\">Settings</a></nav><div class=\"ui-shell__actions\"><button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--sm\">New event</button></div></header>"
+   "html": "<header class=\"ui-shell__header\"><div class=\"ui-shell__brand\"><span class=\"ui-shell__name\">Planner</span><span class=\"ui-shell__tagline\">Your week, in one place</span></div><nav class=\"ui-shell__nav\" aria-label=\"Main\"><a class=\"ui-shell__link\" href=\"#/calendar\" aria-current=\"page\">Calendar</a><a class=\"ui-shell__link\" href=\"#/tasks\">Tasks</a><a class=\"ui-shell__link\" href=\"#/settings\">Settings</a></nav><div class=\"ui-shell__actions\"><button class=\"fl-btn fl-btn--primary fl-ctl-btn--32\" data-fl=\"c.button.primary\" type=\"button\">New event</button></div></header>"
   }
  ],
- "ui-btn": [
+ "fl-btn": [
   {
    "label": "Primary",
-   "html": "<button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\">Save changes</button>"
+   "html": "<button class=\"fl-btn fl-btn--primary fl-ctl-btn--40\" data-fl=\"c.button.primary\" type=\"button\">Save changes</button>"
   },
   {
    "label": "Secondary",
-   "html": "<button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--md\">Cancel</button>"
+   "html": "<button class=\"fl-btn fl-btn--secondary fl-ctl-btn--40\" data-fl=\"c.button.secondary\" type=\"button\">Cancel</button>"
   },
   {
    "label": "Ghost",
-   "html": "<button type=\"button\" class=\"ui-btn ui-btn--ghost ui-btn--md\">More options</button>"
+   "html": "<button class=\"fl-btn fl-ctl-btn--tertiary fl-ctl-btn--40\" data-fl=\"c.button.tertiary\" type=\"button\">More options</button>"
   },
   {
    "label": "Danger",
-   "html": "<button type=\"button\" class=\"ui-btn ui-btn--danger ui-btn--md\">Delete</button>"
+   "html": "<button class=\"fl-btn fl-ctl-btn--destructive fl-ctl-btn--40\" data-fl=\"c.button.destructive\" type=\"button\">Delete</button>"
   },
   {
    "label": "Small",
-   "html": "<button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--sm\">Small</button>"
+   "html": "<button class=\"fl-btn fl-btn--secondary fl-ctl-btn--32\" data-fl=\"c.button.secondary\" type=\"button\">Small</button>"
   },
   {
    "label": "Large",
-   "html": "<button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--lg\">Get started</button>"
+   "html": "<button class=\"fl-btn fl-btn--primary\" data-fl=\"c.button.primary\" type=\"button\">Get started</button>"
   },
   {
    "label": "Disabled",
-   "html": "<button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\" disabled=\"\">Saving…</button>"
+   "html": "<button class=\"fl-btn fl-btn--primary fl-ctl-btn--40\" data-fl=\"c.button.primary\" type=\"button\" disabled=\"\">Saving…</button>"
   }
  ],
- "ui-card": [
+ "fl-card": [
   {
    "label": "Card",
-   "html": "<div class=\"ui-card\"><h3 class=\"ui-card__title\">Weekly summary</h3><div class=\"ui-card__body\"><p>4 events this week, 2 of them today.</p></div><div class=\"ui-card__footer\"><button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--sm\">View all</button></div></div>"
+   "html": "<div class=\"fl-card\" data-fl=\"c.card.surface\"><h3>Weekly summary</h3><div class=\"ui-card__body\"><p>4 events this week, 2 of them today.</p></div><div class=\"ui-card__footer\"><button class=\"fl-btn fl-btn--secondary fl-ctl-btn--32\" data-fl=\"c.button.secondary\" type=\"button\">View all</button></div></div>"
   },
   {
    "label": "Interactive card",
-   "html": "<div class=\"ui-card ui-card--interactive\"><h3 class=\"ui-card__title\">Team planning</h3><div class=\"ui-card__body\"><p>Thursday, 10:00 to 11:00</p></div></div>"
+   "html": "<div class=\"fl-card ui-card--interactive\" data-fl=\"c.card.surface\"><h3>Team planning</h3><div class=\"ui-card__body\"><p>Thursday, 10:00 to 11:00</p></div></div>"
   }
  ],
  "ui-field": [
@@ -63,76 +63,76 @@
    "html": "<div class=\"ui-field\"><label class=\"ui-field__label\" for=\"_R_0_\">Repeat</label><select id=\"_R_0_\" class=\"ui-input\"><option value=\"none\">Never</option><option value=\"weekly\" selected=\"\">Every week</option></select></div>"
   }
  ],
- "ui-badge": [
+ "fl-ctl-badge": [
   {
    "label": "Neutral",
-   "html": "<span class=\"ui-badge ui-badge--neutral\">Draft</span>"
+   "html": "<span class=\"fl-ctl-badge fl-ctl-badge--soft fl-ctl-badge--neutral\" data-fl=\"c.badge.status\">Draft</span>"
   },
   {
    "label": "Accent",
-   "html": "<span class=\"ui-badge ui-badge--accent\">New</span>"
+   "html": "<span class=\"fl-ctl-badge fl-ctl-badge--soft fl-ctl-badge--info\" data-fl=\"c.badge.status\">New</span>"
   },
   {
    "label": "Success",
-   "html": "<span class=\"ui-badge ui-badge--success\">Confirmed</span>"
+   "html": "<span class=\"fl-ctl-badge fl-ctl-badge--soft fl-ctl-badge--success\" data-fl=\"c.badge.status\">Confirmed</span>"
   },
   {
    "label": "Danger",
-   "html": "<span class=\"ui-badge ui-badge--danger\">Cancelled</span>"
+   "html": "<span class=\"fl-ctl-badge fl-ctl-badge--soft fl-ctl-badge--danger\" data-fl=\"c.badge.status\">Cancelled</span>"
   }
  ],
- "ui-notice": [
+ "fl-ctl-alert": [
   {
    "label": "Info",
-   "html": "<div class=\"ui-notice ui-notice--info\" role=\"status\"><strong class=\"ui-notice__title\">Heads up</strong><div>Changes save automatically.</div></div>"
+   "html": "<div role=\"status\" class=\"fl-ctl-alert fl-ctl-alert--info\" data-fl=\"c.alert.info\"><span class=\"fl-ctl-alert-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 16v-5M12 8h.01\"></path></svg></span><span class=\"fl-ctl-alert-text\"><strong>Heads up</strong><span class=\"fl-ctl-matrix-what\">Changes save automatically.</span></span></div>"
   },
   {
    "label": "Success",
-   "html": "<div class=\"ui-notice ui-notice--success\" role=\"status\"><div>Event created.</div></div>"
+   "html": "<div role=\"status\" class=\"fl-ctl-alert fl-ctl-alert--success\" data-fl=\"c.alert.success\"><span class=\"fl-ctl-alert-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12.5 10 17l9-10\"></path></svg></span><span class=\"fl-ctl-alert-text\"><strong>Event created.</strong></span></div>"
   },
   {
    "label": "Warning",
-   "html": "<div class=\"ui-notice ui-notice--warning\" role=\"status\"><div>This overlaps another event.</div></div>"
+   "html": "<div role=\"status\" class=\"fl-ctl-alert fl-ctl-alert--warning\" data-fl=\"c.alert.warning\"><span class=\"fl-ctl-alert-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01\"></path></svg></span><span class=\"fl-ctl-alert-text\"><strong>This overlaps another event.</strong></span></div>"
   },
   {
    "label": "Error",
-   "html": "<div class=\"ui-notice ui-notice--error\" role=\"alert\"><strong class=\"ui-notice__title\">Couldn&#x27;t save</strong><div>Check your connection and try again.</div></div>"
+   "html": "<div role=\"alert\" class=\"fl-ctl-alert fl-ctl-alert--danger\" data-fl=\"c.alert.danger\"><span class=\"fl-ctl-alert-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M18 6 6 18M6 6l12 12\"></path></svg></span><span class=\"fl-ctl-alert-text\"><strong>Couldn&#x27;t save</strong><span class=\"fl-ctl-matrix-what\">Check your connection and try again.</span></span></div>"
   },
   {
    "label": "Error with retry",
-   "html": "<div class=\"ui-notice ui-notice--error\" role=\"alert\"><strong class=\"ui-notice__title\">Couldn&#x27;t load this</strong><div>Check your connection. Nothing you typed was lost.</div><div class=\"ui-notice__actions\"><button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--sm\">Try again</button></div></div>"
+   "html": "<div role=\"alert\" class=\"fl-ctl-alert fl-ctl-alert--danger\" data-fl=\"c.alert.danger\"><span class=\"fl-ctl-alert-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M18 6 6 18M6 6l12 12\"></path></svg></span><span class=\"fl-ctl-alert-text\"><strong>Couldn&#x27;t load this</strong><span class=\"fl-ctl-matrix-what\">Check your connection. Nothing you typed was lost.</span></span><button class=\"fl-btn fl-btn--secondary fl-ctl-btn--32\" data-fl=\"c.button.secondary\" type=\"button\">Try again</button></div>"
   }
  ],
- "ui-tabs": [
+ "fl-ctl-tabset": [
   {
    "label": "Tabs",
-   "html": "<div class=\"ui-tabs ui-tabs--horizontal\"><div class=\"ui-tabs__list\" role=\"tablist\" aria-label=\"Calendar view\" aria-orientation=\"horizontal\"><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-m\" aria-controls=\"_R_0_-panel\" aria-selected=\"false\" tabindex=\"-1\" class=\"ui-tabs__tab\">Month</button><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-w\" aria-controls=\"_R_0_-panel\" aria-selected=\"true\" tabindex=\"0\" class=\"ui-tabs__tab\">Week</button><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-d\" aria-controls=\"_R_0_-panel\" aria-selected=\"false\" tabindex=\"-1\" class=\"ui-tabs__tab\">Day</button></div><div class=\"ui-tabs__panel\" role=\"tabpanel\" id=\"_R_0_-panel\" aria-labelledby=\"_R_0_-tab-w\" tabindex=\"0\"><p>Week view</p></div></div>"
+   "html": "<div data-fl=\"c.tabs.underline\"><div class=\"fl-ctl-tabset fl-ctl-tabset--underline fl-ctl-tabset--40\" role=\"tablist\" aria-label=\"Calendar view\"><button type=\"button\" role=\"tab\" id=\"tab-_R_0_-m\" aria-selected=\"false\" aria-controls=\"panel-_R_0_\" tabindex=\"-1\" class=\"fl-spec-tab\">Month</button><button type=\"button\" role=\"tab\" id=\"tab-_R_0_-w\" aria-selected=\"true\" aria-controls=\"panel-_R_0_\" tabindex=\"0\" class=\"fl-spec-tab is-on\">Week</button><button type=\"button\" role=\"tab\" id=\"tab-_R_0_-d\" aria-selected=\"false\" aria-controls=\"panel-_R_0_\" tabindex=\"-1\" class=\"fl-spec-tab\">Day</button></div><div class=\"fl-ctl-tabpanel\" role=\"tabpanel\" id=\"panel-_R_0_\" aria-labelledby=\"tab-_R_0_-w\" tabindex=\"0\"><p>Week view</p></div></div>"
   },
   {
    "label": "Vertical tabs",
-   "html": "<div class=\"ui-tabs ui-tabs--vertical\"><div class=\"ui-tabs__list\" role=\"tablist\" aria-label=\"Settings\" aria-orientation=\"vertical\"><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-g\" aria-controls=\"_R_0_-panel\" aria-selected=\"true\" tabindex=\"0\" class=\"ui-tabs__tab\">General</button><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-n\" aria-controls=\"_R_0_-panel\" aria-selected=\"false\" tabindex=\"-1\" class=\"ui-tabs__tab\">Notifications</button><button type=\"button\" role=\"tab\" id=\"_R_0_-tab-p\" aria-controls=\"_R_0_-panel\" aria-selected=\"false\" tabindex=\"-1\" class=\"ui-tabs__tab\">Privacy</button></div><div class=\"ui-tabs__panel\" role=\"tabpanel\" id=\"_R_0_-panel\" aria-labelledby=\"_R_0_-tab-g\" tabindex=\"0\"><p>General settings</p></div></div>"
+   "html": "<div class=\"fl-ctl-vtabs fl-ctl-vtabs--plain\" data-fl=\"c.tabs.plain\"><div class=\"fl-ctl-vtabs-rail\" role=\"tablist\" aria-orientation=\"vertical\" aria-label=\"Settings\"><button type=\"button\" role=\"tab\" id=\"tab-_R_0_-g\" aria-selected=\"true\" aria-controls=\"panel-_R_0_\" tabindex=\"0\" class=\"fl-ctl-vtab is-on\"><span>General</span></button><button type=\"button\" role=\"tab\" id=\"tab-_R_0_-n\" aria-selected=\"false\" aria-controls=\"panel-_R_0_\" tabindex=\"-1\" class=\"fl-ctl-vtab\"><span>Notifications</span></button><button type=\"button\" role=\"tab\" id=\"tab-_R_0_-p\" aria-selected=\"false\" aria-controls=\"panel-_R_0_\" tabindex=\"-1\" class=\"fl-ctl-vtab\"><span>Privacy</span></button></div><div class=\"fl-ctl-vtabs-panel\" role=\"tabpanel\" id=\"panel-_R_0_\" aria-labelledby=\"tab-_R_0_-g\" tabindex=\"0\"><h4>General</h4><p>General settings</p></div></div>"
   }
  ],
- "ui-switch": [
+ "fl-ctl-switch": [
   {
    "label": "On",
-   "html": "<button type=\"button\" role=\"switch\" aria-checked=\"true\" class=\"ui-switch\" aria-label=\"Email reminders\"><span class=\"ui-switch__thumb\" aria-hidden=\"true\"></span><span class=\"ui-switch__text\">On</span></button>"
+   "html": "<span style=\"display:contents\"><span class=\"fl-ctl-switch fl-ctl-switch--32\" data-fl=\"c.switch\"><input type=\"checkbox\" aria-label=\"Email reminders\" checked=\"\"/><span class=\"fl-ctl-switch-track\" aria-hidden=\"true\"><span class=\"fl-ctl-switch-thumb\"></span></span></span></span>"
   },
   {
    "label": "Off",
-   "html": "<button type=\"button\" role=\"switch\" aria-checked=\"false\" class=\"ui-switch\" aria-label=\"Weekly digest\"><span class=\"ui-switch__thumb\" aria-hidden=\"true\"></span><span class=\"ui-switch__text\">Off</span></button>"
+   "html": "<span style=\"display:contents\"><span class=\"fl-ctl-switch fl-ctl-switch--32\" data-fl=\"c.switch\"><input type=\"checkbox\" aria-label=\"Weekly digest\"/><span class=\"fl-ctl-switch-track\" aria-hidden=\"true\"><span class=\"fl-ctl-switch-thumb\"></span></span></span></span>"
   }
  ],
  "ui-settings": [
   {
    "label": "Settings list",
-   "html": "<div class=\"ui-settings\"><div class=\"ui-setting\"><div class=\"ui-setting__text\"><label class=\"ui-setting__label\" for=\"_R_1_\">Start week on Monday</label><p id=\"_R_1_-desc\" class=\"ui-setting__desc\">Changes the first column of the month view.</p></div><div class=\"ui-setting__control\"><button type=\"button\" role=\"switch\" id=\"_R_1_\" aria-checked=\"true\" class=\"ui-switch\" aria-describedby=\"_R_1_-desc\"><span class=\"ui-switch__thumb\" aria-hidden=\"true\"></span><span class=\"ui-switch__text\">On</span></button></div></div><div class=\"ui-setting\"><div class=\"ui-setting__text\"><label class=\"ui-setting__label\" for=\"_R_2_\">Show weekends</label></div><div class=\"ui-setting__control\"><button type=\"button\" role=\"switch\" id=\"_R_2_\" aria-checked=\"false\" class=\"ui-switch\"><span class=\"ui-switch__thumb\" aria-hidden=\"true\"></span><span class=\"ui-switch__text\">Off</span></button></div></div></div>"
+   "html": "<div class=\"ui-settings\"><div class=\"ui-setting\"><div class=\"ui-setting__text\"><label class=\"ui-setting__label\" for=\"_R_1_\">Start week on Monday</label><p id=\"_R_1_-desc\" class=\"ui-setting__desc\">Changes the first column of the month view.</p></div><div class=\"ui-setting__control\"><span style=\"display:contents\"><span class=\"fl-ctl-switch fl-ctl-switch--32\" data-fl=\"c.switch\"><input type=\"checkbox\" aria-label=\"\" checked=\"\"/><span class=\"fl-ctl-switch-track\" aria-hidden=\"true\"><span class=\"fl-ctl-switch-thumb\"></span></span></span></span></div></div><div class=\"ui-setting\"><div class=\"ui-setting__text\"><label class=\"ui-setting__label\" for=\"_R_2_\">Show weekends</label></div><div class=\"ui-setting__control\"><span style=\"display:contents\"><span class=\"fl-ctl-switch fl-ctl-switch--32\" data-fl=\"c.switch\"><input type=\"checkbox\" aria-label=\"\"/><span class=\"fl-ctl-switch-track\" aria-hidden=\"true\"><span class=\"fl-ctl-switch-thumb\"></span></span></span></span></div></div></div>"
   }
  ],
- "ui-stat": [
+ "fl-crd-kpi": [
   {
    "label": "Stat",
-   "html": "<div class=\"ui-stat\"><span class=\"ui-stat__label\">Events this week</span><span class=\"ui-stat__value\">12</span><span class=\"ui-stat__note\">3 more than last week</span></div>"
+   "html": "<div data-fl=\"c.kpi\" style=\"display:grid\"><div class=\"fl-card fl-crd-kpi\" data-fl=\"c.card.surface\"><h3 class=\"fl-crd-kpi__label\">Events this week</h3><p class=\"fl-crd-kpi__value\">12</p><p class=\"fl-crd-kpi__empty\">3 more than last week</p></div></div>"
   }
  ],
  "ui-trend": [
@@ -145,50 +145,50 @@
    "html": "<span class=\"ui-trend ui-trend--bad\"><span aria-hidden=\"true\">▼</span><span>Down 8%</span><span class=\"ui-trend__label\">vs last week</span></span>"
   }
  ],
- "ui-progress": [
+ "fl-ctl-bar": [
   {
    "label": "Progress",
-   "html": "<div class=\"ui-progress\"><div class=\"ui-progress__head\"><span id=\"_R_0_\" class=\"ui-progress__label\">Profile set up</span><span class=\"ui-progress__value\">60%</span></div><div class=\"ui-progress__track\" role=\"progressbar\" aria-labelledby=\"_R_0_\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"60\" aria-valuetext=\"60%\"><span class=\"ui-progress__fill\" style=\"width:60%\"></span></div></div>"
+   "html": "<div class=\"ui-progress\"><div class=\"ui-progress__head\" aria-hidden=\"true\"><span class=\"ui-progress__label\">Profile set up</span><span class=\"ui-progress__value\">60%</span></div><span class=\"fl-ctl-bar fl-ctl-bar--lg\" role=\"progressbar\" aria-valuenow=\"60\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-label=\"Profile set up: 60%\" data-fl=\"c.progress.bar\"><span style=\"width:60%\"></span></span></div>"
   }
  ],
- "ui-avatar": [
+ "fl-ctl-avatar": [
   {
    "label": "Small",
-   "html": "<span class=\"ui-avatar ui-avatar--sm\" aria-hidden=\"true\">SL</span>"
+   "html": "<span class=\"fl-ctl-avatar fl-ctl-avatar--32 fl-ctl-avatar--e\" data-fl=\"c.avatar.person\" aria-hidden=\"true\"><span aria-hidden=\"true\">SL</span></span>"
   },
   {
    "label": "Medium",
-   "html": "<span class=\"ui-avatar ui-avatar--md\" aria-hidden=\"true\">AR</span>"
+   "html": "<span class=\"fl-ctl-avatar fl-ctl-avatar--40 fl-ctl-avatar--e\" data-fl=\"c.avatar.person\" aria-hidden=\"true\"><span aria-hidden=\"true\">AR</span></span>"
   },
   {
    "label": "Large",
-   "html": "<span class=\"ui-avatar ui-avatar--lg\" aria-hidden=\"true\">JP</span>"
+   "html": "<span class=\"fl-ctl-avatar fl-ctl-avatar--48 fl-ctl-avatar--e\" data-fl=\"c.avatar.person\" aria-hidden=\"true\"><span aria-hidden=\"true\">JP</span></span>"
   }
  ],
- "ui-empty": [
+ "fl-spec-empty": [
   {
    "label": "Empty state",
-   "html": "<div class=\"ui-empty\"><h3 class=\"ui-empty__title\">No events yet</h3><p class=\"ui-empty__message\">Add your first event to see it on the calendar.</p><div class=\"ui-empty__action\"><button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\">New event</button></div></div>"
+   "html": "<div class=\"fl-spec-empty\" data-fl=\"c.empty-state.first-use\"><span class=\"fl-ctl-empty-art\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 3h18v18H3zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21\"></path></svg></span><h3 style=\"margin:0;font-size:var(--text-md);font-weight:var(--weight-semibold)\">No events yet</h3><span class=\"fl-ctl-matrix-what\">Add your first event to see it on the calendar.</span><button class=\"fl-btn fl-btn--primary fl-ctl-btn--40\" data-fl=\"c.button.primary\" type=\"button\">New event</button></div>"
   },
   {
    "label": "No results",
-   "html": "<div class=\"ui-empty\"><h3 class=\"ui-empty__title\">No matches</h3><p class=\"ui-empty__message\">Nothing matches your search. Try fewer words or clear the filters.</p><div class=\"ui-empty__action\"><button type=\"button\" class=\"ui-btn ui-btn--secondary ui-btn--md\">Clear search</button></div></div>"
+   "html": "<div class=\"fl-spec-empty\" data-fl=\"c.empty-state.first-use\"><span class=\"fl-ctl-empty-art\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 3h18v18H3zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21\"></path></svg></span><h3 style=\"margin:0;font-size:var(--text-md);font-weight:var(--weight-semibold)\">No matches</h3><span class=\"fl-ctl-matrix-what\">Nothing matches your search. Try fewer words or clear the filters.</span><button class=\"fl-btn fl-btn--secondary fl-ctl-btn--40\" data-fl=\"c.button.secondary\" type=\"button\">Clear search</button></div>"
   }
  ],
- "ui-skeleton": [
+ "fl-ctl-skel": [
   {
    "label": "Lines",
-   "html": "<div class=\"ui-skeleton\" role=\"status\" aria-label=\"Loading\"><span class=\"ui-skeleton__line\" style=\"width:100%\"></span><span class=\"ui-skeleton__line\" style=\"width:100%\"></span><span class=\"ui-skeleton__line\" style=\"width:60%\"></span></div>"
+   "html": "<div role=\"status\" aria-label=\"Loading\"><span style=\"display:grid;gap:var(--space-2)\" data-fl=\"c.skeleton.text\" aria-hidden=\"true\"><span class=\"fl-ctl-skel fl-ctl-skel--title\"></span><span class=\"fl-ctl-skel fl-ctl-skel--title\"></span><span class=\"fl-ctl-skel fl-ctl-skel--title\" style=\"width:60%\"></span></span></div>"
   },
   {
    "label": "Card",
-   "html": "<div class=\"ui-skeleton ui-skeleton--card\" role=\"status\" aria-label=\"Loading\"><span class=\"ui-skeleton__line\" style=\"width:100%\"></span><span class=\"ui-skeleton__line\" style=\"width:100%\"></span><span class=\"ui-skeleton__line\" style=\"width:60%\"></span></div>"
+   "html": "<div role=\"status\" aria-label=\"Loading\"><div class=\"fl-ctl-skel-card\" data-fl=\"c.skeleton.card\" aria-hidden=\"true\"><span class=\"fl-ctl-skel fl-ctl-skel--avatar\" data-fl=\"c.skeleton.avatar\" aria-hidden=\"true\"></span><span class=\"fl-ctl-skel-lines\"><span class=\"fl-ctl-skel fl-ctl-skel--title\" data-fl=\"c.skeleton.text\" aria-hidden=\"true\" style=\"width:70%\"></span><span class=\"fl-ctl-skel fl-ctl-skel--sub\" style=\"width:45%\"></span></span></div></div>"
   }
  ],
  "ui-page-header": [
   {
    "label": "Page header",
-   "html": "<div class=\"ui-page-header\"><div class=\"ui-page-header__text\"><h1 class=\"ui-page-header__title\">Calendar</h1><p class=\"ui-page-header__desc\">Plan your week and keep track of what&#x27;s next.</p></div><div class=\"ui-page-header__action\"><button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\">New event</button></div></div>"
+   "html": "<div class=\"ui-page-header\"><div class=\"ui-page-header__text\"><h1 class=\"ui-page-header__title\">Calendar</h1><p class=\"ui-page-header__desc\">Plan your week and keep track of what&#x27;s next.</p></div><div class=\"ui-page-header__action\"><button class=\"fl-btn fl-btn--primary fl-ctl-btn--40\" data-fl=\"c.button.primary\" type=\"button\">New event</button></div></div>"
   }
  ],
  "ui-section": [
@@ -206,13 +206,13 @@
  "ui-activity": [
   {
    "label": "Activity",
-   "html": "<ul class=\"ui-activity\" aria-label=\"Recent activity\"><li class=\"ui-activity__item\"><span class=\"ui-avatar ui-avatar--sm\" aria-hidden=\"true\">SL</span><div class=\"ui-activity__text\"><span><strong>Sam Lee</strong> moved Team planning to Thursday</span><span class=\"ui-activity__when\">2 min ago</span></div></li><li class=\"ui-activity__item\"><span class=\"ui-avatar ui-avatar--sm\" aria-hidden=\"true\">AR</span><div class=\"ui-activity__text\"><span><strong>Ana Ruiz</strong> added Design review</span><span class=\"ui-activity__when\">1 hour ago</span></div></li></ul>"
+   "html": "<ul class=\"ui-activity\" aria-label=\"Recent activity\"><li class=\"ui-activity__item\"><span class=\"fl-ctl-avatar fl-ctl-avatar--32 fl-ctl-avatar--e\" data-fl=\"c.avatar.person\" aria-hidden=\"true\"><span aria-hidden=\"true\">SL</span></span><div class=\"ui-activity__text\"><span><strong>Sam Lee</strong> moved Team planning to Thursday</span><span class=\"ui-activity__when\">2 min ago</span></div></li><li class=\"ui-activity__item\"><span class=\"fl-ctl-avatar fl-ctl-avatar--32 fl-ctl-avatar--e\" data-fl=\"c.avatar.person\" aria-hidden=\"true\"><span aria-hidden=\"true\">AR</span></span><div class=\"ui-activity__text\"><span><strong>Ana Ruiz</strong> added Design review</span><span class=\"ui-activity__when\">1 hour ago</span></div></li></ul>"
   }
  ],
- "ui-table": [
+ "fl-ctl-tbl": [
   {
    "label": "Table",
-   "html": "<div class=\"ui-table-wrap\" role=\"region\" aria-label=\"Upcoming events\" tabindex=\"0\"><table class=\"ui-table\"><caption class=\"ui-table__caption\">Upcoming events</caption><thead><tr><th scope=\"col\"></th><th scope=\"col\"></th><th scope=\"col\"></th></tr></thead><tbody><tr><td>Team standup</td><td>Mon 09:00</td><td>6</td></tr><tr><td>Design review</td><td>Wed 14:00</td><td>3</td></tr></tbody></table></div>"
+   "html": "<div class=\"ui-table\"><p class=\"ui-table__caption\" aria-hidden=\"true\">Upcoming events</p><div data-fl=\"p.data-table\"><p class=\"fl-sr\" role=\"status\" aria-live=\"polite\"></p><div class=\"fl-ctl-tbl-wrap\"><table class=\"fl-ctl-tbl\"><caption class=\"fl-sr\">Upcoming events</caption><thead><tr><th scope=\"col\">Event</th><th scope=\"col\">When</th><th scope=\"col\" class=\"is-num\">Guests</th></tr></thead><tbody><tr><th scope=\"row\">Team standup</th><td>Mon 09:00</td><td class=\"is-num\">6</td></tr><tr><th scope=\"row\">Design review</th><td>Wed 14:00</td><td class=\"is-num\">3</td></tr></tbody></table></div></div></div>"
   }
  ],
  "ui-chart": [
@@ -224,7 +224,7 @@
  "ui-hero": [
   {
    "label": "Hero",
-   "html": "<div class=\"ui-hero\"><div class=\"ui-hero__copy\"><span class=\"ui-hero__eyebrow\">Welcome back</span><h1 class=\"ui-hero__title\">Your week at a glance</h1><p class=\"ui-hero__desc\">Three events today, the first at 09:00.</p><div class=\"ui-hero__actions\"><button type=\"button\" class=\"ui-btn ui-btn--primary ui-btn--md\">Open calendar</button></div></div></div>"
+   "html": "<div class=\"ui-hero\"><div class=\"ui-hero__copy\"><span class=\"ui-hero__eyebrow\">Welcome back</span><h1 class=\"ui-hero__title\">Your week at a glance</h1><p class=\"ui-hero__desc\">Three events today, the first at 09:00.</p><div class=\"ui-hero__actions\"><button class=\"fl-btn fl-btn--primary fl-ctl-btn--40\" data-fl=\"c.button.primary\" type=\"button\">Open calendar</button></div></div></div>"
   }
  ],
  "ui-tile": [
@@ -236,7 +236,7 @@
  "ui-grid": [
   {
    "label": "Stats grid",
-   "html": "<div class=\"ui-grid ui-grid--stats\"><div class=\"ui-stat\"><span class=\"ui-stat__label\">Today</span><span class=\"ui-stat__value\">3</span></div><div class=\"ui-stat\"><span class=\"ui-stat__label\">This week</span><span class=\"ui-stat__value\">12</span></div><div class=\"ui-stat\"><span class=\"ui-stat__label\">Overdue</span><span class=\"ui-stat__value\">0</span></div></div>"
+   "html": "<div class=\"ui-grid ui-grid--stats\"><div data-fl=\"c.kpi\" style=\"display:grid\"><div class=\"fl-card fl-crd-kpi\" data-fl=\"c.card.surface\"><h3 class=\"fl-crd-kpi__label\">Today</h3><p class=\"fl-crd-kpi__value\">3</p></div></div><div data-fl=\"c.kpi\" style=\"display:grid\"><div class=\"fl-card fl-crd-kpi\" data-fl=\"c.card.surface\"><h3 class=\"fl-crd-kpi__label\">This week</h3><p class=\"fl-crd-kpi__value\">12</p></div></div><div data-fl=\"c.kpi\" style=\"display:grid\"><div class=\"fl-card fl-crd-kpi\" data-fl=\"c.card.surface\"><h3 class=\"fl-crd-kpi__label\">Overdue</h3><p class=\"fl-crd-kpi__value\">0</p></div></div></div>"
   }
  ]
 }

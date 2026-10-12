@@ -1,7 +1,7 @@
 /** @flowcode-library tables-states · Tables: sorting, selection, density and the states a row reaches (Tables and lists)
  * Catalog ID: p.data-table (pattern)
  * Function: The data table pattern (p.data-table); the reference sheet shows sorting (announced to screen readers), row selection by box or by clicking the row, a bulk bar, totals, dense and striped looks, the loading and empty states, and a table with row actions in a fixed order. It also shows paging (pageSize, with Pagination and a "Showing x-y of z" line; select-all takes the visible page, ticks persist across pages), controlled sorting, and a bare table inside a panel.
- * Use it as: import { DataTable } from "./tables-states"; <DataTable caption="Shoots" columns={[{ id, label, num?, render?, total?, sortable? }]} rows={[{ id, ... }]} sortable? selectable? onSelectionChange?={(ids) => ...} bulk?={(ids, clear) => buttons} rowActions?={(row) => buttons} defaultSort?={{ col, up }} sort?={{ column, direction: "asc"|"desc" }} onSortChange?={(sort) => ...} pageSize? page? onPageChange? bare? dense? striped? loading? emptyTitle? emptyHint? emptyAction? onEmptyAction? />
+ * Use it as: import { DataTable } from "./tables-states"; <DataTable version?="default"|"sortable"|"selectable" caption="Shoots" columns={[{ id, label, num?, render?, total?, sortable? }]} rows={[{ id, ... }]} sortable? selectable? onSelectionChange?={(ids) => ...} bulk?={(ids, clear) => buttons} rowActions?={(row) => buttons} defaultSort?={{ col, up }} sort?={{ column, direction: "asc"|"desc" }} onSortChange?={(sort) => ...} pageSize? page? onPageChange? bare? dense? striped? loading? emptyTitle? emptyHint? emptyAction? onEmptyAction? />
  * Built from: c.checkbox, c.button.tertiary, c.button.secondary, c.progress.spinner, c.badge.status, c.pagination.numbered
  * Look: A full-width table with a muted sticky header, a caret on the sorted column, right-aligned tabular numbers, a tinted row when ticked and an accent bar above it counting the chosen rows.
  * Tokens: --color-surface --color-surface-sunken --color-border --color-text --color-text-muted --color-accent --radius-md --space-2 --space-3 --text-sm
@@ -31,7 +31,7 @@
  * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
  * built app exactly as it runs here.
  */
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 import { Badge, type BadgeTone } from "./badges-status";
@@ -43,6 +43,8 @@ import { Pagination } from "./pagination-variants";
 
 export type TableRow = { id: string } & Record<string, unknown>;
 export type TableSort = { column: string; direction: "asc" | "desc" };
+/** default = the app table; sortable = the report table (visible caption, sort arrows, totals row); selectable = the to-do table (tick boxes, bulk bar). */
+export type DataTableVersion = "default" | "sortable" | "selectable";
 export type TableColumn<R extends TableRow = TableRow> = {
   id: string;
   label: string;
@@ -54,10 +56,18 @@ export type TableColumn<R extends TableRow = TableRow> = {
   total?: (rows: R[]) => ReactNode;
   /** false: this column's heading is plain text, not a sort button. */
   sortable?: boolean;
+  /** sortable version: keep this column's cells on one line (dates). */
+  nowrap?: boolean;
 };
 
 type TableProps<R extends TableRow> = {
-  /** Read by screen readers as the table's name. */
+  /** "sortable" and "selectable" draw the report and to-do tables; the default when left out. */
+  version?: DataTableVersion;
+  /** sortable version: a hint line under the visible caption, such as "Select a heading to sort". */
+  captionMeta?: string;
+  /** Controlled selection: the ids ticked now. Pair it with onSelectionChange. The table keeps its own when left out. */
+  selected?: string[];
+  /** Read by screen readers as the table's name (the visible caption title in the sortable version). */
   caption: string;
   /** The first column is the row header (a th), so a screen reader can say which row a cell belongs to. */
   columns: TableColumn<R>[];
@@ -97,7 +107,18 @@ type TableProps<R extends TableRow> = {
 
 const sortValue = (v: unknown) => (typeof v === "number" ? v : String(v ?? ""));
 
+function SortIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 5v14M6 11l6-6 6 6" />
+    </svg>
+  );
+}
+
 export function DataTable<R extends TableRow>({
+  version = "default",
+  captionMeta,
+  selected,
   caption,
   columns,
   rows: data,
@@ -127,6 +148,15 @@ export function DataTable<R extends TableRow>({
   const [pageState, setPage] = useState(1);
   const [on, setOn] = useState<string[]>([]);
   const [said, setSaid] = useState("");
+  const uid = useId();
+  const allRef = useRef<HTMLInputElement>(null);
+  const onIds = selected ?? on;
+  // Ticks go to our own state, or to the caller when selection is controlled.
+  const pick = (f: (v: string[]) => string[]) => {
+    const next = f(onIds);
+    if (selected === undefined) setOn(next);
+    else onSelectionChange?.(next);
+  };
 
   function sortBy(c: TableColumn<R>) {
     const next = { col: c.id, up: sort.col === c.id ? !sort.up : true };
@@ -135,7 +165,7 @@ export function DataTable<R extends TableRow>({
     if (pageProp === undefined) setPage(1);
     setSaid(`Sorted by ${c.label}, ${next.up ? "ascending" : "descending"}`);
   }
-  const toggle = (id: string) => setOn((v) => (v.includes(id) ? v.filter((x) => x !== id) : [...v, id]));
+  const toggle = (id: string) => pick((v) => (v.includes(id) ? v.filter((x) => x !== id) : [...v, id]));
 
   const shown = loading ? [] : data;
   const rows = sort.col
@@ -154,14 +184,185 @@ export function DataTable<R extends TableRow>({
     onPageChange?.(n);
   };
   const visible = pageSize ? rows.slice((page - 1) * pageSize, page * pageSize) : rows;
-  const chosen = on.filter((id) => rows.some((r) => r.id === id));
+  const chosen = onIds.filter((id) => rows.some((r) => r.id === id));
   const pickedHere = visible.filter((r) => chosen.includes(r.id)).length;
-  const clear = () => setOn([]);
+  const clear = () => pick(() => []);
+  const toggleVisible = () => {
+    const ids = visible.map((r) => r.id);
+    pick((v) => (pickedHere === visible.length ? v.filter((x) => !ids.includes(x)) : [...new Set([...v, ...ids])]));
+  };
   const hasTotals = columns.some((c) => c.total);
   const notify = useRef(onSelectionChange);
   notify.current = onSelectionChange;
   const key = chosen.join("|");
-  useEffect(() => notify.current?.(key ? key.split("|") : []), [key]);
+  useEffect(() => {
+    if (selected === undefined) notify.current?.(key ? key.split("|") : []);
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The native select-all box shows a mixed state when only some rows are ticked.
+  useEffect(() => {
+    if (allRef.current) allRef.current.indeterminate = pickedHere > 0 && pickedHere < visible.length;
+  });
+
+  if (version === "sortable") {
+    const capId = `${uid}-cap`;
+    const first = columns.findIndex((c) => c.total);
+    return (
+      <div className={className} data-fl="p.data-table@sortable">
+        <div className="fl-tbl-panel">
+          <div className="fl-tbl-scroll" tabIndex={0} role="region" aria-labelledby={capId}>
+            <table className="fl-tbl-table">
+              <caption>
+                <span id={capId} className="fl-tbl-caption-title">
+                  {caption}
+                </span>
+                {captionMeta ? <span className="fl-tbl-caption-meta">{captionMeta}</span> : null}
+              </caption>
+              <thead>
+                <tr>
+                  {columns.map((c) => {
+                    const here = sort.col === c.id;
+                    return (
+                      <th key={c.id} scope="col" className={c.num ? "fl-tbl-num" : undefined} aria-sort={here ? (sort.up ? "ascending" : "descending") : "none"}>
+                        <button type="button" className="fl-tbl-sort" onClick={() => sortBy(c)}>
+                          {c.label}
+                          <SortIcon />
+                        </button>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length} className="fl-tbl-empty-cell">
+                      <div className="fl-tbl-empty">
+                        <strong>{emptyTitle}</strong>
+                        <span>{emptyHint}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : null}
+                {rows.map((r) => (
+                  <tr key={r.id}>
+                    {columns.map((c, i) => {
+                      const cell = c.render ? c.render(r) : (r[c.id] as ReactNode);
+                      const cls = [c.num ? "fl-tbl-num" : "", c.nowrap ? "fl-tbl-nowrap" : ""].filter(Boolean).join(" ") || undefined;
+                      return i === 0 ? (
+                        <th key={c.id} scope="row">
+                          {cell}
+                        </th>
+                      ) : (
+                        <td key={c.id} className={cls}>
+                          {cell}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+              {rows.length > 0 && first > 0 ? (
+                <tfoot>
+                  <tr>
+                    <th scope="row" colSpan={first}>
+                      Total
+                    </th>
+                    {columns.slice(first).map((c) => (
+                      <td key={c.id} className={c.num ? "fl-tbl-num" : undefined}>
+                        {c.total ? c.total(rows) : null}
+                      </td>
+                    ))}
+                  </tr>
+                </tfoot>
+              ) : null}
+            </table>
+          </div>
+        </div>
+        <p className="fl-sr" role="status" aria-live="polite">
+          {said}
+        </p>
+      </div>
+    );
+  }
+
+  if (version === "selectable") {
+    const allHere = visible.length > 0 && pickedHere === visible.length;
+    return (
+      <div className={`fl-tbl${className ? ` ${className}` : ""}`} data-fl="p.data-table@selectable">
+        <div className="fl-tbl-panel">
+          {chosen.length > 0 ? (
+            <div className="fl-tbl-bulk" role="region" aria-label="Bulk actions">
+              <strong>{chosen.length} selected</strong>
+              <div className="fl-actions">
+                {bulk ? bulk(chosen, clear) : null}
+                <Button variant="tertiary" size={32} onClick={clear}>
+                  Clear selection
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {rows.length === 0 ? (
+            <div className="fl-tbl-empty">
+              <span className="fl-icon">
+                <Icon name="check" />
+              </span>
+              <strong>{emptyTitle}</strong>
+              <span>{emptyHint}</span>
+            </div>
+          ) : (
+            <div className="fl-tbl-scroll">
+              <table className="fl-tbl-table" style={{ minWidth: "30rem" }}>
+                <caption className="fl-sr">{caption}. Use the checkboxes to select rows.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" className="fl-tbl-check-cell">
+                      <input ref={allRef} id={`${uid}-all`} type="checkbox" className="fl-tbl-check" checked={allHere} onChange={toggleVisible} />
+                      <label htmlFor={`${uid}-all`} className="fl-sr">
+                        Select all rows
+                      </label>
+                    </th>
+                    {columns.map((c) => (
+                      <th key={c.id} scope="col" className={c.num ? "fl-tbl-num" : undefined}>
+                        {c.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {visible.map((r) => {
+                    const isOn = chosen.includes(r.id);
+                    return (
+                      <tr key={r.id} aria-selected={isOn} onClick={(e) => !(e.target as HTMLElement).closest("input, button, a, label") && toggle(r.id)} style={{ cursor: "pointer" }}>
+                        <td className="fl-tbl-check-cell">
+                          <input id={`${uid}-${r.id}`} type="checkbox" className="fl-tbl-check" checked={isOn} onChange={() => toggle(r.id)} />
+                          <label htmlFor={`${uid}-${r.id}`} className="fl-sr">
+                            Select “{String(r[columns[0].id] ?? r.id)}”
+                          </label>
+                        </td>
+                        {columns.map((c, i) => {
+                          const cell = c.render ? c.render(r) : (r[c.id] as ReactNode);
+                          return i === 0 ? (
+                            <th key={c.id} scope="row" style={{ fontWeight: "var(--weight-medium)" }}>
+                              {cell}
+                            </th>
+                          ) : (
+                            <td key={c.id} className={c.num ? "fl-tbl-num" : c.nowrap ? "fl-tbl-nowrap" : undefined}>
+                              {cell}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={className} data-fl="p.data-table">
@@ -193,10 +394,7 @@ export function DataTable<R extends TableRow>({
                     checked={visible.length > 0 && pickedHere === visible.length}
                     indeterminate={pickedHere > 0 && pickedHere < visible.length}
                     disabled={!visible.length}
-                    onChange={() => {
-                      const ids = visible.map((r) => r.id);
-                      setOn((v) => (pickedHere === visible.length ? v.filter((x) => !ids.includes(x)) : [...new Set([...v, ...ids])]));
-                    }}
+                    onChange={toggleVisible}
                     aria-label={pageSize ? "Choose every row on this page" : "Choose every row"}
                   />
                 </th>
@@ -321,8 +519,123 @@ export function DataTable<R extends TableRow>({
   );
 }
 
+// ── p.data-table@selectable in use: to-dos with bulk actions and an undo message (table-selectable wraps this). ──
+
+export type TodoRow = { id: string; task: string; who: string; due: string; done: boolean };
+export type SelectableTodosProps = { title: string; lede: string; rows: TodoRow[]; emptyTitle: string; emptyText: string };
+
+export function SelectableTodos(d: SelectableTodosProps) {
+  const uid = useId();
+  const [rows, setRows] = useState<TodoRow[]>(d.rows);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [undo, setUndo] = useState<{ message: string; rows: TodoRow[]; selected: string[] } | null>(null);
+  const undoRef = useRef<HTMLButtonElement>(null);
+
+  // The undo message goes away on its own after a while.
+  useEffect(() => {
+    if (!undo) return;
+    const t = window.setTimeout(() => setUndo(null), 8000);
+    return () => window.clearTimeout(t);
+  }, [undo]);
+
+  function act(kind: "done" | "delete") {
+    const n = selected.length;
+    const noun = n === 1 ? "to-do" : "to-dos";
+    setUndo({ message: kind === "done" ? `Marked ${n} ${noun} done.` : `Deleted ${n} ${noun}.`, rows, selected });
+    setRows((rs) => (kind === "done" ? rs.map((r) => (selected.includes(r.id) ? { ...r, done: true } : r)) : rs.filter((r) => !selected.includes(r.id))));
+    setSelected([]);
+    // Keep focus on the page: the Undo message holds it.
+    requestAnimationFrame(() => undoRef.current?.focus());
+  }
+  function restore() {
+    if (!undo) return;
+    setRows(undo.rows);
+    setSelected(undo.selected);
+    setUndo(null);
+  }
+
+  const columns: TableColumn<TodoRow>[] = [
+    {
+      id: "task",
+      label: "To-do",
+      render: (r) => (
+        <>
+          <span className={r.done ? "fl-tbl-done-text" : undefined}>{r.task}</span>
+          {r.done ? <span className="fl-sr"> (done)</span> : null}
+        </>
+      ),
+    },
+    { id: "who", label: "Who" },
+    { id: "due", label: "Due", nowrap: true, render: (r) => (r.done ? <span className="fl-tbl-status fl-tbl-status--success">Done</span> : <span className="fl-tbl-muted">{r.due}</span>) },
+  ];
+
+  return (
+    <section className="fl-section" aria-labelledby={`${uid}-title`}>
+      <div className="fl-wrap fl-wrap--narrow fl-tbl">
+        <div className="fl-head" style={{ marginBottom: 0 }}>
+          <h2 id={`${uid}-title`} className="fl-title fl-title--md">
+            {d.title}
+          </h2>
+          <p className="fl-text">{d.lede}</p>
+        </div>
+        <DataTable
+          version="selectable"
+          caption={d.title}
+          columns={columns}
+          rows={rows}
+          selected={selected}
+          onSelectionChange={setSelected}
+          emptyTitle={d.emptyTitle}
+          emptyHint={d.emptyText}
+          bulk={() => (
+            <>
+              <Button size={32} icon="check" onClick={() => act("done")}>
+                Mark done
+              </Button>
+              <Button variant="secondary" size={32} onClick={() => act("delete")} style={{ color: "var(--color-danger)" }}>
+                Delete
+              </Button>
+            </>
+          )}
+        />
+        <div aria-live="polite" role="status">
+          {undo ? (
+            <div className="fl-tbl-toast">
+              <span>{undo.message}</span>
+              <span style={{ display: "flex", gap: "var(--space-1)" }}>
+                <button ref={undoRef} type="button" onClick={restore}>
+                  Undo
+                </button>
+                <button type="button" onClick={() => setUndo(null)} aria-label="Dismiss message">
+                  Dismiss
+                </button>
+              </span>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // flowcode:sample
 const SAMPLE = {
+  bookings: [
+    { id: "b1", client: "Maya Okafor", service: "Portrait session", date: "2026-10-05", dateLabel: "Mon 5 Oct", hours: 1.5, amount: 180 },
+    { id: "b2", client: "Tom Reyes", service: "Product shoot", date: "2026-10-06", dateLabel: "Tue 6 Oct", hours: 4, amount: 520 },
+    { id: "b3", client: "Ana Lindqvist", service: "Headshots", date: "2026-10-06", dateLabel: "Tue 6 Oct", hours: 1, amount: 95 },
+    { id: "b4", client: "Corner Bakery", service: "Menu photos", date: "2026-10-08", dateLabel: "Thu 8 Oct", hours: 3, amount: 360 },
+    { id: "b5", client: "Jonah Patel", service: "Family session", date: "2026-10-09", dateLabel: "Fri 9 Oct", hours: 2, amount: 240 },
+    { id: "b6", client: "Elif Demir", service: "Studio hire", date: "2026-10-10", dateLabel: "Sat 10 Oct", hours: 6, amount: 300 },
+  ],
+  todos: [
+    { id: "t1", task: "Order backdrop paper (gray, 2.7m)", who: "Maya", due: "Today", done: false },
+    { id: "t2", task: "Edit Tom Reyes product shots", who: "Jonah", due: "Today", done: false },
+    { id: "t3", task: "Send deposit reminder to Ana", who: "Maya", due: "Tomorrow", done: false },
+    { id: "t4", task: "Charge camera batteries for Saturday", who: "Elif", due: "Fri 9 Oct", done: false },
+    { id: "t5", task: "Book cleaner for the studio", who: "Jonah", due: "Fri 9 Oct", done: true },
+    { id: "t6", task: "Back up last week's sessions", who: "Elif", due: "Sun 11 Oct", done: false },
+  ],
   rows: [
     { id: "r1", name: "Riverside wedding", client: "Ana Moreau", date: "2026-06-12", photos: 420, total: 2400, status: "booked" },
     { id: "r2", name: "Harbour engagement", client: "Tom Reed", date: "2026-05-02", photos: 86, total: 450, status: "delivered" },
@@ -350,6 +663,15 @@ const COLUMNS: TableColumn<Shoot>[] = [
   },
   { id: "total", label: "Total", num: true, render: (r) => money(r.total), total: (rs) => money(rs.reduce((n, r) => n + r.total, 0)) },
   { id: "status", label: "Status", render: (r) => <Badge tone={SAMPLE.tone[r.status]}>{r.status}</Badge> },
+];
+
+type BookingRow = (typeof SAMPLE.bookings)[number] & Record<string, unknown>;
+const BOOKING_COLUMNS: TableColumn<BookingRow>[] = [
+  { id: "client", label: "Client" },
+  { id: "service", label: "Service" },
+  { id: "date", label: "Date", nowrap: true, render: (r) => <time dateTime={r.date}>{r.dateLabel}</time> },
+  { id: "hours", label: "Hours", num: true, render: (r) => r.hours.toFixed(1), total: (rs) => rs.reduce((n, r) => n + r.hours, 0).toFixed(1) },
+  { id: "amount", label: "Amount", num: true, render: (r) => `$${r.amount.toFixed(2)}`, total: (rs) => `$${rs.reduce((n, r) => n + r.amount, 0).toFixed(2)}` },
 ];
 
 export default function TablesStates() {
@@ -472,6 +794,31 @@ export default function TablesStates() {
         <div className="fl-ctl-tbl-panel">
           <DataTable caption="Shoots, bare inside a panel" columns={COLUMNS.slice(0, 3)} rows={d.rows as Shoot[]} bare sortable={false} />
         </div>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Version: sortable (p.data-table@sortable)</h3>
+        <p className="fl-ctl-btn-what">
+          The report table: a visible caption with a hint line, an arrow on every heading that turns to show the order, tabular
+          numbers that line up and a total row. Nothing is ticked; it is for reading and comparing.
+        </p>
+        <DataTable<BookingRow>
+          version="sortable"
+          caption="Studio bookings this week"
+          captionMeta="Select a column heading to sort. Select it again to reverse."
+          columns={BOOKING_COLUMNS}
+          rows={d.bookings as BookingRow[]}
+          defaultSort={{ col: "date", up: true }}
+        />
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Version: selectable (p.data-table@selectable)</h3>
+        <p className="fl-ctl-btn-what">
+          The to-do table: native tick boxes, a mixed select-all, click anywhere on a row to tick it, a bar of bulk actions once
+          something is ticked and an Undo message after each action.
+        </p>
+        <SelectableTodos title="Studio to-dos" lede="Tick the jobs you've handled, then mark them done or clear them in one go." rows={d.todos} emptyTitle="All clear" emptyText="No to-dos left. New jobs you add will show up here." />
       </div>
 
       <div className="fl-ctl-sizes">

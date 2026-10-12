@@ -55,7 +55,7 @@
   font-weight: var(--weight-regular);
 }
 
-/* ── Progress ── */
+/* ── Progress: the label and value in words over the catalog's bar (c.progress) ── */
 .ui-progress {
   display: grid;
   gap: var(--space-1);
@@ -72,19 +72,6 @@
 .ui-progress__value {
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
-}
-.ui-progress__track {
-  height: 0.5rem;
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-sunken);
-  overflow: hidden;
-}
-.ui-progress__fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-accent);
-  transition: width var(--duration-fast) var(--easing);
 }
 
 /* ── Bar chart ── */
@@ -140,73 +127,18 @@
   max-width: 100%;
 }
 
-/* ── Table ── */
-.ui-table-wrap {
-  overflow-x: auto;
-  border: var(--surface-border, var(--border-width) solid var(--color-border));
-  border-radius: var(--surface-radius, var(--radius-lg));
-  background: var(--surface-bg, var(--color-surface));
-  box-shadow: var(--surface-shadow, none);
-  backdrop-filter: var(--surface-blur, none);
-  -webkit-backdrop-filter: var(--surface-blur, none);
-}
+/* ── Table: the visible caption over the catalog's table (p.data-table) ── */
 .ui-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--text-sm);
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
 }
 .ui-table__caption {
-  padding: var(--space-3) var(--space-4);
-  text-align: start;
+  margin: 0;
   font-weight: var(--weight-bold);
-}
-.ui-table th,
-.ui-table td {
-  padding: var(--space-3) var(--space-4);
-  text-align: start;
-  border-top: var(--border-width) solid var(--color-border);
-  white-space: nowrap;
-}
-.ui-table th {
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  color: var(--color-text-muted);
-  background: var(--color-surface-sunken);
-}
-.ui-table tbody tr:hover {
-  background: var(--color-surface-sunken);
-}
-.ui-table .ui-table__num {
-  text-align: end;
-  font-variant-numeric: tabular-nums;
 }
 
-/* ── Avatar and activity ── */
-.ui-avatar {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  border-radius: 50%;
-  background: var(--color-surface-sunken);
-  color: var(--color-text);
-  border: var(--border-width) solid var(--color-border);
-  font-weight: var(--weight-bold);
-}
-.ui-avatar--sm {
-  width: 2rem;
-  height: 2rem;
-  font-size: var(--text-xs);
-}
-.ui-avatar--md {
-  width: 2.5rem;
-  height: 2.5rem;
-  font-size: var(--text-sm);
-}
-.ui-avatar--lg {
-  width: 3.5rem;
-  height: 3.5rem;
-  font-size: var(--text-lg);
-}
+/* ── Activity ── */
 .ui-activity {
   display: grid;
   margin: 0;
@@ -308,7 +240,7 @@
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--color-accent);
+  color: var(--color-secondary, var(--color-accent));
 }
 .ui-hero__title {
   font-family: var(--font-display);
@@ -348,13 +280,16 @@
   align-content: start;
   gap: var(--space-2);
   min-height: 8rem;
-  padding: var(--space-5);
+  /* Its corner and padding, exposed so the icon tile inside nests its corner. */
+  --_r: min(var(--surface-radius, var(--radius-lg)), 24px);
+  --_p: var(--space-5);
+  padding: var(--_p);
   text-align: start;
   font: inherit;
   color: var(--color-text);
   background: var(--surface-bg, var(--color-surface));
   border: var(--surface-border, var(--border-width) solid var(--color-border));
-  border-radius: var(--surface-radius, var(--radius-lg));
+  border-radius: var(--_r);
   box-shadow: var(--surface-shadow, none);
   backdrop-filter: var(--surface-blur, none);
   -webkit-backdrop-filter: var(--surface-blur, none);
@@ -374,9 +309,10 @@
   place-items: center;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-sunken);
-  color: var(--color-accent);
+  /* Outer corner minus padding, kept between half and three quarters of the outer. */
+  border-radius: clamp(calc(var(--_r) * 0.5), calc(var(--_r) - var(--_p)), calc(var(--_r) * 0.75));
+  background: var(--color-secondary-surface, var(--color-surface-sunken));
+  color: var(--color-secondary, var(--color-accent));
   font-size: var(--text-lg);
 }
 .ui-tile__title {
@@ -387,65 +323,12 @@
   color: var(--color-text-muted);
 }
 
-/* ── Tabs ── */
-.ui-tabs {
-  display: grid;
-  gap: var(--space-4);
-}
-.ui-tabs__list {
-  display: flex;
-  gap: var(--space-1);
-  overflow-x: auto;
-  border-bottom: var(--border-width) solid var(--color-border);
-}
-.ui-tabs__tab {
-  min-height: var(--control-md, 2.75rem);
-  padding: 0 var(--space-3);
-  border: 0;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  background: transparent;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-weight: var(--weight-medium);
-  white-space: nowrap;
-  cursor: pointer;
-}
-.ui-tabs__tab:hover {
-  color: var(--color-text);
-  background: var(--color-surface-sunken);
-}
-.ui-tabs__tab[aria-selected="true"] {
-  color: var(--color-text);
-  box-shadow: inset 0 -3px 0 var(--color-accent);
-}
-.ui-tabs__panel {
-  min-width: 0;
-}
-@media (min-width: 900px) {
-  .ui-tabs--vertical {
-    grid-template-columns: 14rem minmax(0, 1fr);
-    align-items: start;
-  }
-  .ui-tabs--vertical .ui-tabs__list {
-    flex-direction: column;
-    border-bottom: 0;
-  }
-  .ui-tabs--vertical .ui-tabs__tab {
-    text-align: start;
-    border-radius: var(--radius-md);
-  }
-  .ui-tabs--vertical .ui-tabs__tab[aria-selected="true"] {
-    background: var(--color-surface-sunken);
-    box-shadow: none;
-  }
-}
-
 /* ── Settings ── */
 .ui-settings {
   display: grid;
   background: var(--surface-bg, var(--color-surface));
   border: var(--surface-border, var(--border-width) solid var(--color-border));
-  border-radius: var(--surface-radius, var(--radius-lg));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px);
   box-shadow: var(--surface-shadow, none);
   backdrop-filter: var(--surface-blur, none);
   -webkit-backdrop-filter: var(--surface-blur, none);
@@ -483,67 +366,15 @@
   justify-content: flex-end;
 }
 
-/* ── Switch ── */
-.ui-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: var(--control-md, 2.75rem);
-  padding: 0 var(--space-1);
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-.ui-switch__thumb {
-  position: relative;
-  width: 2.75rem;
-  height: 1.5rem;
-  border-radius: var(--control-radius);
-  background: var(--color-surface-sunken);
-  border: var(--border-width) solid var(--color-border-strong);
-  transition: background var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
-}
-.ui-switch__thumb::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0.1875rem;
-  width: 1.125rem;
-  height: 1.125rem;
-  border-radius: 50%;
-  background: var(--color-text-muted);
-  transform: translateY(-50%);
-  transition: transform var(--duration-fast) var(--easing), background var(--duration-fast) var(--easing);
-}
-.ui-switch[aria-checked="true"] .ui-switch__thumb {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-}
-.ui-switch[aria-checked="true"] .ui-switch__thumb::after {
-  background: var(--color-on-accent);
-  transform: translate(1.125rem, -50%);
-}
-.ui-switch__text {
-  min-width: 1.75rem;
-  text-align: start;
-  color: var(--color-text-muted);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .ui-tile,
-  .ui-switch__thumb,
-  .ui-switch__thumb::after,
-  .ui-progress__fill {
+  .ui-tile {
     transition: none;
   }
 }
 
 /* Badges and avatars keep their own width inside cards and sections. */
-.ui-card__body > .ui-badge,
-.ui-section > .ui-avatar {
+.ui-card__body > .fl-ctl-badge,
+.ui-section > .fl-ctl-avatar {
   justify-self: start;
 }
 /* Read by screen readers, not shown (a table caption that repeats the section title). */
@@ -571,11 +402,7 @@
 }
 
 /* Keyboard focus is always visible on screen parts. */
-.ui-tile:focus-visible,
-.ui-tabs__tab:focus-visible,
-.ui-switch:focus-visible,
-.ui-table-wrap:focus-visible,
-.ui-tabs__panel:focus-visible {
+.ui-tile:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring, 0 0 0 3px var(--color-focus));
 }

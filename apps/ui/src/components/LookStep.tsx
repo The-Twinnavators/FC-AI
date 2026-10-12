@@ -3,7 +3,7 @@
  * the visual design templates; either way they're asked which extras to include. Extras the PRD already mentions start
  * ticked.
  */
-import { BUILD_EXTRAS, DESIGN_TEMPLATES, STYLE_VIBES, TEMPLATE_VIBES, designTemplate, vibeFromText, vibeTokens, type DesignTemplate, type ReferenceFile } from "@flowcode/contracts";
+import { BUILD_EXTRAS, DESIGN_TEMPLATES, STYLE_VIBES, TEMPLATE_VIBES, designTemplate, templateTokens, vibeFromText, vibeTokens, type DesignTemplate, type ReferenceFile } from "@flowcode/contracts";
 
 /** The surface style to preselect: one the PRD names, else the template's suggestion, else flat. */
 export function suggestedVibe(refs: Pick<ReferenceFile, "role" | "content">[], template?: string): string {
@@ -13,16 +13,8 @@ export function suggestedVibe(refs: Pick<ReferenceFile, "role" | "content">[], t
 
 /** A design template's colors and radii as CSS custom properties, for previews. */
 export function templateVars(t: DesignTemplate): Record<string, string> {
-  const c = t.colors;
   return {
-    "--color-bg": c.bg,
-    "--color-surface": c.surface,
-    "--color-text": c.text,
-    "--color-border": c.border,
-    "--color-border-strong": c.borderStrong,
-    "--color-accent": c.accent,
-    "--color-focus": c.focus,
-    "--color-success": c.success,
+    ...templateTokens(t),
     "--border-width": "1px",
     "--radius-md": `${t.radii[1]}px`,
     "--radius-lg": `${t.radii[2]}px`,

@@ -12772,6 +12772,37 @@ p.nb__starter b {
 .brand-row__hex { width: 104px; height: 30px; font-size: 12.5px; }
 .brand-add { justify-self: start; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; }
 
+/* Secondary harmonies (60/30/10): swatches traced from the primary, the fit note and the split strip. */
+.harmony { grid-column: 1 / -1; display: grid; gap: 8px; margin-top: 4px; }
+.harmony__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+.harmony__opt {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-0);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+.harmony__opt:hover { border-color: var(--line-strong); }
+.harmony__opt.is-on { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 12%, transparent); }
+.harmony__opt:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.harmony__swatch { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.3); }
+.harmony__name { font-size: 12.5px; font-weight: 600; }
+.harmony__name .muted { font-weight: 400; font-size: 11.5px; }
+.harmony__why { grid-column: 2; font-size: 11.5px; line-height: 1.35; }
+.harmony__fit { margin: 0; font-size: 12px; color: var(--text-1); }
+.harmony__fit.is-warn { padding: 6px 9px; border-radius: 6px; background: var(--sig-warn-bg, rgba(242, 179, 61, 0.12)); color: var(--text-0); }
+.harmony__split { display: flex; height: 10px; border-radius: 999px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.25); }
+.harmony__split i { display: block; min-width: 0; }
+@media (prefers-reduced-motion: reduce) { .harmony__opt { transition: none; } }
+
 /* Contrast checks. */
 .audit { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .audit__row {

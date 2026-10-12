@@ -283,14 +283,96 @@ const sizeCss = (block: string, v: Record<string, string>) => {
   const n = (x: number) => `${Number((x * f).toFixed(4))}rem`;
   return rule(SIZE_ROOT[block] ?? `.${block}`, [`font-size: ${f}em`, ...Object.entries(KIT_SIZES).map(([k, x]) => `${k}: ${n(x)}`)]);
 };
-const titleOf = (block: string) => block.replace(/^ui-/, "").replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
+const titleOf = (block: string) => block.replace(/^(?:ui|fl)-(?:ctl-|spec-)?/, "").replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
 
 /** A component's options: Size, then its own. Any kit component (ui-…) can at least be sized. */
 export const componentStyleSpec = (block: string): ComponentStyleSpec | undefined => {
-  const own = SPECS[block] ?? (/^ui-[a-z-]+$/.test(block) ? { title: titleOf(block), options: [], css: () => "" } : undefined);
+  const own = SPECS[block] ?? (/^(?:ui|fl)-[a-z-]+$/.test(block) ? { title: titleOf(block), options: [], css: () => "" } : undefined);
   if (!own) return undefined;
   return { ...own, options: [SIZE, ...own.options], css: (v) => [sizeCss(block, v), own.css(v)].filter(Boolean).join("\n") };
 };
+/**
+ * The same choices for the catalog classes the kit's Button, Card, ... render now (keyed by those classes, which is how the
+ * gallery lists them). The ui-* specs above stay for apps built before the kit took these from the catalog.
+ */
+const KIT_SELECTORS: Array<[kit: string, legacy: string, build: (v: Record<string, string>, o: ComponentOption[]) => string]> = [
+  ["fl-btn", "ui-btn", (v, o) => {
+    const [sh, w, b, s, c] = o.map((x) => changed(v, x));
+    return rule(".fl-btn", [
+      sh && `border-radius: ${RADIUS[sh]}`,
+      w && `font-weight: var(--weight-${w})`,
+      b && `border-width: ${b === "none" ? "0" : "2px"}`,
+      s && `box-shadow: ${s === "soft" ? "0 1px 2px color-mix(in srgb, var(--color-text) 18%, transparent)" : "0 6px 16px -6px color-mix(in srgb, var(--color-text) 40%, transparent)"}`,
+      c && "text-transform: uppercase; letter-spacing: 0.04em",
+    ]);
+  }],
+  ["fl-card", "ui-card", (v, o) => {
+    const [st, sh, p] = o.map((x) => changed(v, x));
+    return rule(".fl-card", [
+      st === "elevated" && "border-color: transparent; box-shadow: 0 10px 28px -14px color-mix(in srgb, var(--color-text) 45%, transparent)",
+      st === "outlined" && "border: 2px solid var(--color-border-strong); box-shadow: none",
+      st === "filled" && "border-color: transparent; background: var(--color-surface-sunken); box-shadow: none",
+      sh && `border-radius: ${RADIUS[sh]}`,
+      p && `padding: ${p === "compact" ? "var(--space-4)" : "var(--space-6)"}`,
+    ]);
+  }],
+  ["fl-ctl-badge", "ui-badge", (v, o) => {
+    const [st, sh, c] = o.map((x) => changed(v, x));
+    return rule(".fl-ctl-badge", [
+      st === "soft" && "border-color: transparent; background: color-mix(in srgb, currentColor 14%, transparent)",
+      sh && `border-radius: ${RADIUS[sh]}`,
+      c && "text-transform: uppercase; letter-spacing: 0.05em",
+    ]);
+  }],
+  ["fl-ctl-alert", "ui-notice", (v, o) => {
+    const [st, sh] = o.map((x) => changed(v, x));
+    const tint = (mod: string, color: string) => rule(`.fl-ctl-alert--${mod}`, [`background: color-mix(in srgb, ${color} 10%, var(--color-surface))`]);
+    return [
+      rule(".fl-ctl-alert", [st === "outlined" && "background: var(--color-surface); border-width: 2px", sh && `border-radius: ${RADIUS[sh]}`]),
+      st === "tinted" ? [tint("success", "var(--color-success)"), tint("warning", "var(--color-focus)"), tint("danger", "var(--color-danger)")].join("\n") : "",
+    ].filter(Boolean).join("\n");
+  }],
+  ["fl-ctl-tabset", "ui-tabs", (v, o) => {
+    const [va, ind] = o.map((x) => changed(v, x));
+    if (va === "pills")
+      return [
+        rule(".fl-ctl-tabset", ["border-bottom: 0", "gap: var(--space-2)"]),
+        rule(".fl-ctl-tabset .fl-spec-tab", ["border-radius: 999px"]),
+        rule(".fl-ctl-tabset .fl-spec-tab.is-on", ["box-shadow: none", "background: color-mix(in srgb, var(--color-accent) 14%, transparent)", "color: var(--color-text)"]),
+      ].join("\n");
+    if (va === "enclosed")
+      return [
+        rule(".fl-ctl-tabset", ["gap: 0"]),
+        rule(".fl-ctl-tabset .fl-spec-tab", ["border: var(--border-width) solid transparent", "border-bottom: 0", "margin-bottom: calc(-1 * var(--border-width))"]),
+        rule(".fl-ctl-tabset .fl-spec-tab.is-on", ["box-shadow: none", "background: var(--color-surface)", "border-color: var(--color-border)"]),
+      ].join("\n");
+    return ind ? rule(".fl-ctl-tabset .fl-spec-tab.is-on", [`box-shadow: inset 0 -${ind === "thin" ? 2 : 4}px 0 var(--color-accent)`]) : "";
+  }],
+  ["fl-ctl-switch", "ui-switch", (v, o) => {
+    const sz = changed(v, o[0]);
+    return sz ? rule(".fl-ctl-switch", [`--fl-switch-h: ${sz === "sm" ? "24px" : "40px"}`]) : "";
+  }],
+  ["fl-ctl-tbl", "ui-table", (v, o) => {
+    const [r, d] = o.map((x) => changed(v, x));
+    return [
+      r === "zebra" ? rule(".fl-ctl-tbl tbody tr:nth-child(even)", ["background: var(--color-surface-sunken)"]) : "",
+      r === "plain" ? rule(".fl-ctl-tbl td", ["border-top-color: transparent"]) : "",
+      d ? rule(".fl-ctl-tbl th, :root .fl-ctl-tbl td", [`padding: ${d === "compact" ? "var(--space-2) var(--space-3)" : "var(--space-4) var(--space-5)"}`]) : "",
+    ].filter(Boolean).join("\n");
+  }],
+  ["fl-ctl-bar", "ui-progress", (v, o) => {
+    const [h, sh] = o.map((x) => changed(v, x));
+    return rule(".fl-ctl-bar", [h && `height: ${h === "thin" ? "0.25rem" : "0.75rem"}`, sh && `border-radius: ${RADIUS[sh]}`]);
+  }],
+  ["fl-ctl-avatar", "ui-avatar", (v, o) => {
+    const sh = changed(v, o[0]);
+    return sh ? rule(".fl-ctl-avatar", [`border-radius: ${sh === "rounded" ? "var(--radius-md)" : "0"}`]) : "";
+  }],
+];
+for (const [kit, legacy, build] of KIT_SELECTORS) {
+  const base = SPECS[legacy];
+  SPECS[kit] = { title: base.title, options: base.options, css: (v) => build(v, base.options) };
+}
 export const CONFIGURABLE_BLOCKS = Object.keys(SPECS);
 
 /** The CSS for every configured component (the managed block's content). */

@@ -1,7 +1,7 @@
 /** @flowcode-library popovers-menus · Popovers: a panel on a button, and how it differs from a tooltip (Dialogs and drawers)
  * Catalog ID: c.menu (component)
  * Function: The action menu (c.menu) and the panel on a button (c.popover); the reference sheet shows a filter form, a share panel, a card on a name, an arrow-key action menu and the same menu as an icon-only row button with type-ahead.
- * Use it as: import { Menu } from "./popovers-menus"; <Menu label icon? iconOnly? align?="start"|"end" items={[{ id, label, icon?, keys?, danger?, disabled? }]} onSelect={(id) => ...} />  // iconOnly: a quiet three-dot button for a row; label then names it for screen readers  // Also import { Popover }: <Popover variant?="button"|"link" label icon? count? chevron? panelLabel wide? align?="start"|"end" onDismiss?>{(close) => body}</Popover>; align="end" lines the panel up with the trigger's right edge
+ * Use it as: import { Menu } from "./popovers-menus"; <Menu label icon? iconOnly? align?="start"|"end" items={[{ id, label, icon?, keys?, danger?, disabled? }]} onSelect={(id) => ...} version?="standard"|"classic" />  // version "classic" = c.menu@classic (three-dot button, compact list; items may set separatorBefore)  // iconOnly: a quiet three-dot button for a row; label then names it for screen readers  // Also import { Popover }: <Popover variant?="button"|"link" label icon? count? chevron? panelLabel wide? align?="start"|"end" onDismiss?>{(close) => body}</Popover>; align="end" lines the panel up with the trigger's right edge
  * Look: A secondary button that opens a raised list of one-press actions with icons and shortcut hints; arrow keys move, Enter chooses, Escape closes and returns focus.
  * Tokens: --color-surface --color-surface-sunken --color-border --color-danger --color-text-muted --radius-sm --radius-md --shadow-md --space-2 --space-3
  * Also: c.popover (component)
@@ -36,7 +36,7 @@
  * to install and nothing fetched at run time. The styles are the library's own fl- classes in templates/library/css, and the
  * sample data is in the file, so the piece runs in a built app exactly as it runs here.
  */
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { Avatar } from "./avatars-variants";
 import { Badge } from "./badges-status";
 import { Button } from "./buttons-variants";
@@ -69,14 +69,26 @@ function useAnchored(open: boolean, close: (via: "escape" | "outside") => void) 
 
 // ── c.menu: a list of actions that opens from a button. Arrow keys move, Enter chooses, Escape leaves. ──
 
-export type MenuItem = { id: string; label: string; icon?: string; keys?: string; danger?: boolean; disabled?: boolean };
-
-export function Menu({ label, icon, iconOnly, align = "start", items, onSelect, menuLabel, className }: {
-  /** The words on the button that opens the menu. With iconOnly they name the button for screen readers instead. */
+export type MenuItem = {
+  id: string;
   label: string;
-  /** An icon name from ./icons, before the label. With iconOnly it is the whole button; "more" (three dots) when left out. */
   icon?: string;
-  /** A quiet icon-only trigger, for a menu on each row of a list. */
+  keys?: string;
+  danger?: boolean;
+  disabled?: boolean;
+  /** classic only: a thin rule above this item, to set a destructive action apart. */
+  separatorBefore?: boolean;
+};
+
+/** The look of the menu: standard (a secondary button, a raised list) or classic (a bordered three-dot button, a compact list with a rule before Delete). */
+export type MenuVersion = "standard" | "classic";
+
+export type MenuProps = {
+  /** The words on the button that opens the menu. With iconOnly (and always in classic) they name the button for screen readers instead. */
+  label: string;
+  /** An icon name from ./icons, before the label. With iconOnly it is the whole button; "more" (three dots) when left out. Standard only. */
+  icon?: string;
+  /** A quiet icon-only trigger, for a menu on each row of a list. Standard only; classic is always icon-only. */
   iconOnly?: boolean;
   /** Which edge of the button the list lines up with; end for a button at the right of a row. */
   align?: "start" | "end";
@@ -85,8 +97,152 @@ export function Menu({ label, icon, iconOnly, align = "start", items, onSelect, 
   onSelect: (id: string) => void;
   /** The menu's accessible name; the button label when left out. */
   menuLabel?: string;
+  /** Which design: "standard" (default) or "classic". */
+  version?: MenuVersion;
   className?: string;
-}) {
+};
+
+export function Menu(props: MenuProps) {
+  return props.version === "classic" ? <ClassicMenu {...props} /> : <StandardMenu {...props} />;
+}
+
+// ── c.menu@classic: the original row-actions menu. A bordered three-dot button; a compact list with a rule before the
+// destructive item. Arrow keys, Home, End and the first letter move; Escape closes and focus goes back to the button. ──
+
+function ClassicMenu({ label, align = "end", items, onSelect, menuLabel, className }: MenuProps) {
+  const [open, setOpen] = useState(false);
+  const [focus, setFocus] = useState(0);
+  const wrap = useRef<HTMLDivElement | null>(null);
+  const button = useRef<HTMLButtonElement | null>(null);
+  const refs = useRef<Array<HTMLButtonElement | null>>([]);
+  const id = useId();
+  const n = items.length;
+
+  useEffect(() => {
+    if (open) refs.current[focus]?.focus();
+  }, [open, focus]);
+
+  // A press anywhere outside closes the menu without moving focus.
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => {
+      if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, [open]);
+
+  const openAt = (i: number) => {
+    setFocus(i);
+    setOpen(true);
+  };
+  const close = (returnFocus: boolean) => {
+    setOpen(false);
+    if (returnFocus) button.current?.focus();
+  };
+  const step = (from: number, dir: 1 | -1) => {
+    for (let k = 1; k <= n; k++) {
+      const at = (from + dir * k + n * k) % n;
+      if (!items[at].disabled) return at;
+    }
+    return from;
+  };
+
+  const onButtonKey = (e: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openAt(step(-1, 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      openAt(step(0, -1));
+    }
+  };
+
+  const onMenuKey = (e: ReactKeyboardEvent<HTMLUListElement>) => {
+    if (e.key === "ArrowDown") setFocus((f) => step(f, 1));
+    else if (e.key === "ArrowUp") setFocus((f) => step(f, -1));
+    else if (e.key === "Home") setFocus(step(-1, 1));
+    else if (e.key === "End") setFocus(step(0, -1));
+    else if (e.key === "Escape") close(true);
+    else if (e.key === "Tab") return setOpen(false);
+    else if (e.key.length === 1 && /\S/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+      const k = e.key.toLowerCase();
+      for (let j = 1; j <= n; j++) {
+        const at = (focus + j) % n;
+        if (!items[at].disabled && items[at].label.toLowerCase().startsWith(k)) {
+          setFocus(at);
+          break;
+        }
+      }
+    } else return;
+    e.preventDefault();
+  };
+
+  return (
+    <div className={["fl-way-menu-wrap", className ?? ""].filter(Boolean).join(" ")} ref={wrap} data-fl="c.menu@classic">
+      <button
+        ref={button}
+        type="button"
+        className="fl-way-icon-btn"
+        id={`${id}-button`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? id : undefined}
+        aria-label={label}
+        onClick={() => (open ? close(false) : openAt(step(-1, 1)))}
+        onKeyDown={onButtonKey}
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <circle cx="5" cy="12" r="1.75" />
+          <circle cx="12" cy="12" r="1.75" />
+          <circle cx="19" cy="12" r="1.75" />
+        </svg>
+      </button>
+      {open ? (
+        <ul
+          className="fl-way-menu"
+          role="menu"
+          id={id}
+          aria-label={menuLabel}
+          aria-labelledby={menuLabel ? undefined : `${id}-button`}
+          style={align === "start" ? { right: "auto", left: 0 } : undefined}
+          onKeyDown={onMenuKey}
+        >
+          {items.map((it, i) => [
+            it.separatorBefore ? <li key={`${it.id}-sep`} role="separator" className="fl-way-menu__sep" /> : null,
+            <li key={it.id} role="none">
+              <button
+                ref={(el) => {
+                  refs.current[i] = el;
+                }}
+                type="button"
+                role="menuitem"
+                disabled={it.disabled}
+                tabIndex={focus === i ? 0 : -1}
+                className={it.danger ? "fl-way-menu__item fl-way-menu__item--danger" : "fl-way-menu__item"}
+                onClick={() => {
+                  close(true);
+                  onSelect(it.id);
+                }}
+                onPointerMove={() => !it.disabled && focus !== i && setFocus(i)}
+              >
+                {it.icon ? <Icon name={it.icon} /> : null}
+                {it.label}
+                {it.keys ? (
+                  <kbd className="fl-way-menu__hint" aria-hidden="true">
+                    {it.keys}
+                  </kbd>
+                ) : null}
+              </button>
+            </li>,
+          ])}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
+function StandardMenu({ label, icon, iconOnly, align = "start", items, onSelect, menuLabel, className }: MenuProps) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const list = useRef<HTMLUListElement>(null);
@@ -276,6 +432,13 @@ const SAMPLE = {
   ],
 };
 
+const CLASSIC_ACTIONS: MenuItem[] = [
+  { id: "rename", label: "Rename", icon: "pencil", keys: "R" },
+  { id: "duplicate", label: "Duplicate", icon: "copy", keys: "D" },
+  { id: "link", label: "Copy link", icon: "external", keys: "C" },
+  { id: "delete", label: "Delete class", icon: "trash", danger: true, separatorBefore: true },
+];
+
 function FilterPopover({ say }: { say: (s: string) => void }) {
   const [draft, setDraft] = useState<string[]>(["booked"]);
   const [applied, setApplied] = useState<string[]>(["booked"]);
@@ -414,6 +577,11 @@ export default function PopoversMenus() {
           <p className="fl-ctl-matrix-kind">A menu on a row</p>
           <p className="fl-ctl-matrix-what">An icon-only button for a list, lined up to its right edge. Type a letter to jump to an item.</p>
           <Menu iconOnly align="end" label="Actions for Riverside wedding" items={SAMPLE.actions} onSelect={(id) => setSaid(`Chose ${SAMPLE.actions.find((a) => a.id === id)?.label} on the row`)} />
+        </li>
+        <li>
+          <p className="fl-ctl-matrix-kind">c.menu@classic</p>
+          <p className="fl-ctl-matrix-what">A bordered three-dot button and a compact list with a rule before the destructive item.</p>
+          <Menu version="classic" label="Actions for Riverside wedding" items={CLASSIC_ACTIONS} onSelect={(id) => setSaid(`Chose ${CLASSIC_ACTIONS.find((a) => a.id === id)?.label} (classic)`)} />
         </li>
       </ul>
 

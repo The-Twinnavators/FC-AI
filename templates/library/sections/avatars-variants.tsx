@@ -1,12 +1,12 @@
 /** @flowcode-library avatars-variants · Avatars: sizes, shapes, initials, status and a stack (Small components)
  * Catalog ID: c.avatar (component)
  * Function: The avatar (c.avatar) that identifies a person or organization, and its reference sheet: sizes, round or square, the initials fallback when a picture fails, presence dots and a stack. Also exports c.avatar-stack (AvatarStack).
- * Use it as: import { Avatar } from "./avatars-variants"; <Avatar variant?="person"|"organization" name size?={20|24|32|40|48|64} tone?="a"|"b"|"c"|"d"|"e"|"rest" src? status?="online"|"away"|"offline" label? decorative? />; <AvatarStack people={[{ name, tone?, src?, status? }]} max?={4} size?={32} label? onMore?={() => ...} />
+ * Use it as: import { Avatar } from "./avatars-variants"; <Avatar variant?="person"|"organization" name size?={20|24|32|40|44|48|64|72|96|120} tone?="a"|"b"|"c"|"d"|"e"|"rest" src? status?="online"|"away"|"offline" label? decorative? />; <AvatarStack version?="default"|"classic" people={[{ name, tone?, src?, status? }]} max?={4} size?={32} label? onMore?={() => ...} />
  * Variants: c.avatar.person - a person: a round avatar; c.avatar.organization - a company or team: a square avatar with rounded corners
- * Look: A small colored disc (or rounded square) holding a picture or the name's initials, with an optional status dot on the corner; six sizes from 20 to 64 px.
+ * Look: A small colored disc (or rounded square) holding a picture or the name's initials, with an optional status dot on the corner; ten sizes from 20 to 120 px.
  * Tokens: --color-surface-sunken --color-text --color-text-muted --color-accent --color-success --color-danger --color-warning --color-surface --color-border --color-border-strong --radius-md
  * Also: c.avatar-stack (component)
- *   Use it as: import { AvatarStack } from "./avatars-variants"; <AvatarStack people={[{ name, tone?, src?, status? }]} max?={4} size?={20|24|32|40|48|64} label?="On this shoot" onMore?={() => ...} expanded? />
+ *   Use it as: import { AvatarStack } from "./avatars-variants"; <AvatarStack version?="default"|"classic" showStatus? statusKey? people={[{ name, tone?, src?, status?: "online"|"away"|"busy"|"offline" }]} max?={4} size?={20|24|32|40|44|48|64|72|96|120} label?="On this shoot" onMore?={() => ...} expanded? />
  *   Look: Overlapping round avatars with a white ring, ending in a +N circle that becomes a button when onMore is passed; the whole stack reads as one labeled image.
  * Use cases: a comment's author; a team list; an assignee picker; a chat header; a presence row; team members; collaborators; attendee list; online presence; shared with; project members; participants; assignees
  * Jobs to be done: tell people apart at a glance; see who is on something; see who is here now; see who is on the team; check who is online now; see everyone attending; find a specific person
@@ -33,10 +33,36 @@
  * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
  * exactly as it runs here.
  */
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
+import { Button } from "./buttons-variants";
 
 // flowcode:sample
 const SAMPLE = {
+  group: {
+    eyebrow: "Studio team",
+    title: "Who's in today",
+    stackLabel: "Team on the Saturday rota",
+    stackShown: 4,
+    statuses: [
+      { id: "online" as const, label: "In the studio" },
+      { id: "away" as const, label: "On a break" },
+      { id: "busy" as const, label: "Teaching" },
+      { id: "offline" as const, label: "Off today" },
+    ],
+    people: [
+      { name: "Ana Ruiz", role: "Studio lead", status: "busy" as const, tone: "a" as const },
+      { name: "Tom Okafor", role: "Wheel tutor", status: "online" as const, tone: "b" as const },
+      { name: "Mei Lin", role: "Glaze technician", status: "away" as const, tone: "c" as const },
+      { name: "Sam Patel", role: "Front desk", status: "online" as const, tone: "d" as const },
+      { name: "Jo Byrne", role: "Kiln and firing", status: "offline" as const, tone: "e" as const },
+      { name: "Lena Fischer", role: "Kids' club tutor", status: "busy" as const, tone: "a" as const },
+      { name: "Kofi Mensah", role: "Hand-building tutor", status: "offline" as const, tone: "b" as const },
+      { name: "Priya Shah", role: "Shop and orders", status: "online" as const, tone: "c" as const },
+      { name: "Rory Walsh", role: "Weekend assistant", status: "away" as const, tone: "d" as const },
+    ],
+    sizes: ["sm", "md", "lg", "xl"] as WaySize[],
+    emptyText: "No one is in the studio right now.",
+  },
   sizes: [20, 24, 32, 40, 44, 48, 64, 72, 96, 120] as const,
   people: [
     { id: "p1", name: "Ana Moreau", tone: "a" as const, here: "online" as const },
@@ -103,13 +129,40 @@ export function Avatar({ variant = "person", name, size = 40, tone = "e", src, s
   );
 }
 
-export type StackPerson = { name: string; tone?: AvatarTone; src?: string; status?: AvatarStatus };
+/** Presence in the classic stack's key: the three above plus busy (teaching, in a meeting). */
+export type PresenceStatus = AvatarStatus | "busy";
+export type StackPerson = { name: string; tone?: AvatarTone; src?: string; status?: PresenceStatus };
+/** default = overlapping round avatars with a ring; classic = the team-presence stack: themed discs, a status key and a count button. */
+export type AvatarStackVersion = "default" | "classic";
+
+// c.avatar-stack@classic: the wayfinding kit's avatar classes (templates/library/css/wayfinding.css), written out in full.
+type WaySize = "sm" | "md" | "lg" | "xl";
+const WAY_SIZE: Record<WaySize, string> = { sm: "fl-way-av--sm", md: "fl-way-av--md", lg: "fl-way-av--lg", xl: "fl-way-av--xl" };
+const WAY_TONE: Record<AvatarTone, string> = { a: "fl-way-tone-1", b: "fl-way-tone-2", c: "fl-way-tone-3", d: "fl-way-tone-4", e: "fl-way-tone-5", rest: "fl-way-tone-5" };
+const WAY_DOT: Record<PresenceStatus, string> = { online: "fl-way-dot-online", away: "fl-way-dot-away", busy: "fl-way-dot-busy", offline: "fl-way-dot-offline" };
+const wayOf = (size: AvatarSize): WaySize => (size <= 32 ? "sm" : size <= 44 ? "md" : size <= 64 ? "lg" : "xl");
+
+/** An initials disc in the classic look, with an optional presence dot; one image to a screen reader ("Ana Ruiz, Teaching"). */
+function WayAvatar({ name, tone = "a", size = "md", status, statusLabel }: { name: string; tone?: AvatarTone; size?: WaySize; status?: PresenceStatus; statusLabel?: string }) {
+  return (
+    <span className={`fl-way-av ${WAY_SIZE[size]} ${WAY_TONE[tone]}`} role="img" aria-label={statusLabel ? `${name}, ${statusLabel}` : name}>
+      <span aria-hidden="true">{initials(name)}</span>
+      {status ? <span className={`fl-way-av__dot ${WAY_DOT[status]}`} aria-hidden="true" /> : null}
+    </span>
+  );
+}
 
 /**
  * c.avatar-stack: overlapping avatars that end in a "+N" count. The whole stack is one labeled image for a screen
  * reader; pass onMore to make the count a button that reveals everyone (for example to open the full list).
  */
-export function AvatarStack({ people, max = 4, size = 32, label, onMore, expanded, className }: {
+export function AvatarStack({ version = "default", showStatus, statusKey, people, max = 4, size, label, onMore, expanded, className }: {
+  /** "classic" draws the team-presence stack (larger themed discs, optional presence dots and key); "default" when left out. */
+  version?: AvatarStackVersion;
+  /** classic: draw each person's presence dot (status: online, away, busy or offline). */
+  showStatus?: boolean;
+  /** classic: a key under the stack explaining the dots, e.g. [{ id: "busy", label: "Teaching" }]. */
+  statusKey?: { id: PresenceStatus; label: string }[];
   people: StackPerson[];
   /** How many faces to draw before the count. */
   max?: number;
@@ -124,8 +177,46 @@ export function AvatarStack({ people, max = 4, size = 32, label, onMore, expande
 }) {
   const shown = people.slice(0, max);
   const rest = people.length - shown.length;
-  const faces = shown.map((p) => <Avatar key={p.name} name={p.name} tone={p.tone} src={p.src} status={undefined} size={size} decorative />);
-  const more = rest > 0 ? <Avatar name={`${rest} more`} tone="rest" size={size} label={expanded ? "–" : `+${rest}`} decorative /> : null;
+  if (version === "classic") {
+    const way = wayOf(size ?? 48);
+    const word = (id?: PresenceStatus) => statusKey?.find((k) => k.id === id)?.label ?? id;
+    return (
+      <div className={className} data-fl="c.avatar-stack@classic">
+        <ul className="fl-way-stack" aria-label={label ? `${label}: ${people.length} people` : `${people.length} people`}>
+          {shown.map((p) => (
+            <li key={p.name}>
+              <WayAvatar name={p.name} tone={p.tone} size={way} status={showStatus ? p.status : undefined} statusLabel={showStatus ? word(p.status) : undefined} />
+            </li>
+          ))}
+          {rest > 0 ? (
+            <li>
+              {onMore ? (
+                <button type="button" className={`fl-way-av ${WAY_SIZE[way]} fl-way-av--more`} aria-expanded={expanded} aria-label={expanded ? "Show fewer people" : `Show ${rest} more people`} onClick={onMore}>
+                  {expanded ? "–" : `+${rest}`}
+                </button>
+              ) : (
+                <span className={`fl-way-av ${WAY_SIZE[way]} fl-way-av--more`} role="img" aria-label={`${rest} more people`}>
+                  +{rest}
+                </span>
+              )}
+            </li>
+          ) : null}
+        </ul>
+        {statusKey ? (
+          <ul className="fl-way-legend" aria-label="Status key">
+            {statusKey.map((k) => (
+              <li key={k.id}>
+                <span className={`fl-way-av__dot ${WAY_DOT[k.id]}`} aria-hidden="true" />
+                {k.label}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
+  }
+  const faces = shown.map((p) => <Avatar key={p.name} name={p.name} tone={p.tone} src={p.src} status={undefined} size={size ?? 32} decorative />);
+  const more = rest > 0 ? <Avatar name={`${rest} more`} tone="rest" size={size ?? 32} label={expanded ? "–" : `+${rest}`} decorative /> : null;
   const names = `${label ? `${label}: ` : ""}${people.map((p) => p.name).join(", ")}`;
   return (
     <span className={["fl-ctl-avatar-stack", className ?? ""].filter(Boolean).join(" ")} data-fl="c.avatar-stack" role={onMore ? "group" : "img"} aria-label={names}>
@@ -138,6 +229,127 @@ export function AvatarStack({ people, max = 4, size = 32, label, onMore, expande
         more
       )}
     </span>
+  );
+}
+
+// ── c.avatar-stack@classic in use: the team-presence sheet (avatar-group wraps this). ──
+
+export type ClassicAvatarGroupProps = {
+  eyebrow: string;
+  title: string;
+  stackLabel: string;
+  stackShown: number;
+  statuses: { id: PresenceStatus; label: string }[];
+  people: { name: string; role: string; status: PresenceStatus; tone: AvatarTone }[];
+  sizes: WaySize[];
+  emptyText: string;
+};
+
+export function ClassicAvatarGroup(d: ClassicAvatarGroupProps) {
+  const uid = useId();
+  const [expanded, setExpanded] = useState(false);
+  const [onlyIn, setOnlyIn] = useState(false);
+  const listRef = useRef<HTMLHeadingElement | null>(null);
+  const label = (id: string) => d.statuses.find((x) => x.id === id)?.label ?? id;
+
+  const shown = d.people.slice(0, d.stackShown);
+  const more = d.people.length - shown.length;
+  const filtered = onlyIn ? d.people.filter((p) => p.status !== "offline") : d.people;
+  const list = expanded ? filtered : filtered.slice(0, d.stackShown);
+
+  return (
+    <section className="fl-section" aria-labelledby={`${uid}-title`}>
+      <div className="fl-wrap fl-wrap--narrow">
+        <div className="fl-head">
+          <p className="fl-eyebrow">{d.eyebrow}</p>
+          <h2 id={`${uid}-title`} className="fl-title">
+            {d.title}
+          </h2>
+        </div>
+
+        <div className="fl-grid fl-grid--2" style={{ alignItems: "start" }}>
+          <div className="fl-card" style={{ gap: "var(--space-4)" }}>
+            <h3>Sizes</h3>
+            <ul className="fl-way-sizes" aria-label="Avatar sizes">
+              {d.sizes.map((sz, i) => (
+                <li key={sz}>
+                  <WayAvatar name={d.people[i].name} tone={d.people[i].tone} size={sz} status={d.people[i].status} statusLabel={label(d.people[i].status)} />
+                </li>
+              ))}
+            </ul>
+            <ul className="fl-way-legend" aria-label="Status key">
+              {d.statuses.map((x) => (
+                <li key={x.id}>
+                  <span className={`fl-way-av__dot ${WAY_DOT[x.id]}`} aria-hidden="true" />
+                  {x.label}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="fl-card" style={{ gap: "var(--space-4)" }}>
+            <h3>{d.stackLabel}</h3>
+            <AvatarStack
+              version="classic"
+              people={d.people}
+              max={d.stackShown}
+              label={d.stackLabel}
+              onMore={() => {
+                setExpanded((x) => !x);
+                if (!expanded) requestAnimationFrame(() => listRef.current?.scrollIntoView({ block: "nearest" }));
+              }}
+              expanded={expanded}
+            />
+            <p className="fl-meta" style={{ margin: 0 }}>
+              {shown.map((p) => p.name.split(" ")[0]).join(", ")} and {more} others
+            </p>
+          </div>
+        </div>
+
+        <div style={{ marginTop: "var(--space-6)" }}>
+          <div className="fl-way-toolbar-row">
+            <h3 ref={listRef} className="fl-title fl-title--md" id={`${uid}-list-title`}>
+              People
+            </h3>
+            <label className="fl-way-pagesize" style={{ cursor: "pointer" }}>
+              <input type="checkbox" checked={onlyIn} onChange={(e) => setOnlyIn(e.target.checked)} />
+              Hide people who are off today
+            </label>
+          </div>
+          {list.length === 0 ? (
+            <div className="fl-way-empty">
+              <p>{d.emptyText}</p>
+            </div>
+          ) : (
+            <ul className="fl-way-list" id={`${uid}-people`} aria-labelledby={`${uid}-list-title`}>
+              {list.map((p) => (
+                <li key={p.name}>
+                  <WayAvatar name={p.name} tone={p.tone} status={p.status} />
+                  <div className="fl-way-list__main">
+                    <p className="fl-way-list__title">{p.name}</p>
+                    <p className="fl-way-list__meta">{p.role}</p>
+                  </div>
+                  <span className="fl-way-state">
+                    <span className={`fl-way-av__dot ${WAY_DOT[p.status]}`} aria-hidden="true" />
+                    {label(p.status)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="fl-actions" style={{ marginTop: "var(--space-3)", justifyContent: "space-between" }}>
+            <p className="fl-way-status" role="status" aria-live="polite">
+              Showing {list.length} of {filtered.length}
+            </p>
+            {filtered.length > d.stackShown ? (
+              <Button variant="tertiary" size={32} aria-expanded={expanded} aria-controls={`${uid}-people`} onClick={() => setExpanded((x) => !x)}>
+                {expanded ? "Show fewer" : "Show everyone"}
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -234,6 +446,15 @@ export default function AvatarsVariants() {
           </ul>
         ) : null}
       </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Version: classic (c.avatar-stack@classic)</h3>
+        <p className="fl-ctl-btn-what">
+          The team-presence stack: larger themed discs that overlap, a count button that opens the full list, and a key for the
+          four presence dots, including busy (teaching, in a meeting). The sheet below also shows the sizes and the people list behind the count.
+        </p>
+      </div>
+      <ClassicAvatarGroup {...d.group} />
     </section>
   );
 }

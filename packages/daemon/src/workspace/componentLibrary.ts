@@ -39,7 +39,14 @@ export function uiGallery(): Gallery {
   return gallery;
 }
 
-/** Building-block components and the CSS block each one renders, so <Button> counts as a use of .ui-btn. */
+/**
+ * Building-block components and the CSS block each one renders, so <Button> counts as a use of .fl-btn.
+ * Components the kit now takes from the catalog list the catalog's class first and the old ui-* one second (apps built before the merge).
+ */
+const CATALOG_BLOCK: Record<string, string> = {
+  Card: "fl-card", Button: "fl-btn", EmptyState: "fl-spec-empty", Skeleton: "fl-ctl-skel", Stat: "fl-crd-kpi", Badge: "fl-ctl-badge", Notice: "fl-ctl-alert",
+  Dialog: "fl-ctl-dlg", Progress: "fl-ctl-bar", DataTable: "fl-ctl-tbl", Avatar: "fl-ctl-avatar", Tabs: "fl-ctl-tabset", Switch: "fl-ctl-switch",
+};
 const COMPONENT_BLOCK: Record<string, string> = {
   AppShell: "ui-shell", PageHeader: "ui-page-header", Section: "ui-section", Card: "ui-card", Button: "ui-btn", Field: "ui-field", EmptyState: "ui-empty", Skeleton: "ui-skeleton", Stat: "ui-stat", Badge: "ui-badge", Notice: "ui-notice", Dialog: "ui-dialog",
   Grid: "ui-grid", Trend: "ui-trend", Progress: "ui-progress", BarChart: "ui-chart", DataTable: "ui-table", Checklist: "ui-checklist", Avatar: "ui-avatar", ActivityList: "ui-activity", Hero: "ui-hero", ActionTile: "ui-tile", Tabs: "ui-tabs", SettingsList: "ui-settings", SettingRow: "ui-setting", Switch: "ui-switch",
@@ -335,7 +342,7 @@ function findPrimitives(css: Array<{ rel: string; text: string }>, sources: Arra
     const visit = (n: ts.Node) => {
       const open = ts.isJsxElement(n) ? n.openingElement : ts.isJsxSelfClosingElement(n) ? n : undefined;
       if (open && ts.isIdentifier(open.tagName) && COMPONENT_BLOCK[open.tagName.text] && !isKitFile(rel)) {
-        const b = blocks.get(COMPONENT_BLOCK[open.tagName.text]);
+        const b = blocks.get(CATALOG_BLOCK[open.tagName.text] ?? "") ?? blocks.get(COMPONENT_BLOCK[open.tagName.text]);
         if (b) b.uses++;
       }
       if (open && ts.isIdentifier(open.tagName) && /^[a-z]/.test(open.tagName.text) && !isKitFile(rel)) {

@@ -12,10 +12,10 @@ const A11Y =
   "Keyboard reachable in a sensible order with a visible focus ring; every control and icon-only button labelled; status changes announced (role=status, or role=alert for errors); never colour alone (add an icon or words); targets at least 44px; works at 375px with no sideways scrolling; prefers-reduced-motion respected.";
 const REPORT = "Report in plain language: What changed · What the user can do now · What I checked (only what you actually verified) · Notes (assumptions, limits).";
 
-function recipe(r: { id: string; purpose: string; triggers: string[]; use: string; notUse: string; steps: string[]; edge: string; done: string[]; qa: string }): SkillSpec {
+function recipe(r: { version?: string; id: string; purpose: string; triggers: string[]; use: string; notUse: string; steps: string[]; edge: string; done: string[]; qa: string }): SkillSpec {
   return {
     id: r.id,
-    version: "1.0.0",
+    version: r.version ?? "1.0.0",
     roles: ["coder", "critic"],
     triggers: r.triggers,
     enabled: true,
@@ -38,19 +38,23 @@ function recipe(r: { id: string; purpose: string; triggers: string[]; use: strin
     policies: { network: "denied", filesystem: "governed_write" },
     acceptance: r.done,
     tests: [],
-    changelog: [{ version: "1.0.0", date: "2026-10-03", note: "Component recipe from the CSSVibes prompt library" }],
+    changelog: [
+      { version: "1.0.0", date: "2026-10-03", note: "Component recipe from the CSSVibes prompt library" },
+      ...(r.version ? [{ version: r.version, date: "2026-10-12", note: "The kit's Notice, Dialog, Badge, Card... are the catalog's components" }] : []),
+    ],
   };
 }
 
 export const RECIPE_SKILLS: SkillSpec[] = [
   recipe({
     id: "skill.recipe-alerts-messages",
+    version: "1.0.1",
     purpose: "Build alerts, validation messages and inline help that say what happened and what to do next",
     triggers: ["alert", "alerts", "validation message", "error message", "inline help", "warning banner", "status message", "form validation"],
     use: "Form validation, save confirmations, system status, warnings about a section, inline tips.",
     notUse: "Short confirmations that should fade away (use the toast recipe) or explanations of one icon (tooltip recipe).",
     steps: [
-      "Use <Notice tone> from src/components/ui: success for done, warning for risk, error for failure, info for tips. Give it a short title and one or two sentences.",
+      "Use <Notice tone> from src/components/ui (it is the catalog's c.alert, same look, one implementation): success for done, warning for risk, error for failure, info for tips. Give it a short title and one or two sentences.",
       "Validation: show the message under the field with Field's error prop (it wires aria-describedby and role=alert); validate on blur and on submit, not on every keystroke; keep what the user typed.",
       "Form-level summary: when several fields fail on submit, put one error Notice above the form listing them, and move focus to the first invalid field.",
       "Destructive actions: confirm in a <Dialog> that names the thing, says it can't be undone (or how to undo), with Cancel focused first.",

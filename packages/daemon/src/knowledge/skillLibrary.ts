@@ -6,10 +6,10 @@
  */
 import type { SkillSpec } from "@flowcode/contracts";
 
-function lib(s: { id: string; name: string; credit: string; roles: string[]; triggers: string[]; purpose: string; instructions: string; acceptance: string[] }): SkillSpec {
+function lib(s: { version?: string; id: string; name: string; credit: string; roles: string[]; triggers: string[]; purpose: string; instructions: string; acceptance: string[] }): SkillSpec {
   return {
     id: s.id,
-    version: "1.0.0",
+    version: s.version ?? "1.0.0",
     roles: s.roles,
     triggers: s.triggers,
     enabled: true,
@@ -22,7 +22,10 @@ function lib(s: { id: string; name: string; credit: string; roles: string[]; tri
     policies: { network: "denied", filesystem: "governed_write" },
     acceptance: s.acceptance,
     tests: [],
-    changelog: [{ version: "1.0.0", date: "2026-10-06", note: `From AgenticSkills: ${s.credit}` }],
+    changelog: [
+      { version: "1.0.0", date: "2026-10-06", note: `From AgenticSkills: ${s.credit}` },
+      ...(s.version ? [{ version: s.version, date: "2026-10-12", note: "The kit's Button, Card, Badge, Notice... are the catalog's components" }] : []),
+    ],
   };
 }
 
@@ -151,12 +154,13 @@ export const LIBRARY_SKILLS: SkillSpec[] = [
   lib({
     // shadcn: Component Composition by shadcn (MIT): https://github.com/shadcn-ui/ui/tree/main/skills/shadcn
     id: "skill.shadcn-composition",
+    version: "1.0.1",
     name: "shadcn: Component Composition",
     credit: "shadcn: Component Composition by shadcn (MIT)",
     roles: ["coder","designer","reviewer"],
     triggers: ["compose kit components","component variant map","build reusable ui component","shadcn style components","button variants and sizes","accessible ui primitives"],
     purpose: "Build screens by composing the kit components in src/components/ui with typed variant maps, following shadcn/ui principles without adding shadcn or Tailwind",
-    instructions: "- Before writing markup, list_files src/components/ui and reuse Button, Field, Notice, Dialog and friends. Create a new kit component only when nothing fits.\n- Compose screens from parts: settings = tabs + card + fields; dashboard = sidebar + cards + table. Do not hand-roll a styled div when a kit part exists.\n- Use built-in variants first: <Button variant=\"outline\" size=\"sm\">. Pass className for layout only; never override a kit component's colors or type at the call site.\n- New kit components declare a cva-like map: type Variant = 'primary' | 'ghost'; const variantClass: Record<Variant, string> = {...}; plus defaults. Map props to BEM classes in plain CSS.\n- Style only with semantic tokens from src/styles/tokens.css (var(--color-primary), var(--color-text-muted)). No raw hex, no per-component dark-mode overrides.\n- Split structured parts: CardHeader, CardTitle, CardDescription, CardContent, CardFooter, not one blob.\n- Callouts use Notice, loading uses skeleton blocks shaped like the content, status uses a badge with variants.\n- Loading buttons: compose a lucide-react spinner + disabled + aria-busy; icons are aria-hidden next to text and sized by the button CSS.\n- Space siblings with gap on flex/grid, not margins.",
+    instructions: "- Before writing markup, list_files src/components/ui and reuse Button, Field, Notice, Dialog and friends. The kit's Button, Card, Badge, Notice, Dialog, EmptyState, Skeleton, Stat, Progress, DataTable, Avatar, Tabs and Switch ARE the catalog's components (same look, one implementation; either name works). The frame pieces are AppShell, PageHeader, Section, Field, DataState, Grid and friends. Anything else comes from the catalog through the add_library_piece tool. Create a new kit component only when nothing fits.\n- Compose screens from parts: settings = tabs + card + fields; dashboard = sidebar + cards + table. Do not hand-roll a styled div when a kit part exists.\n- Use built-in variants first: <Button variant=\"outline\" size=\"sm\">. Pass className for layout only; never override a kit component's colors or type at the call site.\n- New kit components declare a cva-like map: type Variant = 'primary' | 'ghost'; const variantClass: Record<Variant, string> = {...}; plus defaults. Map props to BEM classes in plain CSS.\n- Style only with semantic tokens from src/styles/tokens.css (var(--color-primary), var(--color-text-muted)). No raw hex, no per-component dark-mode overrides.\n- Split structured parts: CardHeader, CardTitle, CardDescription, CardContent, CardFooter, not one blob.\n- Callouts use Notice, loading uses skeleton blocks shaped like the content, status uses a badge with variants.\n- Loading buttons: compose a lucide-react spinner + disabled + aria-busy; icons are aria-hidden next to text and sized by the button CSS.\n- Space siblings with gap on flex/grid, not margins.",
     acceptance: ["New components declare a typed variant map with a default variant.","No raw hex colors or Tailwind classes appear in new component code.","Existing kit components are reused wherever one fits."],
   }),
   lib({
@@ -514,12 +518,13 @@ export const LIBRARY_SKILLS: SkillSpec[] = [
   lib({
     // Pick a UI Library by Emil Kowalski (MIT): https://github.com/emilkowalski/skills/tree/main/skills/pick-ui-library
     id: "skill.emil-pick-ui-library",
+    version: "1.0.1",
     name: "Pick a UI Library",
     credit: "Pick a UI Library by Emil Kowalski (MIT)",
     roles: ["planner","coder"],
     triggers: ["which library should i use","pick a ui library","command palette library","drag and drop library","virtualize long list","chart library choice"],
     purpose: "Choose one well-regarded library for a frontend task, only when the kit and plain CSS cannot cover it",
-    instructions: "- Identify the task, not the library the user named. Read package.json first; reuse what is installed and do not swap a competitor unless asked.\n- Prefer the kit (Button, Field, Notice, Dialog in src/components/ui) and plain CSS before any new dependency.\n- When a library is truly needed, recommend one from this list with a one-sentence reason: command palette: cmdk; toasts: sonner; OTP input: input-otp; unstyled accessible primitives: base-ui; springs, layout or exit animation: motion (only if CSS and element.animate() cannot do it); animated numbers: NumberFlow; code highlighting: shiki; charts: recharts (live streaming: Liveline); drag and drop: dnd kit; long lists: Virtuoso; shared state: zustand; conditional class names: clsx.\n- Catch mismatches: hand-built div dropdowns with manual focus, counters animated by re-rendering text, 1,000+ rows rendered directly, prop-drilled shared state, deep className ternaries.\n- If the task is not on the list, say so and recommend from general knowledge.\n- Name any dependency you add in the run summary.",
+    instructions: "- Identify the task, not the library the user named. Read package.json first; reuse what is installed and do not swap a competitor unless asked.\n- Prefer the kit (Button, Notice, Dialog are the catalog's components; Field is a frame piece, all in src/components/ui) and plain CSS before any new dependency.\n- When a library is truly needed, recommend one from this list with a one-sentence reason: command palette: cmdk; toasts: sonner; OTP input: input-otp; unstyled accessible primitives: base-ui; springs, layout or exit animation: motion (only if CSS and element.animate() cannot do it); animated numbers: NumberFlow; code highlighting: shiki; charts: recharts (live streaming: Liveline); drag and drop: dnd kit; long lists: Virtuoso; shared state: zustand; conditional class names: clsx.\n- Catch mismatches: hand-built div dropdowns with manual focus, counters animated by re-rendering text, 1,000+ rows rendered directly, prop-drilled shared state, deep className ternaries.\n- If the task is not on the list, say so and recommend from general knowledge.\n- Name any dependency you add in the run summary.",
     acceptance: ["Exactly one library is recommended with a reason, or none when the kit suffices.","Existing dependencies in package.json were checked first."],
   }),
   lib({
@@ -1042,12 +1047,13 @@ export const LIBRARY_SKILLS: SkillSpec[] = [
   lib({
     // React composition patterns by Vercel (MIT): https://github.com/vercel-labs/agent-skills/tree/main/skills/composition-patterns
     id: "skill.react-composition-patterns",
+    version: "1.0.1",
     name: "React composition patterns",
     credit: "React composition patterns by Vercel (MIT)",
     roles: ["planner","coder","reviewer"],
     triggers: ["boolean props","compound component","component api","render props","context provider","reusable component api","too many props"],
     purpose: "Design flexible component APIs in src/components/ui with composition instead of boolean flags",
-    instructions: "- Before adding another isSomething boolean prop, split the behaviour: make explicit variant components (PrimaryButton or <Button variant>) or compose children.\n- Build complex widgets (tabs, menus, cards with header/body/footer) as compound components that share state through one context: <Tabs><Tabs.List/><Tabs.Panel/></Tabs>.\n- Keep the provider as the only place that knows how state is stored; expose a small typed interface of state, actions and meta so the UI can swap a src/sim store for a real API later.\n- Lift state into a provider when siblings need it, rather than syncing with effects.\n- Prefer children over renderX props for slots.\n- React 19: pass ref as a normal prop instead of forwardRef, and read context with use(Context).\n- Reuse existing kit components first; do not rewrite a working component just to apply a pattern.",
+    instructions: "- Before adding another isSomething boolean prop, split the behaviour: make explicit variant components (PrimaryButton or <Button variant>) or compose children.\n- Build complex widgets (tabs, menus, cards with header/body/footer) as compound components that share state through one context: <Tabs><Tabs.List/><Tabs.Panel/></Tabs>.\n- Keep the provider as the only place that knows how state is stored; expose a small typed interface of state, actions and meta so the UI can swap a src/sim store for a real API later.\n- Lift state into a provider when siblings need it, rather than syncing with effects.\n- Prefer children over renderX props for slots.\n- React 19: pass ref as a normal prop instead of forwardRef, and read context with use(Context).\n- Reuse existing kit components first (Button, Card, Tabs, Dialog... are the catalog's components, either name works; anything else from the catalog via add_library_piece); do not rewrite a working component just to apply a pattern.",
     acceptance: ["No new boolean prop was added where a variant or child slot would do.","Shared widget state lives in one provider with a typed interface."],
   }),
   lib({

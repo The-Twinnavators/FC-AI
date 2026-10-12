@@ -77,33 +77,33 @@ describe("design studio", () => {
 
   it("writes a component's settings as one managed CSS block, replaced on each save and undone together", () => {
     const { app } = makeApp();
-    const base = ".ui-btn {\n  border-radius: var(--radius-md);\n}\n";
+    const base = ".fl-btn {\n  border-radius: var(--radius-md);\n}\n";
     const { project, jail } = makeProject(app, { "src/styles/components.css": base });
     const ctx = { projectId: project.id, runId: "style_test" };
     const read = () => fs.readFileSync(path.join(jail.root, "src/styles/components.css"), "utf8");
-    const r = applyComponentStyle(jail, app.ops, ctx, "ui-btn", { shape: "pill", weight: "bold", bogus: "x" });
-    expect(read()).toContain(":root .ui-btn { border-radius: 999px; font-weight: var(--weight-bold); }");
-    expect(componentStylesOf(jail)).toEqual({ "ui-btn": { shape: "pill", weight: "bold" } });
+    const r = applyComponentStyle(jail, app.ops, ctx, "fl-btn", { shape: "pill", weight: "bold", bogus: "x" });
+    expect(read()).toContain(":root .fl-btn { border-radius: 999px; font-weight: var(--weight-bold); }");
+    expect(componentStylesOf(jail)).toEqual({ "fl-btn": { shape: "pill", weight: "bold" } });
     // Size, on every component: the kit's text, space and control tokens scaled on that component only.
-    applyComponentStyle(jail, app.ops, ctx, "ui-btn", { shape: "pill", weight: "bold", size: "large" });
-    expect(read()).toContain(":root .ui-btn { font-size: 1.2em; --text-xs: 0.9rem;");
+    applyComponentStyle(jail, app.ops, ctx, "fl-btn", { shape: "pill", weight: "bold", size: "large" });
+    expect(read()).toContain(":root .fl-btn { font-size: 1.2em; --text-xs: 0.9rem;");
     expect(read()).toContain("--control-md: 3rem;");
-    expect(read()).toContain(":root .ui-btn { border-radius: 999px; font-weight: var(--weight-bold); }");
-    applyComponentStyle(jail, app.ops, ctx, "ui-notice", { size: "compact" });
-    expect(read()).toContain(":root .ui-notice { font-size: 0.875em;");
+    expect(read()).toContain(":root .fl-btn { border-radius: 999px; font-weight: var(--weight-bold); }");
+    applyComponentStyle(jail, app.ops, ctx, "fl-ctl-alert", { size: "compact" });
+    expect(read()).toContain(":root .fl-ctl-alert { font-size: 0.875em;");
     // A kit component with no options of its own can still be sized.
-    applyComponentStyle(jail, app.ops, ctx, "ui-empty", { size: "large" });
-    expect(read()).toContain(":root .ui-empty { font-size: 1.2em;");
-    applyComponentStyle(jail, app.ops, ctx, "ui-notice", {});
-    applyComponentStyle(jail, app.ops, ctx, "ui-empty", {});
-    applyComponentStyle(jail, app.ops, ctx, "ui-btn", { shape: "pill", weight: "bold" });
-    applyComponentStyle(jail, app.ops, ctx, "ui-tabs", { variant: "pills" });
+    applyComponentStyle(jail, app.ops, ctx, "fl-spec-empty", { size: "large" });
+    expect(read()).toContain(":root .fl-spec-empty { font-size: 1.2em;");
+    applyComponentStyle(jail, app.ops, ctx, "fl-ctl-alert", {});
+    applyComponentStyle(jail, app.ops, ctx, "fl-spec-empty", {});
+    applyComponentStyle(jail, app.ops, ctx, "fl-btn", { shape: "pill", weight: "bold" });
+    applyComponentStyle(jail, app.ops, ctx, "fl-ctl-tabset", { variant: "pills" });
     expect(read().match(/FlowCode component settings \(/g)).toHaveLength(1);
-    expect(read()).toContain(":root .ui-tabs__tab { border-radius: 999px; }");
-    expect(read()).toContain(":root .ui-btn {");
+    expect(read()).toContain(":root .fl-ctl-tabset .fl-spec-tab { border-radius: 999px; }");
+    expect(read()).toContain(":root .fl-btn {");
     // Back to the kit's defaults for both: the block goes away.
-    applyComponentStyle(jail, app.ops, ctx, "ui-btn", { shape: "rounded" });
-    applyComponentStyle(jail, app.ops, ctx, "ui-tabs", {});
+    applyComponentStyle(jail, app.ops, ctx, "fl-btn", { shape: "rounded" });
+    applyComponentStyle(jail, app.ops, ctx, "fl-ctl-tabset", {});
     expect(read()).toBe(base);
     expect(() => applyComponentStyle(jail, app.ops, ctx, "ui-nope", {})).toThrow(/no options/);
     app.snapshots.restore(r.snapshotId!, jail);
@@ -118,16 +118,16 @@ describe("design studio", () => {
     // guidance, and that is how a build came to write its own screens beside the library it was given.
     expect(designBrief(jail)).toMatch(/whole starter kit/);
     expect(designBrief(jail)).toMatch(/don.t make new ones/);
-    const picked = setDesignComponents(jail, ["ui-btn", "ui-card", "ui-nope", "ui-btn"]);
-    expect(picked.components).toEqual(["ui-btn", "ui-card"]);
-    expect(designBrief(jail)).toMatch(/Button \(\.ui-btn\), Card \(\.ui-card\)/);
+    const picked = setDesignComponents(jail, ["fl-btn", "fl-card", "ui-nope", "fl-btn"]);
+    expect(picked.components).toEqual(["fl-btn", "fl-card"]);
+    expect(designBrief(jail)).toMatch(/Button \(\.fl-btn\), Card \(\.fl-card\)/);
   });
 
   it("shows the Top Nav / App Bar pick as the app's top navigation, with its own settings", () => {
     // Calendar design rebuild: "Top Nav / App Bar" was added on the Styles page but never drawn, so the menu kept the kit's look.
     const { app } = makeApp();
     const { project, jail } = makeProject(app, { "src/styles/tokens.css": TOKENS, "src/styles/components.css": ".ui-shell__link {}\n" });
-    expect(setDesignComponents(jail, ["ui-btn", "top-nav"]).components).toEqual(["ui-btn", "ui-shell"]);
+    expect(setDesignComponents(jail, ["fl-btn", "top-nav"]).components).toEqual(["fl-btn", "ui-shell"]);
     expect(designComponents(jail).catalogue.find((c) => c.block === "ui-shell")?.label).toBe("Top Nav / App Bar");
     expect(designBrief(jail)).toMatch(/Top Nav \/ App Bar \(\.ui-shell\)/);
     const read = () => fs.readFileSync(path.join(jail.root, "src/styles/components.css"), "utf8");

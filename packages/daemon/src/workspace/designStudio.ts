@@ -247,8 +247,25 @@ const LABELS: Record<string, string> = {
   "ui-hero": "Hero",
   "ui-tile": "Tile",
   "ui-grid": "Grid",
+  // The catalog classes the kit's Button, Card, ... now render (the ui-* ones above stay for apps built before the merge).
+  "fl-btn": "Button",
+  "fl-card": "Card",
+  "fl-ctl-badge": "Badge",
+  "fl-ctl-alert": "Notice",
+  "fl-ctl-tabset": "Tabs",
+  "fl-ctl-switch": "Switch",
+  "fl-crd-kpi": "Stat",
+  "fl-ctl-bar": "Progress bar",
+  "fl-ctl-avatar": "Avatar",
+  "fl-spec-empty": "Empty state",
+  "fl-ctl-skel": "Loading skeleton",
+  "fl-ctl-dlg": "Dialog",
+  "fl-ctl-tbl": "Table",
 };
 export const blockLabel = (block: string) => LABELS[block] ?? block.replace(/^ui-/, "").replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
+
+/** A building block of the starter kit: a ui-* class, or a catalog class the kit's Button, Card... now render. */
+const isKitBlock = (c: string) => c.startsWith("ui-") || (c in LABELS && /^fl-(ctl|crd|spec)-|^fl-(btn|card)$/.test(c));
 
 /** Picks from the Add components catalogue that are a starter building block under another name. */
 const KIT_ALIAS: Record<string, string> = { "top-nav": "ui-shell" };
@@ -268,7 +285,7 @@ export function designComponents(jail: PathJail): DesignComponents {
 
 export function setDesignComponents(jail: PathJail, components: string[]): DesignComponents {
   const known = new Set(Object.keys(uiGallery()));
-  const clean = [...new Set(unalias(components).filter((c) => /^[\w-]{1,60}$/.test(c)))].filter((c) => known.has(c) || !c.startsWith("ui-")).slice(0, 60);
+  const clean = [...new Set(unalias(components).filter((c) => /^[\w-]{1,60}$/.test(c)))].filter((c) => known.has(c) || !isKitBlock(c)).slice(0, 60);
   const abs = path.join(jail.root, DESIGN);
   let saved: Record<string, unknown> = {};
   try {
@@ -295,9 +312,9 @@ export function designBrief(jail: PathJail): string {
       ? `No building blocks were picked in the design studio, so the app's whole starter kit is what to build with (use these from src/components/ui for these jobs; don't make new ones): ${kit.map((c) => `${blockLabel(c)} (.${c})`).join(", ")}.`
       : "";
   }
-  const kit = components.filter((c) => c.startsWith("ui-"));
+  const kit = components.filter(isKitBlock);
   // Picks from the Add components catalogue that the starter kit doesn't have (dropdowns, sliders, steppers…).
-  const wanted = components.filter((c) => !c.startsWith("ui-") && /^[a-z]+(-[a-z]+)*$/.test(c));
+  const wanted = components.filter((c) => !isKitBlock(c) && /^[a-z]+(-[a-z]+)*$/.test(c));
   const parts = [
     kit.length ? `Building blocks chosen for this app in the design studio (use these from src/components/ui for these jobs; don't make new ones): ${kit.map((c) => `${blockLabel(c)} (.${c})`).join(", ")}.` : "",
     wanted.length ? `Also chosen, not in the kit yet: ${wanted.map((c) => c.replace(/-/g, " ")).join(", ")}. When a screen needs one, build it once as a reusable component in src/components/ui, styled only with the design tokens, and reuse it.` : "",

@@ -131,7 +131,7 @@ function foundations(css: string, part: "all" | "type" | "colours" = "all"): str
     ['<p class="ui-hero__title" style="margin:0">Display</p>', "Display · --font-display, --text-3xl"],
     ['<h1 class="ui-page-header__title" style="margin:0">Page title</h1>', "Page title (h1)"],
     ['<h2 class="ui-section__title" style="margin:0">Section title</h2>', "Section title (h2)"],
-    ['<h3 class="ui-card__title" style="margin:0">Card title</h3>', "Card title (h3)"],
+    ['<div class="fl-card" style="padding:0;border:0;background:none;box-shadow:none"><h3 style="margin:0">Card title</h3></div>', "Card title (h3)"],
     ['<p style="margin:0; max-width: var(--measure, 68ch)">Body text reads at a comfortable size and line length, in the app\'s main font.</p>', "Body · --font-sans, --text-md"],
     ['<p class="ui-page-header__desc" style="margin:0">Supporting text for descriptions and hints.</p>', "Supporting · --color-text-muted"],
     ['<span class="ui-field__label">Field label</span>', "Label · --text-sm"],
@@ -156,8 +156,13 @@ const fontLinks = (fonts: string[]) => {
 };
 
 /** What a sheet frame draws: everything, or one card's part (the type scale, the colors, or just some blocks' samples). */
-/** The kit's markup for blocks an app may not use yet (same classes as src/components/ui), for the Shape preview. */
+/** The kit's markup for blocks an app may not use yet (same classes as src/components/ui), for the Shape preview. The
+ * catalog classes are what the kit draws now; the ui-* ones are for apps built before the kits merged. */
 const KIT_SAMPLES: Record<string, string> = {
+  "fl-btn": `<button type="button" class="fl-btn fl-btn--primary fl-ctl-btn--40" data-fl="c.button.primary">Save changes</button>`,
+  "fl-ctl-badge": `<span class="fl-ctl-badge fl-ctl-badge--info fl-ctl-badge--soft" data-fl="c.badge.status">New</span>`,
+  "fl-ctl-switch": `<span class="fl-ctl-switch fl-ctl-switch--32" data-fl="c.switch"><input type="checkbox" checked aria-label="On" /><span class="fl-ctl-switch-track" aria-hidden="true"><span class="fl-ctl-switch-thumb"></span></span></span>`,
+  "fl-card": `<div class="fl-card" style="min-width:180px" data-fl="c.card.surface"><h3>Card</h3><p class="fl-text">Surfaces use these corners.</p></div>`,
   "ui-btn": `<button type="button" class="ui-btn ui-btn--primary ui-btn--md">Save changes</button>`,
   "ui-field": `<div class="ui-field" style="min-width:180px"><label class="ui-field__label">Email</label><input class="ui-input" value="ada@example.com" readonly /></div>`,
   "ui-badge": `<span class="ui-badge ui-badge--accent">New</span>`,

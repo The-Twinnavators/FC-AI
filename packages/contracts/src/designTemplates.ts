@@ -2,7 +2,11 @@
  * Visual design templates for new builds, offered in New build when the PRD doesn't set its own look, and the extras a
  * user can ask for ("Would you like to add…"). A template is a full theme: semantic colours (all pairs pass WCAG AA),
  * fonts and corner radii; the runtime writes it into the starter's tokens.css when it scaffolds the app.
+ *
+ * Colour follows 60/30/10: neutrals for 60% (bg, surfaces), a secondary traced from the accent by a stated harmony for
+ * 30% (supporting areas), and the accent for 10% (the main action, links, focus).
  */
+import { secondaryTokens, type HarmonyKind } from "./palette.js";
 
 export interface DesignTemplate {
   id: string;
@@ -26,7 +30,14 @@ export interface DesignTemplate {
     success: string;
     danger: string;
     dangerSurface: string;
+    /**
+     * The 30% colour (60/30/10 rule): traced from the accent by `secondaryHarmony`, calmer than the accent. Its fill,
+     * hover, text, tint and border tokens are computed by templateTokens() with WCAG AA checks.
+     */
+    secondary: string;
   };
+  /** Which harmony the secondary comes from (hue offset from the accent, OKLCH degrees). */
+  secondaryHarmony: { kind: HarmonyKind; offset: number };
   fonts: { sans: string; display: string };
   /** --radius-sm, --radius-md, --radius-lg, --radius-xl in px. */
   radii: [number, number, number, number];
@@ -47,7 +58,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Clean Minimal",
     description: "White space, crisp type and a single blue accent.",
     dark: false,
-    colors: { bg: "#ffffff", surface: "#f7f8fa", surfaceSunken: "#eef0f4", text: "#111827", textMuted: "#4b5563", border: "#e5e7eb", borderStrong: "#6b7280", accent: "#2563eb", accentHover: "#1d4ed8", onAccent: "#ffffff", focus: "#2563eb", success: "#15803d", danger: "#b91c1c", dangerSurface: "#fef2f2" },
+    // Analogous (−30°): the blue accent's cooler neighbour, a calm teal-blue for tags and tinted panels.
+    secondaryHarmony: { kind: "analogous", offset: -30 },
+    colors: { bg: "#ffffff", surface: "#f7f8fa", surfaceSunken: "#eef0f4", text: "#111827", textMuted: "#4b5563", border: "#e5e7eb", borderStrong: "#6b7280", accent: "#2563eb", accentHover: "#1d4ed8", onAccent: "#ffffff", focus: "#2563eb", success: "#15803d", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#197aa3" },
     fonts: { sans: NEO, display: NEO },
     radii: [4, 6, 8, 10],
   },
@@ -56,7 +69,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Soft Neutral",
     description: "Warm greys, gentle curves and a terracotta accent.",
     dark: false,
-    colors: { bg: "#faf8f5", surface: "#ffffff", surfaceSunken: "#f1ede7", text: "#2b2622", textMuted: "#5f5650", border: "#e6dfd6", borderStrong: "#857a70", accent: "#b4532a", accentHover: "#974321", onAccent: "#ffffff", focus: "#b4532a", success: "#3f7a4f", danger: "#b3261e", dangerSurface: "#fbeae7" },
+    // Split-complementary (−150°): a dusty blue beside terracotta's opposite, soft contrast for warm greys.
+    secondaryHarmony: { kind: "split-complementary", offset: -150 },
+    colors: { bg: "#faf8f5", surface: "#ffffff", surfaceSunken: "#f1ede7", text: "#2b2622", textMuted: "#5f5650", border: "#e6dfd6", borderStrong: "#857a70", accent: "#b4532a", accentHover: "#974321", onAccent: "#ffffff", focus: "#b4532a", success: "#3f7a4f", danger: "#b3261e", dangerSurface: "#fbeae7", secondary: "#4f77a3" },
     fonts: { sans: HUMANIST, display: OLDSTYLE },
     radii: [6, 10, 14, 18],
   },
@@ -65,7 +80,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Nordic Calm",
     description: "Cool whites, slate text and a quiet teal.",
     dark: false,
-    colors: { bg: "#f6f8f9", surface: "#ffffff", surfaceSunken: "#eaeff1", text: "#1c2b33", textMuted: "#4a5b63", border: "#dbe3e7", borderStrong: "#6d7f88", accent: "#0f766e", accentHover: "#0b5d57", onAccent: "#ffffff", focus: "#0f766e", success: "#15803d", danger: "#b42318", dangerSurface: "#fdecea" },
+    // Analogous (+30°): the teal's slate-blue neighbour, quiet and cohesive.
+    secondaryHarmony: { kind: "analogous", offset: 30 },
+    colors: { bg: "#f6f8f9", surface: "#ffffff", surfaceSunken: "#eaeff1", text: "#1c2b33", textMuted: "#4a5b63", border: "#dbe3e7", borderStrong: "#6d7f88", accent: "#0f766e", accentHover: "#0b5d57", onAccent: "#ffffff", focus: "#0f766e", success: "#15803d", danger: "#b42318", dangerSurface: "#fdecea", secondary: "#36707e" },
     fonts: { sans: HUMANIST, display: HUMANIST },
     radii: [4, 8, 12, 16],
   },
@@ -74,7 +91,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Midnight",
     description: "Dark navy with soft indigo highlights.",
     dark: true,
-    colors: { bg: "#0f1420", surface: "#171d2b", surfaceSunken: "#0b0f18", text: "#e8ebf3", textMuted: "#a3acc0", border: "#283044", borderStrong: "#6b7591", accent: "#818cf8", accentHover: "#a5b4fc", onAccent: "#0f1420", focus: "#a5b4fc", success: "#4ade80", danger: "#f87171", dangerSurface: "#3a1d22" },
+    // Analogous (−30°): a sky blue next to the indigo, cool and calm on navy.
+    secondaryHarmony: { kind: "analogous", offset: -30 },
+    colors: { bg: "#0f1420", surface: "#171d2b", surfaceSunken: "#0b0f18", text: "#e8ebf3", textMuted: "#a3acc0", border: "#283044", borderStrong: "#6b7591", accent: "#818cf8", accentHover: "#a5b4fc", onAccent: "#0f1420", focus: "#a5b4fc", success: "#4ade80", danger: "#f87171", dangerSurface: "#3a1d22", secondary: "#569edd" },
     fonts: { sans: NEO, display: NEO },
     radii: [6, 8, 10, 14],
   },
@@ -83,7 +102,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Playful Pastel",
     description: "Cream background, rounded type and a bright purple.",
     dark: false,
-    colors: { bg: "#fffaf3", surface: "#ffffff", surfaceSunken: "#f6eee2", text: "#2d2140", textMuted: "#5c4f6e", border: "#ece2f5", borderStrong: "#8b7aa3", accent: "#7c3aed", accentHover: "#6425d0", onAccent: "#ffffff", focus: "#7c3aed", success: "#15803d", danger: "#c2255c", dangerSurface: "#fdeaf1" },
+    // Triadic (−120°): a muted teal a third of the wheel from the purple, playful but calmer than the accent.
+    secondaryHarmony: { kind: "triadic", offset: -120 },
+    colors: { bg: "#fffaf3", surface: "#ffffff", surfaceSunken: "#f6eee2", text: "#2d2140", textMuted: "#5c4f6e", border: "#ece2f5", borderStrong: "#8b7aa3", accent: "#7c3aed", accentHover: "#6425d0", onAccent: "#ffffff", focus: "#7c3aed", success: "#15803d", danger: "#c2255c", dangerSurface: "#fdeaf1", secondary: "#19816a" },
     fonts: { sans: ROUNDED, display: ROUNDED },
     radii: [8, 12, 16, 24],
   },
@@ -92,7 +113,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Bold Editorial",
     description: "Magazine headlines, sharp corners and a red accent.",
     dark: false,
-    colors: { bg: "#ffffff", surface: "#fafafa", surfaceSunken: "#f0f0f0", text: "#0a0a0a", textMuted: "#4a4a4a", border: "#e2e2e2", borderStrong: "#6e6e6e", accent: "#c8102e", accentHover: "#a00d25", onAccent: "#ffffff", focus: "#0a0a0a", success: "#1e7a3c", danger: "#c8102e", dangerSurface: "#fdebee" },
+    // Split-complementary (−150°): an ink blue beside the red's opposite, the classic editorial pairing.
+    secondaryHarmony: { kind: "split-complementary", offset: -150 },
+    colors: { bg: "#ffffff", surface: "#fafafa", surfaceSunken: "#f0f0f0", text: "#0a0a0a", textMuted: "#4a4a4a", border: "#e2e2e2", borderStrong: "#6e6e6e", accent: "#c8102e", accentHover: "#a00d25", onAccent: "#ffffff", focus: "#0a0a0a", success: "#1e7a3c", danger: "#c8102e", dangerSurface: "#fdebee", secondary: "#19759c" },
     fonts: { sans: NEO, display: DIDONE },
     radii: [0, 2, 2, 4],
   },
@@ -101,7 +124,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Botanical",
     description: "Sage tones, deep green and a bookish serif.",
     dark: false,
-    colors: { bg: "#f4f7f2", surface: "#ffffff", surfaceSunken: "#e8eee4", text: "#1d2a20", textMuted: "#4b5c4f", border: "#d7e1d2", borderStrong: "#6d806f", accent: "#2f6b4f", accentHover: "#245540", onAccent: "#ffffff", focus: "#2f6b4f", success: "#2f6b4f", danger: "#b3261e", dangerSurface: "#fbeae7" },
+    // Analogous (−30°): a moss olive next to the deep green, earthy and leafy.
+    secondaryHarmony: { kind: "analogous", offset: -30 },
+    colors: { bg: "#f4f7f2", surface: "#ffffff", surfaceSunken: "#e8eee4", text: "#1d2a20", textMuted: "#4b5c4f", border: "#d7e1d2", borderStrong: "#6d806f", accent: "#2f6b4f", accentHover: "#245540", onAccent: "#ffffff", focus: "#2f6b4f", success: "#2f6b4f", danger: "#b3261e", dangerSurface: "#fbeae7", secondary: "#526441" },
     fonts: { sans: HUMANIST, display: TRANSITIONAL },
     radii: [4, 8, 10, 14],
   },
@@ -110,7 +135,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Sunset Warm",
     description: "Ivory and coral with friendly geometric type.",
     dark: false,
-    colors: { bg: "#fff8f3", surface: "#ffffff", surfaceSunken: "#fbeee4", text: "#2a1a14", textMuted: "#66493d", border: "#f2dccd", borderStrong: "#9b7363", accent: "#c2410c", accentHover: "#9a3412", onAccent: "#ffffff", focus: "#c2410c", success: "#3f7a4f", danger: "#b91c1c", dangerSurface: "#fef2f2" },
+    // Split-complementary (+150°): a sea teal beside coral's opposite, warm and cool in balance (amber would read as a warning).
+    secondaryHarmony: { kind: "split-complementary", offset: 150 },
+    colors: { bg: "#fff8f3", surface: "#ffffff", surfaceSunken: "#fbeee4", text: "#2a1a14", textMuted: "#66493d", border: "#f2dccd", borderStrong: "#9b7363", accent: "#c2410c", accentHover: "#9a3412", onAccent: "#ffffff", focus: "#c2410c", success: "#3f7a4f", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#0c847d" },
     fonts: { sans: GEOMETRIC, display: GEOMETRIC },
     radii: [6, 10, 14, 20],
   },
@@ -119,7 +146,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Corporate Trust",
     description: "Navy and light grey: steady and businesslike.",
     dark: false,
-    colors: { bg: "#f5f7fa", surface: "#ffffff", surfaceSunken: "#e9edf3", text: "#13213a", textMuted: "#46546b", border: "#d8dee8", borderStrong: "#66748b", accent: "#1e3a8a", accentHover: "#172e6e", onAccent: "#ffffff", focus: "#1e3a8a", success: "#166534", danger: "#b91c1c", dangerSurface: "#fef2f2" },
+    // Analogous (−30°): a steel blue next to the navy, steady and businesslike.
+    secondaryHarmony: { kind: "analogous", offset: -30 },
+    colors: { bg: "#f5f7fa", surface: "#ffffff", surfaceSunken: "#e9edf3", text: "#13213a", textMuted: "#46546b", border: "#d8dee8", borderStrong: "#66748b", accent: "#1e3a8a", accentHover: "#172e6e", onAccent: "#ffffff", focus: "#1e3a8a", success: "#166534", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#095c81" },
     fonts: { sans: NEO, display: NEO },
     radii: [2, 4, 6, 8],
   },
@@ -128,7 +157,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Neon Night",
     description: "Near-black with electric cyan for bold, techy apps.",
     dark: true,
-    colors: { bg: "#0b0b12", surface: "#14141f", surfaceSunken: "#08080d", text: "#f1f1f7", textMuted: "#a6a6bf", border: "#262636", borderStrong: "#6c6c88", accent: "#22d3ee", accentHover: "#67e8f9", onAccent: "#071318", focus: "#f0abfc", success: "#4ade80", danger: "#fb7185", dangerSurface: "#3a1420" },
+    // Split-complementary (+150°): a muted orchid beside the cyan's opposite, neon contrast without a second shout.
+    secondaryHarmony: { kind: "split-complementary", offset: 150 },
+    colors: { bg: "#0b0b12", surface: "#14141f", surfaceSunken: "#08080d", text: "#f1f1f7", textMuted: "#a6a6bf", border: "#262636", borderStrong: "#6c6c88", accent: "#22d3ee", accentHover: "#67e8f9", onAccent: "#071318", focus: "#f0abfc", success: "#4ade80", danger: "#fb7185", dangerSurface: "#3a1420", secondary: "#c28395" },
     fonts: { sans: GEOMETRIC, display: GEOMETRIC },
     radii: [4, 6, 10, 14],
   },
@@ -137,7 +168,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Monochrome",
     description: "Black, white and greys with condensed headings.",
     dark: false,
-    colors: { bg: "#ffffff", surface: "#f6f6f6", surfaceSunken: "#ececec", text: "#111111", textMuted: "#4d4d4d", border: "#dddddd", borderStrong: "#737373", accent: "#111111", accentHover: "#333333", onAccent: "#ffffff", focus: "#111111", success: "#166534", danger: "#b91c1c", dangerSurface: "#fef2f2" },
+    // Analogous (−30°) from a cool slate base (the accent is black, so it has no hue of its own): an ink slate that keeps the look monochrome.
+    secondaryHarmony: { kind: "analogous", offset: -30 },
+    colors: { bg: "#ffffff", surface: "#f6f6f6", surfaceSunken: "#ececec", text: "#111111", textMuted: "#4d4d4d", border: "#dddddd", borderStrong: "#737373", accent: "#111111", accentHover: "#333333", onAccent: "#ffffff", focus: "#111111", success: "#166534", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#3f5a63" },
     fonts: { sans: NEO, display: INDUSTRIAL },
     radii: [0, 2, 4, 6],
   },
@@ -146,7 +179,9 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     name: "Ocean Breeze",
     description: "Airy blues and soft curves, calm and open.",
     dark: false,
-    colors: { bg: "#f3f9fc", surface: "#ffffff", surfaceSunken: "#e3f0f7", text: "#0c2533", textMuted: "#3e5a69", border: "#cfe3ee", borderStrong: "#5f7f90", accent: "#0369a1", accentHover: "#075985", onAccent: "#ffffff", focus: "#0369a1", success: "#047857", danger: "#b91c1c", dangerSurface: "#fef2f2" },
+    // Analogous (−30°): a deep sea teal next to the ocean blue, airy and open.
+    secondaryHarmony: { kind: "analogous", offset: -30 },
+    colors: { bg: "#f3f9fc", surface: "#ffffff", surfaceSunken: "#e3f0f7", text: "#0c2533", textMuted: "#3e5a69", border: "#cfe3ee", borderStrong: "#5f7f90", accent: "#0369a1", accentHover: "#075985", onAccent: "#ffffff", focus: "#0369a1", success: "#047857", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#186f7e" },
     fonts: { sans: HUMANIST, display: HUMANIST },
     radii: [6, 10, 14, 18],
   },
@@ -176,5 +211,27 @@ export const BUILD_EXTRAS: BuildExtra[] = [
   { id: "keyboard-shortcuts", label: "Keyboard shortcuts", hint: "Quick keys for the main actions, with a help list.", guidance: "Add keyboard shortcuts for the main actions, shown in a help dialog opened with ?, and never overriding the browser's or screen reader's own keys.", match: /keyboard shortcut|hotkey/i },
   { id: "installable", label: "Install as an app", hint: "Add to home screen and work offline (PWA).", guidance: "Make the app installable: a web app manifest with name, icons and theme colours, and a service worker that caches the app shell so it opens offline.", match: /\bpwa\b|installable|web app manifest|add to home screen/i },
 ];
+
+/** A template's colour tokens as CSS custom properties (the starter's tokens.css names), secondary tokens included. */
+export function templateTokens(t: DesignTemplate): Record<string, string> {
+  const c = t.colors;
+  return {
+    "--color-bg": c.bg,
+    "--color-surface": c.surface,
+    "--color-surface-sunken": c.surfaceSunken,
+    "--color-text": c.text,
+    "--color-text-muted": c.textMuted,
+    "--color-border": c.border,
+    "--color-border-strong": c.borderStrong,
+    "--color-accent": c.accent,
+    "--color-accent-hover": c.accentHover,
+    "--color-on-accent": c.onAccent,
+    "--color-focus": c.focus,
+    "--color-success": c.success,
+    "--color-danger": c.danger,
+    "--color-danger-surface": c.dangerSurface,
+    ...secondaryTokens(c.secondary, t.dark ? "dark" : "light", { surface: c.surface, text: c.text }),
+  };
+}
 
 export const designTemplate = (id?: string): DesignTemplate | undefined => DESIGN_TEMPLATES.find((t) => t.id === id);

@@ -1,7 +1,7 @@
 /** @flowcode-library pagination-variants · Pagination: numbered, simple and load more (Tabs, breadcrumbs and paging)
  * Catalog ID: c.pagination (component)
  * Function: The pager for long lists (c.pagination); the reference sheet shows numbered, previous/next and load-more paging and the rows-per-page select beside them.
- * Use it as: import { Pagination } from "./pagination-variants"; <Pagination variant?="numbered"|"simple"|"load-more" page={n} pageCount={n} onPageChange={fn} prevLabel? nextLabel? /> or <Pagination variant="load-more" shown={n} total={n} step? onLoadMore={fn} />
+ * Use it as: import { Pagination } from "./pagination-variants"; <Pagination variant?="numbered"|"simple"|"load-more" page={n} pageCount={n} onPageChange={fn} prevLabel? nextLabel? version?="classic" total? pageSizes? defaultPageSize? defaultPage? /> or <Pagination variant="load-more" shown={n} total={n} step? onLoadMore={fn} />
  * Variants: c.pagination.numbered - A list people come back to: page numbers with an ellipsis between Previous and Next, the current page filled with the accent color; c.pagination.simple - Only the movement matters: Newer/Previous and Older/Next buttons around "Page x of y"; c.pagination.load-more - A feed: one secondary button that says how many it adds, and a "shown of total" count beneath
  * Look: A row of small bordered buttons with arrows and, when numbered, page numbers; the ends disable rather than disappear.
  * Tokens: --color-accent --color-on-accent --color-text --color-text-muted --color-surface-sunken --radius-sm --space-1 --space-2 --space-3 --weight-semibold
@@ -26,13 +26,15 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useState, type HTMLAttributes } from "react";
+import { useId, useState, type HTMLAttributes } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 
 // ── c.pagination: the one pager. Every list's paging is this component; the specimen below shows every variant. ──
 
 export type PaginationVariant = "numbered" | "simple" | "load-more";
+/** An alternative design of the whole pager (c.pagination@<version>); left out = the variant's look. */
+export type PaginationVersion = "classic";
 
 // Written out in full (not built from the variant name) so a build finds every class the pager needs.
 const CLS: Record<PaginationVariant, string> = {
@@ -55,13 +57,124 @@ type PaginationProps = {
   total?: number;
   step?: number;
   onLoadMore?: () => void;
+  /** classic: page numbers with chevron Previous/Next, "…" for long ranges, a "Showing x-y of z" line (from total) and an optional rows-per-page select. variant is ignored. */
+  version?: PaginationVersion;
+  /** classic: rows per page (controlled, with onPageSizeChange); defaultPageSize when left out. */
+  pageSize?: number;
+  defaultPageSize?: number;
+  /** classic: the sizes to offer; the rows-per-page select shows only when this is given. */
+  pageSizes?: number[];
+  onPageSizeChange?: (size: number) => void;
+  /** classic: the page to start on when page is not controlled. */
+  defaultPage?: number;
   className?: string;
 } & Omit<HTMLAttributes<HTMLElement>, "className" | "onChange">;
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
+function Chevron({ dir }: { dir: "left" | "right" | "down" }) {
+  const d = dir === "left" ? "M15 6l-6 6 6 6" : dir === "right" ? "M9 6l6 6-6 6" : "M6 9l6 6 6-6";
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
+    </svg>
+  );
+}
+
+/** Page numbers to show: first, last, and the current page with one neighbour each side; gaps become "…". */
+function pageList(page: number, pages: number): Array<number | "gap"> {
+  if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
+  const out: Array<number | "gap"> = [1];
+  const start = Math.max(2, Math.min(page - 1, pages - 4));
+  const end = Math.min(pages - 1, Math.max(page + 1, 5));
+  if (start > 2) out.push("gap");
+  for (let p = start; p <= end; p++) out.push(p);
+  if (end < pages - 1) out.push("gap");
+  out.push(pages);
+  return out;
+}
+
+/** c.pagination@classic: numbered pages, "Showing x-y of z", and a rows-per-page select. Works on its own or controlled. */
+function ClassicPager({ page: controlled, defaultPage = 1, pageCount, total = 0, onPageChange, pageSize: fixedSize, defaultPageSize, pageSizes, onPageSizeChange, className }: PaginationProps) {
+  const uid = useId();
+  const [ownPage, setOwnPage] = useState(defaultPage);
+  const [ownSize, setOwnSize] = useState(defaultPageSize ?? pageSizes?.[0] ?? 20);
+  const size = fixedSize ?? ownSize;
+  const pages = Math.max(1, pageCount ?? Math.ceil(total / size));
+  const safePage = Math.min(controlled ?? ownPage, pages);
+  const from = total === 0 ? 0 : (safePage - 1) * size + 1;
+  const to = Math.min(safePage * size, total);
+  const setPage = (n: number) => {
+    const next = Math.min(pages, Math.max(1, n));
+    if (controlled === undefined) setOwnPage(next);
+    onPageChange?.(next);
+  };
+  const changeSize = (n: number) => {
+    // Keep the first row you were looking at on screen.
+    if (fixedSize === undefined) setOwnSize(n);
+    onPageSizeChange?.(n);
+    setPage(Math.floor((from > 0 ? from - 1 : 0) / n) + 1);
+  };
+  return (
+    <div className={className} data-fl="c.pagination@classic">
+      {total > 0 ? (
+        <p className="fl-way-range" role="status" aria-live="polite">
+          Showing <strong>{from}–{to}</strong> of <strong>{total}</strong>
+        </p>
+      ) : null}
+      <div className="fl-way-pager">
+        <nav aria-label="Pages">
+          <ul className="fl-way-pages">
+            <li>
+              <button type="button" className="fl-way-page fl-way-page--step" disabled={safePage === 1} onClick={() => setPage(safePage - 1)} aria-label="Previous page">
+                <Chevron dir="left" />
+                <span className="fl-way-hide-sm" aria-hidden="true">Previous</span>
+              </button>
+            </li>
+            {pageList(safePage, pages).map((p, i) =>
+              p === "gap" ? (
+                <li key={`gap-${i}`} className="fl-way-gap fl-way-page--far" aria-hidden="true">
+                  …
+                </li>
+              ) : (
+                <li key={p} className={Math.abs(p - safePage) > 1 && p !== 1 && p !== pages ? "fl-way-page--far" : undefined}>
+                  <button type="button" className="fl-way-page" aria-current={p === safePage ? "page" : undefined} aria-label={`Page ${p}`} onClick={() => setPage(p)}>
+                    {p}
+                  </button>
+                </li>
+              ),
+            )}
+            <li>
+              <button type="button" className="fl-way-page fl-way-page--step" disabled={safePage === pages} onClick={() => setPage(safePage + 1)} aria-label="Next page">
+                <span className="fl-way-hide-sm" aria-hidden="true">Next</span>
+                <Chevron dir="right" />
+              </button>
+            </li>
+          </ul>
+        </nav>
+        {pageSizes ? (
+          <label className="fl-way-pagesize" htmlFor={`${uid}-size`}>
+            Rows per page
+            <span className="fl-way-select">
+              <select id={`${uid}-size`} value={size} onChange={(e) => changeSize(Number(e.target.value))}>
+                {pageSizes.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <Chevron dir="down" />
+            </span>
+          </label>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function Pagination(props: PaginationProps) {
-  const { variant = "numbered", page = 1, pageCount = 1, onPageChange, prevLabel = "Previous", nextLabel = "Next", shown = 0, total = 0, step = 25, onLoadMore, className, ...rest } = props;
+  if (props.version === "classic") return <ClassicPager {...props} />;
+  const { variant = "numbered", page = 1, pageCount = 1, onPageChange, prevLabel = "Previous", nextLabel = "Next", shown = 0, total = 0, step = 25, onLoadMore, version: _version, pageSize: _ps, defaultPageSize: _dps, pageSizes: _pss, onPageSizeChange: _opsc, defaultPage: _dp, className, ...rest } = props;
   const cls = `${CLS[variant]}${className ? ` ${className}` : ""}`;
   const fl = `c.pagination.${variant}`;
   const go = (n: number) => onPageChange?.(Math.min(pageCount, Math.max(1, n)));
@@ -168,6 +281,15 @@ export default function PaginationVariants() {
           <Pagination variant="load-more" shown={shown} total={count} onLoadMore={() => setShown((n) => Math.min(count, n + 25))} />
         </li>
       </ul>
+
+      <div className="fl-ctl-sizes">
+        <h3>Versions</h3>
+        <p className="fl-ctl-btn-what">
+          c.pagination@classic: numbered pages with chevron Previous and Next, an ellipsis for long ranges, a Showing line and a
+          rows-per-page select that keeps your first row in view. On a phone the far page numbers drop away.
+        </p>
+        <Pagination version="classic" total={312} defaultPage={2} defaultPageSize={20} pageSizes={[10, 20, 50]} />
+      </div>
 
       <div className="fl-ctl-sizes">
         <h3>Rows per page</h3>

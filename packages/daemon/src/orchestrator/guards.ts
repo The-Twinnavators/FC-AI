@@ -239,7 +239,7 @@ const KIT_FACTS: Array<{ about: RegExp; proof: RegExp; spoiler?: RegExp; fact: s
   {
     about: /focus[\s-](?:ring|indicator|outline|visible|style)|:focus\b|keyboard[\s-](?:focus|navigation|navigable)|tab order/i,
     proof: /:focus-visible\s*\{[^}]*(?:outline|box-shadow)/,
-    fact: "The kit already draws a visible focus ring on every control (src/styles/app.css :focus-visible, and .ui-btn/.ui-input/.ui-switch :focus-visible in the kit's CSS). Buttons, inputs and links built from the kit or plain HTML controls get it automatically. Only add a rule for a custom element you made focusable yourself (tabIndex) that has no ring. If there is none, this part is done: say so and call task_complete.",
+    fact: "The kit already draws a visible focus ring on every control (src/styles/app.css :focus-visible, and the buttons, inputs and switches in the kit and the catalog (.ui-input, .fl-btn, .fl-ctl-switch :focus-visible)). Buttons, inputs and links built from the kit or plain HTML controls get it automatically. Only add a rule for a custom element you made focusable yourself (tabIndex) that has no ring. If there is none, this part is done: say so and call task_complete.",
   },
   {
     about: /reduce[ds]? motion|prefers-reduced-motion|motion (?:sensitivity|preference)/i,

@@ -1,10 +1,10 @@
 /** @flowcode-library progress-indicators · Progress: bars, rings, spinners and skeletons (Alerts and states)
  * Catalog ID: c.progress (component)
- * Function: The progress indicator (c.progress); the reference sheet shows bar, indeterminate bar, ring and spinner on one live run, bar tones, steps, a stacked share bar, skeletons and a rule for which to use.
- * Use it as: import { Progress } from "./progress-indicators"; <Progress variant?="bar"|"ring"|"spinner"|"steps"|"stacked" value?={0-100} label? size?={16|24|32} thin? large? tone?="accent"|"success"|"danger" steps?={["Ordered","Paid"]} current?={index} segments?={[{label,value}]} max? unit?>words beside a large ring</Progress>
+ * Function: The progress indicator (c.progress); the reference sheet shows bar, indeterminate bar, ring and spinner on one live run, bar tones, steps, a stacked share bar, skeletons and a rule for which to use. Versions: track and neobrutal.
+ * Use it as: import { Progress } from "./progress-indicators"; <Progress version?="track"|"neobrutal" variant?="bar"|"ring"|"spinner"|"steps"|"stacked" value?={0-100} label? size?={16|24|32} thin? large? tone?="accent"|"success"|"danger" steps?={["Ordered","Paid"]} current?={index} segments?={[{label,value}]} max? unit?>words beside a large ring</Progress> (track and neobrutal draw the bar only and take caption? valueText?; neobrutal also takes striped?; tone also accepts "warning")
  * Variants: c.progress.bar - How far along something is (or a sliding bar when value is left out): a rounded track with an accent fill; c.progress.ring - The same percentage where a bar would not fit, such as a card corner or table cell: a circle filling clockwise with the number inside; c.progress.spinner - Something short with no known length, in a button or beside a row: a small turning arc in 16, 24 or 32 px; c.progress.steps - Where something is in a known list of stages (an order: Ordered, Paid, Fired, Ready): a row of short segments, finished ones filled, the current one tinted and bold, with the stage names under; c.progress.stacked - How one whole is shared out (storage by kind): a single bar split into colored parts with a legend of amounts and the free space left over
  * Look: An accent fill on a sunken track, as a bar or ring (green when finished, red when failed; the ring can be large with words beside it), a small turning arc, a row of stage segments, or one bar split into shares.
- * Tokens: --color-accent --color-surface-sunken --text-sm --duration-fast --easing --space-3 --color-success --color-danger --color-text-muted --color-border
+ * Tokens: --color-accent --color-surface-sunken --text-sm --duration-fast --easing --space-3 --color-success --color-danger --color-text-muted --color-border --color-text --color-surface --color-secondary --radius-sm --space-1 --space-2 --space-4 --space-5 --weight-bold --text-xs --text-md --tracking-wide --duration-base --focus-ring --color-warning
  * Use cases: a file uploading; a report building; a page loading; a long save; a queue of jobs; upload progress; order status; storage usage; goal tracking; quota usage; fundraising goal; delivery tracking; fitness goal
  * Jobs to be done: know something is happening; know how much is left; know whether to wait; track my order's progress; see how much storage i have left; check progress toward my goal; follow an upload until it finishes
  * Keywords: progress, bar, spinner, loader, skeleton, indeterminate, loading, percent, progress bar, steps, usage, storage, ring, circular, goal
@@ -29,24 +29,42 @@
  * styles are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs
  * in a built app exactly as it runs here.
  */
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { Button } from "./buttons-variants";
 
 // ── c.progress: the one progress indicator. Every piece's progress is this component; the specimen below shows each variant. ──
 
 export type ProgressVariant = "bar" | "ring" | "spinner" | "steps" | "stacked";
 export type ProgressSize = 16 | 24 | 32;
-export type ProgressTone = "accent" | "success" | "danger";
+export type ProgressTone = "accent" | "success" | "danger" | "warning";
+/**
+ * Other designs of the progress bar. "default" is the slim rounded bar; "track" is the thicker labelled track with a
+ * pill fill (upload rows); "neobrutal" is the neobrutalism kit's chunky ink-bordered bar with a hard shadow and an
+ * optional striped fill. Versions apply to variant "bar" only.
+ */
+export type ProgressVersion = "default" | "track" | "neobrutal";
 export type ProgressSegment = { label: string; value: number };
 
 // Written out in full (not built from the size) so a build finds every class the spinner needs.
 const SPIN: Record<ProgressSize, string> = { 16: "fl-ctl-spin--16", 24: "fl-ctl-spin--24", 32: "fl-ctl-spin--32" };
 
-const TONE: Record<ProgressTone, string> = { accent: "", success: " fl-ctl-bar--high", danger: " fl-ctl-bar--low" };
+const TONE: Record<ProgressTone, string> = { accent: "", success: " fl-ctl-bar--high", danger: " fl-ctl-bar--low", warning: " fl-ctl-bar--mid" };
+// track: the fill color for a finished or failed bar.
+const TRACK_FILL: Record<ProgressTone, string> = { accent: "", success: " fl-dsp-fill--success", danger: " fl-dsp-fill--danger", warning: "" };
+// neobrutal: the tone class sets the fill color.
+const NB_TONE: Record<ProgressTone, string> = { accent: "fl-nb-tone-info", success: "fl-nb-tone-success", danger: "fl-nb-tone-error", warning: "fl-nb-tone-warning" };
 // Four segment colors, in order; written out so a build finds each class.
 const SEG: string[] = ["fl-dsp-c1", "fl-dsp-c2", "fl-dsp-c3", "fl-dsp-c4"];
 
 type ProgressProps = {
+  /** Another design of the bar; "default" when left out. See ProgressVersion. */
+  version?: ProgressVersion;
+  /** track and neobrutal only: the words above the bar on the left, which also name it for screen readers. */
+  caption?: ReactNode;
+  /** track and neobrutal only: the words above the bar on the right, such as "3 of 4" or "60%". */
+  valueText?: string;
+  /** neobrutal only: draw the fill with diagonal stripes, for work still running. */
+  striped?: boolean;
   variant?: ProgressVariant;
   /** 0 to 100. Leave it out when the amount is unknown: the bar slides and has no aria-valuenow. */
   value?: number;
@@ -75,11 +93,40 @@ type ProgressProps = {
   children?: ReactNode;
 };
 
-const TONE_STROKE: Record<ProgressTone, string> = { accent: "var(--color-accent)", success: "var(--color-success)", danger: "var(--color-danger)" };
+const TONE_STROKE: Record<ProgressTone, string> = { accent: "var(--color-accent)", success: "var(--color-success)", danger: "var(--color-danger)", warning: "var(--color-warning)" };
 
-export function Progress({ variant = "bar", value, label, size = 24, thin, tone = "accent", steps = [], current = 0, segments = [], max = 100, unit = "", large, className, children }: ProgressProps) {
+export function Progress({ version = "default", caption, valueText, striped, variant = "bar", value, label, size = 24, thin, tone = "accent", steps = [], current = 0, segments = [], max = 100, unit = "", large, className, children }: ProgressProps) {
   const extra = className ? ` ${className}` : "";
   const fl = `c.progress.${variant}`;
+  const captionId = useId();
+  if (variant === "bar" && version !== "default") {
+    const name = caption ? { "aria-labelledby": captionId } : { "aria-label": label ?? "Progress" };
+    const aria = value === undefined ? {} : { "aria-valuenow": value, "aria-valuemin": 0, "aria-valuemax": 100 };
+    const top = caption || valueText ? (
+      <div className={version === "neobrutal" ? "fl-nb-progress__top" : "fl-dsp-bar-row__top"}>
+        <span id={captionId}>{caption}</span>
+        <span>{valueText}</span>
+      </div>
+    ) : null;
+    if (version === "track") {
+      return (
+        <div className={`fl-dsp-bar-row${extra}`} data-fl="c.progress@track">
+          {top}
+          <div className="fl-dsp-track" role="progressbar" {...name} {...aria}>
+            <div className={`fl-dsp-fill${TRACK_FILL[tone]}`} style={{ width: `${value ?? 0}%` }} />
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className={`fl-nb fl-nb-progress ${NB_TONE[tone]}${extra}`} data-fl="c.progress@neobrutal">
+        {top}
+        <div className="fl-nb-progress__track" role="progressbar" {...name} {...aria}>
+          <div className={`fl-nb-progress__fill${striped ? " fl-nb-progress__fill--striped" : ""}${!value ? " fl-nb-progress__fill--empty" : ""}`} style={{ width: `${value ?? 0}%` }} />
+        </div>
+      </div>
+    );
+  }
   if (variant === "steps") {
     const last = steps.length - 1;
     return (
@@ -283,6 +330,27 @@ export default function ProgressIndicators() {
                 Log a class
               </Button>
             </Progress>
+          </li>
+        </ul>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Versions</h3>
+        <p className="fl-ctl-btn-what">Other designs of the progress bar, chosen with <code>version</code>. Both take a caption and a value above the bar.</p>
+        <ul className="fl-ctl-prog-grid">
+          <li>
+            <p className="fl-ctl-matrix-kind">c.progress@track</p>
+            <p className="fl-ctl-matrix-what">A thicker labelled track with a pill fill: an upload row you can follow to the end.</p>
+            <Progress version="track" value={pct} caption="glaze-tests-november.zip" valueText={`${pct}%`} />
+            <Progress version="track" value={100} tone="success" caption="Upload finished" valueText="100%" />
+            <Progress version="track" value={42} tone="danger" caption="Upload cancelled" valueText="42%" />
+          </li>
+          <li>
+            <p className="fl-ctl-matrix-kind">c.progress@neobrutal</p>
+            <p className="fl-ctl-matrix-what">The neobrutalism kit's bar: a thick ink border, a hard shadow, and a striped fill while work runs.</p>
+            <Progress version="neobrutal" value={75} caption="Classes used this month" valueText="3 of 4" />
+            <Progress version="neobrutal" value={85} tone="warning" caption="Kiln load" valueText="85 of 100" />
+            <Progress version="neobrutal" striped value={pct} caption="Uploading class photos" valueText={`${pct}%`} />
           </li>
         </ul>
       </div>

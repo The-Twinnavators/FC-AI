@@ -1,7 +1,7 @@
 /** @flowcode-library steppers-wizards · Steppers: numbered, with a bar, and vertical (Tabs, breadcrumbs and paging)
  * Catalog ID: p.stepper (pattern)
  * Function: The step indicator (p.stepper) for multi-step flows in numbered, bar and vertical shapes; the reference sheet pairs it with working Back and Next buttons and a way to fail a step.
- * Use it as: import { Stepper } from "./steppers-wizards"; <Stepper variant?="numbered"|"bar"|"vertical" steps={[{ id, label, what }]} current={index} failed?={index} onStep?={(index) => ...} />
+ * Use it as: import { Stepper } from "./steppers-wizards"; <Stepper variant?="numbered"|"bar"|"vertical" steps={[{ id, label, what }]} current?={index} defaultCurrent? version?="hinted" finished? label? failed?={index} onStep?={(index) => ...} />
  * Variants: p.stepper.numbered - a wizard where steps have names: a numbered row, finished steps ticked and reachable, steps ahead disabled; p.stepper.bar - a flow where step names do not matter: a plain progress bar with Step N of M beside it; p.stepper.vertical - steps that each need a line of explanation: a numbered list down the page with a status under each
  * Built from: c.progress.bar, c.button.primary, c.button.secondary, c.button.tertiary
  * Look: Numbered circles joined in a row (or column) with the current step accented, finished steps ticked and a failed step marked in the danger color; or a thin progress bar.
@@ -38,13 +38,22 @@ import { Progress } from "./progress-indicators";
 // ── p.stepper: where you are in a flow. Built from c.progress for the bar; the wizard's own buttons are c.button. ──
 
 export type StepperVariant = "numbered" | "bar" | "vertical";
+/** An alternative design of the whole indicator (p.stepper@<version>); left out = the variant's look. */
+export type StepperVersion = "hinted";
 export type Step = { id: string; label: string; what: string };
 export type StepperProps = {
   /** numbered: named steps across the top, finished ones reachable; bar: a plain bar; vertical: a list with a line under each. */
   variant?: StepperVariant;
   steps: Step[];
-  /** Index of the step the person is on. */
-  current: number;
+  /** Index of the step the person is on. Optional with version "hinted", which then keeps its own (start at defaultCurrent). */
+  current?: number;
+  defaultCurrent?: number;
+  /** hinted: round numbered dots with each step's `what` as a hint, in a row on wide screens and a column on phones; finished steps go back when pressed. variant is ignored. */
+  version?: StepperVersion;
+  /** hinted: every step shown done (the flow is complete). */
+  finished?: boolean;
+  /** hinted: the name screen readers give the indicator. */
+  label?: string;
   /** Index of a step left in an error, if any. */
   failed?: number;
   /** Called with the index of a finished or current step that was pressed (numbered only). */
@@ -52,10 +61,55 @@ export type StepperProps = {
   className?: string;
 };
 
-export function Stepper({ variant = "numbered", steps, current, failed = -1, onStep, className }: StepperProps) {
+export function Stepper({ variant = "numbered", steps, current: controlled, defaultCurrent = 0, version, finished, label = "Progress", failed = -1, onStep, className }: StepperProps) {
+  const [own, setOwn] = useState(defaultCurrent);
+  const current = controlled ?? own;
   const extra = className ? ` ${className}` : "";
   const fl = `p.stepper.${variant}`;
   const state = (n: number) => (n === failed ? "error" : n < current ? "done" : n === current ? "here" : "ahead");
+
+  if (version === "hinted") {
+    const st = (n: number) => (finished || n < current ? "done" : n === current ? "current" : "upcoming");
+    return (
+      <nav aria-label={label} className={className} data-fl="p.stepper@hinted">
+        <ol className="fl-way-steps">
+          {steps.map((s, n) => {
+            const t = st(n);
+            const inner = (
+              <>
+                <span className="fl-way-step__dot" aria-hidden="true">
+                  {t === "done" ? <Icon name="check" /> : n + 1}
+                </span>
+                <span className="fl-way-step__text">
+                  <span className="fl-way-step__label">{s.label}</span>
+                  <span className="fl-way-step__hint">{s.what}</span>
+                </span>
+                <span className="fl-sr">{t === "done" ? ", done" : t === "current" ? ", current step" : ", not started"}</span>
+              </>
+            );
+            return (
+              <li key={s.id} className="fl-way-step" data-state={t} aria-current={t === "current" ? "step" : undefined}>
+                {t === "done" && !finished ? (
+                  <button
+                    type="button"
+                    className="fl-way-step__btn"
+                    onClick={() => {
+                      if (controlled === undefined) setOwn(n);
+                      onStep?.(n);
+                    }}
+                  >
+                    {inner}
+                  </button>
+                ) : (
+                  <span className="fl-way-step__static">{inner}</span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    );
+  }
 
   if (variant === "bar") {
     return (
@@ -154,6 +208,15 @@ export default function SteppersWizards() {
         <h3>Just a bar</h3>
         <p className="fl-ctl-btn-what">When the step names do not help, say how far along it is and nothing else.</p>
         <Stepper variant="bar" steps={d.steps} current={at} />
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Versions</h3>
+        <p className="fl-ctl-btn-what">
+          p.stepper@hinted: round numbered dots, each with a one-line hint; a row on wide screens and a column on phones. Finished steps
+          can be pressed to go back. Driven here by the same Back and Next buttons.
+        </p>
+        <Stepper version="hinted" label="Booking progress" steps={d.steps} current={at} onStep={setAt} />
       </div>
 
       <div className="fl-ctl-sizes">

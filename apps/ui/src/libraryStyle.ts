@@ -2,7 +2,7 @@
  * The styles a library preview runs with: FlowCode's bundled fonts, the prototype starter's tokens and one visual
  * style's colors, fonts and corners. Shared by the section preview page and the Elements grid.
  */
-import { BUNDLED_FONTS, DESIGN_TEMPLATES, TEMPLATE_VIBES, fontFaceCss, vibeTokens } from "@flowcode/contracts";
+import { BUNDLED_FONTS, DESIGN_TEMPLATES, TEMPLATE_VIBES, fontFaceCss, templateTokens, vibeTokens } from "@flowcode/contracts";
 import tokensCss from "../../../templates/react-vite-starter/src/styles/tokens.css?raw";
 
 /**
@@ -12,8 +12,10 @@ import tokensCss from "../../../templates/react-vite-starter/src/styles/tokens.c
 export function styleCss(styleId: string, surface?: string): string {
   const t = DESIGN_TEMPLATES.find((x) => x.id === styleId);
   if (!t) return "";
-  const c = t.colors;
-  return `:root{--color-bg:${c.bg};--color-surface:${c.surface};--color-surface-sunken:${c.surfaceSunken};--color-text:${c.text};--color-text-muted:${c.textMuted};--color-border:${c.border};--color-border-strong:${c.borderStrong};--color-accent:${c.accent};--color-accent-hover:${c.accentHover};--color-on-accent:${c.onAccent};--color-focus:${c.focus};--color-success:${c.success};--color-danger:${c.danger};--color-danger-surface:${c.dangerSurface};--font-sans:${t.fonts.sans};--font-display:${t.fonts.display};--radius-sm:${t.radii[0]}px;--radius-md:${t.radii[1]}px;--radius-lg:${t.radii[2]}px;--radius-xl:${t.radii[3]}px;color-scheme:${t.dark ? "dark" : "light"}}\n:root{${Object.entries(vibeTokens(surface || TEMPLATE_VIBES[styleId]))
+  const colors = Object.entries(templateTokens(t))
+    .map(([k, v]) => `${k}:${v}`)
+    .join(";");
+  return `:root{${colors};--font-sans:${t.fonts.sans};--font-display:${t.fonts.display};--radius-sm:${t.radii[0]}px;--radius-md:${t.radii[1]}px;--radius-lg:${t.radii[2]}px;--radius-xl:${t.radii[3]}px;color-scheme:${t.dark ? "dark" : "light"}}\n:root{${Object.entries(vibeTokens(surface || TEMPLATE_VIBES[styleId]))
     .map(([k, v]) => `${k}:${v}`)
     .join(";")}}`;
 }

@@ -99,7 +99,7 @@ function Cover({ shape }: { shape: string }) {
           ))}
           <rect x="22" y="38" width="42" height="18" rx="4" fill="var(--color-accent)" />
           <rect x="70" y="58" width="42" height="26" rx="4" fill="var(--color-success)" opacity="0.8" />
-          <rect x="46" y="88" width="42" height="14" rx="4" fill="var(--color-accent)" opacity="0.5" />
+          <rect x="46" y="88" width="42" height="14" rx="4" fill="var(--color-secondary, var(--color-accent))" opacity="0.5" />
           <rect x="118" y="38" width="20" height="30" rx="4" fill="var(--color-focus)" opacity="0.6" />
         </g>
       ) : shape === "bag" ? (
@@ -107,7 +107,7 @@ function Cover({ shape }: { shape: string }) {
           <rect x="24" y="22" width="112" height="14" rx="4" fill="var(--color-surface-sunken)" />
           {[0, 1, 2].map((c) => (
             <g key={c}>
-              <rect x={24 + c * 39} y="44" width="34" height="34" rx="6" fill="var(--color-accent)" opacity={0.35 + c * 0.2} />
+              <rect x={24 + c * 39} y="44" width="34" height="34" rx="6" fill="var(--color-secondary, var(--color-accent))" opacity={0.35 + c * 0.2} />
               <rect x={24 + c * 39} y="84" width="26" height="5" rx="2" fill="var(--color-border-strong)" />
               <rect x={24 + c * 39} y="94" width="16" height="5" rx="2" fill="var(--color-text-muted)" />
             </g>
@@ -124,7 +124,7 @@ function Cover({ shape }: { shape: string }) {
         <g>
           <rect x="22" y="22" width="56" height="8" rx="3" fill="var(--color-text)" opacity="0.7" />
           {[0, 1, 2, 3, 4, 5].map((c) => (
-            <rect key={c} x={26 + c * 19} y={96 - [30, 44, 26, 52, 60, 40][c]} width="12" height={[30, 44, 26, 52, 60, 40][c]} rx="3" fill="var(--color-accent)" opacity={0.45 + c * 0.09} />
+            <rect key={c} x={26 + c * 19} y={96 - [30, 44, 26, 52, 60, 40][c]} width="12" height={[30, 44, 26, 52, 60, 40][c]} rx="3" fill="var(--color-secondary, var(--color-accent))" opacity={0.45 + c * 0.09} />
           ))}
           <rect x="22" y="100" width="116" height="2" fill="var(--color-border-strong)" />
         </g>

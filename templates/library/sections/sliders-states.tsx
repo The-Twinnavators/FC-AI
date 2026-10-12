@@ -1,7 +1,7 @@
 /** @flowcode-library sliders-states · Sliders: single, stepped and range (Forms)
  * Catalog ID: c.slider (component)
  * Function: The slider (c.slider): a single, stepped or two-thumb range slider that always spells out its value, with optional end labels and a minimum gap between thumbs; the reference sheet shows its states.
- * Use it as: import { Slider } from "./sliders-states"; <Slider variant?="single"|"range" label="Budget" min? max? step? steps?={[1,2,3]} minGap? scale? defaultValue?={60} format?={(n) => `${n}`} onChange? disabled? />
+ * Use it as: import { Slider } from "./sliders-states"; <Slider version?="standard"|"filled" fields? prefix? variant?="single"|"range" label="Budget" min? max? step? steps?={[1,2,3]} minGap? scale? defaultValue?={60} format?={(n) => `${n}`} onChange? disabled? />
  * Variants: c.slider.single - pick one number without typing (volume, budget, guests): one thumb on a track, value written beside it; pass steps for a stepped one; c.slider.range - narrow a list between two values (price filter): two thumbs on stacked tracks, the pair written out beside them
  * Look: An accent-colored track and thumb with the current value written as text beneath it.
  * Tokens: --color-accent --color-text-muted --text-sm --space-2 --focus-ring
@@ -29,6 +29,8 @@ import { useId, useState, type HTMLAttributes } from "react";
 // ── c.slider: the one slider. Single or range; the value is always written out beside the track. ──
 
 export type SliderVariant = "single" | "range";
+/** standard = the compact slider; filled = the filter-panel slider: visible label, accent-filled track, value in the header. */
+export type SliderVersion = "standard" | "filled";
 
 type SliderOwn = {
   /** Names the slider for screen readers. A range reads "Lowest <label>" and "Highest <label>". */
@@ -44,6 +46,12 @@ type SliderOwn = {
   scale?: boolean;
   /** Turns a number into the text beside the track. The number itself when left out. */
   format?: (n: number) => string;
+  /** Look: "standard" (default) or "filled" (label and value above a filled track; a range adds number fields with `fields`). */
+  version?: SliderVersion;
+  /** filled range only: min and max number fields under the track, kept in step with the thumbs. */
+  fields?: boolean;
+  /** filled range only: a symbol in front of the number fields, such as "$". */
+  prefix?: string;
   disabled?: boolean;
   /** Draw the keyboard focus ring without focus, for showing the state. */
   focused?: boolean;
@@ -54,8 +62,9 @@ type RangeProps = SliderOwn & { variant: "range"; value?: [number, number]; defa
 export type SliderProps = (SingleProps | RangeProps) & Omit<HTMLAttributes<HTMLSpanElement>, keyof SliderOwn | "onChange" | "defaultValue">;
 
 export function Slider(props: SliderProps) {
-  const { label, min = 0, max = 100, step = 1, steps, minGap = 0, scale, format = String, disabled, focused, className, variant = "single", value, defaultValue, onChange, ...rest } = props;
+  const { label, min = 0, max = 100, step = 1, steps, minGap = 0, scale, format = String, version = "standard", fields, prefix, disabled, focused, className, variant = "single", value, defaultValue, onChange, ...rest } = props;
   const uid = useId();
+  const [texts, setTexts] = useState<[string, string] | null>(null);
   const listId = steps ? `${uid}-steps` : undefined;
   const [inner, setInner] = useState<number | [number, number]>(defaultValue ?? (variant === "range" ? [min, max] : min));
   const cur = value ?? inner;
@@ -69,6 +78,108 @@ export function Slider(props: SliderProps) {
       ))}
     </datalist>
   ) : null;
+  const pct = (v: number) => ((v - min) / (max - min)) * 100;
+  if (version === "filled" && variant === "range") {
+    const [lo, hi] = (Array.isArray(cur) ? cur : [min, max]) as [number, number];
+    const set = (r: [number, number]) => (setInner(r), setTexts(null), (onChange as ((r: [number, number]) => void) | undefined)?.(r));
+    const setLow = (v: number) => set([Math.max(min, Math.min(v, hi - minGap)), hi]);
+    const setHigh = (v: number) => set([lo, Math.min(max, Math.max(v, lo + minGap))]);
+    const loText = texts?.[0] ?? String(lo);
+    const hiText = texts?.[1] ?? String(hi);
+    const commit = (which: 0 | 1) => {
+      const t = which === 0 ? loText : hiText;
+      const raw = Number(t);
+      const ok = Number.isFinite(raw) && t.trim() !== "";
+      if (which === 0) setLow(ok ? raw : lo);
+      else setHigh(ok ? raw : hi);
+    };
+    const field = (which: 0 | 1, text: string, name: string) => {
+      const invalid = text.trim() === "" || Number.isNaN(Number(text));
+      return (
+        <div className="fl-field">
+          <label htmlFor={`${uid}-${which}`}>{name}</label>
+          <div className="fl-in-affix">
+            {prefix ? <span aria-hidden="true">{prefix}</span> : null}
+            <input
+              id={`${uid}-${which}`}
+              className="fl-input"
+              inputMode="numeric"
+              value={text}
+              disabled={disabled}
+              aria-invalid={invalid || undefined}
+              aria-describedby={invalid ? `${uid}-${which}-err` : undefined}
+              onChange={(e) => setTexts(which === 0 ? [e.target.value, hiText] : [loText, e.target.value])}
+              onBlur={() => commit(which)}
+              onKeyDown={(e) => e.key === "Enter" && commit(which)}
+            />
+          </div>
+          {invalid ? (
+            <span id={`${uid}-${which}-err`} className="fl-in-error">
+              Enter a number.
+            </span>
+          ) : null}
+        </div>
+      );
+    };
+    return (
+      <fieldset {...(rest as HTMLAttributes<HTMLFieldSetElement>)} className={["fl-in-fieldset", className ?? ""].filter(Boolean).join(" ")} data-fl="c.slider@filled" disabled={disabled}>
+        <legend>{label}</legend>
+        <div className="fl-in-dual" style={{ ["--fl-in-lo" as string]: `${pct(lo)}%`, ["--fl-in-hi" as string]: `${pct(hi)}%` }}>
+          <span className="fl-in-dual__track" aria-hidden="true" />
+          <input type="range" className="fl-in-dual__thumb" aria-label={`Lowest ${label}`} min={min} max={max} step={step} value={lo} aria-valuetext={format(lo)} onChange={(e) => setLow(Number(e.target.value))} />
+          <input type="range" className="fl-in-dual__thumb" aria-label={`Highest ${label}`} min={min} max={max} step={step} value={hi} aria-valuetext={format(hi)} onChange={(e) => setHigh(Number(e.target.value))} />
+        </div>
+        {fields ? (
+          <div className="fl-in-minmax">
+            {field(0, loText, "Min")}
+            <span className="fl-in-minmax__dash" aria-hidden="true">
+              to
+            </span>
+            {field(1, hiText, "Max")}
+          </div>
+        ) : (
+          <output className="fl-in-range__value" aria-live="polite">
+            {format(lo)} to {format(hi)}
+          </output>
+        )}
+      </fieldset>
+    );
+  }
+  if (version === "filled") {
+    const n = typeof cur === "number" ? cur : min;
+    const set = (v: number) => (setInner(v), (onChange as ((n: number) => void) | undefined)?.(v));
+    return (
+      <div {...(rest as HTMLAttributes<HTMLDivElement>)} className={["fl-in-range", className ?? ""].filter(Boolean).join(" ")} data-fl="c.slider@filled">
+        <div className="fl-in-range__head">
+          <label htmlFor={uid}>{label}</label>
+          <output htmlFor={uid} className="fl-in-range__value">
+            {format(n)}
+          </output>
+        </div>
+        <input
+          id={uid}
+          className="fl-in-slider"
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          list={listId}
+          disabled={disabled}
+          value={n}
+          aria-valuetext={format(n)}
+          style={{ ["--fl-in-fill" as string]: `${pct(n)}%` }}
+          onChange={(e) => set(Number(e.target.value))}
+        />
+        {scale ? (
+          <div className="fl-in-range__scale fl-meta" aria-hidden="true">
+            <span>{format(min)}</span>
+            <span>{format(max)}</span>
+          </div>
+        ) : null}
+        {list}
+      </div>
+    );
+  }
   if (variant === "range") {
     const [lo, hi] = (Array.isArray(cur) ? cur : [min, max]) as [number, number];
     const set = (r: [number, number]) => (setInner(r), (onChange as ((r: [number, number]) => void) | undefined)?.(r));
@@ -186,6 +297,16 @@ export default function SlidersStates() {
         <h3>A range, with two thumbs</h3>
         <p className="fl-ctl-btn-what">Two inputs, one above the other, with the pair written out. Each thumb keeps its own label for the keyboard.</p>
         <Slider variant="range" label="price" defaultValue={[25, 75]} format={(n) => `$${n * 10}`} />
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Version: filled (c.slider@filled)</h3>
+        <p className="fl-ctl-btn-what">
+          The filter-panel look: the label and the live value above an accent-filled track, the ends written beneath, and a
+          range with min and max number fields that stay in step with the thumbs (typed values are kept inside the range).
+        </p>
+        <Slider version="filled" label="Distance from home" min={1} max={50} defaultValue={12} format={(n) => `${n} km`} scale />
+        <Slider version="filled" variant="range" label="Price per workshop" min={0} max={300} step={5} minGap={10} defaultValue={[40, 180]} format={(n) => `$${n}`} prefix="$" fields />
       </div>
 
       <div className="fl-ctl-sizes">

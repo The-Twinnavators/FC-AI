@@ -8,7 +8,7 @@
  *   reads. The starter's sample brief described a schedule app and would judge any other product against it.
  * Pure functions: the scaffold step calls personalizeStarterFile() on each file before writing it.
  */
-import { BUILD_EXTRAS, styleVibe, TEMPLATE_VIBES, vibeFromText, vibeTokens, type DesignTemplate, type ReferenceFile, type StyleVibe } from "@flowcode/contracts";
+import { BUILD_EXTRAS, defaultSecondary, secondaryTokens, styleVibe, TEMPLATE_VIBES, templateTokens, vibeFromText, vibeTokens, type DesignTemplate, type ReferenceFile, type StyleVibe } from "@flowcode/contracts";
 import { contrastRatio } from "../quality/tokens.js";
 
 export interface PrdColor {
@@ -54,23 +54,7 @@ export function applyVibe(css: string, vibe: StyleVibe): string {
 /** Uses a chosen visual style for an app whose PRD sets no colours: its colours, fonts and corner radii. */
 export function withTemplate(id: StarterIdentity, template: DesignTemplate | undefined): StarterIdentity {
   if (!template || id.colors.length) return id;
-  const c = template.colors;
-  const roles: Record<string, string> = {
-    "--color-bg": c.bg,
-    "--color-surface": c.surface,
-    "--color-surface-sunken": c.surfaceSunken,
-    "--color-text": c.text,
-    "--color-text-muted": c.textMuted,
-    "--color-border": c.border,
-    "--color-border-strong": c.borderStrong,
-    "--color-accent": c.accent,
-    "--color-accent-hover": c.accentHover,
-    "--color-on-accent": c.onAccent,
-    "--color-focus": c.focus,
-    "--color-success": c.success,
-    "--color-danger": c.danger,
-    "--color-danger-surface": c.dangerSurface,
-  };
+  const roles = templateTokens(template);
   return { ...id, roles, template, wantsDark: false, brief: { ...id.brief, maxRadiusPx: template.radii[3] } };
 }
 
@@ -108,6 +92,7 @@ const ROLE_RULES: Array<[string, RegExp]> = [
   ["--color-bg", /\b(canvas|page|app)\s*background|\bbackground\b|\bcanvas\b/],
   ["--color-surface", /\b(card|surface|panel|sheet)\b/],
   ["--color-text", /\bprimary text\b|\bbody text\b|\btext\b|\bink\b/],
+  ["--color-secondary", /\bsecondary\b/],
   ["--color-accent", /\bprimary (action|button|cta)s?\b|\bprimary\b|\baccent\b|\bbrand\b|\bbuttons?\b/],
   ["--color-focus", /\bfocus\b/],
   ["--color-success", /\b(success|saving|saved|complete|correct|progress state)\b/],
@@ -137,6 +122,10 @@ export function mapRoles(colors: PrdColor[]): Record<string, string> {
     // Button text must reach 4.5:1 on the accent; fall back to black or white, whichever reads better.
     roles["--color-on-accent"] = (contrastRatio(onAccent, accent) ?? 0) >= 4.5 ? onAccent : (contrastRatio("#000000", accent) ?? 0) > (contrastRatio("#ffffff", accent) ?? 0) ? "#111111" : "#ffffff";
   }
+  // The 30% colour (60/30/10): the PRD's secondary, else one traced from the accent by a colour harmony; its fill,
+  // hover, text, tint and border are all checked for WCAG AA.
+  const secondary = roles["--color-secondary"] ?? (accent ? defaultSecondary(accent).hex : undefined);
+  if (secondary) Object.assign(roles, secondaryTokens(secondary, "light", { surface, text: roles["--color-text"] }));
   if (roles["--color-bg"] && !roles["--color-surface"]) roles["--color-surface"] = "#ffffff";
   // Neutrals from the PRD's own text and background, so none of the starter's colours sit beside the PRD palette.
   if (roles["--color-surface"]) roles["--color-surface-sunken"] = shade(roles["--color-surface"], -0.05);
