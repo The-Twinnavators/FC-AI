@@ -1,4 +1,9 @@
 /** @flowcode-library input-quantity · Quantity stepper (Forms)
+ * Catalog ID: c.quantity (component)
+ * Function: The quantity stepper (c.quantity) with minus and plus buttons, typed entry and clamping announcements; the reference sheet shows three sizes, a disabled row and a basket total.
+ * Use it as: import { Quantity } from "./input-quantity"; <Quantity label="Adult ticket" value={n} min?={0} max?={99} step?={1} size?="sm"|"md"|"lg" id? disabled? onChange={(n, note?) => ...} />
+ * Look: A bordered pill with a minus button, a centered number you can type into and a plus button; the buttons switch off at the limits and a typed number is pulled back inside min and max.
+ * Tokens: --control-sm --control-md --control-lg --control-radius --radius-md --color-surface --color-border --color-border-strong --color-text --color-accent --color-focus --color-surface-sunken --disabled-opacity --text-sm --text-md --text-lg
  * Use cases: ticket quantity; cart quantity; guest count; order quantity; portion selector; stock adjustment; basket
  * Jobs to be done: choose how many tickets i need; change the number of items; see the running total; set the number of guests
  * Keywords: quantity, stepper, number input, counter, tickets, cart
@@ -10,6 +15,7 @@
  * stock. Make it the app's own: replace SAMPLE with the real items, limits and prices.
  */
 import { useId, useState } from "react";
+import { Button } from "./buttons-variants";
 
 // flowcode:sample
 const SAMPLE = {
@@ -29,42 +35,62 @@ const SAMPLE = {
   done: "Places held for 10 minutes while you add your details.",
 };
 
-type Size = "sm" | "md" | "lg";
+// ── c.quantity: minus and plus buttons around a typed number, kept between min and max. ──
 
-function Stepper({
-  id,
-  label,
+export type QuantitySize = "sm" | "md" | "lg";
+
+// Written out in full (not built from the size) so a build finds every class the control needs.
+const QTY_SIZE: Record<QuantitySize, string> = { sm: "fl-in-qty--sm", md: "fl-in-qty--md", lg: "fl-in-qty--lg" };
+
+export function Quantity({
   value,
-  min,
-  max,
-  size,
-  disabled,
+  min = 0,
+  max = 99,
+  step = 1,
   onChange,
+  size = "md",
+  label,
+  id,
+  disabled,
+  className,
 }: {
-  id: string;
-  label: string;
   value: number;
-  min: number;
-  max: number;
-  size: Size;
+  min?: number;
+  max?: number;
+  /** How much the buttons and the arrow keys add or take away. */
+  step?: number;
+  /** Called with the new number; `note` says when a typed number was pulled back inside min and max. */
+  onChange: (value: number, note?: string) => void;
+  size?: QuantitySize;
+  /** What is being counted ("Adult ticket"); names the group and the buttons. */
+  label: string;
+  /** Goes on the number field, so a <label htmlFor> can name it. */
+  id?: string;
   disabled?: boolean;
-  onChange: (v: number, note?: string) => void;
+  className?: string;
 }) {
   const [text, setText] = useState<string | null>(null);
+  const [note, setNote] = useState("");
   const shown = text ?? String(value);
+  const move = (to: number) => {
+    setNote("");
+    onChange(Math.max(min, Math.min(max, to)));
+  };
   function commit() {
     if (text === null) return;
     const n = Math.round(Number(text));
-    if (text.trim() === "" || Number.isNaN(n)) onChange(value);
+    if (text.trim() === "" || Number.isNaN(n)) setNote("");
     else {
       const clamped = Math.max(min, Math.min(max, n));
-      onChange(clamped, clamped !== n ? `${label} set to ${clamped}, the ${clamped === max ? "most" : "fewest"} allowed.` : undefined);
+      const said = clamped !== n ? `${label} set to ${clamped}, the ${clamped === max ? "most" : "fewest"} allowed.` : "";
+      setNote(said);
+      onChange(clamped, said || undefined);
     }
     setText(null);
   }
   return (
-    <div className={`fl-in-qty fl-in-qty--${size}`} role="group" aria-label={label} aria-disabled={disabled || undefined}>
-      <button type="button" aria-label={`One fewer ${label}`} disabled={disabled || value <= min} onClick={() => onChange(value - 1)}>
+    <div className={["fl-in-qty", QTY_SIZE[size], className ?? ""].filter(Boolean).join(" ")} role="group" aria-label={label} aria-disabled={disabled || undefined} data-fl="c.quantity">
+      <button type="button" aria-label={`One fewer ${label}`} disabled={disabled || value <= min} onClick={() => move(value - step)}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
           <path d="M5 12h14" />
         </svg>
@@ -75,25 +101,29 @@ function Stepper({
         inputMode="numeric"
         value={shown}
         disabled={disabled}
+        aria-label={id ? undefined : label}
         onChange={(e) => setText(e.target.value.replace(/[^\d]/g, ""))}
         onBlur={commit}
         onKeyDown={(e) => {
           if (e.key === "Enter") commit();
           if (e.key === "ArrowUp") {
             e.preventDefault();
-            onChange(Math.min(max, value + 1));
+            move(value + step);
           }
           if (e.key === "ArrowDown") {
             e.preventDefault();
-            onChange(Math.max(min, value - 1));
+            move(value - step);
           }
         }}
       />
-      <button type="button" aria-label={`One more ${label}`} disabled={disabled || value >= max} onClick={() => onChange(value + 1)}>
+      <button type="button" aria-label={`One more ${label}`} disabled={disabled || value >= max} onClick={() => move(value + step)}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
           <path d="M12 5v14M5 12h14" />
         </svg>
       </button>
+      <span className="fl-sr" role="status">
+        {note}
+      </span>
     </div>
   );
 }
@@ -131,13 +161,13 @@ export default function InputQuantity() {
                     {i.price} each{!i.disabled && ` · up to ${i.max}`}
                   </span>
                 </div>
-                <Stepper
+                <Quantity
                   id={`${uid}-${i.id}`}
                   label={i.name}
                   value={qty[i.id] ?? 0}
                   min={i.min}
                   max={i.max}
-                  size={i.size}
+                  size={i.size === "lg" ? "lg" : i.size === "sm" ? "sm" : "md"}
                   disabled={i.disabled}
                   onChange={(v, note) => {
                     setQty((q) => ({ ...q, [i.id]: v }));
@@ -149,9 +179,7 @@ export default function InputQuantity() {
               </li>
             ))}
           </ul>
-          <p className="fl-in-notice" aria-live="polite">
-            {notice}
-          </p>
+          <p className="fl-in-notice">{notice}</p>
           <div className="fl-in-total">
             <span>{d.total}</span>
             <strong aria-live="polite">
@@ -169,9 +197,8 @@ export default function InputQuantity() {
             </p>
           )}
           <div className="fl-actions">
-            <button
-              type="button"
-              className="fl-btn fl-btn--primary"
+            <Button
+              variant="primary"
               onClick={() => {
                 if (count === 0) {
                   setError(d.needOne);
@@ -181,7 +208,7 @@ export default function InputQuantity() {
               }}
             >
               {d.submit}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

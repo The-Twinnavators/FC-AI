@@ -138,7 +138,7 @@
 .fl-frm-pane h3:focus { outline: none; }
 
 /* ── Filter bar and list ── */
-.fl-frm-bar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 12rem) minmax(0, 12rem); gap: var(--space-3); align-items: end; }
+.fl-frm-bar { display: grid; grid-template-columns: var(--fl-frm-cols, minmax(0, 1fr) minmax(0, 12rem) minmax(0, 12rem)); gap: var(--space-3); align-items: end; }
 .fl-frm-search { position: relative; }
 .fl-frm-search > svg { position: absolute; left: var(--space-3); top: 50%; width: 1.125rem; height: 1.125rem; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none; }
 .fl-frm-search .fl-input { padding-left: 2.5rem; padding-right: 2.5rem; }

@@ -1,4 +1,10 @@
 /** @flowcode-library form-filters · Search and filter bar (Forms)
+ * Catalog ID: p.filter-panel (pattern)
+ * Function: The search and filter panel (p.filter-panel) over an in-memory list: search with highlighting, select filters, quick toggles, removable chips, a screen-reader count and an empty state.
+ * Use it as: import { FilterPanel } from "./form-filters"; <FilterPanel title lede? searchLabel searchPlaceholder? noun="classes" selects?={[{ id, label, allLabel, options: string[] }]} quick?={[{ id, label }]} items={[{ id, icon?, title, meta?: string[], price?, status?, open?, values?: { selectId: value }, flags?: [quickIds] }]} empty={{ title, text, action }} />
+ * Built from: c.text-field.outlined, c.select.outlined, c.chip.filter, c.chip.input, c.button.tertiary, c.button.secondary, c.empty-state.no-results
+ * Look: A search box with select filters and quick toggle chips above a result list; each active filter shows as a removable chip with Clear all, matches are highlighted, and a live count and empty state follow.
+ * Tokens: --color-accent --color-border --color-surface --color-text-muted --color-success --space-2 --space-3 --space-4 --radius-lg --control-sm --focus-ring
  * Use cases: search and filter; product filters; listing search; job search; property search; catalog filtering; directory search; advanced search
  * Jobs to be done: narrow down to what i want; search by keyword and category; clear filters and start over; see how many results match
  * Keywords: form, search, filter, chips
@@ -10,44 +16,54 @@
  * bookings. Make it the app's own: replace SAMPLE's items and filter options with the PRD's data and keep the
  * filters people actually use.
  */
-import { useMemo, useState, type ReactNode } from "react";
+import { useId, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Chip } from "./chips-tags";
+import { EmptyState } from "./empty-states";
+import { Select } from "./dropdowns-states";
+import { TextField } from "./text-fields-states";
 
-// flowcode:sample
-const SAMPLE = {
-  title: "Find a class",
-  lede: "Search this term's classes by name, teacher or day.",
-  searchLabel: "Search classes",
-  searchPlaceholder: "Try 'wheel' or 'Priya'",
-  categories: ["Pottery", "Painting", "Printmaking", "Textiles"],
-  days: ["Weekdays", "Weekends"],
-  quick: [
-    { id: "open", label: "Spaces left" },
-    { id: "beginner", label: "Beginner friendly" },
-  ],
-  items: [
-    { id: 1, name: "Wheel throwing basics", category: "Pottery", teacher: "Priya Shah", when: "Tue 18:30", weekend: false, price: "$45", open: true, beginner: true },
-    { id: 2, name: "Hand-built planters", category: "Pottery", teacher: "Tom Becker", when: "Sat 10:00", weekend: true, price: "$40", open: true, beginner: true },
-    { id: 3, name: "Watercolour landscapes", category: "Painting", teacher: "Ana Lima", when: "Thu 19:00", weekend: false, price: "$35", open: false, beginner: true },
-    { id: 4, name: "Oil portraits", category: "Painting", teacher: "Ana Lima", when: "Sun 14:00", weekend: true, price: "$55", open: true, beginner: false },
-    { id: 5, name: "Lino cut cards", category: "Printmaking", teacher: "Priya Shah", when: "Wed 18:00", weekend: false, price: "$30", open: true, beginner: true },
-    { id: 6, name: "Screen printing tote bags", category: "Printmaking", teacher: "Jordan Ellis", when: "Sat 13:00", weekend: true, price: "$50", open: false, beginner: false },
-    { id: 7, name: "Natural dye workshop", category: "Textiles", teacher: "Mei Tanaka", when: "Sun 10:00", weekend: true, price: "$60", open: true, beginner: true },
-    { id: 8, name: "Glaze chemistry", category: "Pottery", teacher: "Tom Becker", when: "Mon 19:00", weekend: false, price: "$65", open: true, beginner: false },
-  ],
-  emptyTitle: "No classes match",
-  emptyText: "Try a different word, or remove a filter to see more of the timetable.",
+// ── p.filter-panel: a search box, select filters and quick toggles over a list, with removable active-filter chips and a live count. ──
+
+export type FilterItem = {
+  id: string | number;
+  /** An icon name from ./icons. */
+  icon?: string;
+  /** The bold first line; the search match is highlighted in it. */
+  title: string;
+  /** Small parts of the second line, joined with dots; the search match is highlighted in them too. */
+  meta?: string[];
+  /** Right side, top: the price or count. */
+  price?: string;
+  /** Right side, under it: a status in words. */
+  status?: string;
+  /** Colors the status as good (true) or muted (false). */
+  open?: boolean;
+  /** This item's value for each select filter, by the filter's id. */
+  values?: Record<string, string>;
+  /** Quick filters this item matches, by their ids. */
+  flags?: string[];
+};
+export type FilterSelect = { id: string; label: string; /** The first option, meaning no filter ("All categories"). */ allLabel: string; options: string[] };
+export type FilterQuick = { id: string; label: string };
+
+export type FilterPanelProps = {
+  title: string;
+  lede?: string;
+  searchLabel: string;
+  searchPlaceholder?: string;
+  /** Select filters, each narrowing by the item's value for that id. */
+  selects?: FilterSelect[];
+  /** Toggle buttons; an item must carry every switched-on flag. */
+  quick?: FilterQuick[];
+  items: FilterItem[];
+  /** What the items are, plural and lower case ("classes"); used in the count and the labels. */
+  noun: string;
+  empty: { title: string; text: string; action: string };
+  className?: string;
 };
 
-type QuickId = "open" | "beginner";
-
-function Chevron() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-}
 function Cross() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" aria-hidden="true">
@@ -79,62 +95,58 @@ function highlight(text: string, q: string): ReactNode {
   );
 }
 
-export default function FormFilters() {
-  const d = SAMPLE;
+export function FilterPanel({ title, lede, searchLabel, searchPlaceholder, selects = [], quick = [], items, noun, empty, className }: FilterPanelProps) {
+  const uid = useId();
+  const searchId = `${uid}-search`;
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("");
-  const [day, setDay] = useState("");
-  const [quick, setQuick] = useState<QuickId[]>([]);
+  const [chosen, setChosen] = useState<Record<string, string>>({});
+  const [on, setOn] = useState<string[]>([]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return d.items.filter((it) => {
-      if (q && !`${it.name} ${it.teacher} ${it.when} ${it.category}`.toLowerCase().includes(q)) return false;
-      if (category && it.category !== category) return false;
-      if (day === "Weekends" && !it.weekend) return false;
-      if (day === "Weekdays" && it.weekend) return false;
-      if (quick.includes("open") && !it.open) return false;
-      if (quick.includes("beginner") && !it.beginner) return false;
+    return items.filter((it) => {
+      if (q && !`${it.title} ${(it.meta ?? []).join(" ")}`.toLowerCase().includes(q)) return false;
+      for (const s of selects) if (chosen[s.id] && it.values?.[s.id] !== chosen[s.id]) return false;
+      for (const id of on) if (!it.flags?.includes(id)) return false;
       return true;
     });
-  }, [d.items, query, category, day, quick]);
+  }, [items, selects, query, chosen, on]);
 
   const chips: { key: string; label: string; remove: () => void }[] = [];
   if (query.trim()) chips.push({ key: "q", label: `"${query.trim()}"`, remove: () => setQuery("") });
-  if (category) chips.push({ key: "c", label: category, remove: () => setCategory("") });
-  if (day) chips.push({ key: "d", label: day, remove: () => setDay("") });
-  quick.forEach((id) => chips.push({ key: id, label: d.quick.find((x) => x.id === id)?.label ?? id, remove: () => setQuick((s) => s.filter((x) => x !== id)) }));
+  for (const s of selects) if (chosen[s.id]) chips.push({ key: s.id, label: chosen[s.id], remove: () => setChosen((c) => ({ ...c, [s.id]: "" })) });
+  on.forEach((id) => chips.push({ key: id, label: quick.find((x) => x.id === id)?.label ?? id, remove: () => setOn((s) => s.filter((x) => x !== id)) }));
 
+  const focusSearch = () => document.getElementById(searchId)?.focus();
   const clearAll = () => {
     setQuery("");
-    setCategory("");
-    setDay("");
-    setQuick([]);
-    document.getElementById("flt-search")?.focus();
+    setChosen({});
+    setOn([]);
+    focusSearch();
   };
-  const toggleQuick = (id: QuickId) => setQuick((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  const toggleQuick = (id: string) => setOn((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  const Noun = noun.charAt(0).toUpperCase() + noun.slice(1);
 
   return (
-    <section className="fl-section" aria-labelledby="form-filters-title">
+    <section className={["fl-section", className ?? ""].filter(Boolean).join(" ")} aria-labelledby={`${uid}-title`} data-fl="p.filter-panel">
       <div className="fl-wrap">
         <div className="fl-head">
-          <h2 id="form-filters-title" className="fl-title">
-            {d.title}
+          <h2 id={`${uid}-title`} className="fl-title">
+            {title}
           </h2>
-          <p className="fl-lede">{d.lede}</p>
+          {lede ? <p className="fl-lede">{lede}</p> : null}
         </div>
 
-        <form role="search" aria-label="Filter classes" onSubmit={(e) => e.preventDefault()}>
-          <div className="fl-frm-bar">
+        <form role="search" aria-label={`Filter ${noun}`} onSubmit={(e) => e.preventDefault()}>
+          <div className="fl-frm-bar" style={{ "--fl-frm-cols": `minmax(0, 1fr)${" minmax(0, 12rem)".repeat(selects.length)}` } as CSSProperties}>
             <div className="fl-field">
-              <label htmlFor="flt-search">{d.searchLabel}</label>
+              <label htmlFor={searchId}>{searchLabel}</label>
               <div className="fl-frm-search">
                 <SearchGlyph />
-                <input
-                  id="flt-search"
+                <TextField
+                  id={searchId}
                   type="search"
-                  className="fl-input"
-                  placeholder={d.searchPlaceholder}
+                  placeholder={searchPlaceholder}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => {
@@ -146,113 +158,136 @@ export default function FormFilters() {
                   autoComplete="off"
                 />
                 {query && (
-                  <button type="button" className="fl-frm-clear-x" onClick={() => { setQuery(""); document.getElementById("flt-search")?.focus(); }}>
+                  <button
+                    type="button"
+                    className="fl-frm-clear-x"
+                    onClick={() => {
+                      setQuery("");
+                      focusSearch();
+                    }}
+                  >
                     <Cross />
                     <span className="fl-sr">Clear search</span>
                   </button>
                 )}
               </div>
             </div>
-            <div className="fl-field">
-              <label htmlFor="flt-category">Category</label>
-              <span className="fl-frm-select">
-                <select id="flt-category" className="fl-input" value={category} onChange={(e) => setCategory(e.target.value)}>
-                  <option value="">All categories</option>
-                  {d.categories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-                <Chevron />
-              </span>
-            </div>
-            <div className="fl-field">
-              <label htmlFor="flt-day">Day</label>
-              <span className="fl-frm-select">
-                <select id="flt-day" className="fl-input" value={day} onChange={(e) => setDay(e.target.value)}>
-                  <option value="">Any day</option>
-                  {d.days.map((x) => (
-                    <option key={x} value={x}>
-                      {x}
-                    </option>
-                  ))}
-                </select>
-                <Chevron />
-              </span>
-            </div>
-          </div>
-          <div className="fl-frm-quick" role="group" aria-label="Quick filters">
-            {d.quick.map((q) => (
-              <button key={q.id} type="button" aria-pressed={quick.includes(q.id as QuickId)} onClick={() => toggleQuick(q.id as QuickId)}>
-                {q.label}
-              </button>
+            {selects.map((s) => (
+              <div className="fl-field" key={s.id}>
+                <label htmlFor={`${uid}-${s.id}`}>{s.label}</label>
+                <Select
+                  id={`${uid}-${s.id}`}
+                  value={chosen[s.id] ?? ""}
+                  onChange={(e) => setChosen((c) => ({ ...c, [s.id]: e.target.value }))}
+                  options={[{ value: "", label: s.allLabel }, ...s.options.map((o) => ({ value: o, label: o }))]}
+                />
+              </div>
             ))}
           </div>
+          {quick.length > 0 && (
+            <div className="fl-frm-quick" role="group" aria-label="Quick filters">
+              {quick.map((q) => (
+                <Chip key={q.id} variant="filter" selected={on.includes(q.id)} onClick={() => toggleQuick(q.id)}>
+                  {q.label}
+                </Chip>
+              ))}
+            </div>
+          )}
         </form>
 
         {chips.length > 0 && (
           <div className="fl-frm-chipbar">
-            <span className="fl-meta" id="flt-active-label">
+            <span className="fl-meta" id={`${uid}-active`}>
               Active filters:
             </span>
-            <ul className="fl-frm-chips" aria-labelledby="flt-active-label">
+            <ul className="fl-frm-chips" aria-labelledby={`${uid}-active`}>
               {chips.map((c) => (
-                <li key={c.key} className="fl-frm-chip">
-                  {c.label}
-                  <button type="button" onClick={c.remove}>
-                    <Cross />
-                    <span className="fl-sr">Remove filter {c.label}</span>
-                  </button>
+                <li key={c.key}>
+                  <Chip variant="input" onRemove={c.remove} removeLabel={`Remove filter ${c.label}`}>
+                    {c.label}
+                  </Chip>
                 </li>
               ))}
             </ul>
-            <button type="button" className="fl-frm-textbtn" onClick={clearAll}>
+            <Button variant="tertiary" size={32} onClick={clearAll}>
               Clear all
-            </button>
+            </Button>
           </div>
         )}
 
         <p className="fl-frm-count" role="status" aria-live="polite">
-          {results.length === d.items.length ? `All ${results.length} classes` : `${results.length} of ${d.items.length} classes`}
+          {results.length === items.length ? `All ${results.length} ${noun}` : `${results.length} of ${items.length} ${noun}`}
         </p>
 
         {results.length > 0 ? (
-          <ul className="fl-frm-results" aria-label="Classes">
+          <ul className="fl-frm-results" aria-label={Noun}>
             {results.map((it) => (
               <li key={it.id}>
                 <span className="fl-icon" aria-hidden="true">
-                  <Icon name={it.category === "Pottery" ? "layers" : it.category === "Painting" ? "sparkle" : it.category === "Printmaking" ? "bolt" : "heart"} />
+                  <Icon name={it.icon ?? "layers"} />
                 </span>
                 <span style={{ minWidth: 0 }}>
-                  <strong>{highlight(it.name, query)}</strong>
-                  <span className="fl-meta">
-                    {it.category} · {highlight(it.teacher, query)} · {it.when}
-                    {it.beginner ? " · Beginner friendly" : ""}
-                  </span>
+                  <strong>{highlight(it.title, query)}</strong>
+                  {it.meta?.length ? (
+                    <span className="fl-meta">
+                      {it.meta.map((m, i) => (
+                        <span key={i}>
+                          {i > 0 ? " · " : ""}
+                          {highlight(m, query)}
+                        </span>
+                      ))}
+                    </span>
+                  ) : null}
                 </span>
                 <span style={{ display: "grid", justifyItems: "end", textAlign: "right" }}>
-                  <span className="fl-frm-price">{it.price}</span>
-                  <span className="fl-frm-status" data-open={it.open}>
-                    {it.open ? "Spaces left" : "Full, join waitlist"}
-                  </span>
+                  {it.price ? <span className="fl-frm-price">{it.price}</span> : null}
+                  {it.status ? (
+                    <span className="fl-frm-status" data-open={it.open}>
+                      {it.status}
+                    </span>
+                  ) : null}
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <div className="fl-frm-empty">
-            <span className="fl-icon">
-              <SearchGlyph />
-            </span>
-            <h3>{d.emptyTitle}</h3>
-            <p className="fl-text">{d.emptyText}</p>
-            <button type="button" className="fl-btn fl-btn--secondary" onClick={clearAll}>
-              Clear all filters
-            </button>
-          </div>
+          <EmptyState variant="no-results" title={empty.title} headingLevel={3} action={<Button variant="secondary" onClick={clearAll}>{empty.action}</Button>}>
+            {empty.text}
+          </EmptyState>
         )}
       </div>
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE: FilterPanelProps = {
+  title: "Find a class",
+  lede: "Search this term's classes by name, teacher or day.",
+  searchLabel: "Search classes",
+  searchPlaceholder: "Try 'wheel' or 'Priya'",
+  noun: "classes",
+  selects: [
+    { id: "category", label: "Category", allLabel: "All categories", options: ["Pottery", "Painting", "Printmaking", "Textiles"] },
+    { id: "day", label: "Day", allLabel: "Any day", options: ["Weekdays", "Weekends"] },
+  ],
+  quick: [
+    { id: "open", label: "Spaces left" },
+    { id: "beginner", label: "Beginner friendly" },
+  ],
+  items: [
+    { id: 1, icon: "layers", title: "Wheel throwing basics", meta: ["Pottery", "Priya Shah", "Tue 18:30", "Beginner friendly"], price: "$45", status: "Spaces left", open: true, values: { category: "Pottery", day: "Weekdays" }, flags: ["open", "beginner"] },
+    { id: 2, icon: "layers", title: "Hand-built planters", meta: ["Pottery", "Tom Becker", "Sat 10:00", "Beginner friendly"], price: "$40", status: "Spaces left", open: true, values: { category: "Pottery", day: "Weekends" }, flags: ["open", "beginner"] },
+    { id: 3, icon: "sparkle", title: "Watercolour landscapes", meta: ["Painting", "Ana Lima", "Thu 19:00", "Beginner friendly"], price: "$35", status: "Full, join waitlist", open: false, values: { category: "Painting", day: "Weekdays" }, flags: ["beginner"] },
+    { id: 4, icon: "sparkle", title: "Oil portraits", meta: ["Painting", "Ana Lima", "Sun 14:00"], price: "$55", status: "Spaces left", open: true, values: { category: "Painting", day: "Weekends" }, flags: ["open"] },
+    { id: 5, icon: "bolt", title: "Lino cut cards", meta: ["Printmaking", "Priya Shah", "Wed 18:00", "Beginner friendly"], price: "$30", status: "Spaces left", open: true, values: { category: "Printmaking", day: "Weekdays" }, flags: ["open", "beginner"] },
+    { id: 6, icon: "bolt", title: "Screen printing tote bags", meta: ["Printmaking", "Jordan Ellis", "Sat 13:00"], price: "$50", status: "Full, join waitlist", open: false, values: { category: "Printmaking", day: "Weekends" }, flags: [] },
+    { id: 7, icon: "heart", title: "Natural dye workshop", meta: ["Textiles", "Mei Tanaka", "Sun 10:00", "Beginner friendly"], price: "$60", status: "Spaces left", open: true, values: { category: "Textiles", day: "Weekends" }, flags: ["open", "beginner"] },
+    { id: 8, icon: "layers", title: "Glaze chemistry", meta: ["Pottery", "Tom Becker", "Mon 19:00"], price: "$65", status: "Spaces left", open: true, values: { category: "Pottery", day: "Weekdays" }, flags: ["open"] },
+  ],
+  empty: { title: "No classes match", text: "Try a different word, or remove a filter to see more of the timetable.", action: "Clear all filters" },
+};
+
+export default function FormFilters() {
+  return <FilterPanel {...SAMPLE} />;
 }
