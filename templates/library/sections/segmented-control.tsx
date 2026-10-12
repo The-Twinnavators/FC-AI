@@ -1,7 +1,8 @@
 /** @flowcode-library segmented-control · Segmented control (Forms)
  * Catalog ID: c.segmented (component)
  * Function: The segmented control (c.segmented) for picking one of a few clear options with native radios; the reference sheet pairs it with a live description of the chosen option and remembers the choice.
- * Use it as: import { Segmented } from "./segmented-control"; <Segmented label="Confirm bookings" options={[{ value, label, icon? }]} value={value} onChange={(value) => ...} size?="sm"|"md"|"lg" name? describedBy? />
+ * Use it as: import { Segmented } from "./segmented-control"; <Segmented variant?="segmented"|"toggle" label="Confirm bookings" options={[{ value, label, icon?, note? (toggle only, e.g. "Save 20%") }]} value={value} onChange={(value) => ...} size?="sm"|"md"|"lg" name? describedBy? />
+ * Variants: c.segmented.segmented - a few clear levels with a description: a sunken radio track whose chosen option lifts to a white pill; c.segmented.toggle - monthly/yearly or a period picker: a rounded pill switch of buttons (fl-toggle), chosen one lifted, optional note such as Save 20%
  * Look: A sunken rounded track holding three or four equal options side by side; the chosen one lifts to a white pill with an accent icon, and the arrow keys move between options.
  * Tokens: --color-surface --color-surface-sunken --color-border --color-text --color-text-muted --color-accent --radius-md --radius-sm --space-1 --space-2 --space-3 --control-sm --control-md --control-lg --focus-ring --surface-shadow
  * Use cases: view switcher; display preference; theme choice; plan type choice; time range picker; sort mode; delivery option
@@ -20,12 +21,22 @@ import { useId, useState, type ReactNode } from "react";
 // ── c.segmented: a row of joined options where exactly one is chosen. Native radios, so arrow keys move between them. ──
 
 export type SegmentedSize = "sm" | "md" | "lg";
-export type SegmentedOption = { value: string; label: string; icon?: ReactNode };
+export type SegmentedVariant = "segmented" | "toggle";
+export type SegmentedOption = {
+  value: string;
+  label: string;
+  icon?: ReactNode;
+  /** Small extra after the label, such as "Save 20%"; toggle only. */
+  note?: string;
+};
+
+const SEG_FL: Record<SegmentedVariant, string> = { segmented: "c.segmented.segmented", toggle: "c.segmented.toggle" };
 
 // Written out in full (not built from the size) so a build finds every class the control needs.
 const SEG_SIZE: Record<SegmentedSize, string> = { sm: "fl-ctl-seg--sm", md: "", lg: "fl-ctl-seg--lg" };
 
 export function Segmented({
+  variant = "segmented",
   options,
   value,
   onChange,
@@ -35,6 +46,8 @@ export function Segmented({
   describedBy,
   className,
 }: {
+  /** "segmented" is the radio track; "toggle" is the pill switch (monthly/yearly, period pickers). */
+  variant?: SegmentedVariant;
   options: SegmentedOption[];
   value: string;
   onChange: (value: string) => void;
@@ -49,9 +62,22 @@ export function Segmented({
 }) {
   const auto = useId();
   const group = name ?? `seg${auto.replace(/:/g, "")}`;
+  if (variant === "toggle") {
+    return (
+      <div className={["fl-toggle", className ?? ""].filter(Boolean).join(" ")} role="group" aria-label={label} data-fl={SEG_FL.toggle}>
+        {options.map((o) => (
+          <button key={o.value} type="button" aria-pressed={value === o.value} aria-describedby={describedBy} onClick={() => onChange(o.value)}>
+            {o.icon}
+            {o.label}
+            {o.note ? ` · ${o.note}` : null}
+          </button>
+        ))}
+      </div>
+    );
+  }
   const cls = ["fl-ctl-seg", SEG_SIZE[size], className ?? ""].filter(Boolean).join(" ");
   return (
-    <div className={cls} role="radiogroup" aria-label={label} data-fl="c.segmented">
+    <div className={cls} role="radiogroup" aria-label={label} data-fl={SEG_FL.segmented}>
       {options.map((o) => (
         <label key={o.value} className="fl-ctl-seg__opt">
           <input type="radio" name={group} value={o.value} checked={value === o.value} onChange={() => onChange(o.value)} aria-describedby={describedBy} />
@@ -115,6 +141,7 @@ function BoltIcon() {
 
 export default function SegmentedControl() {
   const d = SAMPLE;
+  const [billing, setBilling] = useState("monthly");
   const [value, setValue] = useState(() => {
     try {
       const v = localStorage.getItem(STORE);
@@ -175,6 +202,20 @@ export default function SegmentedControl() {
             </ul>
           </div>
         </fieldset>
+        <div className="fl-ctl-sizes">
+          <h3>As a toggle</h3>
+          <p className="fl-ctl-btn-what">The same choice drawn as a pill switch, for billing periods and ranges. An option can carry a note.</p>
+          <Segmented
+            variant="toggle"
+            label="Billing period"
+            value={billing}
+            onChange={setBilling}
+            options={[
+              { value: "monthly", label: "Monthly" },
+              { value: "yearly", label: "Yearly", note: "Save 20%" },
+            ]}
+          />
+        </div>
         <p className="fl-sr" aria-live="polite">
           {saved}
         </p>

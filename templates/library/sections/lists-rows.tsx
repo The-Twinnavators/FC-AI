@@ -1,7 +1,7 @@
 /** @flowcode-library lists-rows · Lists: plain rows, rows that open, rows you act on, and rows you reorder (Tables and lists)
  * Catalog ID: c.list-row (component)
  * Function: The list row (c.list-row), one component for rows that state a fact, open something (a link, or in place), carry actions or reorder; the reference sheet shows all the lists working.
- * Use it as: import { ListRow } from "./lists-rows"; <ul className="fl-ctl-rows"><ListRow variant?="fact"|"link"|"action"|"reorder" title meta? aside? lead? icon? actions?={<Button…/>} href? current? unread? expanded? detail? onClick?>fact value</ListRow></ul>
+ * Use it as: import { ListRow } from "./lists-rows"; <ul className="fl-ctl-rows"><ListRow variant?="fact"|"link"|"action"|"reorder" title meta? aside? lead? icon? actions?={<Button…/>} href? current? unread? expanded? detail? onClick?>fact value</ListRow></ul>  // ref reaches the row's root: the <li> (a <div> for a fact), not the link or button inside
  * Variants: c.list-row.fact - a label and its value, nothing to press (use inside <dl className="fl-ctl-rows fl-ctl-rows--facts">): two columns, no hover; pass actions for an Edit or Copy button beside the value; c.list-row.link - a row that opens one thing: whole row is a link with title, subtitle, time at the right, an unread dot and a marked current row; lead puts an Avatar before the text, aside can hold an amount and a Badge, expanded makes it a button that opens detail beneath; c.list-row.action - a row you act on through its buttons: optional leading icon, title and meta, icon Buttons at the right that stay visible; c.list-row.reorder - a row you reorder: a drag grip at the left, the title, and move up/down icon Buttons at the right
  * Built from: c.avatar.person, c.badge.status, c.button.tertiary
  * Look: Bordered, divided rows with a title, quieter second line and optional leading icon and trailing controls; only link rows react to the pointer.
@@ -32,7 +32,7 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useState, type MouseEventHandler, type ReactNode } from "react";
+import { forwardRef, useState, type MouseEventHandler, type ReactNode, type Ref } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 import { Avatar } from "./avatars-variants";
@@ -49,7 +49,7 @@ const ROW: Record<ListRowVariant, string> = { fact: "", link: "fl-spec-row", act
  * Put rows inside a list that carries the row classes: <ul className="fl-ctl-rows"> (add fl-ctl-rows--links for links,
  * fl-ctl-rows--order for an <ol> of reorderable rows), or <dl className="fl-ctl-rows fl-ctl-rows--facts"> for facts.
  */
-export function ListRow({ variant = "action", title, meta, aside, lead, icon, actions, href, current, unread, expanded, detail, onClick, className, children }: {
+type ListRowProps = {
   variant?: ListRowVariant;
   /** The row's main text. For a fact, its label. */
   title: ReactNode;
@@ -77,11 +77,14 @@ export function ListRow({ variant = "action", title, meta, aside, lead, icon, ac
   className?: string;
   /** For a fact, its value. */
   children?: ReactNode;
-}) {
+};
+
+// The ref goes to the row's root: the <li> (a <div> for a fact), not the link or button inside it.
+export const ListRow = forwardRef<HTMLElement, ListRowProps>(function ListRow({ variant = "action", title, meta, aside, lead, icon, actions, href, current, unread, expanded, detail, onClick, className, children }, ref) {
   const fl = `c.list-row.${variant}`;
   if (variant === "fact") {
     return (
-      <div data-fl={fl} className={className}>
+      <div data-fl={fl} className={className} ref={ref as Ref<HTMLDivElement>}>
         <dt>{title}</dt>
         <dd className={actions ? "has-actions" : undefined}>
           {actions ? <span>{children}</span> : children}
@@ -108,7 +111,7 @@ export function ListRow({ variant = "action", title, meta, aside, lead, icon, ac
     );
     if (expanded !== undefined) {
       return (
-        <li data-fl={fl} className={className}>
+        <li data-fl={fl} className={className} ref={ref as Ref<HTMLLIElement>}>
           <button type="button" className={`${ROW.link}${current ? " is-on" : ""}${unread ? " is-unread" : ""}`} aria-expanded={expanded} onClick={onClick}>
             {inner}
             <span className={`fl-ctl-row-chev${expanded ? " is-open" : ""}`} aria-hidden="true">
@@ -120,7 +123,7 @@ export function ListRow({ variant = "action", title, meta, aside, lead, icon, ac
       );
     }
     return (
-      <li data-fl={fl} className={className}>
+      <li data-fl={fl} className={className} ref={ref as Ref<HTMLLIElement>}>
         <a href={href ?? "#top"} className={`${ROW.link}${current ? " is-on" : ""}${unread ? " is-unread" : ""}`} aria-current={current ? "true" : undefined} onClick={onClick}>
           {inner}
         </a>
@@ -128,7 +131,7 @@ export function ListRow({ variant = "action", title, meta, aside, lead, icon, ac
     );
   }
   return (
-    <li data-fl={fl} className={[ROW[variant], className ?? ""].filter(Boolean).join(" ")}>
+    <li data-fl={fl} className={[ROW[variant], className ?? ""].filter(Boolean).join(" ")} ref={ref as Ref<HTMLLIElement>}>
       {variant === "reorder" ? (
         <span className="fl-ctl-row-grip" aria-hidden="true">
           <Icon name="more" />
@@ -142,7 +145,7 @@ export function ListRow({ variant = "action", title, meta, aside, lead, icon, ac
       {actions}
     </li>
   );
-}
+});
 
 // flowcode:sample
 const SAMPLE = {

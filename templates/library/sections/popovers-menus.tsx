@@ -1,7 +1,7 @@
 /** @flowcode-library popovers-menus · Popovers: a panel on a button, and how it differs from a tooltip (Dialogs and drawers)
  * Catalog ID: c.menu (component)
  * Function: The action menu (c.menu) and the panel on a button (c.popover); the reference sheet shows a filter form, a share panel, a card on a name, an arrow-key action menu and the same menu as an icon-only row button with type-ahead.
- * Use it as: import { Menu } from "./popovers-menus"; <Menu label icon? iconOnly? align?="start"|"end" items={[{ id, label, icon?, keys?, danger?, disabled? }]} onSelect={(id) => ...} />  // iconOnly: a quiet three-dot button for a row; label then names it for screen readers
+ * Use it as: import { Menu } from "./popovers-menus"; <Menu label icon? iconOnly? align?="start"|"end" items={[{ id, label, icon?, keys?, danger?, disabled? }]} onSelect={(id) => ...} />  // iconOnly: a quiet three-dot button for a row; label then names it for screen readers  // Also import { Popover }: <Popover variant?="button"|"link" label icon? count? chevron? panelLabel wide? align?="start"|"end" onDismiss?>{(close) => body}</Popover>; align="end" lines the panel up with the trigger's right edge
  * Look: A secondary button that opens a raised list of one-press actions with icons and shortcut hints; arrow keys move, Enter chooses, Escape closes and returns focus.
  * Tokens: --color-surface --color-surface-sunken --color-border --color-danger --color-text-muted --radius-sm --radius-md --shadow-md --space-2 --space-3
  * Also: c.popover (component)
@@ -200,7 +200,7 @@ export type PopoverVariant = "button" | "link";
 // Written out in full (not built from the variant name) so a build finds every class the popover needs.
 const TRIGGER: Record<PopoverVariant, string> = { button: "", link: "fl-ctl-pop-name" };
 
-export function Popover({ variant = "button", label, icon, count, chevron = true, panelLabel, wide, onDismiss, children, className }: {
+export function Popover({ variant = "button", label, icon, count, chevron = true, panelLabel, wide, align = "start", onDismiss, children, className }: {
   /** button: a Button that opens the panel. link: the name in running text that opens a card. */
   variant?: PopoverVariant;
   /** The words on the button, or the name itself. */
@@ -215,6 +215,8 @@ export function Popover({ variant = "button", label, icon, count, chevron = true
   panelLabel: string;
   /** A 20rem panel instead of 16rem. */
   wide?: boolean;
+  /** Which edge of the trigger the panel lines up with: start (left) by default; end opens it flush with the right edge so it stays on the page. */
+  align?: "start" | "end";
   /** Called when it closes by Escape or a press outside (not by `close`), so a form can put its draft back. */
   onDismiss?: () => void;
   /** The panel's content. A function receives `close`, for an Apply or Copy button. */
@@ -249,7 +251,7 @@ export function Popover({ variant = "button", label, icon, count, chevron = true
         </Button>
       )}
       {open ? (
-        <div className={`fl-ctl-pop${wide ? " fl-ctl-pop--wide" : ""}`} role="dialog" aria-label={panelLabel}>
+        <div className={`fl-ctl-pop${wide ? " fl-ctl-pop--wide" : ""}`} role="dialog" aria-label={panelLabel} style={align === "end" ? { left: "auto", right: 0 } : undefined}>
           {typeof children === "function" ? children(close) : children}
         </div>
       ) : null}
@@ -388,6 +390,20 @@ export default function PopoversMenus() {
           <p className="fl-ctl-matrix-kind">On a name</p>
           <p className="fl-ctl-matrix-what">A card about whatever you pressed. Anchored to the word, not the page.</p>
           <CardPopover />
+        </li>
+        <li>
+          <p className="fl-ctl-matrix-kind">Aligned to the right edge</p>
+          <p className="fl-ctl-matrix-what">align=&quot;end&quot; opens the panel flush with the trigger&apos;s right edge, for a button at the end of a bar.</p>
+          <Popover label="Sort" icon="filter" align="end" panelLabel="Sort the gallery">
+            {(close) => (
+              <>
+                <p className="fl-ctl-matrix-what">Newest first, oldest first, or by client.</p>
+                <div className="fl-ctl-pop-foot">
+                  <Button size={32} onClick={() => (setSaid("Sorted."), close())}>Done</Button>
+                </div>
+              </>
+            )}
+          </Popover>
         </li>
         <li>
           <p className="fl-ctl-matrix-kind">An action menu</p>

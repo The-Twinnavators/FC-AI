@@ -1,8 +1,8 @@
 /** @flowcode-library tables-states · Tables: sorting, selection, density and the states a row reaches (Tables and lists)
  * Catalog ID: p.data-table (pattern)
- * Function: The data table pattern (p.data-table); the reference sheet shows sorting (announced to screen readers), row selection by box or by clicking the row, a bulk bar, totals, dense and striped looks, the loading and empty states, and a table with row actions in a fixed order.
- * Use it as: import { DataTable } from "./tables-states"; <DataTable caption="Shoots" columns={[{ id, label, num?, render?, total?, sortable? }]} rows={[{ id, ... }]} sortable? selectable? onSelectionChange?={(ids) => ...} bulk?={(ids, clear) => buttons} rowActions?={(row) => buttons} defaultSort?={{ col, up }} dense? striped? loading? emptyTitle? emptyHint? emptyAction? onEmptyAction? />
- * Built from: c.checkbox, c.button.tertiary, c.button.secondary, c.progress.spinner, c.badge.status
+ * Function: The data table pattern (p.data-table); the reference sheet shows sorting (announced to screen readers), row selection by box or by clicking the row, a bulk bar, totals, dense and striped looks, the loading and empty states, and a table with row actions in a fixed order. It also shows paging (pageSize, with Pagination and a "Showing x-y of z" line; select-all takes the visible page, ticks persist across pages), controlled sorting, and a bare table inside a panel.
+ * Use it as: import { DataTable } from "./tables-states"; <DataTable caption="Shoots" columns={[{ id, label, num?, render?, total?, sortable? }]} rows={[{ id, ... }]} sortable? selectable? onSelectionChange?={(ids) => ...} bulk?={(ids, clear) => buttons} rowActions?={(row) => buttons} defaultSort?={{ col, up }} sort?={{ column, direction: "asc"|"desc" }} onSortChange?={(sort) => ...} pageSize? page? onPageChange? bare? dense? striped? loading? emptyTitle? emptyHint? emptyAction? onEmptyAction? />
+ * Built from: c.checkbox, c.button.tertiary, c.button.secondary, c.progress.spinner, c.badge.status, c.pagination.numbered
  * Look: A full-width table with a muted sticky header, a caret on the sorted column, right-aligned tabular numbers, a tinted row when ticked and an accent bar above it counting the chosen rows.
  * Tokens: --color-surface --color-surface-sunken --color-border --color-text --color-text-muted --color-accent --radius-md --space-2 --space-3 --text-sm
  * Use cases: an admin list; invoices; search results; a report; anything with more than three columns; data table; report table; sales report; leaderboard; budget breakdown; price list; inventory list; expense report; bulk actions; task list; inbox management; order processing; admin table; file manager; user management; moderation queue
@@ -37,10 +37,12 @@ import { Button } from "./buttons-variants";
 import { Badge, type BadgeTone } from "./badges-status";
 import { Checkbox } from "./checkboxes-radios";
 import { Progress } from "./progress-indicators";
+import { Pagination } from "./pagination-variants";
 
 // ── p.data-table: a sortable, selectable table with its loading and empty states. Built from c.checkbox, c.button, c.progress. ──
 
 export type TableRow = { id: string } & Record<string, unknown>;
+export type TableSort = { column: string; direction: "asc" | "desc" };
 export type TableColumn<R extends TableRow = TableRow> = {
   id: string;
   label: string;
@@ -71,6 +73,16 @@ type TableProps<R extends TableRow> = {
   /** What to show above the table while rows are ticked: the chosen ids and a function that clears them. */
   bulk?: (ids: string[], clear: () => void) => ReactNode;
   defaultSort?: { col: string; up: boolean };
+  /** Controlled sort: when given, the table sorts by this and reports presses through onSortChange. */
+  sort?: TableSort;
+  onSortChange?: (sort: TableSort) => void;
+  /** Rows per page. All rows are sorted first, then one page is shown with Pagination and a "Showing x-y of z" line. */
+  pageSize?: number;
+  /** Controlled page, from 1; the table keeps its own page when left out. */
+  page?: number;
+  onPageChange?: (page: number) => void;
+  /** No outer frame, border or radius: for a table placed inside a panel or card. */
+  bare?: boolean;
   dense?: boolean;
   striped?: boolean;
   /** Rows are on their way: the headings stay and a spinner stands in for the body. */
@@ -95,6 +107,12 @@ export function DataTable<R extends TableRow>({
   rowActions,
   bulk,
   defaultSort,
+  sort: sortProp,
+  onSortChange,
+  pageSize,
+  page: pageProp,
+  onPageChange,
+  bare,
   dense,
   striped,
   loading,
@@ -104,13 +122,17 @@ export function DataTable<R extends TableRow>({
   onEmptyAction,
   className,
 }: TableProps<R>) {
-  const [sort, setSort] = useState(defaultSort ?? { col: "", up: true });
+  const [sortState, setSort] = useState(defaultSort ?? { col: "", up: true });
+  const sort = sortProp ? { col: sortProp.column, up: sortProp.direction === "asc" } : sortState;
+  const [pageState, setPage] = useState(1);
   const [on, setOn] = useState<string[]>([]);
   const [said, setSaid] = useState("");
 
   function sortBy(c: TableColumn<R>) {
     const next = { col: c.id, up: sort.col === c.id ? !sort.up : true };
-    setSort(next);
+    if (!sortProp) setSort(next);
+    onSortChange?.({ column: next.col, direction: next.up ? "asc" : "desc" });
+    if (pageProp === undefined) setPage(1);
     setSaid(`Sorted by ${c.label}, ${next.up ? "ascending" : "descending"}`);
   }
   const toggle = (id: string) => setOn((v) => (v.includes(id) ? v.filter((x) => x !== id) : [...v, id]));
@@ -124,7 +146,16 @@ export function DataTable<R extends TableRow>({
         return sort.up ? n : -n;
       })
     : shown;
+  // Paging: the sorted rows are cut into pages; selection counts every row, select-all takes the visible page.
+  const pageCount = pageSize ? Math.max(1, Math.ceil(rows.length / pageSize)) : 1;
+  const page = Math.min(pageCount, Math.max(1, pageProp ?? pageState));
+  const goPage = (n: number) => {
+    if (pageProp === undefined) setPage(n);
+    onPageChange?.(n);
+  };
+  const visible = pageSize ? rows.slice((page - 1) * pageSize, page * pageSize) : rows;
   const chosen = on.filter((id) => rows.some((r) => r.id === id));
+  const pickedHere = visible.filter((r) => chosen.includes(r.id)).length;
   const clear = () => setOn([]);
   const hasTotals = columns.some((c) => c.total);
   const notify = useRef(onSelectionChange);
@@ -150,7 +181,7 @@ export function DataTable<R extends TableRow>({
         {said}
       </p>
 
-      <div className="fl-ctl-tbl-wrap">
+      <div className={`fl-ctl-tbl-wrap${bare ? " is-bare" : ""}`}>
         <table className={`fl-ctl-tbl${dense ? " is-dense" : ""}${striped ? " is-zebra" : ""}`} aria-busy={loading || undefined}>
           <caption className="fl-sr">{caption}</caption>
           <thead>
@@ -159,11 +190,14 @@ export function DataTable<R extends TableRow>({
                 <th scope="col" className="fl-ctl-tbl-pick">
                   <Checkbox
                     size={16}
-                    checked={rows.length > 0 && chosen.length === rows.length}
-                    indeterminate={chosen.length > 0 && chosen.length < rows.length}
-                    disabled={!rows.length}
-                    onChange={() => setOn(chosen.length === rows.length ? [] : rows.map((r) => r.id))}
-                    aria-label="Choose every row"
+                    checked={visible.length > 0 && pickedHere === visible.length}
+                    indeterminate={pickedHere > 0 && pickedHere < visible.length}
+                    disabled={!visible.length}
+                    onChange={() => {
+                      const ids = visible.map((r) => r.id);
+                      setOn((v) => (pickedHere === visible.length ? v.filter((x) => !ids.includes(x)) : [...new Set([...v, ...ids])]));
+                    }}
+                    aria-label={pageSize ? "Choose every row on this page" : "Choose every row"}
                   />
                 </th>
               ) : null}
@@ -195,7 +229,7 @@ export function DataTable<R extends TableRow>({
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {visible.map((r) => (
               <tr
                 key={r.id}
                 className={chosen.includes(r.id) ? "is-on" : undefined}
@@ -274,6 +308,15 @@ export function DataTable<R extends TableRow>({
           </div>
         )}
       </div>
+
+      {pageSize && rows.length ? (
+        <div className="fl-ctl-tbl-paging">
+          <span className="fl-ctl-matrix-what" role="status" aria-live="polite">
+            Showing {(page - 1) * pageSize + 1}–{Math.min(rows.length, page * pageSize)} of {rows.length}
+          </span>
+          {pageCount > 1 ? <Pagination page={page} pageCount={pageCount} onPageChange={goPage} aria-label={`${caption} pages`} /> : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -316,6 +359,7 @@ export default function TablesStates() {
   const [empty, setEmpty] = useState(false);
   const [loading, setLoading] = useState(false);
   const [said, setSaid] = useState("");
+  const [sort, setSort] = useState<TableSort>({ column: "date", direction: "desc" });
 
   return (
     <section className="fl-section fl-section--specimen">
@@ -398,6 +442,36 @@ export default function TablesStates() {
         <p className="fl-ctl-status" role="status" aria-live="polite">
           {said || "Tick a row or press a row button."}
         </p>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Paging, controlled sorting and a bare table</h3>
+        <p className="fl-ctl-btn-what">
+          pageSize sorts every row first, then shows one page with Pagination and a "Showing x–y of z" line; select-all takes the
+          rows on the page, and ticks stay when you turn the page. sort and onSortChange let the page own the sort (the buttons below
+          drive it). bare drops the frame so the table can sit inside a panel.
+        </p>
+        <div className="fl-ctl-tbl-bar">
+          <Button variant="secondary" size={32} onClick={() => setSort({ column: "total", direction: "desc" })}>
+            Biggest total first
+          </Button>
+          <Button variant="secondary" size={32} onClick={() => setSort({ column: "name", direction: "asc" })}>
+            Name A to Z
+          </Button>
+          <span className="fl-ctl-matrix-what">Sorted by {sort.column}, {sort.direction === "asc" ? "ascending" : "descending"}</span>
+        </div>
+        <DataTable
+          caption="Shoots, two to a page"
+          columns={COLUMNS}
+          rows={d.rows as Shoot[]}
+          selectable
+          pageSize={2}
+          sort={sort}
+          onSortChange={setSort}
+        />
+        <div className="fl-ctl-tbl-panel">
+          <DataTable caption="Shoots, bare inside a panel" columns={COLUMNS.slice(0, 3)} rows={d.rows as Shoot[]} bare sortable={false} />
+        </div>
       </div>
 
       <div className="fl-ctl-sizes">

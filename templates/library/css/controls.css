@@ -270,6 +270,9 @@
 .fl-spec-tab { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 40px; padding: 0 var(--space-4); border: 1px solid transparent; background: none; color: var(--color-text-muted); font: inherit; font-weight: var(--weight-medium); cursor: pointer; }
 .fl-spec-tab:disabled { opacity: 0.5; cursor: not-allowed; }
 .fl-ctl-tab-count { padding: 0 var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); font-size: var(--text-xs, 0.78rem); }
+.fl-ctl-tabbar { display: flex; align-items: flex-end; gap: var(--space-3); }
+.fl-ctl-tabbar > [role="tablist"] { flex: 1 1 auto; min-width: 0; }
+.fl-ctl-tabbar-end { display: flex; align-items: center; flex: none; padding-bottom: var(--space-1, 0.25rem); }
 .fl-ctl-tabset--underline { border-bottom: 1px solid var(--color-border); gap: var(--space-2); }
 .fl-ctl-tabset--underline .fl-spec-tab { border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .fl-ctl-tabset--underline .fl-spec-tab.is-on { color: var(--color-accent); border-bottom-color: var(--color-accent); }

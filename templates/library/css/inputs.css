@@ -489,3 +489,33 @@ textarea.fl-ctl-field { min-height: 5rem; padding: var(--space-3); line-height: 
 .fl-ctl-menu li.is-disabled, .fl-ctl-menu li[aria-disabled="true"] { cursor: not-allowed; }
 .fl-in-option[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .fl-ctl-field-msg.is-good { color: var(--color-success, #157f3d); }
+
+/* ── Choice group: swatches and pills (tiles reuse the radio cards above) ── */
+.fl-ctl-cg { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: var(--space-2); }
+.fl-ctl-cg > legend { padding: 0; margin-bottom: var(--space-2); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.fl-ctl-cg__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fl-ctl-cg__opt { position: relative; display: inline-flex; cursor: pointer; }
+.fl-ctl-cg__opt input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.fl-ctl-cg__opt input:disabled { cursor: not-allowed; }
+.fl-ctl-cg__dot {
+  width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--cg-color, var(--color-accent));
+  border: 1px solid color-mix(in srgb, var(--color-text) 18%, transparent); box-shadow: 0 0 0 2px var(--color-surface);
+  transition: box-shadow var(--duration-fast) var(--easing);
+}
+.fl-ctl-cg__opt input:checked + .fl-ctl-cg__dot { box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-text); }
+.fl-ctl-cg__opt input:focus-visible + .fl-ctl-cg__dot { box-shadow: 0 0 0 2px var(--color-surface), var(--focus-ring); }
+.fl-ctl-cg__opt input:disabled + .fl-ctl-cg__dot { opacity: var(--disabled-opacity, 0.5); }
+.fl-ctl-cg__chip {
+  display: inline-grid; place-items: center; min-width: var(--control-md); min-height: var(--control-sm); padding-inline: var(--space-3);
+  border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-surface);
+  font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); color: var(--color-text);
+  transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
+}
+.fl-ctl-cg__opt:hover .fl-ctl-cg__chip { border-color: var(--color-text); }
+.fl-ctl-cg__opt input:checked + .fl-ctl-cg__chip { background: var(--color-text); border-color: var(--color-text); color: var(--color-surface); }
+.fl-ctl-cg__opt input:focus-visible + .fl-ctl-cg__chip { box-shadow: var(--focus-ring); }
+.fl-ctl-cg__opt input:disabled + .fl-ctl-cg__chip { opacity: var(--disabled-opacity, 0.5); text-decoration: line-through; cursor: not-allowed; }
+.fl-ctl-cg__opt input:disabled { cursor: not-allowed; }
+.fl-ctl-cg .fl-in-rcard input:disabled { cursor: not-allowed; }
+.fl-ctl-cg--check .fl-in-rcard__mark { border-radius: var(--radius-sm); }
+@media (prefers-reduced-motion: reduce) { .fl-ctl-cg__dot, .fl-ctl-cg__chip { transition: none; } }

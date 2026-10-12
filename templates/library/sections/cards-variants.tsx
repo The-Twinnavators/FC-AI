@@ -1,7 +1,7 @@
 /** @flowcode-library cards-variants · Cards: kinds, elevation and states (Cards)
  * Catalog ID: c.card (component)
  * Function: The card (c.card) that holds a tile or list item, and its reference sheet: plain, clickable and selectable kinds across their states, a priced choice group made of selectable cards, and three elevations.
- * Use it as: import { Card } from "./cards-variants"; <Card variant?="plain"|"clickable"|"selectable" elevation?="flat"|"raised"|"floating" selected? disabled? name? onSelect? pickLabel? icon? tag? onClick?>content</Card>
+ * Use it as: import { Card } from "./cards-variants"; <Card variant?="plain"|"clickable"|"selectable" elevation?="flat"|"raised"|"floating" selected? disabled? name? onSelect? pickLabel? icon? tag? onClick? ref?>content</Card>  // ref reaches the card's root element (a <label> when selectable, else a <div>)
  * Variants: c.card.plain - content that does nothing: a bordered surface; c.card.clickable - the whole card opens something: a bordered surface with an arrow, hover and focus states; c.card.selectable - one choice of a set: a bordered surface with a radio in the corner and an accent outline when chosen
  * Look: A bordered surface with padded content, optionally lifted by a flat, raised or floating shadow; clickable ones show an arrow, selectable ones a radio; icon adds a tile at the top and tag pins a short label to the corner.
  * Tokens: --accent-bg --color-accent --color-border --color-border-strong --color-surface --color-text-muted --control-edge --control-radius --control-radius-sm --control-shadow --edge-width --space-1 --space-3 --space-4 --surface-bg --surface-blur --surface-border --surface-edge --surface-radius --surface-radius-sm --surface-shadow --surface-shadow-selected --tag-tilt --radius-md
@@ -28,7 +28,7 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useState, type HTMLAttributes, type ReactNode } from "react";
+import { forwardRef, useState, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { Icon } from "./icons";
 import { Badge } from "./badges-status";
 
@@ -63,7 +63,8 @@ type CardOwn = {
   children?: ReactNode;
 };
 
-export function Card(props: CardOwn & Omit<HTMLAttributes<HTMLElement>, keyof CardOwn>) {
+// The ref goes to the card's root element (a <label> when selectable, otherwise a <div>).
+export const Card = forwardRef<HTMLElement, CardOwn & Omit<HTMLAttributes<HTMLElement>, keyof CardOwn>>(function Card(props, ref) {
   const { variant = "plain", elevation, selected, disabled, name, onSelect, pickLabel, icon, tag, className, children, onClick, onKeyDown, ...rest } = props;
   const head = icon ? (
     <span className="fl-ctl-card-tile">
@@ -75,7 +76,7 @@ export function Card(props: CardOwn & Omit<HTMLAttributes<HTMLElement>, keyof Ca
   const own = { className: cls, "data-fl": `c.card.${variant}` };
   if (variant === "selectable") {
     return (
-      <label {...(rest as HTMLAttributes<HTMLLabelElement>)} {...own} aria-disabled={disabled || undefined}>
+      <label {...(rest as HTMLAttributes<HTMLLabelElement>)} {...own} ref={ref as Ref<HTMLLabelElement>} aria-disabled={disabled || undefined}>
         {head}
         {children}
         {sticker}
@@ -90,6 +91,7 @@ export function Card(props: CardOwn & Omit<HTMLAttributes<HTMLElement>, keyof Ca
       <div
         {...rest}
         {...own}
+        ref={ref as Ref<HTMLDivElement>}
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled || undefined}
@@ -112,13 +114,13 @@ export function Card(props: CardOwn & Omit<HTMLAttributes<HTMLElement>, keyof Ca
     );
   }
   return (
-    <div {...rest} {...own}>
+    <div {...rest} {...own} ref={ref as Ref<HTMLDivElement>}>
       {head}
       {children}
       {sticker}
     </div>
   );
-}
+});
 
 // flowcode:sample
 const SAMPLE = {

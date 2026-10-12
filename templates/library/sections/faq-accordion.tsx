@@ -1,9 +1,9 @@
 /** @flowcode-library faq-accordion · FAQ accordion (FAQ)
  * Catalog ID: b.faq-accordion (block)
  * Function: A narrow FAQ section whose questions open in place, one at a time.
- * Use it as: import { FaqAccordion } from "./faq-accordion"; <FaqAccordion title items={[{q,a}]} /> (first answer starts open)
+ * Use it as: import { FaqAccordion } from "./faq-accordion"; <FaqAccordion title eyebrow? lede? align?="start"|"center" tint? defaultOpen?={number[]} id? items={[{q,a}]} /> (first answer starts open; defaultOpen={[]} starts all closed; id is the section anchor, default "help")
  * Built from: c.accordion.bordered
- * Look: A centered heading over one bordered box of questions; the first answer is open and a chevron turns on each row.
+ * Look: A heading (left or centered, optional label and sentence) over one bordered box of questions, optionally on a tinted band; the first answer is open by default and a chevron turns on each row.
  * Tokens: --space-4 --color-border --color-surface --color-surface-sunken --color-accent --color-text-muted
  * Use cases: faq; help center; common questions; pricing questions; support page; product questions; shipping and returns; policy questions
  * Jobs to be done: get an answer without contacting support; find out how billing works; clear up doubts before buying; find the answer to my question
@@ -16,20 +16,35 @@ import { Accordion } from "./accordion-variants";
 
 export type FaqAccordionProps = {
   title: string;
+  /** A short label above the title. */
+  eyebrow?: string;
+  /** One sentence under the title. */
+  lede?: string;
+  /** Heading alignment. Default "start". */
+  align?: "start" | "center";
+  /** The soft tinted band some pages use behind the section. */
+  tint?: boolean;
+  /** Which questions start open. Default [0] (the first); [] starts all closed. */
+  defaultOpen?: number[];
+  /** The section's anchor id (default "help"); the heading id follows it. */
+  id?: string;
   /** Questions and answers, 5 to 8. The first one starts open. */
   items: { q: string; a: string }[];
 };
 
-export function FaqAccordion({ title, items }: FaqAccordionProps) {
+export function FaqAccordion({ title, eyebrow, lede, align = "start", tint, defaultOpen = [0], id = "help", items }: FaqAccordionProps) {
+  const titleId = `${id}-title`;
   return (
-    <section className="fl-section" id="help" aria-labelledby="faq-accordion-title" data-fl="b.faq-accordion">
+    <section className={tint ? "fl-section fl-section--tint" : "fl-section"} id={id} aria-labelledby={titleId} data-fl="b.faq-accordion">
       <div className="fl-wrap fl-wrap--narrow">
-        <div className="fl-head">
-          <h2 id="faq-accordion-title" className="fl-title">
+        <div className={align === "center" ? "fl-head fl-head--center" : "fl-head"}>
+          {eyebrow ? <span className="fl-eyebrow">{eyebrow}</span> : null}
+          <h2 id={titleId} className="fl-title">
             {title}
           </h2>
+          {lede ? <p className="fl-lede">{lede}</p> : null}
         </div>
-        <Accordion variant="bordered" items={items} defaultOpen={[0]} />
+        <Accordion variant="bordered" items={items} defaultOpen={defaultOpen} />
       </div>
     </section>
   );
@@ -48,5 +63,11 @@ const SAMPLE: FaqAccordionProps = {
 };
 
 export default function FaqAccordionPreview() {
-  return <FaqAccordion {...SAMPLE} />;
+  return (
+    <>
+      <FaqAccordion {...SAMPLE} />
+      {/* Centered heading with a label and sentence, on the tinted band, all closed. */}
+      <FaqAccordion {...SAMPLE} id="help-tint" tint align="center" eyebrow="FAQ" lede="Short answers to what studios ask first." defaultOpen={[]} />
+    </>
+  );
 }

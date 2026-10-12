@@ -389,6 +389,9 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-tbl-caret.is-on { opacity: 1; color: var(--color-accent); }
 .fl-ctl-tbl-caret.is-down { transform: rotate(180deg); }
 .fl-ctl-tbl tfoot { border-top: 2px solid var(--color-border-strong, var(--color-border)); font-weight: 600; }
+.fl-ctl-tbl-wrap.is-bare { border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.fl-ctl-tbl-paging { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); }
+.fl-ctl-tbl-panel { margin-top: var(--space-4); padding: var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius, var(--radius-lg)); background: var(--color-surface); }
 .fl-ctl-tbl-wrap .fl-spec-empty { border: 0; border-radius: 0; min-height: 10rem; }
 
 /* ── Lists ──────────────────────────────────────────────────────────────────── */
@@ -437,6 +440,11 @@ button.fl-spec-row:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-avatar--40 { width: 40px; height: 40px; font-size: 0.85rem; }
 .fl-ctl-avatar--48 { width: 48px; height: 48px; font-size: 1rem; }
 .fl-ctl-avatar--64 { width: 64px; height: 64px; font-size: 1.3rem; }
+.fl-ctl-avatar--44 { width: 44px; height: 44px; font-size: 0.92rem; }
+.fl-ctl-avatar--72 { width: 72px; height: 72px; font-size: 1.5rem; }
+.fl-ctl-avatar--96 { width: 96px; height: 96px; font-size: 2rem; }
+.fl-ctl-avatar--120 { width: 120px; height: 120px; font-size: 2.5rem; }
+.fl-ctl-avatar--96 .fl-ctl-avatar-dot, .fl-ctl-avatar--120 .fl-ctl-avatar-dot { right: 4%; bottom: 4%; width: 0.4em; height: 0.4em; border-width: 3px; }
 .fl-ctl-avatar--a { background: color-mix(in srgb, var(--color-accent) 18%, transparent); color: var(--color-accent); }
 .fl-ctl-avatar--b { background: color-mix(in srgb, var(--color-success, #157f3d) 18%, transparent); color: var(--color-success, #157f3d); }
 .fl-ctl-avatar--c { background: color-mix(in srgb, var(--color-danger, #b42318) 15%, transparent); color: var(--color-danger, #b42318); }
@@ -526,6 +534,18 @@ button.fl-spec-row:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-bubble--typing > span { width: 6px; height: 6px; border-radius: 999px; background: var(--color-text-muted); animation: fl-ctl-blink 1.2s var(--easing, ease) infinite; }
 .fl-ctl-bubble--typing > span:nth-child(2) { animation-delay: 0.15s; }
 .fl-ctl-bubble--typing > span:nth-child(3) { animation-delay: 0.3s; }
+.fl-ctl-msg--ai { display: block; }
+.fl-ctl-msg--ai .fl-ctl-msg-col { max-width: none; justify-items: stretch; }
+.fl-ctl-msg--ai .fl-ctl-bubble { display: block; background: none; padding: 0; border-radius: 0; color: var(--color-text); line-height: 1.65; }
+.fl-ctl-msg--ai .fl-ctl-bubble > :first-child { margin-top: 0; }
+.fl-ctl-msg--ai .fl-ctl-bubble > :last-child { margin-bottom: 0; }
+.fl-ctl-msg--ai .fl-ctl-bubble p, .fl-ctl-msg--ai .fl-ctl-bubble ul, .fl-ctl-msg--ai .fl-ctl-bubble ol { margin: 0 0 var(--space-3); }
+.fl-ctl-msg--ai .fl-ctl-bubble ul, .fl-ctl-msg--ai .fl-ctl-bubble ol { padding-left: 1.25rem; }
+.fl-ctl-msg--ai .fl-ctl-bubble pre { margin: 0 0 var(--space-3); padding: var(--space-3); overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-sunken); font-size: var(--text-xs, 0.78rem); line-height: 1.5; }
+.fl-ctl-msg--ai .fl-ctl-bubble code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.92em; }
+.fl-ctl-msg--ai .fl-ctl-bubble :not(pre) > code { padding: 0.1em 0.35em; border-radius: var(--radius-sm); background: var(--color-surface-sunken); }
+.fl-ctl-msg-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1, 0.25rem); margin-top: var(--space-1, 0.25rem); }
+.fl-ctl-msg--ai .fl-ctl-ai-head { margin-top: var(--space-2); }
 @keyframes fl-ctl-blink { 0%, 60%, 100% { opacity: 0.3; } 30% { opacity: 1; } }
 .fl-ctl-chat-send { display: flex; gap: var(--space-2); border-top: 1px solid var(--color-border); padding: var(--space-3); }
 

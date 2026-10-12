@@ -1,9 +1,10 @@
 /** @flowcode-library chat-bubbles · Chat: bubbles, grouping, delivery and the message that failed (Small components)
  * Catalog ID: c.chat-bubble (component)
- * Function: The chat bubble (c.chat-bubble), one message in a thread with side, grouping, delivery status and typing; the reference sheet shows a live conversation (the thread and composer stay specimen markup).
- * Use it as: import { ChatBubble } from "./chat-bubbles"; <ol className="fl-ctl-chat-log" role="log" aria-live="polite"><ChatBubble variant?="mine"|"theirs" name at? first? status?="sending"|"sent"|"read"|"failed" typing? onRetry?>message text</ChatBubble></ol>
- * Variants: c.chat-bubble.mine - your own message: right-aligned, filled with the accent color, with a delivery line (Sending, Sent, Read, or Not sent with Try again); c.chat-bubble.theirs - someone else's message: left-aligned on a sunken surface with their avatar on the first of a run; typing shows animated dots
- * Look: A rounded speech bubble on one side of a thread, with a name and time above the first of a run, a small avatar on their side and a delivery line under yours.
+ * Function: The chat bubble (c.chat-bubble), one message in a thread with side, grouping, delivery status and typing; the reference sheet shows a live conversation and an assistant reply with a code block and actions (the thread and composer stay specimen markup).
+ * Use it as: import { ChatBubble } from "./chat-bubbles"; <ol className="fl-ctl-chat-log" role="log" aria-live="polite"><ChatBubble variant?="mine"|"theirs"|"assistant" name at? first? status?="sending"|"sent"|"read"|"failed" typing? streaming? actions?={<Button .../>} onRetry?>message text or rich content (paragraphs, lists, code)</ChatBubble></ol>
+ * Variants: c.chat-bubble.mine - your own message: right-aligned, filled with the accent color, with a delivery line (Sending, Sent, Read, or Not sent with Try again); c.chat-bubble.theirs - someone else's message: left-aligned on a sunken surface with their avatar on the first of a run; typing shows animated dots; c.chat-bubble.assistant - an AI reply: full width with no bubble fill, room for paragraphs, lists and code blocks, an actions row underneath (Copy, Regenerate, thumbs) and a working indicator while streaming
+ * Built from: c.avatar, c.button, c.ai-indicator.working
+ * Look: A rounded speech bubble on one side of a thread, with a name and time above the first of a run, a small avatar on their side and a delivery line under yours. An assistant reply runs full width without a bubble, with an actions row underneath.
  * Tokens: --color-accent --color-on-accent --color-surface-sunken --color-danger --color-text --color-text-muted --radius-lg --space-2 --space-3 --text-sm --text-xs
  * Use cases: a support thread; client messages; an assistant conversation; comments on a shoot; a team channel
  * Jobs to be done: follow who said what; know my message arrived; send another one; retry one that failed
@@ -35,17 +36,18 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Avatar } from "./avatars-variants";
 import { Button } from "./buttons-variants";
+import { AiIndicator } from "./ai-indicators";
 
 // ── c.chat-bubble: one message in a thread. Put these inside <ol className="fl-ctl-chat-log" role="log" aria-live="polite">. ──
 
-export type ChatBubbleVariant = "mine" | "theirs";
+export type ChatBubbleVariant = "mine" | "theirs" | "assistant";
 export type ChatBubbleStatus = "sending" | "sent" | "read" | "failed";
 
 // Written out in full (not built from the variant name) so a build finds every class the bubble needs.
-const SIDE: Record<ChatBubbleVariant, string> = { mine: "fl-ctl-msg--me", theirs: "fl-ctl-msg--them" };
+const SIDE: Record<ChatBubbleVariant, string> = { mine: "fl-ctl-msg--me", theirs: "fl-ctl-msg--them", assistant: "fl-ctl-msg--ai" };
 const STATE_TEXT: Record<Exclude<ChatBubbleStatus, "failed">, string> = { sending: "Sending…", sent: "Sent", read: "Read" };
 
-export function ChatBubble({ variant = "theirs", name, at, first, status, typing, onRetry, className, children }: {
+export function ChatBubble({ variant = "theirs", name, at, first, status, typing, onRetry, actions, streaming, className, children }: {
   variant?: ChatBubbleVariant;
   /** Who wrote it. Shown above the first message of a run, and by the avatar on their side. */
   name: string;
@@ -59,6 +61,10 @@ export function ChatBubble({ variant = "theirs", name, at, first, status, typing
   typing?: boolean;
   /** Pressed on "Try again" in a failed message. */
   onRetry?: () => void;
+  /** A row under the message: Copy, Regenerate, thumbs and the like. */
+  actions?: ReactNode;
+  /** Assistant only: the reply is still being written; shows the working indicator. */
+  streaming?: boolean;
   className?: string;
   children?: ReactNode;
 }) {
@@ -87,6 +93,12 @@ export function ChatBubble({ variant = "theirs", name, at, first, status, typing
         ) : (
           <span className="fl-ctl-bubble">{children}</span>
         )}
+        {actions ? (
+          <span className="fl-ctl-msg-actions" role="group" aria-label="Message actions">
+            {actions}
+          </span>
+        ) : null}
+        {variant === "assistant" && streaming ? <AiIndicator variant="working" label="Writing" /> : null}
         {variant === "mine" && status ? (
           <span className="fl-ctl-msg-state">
             {status === "failed" ? (
@@ -209,6 +221,38 @@ export default function ChatBubbles() {
             Send
           </Button>
         </form>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>An assistant reply</h3>
+        <p className="fl-ctl-btn-what">Full width with no bubble, so paragraphs, lists and code have room. Actions sit under it; while it streams, the working indicator shows.</p>
+        <ol className="fl-ctl-chat-log" role="log" aria-label="Assistant reply">
+          <ChatBubble
+            variant="assistant"
+            name="Assistant"
+            first
+            actions={
+              <>
+                <Button variant="tertiary" size={32} icon="copy">Copy</Button>
+                <Button variant="tertiary" size={32} icon="refresh">Regenerate</Button>
+                <Button variant="tertiary" size={32} icon="thumbs-up" iconOnly>Good answer</Button>
+                <Button variant="tertiary" size={32} icon="thumbs-down" iconOnly>Bad answer</Button>
+              </>
+            }
+          >
+            <p>Yes, the venue needs the timings by Friday. Here is the sheet as a list:</p>
+            <ul>
+              <li>Ceremony 14:00</li>
+              <li>Portraits 15:00</li>
+            </ul>
+            <pre>
+              <code>{"const timings = [\n  { at: \"14:00\", what: \"Ceremony\" },\n  { at: \"15:00\", what: \"Portraits\" },\n];"}</code>
+            </pre>
+          </ChatBubble>
+          <ChatBubble variant="assistant" name="Assistant" streaming>
+            <p>Checking the second shooter's details</p>
+          </ChatBubble>
+        </ol>
       </div>
 
       <div className="fl-ctl-sizes">

@@ -1,7 +1,7 @@
 /** @flowcode-library tabs-variants · Horizontal tabs: underline, pills and enclosed (Tabs, breadcrumbs and paging)
  * Catalog ID: c.tabs (component)
- * Function: The one tabs control (c.tabs), horizontal or vertical; this sheet shows the three horizontal looks and three heights, with arrow-key navigation.
- * Use it as: import { Tabs } from "./tabs-variants"; <Tabs tabs={[{ id, label, count?, icon?, disabled?, panel? }]} label="Sections" orientation?="horizontal"|"vertical" variant?="underline"|"pills"|"enclosed"|"plain"|"filled" size?={32|40|44} defaultId? />
+ * Function: The one tabs control (c.tabs), horizontal or vertical; this sheet shows the three horizontal looks and three heights, with arrow-key navigation. It also shows controlled tabs driven by an outside button and a trailing button sharing the bar.
+ * Use it as: import { Tabs } from "./tabs-variants"; <Tabs tabs={[{ id, label, count?, icon?, disabled?, panel? }]} label="Sections" orientation?="horizontal"|"vertical" variant?="underline"|"pills"|"enclosed"|"plain"|"filled" size?={32|40|44} defaultId? value? onChange?={(id) => ...} trailing?={node at the end of the bar} />
  * Variants: c.tabs.underline - the default across an app (horizontal): a rule under the selected tab; c.tabs.pills - tabs on a tinted surface (horizontal): a filled accent pill marks the selected tab; c.tabs.enclosed - tabs joined to the panel below (horizontal): folder tabs; c.tabs.plain - a long list of sections (vertical rail): a line down the side marks the selected tab; c.tabs.filled - a vertical rail on a busy page: the selected row is a tinted accent block
  * Look: A row or vertical rail of text tabs with an optional icon and count; the selected tab is marked and its panel sits below or beside the list.
  * Tokens: --color-accent --color-on-accent --color-text --color-text-muted --color-border --color-surface --color-surface-sunken --radius-md --radius-lg --space-2 --space-4 --weight-medium --text-sm --focus-ring
@@ -27,6 +27,7 @@
  */
 import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
 
 // ── c.tabs: the one tabs control, horizontal or vertical. The sheet below shows the horizontal looks. ──
 
@@ -66,15 +67,26 @@ type TabsProps = {
   size?: TabsSize;
   /** The tab open at first; the first usable one when left out. */
   defaultId?: string;
+  /** Controlled: the open tab. Pair with onChange; defaultId is ignored. */
+  value?: string;
+  /** Called with the tab id when the person picks a tab (click or arrow keys). */
+  onChange?: (id: string) => void;
+  /** Content at the end of the tab bar (a copy button, say), outside the tab list. Horizontal only. */
+  trailing?: ReactNode;
   className?: string;
 };
 
-export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 40, defaultId, className }: TabsProps) {
+export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 40, defaultId, value, onChange, trailing, className }: TabsProps) {
   const vertical = orientation === "vertical";
   const look: TabsVariant = variant ?? (vertical ? "plain" : "underline");
   const uid = useId();
   const usable = tabs.filter((t) => !t.disabled);
-  const [on, setOn] = useState(defaultId ?? usable[0]?.id ?? "");
+  const [own, setOwn] = useState(defaultId ?? usable[0]?.id ?? "");
+  const on = value ?? own;
+  const setOn = (id: string) => {
+    if (value === undefined) setOwn(id);
+    onChange?.(id);
+  };
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const here = tabs.find((t) => t.id === on) ?? tabs[0];
   const tabId = (id: string) => `tab-${uid}-${id}`;
@@ -148,7 +160,14 @@ export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 
   }
   return (
     <div className={className} data-fl={`c.tabs.${look}`}>
-      {list}
+      {trailing ? (
+        <div className="fl-ctl-tabbar">
+          {list}
+          <div className="fl-ctl-tabbar-end">{trailing}</div>
+        </div>
+      ) : (
+        list
+      )}
       <div className="fl-ctl-tabpanel" role="tabpanel" id={panelId} aria-labelledby={here ? tabId(here.id) : undefined} tabIndex={0}>
         {typeof here?.panel === "string" ? <span className="fl-ctl-matrix-what">{here.panel}</span> : here?.panel}
       </div>
@@ -174,6 +193,8 @@ const SAMPLE = {
 
 export default function TabsVariants() {
   const d = SAMPLE;
+  const [picked, setPicked] = useState("open");
+  const [copied, setCopied] = useState(false);
   return (
     <section className="fl-section fl-section--specimen">
       <ul className="fl-ctl-tabs-list">
@@ -185,6 +206,34 @@ export default function TabsVariants() {
           </li>
         ))}
       </ul>
+
+      <div className="fl-ctl-sizes">
+        <h3>Controlled, and a button sharing the bar</h3>
+        <p className="fl-ctl-btn-what">
+          value and onChange let the page own which tab is open, so a button elsewhere can switch it. trailing puts content at the end
+          of the bar, outside the tab list.
+        </p>
+        <div className="fl-ctl-tbl-bar">
+          <Button variant="secondary" size={32} onClick={() => setPicked("all")}>
+            Show All
+          </Button>
+          <Button variant="secondary" size={32} onClick={() => setPicked("done")}>
+            Show Done
+          </Button>
+          <span className="fl-ctl-matrix-what">Open: {picked}</span>
+        </div>
+        <Tabs
+          tabs={d.tabs}
+          label="Controlled tabs"
+          value={picked}
+          onChange={setPicked}
+          trailing={
+            <Button variant="tertiary" size={32} icon="copy" onClick={() => setCopied(true)}>
+              {copied ? "Copied" : "Copy"}
+            </Button>
+          }
+        />
+      </div>
 
       <div className="fl-ctl-sizes">
         <h3>Heights</h3>

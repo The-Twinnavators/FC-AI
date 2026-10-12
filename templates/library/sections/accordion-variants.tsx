@@ -15,13 +15,21 @@
  * keyboards and screen readers work; arrow keys move between questions. Use it for help, policies or details people
  * scan. Make it the app's own: replace SAMPLE and keep the one look that suits the page.
  */
-import { useId, useRef, useState, type KeyboardEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
 
 // ── c.accordion: the one open-and-close list. Every FAQ is this component; the sheet below shows each look. ──
 
 export type AccordionVariant = "bordered" | "cards" | "icons";
-export type AccordionItem = { q: string; a: string; /** An icon name from ./icons; shown by the icons look. */ icon?: string };
+export type AccordionItem = {
+  q: string;
+  /** The answer: text, or any content such as a list of lessons. */
+  a: ReactNode;
+  /** An icon name from ./icons; shown by the icons look. */
+  icon?: string;
+  /** Shown at the end of the header, before the chevron: "4 lessons", a price. */
+  meta?: ReactNode;
+};
 
 // Written out in full (not built from the variant name) so a build finds every class it needs.
 const VARIANT: Record<AccordionVariant, string> = { bordered: "fl-dsp-acc--bordered", cards: "fl-dsp-acc--cards", icons: "fl-dsp-acc--icons" };
@@ -88,11 +96,12 @@ export function Accordion({ variant = "bordered", items, multiple, defaultOpen =
                   </span>
                 )}
                 <span>{it.q}</span>
+                {it.meta != null ? <span className="fl-dsp-acc__meta">{it.meta}</span> : null}
                 <Chevron />
               </button>
             </h4>
             <div id={`${key}-panel`} role="region" aria-labelledby={`${key}-btn`} className="fl-dsp-acc__panel" hidden={!isOpen}>
-              <p>{it.a}</p>
+              {typeof it.a === "string" ? <p>{it.a}</p> : it.a}
             </div>
           </div>
         );
@@ -115,6 +124,17 @@ const SAMPLE = {
         { q: "What should I wear?", a: "Clothes you don't mind getting clay on, and short nails if you can. We have aprons for everyone." },
         { q: "Do I need to bring anything?", a: "No. Clay, tools, glazes and firing are all included in the class price." },
         { q: "How many people are in a class?", a: "Eight at most, so the tutor can help everyone at the wheel." },
+        {
+          q: "Week 1: Centering and pulling up",
+          meta: "3 lessons",
+          a: (
+            <ul>
+              <li>Wedging the clay</li>
+              <li>Centering on the wheel</li>
+              <li>Pulling up a cylinder</li>
+            </ul>
+          ),
+        },
       ],
     },
     {

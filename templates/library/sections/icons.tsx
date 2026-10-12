@@ -40,11 +40,29 @@ const PATHS: Record<string, string> = {
   filter: "M3 5h18l-7 8v6l-4-2v-4z",
   send: "M22 2 11 13M22 2l-7 20-4-9-9-4z",
   dot: "M12 12h.01",
+  "arrow-left": "M19 12H5M11 6l-6 6 6 6",
+  "chevron-left": "M15 6l-6 6 6 6",
+  "chevron-right": "M9 6l6 6-6 6",
+  paperclip: "M21 11.5 12.5 20a5.5 5.5 0 0 1-7.8-7.8l9-9a3.7 3.7 0 0 1 5.2 5.2l-9 9a1.8 1.8 0 0 1-2.6-2.6l8.2-8.2",
+  stop: "M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z",
+  "thumbs-up": "M7 10v11H3V10zM7 10l4-7a2 2 0 0 1 2 2v4h6.3a2 2 0 0 1 2 2.3l-1.3 7a2 2 0 0 1-2 1.7H7",
+  "thumbs-down": "M17 14V3h4v11zM17 14l-4 7a2 2 0 0 1-2-2v-4H4.7a2 2 0 0 1-2-2.3l1.3-7A2 2 0 0 1 6 3h11",
+  external: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3",
+  eye: "M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  "eye-off": "M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.4-1M9.9 9.9a3 3 0 0 0 4.2 4.2",
+  upload: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
+  play: "M7 4.5v15L19 12z",
+  pause: "M8 4h2v16H8zM14 4h2v16h-2z",
+  user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1",
+  calendar: "M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM3 10h18M8 2v4M16 2v4",
+  map: "M9 4 3 6.5v14L9 18l6 2.5 6-2.5V3.5L15 6zM9 4v14M15 6v14.5",
+  cart: "M3 3h2.5l2.2 11.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.5L21 7H6M10 20.5h.01M17 20.5h.01",
 };
 
-export function Icon({ name, label }: { name: keyof typeof PATHS | string; label?: string }) {
+/** `filled` fills the shape with currentColor (a star or heart that is on); it suits the closed glyphs. */
+export function Icon({ name, label, filled }: { name: keyof typeof PATHS | string; label?: string; filled?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+    <svg viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
       <path d={PATHS[name] ?? PATHS.sparkle} />
     </svg>
   );

@@ -37,7 +37,7 @@ import { useState } from "react";
 
 // flowcode:sample
 const SAMPLE = {
-  sizes: [20, 24, 32, 40, 48, 64] as const,
+  sizes: [20, 24, 32, 40, 44, 48, 64, 72, 96, 120] as const,
   people: [
     { id: "p1", name: "Ana Moreau", tone: "a" as const, here: "online" as const },
     { id: "p2", name: "Tom Reed", tone: "b" as const, here: "away" as const },
@@ -59,13 +59,13 @@ function initials(name: string) {
 // ── c.avatar: the one avatar. Every piece's people and organizations are this component. ──
 
 export type AvatarVariant = "person" | "organization";
-export type AvatarSize = 20 | 24 | 32 | 40 | 48 | 64;
+export type AvatarSize = 20 | 24 | 32 | 40 | 44 | 48 | 64 | 72 | 96 | 120;
 export type AvatarTone = "a" | "b" | "c" | "d" | "e" | "rest";
 export type AvatarStatus = "online" | "away" | "offline";
 
 // Written out in full (not built from the name) so a build finds every class the avatar needs.
 const VARIANT: Record<AvatarVariant, string> = { person: "", organization: "is-square" };
-const SIZE: Record<AvatarSize, string> = { 20: "fl-ctl-avatar--20", 24: "fl-ctl-avatar--24", 32: "fl-ctl-avatar--32", 40: "fl-ctl-avatar--40", 48: "fl-ctl-avatar--48", 64: "fl-ctl-avatar--64" };
+const SIZE: Record<AvatarSize, string> = { 20: "fl-ctl-avatar--20", 24: "fl-ctl-avatar--24", 32: "fl-ctl-avatar--32", 40: "fl-ctl-avatar--40", 44: "fl-ctl-avatar--44", 48: "fl-ctl-avatar--48", 64: "fl-ctl-avatar--64", 72: "fl-ctl-avatar--72", 96: "fl-ctl-avatar--96", 120: "fl-ctl-avatar--120" };
 const TONE: Record<AvatarTone, string> = { a: "fl-ctl-avatar--a", b: "fl-ctl-avatar--b", c: "fl-ctl-avatar--c", d: "fl-ctl-avatar--d", e: "fl-ctl-avatar--e", rest: "fl-ctl-avatar--rest" };
 const DOT: Record<AvatarStatus, string> = { online: "fl-ctl-dot--online", away: "fl-ctl-dot--away", offline: "fl-ctl-dot--offline" };
 
@@ -148,11 +148,11 @@ export default function AvatarsVariants() {
   return (
     <section className="fl-section fl-section--specimen">
       <h3>Sizes</h3>
-      <p className="fl-ctl-btn-what">Six steps. Under 24 px the initials stop being readable, so those are for a stack or a dot, not for standing alone.</p>
+      <p className="fl-ctl-btn-what">Ten steps, up to 120 px for a profile page. Under 24 px the initials stop being readable, so those are for a stack or a dot, not for standing alone.</p>
       <ul className="fl-ctl-size-list fl-ctl-avatar-sizes">
         {d.sizes.map((s) => (
           <li key={s}>
-            <Avatar name="Ana Moreau" tone="a" size={s} />
+            <Avatar name="Ana Moreau" tone="a" size={s} status={s >= 44 ? "online" : undefined} />
             <span className="fl-ctl-btn-what">{s} px</span>
           </li>
         ))}

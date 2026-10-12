@@ -1,9 +1,9 @@
 /** @flowcode-library buttons-variants · Buttons: every variant and state (Forms)
  * Catalog ID: c.button (component)
- * Function: The one button every piece uses (c.button), and its reference sheet: six variants, six heights, icon and icon-only, and the states a button passes through: rest, hover, pressed, disabled and working.
- * Use it as: import { Button } from "./buttons-variants"; <Button variant?="primary"|"secondary"|"tertiary"|"destructive"|"on-accent"|"ghost-on-accent" size?={24|32|40|44|48|56} icon? iconAt?="start"|"end" iconOnly? busy? href? type? onClick?>Label</Button>
+ * Function: The one button every piece uses (c.button), and its reference sheet: six variants, six heights, icon and icon-only, toggle (star and heart), and the states a button passes through.
+ * Use it as: import { Button } from "./buttons-variants"; <Button variant?="primary"|"secondary"|"tertiary"|"destructive"|"on-accent"|"ghost-on-accent" size?={24|32|40|44|48|56} icon? iconAt?="start"|"end" iconOnly? busy? pressed? block? href? type? ref? onClick?>Label</Button>  // pressed makes it a toggle (aria-pressed, icon drawn filled while pressed); ref reaches the <a> or <button>
  * Variants: c.button.primary - the one action a screen is for: filled with the accent color; c.button.secondary - beside the primary action: a surface with a border; c.button.tertiary - quiet actions in a row or toolbar: no fill until pointed at; c.button.destructive - removes something for good: filled with the danger color; c.button.on-accent - the main action on an accent band: filled with the on-accent color; c.button.ghost-on-accent - a second action on an accent band: transparent and outlined
- * Look: A rounded rectangle with a semibold one-line label and an optional icon; six heights from 24 to 56 px, square when icon-only; lifts on hover, presses in on click, a spinner while busy, the focus ring on keyboard focus.
+ * Look: A rounded rectangle with a semibold one-line label and an optional icon; six heights from 24 to 56 px, square when icon-only; lifts on hover, presses in on click, a spinner while busy, a filled icon when a toggle is pressed, the focus ring on keyboard focus.
  * Tokens: --control-lg --control-pad-lg --control-radius --control-text-lg --control-border --control-shadow --color-accent --color-accent-hover --color-on-accent --color-surface --color-text --color-border --color-danger --focus-ring
  * Use cases: action button set; destructive confirm; form submit states; disabled action; toolbar actions
  * Jobs to be done: pick the right button for an action; show an action is unavailable; warn before something destructive
@@ -29,7 +29,7 @@
  * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
  * built app exactly as it runs here.
  */
-import { useEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { forwardRef, useEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ReactNode, type Ref } from "react";
 import { Icon } from "./icons";
 
 // ── c.button: the one button. Every piece's buttons are this component; the specimen below shows every variant. ──
@@ -59,6 +59,8 @@ type ButtonOwn = {
   iconOnly?: boolean;
   /** Working: a spinner, the button disabled and marked busy. */
   busy?: boolean;
+  /** A toggle: sets aria-pressed, and the icon (when given) is drawn filled while pressed. */
+  pressed?: boolean;
   /** Fills the width of its container, for a form's submit or a card's call to action. */
   block?: boolean;
   className?: string;
@@ -67,29 +69,30 @@ type ButtonOwn = {
 type AsLink = ButtonOwn & { href: string } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof ButtonOwn>;
 type AsButton = ButtonOwn & { href?: undefined } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof ButtonOwn>;
 
-export function Button(props: AsLink | AsButton) {
-  const { variant = "primary", size = 48, icon, iconAt = "start", iconOnly, busy, block, className, children, ...rest } = props;
+// The ref goes to the rendered <a> or <button>.
+export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, AsLink | AsButton>(function Button(props, ref) {
+  const { variant = "primary", size = 48, icon, iconAt = "start", iconOnly, busy, pressed, block, className, children, ...rest } = props;
   const cls = ["fl-btn", VARIANT[variant], SIZE[size], iconOnly ? "fl-ctl-btn--icon" : "", block ? "fl-ctl-btn--block" : "", className ?? ""].filter(Boolean).join(" ");
   const name = typeof children === "string" ? children : undefined;
-  const glyph = busy ? <span className="fl-ctl-spinner" aria-hidden="true" /> : icon ? <Icon name={icon} /> : null;
+  const glyph = busy ? <span className="fl-ctl-spinner" aria-hidden="true" /> : icon ? <Icon name={icon} filled={pressed} /> : null;
   const inner = iconOnly ? glyph : iconAt === "end" ? <>{children}{glyph}</> : <>{glyph}{children}</>;
   // Icon-only: the label names it for screen readers and the tooltip, unless the caller already gave it a name.
   const given = rest as { "aria-label"?: string; title?: string };
-  const own = { className: cls, "data-fl": `c.button.${variant}`, ...(iconOnly ? { "aria-label": given["aria-label"] ?? name, title: given.title ?? name } : {}) };
+  const own = { className: cls, "data-fl": `c.button.${variant}`, ...(pressed !== undefined ? { "aria-pressed": pressed } : {}), ...(iconOnly ? { "aria-label": given["aria-label"] ?? name, title: given.title ?? name } : {}) };
   if (typeof rest.href === "string") {
     return (
-      <a {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)} {...own}>
+      <a {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)} {...own} ref={ref as Ref<HTMLAnchorElement>}>
         {inner}
       </a>
     );
   }
   const { type = "button", disabled, ...btn } = rest as ButtonHTMLAttributes<HTMLButtonElement>;
   return (
-    <button {...btn} {...own} type={type} disabled={disabled || busy} aria-busy={busy || undefined}>
+    <button {...btn} {...own} ref={ref as Ref<HTMLButtonElement>} type={type} disabled={disabled || busy} aria-busy={busy || undefined}>
       {inner}
     </button>
   );
-}
+});
 
 // flowcode:sample
 const SAMPLE = {
@@ -123,6 +126,7 @@ export default function ButtonsVariants() {
   const [status, setStatus] = useState("");
   const [armed, setArmed] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [starred, setStarred] = useState(false);
   const [pay, setPay] = useState<"idle" | "loading" | "done">("idle");
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -285,13 +289,16 @@ export default function ButtonsVariants() {
             variant="tertiary"
             icon="heart"
             iconOnly
-            aria-pressed={saved}
+            pressed={saved}
             onClick={() => {
               setSaved((v) => !v);
               say(saved ? "Removed from your list." : "Added to your list.");
             }}
           >
             {saved ? "Remove from saved" : "Save to your list"}
+          </Button>
+          <Button variant="tertiary" icon="star" iconOnly pressed={starred} onClick={() => (setStarred((v) => !v), say(starred ? "Unstarred." : "Starred."))}>
+            {starred ? "Remove star" : "Star"}
           </Button>
           <Button variant="destructive" icon="trash" className={armed ? "is-armed" : undefined} onClick={onDelete}>
             {armed ? "Press again to delete" : "Delete"}
