@@ -1,4 +1,10 @@
 /** @flowcode-library card-project · Project cards (Cards)
+ * Catalog ID: p.project-card (pattern)
+ * Function: The project card pattern (p.project-card): a workspace grid whose cards rename, delete with confirmation, and open; the reference sheet shows four projects at different stages with an empty state once all are deleted.
+ * Use it as: import { ProjectCards } from "./card-project"; <ProjectCards title lede? gaugeA="Ready" gaugeB="Health" projects={[{ id, name, type, status, tone: "success"|"warning"|"danger"|"info"|"neutral", ready: 0-100, health: 0-100, updated: "2026-10-06", alt, image? }]} onView?={(id) => ...} onRename?={(id, name) => ...} onDelete?={(id) => ...} />
+ * Built from: c.card.surface, c.media-frame, c.badge.status, c.progress.ring, c.menu, c.text-field.outlined, c.button.primary, c.button.secondary, c.button.destructive, c.empty-state.first-use
+ * Look: A responsive grid of project cards, each with a 16:9 picture, a status chip at its top left and a three-dot menu at its top right, the name and type, two small ring gauges with their values, and a footer with the update date and a View button.
+ * Tokens: --color-surface --color-border --color-accent --color-success --color-danger --color-danger-surface --color-surface-sunken --color-text-muted --space-3 --space-4 --space-5 --radius-lg --font-display --font-mono --hover-lift
  * Use cases: projects dashboard; project overview; client projects; campaign tracker; course progress; workspace list; portfolio projects
  * Jobs to be done: see how each project is progressing; open a project to work on it; rename or delete a project; spot which projects need attention
  * Keywords: projects, dashboard, gauge, progress, status
@@ -9,63 +15,67 @@
  * own: replace SAMPLE with the real projects and the two numbers that matter; "View" should open the project.
  * Adapted from FlowCode's own UI (Branding page).
  */
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { Badge, type BadgeTone } from "./badges-status";
+import { Button } from "./buttons-variants";
+import { Card } from "./cards-variants";
+import { EmptyState } from "./empty-states";
+import { MediaFrame } from "./media-frames";
+import { Menu } from "./popovers-menus";
+import { Progress } from "./progress-indicators";
+import { TextField } from "./text-fields-states";
 
-// flowcode:sample
-const SAMPLE = {
-  title: "Your projects",
-  lede: "Every space you're planning, with how close it is to ready.",
-  gaugeA: "Ready",
-  gaugeB: "Health",
-  projects: [
-    { id: "p1", name: "Kitchen refit", type: "Home renovation", status: "On track", tone: "ok", ready: 72, health: 91, updated: "2026-10-06", alt: "Pale oak kitchen with open shelves" },
-    { id: "p2", name: "Garden studio", type: "Outbuilding", status: "Waiting on quote", tone: "warn", ready: 38, health: 77, updated: "2026-10-02", alt: "Small timber studio at the end of a lawn" },
-    { id: "p3", name: "Spare room to office", type: "Room makeover", status: "Ready", tone: "ok", ready: 100, health: 96, updated: "2026-09-28", alt: "Bright desk by a window with a plant" },
-    { id: "p4", name: "Bathroom leak", type: "Repair", status: "Blocked", tone: "bad", ready: 15, health: 54, updated: "2026-09-21", alt: "Tiled bathroom with a damp patch on the ceiling" },
-  ],
+// ── p.project-card: a grid of project cards with a status chip, two gauges, a rename/delete menu and a View button. ──
+
+export type ProjectItem = {
+  id: string;
+  name: string;
+  /** What kind of project: "Home renovation". */
+  type: string;
+  /** The status words on the picture: "On track". */
+  status: string;
+  /** The status color: success, warning, danger, info or neutral. */
+  tone: BadgeTone;
+  /** First gauge, 0 to 100; at 100 the card reads as finished. */
+  ready: number;
+  /** Second gauge, 0 to 100; 90 and over reads as healthy. */
+  health: number;
+  /** Last update, as a date: "2026-10-06". */
+  updated: string;
+  /** Describes the picture (and names it when there is no image). */
+  alt: string;
+  /** Picture address; a gradient picture shows without one. */
+  image?: string;
 };
 
-type Project = (typeof SAMPLE.projects)[number];
-
-function Gauge({ value, label, ok }: { value: number; label: string; ok: boolean }) {
-  const v = Math.max(0, Math.min(100, value));
-  return (
-    <svg className={`fl-brd-gauge${ok ? " fl-brd-gauge--ok" : ""}`} viewBox="0 0 36 36" role="img" aria-label={label}>
-      <circle className="fl-brd-gauge__track" cx="18" cy="18" r="15" fill="none" strokeWidth="4" />
-      <circle className="fl-brd-gauge__fill" cx="18" cy="18" r="15" fill="none" strokeWidth="4" strokeLinecap="round" pathLength={100} strokeDasharray={`${v} 100`} />
-    </svg>
-  );
-}
+export type ProjectCardsProps = {
+  title: string;
+  lede?: string;
+  /** Names of the two gauges: "Ready" and "Health". */
+  gaugeA: string;
+  gaugeB: string;
+  projects: ProjectItem[];
+  /** Called when View is pressed. */
+  onView?: (id: string) => void;
+  /** Called after a rename or delete is confirmed. */
+  onRename?: (id: string, name: string) => void;
+  onDelete?: (id: string) => void;
+};
 
 const fmtDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
-function ProjectCard({ p, names, onRename, onDelete, onView }: { p: Project; names: string[]; onRename: (name: string) => void; onDelete: () => void; onView: () => void }) {
-  const [menu, setMenu] = useState(false);
+function ProjectCard({ p, gaugeA, gaugeB, names, onRename, onDelete, onView }: { p: ProjectItem; gaugeA: string; gaugeB: string; names: string[]; onRename: (name: string) => void; onDelete: () => void; onView: () => void }) {
   const [mode, setMode] = useState<"idle" | "rename" | "delete">("idle");
   const [draft, setDraft] = useState(p.name);
   const [error, setError] = useState("");
-  const menuBtn = useRef<HTMLButtonElement>(null);
-  const firstItem = useRef<HTMLButtonElement>(null);
-  const input = useRef<HTMLInputElement>(null);
-  const cancelDel = useRef<HTMLButtonElement>(null);
+  const menuBox = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (menu) firstItem.current?.focus();
-  }, [menu]);
-  useEffect(() => {
-    if (mode === "rename") input.current?.select();
-    if (mode === "delete") cancelDel.current?.focus();
-  }, [mode]);
-
-  const close = (back = true) => {
-    setMenu(false);
-    if (back) menuBtn.current?.focus();
-  };
+  const focusMenu = () => menuBox.current?.querySelector<HTMLElement>("[aria-haspopup]")?.focus();
   const reset = () => {
     setMode("idle");
     setError("");
     setDraft(p.name);
-    menuBtn.current?.focus();
+    focusMenu();
   };
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -76,138 +86,130 @@ function ProjectCard({ p, names, onRename, onDelete, onView }: { p: Project; nam
     setError("");
     setMode("idle");
     onRename(name);
-    menuBtn.current?.focus();
+    focusMenu();
   };
 
   const done = p.ready === 100;
   const errId = `${p.id}-rename-err`;
   return (
-    <li className={`fl-brd-proj${done ? " fl-brd-proj--ready" : ""}`} aria-labelledby={`${p.id}-name`}>
-      <div className="fl-brd-proj__banner">
-        <div className="fl-media" role="img" aria-label={p.alt}>
-          <span aria-hidden="true">{p.alt}</span>
+    <li style={{ display: "grid" }}>
+      <Card variant="surface" className={`fl-brd-proj${done ? " fl-brd-proj--ready" : ""}`} role="group" aria-labelledby={`${p.id}-name`}>
+        <div className="fl-brd-proj__banner">
+          <div {...(p.image ? {} : { role: "img", "aria-label": p.alt })}>
+            <MediaFrame ratio="16-9" src={p.image} alt={p.alt} />
+          </div>
+          <Badge look="chip" tone={p.tone} className="fl-brd-proj__status">
+            {p.status}
+          </Badge>
+          <div className="fl-brd-proj__menu" ref={menuBox}>
+            <Menu
+              iconOnly
+              align="end"
+              label={`More for ${p.name}`}
+              menuLabel={`${p.name} actions`}
+              items={[
+                { id: "rename", label: "Rename" },
+                { id: "delete", label: "Delete…", danger: true },
+              ]}
+              onSelect={(id) => setMode(id === "rename" ? "rename" : "delete")}
+            />
+          </div>
         </div>
-        <span className={`fl-brd-chip fl-brd-chip--${p.tone} fl-brd-proj__status`}>{p.status}</span>
-        <div
-          className="fl-brd-proj__menu"
-          onKeyDown={(e) => {
-            if (e.key === "Escape" && menu) {
-              e.stopPropagation();
-              close();
-            }
-          }}
-          onBlur={(e) => {
-            if (menu && !e.currentTarget.contains(e.relatedTarget as Node | null)) close(false);
-          }}
-        >
-          <button ref={menuBtn} type="button" className="fl-brd-iconbtn" aria-haspopup="menu" aria-expanded={menu} aria-controls={`${p.id}-menu`} aria-label={`More for ${p.name}`} onClick={() => setMenu((m) => !m)}>
-            <span aria-hidden="true">⋯</span>
-          </button>
-          {menu ? (
-            <div id={`${p.id}-menu`} className="fl-brd-menu" role="menu" aria-label={`${p.name} actions`}
-              onKeyDown={(e) => {
-                if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
-                e.preventDefault();
-                const items = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>("button"));
-                const i = items.indexOf(document.activeElement as HTMLButtonElement);
-                items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length]?.focus();
-              }}
-            >
-              <button ref={firstItem} type="button" role="menuitem" onClick={() => { close(false); setMode("rename"); }}>
-                Rename
-              </button>
-              <button type="button" role="menuitem" className="fl-brd-menu__danger" onClick={() => { close(false); setMode("delete"); }}>
-                Delete…
-              </button>
+
+        {mode === "rename" ? (
+          <form className="fl-brd-rename" onSubmit={submit} noValidate onKeyDown={(e) => e.key === "Escape" && reset()}>
+            <label className="fl-brd-label" htmlFor={`${p.id}-rename`}>
+              Project name
+            </label>
+            <div className="fl-brd-rename__row">
+              <TextField autoFocus onFocus={(e) => e.currentTarget.select()} id={`${p.id}-rename`} value={draft} onChange={(e) => setDraft(e.target.value)} invalid={!!error} aria-describedby={error ? errId : undefined} maxLength={60} />
+              <Button type="submit" variant="primary" size={32}>
+                Save
+              </Button>
+              <Button variant="secondary" size={32} onClick={reset}>
+                Cancel
+              </Button>
             </div>
-          ) : null}
-        </div>
-      </div>
-
-      {mode === "rename" ? (
-        <form className="fl-brd-rename" onSubmit={submit} noValidate onKeyDown={(e) => e.key === "Escape" && reset()}>
-          <label className="fl-brd-label" htmlFor={`${p.id}-rename`}>
-            Project name
-          </label>
-          <div className="fl-brd-rename__row">
-            <input ref={input} id={`${p.id}-rename`} className="fl-input" value={draft} onChange={(e) => setDraft(e.target.value)} aria-invalid={!!error} aria-describedby={error ? errId : undefined} maxLength={60} />
-            <button type="submit" className="fl-btn fl-btn--primary fl-brd-btn--sm">Save</button>
-            <button type="button" className="fl-btn fl-btn--secondary fl-brd-btn--sm" onClick={reset}>Cancel</button>
+            {error ? <p id={errId} className="fl-brd-error">{error}</p> : null}
+          </form>
+        ) : (
+          <div className="fl-brd-proj__name">
+            <h3 id={`${p.id}-name`}>{p.name}</h3>
+            <span className="fl-brd-mono">{p.type}</span>
           </div>
-          {error ? <p id={errId} className="fl-brd-error">{error}</p> : null}
-        </form>
-      ) : (
-        <div className="fl-brd-proj__name">
-          <h3 id={`${p.id}-name`}>{p.name}</h3>
-          <span className="fl-brd-mono">{p.type}</span>
-        </div>
-      )}
+        )}
 
-      {mode === "delete" ? (
-        <div className="fl-brd-confirm" role="alertdialog" aria-labelledby={`${p.id}-del`} onKeyDown={(e) => e.key === "Escape" && reset()}>
-          <p id={`${p.id}-del`}>
-            <strong>Delete “{p.name}”?</strong> It's removed from this list.
-          </p>
-          <div className="fl-actions" style={{ marginTop: 0, gap: "var(--space-2)" }}>
-            <button type="button" className="fl-btn fl-brd-btn--danger fl-brd-btn--sm" onClick={onDelete}>Delete project</button>
-            <button ref={cancelDel} type="button" className="fl-btn fl-btn--secondary fl-brd-btn--sm" onClick={reset}>Keep it</button>
+        {mode === "delete" ? (
+          <div className="fl-brd-confirm" role="alertdialog" aria-labelledby={`${p.id}-del`} onKeyDown={(e) => e.key === "Escape" && reset()}>
+            <p id={`${p.id}-del`}>
+              <strong>Delete “{p.name}”?</strong> It's removed from this list.
+            </p>
+            <div className="fl-actions" style={{ marginTop: 0, gap: "var(--space-2)" }}>
+              <Button variant="destructive" size={32} onClick={onDelete}>
+                Delete project
+              </Button>
+              <Button variant="secondary" size={32} onClick={reset} autoFocus>
+                Keep it
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="fl-brd-proj__metrics">
+          <div className="fl-brd-metric">
+            <Progress variant="ring" value={p.ready} tone={done ? "success" : "accent"} label={`${p.name}: ${gaugeA} ${p.ready}%`} />
+            <span>
+              <span className="fl-brd-label">{gaugeA}</span>
+              <span className="fl-brd-metric__val">{p.ready}%</span>
+            </span>
+          </div>
+          <div className="fl-brd-metric">
+            <Progress variant="ring" value={p.health} tone={p.health >= 90 ? "success" : "accent"} label={`${p.name}: ${gaugeB} ${p.health} out of 100`} />
+            <span>
+              <span className="fl-brd-label">{gaugeB}</span>
+              <span className="fl-brd-metric__val">{p.health}/100</span>
+            </span>
           </div>
         </div>
-      ) : null}
 
-      <div className="fl-brd-proj__metrics">
-        <div className="fl-brd-metric">
-          <Gauge value={p.ready} ok={done} label={`${p.name}: ${SAMPLE.gaugeA} ${p.ready}%`} />
-          <span>
-            <span className="fl-brd-label">{SAMPLE.gaugeA}</span>
-            <span className="fl-brd-metric__val">{p.ready}%</span>
+        <div className="fl-brd-proj__foot">
+          <span className="fl-meta">
+            Updated <time dateTime={p.updated}>{fmtDate(p.updated)}</time>
           </span>
+          <Button variant="primary" size={32} onClick={onView} aria-label={`View ${p.name}`}>
+            View
+          </Button>
         </div>
-        <div className="fl-brd-metric">
-          <Gauge value={p.health} ok={p.health >= 90} label={`${p.name}: ${SAMPLE.gaugeB} ${p.health} out of 100`} />
-          <span>
-            <span className="fl-brd-label">{SAMPLE.gaugeB}</span>
-            <span className="fl-brd-metric__val">{p.health}/100</span>
-          </span>
-        </div>
-      </div>
-
-      <div className="fl-brd-proj__foot">
-        <span className="fl-meta">
-          Updated <time dateTime={p.updated}>{fmtDate(p.updated)}</time>
-        </span>
-        <button type="button" className="fl-btn fl-btn--primary fl-brd-btn--sm" onClick={onView} aria-label={`View ${p.name}`}>
-          View
-        </button>
-      </div>
+      </Card>
     </li>
   );
 }
 
-export default function CardProject() {
-  const d = SAMPLE;
-  const [projects, setProjects] = useState<Project[]>(d.projects);
+export function ProjectCards({ title, lede, gaugeA, gaugeB, projects: initial, onView, onRename, onDelete }: ProjectCardsProps) {
+  const [projects, setProjects] = useState<ProjectItem[]>(initial);
   const [status, setStatus] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
 
   const rename = (id: string, name: string) => {
     setProjects((ps) => ps.map((p) => (p.id === id ? { ...p, name } : p)));
     setStatus(`Renamed to “${name}”.`);
+    onRename?.(id, name);
   };
-  const remove = (p: Project) => {
+  const remove = (p: ProjectItem) => {
     setProjects((ps) => ps.filter((x) => x.id !== p.id));
     setStatus(`Deleted “${p.name}”.`);
     heading.current?.focus();
+    onDelete?.(p.id);
   };
 
   return (
-    <section className="fl-section" aria-labelledby="card-project-title">
+    <section className="fl-section" aria-labelledby="card-project-title" data-fl="p.project-card">
       <div className="fl-wrap">
         <div className="fl-head">
           <h2 id="card-project-title" ref={heading} tabIndex={-1} className="fl-title">
-            {d.title}
+            {title}
           </h2>
-          <p className="fl-lede">{d.lede}</p>
+          {lede ? <p className="fl-lede">{lede}</p> : null}
         </div>
         <p className="fl-sr" role="status" aria-live="polite">
           {status}
@@ -215,17 +217,40 @@ export default function CardProject() {
         {projects.length ? (
           <ul className="fl-brd-list fl-brd-projects">
             {projects.map((p) => (
-              <ProjectCard key={p.id} p={p} names={projects.map((x) => x.name)} onRename={(n) => rename(p.id, n)} onDelete={() => remove(p)} onView={() => setStatus(`Opening “${p.name}”…`)} />
+              <ProjectCard
+                key={p.id}
+                p={p}
+                gaugeA={gaugeA}
+                gaugeB={gaugeB}
+                names={projects.map((x) => x.name)}
+                onRename={(n) => rename(p.id, n)}
+                onDelete={() => remove(p)}
+                onView={() => {
+                  setStatus(`Opening “${p.name}”…`);
+                  onView?.(p.id);
+                }}
+              />
             ))}
           </ul>
         ) : (
-          <div className="fl-brd-empty">
-            <strong>No projects yet</strong>
-            <p>Start one and it shows up here with how close it is to ready.</p>
-            <button type="button" className="fl-btn fl-btn--primary" onClick={() => { setProjects(d.projects); setStatus("Sample projects restored."); }}>
-              Bring back the samples
-            </button>
-          </div>
+          <EmptyState
+            variant="first-use"
+            icon="folder"
+            title="No projects yet"
+            action={
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setProjects(initial);
+                  setStatus("Sample projects restored.");
+                }}
+              >
+                Bring back the samples
+              </Button>
+            }
+          >
+            Start one and it shows up here with how close it is to ready.
+          </EmptyState>
         )}
         {status && status.startsWith("Opening") ? (
           <p className="fl-note" style={{ marginTop: "var(--space-4)" }} aria-hidden="true">
@@ -235,4 +260,22 @@ export default function CardProject() {
       </div>
     </section>
   );
+}
+
+// flowcode:sample
+const SAMPLE = {
+  title: "Your projects",
+  lede: "Every space you're planning, with how close it is to ready.",
+  gaugeA: "Ready",
+  gaugeB: "Health",
+  projects: [
+    { id: "p1", name: "Kitchen refit", type: "Home renovation", status: "On track", tone: "success", ready: 72, health: 91, updated: "2026-10-06", alt: "Pale oak kitchen with open shelves" },
+    { id: "p2", name: "Garden studio", type: "Outbuilding", status: "Waiting on quote", tone: "warning", ready: 38, health: 77, updated: "2026-10-02", alt: "Small timber studio at the end of a lawn" },
+    { id: "p3", name: "Spare room to office", type: "Room makeover", status: "Ready", tone: "success", ready: 100, health: 96, updated: "2026-09-28", alt: "Bright desk by a window with a plant" },
+    { id: "p4", name: "Bathroom leak", type: "Repair", status: "Blocked", tone: "danger", ready: 15, health: 54, updated: "2026-09-21", alt: "Tiled bathroom with a damp patch on the ceiling" },
+  ] as ProjectItem[],
+};
+
+export default function CardProject() {
+  return <ProjectCards {...SAMPLE} />;
 }

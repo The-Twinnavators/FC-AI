@@ -1,4 +1,9 @@
 /** @flowcode-library data-animated-number · Animated numbers (Charts and data)
+ * Catalog ID: c.animated-number (component)
+ * Function: The animated number (c.animated-number): one count-up figure; the reference sheet shows three of them as headline stats with a refresh that loads the next period.
+ * Use it as: import { AnimatedNumber } from "./data-animated-number"; <AnimatedNumber value={26910} format?={(n) => `${Math.round(n).toLocaleString("en-US")}`} duration?={900} />
+ * Look: A large bold tabular figure that counts up with an ease-out curve when it scrolls into view and recounts when its value changes; screen readers hear only the final value and reduced motion shows it at once.
+ * Tokens: --color-text --font-display --text-2xl --weight-bold --tracking-tight --duration-base --easing
  * Use cases: dashboard headline figures; kpi summary; impact numbers; results section; fundraising totals; period report
  * Jobs to be done: see the headline numbers at a glance; check this period's results; refresh figures for the next period
  * Keywords: stats, count up, kpi, dashboard
@@ -47,8 +52,6 @@ const SAMPLE = {
   ],
 };
 
-const DURATION = 900;
-
 function useReducedMotion() {
   const query = "(prefers-reduced-motion: reduce)";
   const [reduced, setReduced] = useState(() => typeof window !== "undefined" && !!window.matchMedia?.(query).matches);
@@ -62,12 +65,45 @@ function useReducedMotion() {
   return reduced;
 }
 
-const format = (n: number, prefix: string, suffix: string) => `${prefix}${Math.round(n).toLocaleString("en-US")}${suffix}`;
+const defaultFormat = (n: number) => Math.round(n).toLocaleString("en-US");
 
-/** Counts from the last shown value to `value` with an ease-out curve. Screen readers only ever hear the final value. */
-function CountUp({ value, prefix, suffix, active, reduced }: { value: number; prefix: string; suffix: string; active: boolean; reduced: boolean }) {
+/**
+ * c.animated-number: a figure that counts up to `value` with an ease-out curve the first time it scrolls into view,
+ * then from the last shown value whenever `value` changes. Screen readers only hear the final value; reduced motion
+ * shows it straight away. `format` turns the number into text (add a $ or %): it gets the in-between values too.
+ */
+export function AnimatedNumber({ value, format = defaultFormat, duration = 900, className }: {
+  value: number;
+  format?: (n: number) => string;
+  duration?: number;
+  className?: string;
+}) {
+  const reduced = useReducedMotion();
+  const host = useRef<HTMLSpanElement>(null);
+  const [active, setActive] = useState(false);
   const [shown, setShown] = useState(reduced ? value : 0);
   const from = useRef(reduced ? value : 0);
+
+  // Start counting the first time the figure is on screen.
+  useEffect(() => {
+    const el = host.current;
+    if (!el || !("IntersectionObserver" in window)) {
+      setActive(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setActive(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!active) return;
     if (reduced) {
@@ -82,7 +118,7 @@ function CountUp({ value, prefix, suffix, active, reduced }: { value: number; pr
     let raf = 0;
     const tick = (t: number) => {
       if (start < 0) start = t;
-      const p = Math.max(0, Math.min(1, (t - start) / DURATION));
+      const p = Math.max(0, Math.min(1, (t - start) / duration));
       const eased = 1 - Math.pow(1 - p, 3);
       const now = a + (value - a) * eased;
       from.current = now;
@@ -91,14 +127,13 @@ function CountUp({ value, prefix, suffix, active, reduced }: { value: number; pr
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [value, active, reduced]);
+  }, [value, active, reduced, duration]);
+
   return (
-    <>
-      <span className="fl-dat-num" aria-hidden="true">
-        {format(shown, prefix, suffix)}
-      </span>
-      <span className="fl-sr">{format(value, prefix, suffix)}</span>
-    </>
+    <span ref={host} className={["fl-dat-num", className].filter(Boolean).join(" ")} data-fl="c.animated-number">
+      <span aria-hidden="true">{format(shown)}</span>
+      <span className="fl-sr">{format(value)}</span>
+    </span>
   );
 }
 
@@ -120,33 +155,10 @@ function RefreshIcon({ spinning }: { spinning: boolean }) {
 
 export default function DataAnimatedNumber() {
   const d = SAMPLE;
-  const reduced = useReducedMotion();
-  const host = useRef<HTMLElement>(null);
-  const [inView, setInView] = useState(false);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const timer = useRef<number | undefined>(undefined);
-
-  // Start counting the first time the row is on screen.
-  useEffect(() => {
-    const el = host.current;
-    if (!el || !("IntersectionObserver" in window)) {
-      setInView(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setInView(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.3 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
@@ -166,7 +178,7 @@ export default function DataAnimatedNumber() {
   };
 
   return (
-    <section ref={host} className="fl-section" aria-labelledby="data-animated-number-title">
+    <section className="fl-section" aria-labelledby="data-animated-number-title">
       <div className="fl-wrap">
         <div className="fl-dat-bar">
           <div className="fl-head">
@@ -191,7 +203,7 @@ export default function DataAnimatedNumber() {
               <div key={s.label} className="fl-card fl-dat-stat">
                 <dt>{s.label}</dt>
                 <dd>
-                  <CountUp value={s.value} prefix={s.prefix} suffix={s.suffix} active={inView} reduced={reduced} />
+                  <AnimatedNumber value={s.value} format={(n) => `${s.prefix}${defaultFormat(n)}${s.suffix}`} />
                 </dd>
                 <dd className="fl-meta">
                   <span className={`fl-dat-change ${up ? "fl-dat-change--up" : "fl-dat-change--down"}`}>

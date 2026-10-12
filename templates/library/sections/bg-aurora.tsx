@@ -1,14 +1,21 @@
 /** @flowcode-library bg-aurora · Aurora (Page backgrounds)
+ * Catalog ID: c.background.aurora (component)
+ * Function: The aurora page background (c.background.aurora): one standout moment such as a launch hero or sign-up page; implemented in bg-soft.tsx.
+ * Use it as: A ready-to-place c.background.aurora: copy bg-aurora.tsx and replace SAMPLE (FlowCode brings the implementation file with it).
+ * Built from: c.background.aurora
+ * Look: A slowly turning blurred blend of theme colors (still when reduced motion is requested).
  * Use cases: hero background; launch page; ai product landing; creative portfolio; event page; coming soon page
  * Jobs to be done: feel the brand's personality; focus on the main message; notice a launch or announcement
  * Keywords: background, gradient, page background, aurora
  */
 /**
- * Page background: aurora (gradient). A slowly turning, blurred blend of the theme colors (still for people who ask for less motion).
+ * c.background.aurora: the "aurora" variant of the Background component in ./bg-soft.tsx (c.background). Page background: aurora (gradient). A slowly turning, blurred blend of the theme colors (still for people who ask for less motion).
  * Good for: One standout moment: a launch hero or a sign-up page.
- * Use it by adding the class "fl-bg-aurora" to any section, or to the page's outer element. Colors come from the
+ * Use it with <Background variant="aurora"> or by adding the class "fl-bg-aurora" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
+import { Background, BackgroundContent } from "./bg-soft";
+
 // flowcode:sample
 const SAMPLE = {
   eyebrow: "Aurora",
@@ -18,21 +25,9 @@ const SAMPLE = {
 };
 
 export default function BgAurora() {
-  const d = SAMPLE;
   return (
-    <section className="fl-section fl-bg-aurora" aria-labelledby="bg-aurora-title" style={{ paddingBlock: "var(--space-9)" }}>
-      <div className="fl-wrap fl-head fl-head--center" style={{ marginBottom: 0 }}>
-        <span className="fl-eyebrow">{d.eyebrow}</span>
-        <h2 id="bg-aurora-title" className="fl-title">
-          {d.title}
-        </h2>
-        <p className="fl-lede">{d.lede}</p>
-        <div className="fl-actions" style={{ marginTop: "var(--space-3)" }}>
-          <a className="fl-btn fl-btn--primary" href="#start">
-            {d.action}
-          </a>
-        </div>
-      </div>
-    </section>
+    <Background variant="aurora" aria-labelledby="bg-aurora-title">
+      <BackgroundContent id="bg-aurora-title" {...SAMPLE} />
+    </Background>
   );
 }

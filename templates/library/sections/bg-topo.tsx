@@ -1,14 +1,21 @@
 /** @flowcode-library bg-topo · Contour lines (Page backgrounds)
+ * Catalog ID: c.background.topo (component)
+ * Function: The topo page background (c.background.topo): outdoor, maps, travel and exploration products; implemented in bg-soft.tsx.
+ * Use it as: A ready-to-place c.background.topo: copy bg-topo.tsx and replace SAMPLE (FlowCode brings the implementation file with it).
+ * Built from: c.background.topo
+ * Look: Topographic contour lines in the text color.
  * Use cases: outdoor brand site; travel site; maps or location product; adventure booking; hero background; about section
  * Jobs to be done: feel a sense of exploration; focus on the main message; enjoy an outdoorsy, natural feel
  * Keywords: background, pattern, page background, topo
  */
 /**
- * Page background: contour lines (pattern). Topographic contour lines in the text color.
+ * c.background.topo: the "topo" variant of the Background component in ./bg-soft.tsx (c.background). Page background: contour lines (pattern). Topographic contour lines in the text color.
  * Good for: Outdoor, maps, travel and exploration products.
- * Use it by adding the class "fl-bg-topo" to any section, or to the page's outer element. Colors come from the
+ * Use it with <Background variant="topo"> or by adding the class "fl-bg-topo" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
+import { Background, BackgroundContent } from "./bg-soft";
+
 // flowcode:sample
 const SAMPLE = {
   eyebrow: "Contour lines",
@@ -18,21 +25,9 @@ const SAMPLE = {
 };
 
 export default function BgTopo() {
-  const d = SAMPLE;
   return (
-    <section className="fl-section fl-bg-topo" aria-labelledby="bg-topo-title" style={{ paddingBlock: "var(--space-9)" }}>
-      <div className="fl-wrap fl-head fl-head--center" style={{ marginBottom: 0 }}>
-        <span className="fl-eyebrow">{d.eyebrow}</span>
-        <h2 id="bg-topo-title" className="fl-title">
-          {d.title}
-        </h2>
-        <p className="fl-lede">{d.lede}</p>
-        <div className="fl-actions" style={{ marginTop: "var(--space-3)" }}>
-          <a className="fl-btn fl-btn--primary" href="#start">
-            {d.action}
-          </a>
-        </div>
-      </div>
-    </section>
+    <Background variant="topo" aria-labelledby="bg-topo-title">
+      <BackgroundContent id="bg-topo-title" {...SAMPLE} />
+    </Background>
   );
 }

@@ -1,14 +1,21 @@
 /** @flowcode-library bg-waves · Waves (Page backgrounds)
+ * Catalog ID: c.background.waves (component)
+ * Function: The waves page background (c.background.waves): wellness, travel, water or calm brands; implemented in bg-soft.tsx.
+ * Use it as: A ready-to-place c.background.waves: copy bg-waves.tsx and replace SAMPLE (FlowCode brings the implementation file with it).
+ * Built from: c.background.waves
+ * Look: Repeating wave lines in the accent color.
  * Use cases: hero background; travel site; wellness site; music or audio product; landing page section; event page
  * Jobs to be done: feel calm and at ease; focus on the main message; enjoy a relaxed, flowing page
  * Keywords: background, pattern, page background, waves
  */
 /**
- * Page background: waves (pattern). Repeating wave lines in the accent color.
+ * c.background.waves: the "waves" variant of the Background component in ./bg-soft.tsx (c.background). Page background: waves (pattern). Repeating wave lines in the accent color.
  * Good for: Wellness, travel, water or calm brands.
- * Use it by adding the class "fl-bg-waves" to any section, or to the page's outer element. Colors come from the
+ * Use it with <Background variant="waves"> or by adding the class "fl-bg-waves" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
+import { Background, BackgroundContent } from "./bg-soft";
+
 // flowcode:sample
 const SAMPLE = {
   eyebrow: "Waves",
@@ -18,21 +25,9 @@ const SAMPLE = {
 };
 
 export default function BgWaves() {
-  const d = SAMPLE;
   return (
-    <section className="fl-section fl-bg-waves" aria-labelledby="bg-waves-title" style={{ paddingBlock: "var(--space-9)" }}>
-      <div className="fl-wrap fl-head fl-head--center" style={{ marginBottom: 0 }}>
-        <span className="fl-eyebrow">{d.eyebrow}</span>
-        <h2 id="bg-waves-title" className="fl-title">
-          {d.title}
-        </h2>
-        <p className="fl-lede">{d.lede}</p>
-        <div className="fl-actions" style={{ marginTop: "var(--space-3)" }}>
-          <a className="fl-btn fl-btn--primary" href="#start">
-            {d.action}
-          </a>
-        </div>
-      </div>
-    </section>
+    <Background variant="waves" aria-labelledby="bg-waves-title">
+      <BackgroundContent id="bg-waves-title" {...SAMPLE} />
+    </Background>
   );
 }

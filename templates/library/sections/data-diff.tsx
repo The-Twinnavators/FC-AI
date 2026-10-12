@@ -1,4 +1,9 @@
 /** @flowcode-library data-diff · Before and after diff (Charts and data)
+ * Catalog ID: p.diff (pattern)
+ * Function: The diff pattern (p.diff): a line-by-line comparison of two versions; the reference sheet compares two versions of a rules text.
+ * Use it as: import { Diff } from "./data-diff"; <Diff before={string | string[]} after={string | string[]} beforeName?="Current rules" afterName?="New rules" view?="unified"|"split" addedLabel? removedLabel? empty?={{ title, text }} />
+ * Look: A bordered panel with added lines tinted green and removed lines red, line numbers, counts of each, and a switch between one list and side-by-side columns.
+ * Tokens: --color-success --color-danger --color-danger-surface --color-surface --color-surface-sunken --color-border --color-text-muted --font-mono --text-sm --space-2 --space-3 --radius-lg
  * Use cases: version comparison; code review; document changes; change history; contract revisions; config changes; content review
  * Jobs to be done: see what changed between versions; review edits before accepting; compare before and after side by side
  * Keywords: diff, compare, changes, versions
@@ -95,6 +100,7 @@ function toRows(ops: Op[]): [Op | null, Op | null][] {
 }
 
 const SIGN: Record<Kind, string> = { same: " ", add: "+", del: "−" };
+const ROW: Record<Kind, string> = { same: "fl-dat-row--same", add: "fl-dat-row--add", del: "fl-dat-row--del" };
 const SAID: Record<Kind, string> = { same: "", add: "Added: ", del: "Removed: " };
 
 function Line({ op }: { op: Op }) {
@@ -115,7 +121,7 @@ function Side({ op, side }: { op: Op | null; side: "old" | "new" }) {
   if (!op) return <td className="fl-dat-row--blank" />;
   const no = side === "old" ? op.oldNo : op.newNo;
   return (
-    <td className={`fl-dat-row--${op.kind}`}>
+    <td className={ROW[op.kind]}>
       <div className="fl-dat-row fl-dat-row--split">
         <span className="fl-dat-lno" aria-hidden="true">
           {no}
@@ -126,15 +132,108 @@ function Side({ op, side }: { op: Op | null; side: "old" | "new" }) {
   );
 }
 
-export default function DataDiff() {
-  const d = SAMPLE;
-  const [view, setView] = useState("unified");
-  const ops = useMemo(() => diffLines(d.before, d.after), [d.before, d.after]);
+/**
+ * p.diff: a line-by-line comparison of two versions of a text. `before` and `after` are a string (lines split on
+ * newlines) or an array of lines. Added lines are tinted green, removed lines red, with line numbers, a count of each,
+ * and a switch between one unified list and side-by-side columns. Shows `empty` when both versions match.
+ */
+export function Diff({ before, after, beforeName = "Before", afterName = "After", view: initialView = "unified", views = [{ id: "unified", label: "Unified" }, { id: "split", label: "Side by side" }], addedLabel = "added", removedLabel = "removed", empty = { title: "No changes", text: "Both versions are exactly the same." }, className }: {
+  before: string | string[];
+  after: string | string[];
+  beforeName?: string;
+  afterName?: string;
+  view?: "unified" | "split";
+  views?: { id: string; label: string }[];
+  addedLabel?: string;
+  removedLabel?: string;
+  empty?: { title: string; text: string };
+  className?: string;
+}) {
+  const [view, setView] = useState<string>(initialView);
+  const a = Array.isArray(before) ? before.join("\n") : before;
+  const b = Array.isArray(after) ? after.join("\n") : after;
+  const ops = useMemo(() => diffLines(a, b), [a, b]);
   const rows = useMemo(() => toRows(ops), [ops]);
   const added = ops.filter((o) => o.kind === "add").length;
   const removed = ops.filter((o) => o.kind === "del").length;
   const none = added === 0 && removed === 0;
 
+  return (
+    <div className={["fl-dat-panel", className].filter(Boolean).join(" ")} data-fl="p.diff">
+      <div className="fl-dat-chart-head">
+        <p className="fl-dat-diff-summary" style={{ margin: 0 }}>
+          <span className="fl-meta">
+            {beforeName} → {afterName}
+          </span>
+          {!none ? (
+            <>
+              <span className="fl-dat-pill fl-dat-pill--add">
+                {added} {addedLabel}
+              </span>
+              <span className="fl-dat-pill fl-dat-pill--del">
+                {removed} {removedLabel}
+              </span>
+            </>
+          ) : null}
+        </p>
+        {!none ? (
+          <div className="fl-toggle" role="group" aria-label="Diff layout">
+            {views.map((v) => (
+              <button key={v.id} type="button" aria-pressed={view === v.id} onClick={() => setView(v.id)}>
+                {v.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      {none ? (
+        <div className="fl-dat-empty" role="status">
+          <strong>{empty.title}</strong>
+          <p>{empty.text}</p>
+        </div>
+      ) : view === "unified" ? (
+        <div className="fl-dat-diff" role="region" aria-label={`Changes from ${beforeName} to ${afterName}`} tabIndex={0}>
+          <ol>
+            {ops.map((op, k) => (
+              <li key={k} className={`fl-dat-row ${ROW[op.kind]}`}>
+                <span className="fl-dat-lno" aria-hidden="true">
+                  {op.oldNo ?? ""}
+                </span>
+                <span className="fl-dat-lno" aria-hidden="true">
+                  {op.newNo ?? ""}
+                </span>
+                <Line op={op} />
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : (
+        <div className="fl-dat-diff" role="region" aria-label={`${beforeName} and ${afterName} side by side`} tabIndex={0}>
+          <table className="fl-dat-split">
+            <thead>
+              <tr>
+                <th scope="col">{beforeName}</th>
+                <th scope="col">{afterName}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(([l, r], k) => (
+                <tr key={k}>
+                  <Side op={l} side="old" />
+                  <Side op={r} side="new" />
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function DataDiff() {
+  const d = SAMPLE;
   return (
     <section className="fl-section" aria-labelledby="data-diff-title">
       <div className="fl-wrap fl-wrap--narrow">
@@ -145,77 +244,7 @@ export default function DataDiff() {
           </h2>
           <p className="fl-lede">{d.lede}</p>
         </div>
-
-        <div className="fl-dat-panel">
-          <div className="fl-dat-chart-head">
-            <p className="fl-dat-diff-summary" style={{ margin: 0 }}>
-              <span className="fl-meta">
-                {d.beforeName} → {d.afterName}
-              </span>
-              {!none ? (
-                <>
-                  <span className="fl-dat-pill fl-dat-pill--add">
-                    {added} added
-                  </span>
-                  <span className="fl-dat-pill fl-dat-pill--del">
-                    {removed} removed
-                  </span>
-                </>
-              ) : null}
-            </p>
-            {!none ? (
-              <div className="fl-toggle" role="group" aria-label="Diff layout">
-                {d.views.map((v) => (
-                  <button key={v.id} type="button" aria-pressed={view === v.id} onClick={() => setView(v.id)}>
-                    {v.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-
-          {none ? (
-            <div className="fl-dat-empty" role="status">
-              <strong>{d.empty.title}</strong>
-              <p>{d.empty.text}</p>
-            </div>
-          ) : view === "unified" ? (
-            <div className="fl-dat-diff" role="region" aria-label={`Changes from ${d.beforeName} to ${d.afterName}`} tabIndex={0}>
-              <ol>
-                {ops.map((op, k) => (
-                  <li key={k} className={`fl-dat-row fl-dat-row--${op.kind}`}>
-                    <span className="fl-dat-lno" aria-hidden="true">
-                      {op.oldNo ?? ""}
-                    </span>
-                    <span className="fl-dat-lno" aria-hidden="true">
-                      {op.newNo ?? ""}
-                    </span>
-                    <Line op={op} />
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ) : (
-            <div className="fl-dat-diff" role="region" aria-label={`${d.beforeName} and ${d.afterName} side by side`} tabIndex={0}>
-              <table className="fl-dat-split">
-                <thead>
-                  <tr>
-                    <th scope="col">{d.beforeName}</th>
-                    <th scope="col">{d.afterName}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map(([l, r], k) => (
-                    <tr key={k}>
-                      <Side op={l} side="old" />
-                      <Side op={r} side="new" />
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        <Diff before={d.before} after={d.after} beforeName={d.beforeName} afterName={d.afterName} views={d.views} empty={d.empty} />
       </div>
     </section>
   );

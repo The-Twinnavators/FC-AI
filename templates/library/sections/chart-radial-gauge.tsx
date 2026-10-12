@@ -1,4 +1,9 @@
 /** @flowcode-library chart-radial-gauge · Radial gauges (Charts and data)
+ * Catalog ID: c.gauge (component)
+ * Function: The gauge (c.gauge): one radial progress ring in three sizes; the reference sheet shows three rings with notes and buttons to nudge each value.
+ * Use it as: import { Gauge } from "./chart-radial-gauge"; <Gauge value={72} max?={100} label="Completion" tone?="gradient"|"accent"|"success" size?="sm"|"md"|"lg" />
+ * Look: A ring that fills clockwise from the top to value/max with a soft gradient glow and the percentage in the middle; it is an image named by its label and percentage.
+ * Tokens: --color-accent --color-success --color-surface-sunken --color-text --font-sans --text-md --text-lg --text-xl --weight-semibold --duration-base --easing
  * Use cases: goal progress; completion rate; storage usage; fitness goals; budget used; project progress; score display; health metrics
  * Jobs to be done: see how close i am to a goal; check how much is used up; track progress at a glance
  * Keywords: gauge, progress, ring, percentage, chart
@@ -28,10 +33,19 @@ const SAMPLE = {
   notStarted: "Not started yet",
 };
 
-type Size = "sm" | "md" | "lg";
+export type GaugeSize = "sm" | "md" | "lg";
+export type GaugeTone = "gradient" | "accent" | "success";
+type Size = GaugeSize;
 
 const VIEW = 100;
 const STROKE: Record<Size, number> = { sm: 10, md: 9, lg: 8 };
+const SIZE_CLASS: Record<Size, string> = { sm: "fl-dat-gauge--sm", md: "fl-dat-gauge--md", lg: "fl-dat-gauge--lg" };
+// Three gradient stops per tone: the default runs from the accent to the success color.
+const STOPS: Record<GaugeTone, [string, string, string]> = {
+  gradient: ["fl-dat-stop-accent", "fl-dat-stop-mid", "fl-dat-stop-success"],
+  accent: ["fl-dat-stop-accent", "fl-dat-stop-accent", "fl-dat-stop-accent"],
+  success: ["fl-dat-stop-success", "fl-dat-stop-success", "fl-dat-stop-success"],
+};
 
 function useReducedMotion() {
   const query = "(prefers-reduced-motion: reduce)";
@@ -46,12 +60,24 @@ function useReducedMotion() {
   return reduced;
 }
 
-/** One ring. The stroke fills from the top, clockwise, with a gradient from the accent to the success color. */
-function Gauge({ value, label, size, reduced }: { value: number; label: string; size: Size; reduced: boolean }) {
+/**
+ * c.gauge: one ring that fills from the top, clockwise, to value / max, with the percentage in the middle. The fill
+ * animates in and on change (reduced motion jumps). It is an image with the label and percentage as its name.
+ */
+export function Gauge({ value, max = 100, label, tone = "gradient", size = "md", className }: {
+  value: number;
+  max?: number;
+  label: string;
+  tone?: GaugeTone;
+  size?: GaugeSize;
+  className?: string;
+}) {
+  const reduced = useReducedMotion();
+  const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
   const stroke = STROKE[size];
   const r = (VIEW - stroke) / 2;
   const c = 2 * Math.PI * r;
-  const target = Math.max(0, Math.min(100, value)) / 100;
+  const target = pct / 100;
   // Start empty, then fill on the next tick so the ring animates in; changes animate through the CSS transition.
   const [shown, setShown] = useState(reduced ? target : 0);
   useEffect(() => {
@@ -60,14 +86,20 @@ function Gauge({ value, label, size, reduced }: { value: number; label: string; 
     return () => window.clearTimeout(t);
   }, [target, reduced]);
   const id = `fl-dat-g${useId().replace(/:/g, "")}`;
+  const [s0, s1, s2] = STOPS[tone];
   return (
-    <div className={`fl-dat-gauge fl-dat-gauge--${size}`} role="img" aria-label={`${label}: ${Math.round(value)}%`}>
+    <div
+      className={["fl-dat-gauge", SIZE_CLASS[size], className].filter(Boolean).join(" ")}
+      role="img"
+      aria-label={`${label}: ${Math.round(pct)}%`}
+      data-fl="c.gauge"
+    >
       <svg viewBox={`0 0 ${VIEW} ${VIEW}`} aria-hidden="true" focusable="false">
         <defs>
           <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" className="fl-dat-stop-accent" />
-            <stop offset="60%" className="fl-dat-stop-mid" />
-            <stop offset="100%" className="fl-dat-stop-success" />
+            <stop offset="0%" className={s0} />
+            <stop offset="60%" className={s1} />
+            <stop offset="100%" className={s2} />
           </linearGradient>
         </defs>
         <circle className="fl-dat-gauge-track" cx={VIEW / 2} cy={VIEW / 2} r={r} strokeWidth={stroke} />
@@ -81,11 +113,11 @@ function Gauge({ value, label, size, reduced }: { value: number; label: string; 
           strokeDasharray={c}
           strokeDashoffset={c * (1 - shown)}
           transform={`rotate(-90 ${VIEW / 2} ${VIEW / 2})`}
-          opacity={value <= 0 ? 0 : 1}
+          opacity={pct <= 0 ? 0 : 1}
         />
       </svg>
       <span className="fl-dat-gauge-num" aria-hidden="true">
-        {Math.round(value)}%
+        {Math.round(pct)}%
       </span>
     </div>
   );
@@ -98,7 +130,6 @@ const initial = () => Object.fromEntries(SAMPLE.gauges.map((g) => [g.id, g.value
 
 export default function ChartRadialGauge() {
   const d = SAMPLE;
-  const reduced = useReducedMotion();
   const [values, setValues] = useState<Record<string, number>>(initial);
   const [status, setStatus] = useState("");
 
@@ -138,7 +169,7 @@ export default function ChartRadialGauge() {
             const v = values[g.id] ?? 0;
             return (
               <li key={g.id} className="fl-card fl-dat-gauge-card">
-                <Gauge value={v} label={g.label} size={g.size as Size} reduced={reduced} />
+                <Gauge value={v} label={g.label} size={g.size as Size} />
                 <h3 className="fl-dat-gauge-label">{g.label}</h3>
                 <p className="fl-dat-gauge-note">{v === 100 ? d.done : v === 0 ? d.notStarted : noteFor(g.note, v, g.total)}</p>
                 <div className="fl-dat-stepper" role="group" aria-label={`Change ${g.label}`}>

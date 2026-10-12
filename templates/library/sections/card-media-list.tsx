@@ -1,4 +1,10 @@
 /** @flowcode-library card-media-list · Media list cards (Cards)
+ * Catalog ID: p.media-list (pattern)
+ * Function: The media list pattern (p.media-list): listing cards with a save heart that persists in the browser and an All / Saved switch with an empty state; the reference sheet shows three courses.
+ * Use it as: import { MediaList } from "./card-media-list"; <MediaList title eyebrow? storageKey="my-saved" items={[{ id, title, summary, meta: ["6 weeks"], tags: ["Beginner"], alt, image? }]} onSave?={(id, saved) => ...} />
+ * Built from: c.card.surface, c.media-frame, c.chip.static, c.button.tertiary, c.button.secondary, c.empty-state.first-use
+ * Look: A column of wide cards, each with a square picture at the left, a title, summary, a line of facts and small tags, and a heart button at the right that fills red when saved; an All / Saved switch sits above.
+ * Tokens: --color-surface --color-border --color-danger --color-danger-surface --color-text-muted --color-surface-sunken --space-2 --space-4 --space-5 --radius-md --text-lg --text-sm
  * Use cases: listings; property listings; course catalog; event list; recipe list; job listings; saved items; travel destinations; podcast episodes
  * Jobs to be done: browse listings with details; save items to come back to; see only my saved items; find the one that fits me
  * Keywords: list, media, listing, favorites, saved
@@ -9,6 +15,160 @@
  * the app's own: replace SAMPLE with the real items (and real photos with alt text); saved items stay in this browser.
  */
 import { useEffect, useState } from "react";
+import { Button } from "./buttons-variants";
+import { Card } from "./cards-variants";
+import { Chip } from "./chips-tags";
+import { EmptyState } from "./empty-states";
+import { MediaFrame, type MediaArt } from "./media-frames";
+
+// ── p.media-list: wide cards, each a picture, title, summary, details and tags, with a heart to save it and an All/Saved switch. ──
+
+export type MediaListItem = {
+  id: string;
+  title: string;
+  summary: string;
+  /** Short facts: "6 weeks", "$180". */
+  meta: string[];
+  tags: string[];
+  /** Describes the picture (and names it when there is no image). */
+  alt: string;
+  /** Picture address; a gradient picture shows without one. */
+  image?: string;
+};
+
+export type MediaListProps = {
+  eyebrow?: string;
+  title: string;
+  items: MediaListItem[];
+  /** Where saved ids are kept in this browser. */
+  storageKey: string;
+  /** Called when an item is saved or unsaved. */
+  onSave?: (id: string, saved: boolean) => void;
+};
+
+const ART: MediaArt[] = ["a", "b", "c", "d", "e"];
+
+function loadSaved(key: string): string[] {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+export function MediaList({ eyebrow, title, items, storageKey, onSave }: MediaListProps) {
+  const [saved, setSaved] = useState<string[]>(() => loadSaved(storageKey));
+  const [onlySaved, setOnlySaved] = useState(false);
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(saved));
+    } catch {
+      /* storage blocked: keep it in memory */
+    }
+  }, [saved, storageKey]);
+
+  const toggle = (id: string, name: string) => {
+    const isSaved = saved.includes(id);
+    setSaved(isSaved ? saved.filter((s) => s !== id) : [...saved, id]);
+    setStatus(isSaved ? `${name} removed from saved.` : `${name} saved.`);
+    onSave?.(id, !isSaved);
+  };
+
+  const shown = onlySaved ? items.filter((i) => saved.includes(i.id)) : items;
+
+  return (
+    <section className="fl-section" aria-labelledby="card-media-list-title" data-fl="p.media-list">
+      <div className="fl-wrap fl-wrap--narrow">
+        <div className="fl-crd-bar">
+          <div className="fl-head" style={{ marginBottom: 0 }}>
+            {eyebrow ? <span className="fl-eyebrow">{eyebrow}</span> : null}
+            <h2 id="card-media-list-title" className="fl-title fl-title--md">
+              {title}
+            </h2>
+          </div>
+          <div className="fl-toggle" role="group" aria-label="Show">
+            <button type="button" aria-pressed={!onlySaved} onClick={() => setOnlySaved(false)}>
+              All ({items.length})
+            </button>
+            <button type="button" aria-pressed={onlySaved} onClick={() => setOnlySaved(true)}>
+              Saved ({saved.length})
+            </button>
+          </div>
+        </div>
+
+        <p className="fl-sr" aria-live="polite">
+          {status}
+        </p>
+
+        {shown.length === 0 ? (
+          <div role="status">
+            <EmptyState
+              variant="first-use"
+              icon="heart"
+              title="Nothing saved yet"
+              action={
+                <Button variant="secondary" onClick={() => setOnlySaved(false)}>
+                  Show all
+                </Button>
+              }
+            >
+              Tap the heart on an item to keep it here for later.
+            </EmptyState>
+          </div>
+        ) : (
+          <ul className="fl-crd-list" style={{ display: "grid", gap: "var(--space-4)" }}>
+            {shown.map((item, n) => {
+              const isSaved = saved.includes(item.id);
+              return (
+                <li key={item.id} style={{ display: "grid" }}>
+                  <Card variant="surface" className="fl-crd-media">
+                    <div {...(item.image ? {} : { role: "img", "aria-label": item.alt })}>
+                      <MediaFrame ratio="1-1" src={item.image} alt={item.alt} art={ART[n % ART.length]} />
+                    </div>
+                    <div className="fl-crd-media__body">
+                      <h3>{item.title}</h3>
+                      <p className="fl-text">{item.summary}</p>
+                      <p className="fl-crd-media__meta">
+                        {item.meta.map((m) => (
+                          <span key={m}>{m}</span>
+                        ))}
+                      </p>
+                      <ul className="fl-crd-tags" aria-label="Tags">
+                        {item.tags.map((t) => (
+                          <li key={t}>
+                            <Chip variant="static" size={24}>
+                              {t}
+                            </Chip>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Button
+                      variant="tertiary"
+                      size={40}
+                      icon="heart"
+                      iconOnly
+                      className="fl-crd-save"
+                      aria-pressed={isSaved}
+                      aria-label={`Save ${item.title}`}
+                      onClick={() => toggle(item.id, item.title)}
+                    >
+                      Save
+                    </Button>
+                  </Card>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
@@ -43,118 +203,6 @@ const SAMPLE = {
   ],
 };
 
-function HeartIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z" />
-    </svg>
-  );
-}
-
-function loadSaved(key: string): string[] {
-  try {
-    const raw = localStorage.getItem(key);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
 export default function CardMediaList() {
-  const d = SAMPLE;
-  const [saved, setSaved] = useState<string[]>(() => loadSaved(d.storageKey));
-  const [onlySaved, setOnlySaved] = useState(false);
-  const [status, setStatus] = useState("");
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(d.storageKey, JSON.stringify(saved));
-    } catch {
-      /* storage blocked: keep it in memory */
-    }
-  }, [saved, d.storageKey]);
-
-  const toggle = (id: string, title: string) => {
-    const isSaved = saved.includes(id);
-    setSaved(isSaved ? saved.filter((s) => s !== id) : [...saved, id]);
-    setStatus(isSaved ? `${title} removed from saved.` : `${title} saved.`);
-  };
-
-  const shown = onlySaved ? d.items.filter((i) => saved.includes(i.id)) : d.items;
-
-  return (
-    <section className="fl-section" aria-labelledby="card-media-list-title">
-      <div className="fl-wrap fl-wrap--narrow">
-        <div className="fl-crd-bar">
-          <div className="fl-head" style={{ marginBottom: 0 }}>
-            <span className="fl-eyebrow">{d.eyebrow}</span>
-            <h2 id="card-media-list-title" className="fl-title fl-title--md">
-              {d.title}
-            </h2>
-          </div>
-          <div className="fl-toggle" role="group" aria-label="Show">
-            <button type="button" aria-pressed={!onlySaved} onClick={() => setOnlySaved(false)}>
-              All ({d.items.length})
-            </button>
-            <button type="button" aria-pressed={onlySaved} onClick={() => setOnlySaved(true)}>
-              Saved ({saved.length})
-            </button>
-          </div>
-        </div>
-
-        <p className="fl-sr" aria-live="polite">
-          {status}
-        </p>
-
-        {shown.length === 0 ? (
-          <div className="fl-crd-empty" role="status">
-            <strong>Nothing saved yet</strong>
-            <p>Tap the heart on a class to keep it here for later.</p>
-            <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setOnlySaved(false)}>
-              Show all classes
-            </button>
-          </div>
-        ) : (
-          <ul className="fl-crd-list" style={{ display: "grid", gap: "var(--space-4)" }}>
-            {shown.map((item) => {
-              const isSaved = saved.includes(item.id);
-              return (
-                <li key={item.id} className="fl-card fl-crd-media">
-                  <div className="fl-media" role="img" aria-label={item.alt}>
-                    <span aria-hidden="true">{item.alt}</span>
-                  </div>
-                  <div className="fl-crd-media__body">
-                    <h3>{item.title}</h3>
-                    <p className="fl-text">{item.summary}</p>
-                    <p className="fl-crd-media__meta">
-                      {item.meta.map((m) => (
-                        <span key={m}>{m}</span>
-                      ))}
-                    </p>
-                    <ul className="fl-crd-tags" aria-label="Tags">
-                      {item.tags.map((t) => (
-                        <li key={t} className="fl-crd-tag">
-                          {t}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <button
-                    type="button"
-                    className="fl-crd-iconbtn"
-                    aria-pressed={isSaved}
-                    aria-label={`Save ${item.title}`}
-                    onClick={() => toggle(item.id, item.title)}
-                  >
-                    <HeartIcon />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-    </section>
-  );
+  return <MediaList {...SAMPLE} />;
 }

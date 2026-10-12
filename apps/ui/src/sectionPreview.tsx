@@ -19,13 +19,14 @@ const cssClasses = (css: string) => [...new Set([...css.matchAll(/\.(fl-[a-z0-9]
 const params = new URLSearchParams(location.search);
 const id = params.get("id") ?? "";
 const styleId = params.get("style") ?? "";
+const surface = params.get("surface") ?? "";
 
 // Only the category styles this section uses (as a built app gets): parsing all of them in every preview frame made a
 // page of thumbnails slow. backgrounds.css stays, as in a built app.
 const addStyles = (used: string) => {
   const style = document.createElement("style");
   style.textContent = [
-    previewBaseCss(styleId),
+    previewBaseCss(styleId, surface),
     "html,body{margin:0;overflow-x:hidden;background:var(--color-bg);color:var(--color-text);font-family:var(--font-sans);font-size:var(--text-md);-webkit-font-smoothing:antialiased}body{overflow-y:auto}*,*::before,*::after{box-sizing:border-box}",
     baseCss,
     ...Object.keys(categoryCss)

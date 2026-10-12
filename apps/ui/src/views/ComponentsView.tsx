@@ -4,7 +4,7 @@
  * the section's styles never mix with FlowCode's. Read-only: builds copy the sections they need.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, usedBy, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
+import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, STYLE_VIBES, TEMPLATE_VIBES, usedBy, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
 import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
 import { Search } from "lucide-react";
@@ -24,7 +24,7 @@ const key = (id: string) => `../../../../templates/library/sections/${id}.tsx`;
  */
 const PREVIEW_HEIGHT = 760;
 
-function SectionFrame({ id, styleId, title, width }: { id: string; styleId: string; title: string; width: number }) {
+function SectionFrame({ id, look, title, width }: { id: string; look: string; title: string; width: number }) {
   // Until the section has drawn, the frame shows the loading bar (never an empty white box). The page still reports
   // its height; it is what tells us it has drawn, and no longer what sets the frame's size.
   const [ready, setReady] = useState(false);
@@ -36,7 +36,7 @@ function SectionFrame({ id, styleId, title, width }: { id: string; styleId: stri
     addEventListener("message", onMessage);
     return () => removeEventListener("message", onMessage);
   }, [id]);
-  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&style=${encodeURIComponent(styleId)}`, document.baseURI).href;
+  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&${look}`, document.baseURI).href;
   return (
     <div className={`cl-frame-wrap${ready ? "" : " is-loading"}${width ? " cl-frame-wrap--device" : ""}`}>
       {ready ? null : (
@@ -50,7 +50,7 @@ function SectionFrame({ id, styleId, title, width }: { id: string; styleId: stri
 }
 
 /** A tile's picture: the section drawn at desktop width (1280px) and scaled down to fit the tile, not interactive. */
-function SectionThumb({ id, styleId, title }: { id: string; styleId: string; title: string }) {
+function SectionThumb({ id, look, title }: { id: string; look: string; title: string }) {
   const box = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.2);
   // Each thumbnail is a whole page, so it starts only when its tile comes near the screen (the browser's own lazy
@@ -65,7 +65,7 @@ function SectionThumb({ id, styleId, title }: { id: string; styleId: string; tit
     io.observe(el);
     return () => (ro.disconnect(), io.disconnect());
   }, []);
-  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&style=${encodeURIComponent(styleId)}`, document.baseURI).href;
+  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&${look}`, document.baseURI).href;
   return (
     <div ref={box} className="cl-thumb" aria-hidden="true">
       {near ? <iframe className="cl-thumb__frame" title={`${title} thumbnail`} src={src} tabIndex={-1} style={{ transform: `scale(${scale})` }} /> : null}
@@ -84,6 +84,16 @@ export function ComponentsView() {
       return DESIGN_TEMPLATES[0]!.id;
     }
   });
+  // The surface style (outlines, shadows, corners): "" is the chosen style's own, as a build gets it.
+  const [surface, setSurface] = useState(() => {
+    try {
+      const saved = localStorage.getItem("flowcode.componentsSurface") ?? "";
+      return STYLE_VIBES.some((v) => v.id === saved) ? saved : "";
+    } catch {
+      return "";
+    }
+  });
+  const look = `style=${encodeURIComponent(styleId)}${surface ? `&surface=${encodeURIComponent(surface)}` : ""}`;
   const [open, setOpen] = useState<LibrarySection>();
   const [code, setCode] = useState<string>();
   const [showCode, setShowCode] = useState(false);
@@ -91,10 +101,11 @@ export function ComponentsView() {
   useEffect(() => {
     try {
       localStorage.setItem("flowcode.componentsStyle", styleId);
+      localStorage.setItem("flowcode.componentsSurface", surface);
     } catch {
       /* kept for this visit */
     }
-  }, [styleId]);
+  }, [styleId, surface]);
   useEffect(() => {
     setCode(undefined);
     if (open) void sources[key(open.id)]?.().then(setCode);
@@ -143,13 +154,13 @@ export function ComponentsView() {
           <p className="lrc__meta">
             The ready sections FlowCode builds pages from. Each one takes on a project&apos;s colors, fonts, spacing and corners from its design tokens, so the same section fits any style. Pick a style below to see.
           </p>
+          <p className="muted cl-count">
+            {LIBRARY_SECTIONS.length} sections, components and page templates written for FlowCode. Sources and credits are in the Third-party notices.
+          </p>
         </div>
       </header>
 
       <div className="library-grid__bar cl-bar">
-        <p className="muted">
-          {LIBRARY_SECTIONS.length} sections, components and page templates written for FlowCode. Sources and credits are in the Third-party notices.
-        </p>
         <label className="cl-search">
           <Search size={14} aria-hidden="true" />
           <input className="input" type="search" placeholder="Search the library: cart, pricing, dark, table…" aria-label="Search the library" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Escape" && setQ("")} />
@@ -161,6 +172,17 @@ export function ComponentsView() {
             {DESIGN_TEMPLATES.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="cl-style">
+          <span className="muted">Surface</span>
+          <select className="select" value={surface} onChange={(e) => setSurface(e.target.value)}>
+            <option value="">{`The style's own (${STYLE_VIBES.find((v) => v.id === TEMPLATE_VIBES[styleId])?.name ?? "Flat"})`}</option>
+            {STYLE_VIBES.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
               </option>
             ))}
           </select>
@@ -217,7 +239,7 @@ export function ComponentsView() {
           {shown.map((s) => (
             <li key={s.id}>
               <button type="button" className="cl-tile" onClick={() => (setShowCode(false), setOpen(s))} aria-label={`${s.name}: open details`}>
-                <SectionThumb id={s.id} styleId={styleId} title={s.name} />
+                <SectionThumb id={s.id} look={look} title={s.name} />
                 <span className="cl-tile__text">
                   <strong>{s.name}</strong>
                   <span className="muted">{s.description}</span>
@@ -262,7 +284,7 @@ export function ComponentsView() {
               </p>
               <PieceRefs piece={open} />
             </div>
-            {showCode ? <pre className="cl-code">{code ?? "Loading…"}</pre> : <SectionFrame id={open.id} styleId={styleId} title={open.name} width={deviceWidth(device)} />}
+            {showCode ? <pre className="cl-code">{code ?? "Loading…"}</pre> : <SectionFrame id={open.id} look={look} title={open.name} width={deviceWidth(device)} />}
           </div>
         </LibModal>
       ) : null}

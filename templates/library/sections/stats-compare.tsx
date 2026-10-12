@@ -1,4 +1,9 @@
 /** @flowcode-library stats-compare · Stats compared (Charts and data)
+ * Catalog ID: p.stats-compare (pattern)
+ * Function: The stats-compare pattern (p.stats-compare): period-switched metric tiles with change and trend; the reference sheet shows bookings, revenue, cancellations and gift cards.
+ * Use it as: import { StatsCompare } from "./stats-compare"; <StatsCompare title lede? periods={[{ id: "week", label: "Week", previous: "last week" }]} metrics={[{ id, label, format?: "count"|"money", lowerIsBetter?, data: { week: { now, prev, series: number[] } } }]} empty? defaultPeriod? />
+ * Look: A row of stat tiles with a big figure, an up/down/flat percentage pill colored good or bad against the previous period, the previous figure and a small trend line, under a title and a period switch.
+ * Tokens: --color-accent --color-success --color-danger --color-text-muted --color-surface --color-surface-sunken --color-border --font-display --text-2xl --text-xs --space-2 --space-4 --space-5 --radius-lg
  * Use cases: kpi dashboard; metrics overview; sales summary; performance report; business stats; weekly report; admin dashboard
  * Jobs to be done: see how the business is doing; compare this period to the last; spot trends at a glance; track key numbers over time
  * Keywords: stats, kpi, comparison, sparkline, trend, period, dashboard
@@ -9,7 +14,7 @@
  * or report. Make it the app's own: replace SAMPLE with your metrics and series; mark metrics where going down is
  * good with `lowerIsBetter` so the colors read the right way.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 // flowcode:sample
 const SAMPLE = {
@@ -69,7 +74,7 @@ const SAMPLE = {
   empty: "No sales in this period yet.",
 };
 
-type PeriodId = "week" | "month" | "quarter";
+const DELTA: Record<string, string> = { good: "fl-dsp-delta--good", bad: "fl-dsp-delta--bad", flat: "fl-dsp-delta--flat" };
 
 function fmt(n: number, kind: string) {
   return kind === "money" ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : n.toLocaleString();
@@ -95,15 +100,39 @@ const Arrow = ({ dir }: { dir: "up" | "down" | "flat" }) => (
   </svg>
 );
 
-export default function StatsCompare() {
-  const d = SAMPLE;
-  const [period, setPeriod] = useState<PeriodId>("week");
+export type StatsPeriod = { id: string; label: string; previous: string };
+export type StatsFigures = { now: number; prev: number; series: number[] };
+export type StatsMetric = {
+  id: string;
+  label: string;
+  format?: "count" | "money";
+  lowerIsBetter?: boolean;
+  data: Record<string, StatsFigures>;
+};
+
+/**
+ * p.stats-compare: tiles for the numbers that matter, a period switch (week / month / quarter), an arrow and percentage
+ * against the previous period, and a small trend line. Each metric gives its figures per period id in `data`
+ * ({ now, prev, series }). Set `lowerIsBetter` where going down is good so the colors read the right way. An empty
+ * series shows `empty` instead of the trend. It has its own tiles: the catalog has no KPI component yet.
+ */
+export function StatsCompare({ title, lede, periods, metrics, empty = "No data in this period yet.", defaultPeriod, className }: {
+  title: string;
+  lede?: string;
+  periods: StatsPeriod[];
+  metrics: StatsMetric[];
+  empty?: string;
+  defaultPeriod?: string;
+  className?: string;
+}) {
+  const titleId = useId();
+  const [period, setPeriod] = useState(defaultPeriod ?? periods[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
-  const p = d.periods.find((x) => x.id === period)!;
+  const p = periods.find((x) => x.id === period) ?? periods[0];
 
-  function choose(id: PeriodId) {
+  function choose(id: string) {
     if (id === period) return;
     setPeriod(id);
     setLoading(true);
@@ -112,60 +141,70 @@ export default function StatsCompare() {
   }
 
   return (
-    <section className="fl-section" aria-labelledby="stats-compare-title">
-      <div className="fl-wrap">
-        <div className="fl-dsp-toolbar">
-          <div className="fl-head" style={{ marginBottom: 0 }}>
-            <h2 id="stats-compare-title" className="fl-title fl-title--md">
-              {d.title}
-            </h2>
-            <p className="fl-text">{d.lede}</p>
-          </div>
-          <div className="fl-toggle" role="group" aria-label="Period">
-            {d.periods.map((x) => (
-              <button key={x.id} type="button" aria-pressed={period === x.id} onClick={() => choose(x.id as PeriodId)}>
-                {x.label}
-              </button>
-            ))}
-          </div>
+    <div className={className} data-fl="p.stats-compare" role="group" aria-labelledby={titleId}>
+      <div className="fl-dsp-toolbar">
+        <div className="fl-head" style={{ marginBottom: 0 }}>
+          <h2 id={titleId} className="fl-title fl-title--md">
+            {title}
+          </h2>
+          {lede ? <p className="fl-text">{lede}</p> : null}
         </div>
-        <p className="fl-sr" aria-live="polite">
-          {loading ? "Updating" : `Showing this ${p.label.toLowerCase()} against ${p.previous}`}
-        </p>
-        <ul className={`fl-dsp-stats${loading ? " fl-dsp-stats--loading" : ""}`} aria-busy={loading}>
-          {d.metrics.map((m) => {
-            const v = m.data[period];
-            const change = v.prev === 0 ? (v.now === 0 ? 0 : 100) : ((v.now - v.prev) / v.prev) * 100;
-            const dir = Math.abs(change) < 0.5 ? "flat" : change > 0 ? "up" : "down";
-            const good = dir === "flat" ? "flat" : (dir === "up") !== m.lowerIsBetter ? "good" : "bad";
-            const empty = v.series.length === 0;
-            return (
-              <li key={m.id} className="fl-dsp-stat">
-                <p className="fl-dsp-stat__label">{m.label}</p>
-                <p className="fl-dsp-stat__value">
-                  <strong>{fmt(v.now, m.format)}</strong>
-                  {!empty && (
-                    <span className={`fl-dsp-delta fl-dsp-delta--${good}`}>
-                      <Arrow dir={dir} />
-                      <span className="fl-sr">{dir === "flat" ? "No change" : dir === "up" ? "Up" : "Down"}</span>
-                      {dir === "flat" ? "0%" : `${Math.abs(change).toFixed(1)}%`}
-                    </span>
-                  )}
-                </p>
-                {empty ? (
-                  <p className="fl-dsp-stat__prev">{d.empty}</p>
-                ) : (
-                  <>
-                    <p className="fl-dsp-stat__prev">
-                      {fmt(v.prev, m.format)} {p.previous}
-                    </p>
-                    <Spark series={v.series} label={`${m.label} trend this ${p.label.toLowerCase()}: from ${fmt(v.series[0], m.format)} to ${fmt(v.series[v.series.length - 1], m.format)}`} />
-                  </>
+        <div className="fl-toggle" role="group" aria-label="Period">
+          {periods.map((x) => (
+            <button key={x.id} type="button" aria-pressed={period === x.id} onClick={() => choose(x.id)}>
+              {x.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <p className="fl-sr" aria-live="polite">
+        {loading ? "Updating" : `Showing this ${p.label.toLowerCase()} against ${p.previous}`}
+      </p>
+      <ul className={`fl-dsp-stats${loading ? " fl-dsp-stats--loading" : ""}`} aria-busy={loading}>
+        {metrics.map((m) => {
+          const v = m.data[p.id];
+          const kind = m.format ?? "count";
+          const change = v.prev === 0 ? (v.now === 0 ? 0 : 100) : ((v.now - v.prev) / v.prev) * 100;
+          const dir = Math.abs(change) < 0.5 ? "flat" : change > 0 ? "up" : "down";
+          const good = dir === "flat" ? "flat" : (dir === "up") !== !!m.lowerIsBetter ? "good" : "bad";
+          const isEmpty = v.series.length === 0;
+          return (
+            <li key={m.id} className="fl-dsp-stat">
+              <p className="fl-dsp-stat__label">{m.label}</p>
+              <p className="fl-dsp-stat__value">
+                <strong>{fmt(v.now, kind)}</strong>
+                {!isEmpty && (
+                  <span className={`fl-dsp-delta ${DELTA[good]}`}>
+                    <Arrow dir={dir} />
+                    <span className="fl-sr">{dir === "flat" ? "No change" : dir === "up" ? "Up" : "Down"}</span>
+                    {dir === "flat" ? "0%" : `${Math.abs(change).toFixed(1)}%`}
+                  </span>
                 )}
-              </li>
-            );
-          })}
-        </ul>
+              </p>
+              {isEmpty ? (
+                <p className="fl-dsp-stat__prev">{empty}</p>
+              ) : (
+                <>
+                  <p className="fl-dsp-stat__prev">
+                    {fmt(v.prev, kind)} {p.previous}
+                  </p>
+                  <Spark series={v.series} label={`${m.label} trend this ${p.label.toLowerCase()}: from ${fmt(v.series[0], kind)} to ${fmt(v.series[v.series.length - 1], kind)}`} />
+                </>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+export default function StatsCompareSheet() {
+  const d = SAMPLE;
+  return (
+    <section className="fl-section">
+      <div className="fl-wrap">
+        <StatsCompare title={d.title} lede={d.lede} periods={d.periods} metrics={d.metrics as StatsMetric[]} empty={d.empty} />
       </div>
     </section>
   );

@@ -1,14 +1,21 @@
 /** @flowcode-library bg-mesh · Mesh gradient (Page backgrounds)
+ * Catalog ID: c.background.mesh (component)
+ * Function: The mesh page background (c.background.mesh): lively hero sections and landing pages; implemented in bg-soft.tsx.
+ * Use it as: A ready-to-place c.background.mesh: copy bg-mesh.tsx and replace SAMPLE (FlowCode brings the implementation file with it).
+ * Built from: c.background.mesh
+ * Look: Soft color blooms in the corners from the accent, success and focus colors.
  * Use cases: hero background; landing page background; launch page; creative portfolio; product announcement; event page
  * Jobs to be done: feel the brand's personality; notice a launch or announcement; focus on the main message
  * Keywords: background, gradient, page background, mesh
  */
 /**
- * Page background: mesh gradient (gradient). Soft color blooms in the corners from the accent, success and focus colors.
+ * c.background.mesh: the "mesh" variant of the Background component in ./bg-soft.tsx (c.background). Page background: mesh gradient (gradient). Soft color blooms in the corners from the accent, success and focus colors.
  * Good for: Hero sections and landing pages that should feel lively.
- * Use it by adding the class "fl-bg-mesh" to any section, or to the page's outer element. Colors come from the
+ * Use it with <Background variant="mesh"> or by adding the class "fl-bg-mesh" to any section, or to the page's outer element. Colors come from the
  * design tokens, so it follows the app's style. Make it the app's own: keep the class, replace SAMPLE with real content.
  */
+import { Background, BackgroundContent } from "./bg-soft";
+
 // flowcode:sample
 const SAMPLE = {
   eyebrow: "Mesh gradient",
@@ -18,21 +25,9 @@ const SAMPLE = {
 };
 
 export default function BgMesh() {
-  const d = SAMPLE;
   return (
-    <section className="fl-section fl-bg-mesh" aria-labelledby="bg-mesh-title" style={{ paddingBlock: "var(--space-9)" }}>
-      <div className="fl-wrap fl-head fl-head--center" style={{ marginBottom: 0 }}>
-        <span className="fl-eyebrow">{d.eyebrow}</span>
-        <h2 id="bg-mesh-title" className="fl-title">
-          {d.title}
-        </h2>
-        <p className="fl-lede">{d.lede}</p>
-        <div className="fl-actions" style={{ marginTop: "var(--space-3)" }}>
-          <a className="fl-btn fl-btn--primary" href="#start">
-            {d.action}
-          </a>
-        </div>
-      </div>
-    </section>
+    <Background variant="mesh" aria-labelledby="bg-mesh-title">
+      <BackgroundContent id="bg-mesh-title" {...SAMPLE} />
+    </Background>
   );
 }
