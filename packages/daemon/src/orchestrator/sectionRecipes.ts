@@ -16,7 +16,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { LIBRARY_SECTIONS, SECTION_CATEGORIES, type PlanTask } from "@flowcode/contracts";
+import { LIBRARY_SECTIONS, SECTION_CATEGORIES, refsOf, type LibrarySection, type PlanTask } from "@flowcode/contracts";
 import type { PathJail } from "../security/pathJail.js";
 import type { AgentOutcome } from "./agentLoop.js";
 import { screenText, SAMPLE_MARKER } from "./layoutRecipes.js";
@@ -37,7 +37,12 @@ const count = (t: string, re: RegExp) => (t.match(re) ?? []).length;
 const seeded = (seed: string, options: string[]) => options[parseInt(createHash("sha256").update(seed).digest("hex").slice(0, 6), 16) % options.length]!;
 
 /** The sections a spec clearly calls for, with the variant that fits its content, and why. */
-export function pickSections(text: string, seed = ""): SectionPick[] {
+/**
+ * `screenCount`: how many screens the app really has, when known (the screens in App.tsx). Without it the count is not
+ * guessed: counting the words "screen" and "page" in a PRD gave "7 named" for a two-screen app, which got a sidebar it
+ * never used.
+ */
+export function pickSections(text: string, seed = "", screenCount?: number): SectionPick[] {
   const t = screenText(text);
   const picks: SectionPick[] = [];
   const add = (id: string, reason: string) => picks.push({ id, reason });
@@ -54,7 +59,7 @@ export function pickSections(text: string, seed = ""): SectionPick[] {
   }
   // An app (not a website) with several sections gets a side navigation to start from; its kind follows the product.
   if (!pitch) {
-    const screens = count(t, /\b(screens?|pages?|views?|tabs?|sections?)\b/gi);
+    const screens = screenCount ?? 0;
     const tool = has(t, /\b(dashboard|admin|back ?office|workspace|crm|inventory|portal|console|management|manager)\b/i);
     if (tool || screens >= 4) {
       if (has(t, /\b(inbox|messages|mail|email client|chat|conversations|threads)\b/i)) add("sidebar-rail", "An app built around a list of conversations or messages: an icon rail beside a list panel.");
@@ -129,6 +134,82 @@ export function syncedLibraryCss(root: string): string | undefined {
 /** In the app: picked sections as components, every section kept as text for later. */
 export const sectionFile = (id: string) => `src/sections/${id.split("-").map((w) => w[0]!.toUpperCase() + w.slice(1)).join("")}.tsx`;
 export const keptSection = (id: string) => `.flowcode/sections/${id}.tsx.txt`;
+
+/**
+ * The library piece a catalog ID or piece id names: "c.button" or "c.button.primary" (a variant) is the file that
+ * implements the Button; "hero-split" is that file. An ID several pieces share (p.side-nav.app is both the pattern's
+ * variant and the sidebar-app wrapper) resolves to the piece whose own ID it is first, so the implementation comes in.
+ */
+export function catalogPiece(name: string): LibrarySection | undefined {
+  const want = name.trim().replace(/^["'`]|["'`]$/g, "");
+  const exact = LIBRARY_SECTIONS.find((s) => s.ref === want && !s.uses?.includes(want)) ?? LIBRARY_SECTIONS.find((s) => s.id === want);
+  if (exact) return exact;
+  const owner = LIBRARY_SECTIONS.find((s) => refsOf(s).includes(want) && !s.uses?.includes(want));
+  if (owner) return owner;
+  // A variant of something (c.button.huge) or a near miss: its component.
+  const base = want.split(".").slice(0, 2).join(".");
+  return LIBRARY_SECTIONS.find((s) => s.ref === base && !s.uses?.includes(base)) ?? LIBRARY_SECTIONS.find((s) => s.ref === base);
+}
+
+const LEVEL_RANK: Record<string, number> = { p: 0, b: 1, c: 2, t: 3 };
+
+/** Components every interface step gets in its catalog brief: the parts nearly every screen is made of. */
+const CORE_COMPONENTS = ["c.button", "c.text-field", "c.select", "c.checkbox", "c.card", "c.badge", "c.alert", "c.modal", "c.tabs", "c.empty-state", "c.list-row", "c.avatar"];
+
+/** A piece's catalog line for a brief: its ID, then how to use it (the import part left out: add_library_piece gives it). */
+const briefLine = (s: LibrarySection, max: number) => {
+  const use = (s.usage ?? "").replace(/^import \{[^}]*\} from "[^"]+";\s*/, "");
+  const what = use && !use.startsWith("Copy ") && !use.startsWith("A ready-to-place") ? use : (s.description.split(/(?<=\.)\s/)[0] ?? s.description);
+  const text = `- ${s.ref}: ${what}`;
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+};
+
+/**
+ * The FlowCode catalog as an interface step reads it: the core components every screen uses, and the patterns, blocks
+ * and page templates whose words match the step, one line each, so the agent assembles from catalog parts (with
+ * add_library_piece) instead of writing markup. A few thousand characters at most: small local models carry it.
+ */
+export function catalogBrief(stepText: string, maxChars = 3800): string {
+  const words = [...new Set(stepText.toLowerCase().match(/[a-z]{4,}/g) ?? [])];
+  const score = (s: LibrarySection) => {
+    const hay = `${s.name} ${s.tags.join(" ")} ${(s.useCases ?? []).join(" ")} ${(s.jobs ?? []).join(" ")}`.toLowerCase();
+    return words.filter((w) => hay.includes(w)).length;
+  };
+  // One entry per catalog ID: a wrapper that shares a pattern's variant ID (sidebar-app) stands in only if it scores.
+  const own = LIBRARY_SECTIONS.filter((s) => s.ref && !s.uses?.includes(s.ref));
+  const core = CORE_COMPONENTS.map((r) => own.find((s) => s.ref === r)).filter((s): s is LibrarySection => !!s);
+  const ranked = own
+    .filter((s) => !core.includes(s) && !s.ref!.startsWith("tokens."))
+    .map((s) => ({ s, n: score(s) }))
+    .filter((x) => x.n > 0)
+    // Best match first; on a tie a pattern or a section before a whole page template.
+    .sort((a, b) => b.n - a.n || LEVEL_RANK[a.s.ref![0]!]! - LEVEL_RANK[b.s.ref![0]!]!);
+  const pages = ranked.filter((x) => x.s.ref!.startsWith("t.")).slice(0, 2);
+  const parts = ranked.filter((x) => (x.s.ref!.startsWith("p.") || x.s.ref!.startsWith("b.")) || pages.includes(x)).slice(0, 8).map((x) => x.s);
+  const more = ranked.filter((x) => x.s.ref!.startsWith("c.")).slice(0, 3).map((x) => x.s);
+  const head = [
+    "# FlowCode catalog",
+    "Build the interface from these parts, not by hand: call add_library_piece with an ID to put it in the app (it brings what the part is built from and answers with the import line). There is one component per kind: a button is always c.button with a variant, never new button markup. Change the look through the design tokens, never by restyling a part. The app's own kit (src/components/ui) keeps its frame pieces, AppShell, PageHeader, Section, Field and DataState, and the catalog parts go inside them; where both have a part, use the catalog's (c.button, not the kit's Button; c.card, c.badge, c.alert for Notice, c.modal for Dialog, c.empty-state, c.skeleton, c.kpi for Stat), so a screen never mixes two kinds of button.",
+    "",
+    "## Components",
+    ...core.map((s) => briefLine(s, 130)),
+    ...more.map((s) => briefLine(s, 110)),
+  ];
+  const tail = parts.length ? ["", "## Patterns, page sections and page templates that fit this step", ...parts.map((s) => briefLine(s, 190))] : [];
+  let out = [...head, ...tail].join("\n");
+  while (out.length > maxChars && tail.length > 2) {
+    tail.pop();
+    out = [...head, ...tail].join("\n");
+  }
+  return out.slice(0, maxChars);
+}
+
+/** The import line an app uses for a piece once it is in src/sections/ (from its catalog usage line). */
+export function pieceImport(s: LibrarySection): string {
+  const names = /import \{ ([^}]+) \} from/.exec(s.usage ?? "")?.[1]?.trim();
+  const file = path.basename(sectionFile(s.id), ".tsx");
+  return names ? `import { ${names} } from "../sections/${file}";` : `import ${file} from "../sections/${file}";`;
+}
 
 /**
  * A piece and every library piece it imports (a template's blocks, a block's components), as the app gets them: each at

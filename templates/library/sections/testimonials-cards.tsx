@@ -37,7 +37,7 @@ export function TestimonialsCards({ id = "stories", title, quotes }: Testimonial
             <li key={q.name} className="fl-card" style={{ gap: "var(--space-5)" }}>
               <blockquote className="fl-quote">“{q.quote}”</blockquote>
               <div className="fl-person">
-                <Avatar name={q.name} size={48} src={q.photo} decorative />
+                <Avatar name={q.name} size={44} src={q.photo} decorative />
                 <span>
                   <strong>{q.name}</strong>
                   <span>{q.role}</span>

@@ -35,7 +35,7 @@ export function TeamGrid({ eyebrow, title, people }: TeamGridProps) {
         <ul className="fl-grid fl-grid--4" style={{ margin: 0, padding: 0, listStyle: "none" }}>
           {people.map((p) => (
             <li key={p.name} className="fl-card" style={{ textAlign: "center", justifyItems: "center" }}>
-              <Avatar name={p.name} size={64} src={p.photo} decorative />
+              <Avatar name={p.name} size={72} src={p.photo} decorative />
               <h3>{p.name}</h3>
               <span className="fl-eyebrow">{p.role}</span>
               <p className="fl-text">{p.text}</p>

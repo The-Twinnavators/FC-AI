@@ -15,7 +15,7 @@
  * and a newsletter sign-up. Layout adapted from HTML5 UP "Editorial" (html5up.net, CC BY 3.0); keep the credit.
  * Saved stories and sign-ups stay in local storage; nothing is sent.
  * Assembled from: header (inline) > featured story (inline) > section tiles (inline) with c.badge > latest-articles feed
- * (inline) with c.button, c.empty-state > newsletter sign-up (inline) with c.text-field > footer (inline), beside a
+ * (inline) with c.button (save toggles use pressed), c.empty-state > newsletter sign-up (inline) with c.text-field > footer (inline), beside a
  * sidebar (inline) with a c.text-field search. No page block matches this magazine layout, so the sections stay in the
  * template; every button, badge, field and empty state is the catalog component.
  * Make it the app's own: replace SAMPLE with real stories and sections, and point each article link at its page.
@@ -247,7 +247,7 @@ export default function SiteMagazine() {
                           <span className="fl-meta">
                             {a.date} · {a.read}
                           </span>
-                          <Button variant="secondary" size={32} icon="heart" aria-pressed={isSaved} onClick={() => toggleSave(a.title)}>
+                          <Button variant="secondary" size={32} icon="heart" pressed={isSaved} onClick={() => toggleSave(a.title)}>
                             <span>{isSaved ? "Saved" : "Save"}</span>
                             <span className="fl-sr"> “{a.title}”</span>
                           </Button>

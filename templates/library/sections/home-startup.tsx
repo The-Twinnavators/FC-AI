@@ -213,7 +213,7 @@ export default function HomeStartup() {
                       <span>{t.label}</span>
                     </label>
                     <span title={`Assigned to ${t.who}`}>
-                      <Avatar name={t.who} size={24} tone="a" decorative />
+                      <Avatar name={t.who} size={32} tone="a" decorative />
                     </span>
                   </li>
                 ))}
@@ -302,7 +302,7 @@ export default function HomeStartup() {
                 <li key={p.name} style={{ display: "grid" }}>
                   <Card variant="surface">
                     <div className="fl-person">
-                      <Avatar name={p.name} size={48} decorative />
+                      <Avatar name={p.name} size={44} decorative />
                       <span>
                         <strong>{p.name}</strong>
                         <span>{p.role}</span>

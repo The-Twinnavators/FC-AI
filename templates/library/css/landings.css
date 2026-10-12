@@ -261,3 +261,5 @@ input:checked + .fl-ld-option { border-color: var(--color-accent); box-shadow: i
 .fl-ld-guide-table th:first-child, .fl-ld-guide-table thead th:first-child { text-align: left; }
 .fl-ld-guide-table thead th { color: var(--color-text-muted); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; }
 .fl-ld-guide-table tbody tr.is-on { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+/* A c.choice-group under a numbered step title: the group's own legend stays for screen readers only. */
+.fl-ctl-cg.fl-ld-cg > legend { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

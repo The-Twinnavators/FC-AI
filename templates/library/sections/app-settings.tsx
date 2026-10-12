@@ -17,7 +17,7 @@
  * sections, fields, plans and people, and save through the app's own data layer instead of this screen's memory.
  * Assembled from: top bar (inline, c.avatar) > section nav (inline, so it can fold to a tab row on phones) > panels:
  * Profile (c.text-field, c.button, danger zone with c.button.destructive), Notifications (c.switch), Billing (c.radio,
- * c.badge, p.data-table invoices), Team (c.text-field, c.select, c.button, c.avatar, c.badge).
+ * c.badge, p.data-table bare invoices), Team (c.text-field, c.select, c.button, c.avatar, c.badge).
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "./icons";
@@ -417,7 +417,7 @@ export default function AppSettings() {
                 <h3 id="fl-as-st-inv" className="fl-as-h2">
                   Invoices
                 </h3>
-                <DataTable caption="Invoices" columns={invoiceCols} rows={d.invoices} sortable={false} />
+                <DataTable caption="Invoices" columns={invoiceCols} rows={d.invoices} sortable={false} bare />
               </section>
             </div>
           )}

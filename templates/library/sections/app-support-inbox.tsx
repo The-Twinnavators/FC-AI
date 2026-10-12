@@ -164,7 +164,7 @@ export default function AppSupportInbox() {
   const [say, setSay] = useState("");
   const threadEnd = useRef<HTMLDivElement>(null);
   const threadHead = useRef<HTMLHeadingElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  const rowRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const q = query.trim().toLowerCase();
   const inFilter = convos.filter((c) => c.status === filter);
@@ -188,7 +188,7 @@ export default function AppSupportInbox() {
   function back() {
     setView("list");
     const id = selected;
-    window.setTimeout(() => id && listRef.current?.querySelector<HTMLElement>('[aria-current="true"]')?.focus(), 0);
+    window.setTimeout(() => id && rowRefs.current[id]?.querySelector<HTMLElement>("a")?.focus(), 0);
   }
 
   function setStatus(status: string) {
@@ -265,10 +265,13 @@ export default function AppSupportInbox() {
               />
             )
           ) : (
-            <ul ref={listRef} className="fl-as-convos fl-ctl-rows fl-ctl-rows--links">
+            <ul className="fl-as-convos fl-ctl-rows fl-ctl-rows--links">
               {shown.map((c) => (
                 <ListRow
                   key={c.id}
+                  ref={(el) => {
+                    rowRefs.current[c.id] = el;
+                  }}
                   variant="link"
                   lead={<Avatar name={c.name} size={32} decorative />}
                   title={c.name}

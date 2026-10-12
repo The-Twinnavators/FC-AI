@@ -458,9 +458,7 @@ export default function HomeMobileApp() {
           </div>
         </section>
 
-        <div id="hp-app-faq">
-          <FaqAccordion title="Questions before you download" items={d.faqs} />
-        </div>
+        <FaqAccordion id="hp-app-faq" title="Questions before you download" align="center" defaultOpen={[]} items={d.faqs} />
 
         <section className="fl-section fl-bg-ink" id="hp-app-get" aria-labelledby="hp-app-cta-title">
           <div className="fl-wrap fl-wrap--narrow" style={{ display: "grid", gap: "var(--space-5)", justifyItems: "center", textAlign: "center" }}>

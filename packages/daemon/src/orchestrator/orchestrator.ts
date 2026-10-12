@@ -59,7 +59,7 @@ import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
-import { ADD_SECTIONS, SECTION_STEPS, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
+import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
@@ -1276,7 +1276,7 @@ export class Orchestrator {
       const sectionsHere = path.join(jail.root, "src/sections");
       const hasSidebar = fs.existsSync(sectionsHere) && fs.readdirSync(sectionsHere).some((f) => /^Sidebar/.test(f));
       if (labels.length >= 4 && !hasSidebar) {
-        const pick = pickSections(`${run.objective}\n${labels.join(", ")}\n${"screen ".repeat(labels.length)}`, run.id).find((p) => p.id.startsWith("sidebar-"));
+        const pick = pickSections(`${run.objective}\n${labels.join(", ")}`, run.id, labels.length).find((p) => p.id.startsWith("sidebar-"));
         const id = pick?.id ?? "sidebar-app";
         let kept = "";
         try {
@@ -1839,7 +1839,10 @@ export class Orchestrator {
     // Interface work gets the project's reusable parts (cached until its source changes), so agents reuse them.
     const uiWork = skills.some((x) => x.id === "skill.avoid-ai-slop") || /\b(component|page|screen|layout|style|css|button|dialog|modal|form|card|ui)\b/i.test(`${task.title} ${task.objective}`);
     const reuse = uiWork ? scanComponentLibrary(jail).brief : "";
-    const system = rolePrompt + renderSkills(skills) + (reuse ? `\n\n${reuse}` : "");
+    // An app with FlowCode's library gets the catalog too: the parts to assemble screens from, one line each, so the
+    // agent adds a catalog piece instead of writing the markup (a build used the starter kit and nothing from it).
+    const catalog = uiWork && (role === "coder" || role === "debugger") && fs.existsSync(path.join(jail.root, "src/styles/library.css")) ? catalogBrief(`${task.title} ${task.objective}`) : "";
+    const system = rolePrompt + renderSkills(skills) + (reuse ? `\n\n${reuse}` : "") + (catalog ? `\n\n${catalog}` : "");
     // Skills are guidance in the system prompt only. Their checklists used to be added to the step as "manual"
     // criteria that always counted as met: a dozen per step, none checked (Calculator test 1). A step's criteria are its
     // own checks and acceptance tests.

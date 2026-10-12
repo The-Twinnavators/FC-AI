@@ -1,7 +1,7 @@
 /** @flowcode-library hero-split · Split hero (Heroes)
  * Catalog ID: b.hero-split (block)
  * Function: The split hero block (b.hero-split): promise and actions on the left, a product picture on the right.
- * Use it as: import { HeroSplit } from "./hero-split"; <HeroSplit id title lede primary={{label,href}} secondary?={{label,href}} eyebrow? note? list?={string[]} actionsExtra?={ReactNode} media?={{alt,src?}} aside?={ReactNode} /> (aside, e.g. a sign-up form card, replaces the picture column)
+ * Use it as: import { HeroSplit } from "./hero-split"; <HeroSplit id title lede primary?={{label,href}} secondary?={{label,href}} eyebrow? note? list?={string[]} actionsExtra?={ReactNode} media?={{alt,src?}} aside?={ReactNode} /> (aside, e.g. a sign-up form card, replaces the picture column)
  * Built from: c.button.primary, c.button.secondary, c.media-frame
  * Look: Words stacked on the left (small label, display title, lede, two buttons, small print; optionally a short checklist and an extra badge by the buttons) beside a picture on the right. A form card or other content can stand in for the picture.
  * Tokens: --space-3 --space-8 --type-display-size --text-lg --color-accent --color-text-muted --color-border --radius-lg
@@ -29,7 +29,8 @@ export type HeroSplitProps = {
   id: string;
   title: string;
   lede: string;
-  primary: Link;
+  /** The main action. Leave it out when the aside is the call to action (a sign-up form beside the words). */
+  primary?: Link;
   secondary?: Link;
   /** A short label above the title. */
   eyebrow?: string;
@@ -65,17 +66,21 @@ export function HeroSplit({ id, title, lede, primary, secondary, eyebrow, note, 
               ))}
             </ul>
           ) : null}
-          <div className="fl-actions" style={{ marginTop: "var(--space-3)" }}>
-            <Button variant="primary" href={primary.href}>
-              {primary.label}
-            </Button>
-            {secondary ? (
-              <Button variant="secondary" href={secondary.href}>
-                {secondary.label}
-              </Button>
-            ) : null}
-            {actionsExtra}
-          </div>
+          {primary || secondary || actionsExtra ? (
+            <div className="fl-actions" style={{ marginTop: "var(--space-3)" }}>
+              {primary ? (
+                <Button variant="primary" href={primary.href}>
+                  {primary.label}
+                </Button>
+              ) : null}
+              {secondary ? (
+                <Button variant="secondary" href={secondary.href}>
+                  {secondary.label}
+                </Button>
+              ) : null}
+              {actionsExtra}
+            </div>
+          ) : null}
           {note ? <p className="fl-note">{note}</p> : null}
         </div>
         {aside ? (

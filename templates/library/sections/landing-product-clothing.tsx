@@ -1,8 +1,8 @@
 /** @flowcode-library landing-product-clothing · Product page: a garment (Landing pages)
  * Catalog ID: t.landing-product-clothing (template)
- * Function: A garment product page (t.landing-product-clothing) whose size row follows the stock in the chosen colour, with a size-guide dialog and a back-in-stock form. Assembled from: header (inline) > product page (inline) > size guide dialog (inline), using c.button and c.text-field.
+ * Function: A garment product page (t.landing-product-clothing) whose size row follows the stock in the chosen colour, with a size-guide dialog and a back-in-stock form. Assembled from: header (inline) > product page (inline) > size guide dialog (inline), using c.button, c.text-field, c.choice-group and c.quantity.
  * Use it as: Copy landing-product-clothing.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; replace the drawn shirt with photographs and keep the stock table honest.
- * Built from: c.button.primary, c.button.secondary, c.text-field.outlined
+ * Built from: c.button.primary, c.button.secondary, c.text-field.outlined, c.choice-group.swatch, c.quantity
  * Look: A two-column product page: a drawn garment with view thumbnails beside colour and size pickers that know the stock, a buy row, fit notes and a size-guide dialog.
  * Use cases: clothing product page; fashion ecommerce; apparel store; shoes; size and colour picker; direct-to-consumer clothing
  * Jobs to be done: find the size that fits me; see whether my size is left in the colour I want; know how it is cut before I buy; hear when my size is back
@@ -18,9 +18,11 @@
  * Suits clothing, shoes and anything else bought by size. Nothing is sent: adding to the bag updates the count in
  * the header, and the back-in-stock form only says it has your address.
  *
- * Assembled from: header (inline) > product page (inline: gallery, colour and size pickers, buy row, fit notes) > size
- * guide dialog (inline). No block fits a product-detail page, so the layout stays here; the page's own buttons and
- * email field are the catalog's c.button and c.text-field.
+ * Assembled from: header (inline) > product page (inline: gallery, size row, buy row, fit notes; colour picker is
+ * c.choice-group.swatch, quantity is c.quantity) > size guide dialog (inline). No block fits a product-detail page, so
+ * the layout stays here; the size row stays hand-written because a sold-out size must stay choosable (it opens the
+ * back-in-stock form) and show struck through, which c.choice-group's pills cannot do; the page's buttons and email
+ * field are the catalog's c.button and c.text-field.
  *
  * Make it the app's own: replace SAMPLE with the real garment, its colours, its stock per size and its measurements,
  * and use photographs in place of the drawn shirt. Keep the stock table honest - a size shown as available and then
@@ -30,6 +32,8 @@ import { useState } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 import { TextField } from "./text-fields-states";
+import { ChoiceGroup } from "./checkboxes-radios";
+import { Quantity } from "./input-quantity";
 
 // flowcode:sample
 const SAMPLE = {
@@ -203,20 +207,14 @@ export default function LandingProductClothing() {
                 </span>
               </p>
 
-              <fieldset className="fl-ld-opts">
-                <legend>
-                  Colour: <span>{chosen.label}</span>
-                </legend>
-                <div className="fl-ld-optrow">
-                  {d.colors.map((c) => (
-                    <label key={c.id} title={c.label}>
-                      <input type="radio" name="cloth-color" className="fl-sr" checked={c.id === color} onChange={() => pickColor(c.id)} />
-                      <span className="fl-ld-swatch" style={{ background: c.hex }} />
-                      <span className="fl-sr">{c.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              <ChoiceGroup
+                variant="swatch"
+                label={`Colour: ${chosen.label}`}
+                name="cloth-color"
+                options={d.colors.map((c) => ({ value: c.id, label: c.label, color: c.hex }))}
+                value={color}
+                onChange={(v) => pickColor(v as string)}
+              />
 
               <fieldset className="fl-ld-opts">
                 <legend className="fl-ld-sizehead">
@@ -270,15 +268,7 @@ export default function LandingProductClothing() {
                 </form>
               ) : (
                 <div className="fl-ld-buyrow">
-                  <span className="fl-ld-qty">
-                    <Button variant="secondary" aria-label="One fewer" onClick={() => setQty((n) => Math.max(1, n - 1))}>
-                      &minus;
-                    </Button>
-                    <output aria-label="Quantity">{qty}</output>
-                    <Button variant="secondary" aria-label="One more" onClick={() => setQty((n) => Math.min(10, n + 1))}>
-                      +
-                    </Button>
-                  </span>
+                  <Quantity label="Quantity" min={1} max={10} value={qty} onChange={(n) => setQty(n)} />
                   <Button variant="primary" onClick={add}>
                     Add to bag
                   </Button>

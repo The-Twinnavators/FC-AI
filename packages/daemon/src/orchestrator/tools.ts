@@ -20,7 +20,7 @@ import { isRootScratch } from "../quality/cleanupScan.js";
 import { findOpenImage } from "../workspace/openImages.js";
 import { errorFile } from "../quality/verification.js";
 import { screenKey } from "../quality/appWiring.js";
-import { syncedLibraryCss } from "./sectionRecipes.js";
+import { catalogPiece, pieceFiles, pieceImport, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
 import { renderLoopNote } from "./renderLoops.js";
 import { afterEdit, syntaxGuard, testFailureDigest, buildingBlockImports, coverUpEdit, editGuard, nativeInWebApp, toTsPath, removesTokenInUse, workspaceTokenUsage, unredactLines } from "./guards.js";
 
@@ -158,7 +158,8 @@ export function createDispatcher(ctx: DispatchContext) {
   const errorSets: string[] = [];
   /** Edits refused for leaving a file unable to parse, per file in this attempt. */
   const syntaxRefusals = new Map<string, number>();
-  const mutate = async (name: ToolName, args: Record<string, unknown>, toolCallId: string): Promise<ToolExecution> => {
+  // `internal.library`: a write made by add_library_piece itself (never reachable from a model's tool arguments).
+  const mutate = async (name: ToolName, args: Record<string, unknown>, toolCallId: string, internal?: { library?: boolean }): Promise<ToolExecution> => {
     // Scratch files (test results, logs, dumps) don't belong in the project root.
     if (name === "create_file" && typeof args.path === "string" && isRootScratch(args.path))
       return { ok: false, content: `${args.path} looks like scratch output, which doesn't belong in the project. Read test results from run_script's result instead of saving them, and keep notes in your reply.` };
@@ -197,7 +198,10 @@ export function createDispatcher(ctx: DispatchContext) {
     const targets: string[] = name === "move_file" ? [String(args.from), String(args.to)] : name === "copy_file" ? [String(args.to)] : name === "edit_package_manifest" ? ["package.json"] : [String(args.path)];
     // Scope check (FR-A2/§5.5 "agent changes only approved scope").
     // Canonical workspace-relative paths from the jail (also rejects traversal/aliasing before any check).
-    const outOfScope = targets.map((t) => ctx.jail.resolve(t).rel).filter((t) => !inScope(ctx.task, t));
+    // FlowCode's own catalog files, written by add_library_piece itself (the flag is a parameter of this function, not a
+    // tool argument), are in scope: a piece and what it is built from, and only new files under src/sections/.
+    const libraryWrite = name === "create_file" && internal?.library === true && targets.every((t) => ctx.jail.resolve(t).rel.replace(/\\/g, "/").startsWith("src/sections/"));
+    const outOfScope = libraryWrite ? [] : targets.map((t) => ctx.jail.resolve(t).rel).filter((t) => !inScope(ctx.task, t));
     let approved = false;
     if (outOfScope.length) {
       const a = ctx.approvals.request({
@@ -479,6 +483,22 @@ export function createDispatcher(ctx: DispatchContext) {
           const res = await findOpenImage(ctx.jail, { query: String(a.query ?? ""), name: a.name ? String(a.name) : undefined, orientation: a.orientation as "landscape" | "portrait" | "square" | undefined }, ctx.signal, ctx.imageCheck);
           if (res.paths.length) ctx.onPathsChanged(res.paths);
           return { ok: res.ok, content: res.message };
+        }
+        case "add_library_piece": {
+          const piece = catalogPiece(String(a.piece ?? ""));
+          if (!piece) return { ok: false, content: `No catalog piece called "${a.piece}". Use a catalog ID from your instructions (c.button, p.data-table, b.hero-split, t.home-saas) or a piece id.` };
+          // The piece, the pieces it is built from and the shared icons, each at its src/sections/ name. A file already
+          // there stays as it is (the app may have made it its own).
+          const files = [{ rel: "src/sections/icons.tsx", content: fs.readFileSync(path.join(sectionsDir(), "sections", "icons.tsx"), "utf8") }, ...pieceFiles(piece.id)];
+          const added: string[] = [];
+          for (const f of files) {
+            if (fs.existsSync(path.join(ctx.jail.root, f.rel))) continue;
+            const res = await mutate("create_file", { path: f.rel, content: f.content }, `${toolCallId}:${f.rel}`, { library: true });
+            if (!res.ok) return res;
+            added.push(f.rel);
+          }
+          const how = piece.usage ? `\nUse it as: ${piece.usage}` : "";
+          return { ok: true, content: `${piece.ref ?? piece.id} (${piece.name}) is in the app${added.length ? `: added ${added.join(", ")}` : " already"}.\nImport it with: ${pieceImport(piece)}${how}\nFrom a file outside src/screens/, adjust the "../sections/" part of the path. Its styles are in src/styles/library.css; change the look through the design tokens, not by restyling it.` };
         }
         case "create_file":
         case "apply_patch":

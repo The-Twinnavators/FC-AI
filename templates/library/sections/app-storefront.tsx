@@ -2,7 +2,7 @@
  * Catalog ID: t.app-storefront (template)
  * Function: A shop home screen (t.app-storefront) assembled from tabs, a text field, buttons, badges and an empty state around an inline header, promo, product grid and footer.
  * Use it as: Copy app-storefront.tsx (FlowCode brings the components it uses); replace SAMPLE with the shop's own categories, products, promo and footer, and keep the bag in the app's own store.
- * Built from: c.tabs.underline, c.text-field.outlined, c.button.primary, c.button.secondary, c.button.tertiary, c.button.on-accent, c.button.ghost-on-accent, c.badge.status, c.badge.count, c.empty-state.no-results
+ * Built from: c.tabs.underline, c.popover.button, c.quantity, c.text-field.outlined, c.button.primary, c.button.secondary, c.button.tertiary, c.button.on-accent, c.button.ghost-on-accent, c.badge.status, c.empty-state.no-results
  * Look: A shop header with search and a bag panel, a bold accent promo banner, category tabs and a four-column product grid with add-to-bag buttons, then a footer.
  * Use cases: shop home; online store; storefront; product catalog; marketplace home; booking shop; ecommerce app
  * Jobs to be done: browse products by category; search for a product; add items to my bag; find current deals
@@ -14,16 +14,18 @@
  * a footer. Search with no matches shows an empty state with a way back. Use it as the first screen of a small online
  * shop or a booking app that sells extras. Make it the app's own: replace SAMPLE with the shop's real categories,
  * products and promo, and keep the bag in the app's own store instead of this screen's memory.
- * Assembled from: header (inline: brand, links, c.text-field search, bag panel with c.button and c.badge) > promo
+ * Assembled from: header (inline: brand, links, c.text-field search) with the bag as c.popover.button (align end, c.quantity per line, c.button) > promo
  * banner (inline, c.button) > c.tabs (one panel per category) > product grid (inline, c.badge, c.button) > c.empty-state
  * for no matches > footer (inline).
  */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "./buttons-variants";
 import { Badge } from "./badges-status";
 import { TextField } from "./text-fields-states";
 import { Tabs } from "./tabs-variants";
 import { EmptyState } from "./empty-states";
+import { Popover } from "./popovers-menus";
+import { Quantity } from "./input-quantity";
 
 // flowcode:sample
 const SAMPLE = {
@@ -109,23 +111,9 @@ export default function AppStorefront() {
   const [resetKey, setResetKey] = useState(0);
   const [query, setQuery] = useState("");
   const [bag, setBag] = useState<Record<string, number>>({});
-  const [bagOpen, setBagOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [promo, setPromo] = useState(true);
   const [say, setSay] = useState("");
-
-  useEffect(() => {
-    if (!bagOpen) return;
-    document.getElementById("fl-as-sf-bag")?.focus();
-    const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setBagOpen(false);
-        document.getElementById("fl-as-sf-bagbtn")?.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [bagOpen]);
 
   const q = query.trim().toLowerCase();
   const count = Object.values(bag).reduce((n, v) => n + v, 0);
@@ -233,30 +221,12 @@ export default function AppStorefront() {
           <TextField id="fl-as-sf-q" type="search" placeholder={d.searchPlaceholder} value={query} onChange={(e) => setQuery(e.target.value)} />
         </form>
         <div className="fl-as-top__end">
-          <div className="fl-as-pop-wrap">
-            <Button id="fl-as-sf-bagbtn" variant="tertiary" size={40} className="fl-as-bagbtn" style={{ position: "relative" }} aria-expanded={bagOpen} aria-controls="fl-as-sf-bag" onClick={() => setBagOpen((o) => !o)}>
-              <Glyph d={BAG} />
-              <span className="fl-sr">
-                {d.bagLabel}, {count} {count === 1 ? "item" : "items"}
-              </span>
-              <Badge variant="count" count={count} className="fl-as-count" />
-            </Button>
-            {bagOpen && (
-              <div id="fl-as-sf-bag" className="fl-as-pop fl-as-bag" role="dialog" aria-modal="false" aria-labelledby="fl-as-sf-bagtitle" tabIndex={-1}>
+          <Popover label={d.bagLabel} icon="cart" count={count} chevron={false} panelLabel={d.bagTitle} align="end" wide>
+            {(close) => (
+              <>
                 <div className="fl-as-panelhead">
-                  <h2 id="fl-as-sf-bagtitle" className="fl-as-h2">
-                    {d.bagTitle}
-                  </h2>
-                  <Button
-                    variant="tertiary"
-                    size={32}
-                    icon="close"
-                    iconOnly
-                    onClick={() => {
-                      setBagOpen(false);
-                      document.getElementById("fl-as-sf-bagbtn")?.focus();
-                    }}
-                  >
+                  <h2 className="fl-as-h2">{d.bagTitle}</h2>
+                  <Button variant="tertiary" size={32} icon="close" iconOnly onClick={close}>
                     Close bag
                   </Button>
                 </div>
@@ -271,15 +241,7 @@ export default function AppStorefront() {
                             <strong>{p.name}</strong>
                             <span className="fl-meta">{money(p.price * bag[p.id])}</span>
                           </div>
-                          <div className="fl-as-qty" role="group" aria-label={`Quantity of ${p.name}`}>
-                            <Button variant="tertiary" size={24} onClick={() => setQty(p, bag[p.id] - 1)} aria-label={bag[p.id] === 1 ? `${d.remove} ${p.name}` : `One fewer ${p.name}`}>
-                              {"\u2212"}
-                            </Button>
-                            <span aria-live="polite">{bag[p.id]}</span>
-                            <Button variant="tertiary" size={24} onClick={() => setQty(p, bag[p.id] + 1)} aria-label={`One more ${p.name}`}>
-                              +
-                            </Button>
-                          </div>
+                          <Quantity size="sm" label={p.name} value={bag[p.id]} min={0} onChange={(n) => setQty(p, n)} />
                         </li>
                       ))}
                     </ul>
@@ -291,9 +253,9 @@ export default function AppStorefront() {
                     <p className="fl-note">{d.checkoutNote}</p>
                   </>
                 )}
-              </div>
+              </>
             )}
-          </div>
+          </Popover>
           <span className="fl-as-menubtn">
             <Button variant="tertiary" size={40} icon="menu" iconOnly aria-expanded={menuOpen} aria-controls="fl-as-sf-nav" onClick={() => setMenuOpen((o) => !o)}>
               {d.menuLabel}

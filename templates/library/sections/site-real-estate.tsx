@@ -2,7 +2,7 @@
  * Catalog ID: t.site-real-estate (template)
  * Function: The real-estate or letting agency website (t.site-real-estate), assembled inline from its own sections with catalog cards, selects, fields, badges, avatars and buttons; no page block fits its layout.
  * Use it as: Copy site-real-estate.tsx (FlowCode brings the components it uses); replace SAMPLE with the business's own content.
- * Built from: c.card.surface, c.badge.status, c.avatar.person, c.empty-state, c.text-field.outlined, c.select.outlined, c.radio, c.button.primary, c.button.secondary
+ * Built from: c.card.surface, c.badge.status, c.avatar.person, c.empty-state, c.text-field.outlined, c.select.outlined, c.choice-group.pill, c.button.primary, c.button.secondary
  * Look: A real-estate agency page: a hero with a buy/rent search, proof points, listing cards with sort and save, agent cards and a valuation form.
  * Use cases: real estate listings; property search; rental listings; estate agent; letting agency; home valuation; property portal; agent profiles
  * Jobs to be done: find a home in my budget; search homes to buy or rent; save homes i like; get my home valued; find a local agent
@@ -16,9 +16,9 @@
  * valuation requests stay in local storage; nothing is sent.
  * Make it the app's own: replace SAMPLE with real listings, areas and agents; keep only the filters buyers really use.
  * Assembled from: header (inline) > hero with property search (inline) with c.select and c.button > proof points (inline) >
- * listings (inline) with c.card.surface, c.badge, c.button and c.empty-state > agents (inline) with c.card.surface and
- * c.avatar > valuation form (inline) with c.text-field, c.select and c.radio > footer (inline). No page block matches
- * this agency layout, so the sections stay in the template; every button, badge, card, avatar, field, select, radio and
+ * listings (inline) with c.card.surface, c.badge, c.button (save toggles use pressed) and c.empty-state > agents (inline) with c.card.surface and
+ * c.avatar > valuation form (inline) with c.text-field, c.select and the c.choice-group.pill plan choice > footer (inline). No page block matches
+ * this agency layout, so the sections stay in the template; every button, badge, card, avatar, field, select, plan pills and
  * empty state is the catalog component.
  */
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -29,7 +29,7 @@ import { Avatar } from "./avatars-variants";
 import { Card } from "./cards-variants";
 import { TextField } from "./text-fields-states";
 import { Select } from "./dropdowns-states";
-import { Radio } from "./checkboxes-radios";
+import { ChoiceGroup } from "./checkboxes-radios";
 import { EmptyState } from "./empty-states";
 
 // flowcode:sample
@@ -336,7 +336,7 @@ export default function SiteRealEstate() {
                         <a className="fl-link" href="#estate-agents">
                           Arrange a viewing
                         </a>
-                        <Button variant="secondary" size={32} icon="heart" aria-pressed={isSaved} onClick={() => toggleSave(l.id)}>
+                        <Button variant="secondary" size={32} icon="heart" pressed={isSaved} onClick={() => toggleSave(l.id)}>
                           <span>{isSaved ? "Saved" : "Save"}</span>
                           <span className="fl-sr"> {l.title}</span>
                         </Button>
@@ -440,14 +440,7 @@ export default function SiteRealEstate() {
                       <Select id="estate-bedrooms" name="bedrooms" defaultValue="3" options={["1", "2", "3", "4", "5+"]} />
                     </div>
                   </div>
-                  <fieldset className="fl-st-fieldset">
-                    <legend>I'm thinking of</legend>
-                    <div className="fl-st-chips">
-                      {["Selling", "Letting", "Not sure yet"].map((o, i) => (
-                        <Radio key={o} label={o} name="plan" value={o} defaultChecked={i === 0} />
-                      ))}
-                    </div>
-                  </fieldset>
+                  <ChoiceGroup variant="pill" label="I'm thinking of" name="plan" defaultValue="Selling" options={["Selling", "Letting", "Not sure yet"].map((o) => ({ value: o, label: o }))} />
                   <div className="fl-st-row2">
                     <div className="fl-field">
                       <label htmlFor="estate-name">Your name</label>

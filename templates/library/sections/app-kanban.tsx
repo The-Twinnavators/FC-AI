@@ -312,7 +312,7 @@ export default function AppKanban() {
                               <Icon name="clock" /> {card.due}
                             </span>
                             <span className="fl-as-card__moves">
-                              <Button variant="tertiary" size={24} icon="arrow" iconOnly style={{ transform: "scaleX(-1)" }} disabled={ci === 0} onClick={() => step(card, -1)}>
+                              <Button variant="tertiary" size={24} icon="arrow-left" iconOnly disabled={ci === 0} onClick={() => step(card, -1)}>
                                 {`Move “${card.title}” to ${d.columns[ci - 1]?.title ?? "previous column"}`}
                               </Button>
                               <Button variant="tertiary" size={24} icon="arrow" iconOnly disabled={ci === d.columns.length - 1} onClick={() => step(card, 1)}>

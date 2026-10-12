@@ -2,7 +2,7 @@
  * Catalog ID: t.app-analytics (template)
  * Function: An analytics dashboard screen (t.app-analytics) assembled from the app top nav, KPI cards, the area chart, the data table and progress bars, with loading and empty states.
  * Use it as: Copy app-analytics.tsx (FlowCode brings the patterns and components it uses); replace SAMPLE with the app's own metrics, date ranges, pages and traffic sources, and load the numbers from the app's data.
- * Built from: p.top-nav.app, c.kpi, c.area-chart, p.data-table, c.progress.bar, c.empty-state.no-results, c.button.primary
+ * Built from: p.top-nav.app, c.segmented.toggle, c.kpi, c.area-chart, p.data-table, c.progress.bar, c.empty-state.no-results, c.button.primary
  * Look: A top bar with page links, a date-range switch, four KPI tiles, a smooth area chart with a hover tooltip, a sortable top-pages table beside a bar list of traffic sources.
  * Use cases: analytics dashboard; website analytics; traffic report; kpi dashboard; reporting; metrics overview; marketing dashboard; admin home
  * Jobs to be done: see how my site is performing; compare traffic across date ranges; find my top pages; see where visitors come from
@@ -14,7 +14,7 @@
  * of top pages and a bar list of traffic sources. Changing the range shows a loading state; a range with no visits
  * shows an empty state. Use it as the home screen of a reporting or back-office app. Make it the app's own: replace
  * SAMPLE with the app's real metrics, ranges and pages, and load the numbers from the app's data instead of SAMPLE.
- * Assembled from: p.top-nav.app > date range toggle (inline) > c.kpi x4 > c.area-chart > p.data-table (top pages) +
+ * Assembled from: p.top-nav.app > c.segmented.toggle (date range) > c.kpi x4 > c.area-chart > p.data-table bare (top pages) +
  * sources bars (inline, each bar is c.progress.bar). The empty state is c.empty-state with a c.button.
  */
 import { useEffect, useRef, useState } from "react";
@@ -25,6 +25,7 @@ import { AreaChart } from "./chart-area";
 import { DataTable, type TableColumn } from "./tables-states";
 import { EmptyState } from "./empty-states";
 import { Progress } from "./progress-indicators";
+import { Segmented } from "./segmented-control";
 
 // flowcode:sample
 const SAMPLE = {
@@ -206,13 +207,7 @@ export default function AppAnalytics() {
             <p className="fl-eyebrow">{page}</p>
             <h1 className="fl-as-h1">{d.screen}</h1>
           </div>
-          <div className="fl-toggle fl-as-range" role="group" aria-label={d.rangeLabel}>
-            {d.ranges.map((r) => (
-              <button key={r.id} type="button" aria-pressed={range === r.id} onClick={() => pickRange(r.id)}>
-                {r.label}
-              </button>
-            ))}
-          </div>
+          <Segmented variant="toggle" className="fl-as-range" label={d.rangeLabel} options={d.ranges.map((r) => ({ value: r.id, label: r.label }))} value={range} onChange={pickRange} />
         </div>
 
         <p className="fl-sr" aria-live="polite">
@@ -265,7 +260,7 @@ export default function AppAnalytics() {
                     {d.pagesTitle}
                   </h2>
                 </div>
-                <DataTable caption={`${d.pagesTitle}, ${meta.label}. Column headers sort the table.`} columns={cols} rows={rows} defaultSort={{ col: "views", up: false }} />
+                <DataTable caption={`${d.pagesTitle}, ${meta.label}. Column headers sort the table.`} columns={cols} rows={rows} bare defaultSort={{ col: "views", up: false }} />
               </section>
 
               <section className="fl-as-panel" aria-labelledby="fl-as-an-sources">

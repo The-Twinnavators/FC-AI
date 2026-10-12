@@ -2,7 +2,7 @@
  * Catalog ID: t.site-event (template)
  * Function: A one-page conference site (t.site-event) with a schedule in day tabs and a saved My agenda, keynote and line-up speakers, a ticket picker that holds a reservation, and travel information; it is assembled inline from catalog components because no block matches its sections.
  * Use it as: Copy site-event.tsx (FlowCode brings the components it uses); replace SAMPLE with the event's days, sessions, speakers and ticket types; connect the ticket reservation to the real checkout (it takes no payment as shipped); keep the credit to HTML5 UP.
- * Built from: c.button.primary, c.button.secondary, c.badge.status, c.avatar.person, c.card.surface, c.radio, c.accordion.bordered, c.empty-state.first-use
+ * Built from: c.button.primary, c.button.secondary, c.badge.status, c.avatar.person, c.card.surface, c.radio, c.accordion.bordered, c.empty-state.first-use, c.tabs.underline, c.quantity, c.button.tertiary
  * Look: A mesh-backed hero with the date and venue beside a ticket drawing, a tinted figures band, day tabs with a saved agenda, speaker spotlights, ticket choices with a quantity picker and travel cards.
  * Use cases: conference website; event schedule; agenda; speaker lineup; event tickets; summit; festival; meetup
  * Jobs to be done: plan which sessions to attend; see who is speaking; buy tickets for the event; find out how to get there
@@ -19,17 +19,19 @@
  */
 /**
  * Assembled from: nav (inline) > hero with the ticket picture (inline) > statement band with figures (inline) > schedule
- * tabs with My agenda (inline) > speakers (inline) > tickets with a quantity picker (inline) > travel cards (inline,
+ * tabs with My agenda (c.tabs, star toggles are c.button pressed) > speakers (inline) > tickets with a quantity picker (c.quantity) > travel cards (inline,
  * c.card.surface) + c.accordion > footer (inline). Every button is c.button, keynote and sold-out labels are c.badge,
  * the line-up faces are c.avatar, ticket choices are c.radio, the empty agenda is c.empty-state.
  */
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 import { Badge } from "./badges-status";
 import { Avatar } from "./avatars-variants";
 import { Card } from "./cards-variants";
 import { Radio } from "./checkboxes-radios";
+import { Tabs } from "./tabs-variants";
+import { Quantity } from "./input-quantity";
 import { Accordion } from "./accordion-variants";
 import { EmptyState } from "./empty-states";
 
@@ -146,9 +148,7 @@ const STORE = "ev-agenda";
 export default function SiteEvent() {
   const d = SAMPLE;
   const [menuOpen, setMenuOpen] = useState(false);
-  const tabs = [...d.schedule.days.map((x) => ({ id: x.id, label: x.label, sub: x.date })), { id: "mine", label: "My agenda", sub: "" }];
-  const [tab, setTab] = useState(tabs[0].id);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [tab, setTab] = useState(d.schedule.days[0].id);
   const [saved, setSaved] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem(STORE) ?? "[]") as string[];
@@ -171,20 +171,62 @@ export default function SiteEvent() {
   const qtyClamped = Math.min(qty, chosen.max);
 
   const toggleSave = (id: string) => setSaved((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
-  const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-    let n = -1;
-    if (e.key === "ArrowRight") n = (i + 1) % tabs.length;
-    if (e.key === "ArrowLeft") n = (i - 1 + tabs.length) % tabs.length;
-    if (e.key === "Home") n = 0;
-    if (e.key === "End") n = tabs.length - 1;
-    if (n < 0) return;
-    e.preventDefault();
-    setTab(tabs[n].id);
-    tabRefs.current[n]?.focus();
-  };
-
   const all: (Session & { day: string })[] = d.schedule.days.flatMap((x) => x.sessions.map((s) => ({ ...s, day: x.date })));
   const list = tab === "mine" ? all.filter((s) => saved.includes(s.id)) : all.filter((s) => s.id.startsWith(tab + "-"));
+  const agenda = (
+    <>
+      {list.length === 0 ? (
+        <EmptyState
+          variant="first-use"
+          title="Your agenda is empty."
+          action={
+            <Button variant="secondary" onClick={() => setTab("d1")}>
+              Browse Day 1
+            </Button>
+          }
+        >
+          Star sessions on Day 1 or Day 2 and they'll appear here, in time order.
+        </EmptyState>
+      ) : (
+        <ol className="fl-st2-agenda">
+          {list.map((s) => {
+            const isSaved = saved.includes(s.id);
+            return (
+              <li key={s.id} className={s.kind === "break" ? "fl-st2-slot fl-st2-slot--break" : "fl-st2-slot"}>
+                <time>
+                  {tab === "mine" ? `${s.day.slice(0, 3)} ` : ""}
+                  {s.time}
+                </time>
+                <div>
+                  <h3>{s.title}</h3>
+                  <span className="fl-meta">
+                    {s.speaker ? `${s.speaker} · ` : ""}
+                    {s.track}
+                  </span>
+                </div>
+                {s.kind === "talk" ? (
+                  <Button
+                    variant="tertiary"
+                    size={40}
+                    icon="star"
+                    iconOnly
+                    pressed={isSaved}
+                    aria-label={`${isSaved ? "Remove" : "Save"} “${s.title}” ${isSaved ? "from" : "to"} My agenda`}
+                    onClick={() => toggleSave(s.id)}
+                  />
+                ) : (
+                  <span />
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+        <p className="fl-sr" aria-live="polite">
+        {saved.length} sessions in My agenda
+      </p>
+    </>
+  );
   const reserve = () => {
     const ref = `FW27-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
     setHeld({ ref, name: chosen.name, qty: qtyClamped, total: chosen.price * qtyClamped });
@@ -295,76 +337,18 @@ export default function SiteEvent() {
               </h2>
               <p className="fl-lede">{d.schedule.lede}</p>
             </div>
-            <div className="fl-st2-tablist" role="tablist" aria-label="Schedule days">
-              {tabs.map((t, i) => (
-                <button
-                  key={t.id}
-                  ref={(el) => {
-                    tabRefs.current[i] = el;
-                  }}
-                  type="button"
-                  role="tab"
-                  id={`ev-tab-${t.id}`}
-                  aria-selected={tab === t.id}
-                  aria-controls="ev-panel"
-                  tabIndex={tab === t.id ? 0 : -1}
-                  className="fl-st2-tabbtn"
-                  onClick={() => setTab(t.id)}
-                  onKeyDown={(e) => onTabKey(e, i)}
-                >
-                  {t.label}
-                  <small>{t.id === "mine" ? `${saved.length} saved` : t.sub}</small>
-                </button>
-              ))}
-            </div>
-            <div id="ev-panel" role="tabpanel" aria-labelledby={`ev-tab-${tab}`} tabIndex={0}>
-              {list.length === 0 ? (
-                <EmptyState
-                  variant="first-use"
-                  title="Your agenda is empty."
-                  action={
-                    <Button variant="secondary" onClick={() => setTab("d1")}>
-                      Browse Day 1
-                    </Button>
-                  }
-                >
-                  Star sessions on Day 1 or Day 2 and they'll appear here, in time order.
-                </EmptyState>
-              ) : (
-                <ol className="fl-st2-agenda">
-                  {list.map((s) => {
-                    const isSaved = saved.includes(s.id);
-                    return (
-                      <li key={s.id} className={s.kind === "break" ? "fl-st2-slot fl-st2-slot--break" : "fl-st2-slot"}>
-                        <time>
-                          {tab === "mine" ? `${s.day.slice(0, 3)} ` : ""}
-                          {s.time}
-                        </time>
-                        <div>
-                          <h3>{s.title}</h3>
-                          <span className="fl-meta">
-                            {s.speaker ? `${s.speaker} · ` : ""}
-                            {s.track}
-                          </span>
-                        </div>
-                        {s.kind === "talk" ? (
-                          <button type="button" className="fl-st2-save" aria-pressed={isSaved} aria-label={`${isSaved ? "Remove" : "Save"} “${s.title}” ${isSaved ? "from" : "to"} My agenda`} onClick={() => toggleSave(s.id)}>
-                            <svg viewBox="0 0 24 24" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.75} strokeLinejoin="round" aria-hidden="true">
-                              <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
-                            </svg>
-                          </button>
-                        ) : (
-                          <span />
-                        )}
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-              <p className="fl-sr" aria-live="polite">
-                {saved.length} sessions in My agenda
-              </p>
-            </div>
+            <Tabs
+              label="Schedule days"
+              value={tab}
+              onChange={setTab}
+              tabs={[
+                ...d.schedule.days.map((x) => ({ id: x.id, label: `${x.label} · ${x.date}` })),
+                { id: "mine", label: "My agenda", count: saved.length },
+              ].map((t) => ({
+                ...t,
+                panel: t.id === tab ? agenda : null,
+              }))}
+            />
           </div>
         </section>
 
@@ -400,7 +384,7 @@ export default function SiteEvent() {
             <ul className="fl-grid fl-grid--3" style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {d.speakers.others.map((p) => (
                 <li key={p.name} className="fl-person">
-                  <Avatar name={p.name} label={p.initials} size={48} decorative />
+                  <Avatar name={p.name} label={p.initials} size={44} decorative />
                   <span>
                     <strong>{p.name}</strong>
                     <span>{p.role}</span>
@@ -448,18 +432,7 @@ export default function SiteEvent() {
                   </fieldset>
                   <div className="fl-st2-checkout">
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", flexWrap: "wrap" }}>
-                      <span id="ev-qty-label" style={{ fontWeight: "var(--weight-semibold)" }}>
-                        Quantity
-                      </span>
-                      <div className="fl-st2-stepper" role="group" aria-labelledby="ev-qty-label">
-                        <button type="button" aria-label="One fewer" disabled={qtyClamped <= 1} onClick={() => setQty(Math.max(1, qtyClamped - 1))}>
-                          −
-                        </button>
-                        <output aria-live="polite">{qtyClamped}</output>
-                        <button type="button" aria-label="One more" disabled={qtyClamped >= chosen.max} onClick={() => setQty(Math.min(chosen.max, qtyClamped + 1))}>
-                          +
-                        </button>
-                      </div>
+                      <Quantity label="Ticket" value={qtyClamped} min={1} max={chosen.max} onChange={(v) => setQty(v)} />
                       {chosen.max === 1 ? <span className="fl-meta">One student ticket per person</span> : null}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--space-5)", flexWrap: "wrap" }}>

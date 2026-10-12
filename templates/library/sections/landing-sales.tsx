@@ -1,8 +1,8 @@
 /** @flowcode-library landing-sales · Long-form sales page (Landing pages)
  * Catalog ID: t.landing-sales (template)
- * Function: A long-form sales page (t.landing-sales) for one course or product. Assembled from: sticky header (inline) > hero (inline) > problem and before/after (inline) > curriculum accordion (inline) > price card (inline) > guarantee (inline) > b.faq-accordion > b.cta-banner > footer (inline).
+ * Function: A long-form sales page (t.landing-sales) for one course or product. Assembled from: sticky header (inline) > hero (inline) > problem and before/after (inline) > curriculum c.accordion > price card (inline, c.segmented toggle) > guarantee (inline) > b.faq-accordion > b.cta-banner > footer (inline).
  * Use it as: Copy landing-sales.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; cut any section the offer cannot honestly fill.
- * Built from: b.faq-accordion, b.cta-banner, c.accordion.bordered, c.button.primary, c.button.secondary, c.button.on-accent, c.text-field.outlined, c.badge.status, c.card.surface, c.avatar
+ * Built from: b.faq-accordion, b.cta-banner, c.accordion.bordered, c.segmented.toggle, c.button.primary, c.button.secondary, c.button.on-accent, c.text-field.outlined, c.badge.status, c.card.surface, c.avatar
  * Look: A reading-width column from problem to outcome, a week-by-week curriculum, a price card with a pay-once or three-payments switch, a guarantee, FAQ and a closing banner.
  * Use cases: sales page; online course; coaching program; workshop sales; digital product; course enrolment; membership offer; ebook sales
  * Jobs to be done: decide if the course is right for me; see what i will learn each week; choose how to pay; enrol in the course; get my questions answered before buying
@@ -16,8 +16,8 @@
  * sent. Make it the app's own: replace SAMPLE with the real offer, keep the section order, and cut any section the
  * offer can't honestly fill.
  *
- * Assembled from: sticky header (inline) > hero (inline) > problem and before/after (inline) > curriculum accordion
- * (inline) > price card (inline) > guarantee (inline) > b.faq-accordion > b.cta-banner > footer (inline). Buttons are
+ * Assembled from: sticky header (inline) > hero (inline) > problem and before/after (inline) > curriculum c.accordion
+ * > price card (inline, c.segmented toggle) > guarantee (inline) > b.faq-accordion > b.cta-banner > footer (inline). Buttons are
  * c.button, the enrol field c.text-field, tags c.badge, panels c.card, the tutor c.avatar.
  */
 import { useState, type FormEvent } from "react";
@@ -27,6 +27,8 @@ import { Badge } from "./badges-status";
 import { Card } from "./cards-variants";
 import { Avatar } from "./avatars-variants";
 import { TextField } from "./text-fields-states";
+import { Accordion } from "./accordion-variants";
+import { Segmented } from "./segmented-control";
 import { FaqAccordion } from "./faq-accordion";
 import { CtaBanner } from "./cta-banner";
 
@@ -84,14 +86,6 @@ const SAMPLE = {
   footer: { copy: "© 2026 Ledger & Loom", links: [{ label: "Terms", href: "#terms" }, { label: "Refund policy", href: "#refunds" }, { label: "Contact", href: "#contact" }] },
 };
 
-function Chevron() {
-  return (
-    <svg className="fl-ld-module__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-}
-
 function Cross() {
   return (
     <span className="fl-ld-x" aria-hidden="true">
@@ -114,7 +108,6 @@ function Seal() {
 
 export default function LandingSales() {
   const d = SAMPLE;
-  const [openWeek, setOpenWeek] = useState<string | null>(d.modules[0].week);
   const [plan, setPlan] = useState<"full" | "split">("full");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -219,33 +212,24 @@ export default function LandingSales() {
                 {d.modulesTitle}
               </h2>
             </div>
-            <ol className="fl-ld-modules">
-              {d.modules.map((m) => {
-                const open = openWeek === m.week;
-                const id = `ld-sales-${m.week.replace(/\s/g, "-").toLowerCase()}`;
-                return (
-                  <li key={m.week} className="fl-ld-module">
-                    <h3>
-                      <button type="button" className="fl-ld-module__btn" aria-expanded={open} aria-controls={id} onClick={() => setOpenWeek(open ? null : m.week)}>
-                        <span className="fl-ld-module__week">{m.week}</span>
-                        <span>{m.title}</span>
-                        <Chevron />
-                      </button>
-                    </h3>
-                    {open ? (
-                      <div className="fl-ld-module__panel" id={id}>
-                        {m.text}
-                        <ul>
-                          {m.lessons.map((l) => (
-                            <li key={l}>{l}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ol>
+            <Accordion
+              variant="bordered"
+              defaultOpen={[0]}
+              items={d.modules.map((m) => ({
+                q: `${m.week}: ${m.title}`,
+                meta: `${m.lessons.length} lessons`,
+                a: (
+                  <>
+                    <p>{m.text}</p>
+                    <ul>
+                      {m.lessons.map((l) => (
+                        <li key={l}>{l}</li>
+                      ))}
+                    </ul>
+                  </>
+                ),
+              }))}
+            />
             <Card variant="surface" style={{ marginTop: "var(--space-6)" }}>
               <h3>Also included</h3>
               <ul className="fl-checks fl-grid fl-grid--2" style={{ gap: "var(--space-3)" }}>
@@ -268,13 +252,16 @@ export default function LandingSales() {
               <h2 id="ld-sales-price" className="fl-title">
                 {d.price.title}
               </h2>
-              <div className="fl-toggle" role="group" aria-label="Payment option">
-                {(["full", "split"] as const).map((k) => (
-                  <button key={k} type="button" aria-pressed={plan === k} onClick={() => setPlan(k)}>
-                    {d.price[k].label}
-                  </button>
-                ))}
-              </div>
+              <Segmented
+                variant="toggle"
+                label="Payment option"
+                value={plan}
+                onChange={(v) => setPlan(v === "split" ? "split" : "full")}
+                options={[
+                  { value: "full", label: d.price.full.label },
+                  { value: "split", label: d.price.split.label },
+                ]}
+              />
               <div aria-live="polite" style={{ display: "grid", gap: "var(--space-2)" }}>
                 <div className="fl-ld-bigprice">
                   {plan === "full" ? <s>{d.price.full.was}</s> : null}

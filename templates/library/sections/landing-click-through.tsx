@@ -1,6 +1,6 @@
 /** @flowcode-library landing-click-through · Click-through page (Landing pages)
  * Catalog ID: t.landing-click-through (template)
- * Function: A click-through landing page (t.landing-click-through) that warms visitors up for one sign-up. Assembled from: header and hero (inline) > customers strip (inline) > benefit cards (c.card) > calculator (c.slider) > quote carousel (inline, c.avatar) > sign-up band (inline).
+ * Function: A click-through landing page (t.landing-click-through) that warms visitors up for one sign-up. Assembled from: header and hero (inline) > customers strip (inline) > benefit cards (c.card) > calculator (c.slider) > quote carousel (inline, c.avatar, c.button arrows) > sign-up band (inline).
  * Use it as: Copy landing-click-through.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; keep exactly one action and base the calculator on a figure you can stand behind.
  * Built from: c.card.surface, c.button.primary, c.button.secondary, c.button.on-accent, c.avatar-stack, c.avatar.person, c.slider.single, c.text-field.outlined
  * Look: A centered promise on a grid backdrop with a social-proof row, benefit cards, a time-saved slider, a quote carousel and a closing sign-up on an accent band.
@@ -18,8 +18,8 @@
  */
 /**
  * Assembled from: header and hero on a grid backdrop (inline: the proof row sits under the button) > customers strip
- * (inline) > benefit cards (c.card) > time-saved calculator (c.slider) > quote carousel (inline) > sign-up band
- * (inline, with its form). b.hero-centered, b.logo-cloud and b.features-grid were not used because each would change
+ * (inline) > benefit cards (c.card) > time-saved calculator (c.slider) > quote carousel (inline; its arrows are c.button icon-only) >
+ * sign-up band (inline, with its form). b.hero-centered, b.logo-cloud and b.features-grid were not used because each would change
  * the look (the header shares the hero's backdrop, the customers are plain names, the benefits sit on a tinted band).
  */
 import { useState, type FormEvent } from "react";
@@ -202,11 +202,7 @@ export default function LandingClickThrough() {
               </figcaption>
             </figure>
             <div className="fl-ld-carousel__nav">
-              <button type="button" className="fl-ld-icon-btn" aria-label="Previous quote" onClick={() => go(-1)}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M19 12H5M11 6l-6 6 6 6" />
-                </svg>
-              </button>
+              <Button variant="secondary" size={40} icon="arrow-left" iconOnly aria-label="Previous quote" onClick={() => go(-1)} />
               <ul className="fl-ld-dots">
                 {d.quotes.map((x, i) => (
                   <li key={x.name}>
@@ -214,9 +210,7 @@ export default function LandingClickThrough() {
                   </li>
                 ))}
               </ul>
-              <button type="button" className="fl-ld-icon-btn" aria-label="Next quote" onClick={() => go(1)}>
-                <Icon name="arrow" />
-              </button>
+              <Button variant="secondary" size={40} icon="arrow" iconOnly aria-label="Next quote" onClick={() => go(1)} />
             </div>
           </div>
         </section>

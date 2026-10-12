@@ -1,8 +1,8 @@
 /** @flowcode-library site-docs · Docs site (Industry sites)
  * Catalog ID: t.site-docs (template)
- * Function: A documentation site (t.site-docs) for a developer product. Assembled from: top bar (inline, c.select) > left nav (inline) > article (c.breadcrumbs, c.alert, code blocks inline, p.data-table) > on-this-page list (inline) > pager and feedback (inline, c.button, c.text-field) > footer (inline).
+ * Function: A documentation site (t.site-docs) for a developer product. Assembled from: top bar (inline, c.select) > left nav (inline) > article (c.breadcrumbs, c.alert, c.tabs for the install snippet, code blocks inline, p.data-table) > on-this-page list (inline) > pager and feedback (inline, c.button, c.text-field) > footer (inline).
  * Use it as: Copy site-docs.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; set the page tree, versions and article in SAMPLE.
- * Built from: p.data-table, c.button.primary, c.button.secondary, c.select.outlined, c.breadcrumbs.full, c.alert.info, c.alert.warning, c.badge.status, c.text-field.outlined
+ * Built from: p.data-table, c.button.primary, c.button.secondary, c.select.outlined, c.breadcrumbs.full, c.alert.info, c.alert.warning, c.badge.status, c.text-field.outlined, c.tabs.underline
  * Look: A developer docs layout: sticky top bar with search, a collapsible left nav, an article with code blocks and a parameters table, and an on-this-page list.
  * Use cases: documentation; api docs; developer docs; help center; knowledge base; user guide; sdk reference; getting started guide
  * Jobs to be done: learn how to use the api; find the right docs page; copy install and code examples; check parameters for a call
@@ -20,8 +20,8 @@
  */
 /**
  * Assembled from: top bar (inline: brand, c.select version picker, search box, links) > left nav (inline: collapsible
- * groups that filter as you search, a drawer on phones) > article (c.breadcrumbs, c.alert notes, code blocks with tabs
- * and copy buttons inline, p.data-table for the parameters) > "On this page" list (inline) > pager and feedback
+ * groups that filter as you search, a drawer on phones) > article (c.breadcrumbs, c.alert notes, install tabs are c.tabs
+ * with the copy button in `trailing`, other code blocks inline, p.data-table for the parameters) > "On this page" list (inline) > pager and feedback
  * (inline, with c.button, c.text-field and a version c.alert) > footer (inline). A docs layout has no block; the nav,
  * code blocks and table of contents stay inline.
  */
@@ -32,6 +32,7 @@ import { Badge } from "./badges-status";
 import { Alert } from "./alerts-states";
 import { TextField } from "./text-fields-states";
 import { Select } from "./dropdowns-states";
+import { Tabs } from "./tabs-variants";
 import { Breadcrumbs } from "./breadcrumbs-variants";
 import { DataTable, type TableColumn } from "./tables-states";
 
@@ -254,7 +255,6 @@ export default function SiteDocs() {
   const drawerRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const articleRef = useRef<HTMLElement>(null);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const copyTimer = useRef<number | undefined>(undefined);
 
   const q = query.trim();
@@ -355,19 +355,6 @@ export default function SiteDocs() {
         {state === "copied" ? "Copied" : state === "failed" ? "Select to copy" : "Copy"}
       </button>
     );
-  };
-
-  const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-    const n = a.install.length;
-    let to = -1;
-    if (e.key === "ArrowRight") to = (i + 1) % n;
-    if (e.key === "ArrowLeft") to = (i - 1 + n) % n;
-    if (e.key === "Home") to = 0;
-    if (e.key === "End") to = n - 1;
-    if (to < 0) return;
-    e.preventDefault();
-    setPm(to);
-    tabRefs.current[to]?.focus();
   };
 
   const sendNote = (e: FormEvent) => {
@@ -566,37 +553,25 @@ export default function SiteDocs() {
                 <a href={`#${a.sections[0].id}`}>{a.sections[0].title}</a>
               </h2>
               <p>{a.installIntro}</p>
-              <div className="fl-dd-code">
-                <div className="fl-dd-code__bar">
-                  <div className="fl-dd-tabs" role="tablist" aria-label="Package manager">
-                    {a.install.map((t, i) => (
-                      <button
-                        key={t.tab}
-                        ref={(el) => {
-                          tabRefs.current[i] = el;
-                        }}
-                        type="button"
-                        role="tab"
-                        id={`dd-pm-${t.tab}`}
-                        aria-selected={pm === i}
-                        aria-controls="dd-pm-panel"
-                        tabIndex={pm === i ? 0 : -1}
-                        onClick={() => setPm(i)}
-                        onKeyDown={(e) => onTabKey(e, i)}
-                      >
-                        {t.tab}
-                      </button>
-                    ))}
-                  </div>
-                  {copyButton("install", a.install[pm].cmd, "Copy install command")}
-                </div>
-                <pre id="dd-pm-panel" role="tabpanel" aria-labelledby={`dd-pm-${a.install[pm].tab}`} tabIndex={0}>
-                  <code>
-                    <span className="fl-dd-prompt">$ </span>
-                    {a.install[pm].cmd}
-                  </code>
-                </pre>
-              </div>
+              <Tabs
+                label="Package manager"
+                size={32}
+                value={a.install[pm].tab}
+                onChange={(id) => setPm(Math.max(0, a.install.findIndex((t) => t.tab === id)))}
+                trailing={copyButton("install", a.install[pm].cmd, "Copy install command")}
+                tabs={a.install.map((t) => ({
+                  id: t.tab,
+                  label: t.tab,
+                  panel: (
+                    <pre className="fl-dd-install" style={{ margin: 0, overflowX: "auto", font: "var(--text-sm) / var(--leading-relaxed) var(--font-mono)" }}>
+                      <code>
+                        <span className="fl-dd-prompt">$ </span>
+                        {t.cmd}
+                      </code>
+                    </pre>
+                  ),
+                }))}
+              />
 
               <h2 id={a.sections[1].id}>
                 <a href={`#${a.sections[1].id}`}>{a.sections[1].title}</a>

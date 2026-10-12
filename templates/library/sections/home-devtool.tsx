@@ -1,8 +1,8 @@
 /** @flowcode-library home-devtool · Developer tool homepage (Homepages)
  * Catalog ID: t.home-devtool (template)
- * Function: A whole developer-tool homepage assembled from: nav (inline) > hero with install command and terminal (inline) > code sample tabs (inline) > features (inline) > how-it-works diagram (inline) > benchmarks (inline) > open-source band (inline) > pricing (inline) > b.faq-accordion > footer (inline).
+ * Function: A whole developer-tool homepage assembled from: nav (inline) > hero with install command and terminal (inline) > code sample c.tabs > features (inline) > how-it-works diagram (inline) > benchmarks (inline) > open-source band (inline) > pricing (inline) > b.faq-accordion > footer (inline).
  * Use it as: Copy home-devtool.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the tool's own install command, code samples, benchmarks and plans, and redraw the SVG diagram around its architecture.
- * Built from: b.faq-accordion, c.accordion.bordered, c.button.primary, c.button.secondary, c.segmented, c.quantity, c.card.surface, c.badge.status, c.avatar-stack
+ * Built from: b.faq-accordion, c.accordion.bordered, c.tabs.underline, c.button.primary, c.button.secondary, c.segmented, c.quantity, c.card.surface, c.badge.status, c.avatar-stack
  * Look: Developer-first page with a typing terminal and copyable install command, a switchable code sample, a bordered feature grid, an SVG diagram, switchable benchmark bars, free and team plans with a seat counter.
  * Use cases: developer tool homepage; open source project; sdk landing; cli tool; library homepage; api product; developer pricing; devtool marketing
  * Jobs to be done: install the library quickly; see how it works with my framework; compare performance with alternatives; choose a plan for my team
@@ -10,7 +10,7 @@
  */
 /**
  * Assembled from: nav (inline) > hero with install command and typing terminal (inline) > framework code sample with
- * tabs (inline) > features grid (inline) > how-it-works diagram (inline) > benchmarks (inline) > open-source band
+ * c.tabs (copy button in the tab bar) > features grid (inline) > how-it-works diagram (inline) > benchmarks (inline) > open-source band
  * (inline) > pricing with a seat counter (inline) > b.faq-accordion > footer (inline). Every button is c.button, the
  * benchmark switch is c.segmented, the seat counter is c.quantity, plan cards are c.card, the plan label is c.badge and
  * the contributor faces are c.avatar-stack.
@@ -25,7 +25,7 @@
  * Make it the app's own: replace SAMPLE with the tool's real install command, code samples, benchmarks (with how they
  * were measured) and plans, and redraw the diagram around the tool's own architecture.
  */
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 import { Badge } from "./badges-status";
@@ -34,6 +34,7 @@ import { Card } from "./cards-variants";
 import { Segmented } from "./segmented-control";
 import { Quantity } from "./input-quantity";
 import { FaqAccordion } from "./faq-accordion";
+import { Tabs } from "./tabs-variants";
 
 // flowcode:sample
 const SAMPLE = {
@@ -257,7 +258,6 @@ export default function HomeDevtool() {
   const [seats, setSeats] = useState(5);
   const [trial, setTrial] = useState(false);
 
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const copyTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -316,15 +316,6 @@ export default function HomeDevtool() {
         {state === "copied" ? "Copied" : state === "failed" ? "Select to copy" : "Copy"}
       </Button>
     );
-  };
-
-  const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-    const n = d.samples.length;
-    const to = e.key === "ArrowRight" ? (i + 1) % n : e.key === "ArrowLeft" ? (i - 1 + n) % n : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : -1;
-    if (to < 0) return;
-    e.preventDefault();
-    setTab(to);
-    tabRefs.current[to]?.focus();
   };
 
   const setSeatCount = (n: number) => {
@@ -459,40 +450,30 @@ export default function HomeDevtool() {
               </a>
             </div>
             <div className="fl-dd-code">
-              <div className="fl-dd-code__bar">
-                <div className="fl-dd-tabs" role="tablist" aria-label="Framework">
-                  {d.samples.map((s, i) => (
-                    <button
-                      key={s.tab}
-                      ref={(el) => {
-                        tabRefs.current[i] = el;
-                      }}
-                      type="button"
-                      role="tab"
-                      id={`dd-hp-tab-${i}`}
-                      aria-selected={tab === i}
-                      aria-controls="dd-hp-tabpanel"
-                      tabIndex={tab === i ? 0 : -1}
-                      onClick={() => setTab(i)}
-                      onKeyDown={(e) => onTabKey(e, i)}
-                    >
-                      {s.tab}
-                    </button>
-                  ))}
-                </div>
-                {copyButton(`sample-${tab}`, sample.code.join("\n"), `Copy ${sample.tab} example`)}
-              </div>
-              <pre id="dd-hp-tabpanel" role="tabpanel" aria-labelledby={`dd-hp-tab-${tab}`} tabIndex={0}>
-                <code>
-                  <span className="fl-dd-c">{`// ${sample.file}\n`}</span>
-                  {sample.code.map((l, i) => (
-                    <span key={i}>
-                      {highlight(l)}
-                      {"\n"}
-                    </span>
-                  ))}
-                </code>
-              </pre>
+              <Tabs
+                label="Framework"
+                size={32}
+                value={String(tab)}
+                onChange={(id) => setTab(Number(id))}
+                tabs={d.samples.map((s, i) => ({
+                  id: String(i),
+                  label: s.tab,
+                  panel: (
+                    <pre>
+                      <code>
+                        <span className="fl-dd-c">{`// ${s.file}\n`}</span>
+                        {s.code.map((l, k) => (
+                          <span key={k}>
+                            {highlight(l)}
+                            {"\n"}
+                          </span>
+                        ))}
+                      </code>
+                    </pre>
+                  ),
+                }))}
+                trailing={copyButton(`sample-${tab}`, sample.code.join("\n"), `Copy ${sample.tab} example`)}
+              />
             </div>
           </div>
         </section>
@@ -715,9 +696,7 @@ export default function HomeDevtool() {
           </div>
         </section>
 
-        <div id="dd-hp-faq">
-          <FaqAccordion title="Questions developers ask first" items={d.faq} />
-        </div>
+        <FaqAccordion id="dd-hp-faq" eyebrow="FAQ" tint defaultOpen={[]} title="Questions developers ask first" items={d.faq} />
       </main>
 
       <footer className="fl-footer">

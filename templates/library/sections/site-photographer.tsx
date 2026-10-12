@@ -16,7 +16,7 @@
  * (html5up.net, CC BY 3.0); keep the credit. The form checks its fields and keeps enquiries in local storage; nothing
  * is sent.
  * Assembled from: header (inline) > intro (inline) > two statement panels (inline) > gallery (inline) with c.chip.filter,
- * a lightbox (inline) and c.empty-state > packages (inline) with c.card.surface and c.badge > booking c.card.surface
+ * a lightbox (inline; its close button takes focus through a ref) and c.empty-state > packages (inline) with c.card.surface and c.badge > booking c.card.surface
  * (inline) with c.text-field and c.select > footer (inline). No page block matches this portfolio layout, so the
  * sections stay in the template; every button, chip, badge, card, field, select and empty state is the catalog component.
  * Make it the app's own: replace SAMPLE with the real photos, categories and packages; swap each placeholder for an
@@ -107,7 +107,7 @@ export default function SitePhotographer() {
   const [filter, setFilter] = useState("All");
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const lightboxRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
   const [pkg, setPkg] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [sent, setSent] = useState<null | { name: string; date: string }>(null);
@@ -116,7 +116,7 @@ export default function SitePhotographer() {
 
   useEffect(() => {
     if (openIdx === null) return;
-    lightboxRef.current?.querySelector<HTMLElement>("[data-close]")?.focus();
+    closeRef.current?.focus();
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key === "Escape") close();
       else if (e.key === "ArrowRight") setOpenIdx((i) => (i === null ? i : (i + 1) % shown.length));
@@ -280,7 +280,7 @@ export default function SitePhotographer() {
 
         {current && openIdx !== null ? (
           <div className="fl-st-scrim fl-st-scrim--dark" onClick={close}>
-            <div ref={lightboxRef} className="fl-st-lightbox" role="dialog" aria-modal="true" aria-labelledby="photo-lb-title" onClick={(e) => e.stopPropagation()}>
+            <div className="fl-st-lightbox" role="dialog" aria-modal="true" aria-labelledby="photo-lb-title" onClick={(e) => e.stopPropagation()}>
               <div className={`fl-st-lightbox__img fl-st-tone-${(d.gallery.photos.indexOf(current) % 6) + 1}`} role="img" aria-label={`Placeholder for: ${current.title}`}>
                 <svg className="fl-st-photo-motif" viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
                   <circle cx="88" cy="22" r="9" fill="currentColor" opacity="0.35" />
@@ -303,7 +303,7 @@ export default function SitePhotographer() {
                   <Button variant="secondary" aria-label="Next photo" onClick={() => setOpenIdx((openIdx + 1) % shown.length)}>
                     <span aria-hidden="true">→</span>
                   </Button>
-                  <Button data-close="true" variant="primary" onClick={close}>
+                  <Button ref={closeRef} variant="primary" onClick={close}>
                     Close
                   </Button>
                 </div>

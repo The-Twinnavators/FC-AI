@@ -2,7 +2,7 @@
  * Catalog ID: t.site-nonprofit (template)
  * Function: A one-page charity site (t.site-nonprofit) with a mission box, programs, a one-off or monthly donation picker that only shows a confirmation, and a volunteer sign-up form; it is assembled inline from catalog components because no block matches its sections.
  * Use it as: Copy site-nonprofit.tsx (FlowCode brings the components it uses); replace SAMPLE with the organization's mission, figures and programs; point the donation confirmation at the real payment step (it takes no payment as shipped); keep the credit to HTML5 UP.
- * Built from: c.button.primary, c.button.secondary, c.card.surface, c.avatar.person, c.progress.bar, c.text-field.outlined, c.select.outlined, c.radio, c.checkbox
+ * Built from: c.button.primary, c.button.secondary, c.card.surface, c.avatar.person, c.progress.bar, c.text-field.outlined, c.select.outlined, c.radio, c.checkbox, c.segmented.toggle
  * Look: A tall glowing banner, a mission box lifted over it with impact figures, four programs and a quote, then a donation picker card and an accent-colored volunteer sign-up.
  * Use cases: charity website; nonprofit; donation page; fundraising; volunteer signup; foundation site; community group; impact report
  * Jobs to be done: donate to a cause i care about; see the impact of my gift; set up a monthly donation; sign up to volunteer
@@ -18,7 +18,7 @@
  */
 /**
  * Assembled from: nav (inline) > banner (inline) > mission box with impact figures (inline, c.card.surface) > programs
- * and a quote (inline) > donation picker (inline, c.card.surface) > volunteer form (inline, c.card.surface) > footer
+ * and a quote (inline) > donation picker (inline, c.card.surface, with c.segmented.toggle for one-off/monthly; the amount tiles stay as radios because c.choice-group would change their look) > volunteer form (inline, c.card.surface) > footer
  * (inline). Every button is c.button, the quote's avatar is c.avatar, the spend bars are c.progress, and every form
  * control is c.text-field, c.select, c.radio or c.checkbox. No catalog block matches these sections' layout.
  */
@@ -31,6 +31,7 @@ import { TextField } from "./text-fields-states";
 import { Select } from "./dropdowns-states";
 import { Checkbox, Radio } from "./checkboxes-radios";
 import { Progress } from "./progress-indicators";
+import { Segmented } from "./segmented-control";
 
 // flowcode:sample
 const SAMPLE = {
@@ -260,7 +261,7 @@ export default function SiteNonprofit() {
                 “{d.quote.text}”
               </blockquote>
               <figcaption className="fl-person">
-                <Avatar name={d.quote.name} size={48} decorative />
+                <Avatar name={d.quote.name} size={44} decorative />
                 <span style={{ textAlign: "left" }}>
                   <strong>{d.quote.name}</strong>
                   <span>{d.quote.role}</span>
@@ -309,13 +310,17 @@ export default function SiteNonprofit() {
                 </div>
               ) : (
                 <form className="fl-form" noValidate onSubmit={give}>
-                  <div className="fl-toggle" role="group" aria-label="How often" style={{ justifySelf: "start" }}>
-                    <button type="button" aria-pressed={!monthly} onClick={() => setMonthly(false)}>
-                      One-off
-                    </button>
-                    <button type="button" aria-pressed={monthly} onClick={() => setMonthly(true)}>
-                      Monthly
-                    </button>
+                  <div style={{ justifySelf: "start" }}>
+                    <Segmented
+                      variant="toggle"
+                      label="How often"
+                      value={monthly ? "monthly" : "once"}
+                      onChange={(v) => setMonthly(v === "monthly")}
+                      options={[
+                        { value: "once", label: "One-off" },
+                        { value: "monthly", label: "Monthly" },
+                      ]}
+                    />
                   </div>
                   <fieldset className="fl-st2-fieldset">
                     <legend>Amount{monthly ? " each month" : ""}</legend>

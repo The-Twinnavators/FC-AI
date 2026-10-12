@@ -13,8 +13,8 @@
  * centered header, warm hero, three highlights, a tabbed menu with a vegetarian filter, opening hours (today marked),
  * how to find you, a table-booking form and a footer. Layout adapted from HTML5 UP "Arcana" (html5up.net, CC BY 3.0);
  * keep the credit. The booking form checks its fields and keeps bookings in local storage; nothing is sent.
- * Assembled from: header (inline) > hero (inline) > highlights (inline) > c.tabs.pills menu with a c.checkbox filter and
- * c.empty-state > hours and find-us c.card.surface (inline) > booking section (inline) with c.text-field, c.select and
+ * Assembled from: header (inline) > hero (inline) > highlights (inline) > controlled c.tabs.pills menu with the c.checkbox filter in its
+ * trailing slot and c.empty-state > hours and find-us c.card.surface (inline) > booking section (inline) with c.text-field, c.select and
  * c.button > footer (inline). No page block matches this cafe layout, so the sections stay in the template; every
  * button, badge, card, field, select, checkbox, tab set and empty state is the catalog component.
  * Make it the app's own: replace SAMPLE with the real menu, prices, hours and address, and keep only the menu tabs and
@@ -153,6 +153,7 @@ export default function SiteCafe() {
   const d = SAMPLE;
   const [menuOpen, setMenuOpen] = useState(false);
   const [vegOnly, setVegOnly] = useState(false);
+  const [menuTab, setMenuTab] = useState(SAMPLE.menu.tabs[0].id);
   const [today, setToday] = useState<number | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [booked, setBooked] = useState<null | { name: string; date: string; time: string; party: string }>(null);
@@ -309,10 +310,14 @@ export default function SiteCafe() {
               </h2>
               <p className="fl-lede">{d.menu.lede}</p>
             </div>
-            <div className="fl-st-cafe-menubar" style={{ justifyContent: "flex-end" }}>
-              <Checkbox label={d.menu.vegLabel} checked={vegOnly} onChange={(e) => setVegOnly(e.target.checked)} />
-            </div>
-            <Tabs variant="pills" label="Menu sections" tabs={d.menu.tabs.map((t) => ({ id: t.id, label: t.label, panel: panelFor(t) }))} />
+            <Tabs
+              variant="pills"
+              label="Menu sections"
+              value={menuTab}
+              onChange={setMenuTab}
+              trailing={<Checkbox label={d.menu.vegLabel} checked={vegOnly} onChange={(e) => setVegOnly(e.target.checked)} />}
+              tabs={d.menu.tabs.map((t) => ({ id: t.id, label: t.label, panel: panelFor(t) }))}
+            />
           </div>
         </section>
 

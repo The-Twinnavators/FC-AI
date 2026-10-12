@@ -1,8 +1,8 @@
 /** @flowcode-library landing-subscription · Subscription offer (Landing pages)
  * Catalog ID: t.landing-subscription (template)
- * Function: A subscription-offer landing page (t.landing-subscription) with a box, roast, grind and frequency builder and a live order summary. Assembled from: header (inline) > hero (inline) > how it works (inline) > plan builder (inline) + c.card order summary > promises (inline) > footer (inline).
+ * Function: A subscription-offer landing page (t.landing-subscription) with a box, roast, grind and frequency builder and a live order summary. Assembled from: header (inline) > b.hero-split > how it works (inline) > plan builder (c.choice-group, c.segmented) + c.card order summary > promises (inline) > footer (inline).
  * Use it as: Copy landing-subscription.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; set the plans, prices and delivery rules in SAMPLE.
- * Built from: c.card.surface, c.button.primary, c.badge.status, c.text-field.outlined, c.select.outlined
+ * Built from: b.hero-split, c.choice-group.tile, c.segmented.toggle, c.card.surface, c.button.primary, c.badge.status, c.text-field.outlined, c.select.outlined
  * Look: A split hero over a three-step explainer, then a plan builder beside a live order summary card with an email and ZIP sign-up.
  * Use cases: subscription box; meal kit; coffee subscription; plan builder; recurring delivery; pet food subscription; flower delivery; subscribe and save
  * Jobs to be done: build a subscription that fits me; choose how often it arrives; see what it will cost; start my subscription
@@ -17,10 +17,10 @@
  * honest about what is charged when.
  */
 /**
- * Assembled from: header (inline) > hero (inline: split with a drawn product and an offer badge) > how-it-works steps
- * (inline) > plan builder (inline: option cards, frequency toggle) beside c.card holding the live order summary and
- * sign-up form > promises strip (inline) > footer (inline). The hero keeps its offer badge beside the button and its
- * drawn picture, which b.hero-split has no slot for. Buttons, badges, fields and the select are the catalog's.
+ * Assembled from: header (inline) > b.hero-split (offer badge in actionsExtra, drawn bags in aside) > how-it-works steps
+ * (inline) > plan builder (inline step titles; c.choice-group.tile for box and roast, c.segmented.toggle for the
+ * frequency) beside c.card holding the live order summary and sign-up form > promises strip (inline) > footer (inline).
+ * Buttons, badges, fields and the select are the catalog's. The hero block has no tinted split background.
  */
 import { useState, type FormEvent } from "react";
 import { Icon } from "./icons";
@@ -29,6 +29,9 @@ import { Badge } from "./badges-status";
 import { Card } from "./cards-variants";
 import { TextField } from "./text-fields-states";
 import { Select } from "./dropdowns-states";
+import { HeroSplit } from "./hero-split";
+import { ChoiceGroup } from "./checkboxes-radios";
+import { Segmented } from "./segmented-control";
 
 // flowcode:sample
 const SAMPLE = {
@@ -138,23 +141,18 @@ export default function LandingSubscription() {
       </header>
 
       <main id="top">
-        <section className="fl-section fl-bg-split" aria-labelledby="ld-sub-title" style={{ paddingTop: "var(--space-7)" }}>
-          <div className="fl-wrap fl-split">
-            <div className="fl-head" style={{ marginBottom: 0 }}>
-              <span className="fl-eyebrow">{d.eyebrow}</span>
-              <h1 id="ld-sub-title" className="fl-title fl-title--xl">
-                {d.title}
-              </h1>
-              <p className="fl-lede">{d.lede}</p>
-              <div className="fl-actions">
-                <Button variant="primary" href="#build">
-                  Build my box
-                </Button>
-                <Badge look="soft" tone="info" className="fl-badge">
-                  {d.heroOffer}
-                </Badge>
-              </div>
-            </div>
+        <HeroSplit
+          id="ld-sub"
+          eyebrow={d.eyebrow}
+          title={d.title}
+          lede={d.lede}
+          primary={{ label: "Build my box", href: "#build" }}
+          actionsExtra={
+            <Badge look="soft" tone="info" className="fl-badge">
+              {d.heroOffer}
+            </Badge>
+          }
+          aside={
             <div className="fl-media fl-media--wide" role="img" aria-label="Three coffee bags (placeholder image)">
               <div className="fl-ld-bags" style={{ height: "60%" }}>
                 <Bag />
@@ -162,8 +160,8 @@ export default function LandingSubscription() {
                 <Bag />
               </div>
             </div>
-          </div>
-        </section>
+          }
+        />
 
         <section className="fl-section" aria-labelledby="ld-sub-how">
           <div className="fl-wrap">
@@ -196,55 +194,55 @@ export default function LandingSubscription() {
             </div>
             <div className="fl-ld-builder">
               <div className="fl-ld-steps">
-                <fieldset className="fl-ld-opts">
-                  <legend className="fl-ld-step-title">
-                    <span className="fl-ld-step-num" aria-hidden="true">
-                      1
-                    </span>
+                <div className="fl-ld-opts">
+                  <h3 className="fl-ld-step-title" aria-hidden="true">
+                    <span className="fl-ld-step-num">1</span>
                     Box size
-                  </legend>
-                  <div className="fl-ld-options">
-                    {d.plans.map((p) => (
-                      <label key={p.id}>
-                        <input className="fl-sr" type="radio" name="ld-sub-plan" checked={planId === p.id} onChange={() => setPlanId(p.id)} />
-                        <span className="fl-ld-option">
+                  </h3>
+                  <ChoiceGroup
+                    variant="tile"
+                    label="Box size"
+                    name="ld-sub-plan"
+                    className="fl-ld-cg"
+                    options={d.plans.map((p) => ({
+                      value: p.id,
+                      label: p.label,
+                      text: (
+                        <>
                           {p.tag ? (
                             <Badge look="soft" tone="info" className="fl-badge">
                               {p.tag}
                             </Badge>
-                          ) : null}
-                          <strong>{p.label}</strong>
-                          <small>{p.detail}</small>
-                          <span className="fl-ld-option__price">{money(p.price)} per delivery</span>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
+                          ) : null}{" "}
+                          {p.detail}
+                        </>
+                      ),
+                      meta: `${money(p.price)} per delivery`,
+                    }))}
+                    value={planId}
+                    onChange={(v) => setPlanId(v as string)}
+                  />
+                </div>
 
-                <fieldset className="fl-ld-opts">
-                  <legend className="fl-ld-step-title">
-                    <span className="fl-ld-step-num" aria-hidden="true">
-                      2
-                    </span>
+                <div className="fl-ld-opts">
+                  <h3 className="fl-ld-step-title" aria-hidden="true">
+                    <span className="fl-ld-step-num">2</span>
                     Roast and grind
-                  </legend>
-                  <div className="fl-ld-options">
-                    {d.roasts.map((r) => (
-                      <label key={r.id}>
-                        <input className="fl-sr" type="radio" name="ld-sub-roast" checked={roast === r.id} onChange={() => setRoast(r.id)} />
-                        <span className="fl-ld-option">
-                          <strong>{r.label}</strong>
-                          <small>{r.detail}</small>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+                  </h3>
+                  <ChoiceGroup
+                    variant="tile"
+                    label="Roast"
+                    name="ld-sub-roast"
+                    className="fl-ld-cg"
+                    options={d.roasts.map((r) => ({ value: r.id, label: r.label, text: r.detail }))}
+                    value={roast}
+                    onChange={(v) => setRoast(v as string)}
+                  />
                   <div className="fl-field" style={{ maxWidth: "20rem" }}>
                     <label htmlFor="ld-sub-grind">How do you brew?</label>
                     <Select id="ld-sub-grind" value={grind} onChange={(e) => setGrind(e.target.value)} options={d.grinds} />
                   </div>
-                </fieldset>
+                </div>
 
                 <div>
                   <h3 className="fl-ld-step-title" id="ld-sub-freq">
@@ -253,14 +251,13 @@ export default function LandingSubscription() {
                     </span>
                     Delivery
                   </h3>
-                  <div className="fl-toggle" role="group" aria-labelledby="ld-sub-freq">
-                    {d.frequencies.map((f) => (
-                      <button key={f.id} type="button" aria-pressed={freqId === f.id} onClick={() => setFreqId(f.id)}>
-                        {f.label}
-                        {f.discount ? ` · save ${Math.round(f.discount * 100)}%` : ""}
-                      </button>
-                    ))}
-                  </div>
+                  <Segmented
+                    variant="toggle"
+                    label="Delivery frequency"
+                    options={d.frequencies.map((f) => ({ value: f.id, label: f.label, note: f.discount ? `save ${Math.round(f.discount * 100)}%` : undefined }))}
+                    value={freqId}
+                    onChange={setFreqId}
+                  />
                 </div>
               </div>
 

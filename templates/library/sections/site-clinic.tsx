@@ -295,7 +295,7 @@ export default function SiteClinic() {
                 <li key={p.name} style={{ display: "grid" }}>
                   <Card variant="surface">
                   <div className="fl-person">
-                    <Avatar name={p.name} label={p.initials} size={48} decorative />
+                    <Avatar name={p.name} label={p.initials} size={44} decorative />
                     <span>
                       <strong>{p.name}</strong>
                       <span>{p.role}</span>

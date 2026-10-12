@@ -2,7 +2,7 @@
  * Catalog ID: t.app-ai-chat (template)
  * Function: An app screen: an AI assistant chat with history, streaming replies, copy and regenerate, and a composer, assembled from catalog chat bubbles, AI indicators, buttons, a text field and a select.
  * Use it as: Copy app-ai-chat.tsx (FlowCode brings the components it uses); replace SAMPLE with the assistant's name, prompts and history, and swap pickReply() for a call to the app's real assistant service that streams into the same message.
- * Built from: c.chat-bubble.mine, c.ai-indicator.working, c.button.primary, c.button.secondary, c.button.tertiary, c.text-field.outlined, c.select.filled
+ * Built from: c.chat-bubble.mine, c.chat-bubble.assistant, c.ai-indicator.working, c.button.primary, c.button.secondary, c.button.tertiary, c.text-field.outlined, c.select.filled
  * Look: A chat-history sidebar beside a centered thread with streaming assistant replies and a composer with attach, model picker and send.
  * Use cases: ai chat; chatbot; ai assistant; conversation history; customer support bot; writing assistant; coding assistant; q&a assistant
  * Jobs to be done: ask the assistant a question; pick up a past conversation; copy code from an answer; get started with a suggested prompt
@@ -22,9 +22,10 @@
  */
 /**
  * Assembled from: history sidebar (inline: brand, c.button.primary new chat, c.text-field search, c.button.tertiary
- * rename/delete) beside the thread (inline: your messages are c.chat-bubble.mine, replies are inline markdown with
- * c.ai-indicator.working while they stream, c.button.tertiary Copy/Regenerate, c.button.secondary Retry) > composer
- * (c.button.tertiary remove file, c.select.filled model picker, c.button.primary send).
+ * rename/delete) beside the thread (inline: your messages are c.chat-bubble.mine, replies are
+ * c.chat-bubble.assistant with markdown inside, c.ai-indicator.working while they stream, c.button.tertiary
+ * Copy/Regenerate/thumbs as its actions, c.button.secondary Retry) > composer (c.button.tertiary attach and remove
+ * file, c.select.filled model picker, c.button.primary send and stop).
  */
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
@@ -208,19 +209,7 @@ type Msg = {
 type Chat = { id: string; title: string; group: string; messages: Msg[] };
 
 const P = {
-  plus: "M12 5v14M5 12h14",
   search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4",
-  pencil: "M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4",
-  trash: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
-  copy: "M9 9h11v11H9zM5 15H4V4h11v1",
-  refresh: "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7",
-  up: "M7 11v9H4v-9h3zm0 0l4-7a2 2 0 0 1 3 2l-1 4h5a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 16.8 20H7",
-  down: "M7 13V4H4v9h3zm0 0l4 7a2 2 0 0 0 3-2l-1-4h5a2 2 0 0 0 2-2.3l-1.2-6A2 2 0 0 0 16.8 4H7",
-  stop: "M7 7h10v10H7z",
-  clip: "M21 11l-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7",
-  x: "M6 6l12 12M18 6L6 18",
-  send: "M12 19V5M5 12l7-7 7 7",
-  chev: "M6 9l6 6 6-6",
   alert: "M12 8v5M12 16.5v.01M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
 };
 
@@ -795,49 +784,21 @@ export default function AppAiChat() {
                     <span className="fl-sr">{d.you}: </span>
                     {m.file && (
                       <span className="fl-aa-file fl-aa-file--sent">
-                        <Glyph d={P.clip} />
+                        <Icon name="paperclip" />
                         {m.file.name}
                       </span>
                     )}
                     {m.text}
                   </ChatBubble>
                 ) : (
-                  <li key={m.id} className="fl-aa-msg fl-aa-msg--bot">
-                    <span className="fl-aa-bot" aria-hidden="true">
-                      <Icon name="sparkle" />
-                    </span>
-                    <div className="fl-aa-msg__body">
-                      <p className="fl-aa-msg__who">
-                        {d.assistantName}
-                        {m.model && <span className="fl-meta"> · {m.model}</span>}
-                        {(m.state === "streaming" || m.state === "thinking") && (
-                          <AiIndicator variant="working" label={m.state === "thinking" ? d.thinking : d.writing} className="fl-aa-live" />
-                        )}
-                      </p>
-                      {m.text && (
-                        <div className="fl-aa-md">
-                          <Markdown text={m.text} onCopied={(ok) => announce(ok ? d.copied : d.copyFailed)} />
-                        </div>
-                      )}
-                      {m.state === "thinking" && (
-                        <div className="fl-aa-skeleton" aria-hidden="true">
-                          <span />
-                          <span />
-                          <span />
-                        </div>
-                      )}
-                      {m.state === "error" && (
-                        <div className="fl-aa-error">
-                          <Glyph d={P.alert} />
-                          <p>{d.errorText}</p>
-                          <Button variant="secondary" size={32} icon="refresh" disabled={busy} onClick={() => regenerate(active, m, true)}>
-                            {d.retry}
-                          </Button>
-                        </div>
-                      )}
-                      {m.state === "stopped" && <p className="fl-aa-note">{m.text ? d.stopped : d.stoppedEmpty}</p>}
-                      {(m.state === undefined || m.state === "done" || m.state === "stopped") && (
-                        <div className="fl-aa-actions" role="group" aria-label="Reply actions">
+                  <ChatBubble
+                    key={m.id}
+                    variant="assistant"
+                    name={d.assistantName}
+                    streaming={m.state === "streaming"}
+                    actions={
+                      m.state === undefined || m.state === "done" || m.state === "stopped" ? (
+                        <>
                           {m.text && (
                             <Button variant="tertiary" size={24} icon={copiedId === m.id ? "check" : "copy"} onClick={() => copyReply(m)}>
                               {copiedId === m.id ? d.copied : d.copy}
@@ -850,18 +811,49 @@ export default function AppAiChat() {
                           )}
                           {m.text && (
                             <>
-                              <button type="button" className="fl-aa-iconbtn fl-aa-iconbtn--sm" aria-label={d.good} aria-pressed={m.rating === "up"} onClick={() => rate(active, m, "up")}>
-                                <Glyph d={P.up} />
-                              </button>
-                              <button type="button" className="fl-aa-iconbtn fl-aa-iconbtn--sm" aria-label={d.bad} aria-pressed={m.rating === "down"} onClick={() => rate(active, m, "down")}>
-                                <Glyph d={P.down} />
-                              </button>
+                              <Button variant="tertiary" size={24} icon="thumbs-up" iconOnly pressed={m.rating === "up"} onClick={() => rate(active, m, "up")}>
+                                {d.good}
+                              </Button>
+                              <Button variant="tertiary" size={24} icon="thumbs-down" iconOnly pressed={m.rating === "down"} onClick={() => rate(active, m, "down")}>
+                                {d.bad}
+                              </Button>
                             </>
                           )}
-                        </div>
-                      )}
-                    </div>
-                  </li>
+                        </>
+                      ) : undefined
+                    }
+                  >
+                    <p className="fl-aa-msg__who">
+                      <span className="fl-aa-bot" aria-hidden="true">
+                        <Icon name="sparkle" />
+                      </span>
+                      {d.assistantName}
+                      {m.model && <span className="fl-meta"> · {m.model}</span>}
+                      {m.state === "thinking" && <AiIndicator variant="working" label={d.thinking} className="fl-aa-live" />}
+                    </p>
+                    {m.text && (
+                      <div className="fl-aa-md">
+                        <Markdown text={m.text} onCopied={(ok) => announce(ok ? d.copied : d.copyFailed)} />
+                      </div>
+                    )}
+                    {m.state === "thinking" && (
+                      <div className="fl-aa-skeleton" aria-hidden="true">
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                    )}
+                    {m.state === "error" && (
+                      <div className="fl-aa-error">
+                        <Glyph d={P.alert} />
+                        <p>{d.errorText}</p>
+                        <Button variant="secondary" size={32} icon="refresh" disabled={busy} onClick={() => regenerate(active, m, true)}>
+                          {d.retry}
+                        </Button>
+                      </div>
+                    )}
+                    {m.state === "stopped" && <p className="fl-aa-note">{m.text ? d.stopped : d.stoppedEmpty}</p>}
+                  </ChatBubble>
                 ),
               )}
             </ol>
@@ -879,7 +871,7 @@ export default function AppAiChat() {
           <div className="fl-aa-composer__box" data-invalid={over > 0 ? "true" : undefined}>
             {file && (
               <span className="fl-aa-file">
-                <Glyph d={P.clip} />
+                <Icon name="paperclip" />
                 <span className="fl-aa-file__name">{file.name}</span>
                 <span className="fl-meta">{file.size}</span>
                 <Button variant="tertiary" size={24} icon="close" iconOnly onClick={() => setFile(null)}>
@@ -903,9 +895,9 @@ export default function AppAiChat() {
               onKeyDown={onComposerKey}
             />
             <div className="fl-aa-composer__bar">
-              <button type="button" className="fl-aa-iconbtn" aria-label={d.attach} title={d.attach} onClick={() => fileInput.current?.click()}>
-                <Glyph d={P.clip} />
-              </button>
+              <Button variant="tertiary" size={32} icon="paperclip" iconOnly onClick={() => fileInput.current?.click()}>
+                {d.attach}
+              </Button>
               <input
                 ref={fileInput}
                 type="file"
@@ -928,9 +920,9 @@ export default function AppAiChat() {
                 {draft.length} / {d.limit}
               </span>
               {busy ? (
-                <button type="button" className="fl-aa-sendbtn fl-aa-sendbtn--stop" aria-label={d.stop} onClick={stop}>
-                  <Glyph d={P.stop} />
-                </button>
+                <Button variant="primary" size={32} icon="stop" iconOnly onClick={stop}>
+                  {d.stop}
+                </Button>
               ) : (
                 <Button type="submit" variant="primary" size={32} icon="send" iconOnly disabled={!canSend}>
                   {d.send}

@@ -2,7 +2,7 @@
  * Catalog ID: t.site-fitness (template)
  * Function: A one-page fitness or yoga studio site (t.site-fitness) with a class timetable you can filter by day, trainers, membership prices and a self-checking free-trial form; it is assembled inline from catalog components because no block matches its sections.
  * Use it as: Copy site-fitness.tsx (FlowCode brings the components it uses); replace SAMPLE with the studio's own classes, trainers, prices and contact details; keep the credit to HTML5 UP.
- * Built from: c.button.primary, c.button.secondary, c.button.on-accent, c.button.ghost-on-accent, c.badge.status, c.card.surface, c.text-field.outlined, c.select.outlined, c.radio, c.checkbox, c.empty-state.no-results
+ * Built from: c.button.primary, c.button.secondary, c.button.on-accent, c.button.ghost-on-accent, c.badge.status, c.card.surface, c.text-field.outlined, c.select.outlined, c.radio, c.checkbox, c.empty-state.no-results, c.avatar.person, c.segmented.toggle
  * Look: A centered masthead over a dark intro band, a filterable day-by-day timetable, trainer cards, a monthly/annual membership switch and a free-trial form on a card.
  * Use cases: gym website; yoga studio; class timetable; fitness classes; pilates studio; membership pricing; free trial class; trainer profiles
  * Jobs to be done: find a class that fits my schedule; choose a membership; meet the trainers; book a free trial
@@ -18,8 +18,8 @@
  */
 /**
  * Assembled from: nav (inline) > intro band (inline) > timetable with day filter (inline) > what's included (inline) >
- * trainers (inline cards) > membership with a monthly/annual switch (inline) > free-trial form (inline). Every button is
- * c.button, every level or role label c.badge, every card c.card.surface, every field c.text-field, c.select, c.radio or
+ * trainers (inline cards with c.avatar) > membership (inline, with c.segmented.toggle for monthly/annual) > free-trial form (inline). Every button is
+ * c.button, every level or role label c.badge, every trainer picture c.avatar, the billing switch c.segmented.toggle, every card c.card.surface, every field c.text-field, c.select, c.radio or
  * c.checkbox, and the empty day is c.empty-state. No catalog block matches these sections' layout, so they stay in the page.
  */
 import { useState, type FormEvent } from "react";
@@ -27,6 +27,8 @@ import { Icon, Tick } from "./icons";
 import { Button } from "./buttons-variants";
 import { Badge } from "./badges-status";
 import { Card } from "./cards-variants";
+import { Avatar } from "./avatars-variants";
+import { Segmented } from "./segmented-control";
 import { TextField } from "./text-fields-states";
 import { Select } from "./dropdowns-states";
 import { Checkbox, Radio } from "./checkboxes-radios";
@@ -319,9 +321,7 @@ export default function SiteFitness() {
               {d.trainers.people.map((p) => (
                 <li key={p.name} style={{ display: "grid" }}>
                   <Card variant="surface" className="fl-st2-trainer">
-                  <div className="fl-media fl-media--round" aria-hidden="true">
-                    {p.initials}
-                  </div>
+                  <Avatar name={p.name} size={120} label={p.initials} tone="a" />
                   <h3>{p.name}</h3>
                   <Badge tone="info" style={{ justifySelf: "center" }}>
                     {p.role}
@@ -351,14 +351,16 @@ export default function SiteFitness() {
                 {d.membership.title}
               </h2>
               <p className="fl-lede">{d.membership.lede}</p>
-              <div className="fl-toggle" role="group" aria-label="Billing">
-                <button type="button" aria-pressed={!annual} onClick={() => setAnnual(false)}>
-                  Monthly
-                </button>
-                <button type="button" aria-pressed={annual} onClick={() => setAnnual(true)}>
-                  Annual · save up to 12%
-                </button>
-              </div>
+              <Segmented
+                variant="toggle"
+                label="Billing"
+                value={annual ? "annual" : "monthly"}
+                onChange={(v) => setAnnual(v === "annual")}
+                options={[
+                  { value: "monthly", label: "Monthly" },
+                  { value: "annual", label: "Annual", note: "save up to 12%" },
+                ]}
+              />
             </div>
             <ul className="fl-grid fl-grid--3" style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {d.membership.plans.map((p) => (

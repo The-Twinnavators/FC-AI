@@ -1,8 +1,8 @@
 /** @flowcode-library home-personal · Personal homepage (Homepages)
  * Catalog ID: t.home-personal (template)
- * Function: A whole personal portfolio homepage assembled from: nav (inline) > hero (inline) > selected work with filter (inline) > services and skills (inline) > experience (inline) > client quote (inline) > writing (inline) > enquiry form (inline) > footer (inline); no block fits this layout, so all sections are inline built from catalog components.
+ * Function: A whole personal portfolio homepage assembled from: nav (inline) > hero (inline) > selected work with filter (inline) > services and skills (inline) > experience (inline) > b.testimonial-feature > writing (inline) > enquiry form (inline) > footer (inline); no block fits this layout, so all sections are inline built from catalog components.
  * Use it as: Copy home-personal.tsx (FlowCode brings the components it uses); replace SAMPLE with the person's own projects, roles, posts and contact details, and swap the drawn project covers for real screenshots.
- * Built from: c.button.primary, c.button.secondary, c.button.tertiary, c.chip.filter, c.chip.static, c.badge.status, c.avatar.person, c.card.surface, c.empty-state.no-results, c.text-field.outlined, c.select.outlined
+ * Built from: b.testimonial-feature, c.button.primary, c.button.secondary, c.button.tertiary, c.chip.filter, c.chip.static, c.badge.status, c.avatar.person, c.card.surface, c.empty-state.no-results, c.text-field.outlined, c.select.outlined
  * Look: Quiet name-first page with a large typographic introduction and availability dot, filterable project covers, services, experience, a client quote, recent writing and an enquiry form.
  * Use cases: personal website; portfolio; freelancer site; designer portfolio; developer portfolio; online resume; personal blog; hire me
  * Jobs to be done: see the freelancer's best work; check if they are available; learn what services they offer; send a project enquiry
@@ -10,7 +10,7 @@
  */
 /**
  * Assembled from: nav (inline) > hero with availability and portrait (inline) > selected work with a project filter
- * (inline) > services and skills (inline) > experience timeline (inline) > client quote (inline) > recent writing
+ * (inline) > services and skills (inline) > experience timeline (inline) > b.testimonial-feature > recent writing
  * (inline) > project enquiry form (inline) > footer (inline). Every button is c.button, project filters are c.chip,
  * kind labels are c.badge, skills are static c.chip, service and form cards are c.card, people are c.avatar, the form
  * is c.text-field and c.select, and the empty filter is c.empty-state.
@@ -32,6 +32,7 @@ import { Card } from "./cards-variants";
 import { TextField } from "./text-fields-states";
 import { Select } from "./dropdowns-states";
 import { EmptyState } from "./empty-states";
+import { TestimonialFeature } from "./testimonial-feature";
 
 // flowcode:sample
 const SAMPLE = {
@@ -348,20 +349,7 @@ export default function HomePersonal() {
           </div>
         </section>
 
-        <section className="fl-section fl-section--tint" aria-label="What a client says">
-          <figure className="fl-wrap fl-wrap--narrow" style={{ margin: "0 auto", display: "grid", gap: "var(--space-5)", textAlign: "center", justifyItems: "center" }}>
-            <blockquote className="fl-quote fl-quote--xl" style={{ margin: 0 }}>
-              “{d.quote.text}”
-            </blockquote>
-            <figcaption className="fl-person">
-              <Avatar name={d.quote.name} size={48} decorative />
-              <span style={{ textAlign: "left" }}>
-                <strong>{d.quote.name}</strong>
-                <span>{d.quote.role}</span>
-              </span>
-            </figcaption>
-          </figure>
-        </section>
+        <TestimonialFeature quote={d.quote.text} name={d.quote.name} role={d.quote.role} />
 
         <section className="fl-section" id="hp-me-writing" aria-labelledby="hp-me-writing-title">
           <div className="fl-wrap">

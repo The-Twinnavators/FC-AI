@@ -1,8 +1,8 @@
 /** @flowcode-library landing-product · Single product page (Landing pages)
  * Catalog ID: t.landing-product (template)
- * Function: A single-product landing page (t.landing-product) for a physical product. Assembled from: header with bag (inline) > gallery and buy box (inline) with c.tabs.underline > reviews summary (inline) > footer (inline).
+ * Function: A single-product landing page (t.landing-product) for a physical product. Assembled from: header with bag (inline) > gallery and buy box (inline) with c.choice-group, c.quantity and c.tabs.underline > reviews summary (inline) > footer (inline).
  * Use it as: Copy landing-product.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; use real photos in place of the drawn lamp.
- * Built from: c.button.primary, c.button.secondary, c.button.tertiary, c.tabs.underline, c.card.surface
+ * Built from: c.button.primary, c.button.secondary, c.button.tertiary, c.choice-group.swatch, c.choice-group.pill, c.quantity, c.tabs.underline, c.card.surface
  * Look: A gallery of four views beside a buy box with price, finish and shade pickers, quantity and Add to bag, then tabs for details, specs and shipping and a filterable reviews summary.
  * Use cases: product detail; product page; single product store; direct-to-consumer product; hero product; product reviews; item detail
  * Jobs to be done: see the product from every angle; choose the right option for me; add the product to my bag; read what other buyers think; check shipping and specs
@@ -16,8 +16,8 @@
  * sent. Make it the app's own: replace SAMPLE with the real product, its options and prices, and use real photos in
  * place of the drawn lamp.
  *
- * Assembled from: header with bag (inline) > gallery and buy box (inline; finish and shade pickers are custom swatches)
- * with c.tabs.underline for details, specs and shipping > reviews summary (inline) > footer (inline). Buttons are
+ * Assembled from: header with bag (inline) > gallery and buy box (inline) with c.choice-group (swatch, pill),
+ * c.quantity and c.tabs.underline for details, specs and shipping > reviews summary (inline) > footer (inline). Buttons are
  * c.button, the empty review state c.card.
  */
 import { useState } from "react";
@@ -25,6 +25,8 @@ import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 import { Tabs } from "./tabs-variants";
 import { Card } from "./cards-variants";
+import { ChoiceGroup } from "./checkboxes-radios";
+import { Quantity } from "./input-quantity";
 
 // flowcode:sample
 const SAMPLE = {
@@ -197,43 +199,26 @@ export default function LandingProduct() {
                 {chosenFinish.extra ? <span className="fl-meta">includes {money(chosenFinish.extra)} for brass</span> : null}
               </div>
 
-              <fieldset className="fl-ld-opts">
-                <legend>
-                  Finish: <span>{chosenFinish.label}</span>
-                </legend>
-                <div className="fl-ld-optrow">
-                  {d.finishes.map((f) => (
-                    <label key={f.id} title={f.label}>
-                      <input className="fl-sr" type="radio" name="ld-prod-finish" value={f.id} checked={finish === f.id} onChange={() => setFinish(f.id)} />
-                      <span className="fl-ld-swatch" style={{ background: f.swatch }} />
-                      <span className="fl-sr">{f.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              <ChoiceGroup
+                variant="swatch"
+                label={`Finish: ${chosenFinish.label}`}
+                name="ld-prod-finish"
+                value={finish}
+                onChange={(v) => setFinish(String(v))}
+                options={d.finishes.map((f) => ({ value: f.id, label: f.label, color: f.swatch }))}
+              />
 
-              <fieldset className="fl-ld-opts">
-                <legend>Shade</legend>
-                <div className="fl-ld-optrow">
-                  {d.shades.map((s) => (
-                    <label key={s.id}>
-                      <input className="fl-sr" type="radio" name="ld-prod-shade" value={s.id} checked={shade === s.id} onChange={() => setShade(s.id)} />
-                      <span className="fl-ld-chip">{s.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              <ChoiceGroup
+                variant="pill"
+                label="Shade"
+                name="ld-prod-shade"
+                value={shade}
+                onChange={(v) => setShade(String(v))}
+                options={d.shades.map((s) => ({ value: s.id, label: s.label }))}
+              />
 
               <div className="fl-ld-buyrow">
-                <div className="fl-ld-qty" role="group" aria-label="Quantity">
-                  <Button variant="secondary" size={40} style={{ paddingInline: 0, minWidth: "var(--control-md)" }} aria-label="One fewer" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
-                    −
-                  </Button>
-                  <output aria-live="polite">{qty}</output>
-                  <Button variant="secondary" size={40} style={{ paddingInline: 0, minWidth: "var(--control-md)" }} aria-label="One more" disabled={qty >= 5} onClick={() => setQty((q) => Math.min(5, q + 1))}>
-                    +
-                  </Button>
-                </div>
+                <Quantity label="Quantity" value={qty} min={1} max={5} onChange={setQty} />
                 <Button variant="primary" onClick={add}>
                   Add to bag · {money(unit * qty)}
                 </Button>

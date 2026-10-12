@@ -2,7 +2,7 @@
  * Catalog ID: t.app-admin (template)
  * Function: An app screen: admin panel for users and roles, assembled from catalog table parts, drawer, modals, pagination, empty state, avatars, badges, checkboxes, fields and buttons.
  * Use it as: Copy app-admin.tsx (FlowCode brings the components it uses); replace SAMPLE with the app's own roles, permissions, teams and people, and save through the app's data layer instead of memory.
- * Built from: c.drawer.right, c.modal.form, c.modal.danger, c.pagination.numbered, c.empty-state.no-results, c.avatar.person, c.badge.status, c.checkbox, c.text-field.outlined, c.select.outlined, c.button.primary, c.button.secondary, c.button.destructive, c.button.tertiary, c.button.ghost-on-accent
+ * Built from: c.tabs.underline, p.data-table, c.drawer.right, c.modal.form, c.modal.danger, c.pagination.numbered, c.avatar.person, c.badge.status, c.checkbox, c.text-field.outlined, c.select.outlined, c.button.primary, c.button.secondary, c.button.destructive, c.button.tertiary, c.button.ghost-on-accent
  * Look: A colored sidebar and top bar around a users table with filters, bulk actions and paging, a roles matrix, a detail drawer and dialogs.
  * Use cases: admin panel; user management; roles and permissions; access control; team directory; member management; back office; user list
  * Jobs to be done: manage who has access; change people's roles in bulk; invite a new user; deactivate a user safely; review a user's activity
@@ -20,9 +20,10 @@
  */
 /**
  * Assembled from: colored sidebar (inline: sections, seat meter, c.button.ghost-on-accent) > top bar (inline: c.text-field
- * search, c.avatar, c.button.tertiary menu) > page head (c.button.primary) > tabs (inline, with count pill) > users panel
- * (inline filter toolbar with c.text-field and c.select; bulk bar with c.button; table with c.checkbox, c.avatar, c.badge;
- * c.empty-state.no-results; c.pagination.numbered) > roles matrix (c.checkbox) > c.drawer (user details) > c.modal.form
+ * search, c.avatar, c.button.tertiary menu) > page head (c.button.primary) > c.tabs.underline (controlled, with a count) > users
+ * panel (inline filter toolbar with c.text-field and c.select) > p.data-table (controlled sort, paging, selection and bulk
+ * actions with c.select and c.button; c.checkbox, c.avatar, c.badge and c.pagination.numbered inside it) > roles matrix
+ * (inline table of c.checkbox) > c.drawer (user details) > c.modal.form
  * (invite) > c.modal.danger (deactivate).
  */
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
@@ -33,10 +34,10 @@ import { Avatar, type AvatarTone } from "./avatars-variants";
 import { TextField } from "./text-fields-states";
 import { Select } from "./dropdowns-states";
 import { Checkbox } from "./checkboxes-radios";
+import { Tabs } from "./tabs-variants";
+import { DataTable, type TableColumn } from "./tables-states";
 import { Modal } from "./modals-dialogs";
 import { Drawer } from "./panels-drawers";
-import { EmptyState } from "./empty-states";
-import { Pagination } from "./pagination-variants";
 
 // flowcode:sample
 const SAMPLE = {
@@ -135,6 +136,7 @@ type User = {
   activity: { at: string; text: string }[];
 };
 type SortKey = "name" | "role" | "status" | "lastMins";
+type UserRow = { id: string; name: string; role: number; status: number; lastMins: number; user: User } & Record<string, unknown>;
 type Fields = { name: string; email: string; role: string; team: string };
 type Errors = Partial<Record<"name" | "email", string>>;
 
@@ -143,9 +145,6 @@ const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([di
 const P = {
   search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4",
   x: "M6 6l12 12M18 6L6 18",
-  sortUp: "M12 19V5M6 11l6-6 6 6",
-  sortDown: "M12 5v14M6 13l6 6 6-6",
-  sortBoth: "M8 9l4-4 4 4M8 15l4 4 4-4",
 };
 
 const STATUS_TONE: Record<Status, BadgeTone> = { Active: "success", Invited: "info", Deactivated: "neutral" };
@@ -222,7 +221,7 @@ export default function AppAdmin() {
   const [statusFilter, setStatusFilter] = useState("");
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "name", dir: 1 });
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selEpoch, setSelEpoch] = useState(0);
   const [bulkRole, setBulkRole] = useState(d.roles[2]);
   const [confirm, setConfirm] = useState<string[] | null>(null);
   const [drawerId, setDrawerId] = useState<string | null>(null);
@@ -243,7 +242,6 @@ export default function AppAdmin() {
   const rootRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const toastTimer = useRef<number | null>(null);
   const menuWrap = useRef<HTMLSpanElement>(null);
 
@@ -292,21 +290,39 @@ export default function AppAdmin() {
     if (sort.key === "status") return (d.statuses.indexOf(a.status) - d.statuses.indexOf(b.status)) * sort.dir || a.name.localeCompare(b.name);
     return a.name.localeCompare(b.name) * sort.dir;
   };
-  const sorted = [...filtered].sort(compare);
-  const pages = Math.max(1, Math.ceil(sorted.length / d.pageSize));
-  const current = Math.min(page, pages);
-  const rows = sorted.slice((current - 1) * d.pageSize, current * d.pageSize);
-  const pageIds = rows.map((u) => u.id);
-  const allOnPage = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
-  const someOnPage = pageIds.some((id) => selected.has(id));
   const filtersOn = !!(q || roleFilter || statusFilter);
+  // DataTable sorts on the row's own values, so role and status carry their rank and a missing "last active" sorts last.
+  const tableRows: UserRow[] = [...filtered]
+    .sort((x, y) => x.name.localeCompare(y.name))
+    .map((u) => ({ id: u.id, name: u.name, role: d.roles.indexOf(u.role), status: d.statuses.indexOf(u.status), lastMins: u.lastMins ?? Number.MAX_SAFE_INTEGER, user: u }));
+  const columns: TableColumn<UserRow>[] = [
+    {
+      id: "name",
+      label: "Name",
+      render: (r) => (
+        <span className="fl-aa-who">
+          <Avatar name={r.user.name} size={32} tone={toneOf(r.user.name)} decorative />
+          <span>
+            <button type="button" className="fl-aa-who__name" onClick={() => openDrawer(r.user)}>
+              {r.user.name}
+              {r.user.id === d.me.id && <span className="fl-aa-you">You</span>}
+            </button>
+            <span className="fl-aa-who__email">{r.user.email}</span>
+          </span>
+        </span>
+      ),
+    },
+    { id: "role", label: "Role", render: (r) => r.user.role },
+    { id: "status", label: "Status", render: (r) => <Badge tone={STATUS_TONE[r.user.status]}>{r.user.status}</Badge> },
+    { id: "team", label: "Team", sortable: false, render: (r) => <span className="fl-aa-muted">{r.user.team}</span> },
+    { id: "lastMins", label: "Last active", render: (r) => <span className="fl-aa-muted">{r.user.lastActive}</span> },
+  ];
   const seatsUsed = users.filter((u) => u.status !== "Deactivated").length;
   const counts = Object.fromEntries(d.statuses.map((s) => [s, users.filter((u) => u.status === s).length]));
 
   function changeFilters(fn: () => void) {
     fn();
     setPage(1);
-    setSelected(new Set());
   }
 
   function clearFilters() {
@@ -321,28 +337,9 @@ export default function AppAdmin() {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
   }
 
-  function toggleRow(id: string) {
-    setSelected((s) => {
-      const next = new Set(s);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function togglePage() {
-    setSelected((s) => {
-      const next = new Set(s);
-      if (allOnPage) pageIds.forEach((id) => next.delete(id));
-      else pageIds.forEach((id) => next.add(id));
-      return next;
-    });
-  }
-
-  function applyBulkRole() {
-    const ids = Array.from(selected);
+  function applyBulkRole(ids: string[]) {
     setUsers((us) => us.map((u) => (ids.includes(u.id) && u.role !== bulkRole ? logged({ ...u, role: bulkRole }, `Role changed to ${bulkRole} by ${d.me.name}`) : u)));
-    setSelected(new Set());
+    setSelEpoch((n) => n + 1);
     notify(`Role changed to ${bulkRole} for ${ids.length} ${ids.length === 1 ? "person" : "people"}.`);
   }
 
@@ -356,7 +353,7 @@ export default function AppAdmin() {
   function doDeactivate() {
     const ids = confirmIds;
     setUsers((us) => us.map((u) => (ids.includes(u.id) && u.status !== "Deactivated" ? logged({ ...u, status: "Deactivated" }, `Deactivated by ${d.me.name}`) : u)));
-    setSelected(new Set());
+    setSelEpoch((n) => n + 1);
     setConfirm(null);
     notify(ids.length === 1 ? `${confirmNames[0]} has been deactivated.` : `${ids.length} people have been deactivated.`);
   }
@@ -447,35 +444,9 @@ export default function AppAdmin() {
     }, 700);
   }
 
-  function onTabKey(e: KeyboardEvent<HTMLButtonElement>) {
-    const ids = d.tabs.map((t) => t.id);
-    const at = ids.indexOf(tab);
-    let next = -1;
-    if (e.key === "ArrowRight") next = (at + 1) % ids.length;
-    else if (e.key === "ArrowLeft") next = (at - 1 + ids.length) % ids.length;
-    else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = ids.length - 1;
-    if (next < 0) return;
-    e.preventDefault();
-    setTab(ids[next]);
-    tabRefs.current[ids[next]]?.focus();
-  }
-
   function closeMenu() {
     setMenuOpen(false);
     window.setTimeout(() => menuWrap.current?.querySelector("button")?.focus(), 0);
-  }
-
-  function sortHead(k: SortKey, label: string) {
-    const on = sort.key === k;
-    return (
-      <th key={k} scope="col" aria-sort={on ? (sort.dir === 1 ? "ascending" : "descending") : undefined}>
-        <button type="button" className="fl-aa-sort" onClick={() => sortBy(k)}>
-          {label}
-          <Glyph d={on ? (sort.dir === 1 ? P.sortUp : P.sortDown) : P.sortBoth} />
-        </button>
-      </th>
-    );
   }
 
   const fieldProps = (prefix: string, key: "name" | "email", errs: Errors) => ({
@@ -483,6 +454,122 @@ export default function AppAdmin() {
     invalid: !!errs[key],
     "aria-describedby": errs[key] ? `${prefix}-${key}-err` : undefined,
   });
+
+  const usersPanel = (
+            <div className="fl-aa-panel">
+              <p className="fl-aa-summary">
+                {d.statuses.map((s) => (
+                  <span key={s}>
+                    <span className={`fl-aa-dot fl-aa-dot--${s.toLowerCase()}`} aria-hidden="true" />
+                    {counts[s]} {s.toLowerCase()}
+                  </span>
+                ))}
+              </p>
+
+              <div className="fl-aa-toolbar">
+                <div className="fl-aa-search">
+                  <label htmlFor="fl-aa-users-q" className="fl-sr">
+                    Search users
+                  </label>
+                  <Glyph d={P.search} />
+                  <TextField id="fl-aa-users-q" type="search" placeholder="Name or email" value={query} onChange={(e) => changeFilters(() => setQuery(e.target.value))} />
+                </div>
+                <Pick id="fl-aa-f-role" label="Role" hideLabel allLabel="All roles" value={roleFilter} options={d.roles} onChange={(v) => changeFilters(() => setRoleFilter(v))} />
+                <Pick id="fl-aa-f-status" label="Status" hideLabel allLabel="All statuses" value={statusFilter} options={d.statuses} onChange={(v) => changeFilters(() => setStatusFilter(v))} />
+                {filtersOn && (
+                  <Button variant="tertiary" size={32} onClick={clearFilters}>
+                    {d.clearFilters}
+                  </Button>
+                )}
+              </div>
+
+              <DataTable
+                key={`${q}|${roleFilter}|${statusFilter}|${selEpoch}`}
+                caption="Users"
+                columns={columns}
+                rows={tableRows}
+                selectable
+                sort={{ column: sort.key, direction: sort.dir === 1 ? "asc" : "desc" }}
+                onSortChange={(s) => setSort({ key: s.column as SortKey, dir: s.direction === "asc" ? 1 : -1 })}
+                pageSize={d.pageSize}
+                page={page}
+                onPageChange={setPage}
+                bulk={(ids) => (
+                  <>
+                    <div className="fl-aa-bulk__role">
+                      <Pick id="fl-aa-bulk-role" label="Change role to" hideLabel value={bulkRole} options={d.roles} onChange={setBulkRole} />
+                      <Button variant="secondary" size={32} onClick={() => applyBulkRole(ids)}>
+                        Change role
+                      </Button>
+                    </div>
+                    <Button variant="destructive" size={32} onClick={() => askDeactivate(ids)}>
+                      Deactivate
+                    </Button>
+                  </>
+                )}
+                emptyTitle={d.noResultsTitle}
+                emptyHint={d.noResultsText}
+                emptyAction={d.clearFilters}
+                onEmptyAction={clearFilters}
+              />
+            </div>
+  );
+
+  const rolesPanel = (
+  <div className="fl-aa-panel">
+    <p className="fl-meta">{d.adminNote}</p>
+    <div className="fl-aa-tablewrap" tabIndex={0} role="region" aria-labelledby="fl-aa-perms-caption">
+      <table className="fl-aa-table fl-aa-matrix">
+        <caption id="fl-aa-perms-caption" className="fl-sr">
+          What each role can do
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Permission</th>
+            {d.roles.map((r) => (
+              <th key={r} scope="col">
+                {r}
+                <span className="fl-aa-matrix__n">{peopleIn(r)}</span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {d.permissions.map((p) => (
+            <tr key={p.id}>
+              <th scope="row">{p.label}</th>
+              {d.roles.map((r) => (
+                <td key={r}>
+                  <Checkbox
+                    checked={perms[p.id][r]}
+                    disabled={r === "Admin" || permStatus === "saving"}
+                    aria-label={`${r}: ${p.label}`}
+                    onChange={(e) => {
+                      const on = e.target.checked;
+                      setPerms((all) => ({ ...all, [p.id]: { ...all[p.id], [r]: on } }));
+                      setPermStatus("idle");
+                    }}
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div className="fl-aa-savebar">
+      <span className={`fl-aa-savebar__msg${permStatus === "saved" && !permsDirty ? " is-saved" : ""}`} role="status">
+        {permStatus === "saving" ? d.saving : permsDirty ? d.unsaved : permStatus === "saved" ? d.savedPerms : ""}
+      </span>
+      <Button variant="tertiary" size={32} disabled={!permsDirty || permStatus === "saving"} onClick={() => setPerms(savedPerms)}>
+        {d.discard}
+      </Button>
+      <Button variant="primary" size={32} disabled={!permsDirty} busy={permStatus === "saving"} onClick={savePerms}>
+        {permStatus === "saving" ? d.saving : d.savePerms}
+      </Button>
+    </div>
+  </div>
+  );
 
   return (
     <div ref={rootRef} className="fl-aa-frame fl-aa-admin" data-narrow={narrow ? "true" : "false"}>
@@ -590,202 +677,12 @@ export default function AppAdmin() {
             </Button>
           </div>
 
-          <div className="fl-aa-tabs" role="tablist" aria-label={d.title}>
-            {d.tabs.map((t) => (
-              <button
-                key={t.id}
-                ref={(el) => {
-                  tabRefs.current[t.id] = el;
-                }}
-                type="button"
-                role="tab"
-                id={`fl-aa-tab-${t.id}`}
-                aria-selected={tab === t.id}
-                aria-controls={`fl-aa-panel-${t.id}`}
-                tabIndex={tab === t.id ? 0 : -1}
-                onClick={() => setTab(t.id)}
-                onKeyDown={onTabKey}
-              >
-                {t.label}
-                {t.id === "users" && <span className="fl-aa-count-pill">{users.length}</span>}
-              </button>
-            ))}
-          </div>
-
-          {tab === "users" ? (
-            <div role="tabpanel" id="fl-aa-panel-users" aria-labelledby="fl-aa-tab-users" className="fl-aa-panel">
-              <p className="fl-aa-summary">
-                {d.statuses.map((s) => (
-                  <span key={s}>
-                    <span className={`fl-aa-dot fl-aa-dot--${s.toLowerCase()}`} aria-hidden="true" />
-                    {counts[s]} {s.toLowerCase()}
-                  </span>
-                ))}
-              </p>
-
-              <div className="fl-aa-toolbar">
-                <div className="fl-aa-search">
-                  <label htmlFor="fl-aa-users-q" className="fl-sr">
-                    Search users
-                  </label>
-                  <Glyph d={P.search} />
-                  <TextField id="fl-aa-users-q" type="search" placeholder="Name or email" value={query} onChange={(e) => changeFilters(() => setQuery(e.target.value))} />
-                </div>
-                <Pick id="fl-aa-f-role" label="Role" hideLabel allLabel="All roles" value={roleFilter} options={d.roles} onChange={(v) => changeFilters(() => setRoleFilter(v))} />
-                <Pick id="fl-aa-f-status" label="Status" hideLabel allLabel="All statuses" value={statusFilter} options={d.statuses} onChange={(v) => changeFilters(() => setStatusFilter(v))} />
-                {filtersOn && (
-                  <Button variant="tertiary" size={32} onClick={clearFilters}>
-                    {d.clearFilters}
-                  </Button>
-                )}
-              </div>
-
-              {selected.size > 0 && (
-                <div className="fl-aa-bulk" role="region" aria-label="Bulk actions">
-                  <strong>{selected.size} selected</strong>
-                  <div className="fl-aa-bulk__role">
-                    <Pick id="fl-aa-bulk-role" label="Change role to" hideLabel value={bulkRole} options={d.roles} onChange={setBulkRole} />
-                    <Button variant="secondary" size={32} onClick={applyBulkRole}>
-                      Change role
-                    </Button>
-                  </div>
-                  <Button variant="destructive" size={32} onClick={() => askDeactivate(Array.from(selected))}>
-                    Deactivate
-                  </Button>
-                  <Button variant="tertiary" size={32} onClick={() => setSelected(new Set())}>
-                    Clear selection
-                  </Button>
-                </div>
-              )}
-
-              <div className="fl-aa-tablewrap" tabIndex={0} role="region" aria-labelledby="fl-aa-users-caption">
-                <table className="fl-aa-table">
-                  <caption id="fl-aa-users-caption" className="fl-sr">
-                    Users, sorted by {sort.key === "lastMins" ? "last active" : sort.key} {sort.dir === 1 ? "ascending" : "descending"}
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th scope="col" className="fl-aa-table__check">
-                        <Checkbox checked={allOnPage} indeterminate={someOnPage && !allOnPage} disabled={!rows.length} onChange={togglePage} aria-label="Select everyone on this page" />
-                      </th>
-                      {sortHead("name", "Name")}
-                      {sortHead("role", "Role")}
-                      {sortHead("status", "Status")}
-                      <th scope="col">Team</th>
-                      {sortHead("lastMins", "Last active")}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.length === 0 ? (
-                      <tr>
-                        <td colSpan={6}>
-                          <EmptyState
-                            variant="no-results"
-                            icon="users"
-                            title={d.noResultsTitle}
-                            action={
-                              <Button variant="secondary" size={32} onClick={clearFilters}>
-                                {d.clearFilters}
-                              </Button>
-                            }
-                          >
-                            {d.noResultsText}
-                          </EmptyState>
-                        </td>
-                      </tr>
-                    ) : (
-                      rows.map((u) => (
-                        <tr key={u.id} data-selected={selected.has(u.id) ? "true" : undefined}>
-                          <td className="fl-aa-table__check">
-                            <Checkbox checked={selected.has(u.id)} onChange={() => toggleRow(u.id)} aria-label={`Select ${u.name}`} />
-                          </td>
-                          <td>
-                            <span className="fl-aa-who">
-                              <Avatar name={u.name} size={32} tone={toneOf(u.name)} decorative />
-                              <span>
-                                <button type="button" className="fl-aa-who__name" onClick={() => openDrawer(u)}>
-                                  {u.name}
-                                  {u.id === d.me.id && <span className="fl-aa-you">You</span>}
-                                </button>
-                                <span className="fl-aa-who__email">{u.email}</span>
-                              </span>
-                            </span>
-                          </td>
-                          <td>{u.role}</td>
-                          <td>
-                            <Badge tone={STATUS_TONE[u.status]}>{u.status}</Badge>
-                          </td>
-                          <td className="fl-aa-muted">{u.team}</td>
-                          <td className="fl-aa-muted">{u.lastActive}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="fl-aa-tablefoot">
-                <p className="fl-meta">
-                  {sorted.length === 0 ? "No users to show" : `Showing ${(current - 1) * d.pageSize + 1}–${(current - 1) * d.pageSize + rows.length} of ${sorted.length} ${sorted.length === 1 ? "user" : "users"}`}
-                </p>
-                {pages > 1 && <Pagination variant="numbered" page={current} pageCount={pages} onPageChange={setPage} />}
-              </div>
-            </div>
-          ) : (
-            <div role="tabpanel" id="fl-aa-panel-roles" aria-labelledby="fl-aa-tab-roles" className="fl-aa-panel">
-              <p className="fl-meta">{d.adminNote}</p>
-              <div className="fl-aa-tablewrap" tabIndex={0} role="region" aria-labelledby="fl-aa-perms-caption">
-                <table className="fl-aa-table fl-aa-matrix">
-                  <caption id="fl-aa-perms-caption" className="fl-sr">
-                    What each role can do
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Permission</th>
-                      {d.roles.map((r) => (
-                        <th key={r} scope="col">
-                          {r}
-                          <span className="fl-aa-matrix__n">{peopleIn(r)}</span>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {d.permissions.map((p) => (
-                      <tr key={p.id}>
-                        <th scope="row">{p.label}</th>
-                        {d.roles.map((r) => (
-                          <td key={r}>
-                            <Checkbox
-                              checked={perms[p.id][r]}
-                              disabled={r === "Admin" || permStatus === "saving"}
-                              aria-label={`${r}: ${p.label}`}
-                              onChange={(e) => {
-                                const on = e.target.checked;
-                                setPerms((all) => ({ ...all, [p.id]: { ...all[p.id], [r]: on } }));
-                                setPermStatus("idle");
-                              }}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="fl-aa-savebar">
-                <span className={`fl-aa-savebar__msg${permStatus === "saved" && !permsDirty ? " is-saved" : ""}`} role="status">
-                  {permStatus === "saving" ? d.saving : permsDirty ? d.unsaved : permStatus === "saved" ? d.savedPerms : ""}
-                </span>
-                <Button variant="tertiary" size={32} disabled={!permsDirty || permStatus === "saving"} onClick={() => setPerms(savedPerms)}>
-                  {d.discard}
-                </Button>
-                <Button variant="primary" size={32} disabled={!permsDirty} busy={permStatus === "saving"} onClick={savePerms}>
-                  {permStatus === "saving" ? d.saving : d.savePerms}
-                </Button>
-              </div>
-            </div>
-          )}
+          <Tabs
+            label={d.title}
+            value={tab}
+            onChange={setTab}
+            tabs={d.tabs.map((t) => ({ id: t.id, label: t.label, count: t.id === "users" ? users.length : undefined, panel: t.id === "users" ? usersPanel : rolesPanel }))}
+          />
         </div>
       </div>
 

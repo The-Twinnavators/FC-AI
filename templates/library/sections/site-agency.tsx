@@ -1,8 +1,8 @@
 /** @flowcode-library site-agency · Creative agency website (Industry sites)
  * Catalog ID: t.site-agency (template)
- * Function: The creative agency one-page website (t.site-agency), assembled inline from its own sections with catalog chips, accordion, avatar, fields, radios and buttons; no page block fits its layout.
+ * Function: The creative agency one-page website (t.site-agency), assembled inline from its own sections with catalog chips, accordion, avatar, fields, budget pills and buttons; no page block fits its layout.
  * Use it as: Copy site-agency.tsx (FlowCode brings the components it uses); replace SAMPLE with the business's own content.
- * Built from: c.chip.filter, c.empty-state, c.accordion.bordered, c.badge.status, c.avatar.person, c.card.surface, c.text-field.outlined, c.radio, c.button.primary, c.button.secondary, c.button.on-accent, c.button.ghost-on-accent
+ * Built from: c.chip.filter, c.empty-state, c.accordion.bordered, c.badge.status, c.avatar.person, c.card.surface, c.text-field.outlined, c.choice-group.pill, c.button.primary, c.button.secondary, c.button.on-accent, c.button.ghost-on-accent
  * Look: A bold, ink-dark creative studio page: big banner, filterable tiles of work, accordion services, numbered process, client wordmarks with a quote, and an enquiry form.
  * Use cases: agency website; design studio; creative portfolio; services overview; case studies; client work; consultancy site; project enquiry
  * Jobs to be done: see the studio's past work; understand how they work; find out what services they offer; start a project with the studio
@@ -16,8 +16,8 @@
  * The form checks its fields and keeps enquiries in local storage; nothing is sent.
  * Assembled from: header and side menu panel (inline) > banner (inline) > work showcase (inline) with c.chip.filter and
  * c.empty-state > services c.accordion.bordered (inline section) > process steps (inline) > clients (inline) with c.avatar >
- * contact c.card.surface (inline) with c.text-field and c.radio > footer (inline). No page block matches this studio
- * layout, so the sections stay in the template; every button, chip, badge, card, avatar, field, radio, accordion and
+ * contact c.card.surface (inline) with c.text-field and the c.choice-group.pill budget > footer (inline). No page block matches this studio
+ * layout, so the sections stay in the template; every button, chip, badge, card, avatar, field, budget pills, accordion and
  * empty state is the catalog component.
  * Make it the app's own: replace SAMPLE with real projects, services and clients, and keep the budget options honest.
  */
@@ -29,7 +29,7 @@ import { Chip } from "./chips-tags";
 import { Avatar } from "./avatars-variants";
 import { Card } from "./cards-variants";
 import { TextField } from "./text-fields-states";
-import { Radio } from "./checkboxes-radios";
+import { ChoiceGroup } from "./checkboxes-radios";
 import { Accordion } from "./accordion-variants";
 import { EmptyState } from "./empty-states";
 
@@ -354,15 +354,10 @@ export default function SiteAgency() {
                         {errText("email")}
                       </div>
                     </div>
-                    <fieldset className="fl-st-fieldset" aria-describedby={errors.budget ? "agency-budget-err" : undefined}>
-                      <legend>Rough budget</legend>
-                      <div className="fl-st-chips">
-                        {d.contact.budgets.map((b) => (
-                          <Radio key={b} label={b} name="budget" value={b} aria-invalid={errors.budget ? true : undefined} />
-                        ))}
-                      </div>
+                    <div className="fl-st-fieldset" aria-describedby={errors.budget ? "agency-budget-err" : undefined}>
+                      <ChoiceGroup variant="pill" label="Rough budget" name="budget" options={d.contact.budgets.map((b) => ({ value: b, label: b }))} />
                       {errText("budget")}
-                    </fieldset>
+                    </div>
                     <div className="fl-field">
                       <label htmlFor="agency-message">About the project</label>
                       <TextField multiline id="agency-message" name="message" placeholder="What are you making, and by when?" {...errProps("message")} />

@@ -1,8 +1,8 @@
 /** @flowcode-library landing-lead · Lead generation landing (Landing pages)
  * Catalog ID: t.landing-lead (template)
- * Function: A lead-generation landing page (t.landing-lead) that trades a name and email for a free guide. Assembled from: header and lead hero with form (inline) > what's inside (inline) > author and quotes (inline) > closing call to action (inline) > footer (inline).
+ * Function: A lead-generation landing page (t.landing-lead) that trades a name and email for a free guide. Assembled from: header (inline) > b.hero-split with the form card in aside > trust row (inline) > what's inside (inline) > author and quotes (inline) > closing call to action (inline) > footer (inline).
  * Use it as: Copy landing-lead.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; ask only for the form fields you will use.
- * Built from: c.button.primary, c.text-field.outlined, c.select.outlined, c.avatar, c.card.surface
+ * Built from: b.hero-split, c.button.primary, c.text-field.outlined, c.select.outlined, c.avatar, c.card.surface
  * Look: A mesh-backed hero with the promise beside a short form card, then chapters, an author card with quotes, and a closing call to action.
  * Use cases: lead magnet; free guide download; ebook landing; consultation booking; lead capture; checklist download; newsletter opt-in; webinar signup
  * Jobs to be done: get the free guide; learn what the guide covers; decide if the author is credible; book a free consultation
@@ -16,7 +16,7 @@
  * sent. Make it the app's own: replace SAMPLE with the real offer and its chapters, and ask only for the fields you
  * will actually use.
  *
- * Assembled from: header and lead hero with form (inline) > what's inside (inline) > author and quotes (inline) >
+ * Assembled from: header (inline) > b.hero-split with the form card in aside > trust row (inline) > what's inside (inline) > author and quotes (inline) >
  * closing call to action (inline) > footer (inline). Buttons are c.button, fields c.text-field and c.select, people
  * c.avatar, cards c.card.
  */
@@ -26,6 +26,7 @@ import { Button } from "./buttons-variants";
 import { TextField } from "./text-fields-states";
 import { Select } from "./dropdowns-states";
 import { Avatar } from "./avatars-variants";
+import { HeroSplit } from "./hero-split";
 import { Card } from "./cards-variants";
 
 // flowcode:sample
@@ -129,24 +130,14 @@ export default function LandingLead() {
           </div>
         </div>
 
-        <div className="fl-ld-lead-hero" id="top">
-          <div className="fl-wrap fl-ld-lead-grid">
-            <div className="fl-ld-lead-copy">
-              <span className="fl-eyebrow">{d.eyebrow}</span>
-              <h1 className="fl-title fl-title--xl">{d.title}</h1>
-              <p className="fl-lede">{d.lede}</p>
-              <ul className="fl-checks">
-                {d.points.map((p) => (
-                  <li key={p}>
-                    <span className="fl-tick" aria-hidden="true">
-                      <Icon name="check" />
-                    </span>
-                    <span>{p}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
+        <div id="top">
+          <HeroSplit
+            id="ld-lead"
+            eyebrow={d.eyebrow}
+            title={d.title}
+            lede={d.lede}
+            list={d.points}
+            aside={
             <Card variant="surface" className="fl-ld-formcard" id="lead-form">
               <h2 id="ld-lead-form-title">{d.form.title}</h2>
               {sent ? (
@@ -192,8 +183,9 @@ export default function LandingLead() {
                 </form>
               )}
             </Card>
-          </div>
-          <div className="fl-wrap" style={{ marginTop: "var(--space-7)" }}>
+            }
+          />
+          <div className="fl-wrap" style={{ paddingBottom: "var(--space-9)" }}>
             <ul className="fl-ld-trust">
               {d.trust.map((t, i) => (
                 <li key={t}>

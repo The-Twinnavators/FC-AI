@@ -1,30 +1,29 @@
 /** @flowcode-library nb-landing · Neobrutal landing (Landing pages)
  * Catalog ID: t.landing-neobrutal (template)
- * Function: A neobrutalist-style landing page (pair it with the Neo-brutalist surface style) assembled from: b.hero-centered (booking preview as its picture) > b.features-grid > email sign-up card (inline).
+ * Function: A neobrutalist-style landing page (pair it with the Neo-brutalist surface style) assembled from: b.hero-split (the booking preview beside the words) > b.features-grid > email sign-up card (inline).
  * Use it as: Copy nb-landing.tsx (FlowCode brings the blocks and components it uses); pair it with the Neo-brutalist surface style; replace SAMPLE with the real promise, features and offer, and pass the email to the app's own waitlist step.
- * Built from: b.hero-centered, b.features-grid, c.button.primary, c.button.secondary, c.card.surface, c.card.plain, c.text-field.outlined
- * Look: A centered hero over a booking preview card with a sticker tag, three feature cards and a closing email sign-up card; it looks neobrutal only when the Neo-brutalist surface style is on.
+ * Built from: b.hero-split, b.features-grid, c.button.primary, c.button.secondary, c.card.surface, c.card.plain, c.text-field.outlined
+ * Look: A split hero with the words beside a booking preview card with a sticker tag, three feature cards and a closing email sign-up card; it looks neobrutal only when the Neo-brutalist surface style is on.
  * Use cases: landing page; playful product homepage; studio homepage; event homepage; waitlist signup; booking service landing; product launch
  * Jobs to be done: understand what the product offers; see an available booking slot; join the waitlist with my email
  * Keywords: landing, hero, features, call to action, email signup, neobrutalism
  */
 /**
- * Landing page for a playful product, studio or event: a centered hero with a booking preview you can hold a slot in,
+ * Landing page for a playful product, studio or event: a split hero with a booking preview beside the words you can hold a slot in,
  * a row of three feature cards and a closing call to action with an email sign-up. Pair it with the Neo-brutalist
  * surface style: the components take their thick edges, hard shadows and tilted sticker from the style's tokens, so
  * this page carries no look of its own.
- * Assembled from: b.hero-centered (booking preview as its picture) > b.features-grid > email sign-up (inline). Every
+ * Assembled from: b.hero-split (booking preview beside the words) > b.features-grid > email sign-up (inline). Every
  * button is c.button, the slots and the sign-up are c.card, the email field is c.text-field.
  * Make it the app's own: replace SAMPLE with the real promise, features and offer, and pass the email to the app's own
  * waitlist step.
  */
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 import { Card } from "./cards-variants";
 import { TextField } from "./text-fields-states";
-import { HeroCentered } from "./hero-centered";
+import { HeroSplit } from "./hero-split";
 import { FeaturesGrid } from "./features-grid";
 
 // flowcode:sample
@@ -73,15 +72,15 @@ export default function NbLanding() {
 
   return (
     <div>
-      <HeroCentered
+      <HeroSplit
         id="nb-landing"
-        kicker={{ tag: "Open", text: d.kicker, href: "#nb-landing-slots" }}
+        eyebrow={d.kicker}
         title={d.title}
         lede={d.lede}
         primary={{ label: d.primary, href: "#nb-landing-slots" }}
         secondary={{ label: d.secondary, href: "#prices" }}
-      >
-        <Card variant="surface" tag={d.sticker} id="nb-landing-slots" style={{ maxWidth: "28rem", marginInline: "auto" }}>
+        aside={
+        <Card variant="surface" tag={d.sticker} id="nb-landing-slots">
           <h2 className="fl-title fl-title--md" style={{ margin: 0 }}>
             {d.previewTitle}
           </h2>
@@ -115,7 +114,8 @@ export default function NbLanding() {
             {picked ? `${picked} is held for 15 minutes.` : ""}
           </p>
         </Card>
-      </HeroCentered>
+        }
+      />
 
       <FeaturesGrid id="nb-landing-features" title={d.featuresTitle} items={d.features} />
 

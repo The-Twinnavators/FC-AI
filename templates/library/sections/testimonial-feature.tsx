@@ -30,7 +30,7 @@ export function TestimonialFeature({ quote, name, role, photo }: TestimonialFeat
       <figure className="fl-wrap fl-wrap--narrow fl-head fl-head--center" style={{ margin: "0 auto" }}>
         <blockquote className="fl-quote fl-quote--xl">“{quote}”</blockquote>
         <figcaption className="fl-person" style={{ marginTop: "var(--space-4)" }}>
-          <Avatar name={name} size={48} src={photo} decorative />
+          <Avatar name={name} size={44} src={photo} decorative />
           <span style={{ textAlign: "left" }}>
             <strong>{name}</strong>
             <span>{role}</span>
