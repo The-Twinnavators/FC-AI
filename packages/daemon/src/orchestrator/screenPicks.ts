@@ -81,6 +81,13 @@ export function fit(screen: Pick<PlannedScreen, "label" | "purpose">, piece: Lib
   return score;
 }
 
+/**
+ * Real evidence a piece fits a screen: a use case or job that matches what the screen is for, or a clearly strong
+ * overall score. One shared tag plus half of one job is not enough (Build test 2: radio cards for a brand guide's Home,
+ * on its "choice" tag and half a job, scored 6 and became the screen's starting point).
+ */
+export const evident = (screen: Pick<PlannedScreen, "label" | "purpose">, piece: LibrarySection, score: number, min = 6) => score >= min + 3 || intent(screen, piece) >= 4;
+
 /** The best one or two pieces per screen (a clear match only, of different kinds), at most six in all, skipping ids already picked. */
 export function screenPicks(screens: PlannedScreen[], already: string[] = [], min = 6): ScreenPick[] {
   const taken = new Set(already);
@@ -92,7 +99,7 @@ export function screenPicks(screens: PlannedScreen[], already: string[] = [], mi
     // as a chip state matrix labelled Wedding and Portrait. They stay in the library to browse; they never seed.
     const ranked = LIBRARY_SECTIONS.filter((p) => !p.specimen).filter((p) => (site ? forSite : forApp)(p) || (groupOf.get(p.category) !== "template" && p.category !== "backgrounds" && intent(screen, p) >= 6))
       .map((piece) => ({ piece, score: fit(screen, piece) }))
-      .filter((r) => r.score >= min)
+      .filter((r) => r.score >= min && evident(screen, r.piece, r.score, min))
       .sort((a, b) => b.score - a.score);
     // A whole-screen template only as the screen's one pick; otherwise up to two components.
     // One piece per kind for a screen: two sign-in forms or two tables are alternatives, not a pair.

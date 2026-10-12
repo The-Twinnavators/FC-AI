@@ -7,7 +7,7 @@
  * review sends a screen back it names the next option on the list rather than leaving the agent to restyle by hand.
  */
 import { LIBRARY_SECTIONS, SECTION_CATEGORIES, type LibrarySection } from "@flowcode/contracts";
-import { WEBSITE, fit, intent } from "./screenPicks.js";
+import { WEBSITE, evident, fit, intent } from "./screenPicks.js";
 import type { PlannedScreen } from "./screenPlan.js";
 import { briefLine, catalogBrief } from "./sectionRecipes.js";
 
@@ -105,9 +105,11 @@ export function matchCatalog(prd: string, screens: Pick<PlannedScreen, "label" |
       .map((e) => ({ e, score: fit(screen, e.as) + ((prdIntent.get(e.ref) ?? 0) >= 6 ? 2 : 0) }))
       .filter((r) => r.score >= min)
       .sort((a, b) => b.score - a.score || a.e.ref.localeCompare(b.e.ref));
+    // A pick needs real evidence (evident); a next-best option, offered only once the review turns a pick down, needs
+    // the same kind as a pick and a little intent (some of a use case or job), not the full bar.
     const picks: { e: Entry; score: number }[] = [];
-    for (const r of ranked) if (picks.length < 4 && !picks.some((p) => p.e.kind === r.e.kind)) picks.push(r);
-    const alternates = picks.flatMap((p) => ranked.filter((r) => r.e.kind === p.e.kind && r !== p).slice(0, 2));
+    for (const r of ranked) if (picks.length < 4 && !picks.some((p) => p.e.kind === r.e.kind) && evident(screen, r.e.as, r.score, min)) picks.push(r);
+    const alternates = picks.flatMap((p) => ranked.filter((r) => r.e.kind === p.e.kind && r !== p && (evident(screen, r.e.as, r.score, min) || intent(screen, r.e.as) >= 3)).slice(0, 2));
     out.push({ screen: screen.label, picks: picks.map((r) => toMatch(r.e, r.score, text)), alternates: alternates.map((r) => toMatch(r.e, r.score, text)) });
   }
   return { screens: out, shared };

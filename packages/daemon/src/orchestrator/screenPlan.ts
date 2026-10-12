@@ -13,6 +13,7 @@ import type { PathJail } from "../security/pathJail.js";
 import type { AgentOutcome } from "./agentLoop.js";
 import type { RuntimeStepArgs } from "./templates.js";
 import { LIBRARY_SECTIONS, SECTION_CATEGORIES } from "@flowcode/contracts";
+import { LAYOUTS } from "./layoutRecipes.js";
 import { recordUse } from "./libraryUse.js";
 import { screenPicks, type ScreenPick } from "./screenPicks.js";
 import { pieceFiles, sectionFile, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
@@ -196,7 +197,12 @@ export function writesLayout(plan: ScreenPlan | undefined, jail: PathJail): plan
   return !!plan?.screens.length && layoutOpen(jail);
 }
 
-/** The app still has the starter's App (no AppShell), the kit FlowCode's layout uses, and no screens yet. */
+/**
+ * The app still has the starter's App (no AppShell), the kit FlowCode's layout uses, and no screens of its own yet. A
+ * ready-made screen layout the runtime copied in (ADD_LAYOUTS) doesn't count: it is a starting point for one screen,
+ * not a layout. Counting it handed the whole layout to the model, which ignored the planned screens and the matched
+ * catalog parts and wrote every screen inline in App.tsx (Build test 2: a ready-made ListScreen, then a hand-built app).
+ */
 export function layoutOpen(jail: PathJail): boolean {
   const root = jail.root;
   if (!fs.existsSync(path.join(root, "src/components/ui/index.tsx")) || !fs.existsSync(path.join(root, "src/lib/screens.ts"))) return false;
@@ -208,7 +214,8 @@ export function layoutOpen(jail: PathJail): boolean {
   }
   if (app.includes("<AppShell")) return false;
   const dir = path.join(root, "src/screens");
-  return !fs.existsSync(dir) || !fs.readdirSync(dir).some((f) => /\.(tsx|jsx)$/.test(f));
+  const readyMade = new Set(LAYOUTS.map((l) => path.basename(l.screen)));
+  return !fs.existsSync(dir) || !fs.readdirSync(dir).some((f) => /\.(tsx|jsx)$/.test(f) && !readyMade.has(f));
 }
 
 /**
@@ -252,6 +259,8 @@ export function layoutStep(plan: ScreenPlan) {
     deps.store.setSetting(placedKey(run.id), placements.map((p) => ({ ...p, screenFile: plan.screens.find((s) => s.label === p.screen)!.file })));
     for (const f of layoutFiles(plan, placements)) {
       const exists = fs.existsSync(path.join(jail.root, f.path));
+      // A ready-made screen layout already there is that screen's finished starting point: kept, not overwritten.
+      if (exists && f.path !== "src/App.tsx" && LAYOUTS.some((l) => l.screen === f.path)) continue;
       const res = exists ? deps.ops.replace_file(ctx, { path: f.path, content: f.content, reason: "The app shell with the planned screens" }) : deps.ops.create_file(ctx, { path: f.path, content: f.content });
       if (!res.ok) return { kind: "blocked", reason: `Couldn't write ${f.path}: ${res.message}`, nextAction: "Retry this step" };
       changed.push(f.path);

@@ -40,6 +40,10 @@ describe("the app's screens, decided once", () => {
     const jail = new PathJail(root);
     expect(writesLayout(plan, jail)).toBe(true);
     expect(writesLayout(undefined, jail)).toBe(false);
+    // A ready-made screen layout the runtime copied in is one screen's starting point, not a layout: FlowCode still
+    // writes the layout (Build test 2: a ready-made ListScreen handed the layout to the model, which ignored the plan).
+    put("src/screens/ListScreen.tsx", "export default function ListScreen() { return null; }");
+    expect(writesLayout(plan, jail)).toBe(true);
     put("src/screens/Ready.tsx", "export default function Ready() { return null; }");
     expect(writesLayout(plan, jail)).toBe(false);
   });

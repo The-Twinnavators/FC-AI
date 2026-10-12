@@ -149,3 +149,12 @@ describe("specimens are never put into a screen", () => {
     expect(bad, `specimens seeded into screens: ${bad.join(", ")}`).toEqual([]);
   });
 });
+describe("a screen's starting point needs real evidence", () => {
+  it("one shared tag and half a job don't make a pick; a matching use case or job does", () => {
+    // Build test 2: radio cards (tag "choice", half a job) became a brand guide's Home screen.
+    const home = { id: "home", label: "Home", component: "HomeScreen", file: "src/screens/HomeScreen.tsx", purpose: "Busy parents and professionals quickly see trusted non-GMO brands to make healthier choices without checking labels" };
+    expect(screenPicks([home]).map((p) => p.id)).not.toContain("input-radio-cards");
+    const signIn = { id: "sign-in", label: "Sign in", component: "SignInScreen", file: "src/screens/SignInScreen.tsx", purpose: "Members sign in with email and password" };
+    expect(screenPicks([signIn]).map((p) => p.id)).toContain("auth-sign-in");
+  });
+});
