@@ -1,4 +1,9 @@
 /** @flowcode-library site-photographer · Photographer portfolio (Industry sites)
+ * Catalog ID: t.site-photographer (template)
+ * Function: The photographer portfolio website (t.site-photographer), assembled inline from its own sections with catalog chips, cards, fields, selects and buttons; no page block fits its layout.
+ * Use it as: Copy site-photographer.tsx (FlowCode brings the components it uses); replace SAMPLE with the business's own content.
+ * Built from: c.chip.filter, c.empty-state, c.card.surface, c.badge.status, c.text-field.outlined, c.select.outlined, c.button.primary, c.button.secondary
+ * Look: A full-bleed photographer portfolio: tall intro, two statement panels, a filterable photo grid with a lightbox, three package cards and a date-check form.
  * Use cases: photographer portfolio; photo gallery; wedding photography; portrait studio; artist portfolio; image gallery; photography packages; session booking
  * Jobs to be done: browse the photographer's work; compare photography packages; check if my date is free; book a photo session
  * Keywords: page, template, photographer, portfolio, gallery, filter, lightbox, packages, booking, html5up
@@ -10,11 +15,22 @@
  * token-coloured placeholders until real photos are added. Layout adapted from HTML5 UP "Big Picture"
  * (html5up.net, CC BY 3.0); keep the credit. The form checks its fields and keeps enquiries in local storage; nothing
  * is sent.
+ * Assembled from: header (inline) > intro (inline) > two statement panels (inline) > gallery (inline) with c.chip.filter,
+ * a lightbox (inline) and c.empty-state > packages (inline) with c.card.surface and c.badge > booking c.card.surface
+ * (inline) with c.text-field and c.select > footer (inline). No page block matches this portfolio layout, so the
+ * sections stay in the template; every button, chip, badge, card, field, select and empty state is the catalog component.
  * Make it the app's own: replace SAMPLE with the real photos, categories and packages; swap each placeholder for an
  * <img> with honest alt text.
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Chip } from "./chips-tags";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { EmptyState } from "./empty-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -91,7 +107,7 @@ export default function SitePhotographer() {
   const [filter, setFilter] = useState("All");
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
   const [pkg, setPkg] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [sent, setSent] = useState<null | { name: string; date: string }>(null);
@@ -100,7 +116,7 @@ export default function SitePhotographer() {
 
   useEffect(() => {
     if (openIdx === null) return;
-    closeRef.current?.focus();
+    lightboxRef.current?.querySelector<HTMLElement>("[data-close]")?.focus();
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key === "Escape") close();
       else if (e.key === "ArrowRight") setOpenIdx((i) => (i === null ? i : (i + 1) % shown.length));
@@ -155,7 +171,7 @@ export default function SitePhotographer() {
         {errors[k]}
       </p>
     ) : null;
-  const errProps = (k: keyof Errors) => ({ "aria-invalid": errors[k] ? true : undefined, "aria-describedby": errors[k] ? `photo-${k}-err` : undefined });
+  const errProps = (k: keyof Errors) => ({ invalid: errors[k] ? true : undefined, "aria-describedby": errors[k] ? `photo-${k}-err` : undefined });
 
   const current = openIdx === null ? null : shown[openIdx];
 
@@ -175,9 +191,9 @@ export default function SitePhotographer() {
               </li>
             ))}
           </ul>
-          <button type="button" className="fl-btn fl-btn--secondary fl-st-menubtn" aria-expanded={menuOpen} aria-controls="photo-nav" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
+          <Button variant="secondary" className="fl-st-menubtn" aria-expanded={menuOpen} aria-controls="photo-nav" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
             <Icon name="menu" />
-          </button>
+          </Button>
         </nav>
       </header>
 
@@ -189,12 +205,12 @@ export default function SitePhotographer() {
               {d.intro.title}
             </h1>
             <p className="fl-lede">{d.intro.lede}</p>
-            <a className="fl-btn fl-btn--primary" href={d.intro.action.href}>
+            <Button variant="primary" href={d.intro.action.href}>
               {d.intro.action.label}
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M12 5v14M6 13l6 6 6-6" />
               </svg>
-            </a>
+            </Button>
           </div>
         </section>
 
@@ -218,9 +234,9 @@ export default function SitePhotographer() {
               <p className="fl-lede">{d.gallery.lede}</p>
               <div className="fl-st-chips" role="group" aria-label="Filter photos">
                 {d.gallery.filters.map((f) => (
-                  <button key={f} type="button" className="fl-st-chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>
+                  <Chip key={f} variant="filter" selected={filter === f} onClick={() => setFilter(f)}>
                     {f}
-                  </button>
+                  </Chip>
                 ))}
               </div>
               <p className="fl-sr" aria-live="polite">
@@ -247,19 +263,24 @@ export default function SitePhotographer() {
                 ))}
               </ul>
             ) : (
-              <div className="fl-st-empty">
-                <strong>No {filter.toLowerCase()} photos in this selection yet.</strong>
-                <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setFilter("All")}>
-                  Show all photos
-                </button>
-              </div>
+              <EmptyState
+                variant="no-results"
+                title={`No ${filter.toLowerCase()} photos in this selection yet.`}
+                action={
+                  <Button variant="secondary" onClick={() => setFilter("All")}>
+                    Show all photos
+                  </Button>
+                }
+              >
+                Pick another category to see more.
+              </EmptyState>
             )}
           </div>
         </section>
 
         {current && openIdx !== null ? (
           <div className="fl-st-scrim fl-st-scrim--dark" onClick={close}>
-            <div className="fl-st-lightbox" role="dialog" aria-modal="true" aria-labelledby="photo-lb-title" onClick={(e) => e.stopPropagation()}>
+            <div ref={lightboxRef} className="fl-st-lightbox" role="dialog" aria-modal="true" aria-labelledby="photo-lb-title" onClick={(e) => e.stopPropagation()}>
               <div className={`fl-st-lightbox__img fl-st-tone-${(d.gallery.photos.indexOf(current) % 6) + 1}`} role="img" aria-label={`Placeholder for: ${current.title}`}>
                 <svg className="fl-st-photo-motif" viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
                   <circle cx="88" cy="22" r="9" fill="currentColor" opacity="0.35" />
@@ -276,15 +297,15 @@ export default function SitePhotographer() {
                   </p>
                 </div>
                 <div className="fl-actions">
-                  <button type="button" className="fl-btn fl-btn--secondary" aria-label="Previous photo" onClick={() => setOpenIdx((openIdx - 1 + shown.length) % shown.length)}>
+                  <Button variant="secondary" aria-label="Previous photo" onClick={() => setOpenIdx((openIdx - 1 + shown.length) % shown.length)}>
                     <span aria-hidden="true">←</span>
-                  </button>
-                  <button type="button" className="fl-btn fl-btn--secondary" aria-label="Next photo" onClick={() => setOpenIdx((openIdx + 1) % shown.length)}>
+                  </Button>
+                  <Button variant="secondary" aria-label="Next photo" onClick={() => setOpenIdx((openIdx + 1) % shown.length)}>
                     <span aria-hidden="true">→</span>
-                  </button>
-                  <button ref={closeRef} type="button" className="fl-btn fl-btn--primary" onClick={close}>
+                  </Button>
+                  <Button data-close="true" variant="primary" onClick={close}>
                     Close
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -301,8 +322,8 @@ export default function SitePhotographer() {
             </div>
             <div className="fl-grid fl-grid--3 fl-st-photo-packages">
               {d.packages.items.map((p) => (
-                <article key={p.name} className={`fl-card${p.featured ? " fl-card--featured" : ""}`}>
-                  {p.featured ? <span className="fl-badge">Most booked</span> : null}
+                <Card key={p.name} variant="surface" className={p.featured ? "fl-card--featured" : undefined}>
+                  {p.featured ? <Badge tone="info">Most booked</Badge> : null}
                   <h3>{p.name}</h3>
                   <p className="fl-price">
                     <strong>{p.price}</strong>
@@ -318,10 +339,10 @@ export default function SitePhotographer() {
                       </li>
                     ))}
                   </ul>
-                  <button type="button" className={`fl-btn ${p.featured ? "fl-btn--primary" : "fl-btn--secondary"}`} onClick={() => choosePackage(p.name)}>
+                  <Button variant={p.featured ? "primary" : "secondary"} onClick={() => choosePackage(p.name)}>
                     Check a date for this
-                  </button>
-                </article>
+                  </Button>
+                </Card>
               ))}
             </div>
           </div>
@@ -335,66 +356,64 @@ export default function SitePhotographer() {
               </h2>
               <p className="fl-lede">{d.booking.lede}</p>
             </div>
-            <div className="fl-card">
+            <Card variant="surface">
               {sent ? (
                 <div className="fl-form" role="status">
                   <p className="fl-done">
                     Thank you, {sent.name}. I'll check {sent.date} and reply within two days.
                   </p>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setSent(null)}>
+                  <Button variant="secondary" onClick={() => setSent(null)}>
                     Ask about another date
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <form className="fl-form" onSubmit={submit} noValidate>
                   <div className="fl-st-row2">
                     <div className="fl-field">
                       <label htmlFor="photo-name">Your name(s)</label>
-                      <input id="photo-name" name="name" className="fl-input" autoComplete="name" {...errProps("name")} />
+                      <TextField id="photo-name" name="name" autoComplete="name" {...errProps("name")} />
                       {errText("name")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="photo-email">Email</label>
-                      <input id="photo-email" name="email" type="email" className="fl-input" autoComplete="email" {...errProps("email")} />
+                      <TextField id="photo-email" name="email" type="email" autoComplete="email" {...errProps("email")} />
                       {errText("email")}
                     </div>
                   </div>
                   <div className="fl-st-row2">
                     <div className="fl-field">
                       <label htmlFor="photo-package">Package</label>
-                      <select id="photo-package" name="package" className="fl-input fl-st-select" value={pkg} onChange={(e) => setPkg(e.target.value)} {...errProps("package")}>
-                        <option value="" disabled>
-                          Choose a package
-                        </option>
-                        {d.packages.items.map((p) => (
-                          <option key={p.name} value={p.name}>
-                            {p.name} ({p.price})
-                          </option>
-                        ))}
-                        <option value="Something else">Something else</option>
-                      </select>
+                      <Select
+                        id="photo-package"
+                        name="package"
+                        placeholder="Choose a package"
+                        value={pkg}
+                        onChange={(e) => setPkg(e.target.value)}
+                        options={[...d.packages.items.map((p) => ({ value: p.name, label: `${p.name} (${p.price})` })), { value: "Something else", label: "Something else" }]}
+                        {...errProps("package")}
+                      />
                       {errText("package")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="photo-date">Date</label>
-                      <input id="photo-date" name="date" type="date" min={todayIso()} className="fl-input" {...errProps("date")} />
+                      <TextField id="photo-date" name="date" type="date" min={todayIso()} {...errProps("date")} />
                       {errText("date")}
                     </div>
                   </div>
                   <div className="fl-field">
                     <label htmlFor="photo-venue">Venue or location (optional)</label>
-                    <input id="photo-venue" name="venue" className="fl-input" />
+                    <TextField id="photo-venue" name="venue" />
                   </div>
                   <div className="fl-field">
                     <label htmlFor="photo-message">Tell me about the day (optional)</label>
-                    <textarea id="photo-message" name="message" className="fl-input" />
+                    <TextField multiline id="photo-message" name="message" />
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     Send enquiry
-                  </button>
+                  </Button>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
         </section>
       </main>

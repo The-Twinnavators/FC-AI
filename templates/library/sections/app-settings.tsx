@@ -1,4 +1,9 @@
 /** @flowcode-library app-settings · Account settings (App screens)
+ * Catalog ID: t.app-settings (template)
+ * Function: An account settings screen (t.app-settings) assembled from text fields, a select, switches, radios, badges, avatars, buttons and a data table for invoices.
+ * Use it as: Copy app-settings.tsx (FlowCode brings the components it uses); replace SAMPLE with the app's own sections, fields, plans and people, and save through the app's own data layer.
+ * Built from: p.data-table, c.avatar.person, c.text-field.outlined, c.select.outlined, c.switch, c.radio, c.badge.status, c.button.primary, c.button.secondary, c.button.destructive
+ * Look: A top bar and a section nav (Profile, Notifications, Billing, Team) beside forms that show unsaved changes and Saving / Saved, with a danger zone that unlocks only when the name is typed.
  * Use cases: account settings; profile settings; notification preferences; billing; team management; workspace settings; user preferences; subscription management
  * Jobs to be done: update my profile details; control which notifications i get; change my plan; invite my team; delete my workspace safely
  * Keywords: app, settings, account, profile, billing, team, notifications, danger zone
@@ -10,9 +15,20 @@
  * workspace only after its name is typed, with a way to undo. On phones the section nav becomes a scrolling row of
  * tabs. Use it as the settings area of any signed-in app. Make it the app's own: replace SAMPLE with the app's real
  * sections, fields, plans and people, and save through the app's own data layer instead of this screen's memory.
+ * Assembled from: top bar (inline, c.avatar) > section nav (inline, so it can fold to a tab row on phones) > panels:
+ * Profile (c.text-field, c.button, danger zone with c.button.destructive), Notifications (c.switch), Billing (c.radio,
+ * c.badge, p.data-table invoices), Team (c.text-field, c.select, c.button, c.avatar, c.badge).
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Avatar } from "./avatars-variants";
+import { Badge } from "./badges-status";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Switch } from "./switches-states";
+import { Radio } from "./checkboxes-radios";
+import { DataTable, type TableColumn } from "./tables-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -66,7 +82,7 @@ const SAMPLE = {
 type Status = "idle" | "saving" | "saved";
 type Member = { email: string; name: string; role: string; pending?: boolean };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CHEV = "M7 10l5 5 5-5";
+type InvoiceRow = { id: string; date: string; amount: string; status: string };
 
 function useSave() {
   const [status, setStatus] = useState<Status>("idle");
@@ -90,9 +106,9 @@ function SaveBar({ dirty, status, label = "Save changes" }: { dirty: boolean; st
       <span className={`fl-as-savemsg${status === "saved" && !dirty ? " is-saved" : ""}`} role="status">
         {status === "saving" ? d.saving : dirty ? d.unsaved : status === "saved" ? d.saved : ""}
       </span>
-      <button type="submit" className="fl-btn fl-btn--primary fl-as-btn-md" disabled={!dirty || status === "saving"}>
+      <Button type="submit" size={40} disabled={!dirty} busy={status === "saving"}>
         {status === "saving" ? d.saving : label}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -167,12 +183,11 @@ export default function AppSettings() {
   const field = (id: keyof typeof profile, label: string, type = "text") => (
     <div className="fl-field">
       <label htmlFor={`fl-as-st-${id}`}>{label}</label>
-      <input
+      <TextField
         id={`fl-as-st-${id}`}
-        className="fl-input"
         type={type}
         value={profile[id]}
-        aria-invalid={errors[id] ? true : undefined}
+        invalid={Boolean(errors[id])}
         aria-describedby={errors[id] ? `fl-as-st-${id}-err` : undefined}
         onChange={(e) => {
           setProfile({ ...profile, [id]: e.target.value });
@@ -188,6 +203,17 @@ export default function AppSettings() {
     </div>
   );
 
+  const invoiceCols: TableColumn<InvoiceRow>[] = [
+    { id: "id", label: "Invoice" },
+    { id: "date", label: "Date" },
+    { id: "amount", label: "Amount", num: true },
+    {
+      id: "status",
+      label: "Status",
+      render: (i) => <Badge tone="success">{i.status}</Badge>,
+    },
+  ];
+
   return (
     <div className="fl-as-app">
       <header className="fl-as-top">
@@ -198,10 +224,7 @@ export default function AppSettings() {
           <span className="fl-as-brand__name">{d.product}</span>
         </div>
         <div className="fl-as-top__end">
-          <span className="fl-as-avatar" title={d.person.name}>
-            <span aria-hidden="true">{d.person.initials}</span>
-            <span className="fl-sr">Signed in as {d.person.name}</span>
-          </span>
+          <Avatar name={d.person.name} />
         </div>
       </header>
 
@@ -247,12 +270,12 @@ export default function AppSettings() {
                 </div>
                 <div className="fl-field">
                   <label htmlFor="fl-as-st-bio">Short bio</label>
-                  <textarea
+                  <TextField
+                    multiline
                     id="fl-as-st-bio"
-                    className="fl-input"
                     rows={3}
                     value={profile.bio}
-                    aria-invalid={errors.bio ? true : undefined}
+                    invalid={Boolean(errors.bio)}
                     aria-describedby={`fl-as-st-bio-hint${errors.bio ? " fl-as-st-bio-err" : ""}`}
                     onChange={(e) => {
                       setProfile({ ...profile, bio: e.target.value });
@@ -279,16 +302,16 @@ export default function AppSettings() {
                 {deleted ? (
                   <div className="fl-as-stack" role="status">
                     <p className="fl-as-danger__done">{d.danger.done}</p>
-                    <button
-                      type="button"
-                      className="fl-btn fl-btn--secondary fl-as-btn-md"
+                    <Button
+                      variant="secondary"
+                      size={40}
                       onClick={() => {
                         setDeleted(false);
                         setConfirmText("");
                       }}
                     >
                       {d.danger.undo}
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <form
@@ -303,15 +326,15 @@ export default function AppSettings() {
                       <label htmlFor="fl-as-st-confirm">
                         {d.danger.prompt}: <strong>{saved.studio}</strong>
                       </label>
-                      <input id="fl-as-st-confirm" className="fl-input" autoComplete="off" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} aria-describedby="fl-as-st-confirm-hint" />
+                      <TextField id="fl-as-st-confirm" autoComplete="off" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} aria-describedby="fl-as-st-confirm-hint" />
                       <span id="fl-as-st-confirm-hint" className="fl-note">
                         {confirmText && confirmText !== saved.studio ? "That doesn't match the studio name yet." : "The button unlocks when the name matches exactly."}
                       </span>
                     </div>
                     <div>
-                      <button type="submit" className="fl-as-btn fl-as-btn--danger" disabled={confirmText !== saved.studio}>
+                      <Button type="submit" variant="destructive" size={40} disabled={confirmText !== saved.studio}>
                         {d.danger.action}
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 )}
@@ -332,22 +355,14 @@ export default function AppSettings() {
                 {d.notifications.map((n) => (
                   <div key={n.id} className="fl-as-switchrow">
                     <div>
-                      <span id={`fl-as-st-n-${n.id}`} className="fl-as-switchrow__label">
-                        {n.label}
-                      </span>
-                      <span id={`fl-as-st-n-${n.id}-t`} className="fl-meta">
-                        {n.text}
-                      </span>
+                      <span className="fl-as-switchrow__label">{n.label}</span>
+                      <span className="fl-meta">{n.text}</span>
                     </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      className="fl-as-switch"
-                      aria-checked={notes[n.id]}
-                      aria-labelledby={`fl-as-st-n-${n.id}`}
-                      aria-describedby={`fl-as-st-n-${n.id}-t`}
-                      onClick={() => {
-                        setNotes({ ...notes, [n.id]: !notes[n.id] });
+                    <Switch
+                      on={notes[n.id]}
+                      label={`${n.label}. ${n.text}`}
+                      onToggle={(next) => {
+                        setNotes({ ...notes, [n.id]: next });
                         notesSave.reset();
                       }}
                     />
@@ -372,8 +387,7 @@ export default function AppSettings() {
                   <div className="fl-as-plans">
                     {d.plans.map((p) => (
                       <label key={p.id} className="fl-as-plan">
-                        <input
-                          type="radio"
+                        <Radio
                           name="fl-as-st-plan"
                           value={p.id}
                           checked={plan === p.id}
@@ -385,7 +399,7 @@ export default function AppSettings() {
                         <span className="fl-as-plan__body">
                           <span className="fl-as-plan__row">
                             <strong>{p.name}</strong>
-                            {planSaved === p.id && <span className="fl-badge">Current</span>}
+                            {planSaved === p.id && <Badge>Current</Badge>}
                           </span>
                           <span className="fl-as-plan__price">
                             {p.price}
@@ -403,32 +417,7 @@ export default function AppSettings() {
                 <h3 id="fl-as-st-inv" className="fl-as-h2">
                   Invoices
                 </h3>
-                <div className="fl-as-scroll">
-                  <table className="fl-as-tbl">
-                    <thead>
-                      <tr>
-                        <th scope="col">Invoice</th>
-                        <th scope="col">Date</th>
-                        <th scope="col" className="fl-as-num">
-                          Amount
-                        </th>
-                        <th scope="col">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {d.invoices.map((i) => (
-                        <tr key={i.id}>
-                          <th scope="row">{i.id}</th>
-                          <td>{i.date}</td>
-                          <td className="fl-as-num">{i.amount}</td>
-                          <td>
-                            <span className="fl-as-status fl-as-status--closed">{i.status}</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <DataTable caption="Invoices" columns={invoiceCols} rows={d.invoices} sortable={false} />
               </section>
             </div>
           )}
@@ -440,13 +429,12 @@ export default function AppSettings() {
                 <div className="fl-as-invite">
                   <div className="fl-field">
                     <label htmlFor="fl-as-st-invite">Email</label>
-                    <input
+                    <TextField
                       id="fl-as-st-invite"
-                      className="fl-input"
                       type="email"
                       placeholder="name@example.com"
                       value={invite.email}
-                      aria-invalid={inviteError ? true : undefined}
+                      invalid={Boolean(inviteError)}
                       aria-describedby={inviteError ? "fl-as-st-invite-err" : undefined}
                       onChange={(e) => {
                         setInvite({ ...invite, email: e.target.value });
@@ -457,20 +445,11 @@ export default function AppSettings() {
                   </div>
                   <div className="fl-field">
                     <label htmlFor="fl-as-st-role">Role</label>
-                    <span className="fl-as-select">
-                      <select id="fl-as-st-role" className="fl-input" value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value })}>
-                        {d.roles.map((r) => (
-                          <option key={r}>{r}</option>
-                        ))}
-                      </select>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d={CHEV} />
-                      </svg>
-                    </span>
+                    <Select id="fl-as-st-role" options={d.roles} value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value })} />
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--primary fl-as-btn-md">
+                  <Button type="submit" size={40}>
                     Send invite
-                  </button>
+                  </Button>
                 </div>
                 {inviteError && (
                   <p id="fl-as-st-invite-err" className="fl-as-error">
@@ -488,25 +467,23 @@ export default function AppSettings() {
                 <ul className="fl-as-members">
                   {team.map((m) => (
                     <li key={m.email}>
-                      <span className="fl-as-avatar fl-as-avatar--sm" aria-hidden="true">
-                        {m.pending ? m.email[0].toUpperCase() : m.name.split(" ").map((w) => w[0]).join("")}
-                      </span>
+                      <Avatar name={m.pending ? m.email : m.name} size={32} decorative />
                       <span className="fl-as-members__who">
                         <strong>{m.pending ? m.email : m.name}</strong>
                         <span className="fl-meta">{m.pending ? "Invite sent, not joined yet" : m.email}</span>
                       </span>
-                      <span className="fl-badge">{m.role}</span>
+                      <Badge>{m.role}</Badge>
                       {m.role !== "Owner" && (
-                        <button
-                          type="button"
-                          className="fl-as-btn fl-as-btn--quiet"
+                        <Button
+                          variant="secondary"
+                          size={32}
                           onClick={() => {
                             setTeam((t) => t.filter((x) => x.email !== m.email));
                             setTeamMsg(`${m.name} removed from the team.`);
                           }}
                         >
                           Remove<span className="fl-sr"> {m.name}</span>
-                        </button>
+                        </Button>
                       )}
                     </li>
                   ))}

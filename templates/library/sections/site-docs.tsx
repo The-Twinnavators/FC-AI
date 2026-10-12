@@ -1,4 +1,9 @@
 /** @flowcode-library site-docs · Docs site (Industry sites)
+ * Catalog ID: t.site-docs (template)
+ * Function: A documentation site (t.site-docs) for a developer product. Assembled from: top bar (inline, c.select) > left nav (inline) > article (c.breadcrumbs, c.alert, code blocks inline, p.data-table) > on-this-page list (inline) > pager and feedback (inline, c.button, c.text-field) > footer (inline).
+ * Use it as: Copy site-docs.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; set the page tree, versions and article in SAMPLE.
+ * Built from: p.data-table, c.button.primary, c.button.secondary, c.select.outlined, c.breadcrumbs.full, c.alert.info, c.alert.warning, c.badge.status, c.text-field.outlined
+ * Look: A developer docs layout: sticky top bar with search, a collapsible left nav, an article with code blocks and a parameters table, and an on-this-page list.
  * Use cases: documentation; api docs; developer docs; help center; knowledge base; user guide; sdk reference; getting started guide
  * Jobs to be done: learn how to use the api; find the right docs page; copy install and code examples; check parameters for a call
  * Keywords: docs, documentation, developer, api, sidebar, search, code, table of contents, tabs, feedback
@@ -13,8 +18,22 @@
  * Make it the app's own: replace SAMPLE with the product's real page tree, versions and article content, and point
  * each page at its own route.
  */
+/**
+ * Assembled from: top bar (inline: brand, c.select version picker, search box, links) > left nav (inline: collapsible
+ * groups that filter as you search, a drawer on phones) > article (c.breadcrumbs, c.alert notes, code blocks with tabs
+ * and copy buttons inline, p.data-table for the parameters) > "On this page" list (inline) > pager and feedback
+ * (inline, with c.button, c.text-field and a version c.alert) > footer (inline). A docs layout has no block; the nav,
+ * code blocks and table of contents stay inline.
+ */
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Alert } from "./alerts-states";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Breadcrumbs } from "./breadcrumbs-variants";
+import { DataTable, type TableColumn } from "./tables-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -171,18 +190,22 @@ const copyIcon = (
     <path d="M5 15V5a1 1 0 0 1 1-1h10" />
   </svg>
 );
-const infoIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 11v5M12 8h.01" />
-  </svg>
-);
-const warnIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M12 4 2.5 20h19L12 4Z" />
-    <path d="M12 10v4M12 17h.01" />
-  </svg>
-);
+
+type ParamRow = { id: string; name: string; type: string; required: boolean; text: string };
+const PARAM_COLUMNS: TableColumn<ParamRow>[] = [
+  { id: "name", label: "Name", render: (r) => <code>{r.name}</code> },
+  { id: "type", label: "Type" },
+  {
+    id: "required",
+    label: "Required",
+    render: (r) => (
+      <Badge look="soft" tone={r.required ? "warning" : "neutral"}>
+        {r.required ? "Required" : "Optional"}
+      </Badge>
+    ),
+  },
+  { id: "text", label: "Description" },
+];
 
 /** Colors keywords, strings and comments in one line of sample code. */
 function highlight(line: string): ReactNode[] {
@@ -422,17 +445,13 @@ export default function SiteDocs() {
           <label htmlFor="dd-version" className="fl-sr">
             Docs version
           </label>
-          <span className="fl-dd-select">
-            <select id="dd-version" value={version} onChange={(e) => setVersion(e.target.value)}>
-              {d.versions.map((v, i) => (
-                <option key={v} value={v}>
-                  {v}
-                  {i === 0 ? " (latest)" : ""}
-                </option>
-              ))}
-            </select>
-            {chevron}
-          </span>
+          <Select
+            id="dd-version"
+            className="fl-ctl-field--40"
+            value={version}
+            onChange={(e) => setVersion(e.target.value)}
+            options={d.versions.map((v, i) => ({ value: v, label: `${v}${i === 0 ? " (latest)" : ""}` }))}
+          />
           {searchField("dd-search-top")}
           <nav className="fl-dd-top__end" aria-label="Product">
             {d.topLinks.map((l) => (
@@ -518,21 +537,21 @@ export default function SiteDocs() {
 
         <main className="fl-dd-article" ref={articleRef} style={{ scrollMarginTop: "4rem" }} aria-labelledby="dd-title">
           {version !== d.versions[0] ? (
-            <div className="fl-dd-version-note" role="status">
-              <span>
-                You are reading the <strong>{version}</strong> docs. Some calls changed in {d.versions[0]}.
-              </span>
-              <button type="button" onClick={() => setVersion(d.versions[0])}>
-                Switch to {d.versions[0]}
-              </button>
-            </div>
+            <Alert
+              variant="warning"
+              placement="banner"
+              title={`You are reading the ${version} docs.`}
+              action={
+                <Button variant="secondary" size={32} onClick={() => setVersion(d.versions[0])}>
+                  Switch to {d.versions[0]}
+                </Button>
+              }
+            >
+              Some calls changed in {d.versions[0]}.
+            </Alert>
           ) : null}
 
-          <ol className="fl-dd-crumbs" aria-label="Breadcrumb">
-            <li>Docs</li>
-            <li>{pageGroup?.title}</li>
-            <li aria-current="page">{page.title}</li>
-          </ol>
+          <Breadcrumbs items={[{ label: "Docs" }, { label: pageGroup?.title ?? "" }, { label: page.title }]} />
 
           {isFull ? (
             <>
@@ -599,50 +618,18 @@ export default function SiteDocs() {
                   </code>
                 </pre>
               </div>
-              <div className="fl-dd-callout" role="note">
-                {infoIcon}
-                <div>
-                  <strong>{a.note.title}</strong>
-                  <p>{a.note.text}</p>
-                </div>
-              </div>
+              <Alert variant="info" role="note" title={a.note.title}>
+                {a.note.text}
+              </Alert>
 
               <h2 id={a.sections[2].id}>
                 <a href={`#${a.sections[2].id}`}>{a.sections[2].title}</a>
               </h2>
               <p>Send these in the JSON body. Unknown fields are rejected so typos never slip through.</p>
-              <div className="fl-dd-tablewrap" tabIndex={0} role="region" aria-label="Parameters, scrolls sideways">
-                <table className="fl-dd-table">
-                  <caption className="fl-sr">Body parameters for creating a booking</caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Name</th>
-                      <th scope="col">Type</th>
-                      <th scope="col">Required</th>
-                      <th scope="col">Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {a.params.map((p) => (
-                      <tr key={p.name}>
-                        <th scope="row">
-                          <code>{p.name}</code>
-                        </th>
-                        <td className="fl-dd-type">{p.type}</td>
-                        <td>{p.required ? <span className="fl-dd-req">Required</span> : <span className="fl-dd-opt">Optional</span>}</td>
-                        <td>{p.text}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="fl-dd-callout fl-dd-callout--warn" role="note">
-                {warnIcon}
-                <div>
-                  <strong>{a.warn.title}</strong>
-                  <p>{a.warn.text}</p>
-                </div>
-              </div>
+              <DataTable caption="Body parameters for creating a booking" columns={PARAM_COLUMNS} rows={a.params.map((p) => ({ ...p, id: p.name }))} sortable={false} />
+              <Alert variant="warning" role="note" title={a.warn.title}>
+                {a.warn.text}
+              </Alert>
 
               <h2 id={a.sections[3].id}>
                 <a href={`#${a.sections[3].id}`}>{a.sections[3].title}</a>
@@ -685,25 +672,19 @@ export default function SiteDocs() {
             <>
               <h1 id="dd-title">{page.title}</h1>
               <p className="fl-dd-lede">{page.summary}</p>
-              <div className="fl-dd-callout" role="note">
-                {infoIcon}
-                <div>
-                  <strong>Sample page</strong>
-                  <p>
-                    {d.stubNote}{" "}
-                    <a
-                      className="fl-link"
-                      href={`#${d.fullPage}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        goTo(d.fullPage);
-                      }}
-                    >
-                      Open it
-                    </a>
-                  </p>
-                </div>
-              </div>
+              <Alert variant="info" role="note" title="Sample page">
+                {d.stubNote}{" "}
+                <a
+                  className="fl-link"
+                  href={`#${d.fullPage}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    goTo(d.fullPage);
+                  }}
+                >
+                  Open it
+                </a>
+              </Alert>
             </>
           )}
 
@@ -733,12 +714,12 @@ export default function SiteDocs() {
             {vote === "idle" ? (
               <div className="fl-dd-helpful__row">
                 <strong id="dd-helpful-q">{d.helpful.question}</strong>
-                <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setVote("yes")}>
+                <Button variant="secondary" onClick={() => setVote("yes")}>
                   Yes
-                </button>
-                <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setVote("no")}>
+                </Button>
+                <Button variant="secondary" onClick={() => setVote("no")}>
                   No
-                </button>
+                </Button>
               </div>
             ) : null}
             {vote === "no" ? (
@@ -747,9 +728,9 @@ export default function SiteDocs() {
                   <label htmlFor="dd-note" id="dd-helpful-q">
                     {d.helpful.askMore}
                   </label>
-                  <textarea
+                  <TextField
                     id="dd-note"
-                    className="fl-input"
+                    multiline
                     style={{ minHeight: "5rem" }}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
@@ -764,12 +745,12 @@ export default function SiteDocs() {
                   ) : null}
                 </div>
                 <div className="fl-actions">
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     Send note
-                  </button>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setVote("idle")}>
+                  </Button>
+                  <Button variant="secondary" onClick={() => setVote("idle")}>
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </form>
             ) : null}

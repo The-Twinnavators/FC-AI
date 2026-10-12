@@ -1,4 +1,9 @@
 /** @flowcode-library landing-subscription · Subscription offer (Landing pages)
+ * Catalog ID: t.landing-subscription (template)
+ * Function: A subscription-offer landing page (t.landing-subscription) with a box, roast, grind and frequency builder and a live order summary. Assembled from: header (inline) > hero (inline) > how it works (inline) > plan builder (inline) + c.card order summary > promises (inline) > footer (inline).
+ * Use it as: Copy landing-subscription.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; set the plans, prices and delivery rules in SAMPLE.
+ * Built from: c.card.surface, c.button.primary, c.badge.status, c.text-field.outlined, c.select.outlined
+ * Look: A split hero over a three-step explainer, then a plan builder beside a live order summary card with an email and ZIP sign-up.
  * Use cases: subscription box; meal kit; coffee subscription; plan builder; recurring delivery; pet food subscription; flower delivery; subscribe and save
  * Jobs to be done: build a subscription that fits me; choose how often it arrives; see what it will cost; start my subscription
  * Keywords: landing, subscription, plan picker, order summary, meal kit, coffee, page template
@@ -11,8 +16,19 @@
  * sent. Make it the app's own: replace SAMPLE with the real plans, prices and delivery rules, and keep the summary
  * honest about what is charged when.
  */
+/**
+ * Assembled from: header (inline) > hero (inline: split with a drawn product and an offer badge) > how-it-works steps
+ * (inline) > plan builder (inline: option cards, frequency toggle) beside c.card holding the live order summary and
+ * sign-up form > promises strip (inline) > footer (inline). The hero keeps its offer badge beside the button and its
+ * drawn picture, which b.hero-split has no slot for. Buttons, badges, fields and the select are the catalog's.
+ */
 import { useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -131,10 +147,12 @@ export default function LandingSubscription() {
               </h1>
               <p className="fl-lede">{d.lede}</p>
               <div className="fl-actions">
-                <a className="fl-btn fl-btn--primary" href="#build">
+                <Button variant="primary" href="#build">
                   Build my box
-                </a>
-                <span className="fl-badge">{d.heroOffer}</span>
+                </Button>
+                <Badge look="soft" tone="info" className="fl-badge">
+                  {d.heroOffer}
+                </Badge>
               </div>
             </div>
             <div className="fl-media fl-media--wide" role="img" aria-label="Three coffee bags (placeholder image)">
@@ -190,7 +208,11 @@ export default function LandingSubscription() {
                       <label key={p.id}>
                         <input className="fl-sr" type="radio" name="ld-sub-plan" checked={planId === p.id} onChange={() => setPlanId(p.id)} />
                         <span className="fl-ld-option">
-                          {p.tag ? <span className="fl-badge">{p.tag}</span> : null}
+                          {p.tag ? (
+                            <Badge look="soft" tone="info" className="fl-badge">
+                              {p.tag}
+                            </Badge>
+                          ) : null}
                           <strong>{p.label}</strong>
                           <small>{p.detail}</small>
                           <span className="fl-ld-option__price">{money(p.price)} per delivery</span>
@@ -220,11 +242,7 @@ export default function LandingSubscription() {
                   </div>
                   <div className="fl-field" style={{ maxWidth: "20rem" }}>
                     <label htmlFor="ld-sub-grind">How do you brew?</label>
-                    <select id="ld-sub-grind" className="fl-input fl-ld-select" value={grind} onChange={(e) => setGrind(e.target.value)}>
-                      {d.grinds.map((g) => (
-                        <option key={g}>{g}</option>
-                      ))}
-                    </select>
+                    <Select id="ld-sub-grind" value={grind} onChange={(e) => setGrind(e.target.value)} options={d.grinds} />
                   </div>
                 </fieldset>
 
@@ -246,7 +264,7 @@ export default function LandingSubscription() {
                 </div>
               </div>
 
-              <aside className="fl-card fl-ld-summary" aria-labelledby="ld-sub-summary">
+              <Card variant="surface" className="fl-ld-summary" role="complementary" aria-labelledby="ld-sub-summary">
                 <h3 id="ld-sub-summary">Your order</h3>
                 <dl className="fl-ld-lines" aria-live="polite">
                   <div>
@@ -289,9 +307,8 @@ export default function LandingSubscription() {
                   <form className="fl-form" onSubmit={submit} noValidate>
                     <div className="fl-field">
                       <label htmlFor="ld-sub-email">Email</label>
-                      <input
+                      <TextField
                         id="ld-sub-email"
-                        className="fl-input"
                         type="email"
                         autoComplete="email"
                         value={email}
@@ -307,9 +324,8 @@ export default function LandingSubscription() {
                     </div>
                     <div className="fl-field">
                       <label htmlFor="ld-sub-postcode">Delivery ZIP code</label>
-                      <input
+                      <TextField
                         id="ld-sub-postcode"
-                        className="fl-input"
                         autoComplete="postal-code"
                         value={postcode}
                         onChange={(e) => setPostcode(e.target.value)}
@@ -322,13 +338,13 @@ export default function LandingSubscription() {
                         </p>
                       ) : null}
                     </div>
-                    <button type="submit" className="fl-btn fl-btn--primary fl-ld-btn-block">
+                    <Button variant="primary" type="submit" block>
                       Start subscription · {money(firstBox)} today
-                    </button>
+                    </Button>
                     <p className="fl-ld-fine">You'll add payment details on the next step. No charge until you confirm.</p>
                   </form>
                 )}
-              </aside>
+              </Card>
             </div>
           </div>
         </section>

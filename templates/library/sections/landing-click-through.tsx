@@ -1,4 +1,9 @@
 /** @flowcode-library landing-click-through · Click-through page (Landing pages)
+ * Catalog ID: t.landing-click-through (template)
+ * Function: A click-through landing page (t.landing-click-through) that warms visitors up for one sign-up. Assembled from: header and hero (inline) > customers strip (inline) > benefit cards (c.card) > calculator (c.slider) > quote carousel (inline, c.avatar) > sign-up band (inline).
+ * Use it as: Copy landing-click-through.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; keep exactly one action and base the calculator on a figure you can stand behind.
+ * Built from: c.card.surface, c.button.primary, c.button.secondary, c.button.on-accent, c.avatar-stack, c.avatar.person, c.slider.single, c.text-field.outlined
+ * Look: A centered promise on a grid backdrop with a social-proof row, benefit cards, a time-saved slider, a quote carousel and a closing sign-up on an accent band.
  * Use cases: free trial signup; saas landing; app download; ad campaign landing; roi calculator; product signup; free account offer
  * Jobs to be done: decide whether to try the product; see how much time i would save; see who already uses it; start a free trial
  * Keywords: landing, click-through, saas, trial, social proof, calculator, carousel, page template
@@ -11,8 +16,19 @@
  * confirmation; nothing is sent. Make it the app's own: replace SAMPLE, keep exactly one action, and base the
  * calculator on a figure you can stand behind.
  */
+/**
+ * Assembled from: header and hero on a grid backdrop (inline: the proof row sits under the button) > customers strip
+ * (inline) > benefit cards (c.card) > time-saved calculator (c.slider) > quote carousel (inline) > sign-up band
+ * (inline, with its form). b.hero-centered, b.logo-cloud and b.features-grid were not used because each would change
+ * the look (the header shares the hero's backdrop, the customers are plain names, the benefits sit on a tinted band).
+ */
 import { useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Card } from "./cards-variants";
+import { Avatar, AvatarStack } from "./avatars-variants";
+import { TextField } from "./text-fields-states";
+import { Slider } from "./sliders-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -21,7 +37,7 @@ const SAMPLE = {
   eyebrow: "Staff scheduling for cafés, salons and small shops",
   title: "Write next week's rota in ten minutes, not ten texts",
   lede: "Rotawise builds the schedule around who's available, sends it to everyone's phone and handles shift swaps without you in the middle.",
-  proof: { initials: ["JS", "AK", "LM", "TO"], text: "Rated 4.8 by 2,300 small-business owners" },
+  proof: { people: [{ name: "Jess Shaw", tone: "a" as const }, { name: "Ade Kole", tone: "b" as const }, { name: "Lena Moreau", tone: "c" as const }, { name: "Tom Osei", tone: "d" as const }], text: "Rated 4.8 by 2,300 small-business owners" },
   usedBy: ["Corner Crumb Bakery", "Halcyon Hair", "The Pressed Bean", "Willow & Wick", "Dockside Deli"],
   benefitsTitle: "Why owners switch",
   benefits: [
@@ -89,9 +105,9 @@ export default function LandingClickThrough() {
             </span>
             {d.brand}
           </a>
-          <a className="fl-btn fl-btn--secondary" href="#start" style={{ minHeight: "var(--control-md)" }}>
+          <Button variant="secondary" size={40} href="#start">
             {d.cta}
-          </a>
+          </Button>
         </header>
 
         <section className="fl-ld-ct-hero" id="top" aria-labelledby="ld-ct-title">
@@ -100,16 +116,11 @@ export default function LandingClickThrough() {
             {d.title}
           </h1>
           <p className="fl-lede">{d.lede}</p>
-          <a className="fl-btn fl-btn--primary" href="#start">
+          <Button variant="primary" href="#start" icon="arrow" iconAt="end">
             {d.cta}
-            <Icon name="arrow" />
-          </a>
+          </Button>
           <div className="fl-ld-proof">
-            <span className="fl-ld-avatars" aria-hidden="true">
-              {d.proof.initials.map((i) => (
-                <span key={i}>{i}</span>
-              ))}
-            </span>
+            <AvatarStack people={d.proof.people} size={40} />
             <span>{d.proof.text}</span>
           </div>
         </section>
@@ -138,13 +149,13 @@ export default function LandingClickThrough() {
             </div>
             <div className="fl-grid fl-grid--3">
               {d.benefits.map((b) => (
-                <div key={b.title} className="fl-card">
+                <Card key={b.title} variant="surface">
                   <span className="fl-icon">
                     <Icon name={b.icon} />
                   </span>
                   <h3>{b.title}</h3>
                   <p className="fl-text">{b.text}</p>
-                </div>
+                </Card>
               ))}
             </div>
           </div>
@@ -158,32 +169,17 @@ export default function LandingClickThrough() {
               </h2>
               <p className="fl-text">{d.calc.text}</p>
               <div className="fl-field">
-                <label htmlFor="ld-ct-staff">
-                  People on your rota: <strong>{staff}</strong>
-                </label>
-                <input
-                  id="ld-ct-staff"
-                  className="fl-ld-range"
-                  type="range"
-                  min={d.calc.min}
-                  max={d.calc.max}
-                  value={staff}
-                  onChange={(e) => setStaff(Number(e.target.value))}
-                  aria-valuetext={`${staff} people`}
-                />
-                <span className="fl-meta" style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>{d.calc.min}</span>
-                  <span>{d.calc.max}</span>
-                </span>
+                <span style={{ fontWeight: "var(--weight-semibold)", fontSize: "var(--text-sm)" }}>People on your rota</span>
+                <Slider label="People on your rota" min={d.calc.min} max={d.calc.max} value={staff} onChange={setStaff} scale format={(n) => `${n} people`} />
               </div>
             </div>
             <div className="fl-ld-result" aria-live="polite">
               <span className="fl-meta">You'd get back about</span>
               <strong>{savedHours.toFixed(1)} hours</strong>
               <span>a month, or {yearHours} hours a year.</span>
-              <a className="fl-btn fl-btn--primary" href="#start" style={{ justifySelf: "start", marginTop: "var(--space-3)" }}>
+              <Button variant="primary" href="#start" style={{ justifySelf: "start", marginTop: "var(--space-3)" }}>
                 {d.cta}
-              </a>
+              </Button>
             </div>
           </div>
         </section>
@@ -198,12 +194,7 @@ export default function LandingClickThrough() {
                 “{q.text}”
               </blockquote>
               <figcaption className="fl-person">
-                <span className="fl-person__avatar" aria-hidden="true">
-                  {q.name
-                    .split(" ")
-                    .map((w) => w[0])
-                    .join("")}
-                </span>
+                <Avatar name={q.name} size={48} decorative />
                 <span style={{ textAlign: "left" }}>
                   <strong>{q.name}</strong>
                   <span>{q.role}</span>
@@ -246,9 +237,8 @@ export default function LandingClickThrough() {
                   <label htmlFor="ld-ct-email" className="fl-sr">
                     Work email
                   </label>
-                  <input
+                  <TextField
                     id="ld-ct-email"
-                    className="fl-input"
                     type="email"
                     autoComplete="email"
                     placeholder="Your work email"
@@ -257,9 +247,9 @@ export default function LandingClickThrough() {
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? "ld-ct-err" : undefined}
                   />
-                  <button type="submit" className="fl-btn fl-btn--on-accent">
+                  <Button variant="on-accent" type="submit">
                     {d.final.button}
-                  </button>
+                  </Button>
                 </div>
                 {error ? (
                   <p className="fl-ld-error" id="ld-ct-err">

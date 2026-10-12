@@ -1,4 +1,9 @@
 /** @flowcode-library app-admin · Admin panel: users and roles (App screens)
+ * Catalog ID: t.app-admin (template)
+ * Function: An app screen: admin panel for users and roles, assembled from catalog table parts, drawer, modals, pagination, empty state, avatars, badges, checkboxes, fields and buttons.
+ * Use it as: Copy app-admin.tsx (FlowCode brings the components it uses); replace SAMPLE with the app's own roles, permissions, teams and people, and save through the app's data layer instead of memory.
+ * Built from: c.drawer.right, c.modal.form, c.modal.danger, c.pagination.numbered, c.empty-state.no-results, c.avatar.person, c.badge.status, c.checkbox, c.text-field.outlined, c.select.outlined, c.button.primary, c.button.secondary, c.button.destructive, c.button.tertiary, c.button.ghost-on-accent
+ * Look: A colored sidebar and top bar around a users table with filters, bulk actions and paging, a roles matrix, a detail drawer and dialogs.
  * Use cases: admin panel; user management; roles and permissions; access control; team directory; member management; back office; user list
  * Jobs to be done: manage who has access; change people's roles in bulk; invite a new user; deactivate a user safely; review a user's activity
  * Keywords: app, admin, users, table, filters, bulk-actions, drawer, dialog, permissions, roles
@@ -13,8 +18,25 @@
  * its own box. Use it as the user-management area of any back-office app. Make it the app's own: replace SAMPLE with
  * the app's real roles, permissions, teams and people, and save through the app's own data layer instead of memory.
  */
+/**
+ * Assembled from: colored sidebar (inline: sections, seat meter, c.button.ghost-on-accent) > top bar (inline: c.text-field
+ * search, c.avatar, c.button.tertiary menu) > page head (c.button.primary) > tabs (inline, with count pill) > users panel
+ * (inline filter toolbar with c.text-field and c.select; bulk bar with c.button; table with c.checkbox, c.avatar, c.badge;
+ * c.empty-state.no-results; c.pagination.numbered) > roles matrix (c.checkbox) > c.drawer (user details) > c.modal.form
+ * (invite) > c.modal.danger (deactivate).
+ */
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge, type BadgeTone } from "./badges-status";
+import { Avatar, type AvatarTone } from "./avatars-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Checkbox } from "./checkboxes-radios";
+import { Modal } from "./modals-dialogs";
+import { Drawer } from "./panels-drawers";
+import { EmptyState } from "./empty-states";
+import { Pagination } from "./pagination-variants";
 
 // flowcode:sample
 const SAMPLE = {
@@ -121,15 +143,14 @@ const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([di
 const P = {
   search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4",
   x: "M6 6l12 12M18 6L6 18",
-  chev: "M6 9l6 6 6-6",
   sortUp: "M12 19V5M6 11l6-6 6 6",
   sortDown: "M12 5v14M6 13l6 6 6-6",
   sortBoth: "M8 9l4-4 4 4M8 15l4 4 4-4",
-  plus: "M12 5v14M5 12h14",
-  prev: "M15 6l-6 6 6 6",
-  next: "M9 6l6 6-6 6",
-  warn: "M12 8v5M12 16.5v.01M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
 };
+
+const STATUS_TONE: Record<Status, BadgeTone> = { Active: "success", Invited: "info", Deactivated: "neutral" };
+const AVATAR_TONES: AvatarTone[] = ["a", "b", "c", "d", "e"];
+const toneOf = (name: string) => AVATAR_TONES[name.length % AVATAR_TONES.length];
 
 function Glyph({ d }: { d: string }) {
   return (
@@ -171,25 +192,6 @@ function trapKeys(e: KeyboardEvent<HTMLElement>, box: HTMLElement | null, close:
   }
 }
 
-/** Moves focus into a dialog when it opens and back to whatever opened it when it closes. */
-function useModal<T extends HTMLElement>(open: boolean, fallback: () => HTMLElement | null) {
-  const ref = useRef<T>(null);
-  useEffect(() => {
-    if (!open) return;
-    const back = document.activeElement as HTMLElement | null;
-    const box = ref.current;
-    (box?.querySelector<HTMLElement>("[data-autofocus]") ?? box?.querySelector<HTMLElement>(FOCUSABLE))?.focus();
-    return () => {
-      window.setTimeout(() => {
-        if (back && back.isConnected) back.focus();
-        else fallback()?.focus();
-      }, 0);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-  return ref;
-}
-
 function validate(f: Fields, users: User[], selfId?: string): Errors {
   const e: Errors = {};
   if (f.name.trim().split(/\s+/).filter(Boolean).length < 2) e.name = SAMPLE.errors.name;
@@ -199,23 +201,13 @@ function validate(f: Fields, users: User[], selfId?: string): Errors {
   return e;
 }
 
-function Select({ id, label, value, onChange, options, hideLabel, allLabel }: { id: string; label: string; value: string; onChange: (v: string) => void; options: string[]; hideLabel?: boolean; allLabel?: string }) {
+function Pick({ id, label, value, onChange, options, hideLabel, allLabel }: { id: string; label: string; value: string; onChange: (v: string) => void; options: string[]; hideLabel?: boolean; allLabel?: string }) {
   return (
     <div className="fl-field">
       <label htmlFor={id} className={hideLabel ? "fl-sr" : undefined}>
         {label}
       </label>
-      <div className="fl-aa-select">
-        <select id={id} className="fl-input" value={value} onChange={(e) => onChange(e.target.value)}>
-          {allLabel && <option value="">{allLabel}</option>}
-          {options.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-        <Glyph d={P.chev} />
-      </div>
+      <Select id={id} value={value} onChange={(e) => onChange(e.target.value)} options={allLabel ? [{ value: "", label: allLabel }, ...options] : options} />
     </div>
   );
 }
@@ -249,17 +241,11 @@ export default function AppAdmin() {
   const [toast, setToast] = useState("");
 
   const rootRef = useRef<HTMLDivElement>(null);
-  const menuBtn = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const toastTimer = useRef<number | null>(null);
-  const headCheck = useRef<HTMLInputElement>(null);
-
-  const fallback = () => headingRef.current;
-  const confirmRef = useModal<HTMLDivElement>(confirm !== null, fallback);
-  const drawerRef = useModal<HTMLDivElement>(drawerId !== null, fallback);
-  const inviteRef = useModal<HTMLDivElement>(inviteOpen, fallback);
+  const menuWrap = useRef<HTMLSpanElement>(null);
 
   useLayoutEffect(() => {
     const el = rootRef.current;
@@ -316,10 +302,6 @@ export default function AppAdmin() {
   const filtersOn = !!(q || roleFilter || statusFilter);
   const seatsUsed = users.filter((u) => u.status !== "Deactivated").length;
   const counts = Object.fromEntries(d.statuses.map((s) => [s, users.filter((u) => u.status === s).length]));
-
-  useEffect(() => {
-    if (headCheck.current) headCheck.current.indeterminate = someOnPage && !allOnPage;
-  }, [someOnPage, allOnPage]);
 
   function changeFilters(fn: () => void) {
     fn();
@@ -396,7 +378,7 @@ export default function AppAdmin() {
     const errs = validate(form, users, drawerUser.id);
     setFormErrors(errs);
     if (Object.keys(errs).length) {
-      window.setTimeout(() => drawerRef.current?.querySelector<HTMLElement>("[aria-invalid='true']")?.focus(), 0);
+      window.setTimeout(() => document.querySelector<HTMLElement>("[role='dialog'] [aria-invalid='true']")?.focus(), 0);
       return;
     }
     const roleChanged = form.role !== drawerUser.role;
@@ -418,12 +400,11 @@ export default function AppAdmin() {
     setInviteOpen(true);
   }
 
-  function submitInvite(e: FormEvent) {
-    e.preventDefault();
+  function submitInvite() {
     const errs = validate(invite, users);
     setInviteErrors(errs);
     if (Object.keys(errs).length) {
-      window.setTimeout(() => inviteRef.current?.querySelector<HTMLElement>("[aria-invalid='true']")?.focus(), 0);
+      window.setTimeout(() => document.querySelector<HTMLElement>("[role='dialog'] [aria-invalid='true']")?.focus(), 0);
       return;
     }
     const name = invite.name.trim();
@@ -482,7 +463,7 @@ export default function AppAdmin() {
 
   function closeMenu() {
     setMenuOpen(false);
-    window.setTimeout(() => menuBtn.current?.focus(), 0);
+    window.setTimeout(() => menuWrap.current?.querySelector("button")?.focus(), 0);
   }
 
   function sortHead(k: SortKey, label: string) {
@@ -499,7 +480,7 @@ export default function AppAdmin() {
 
   const fieldProps = (prefix: string, key: "name" | "email", errs: Errors) => ({
     id: `${prefix}-${key}`,
-    "aria-invalid": errs[key] ? true : undefined,
+    invalid: !!errs[key],
     "aria-describedby": errs[key] ? `${prefix}-${key}-err` : undefined,
   });
 
@@ -524,9 +505,9 @@ export default function AppAdmin() {
             <span>{d.area}</span>
           </span>
           {narrow && (
-            <button type="button" className="fl-aa-iconbtn fl-aa-iconbtn--ink" aria-label={d.closeMenu} onClick={closeMenu}>
-              <Glyph d={P.x} />
-            </button>
+            <Button variant="ghost-on-accent" size={32} icon="close" iconOnly onClick={closeMenu}>
+              {d.closeMenu}
+            </Button>
           )}
         </div>
         <nav aria-label="Sections">
@@ -563,9 +544,11 @@ export default function AppAdmin() {
       <div className="fl-aa-body">
         <header className="fl-aa-topbar">
           {narrow && (
-            <button ref={menuBtn} type="button" className="fl-aa-iconbtn" aria-label={d.openMenu} aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
-              <Icon name="menu" />
-            </button>
+            <span ref={menuWrap}>
+              <Button variant="tertiary" size={32} icon="menu" iconOnly aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
+                {d.openMenu}
+              </Button>
+            </span>
           )}
           <form
             role="search"
@@ -581,12 +564,10 @@ export default function AppAdmin() {
               {d.topSearchLabel}
             </label>
             <Glyph d={P.search} />
-            <input id="fl-aa-top-q" className="fl-input" type="search" placeholder={d.topSearchPlaceholder} value={topQuery} onChange={(e) => setTopQuery(e.target.value)} />
+            <TextField id="fl-aa-top-q" type="search" placeholder={d.topSearchPlaceholder} value={topQuery} onChange={(e) => setTopQuery(e.target.value)} />
           </form>
           <div className="fl-aa-me">
-            <span className="fl-aa-avatar" aria-hidden="true">
-              {initials(d.me.name)}
-            </span>
+            <Avatar name={d.me.name} size={32} tone={toneOf(d.me.name)} decorative />
             <span className="fl-aa-me__text">
               <span className="fl-sr">Signed in as </span>
               <strong>{d.me.name}</strong>
@@ -604,10 +585,9 @@ export default function AppAdmin() {
               </h1>
               <p className="fl-meta">{d.lede}</p>
             </div>
-            <button type="button" className="fl-btn fl-btn--primary" onClick={openInvite}>
-              <Glyph d={P.plus} />
+            <Button variant="primary" size={40} icon="plus" onClick={openInvite}>
               {d.invite}
-            </button>
+            </Button>
           </div>
 
           <div className="fl-aa-tabs" role="tablist" aria-label={d.title}>
@@ -649,14 +629,14 @@ export default function AppAdmin() {
                     Search users
                   </label>
                   <Glyph d={P.search} />
-                  <input id="fl-aa-users-q" className="fl-input" type="search" placeholder="Name or email" value={query} onChange={(e) => changeFilters(() => setQuery(e.target.value))} />
+                  <TextField id="fl-aa-users-q" type="search" placeholder="Name or email" value={query} onChange={(e) => changeFilters(() => setQuery(e.target.value))} />
                 </div>
-                <Select id="fl-aa-f-role" label="Role" hideLabel allLabel="All roles" value={roleFilter} options={d.roles} onChange={(v) => changeFilters(() => setRoleFilter(v))} />
-                <Select id="fl-aa-f-status" label="Status" hideLabel allLabel="All statuses" value={statusFilter} options={d.statuses} onChange={(v) => changeFilters(() => setStatusFilter(v))} />
+                <Pick id="fl-aa-f-role" label="Role" hideLabel allLabel="All roles" value={roleFilter} options={d.roles} onChange={(v) => changeFilters(() => setRoleFilter(v))} />
+                <Pick id="fl-aa-f-status" label="Status" hideLabel allLabel="All statuses" value={statusFilter} options={d.statuses} onChange={(v) => changeFilters(() => setStatusFilter(v))} />
                 {filtersOn && (
-                  <button type="button" className="fl-aa-textbtn" onClick={clearFilters}>
+                  <Button variant="tertiary" size={32} onClick={clearFilters}>
                     {d.clearFilters}
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -664,17 +644,17 @@ export default function AppAdmin() {
                 <div className="fl-aa-bulk" role="region" aria-label="Bulk actions">
                   <strong>{selected.size} selected</strong>
                   <div className="fl-aa-bulk__role">
-                    <Select id="fl-aa-bulk-role" label="Change role to" hideLabel value={bulkRole} options={d.roles} onChange={setBulkRole} />
-                    <button type="button" className="fl-btn fl-btn--secondary fl-aa-btn-sm" onClick={applyBulkRole}>
+                    <Pick id="fl-aa-bulk-role" label="Change role to" hideLabel value={bulkRole} options={d.roles} onChange={setBulkRole} />
+                    <Button variant="secondary" size={32} onClick={applyBulkRole}>
                       Change role
-                    </button>
+                    </Button>
                   </div>
-                  <button type="button" className="fl-btn fl-aa-btn-sm fl-aa-btn--danger-quiet" onClick={() => askDeactivate(Array.from(selected))}>
+                  <Button variant="destructive" size={32} onClick={() => askDeactivate(Array.from(selected))}>
                     Deactivate
-                  </button>
-                  <button type="button" className="fl-aa-textbtn" onClick={() => setSelected(new Set())}>
+                  </Button>
+                  <Button variant="tertiary" size={32} onClick={() => setSelected(new Set())}>
                     Clear selection
-                  </button>
+                  </Button>
                 </div>
               )}
 
@@ -686,7 +666,7 @@ export default function AppAdmin() {
                   <thead>
                     <tr>
                       <th scope="col" className="fl-aa-table__check">
-                        <input ref={headCheck} type="checkbox" checked={allOnPage} disabled={!rows.length} onChange={togglePage} aria-label="Select everyone on this page" />
+                        <Checkbox checked={allOnPage} indeterminate={someOnPage && !allOnPage} disabled={!rows.length} onChange={togglePage} aria-label="Select everyone on this page" />
                       </th>
                       {sortHead("name", "Name")}
                       {sortHead("role", "Role")}
@@ -699,29 +679,29 @@ export default function AppAdmin() {
                     {rows.length === 0 ? (
                       <tr>
                         <td colSpan={6}>
-                          <div className="fl-aa-empty">
-                            <span className="fl-icon">
-                              <Icon name="users" />
-                            </span>
-                            <strong>{d.noResultsTitle}</strong>
-                            <p className="fl-meta">{d.noResultsText}</p>
-                            <button type="button" className="fl-btn fl-btn--secondary fl-aa-btn-sm" onClick={clearFilters}>
-                              {d.clearFilters}
-                            </button>
-                          </div>
+                          <EmptyState
+                            variant="no-results"
+                            icon="users"
+                            title={d.noResultsTitle}
+                            action={
+                              <Button variant="secondary" size={32} onClick={clearFilters}>
+                                {d.clearFilters}
+                              </Button>
+                            }
+                          >
+                            {d.noResultsText}
+                          </EmptyState>
                         </td>
                       </tr>
                     ) : (
                       rows.map((u) => (
                         <tr key={u.id} data-selected={selected.has(u.id) ? "true" : undefined}>
                           <td className="fl-aa-table__check">
-                            <input type="checkbox" checked={selected.has(u.id)} onChange={() => toggleRow(u.id)} aria-label={`Select ${u.name}`} />
+                            <Checkbox checked={selected.has(u.id)} onChange={() => toggleRow(u.id)} aria-label={`Select ${u.name}`} />
                           </td>
                           <td>
                             <span className="fl-aa-who">
-                              <span className="fl-aa-avatar fl-aa-avatar--sm" aria-hidden="true">
-                                {initials(u.name)}
-                              </span>
+                              <Avatar name={u.name} size={32} tone={toneOf(u.name)} decorative />
                               <span>
                                 <button type="button" className="fl-aa-who__name" onClick={() => openDrawer(u)}>
                                   {u.name}
@@ -733,7 +713,7 @@ export default function AppAdmin() {
                           </td>
                           <td>{u.role}</td>
                           <td>
-                            <span className={`fl-aa-status fl-aa-status--${u.status.toLowerCase()}`}>{u.status}</span>
+                            <Badge tone={STATUS_TONE[u.status]}>{u.status}</Badge>
                           </td>
                           <td className="fl-aa-muted">{u.team}</td>
                           <td className="fl-aa-muted">{u.lastActive}</td>
@@ -748,21 +728,7 @@ export default function AppAdmin() {
                 <p className="fl-meta">
                   {sorted.length === 0 ? "No users to show" : `Showing ${(current - 1) * d.pageSize + 1}–${(current - 1) * d.pageSize + rows.length} of ${sorted.length} ${sorted.length === 1 ? "user" : "users"}`}
                 </p>
-                {pages > 1 && (
-                  <nav className="fl-aa-pager" aria-label="Pages">
-                    <button type="button" className="fl-aa-iconbtn fl-aa-iconbtn--sm" aria-label="Previous page" disabled={current === 1} onClick={() => setPage(current - 1)}>
-                      <Glyph d={P.prev} />
-                    </button>
-                    {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
-                      <button key={n} type="button" className="fl-aa-pager__n" aria-current={n === current ? "page" : undefined} aria-label={`Page ${n}`} onClick={() => setPage(n)}>
-                        {n}
-                      </button>
-                    ))}
-                    <button type="button" className="fl-aa-iconbtn fl-aa-iconbtn--sm" aria-label="Next page" disabled={current === pages} onClick={() => setPage(current + 1)}>
-                      <Glyph d={P.next} />
-                    </button>
-                  </nav>
-                )}
+                {pages > 1 && <Pagination variant="numbered" page={current} pageCount={pages} onPageChange={setPage} />}
               </div>
             </div>
           ) : (
@@ -790,8 +756,7 @@ export default function AppAdmin() {
                         <th scope="row">{p.label}</th>
                         {d.roles.map((r) => (
                           <td key={r}>
-                            <input
-                              type="checkbox"
+                            <Checkbox
                               checked={perms[p.id][r]}
                               disabled={r === "Admin" || permStatus === "saving"}
                               aria-label={`${r}: ${p.label}`}
@@ -812,51 +777,40 @@ export default function AppAdmin() {
                 <span className={`fl-aa-savebar__msg${permStatus === "saved" && !permsDirty ? " is-saved" : ""}`} role="status">
                   {permStatus === "saving" ? d.saving : permsDirty ? d.unsaved : permStatus === "saved" ? d.savedPerms : ""}
                 </span>
-                <button type="button" className="fl-aa-textbtn" disabled={!permsDirty || permStatus === "saving"} onClick={() => setPerms(savedPerms)}>
+                <Button variant="tertiary" size={32} disabled={!permsDirty || permStatus === "saving"} onClick={() => setPerms(savedPerms)}>
                   {d.discard}
-                </button>
-                <button type="button" className="fl-btn fl-btn--primary fl-aa-btn-sm" disabled={!permsDirty || permStatus === "saving"} onClick={savePerms}>
+                </Button>
+                <Button variant="primary" size={32} disabled={!permsDirty} busy={permStatus === "saving"} onClick={savePerms}>
                   {permStatus === "saving" ? d.saving : d.savePerms}
-                </button>
+                </Button>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {drawerUser && (
-        <div className="fl-aa-overlay fl-aa-overlay--drawer" onMouseDown={(e) => e.target === e.currentTarget && setDrawerId(null)}>
-          <div
-            ref={drawerRef}
-            className="fl-aa-drawer"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="fl-aa-drawer-title"
-            onKeyDown={(e) => trapKeys(e, drawerRef.current, () => setDrawerId(null))}
-          >
+      <Drawer
+        side="right"
+        overlay
+        open={drawerUser !== null}
+        onClose={() => setDrawerId(null)}
+        title={drawerUser?.name ?? ""}
+        eyebrow={d.eyebrow}
+      >
+        {drawerUser && (
+          <>
             <div className="fl-aa-drawer__head">
-              <span className="fl-aa-avatar fl-aa-avatar--lg" aria-hidden="true">
-                {initials(drawerUser.name)}
-              </span>
-              <div>
-                <h2 id="fl-aa-drawer-title" className="fl-aa-h2">
-                  {drawerUser.name}
-                </h2>
-                <p className="fl-meta">
-                  <span className={`fl-aa-status fl-aa-status--${drawerUser.status.toLowerCase()}`}>{drawerUser.status}</span> · Joined {drawerUser.joined}
-                </p>
-              </div>
-              <button type="button" className="fl-aa-iconbtn" aria-label="Close" onClick={() => setDrawerId(null)}>
-                <Glyph d={P.x} />
-              </button>
+              <Avatar name={drawerUser.name} size={48} tone={toneOf(drawerUser.name)} decorative />
+              <p className="fl-meta">
+                <Badge tone={STATUS_TONE[drawerUser.status]}>{drawerUser.status}</Badge> · Joined {drawerUser.joined}
+              </p>
             </div>
 
             <form className="fl-form fl-aa-drawer__form" noValidate onSubmit={saveDrawer}>
               <div className="fl-field">
                 <label htmlFor="fl-aa-dr-name">Full name</label>
-                <input
+                <TextField
                   {...fieldProps("fl-aa-dr", "name", formErrors)}
-                  className="fl-input"
                   autoComplete="off"
                   value={form.name}
                   onChange={(e) => {
@@ -873,9 +827,8 @@ export default function AppAdmin() {
               </div>
               <div className="fl-field">
                 <label htmlFor="fl-aa-dr-email">Email</label>
-                <input
+                <TextField
                   {...fieldProps("fl-aa-dr", "email", formErrors)}
-                  className="fl-input"
                   type="email"
                   autoComplete="off"
                   value={form.email}
@@ -892,16 +845,16 @@ export default function AppAdmin() {
                 )}
               </div>
               <div className="fl-aa-row2">
-                <Select id="fl-aa-dr-role" label="Role" value={form.role} options={d.roles} onChange={(v) => (setForm({ ...form, role: v }), setFormSaved(false))} />
-                <Select id="fl-aa-dr-team" label="Team" value={form.team} options={d.teams} onChange={(v) => (setForm({ ...form, team: v }), setFormSaved(false))} />
+                <Pick id="fl-aa-dr-role" label="Role" value={form.role} options={d.roles} onChange={(v) => (setForm({ ...form, role: v }), setFormSaved(false))} />
+                <Pick id="fl-aa-dr-team" label="Team" value={form.team} options={d.teams} onChange={(v) => (setForm({ ...form, team: v }), setFormSaved(false))} />
               </div>
               <div className="fl-aa-drawer__save">
                 <span className={`fl-aa-savebar__msg${formSaved && !drawerDirty ? " is-saved" : ""}`} role="status">
                   {drawerDirty ? d.unsaved : formSaved ? d.drawerSaved : ""}
                 </span>
-                <button type="submit" className="fl-btn fl-btn--primary fl-aa-btn-sm" disabled={!drawerDirty}>
+                <Button type="submit" variant="primary" size={32} disabled={!drawerDirty}>
                   {d.drawerSave}
-                </button>
+                </Button>
               </div>
             </form>
 
@@ -923,130 +876,103 @@ export default function AppAdmin() {
             {drawerUser.id !== d.me.id && (
               <div className="fl-aa-drawer__danger">
                 {drawerUser.status === "Deactivated" ? (
-                  <button type="button" className="fl-btn fl-btn--secondary fl-aa-btn-sm" onClick={() => reactivate(drawerUser)}>
-                    Reactivate {drawerUser.name.split(" ")[0]}
-                  </button>
+                  <Button variant="secondary" size={32} onClick={() => reactivate(drawerUser)}>
+                    {`Reactivate ${drawerUser.name.split(" ")[0]}`}
+                  </Button>
                 ) : (
-                  <button type="button" className="fl-btn fl-aa-btn-sm fl-aa-btn--danger-quiet" onClick={() => askDeactivate([drawerUser.id])}>
-                    Deactivate {drawerUser.name.split(" ")[0]}
-                  </button>
+                  <Button variant="destructive" size={32} onClick={() => askDeactivate([drawerUser.id])}>
+                    {`Deactivate ${drawerUser.name.split(" ")[0]}`}
+                  </Button>
                 )}
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Drawer>
 
       {inviteOpen && (
-        <div className="fl-aa-overlay" onMouseDown={(e) => e.target === e.currentTarget && setInviteOpen(false)}>
-          <div ref={inviteRef} className="fl-aa-dialog" role="dialog" aria-modal="true" aria-labelledby="fl-aa-invite-title" aria-describedby="fl-aa-invite-text" onKeyDown={(e) => trapKeys(e, inviteRef.current, () => setInviteOpen(false))}>
-            <div className="fl-aa-dialog__head">
-              <h2 id="fl-aa-invite-title" className="fl-aa-h2">
-                {d.inviteTitle}
-              </h2>
-              <button type="button" className="fl-aa-iconbtn" aria-label="Close" onClick={() => setInviteOpen(false)}>
-                <Glyph d={P.x} />
-              </button>
-            </div>
-            <p id="fl-aa-invite-text" className="fl-meta">
-              {d.inviteText}
-            </p>
-            <form className="fl-form" noValidate onSubmit={submitInvite}>
-              <div className="fl-field">
-                <label htmlFor="fl-aa-inv-name">Full name</label>
-                <input
-                  {...fieldProps("fl-aa-inv", "name", inviteErrors)}
-                  className="fl-input"
-                  autoComplete="off"
-                  data-autofocus
-                  value={invite.name}
-                  onChange={(e) => {
-                    setInvite({ ...invite, name: e.target.value });
-                    if (inviteErrors.name) setInviteErrors({ ...inviteErrors, name: undefined });
-                  }}
-                />
-                {inviteErrors.name && (
-                  <p id="fl-aa-inv-name-err" className="fl-aa-err">
-                    {inviteErrors.name}
-                  </p>
-                )}
-              </div>
-              <div className="fl-field">
-                <label htmlFor="fl-aa-inv-email">Email</label>
-                <input
-                  {...fieldProps("fl-aa-inv", "email", inviteErrors)}
-                  className="fl-input"
-                  type="email"
-                  autoComplete="off"
-                  placeholder="name@example.com"
-                  value={invite.email}
-                  onChange={(e) => {
-                    setInvite({ ...invite, email: e.target.value });
-                    if (inviteErrors.email) setInviteErrors({ ...inviteErrors, email: undefined });
-                  }}
-                />
-                {inviteErrors.email && (
-                  <p id="fl-aa-inv-email-err" className="fl-aa-err">
-                    {inviteErrors.email}
-                  </p>
-                )}
-              </div>
-              <div className="fl-aa-row2">
-                <Select id="fl-aa-inv-role" label="Role" value={invite.role} options={d.roles} onChange={(v) => setInvite({ ...invite, role: v })} />
-                <Select id="fl-aa-inv-team" label="Team" value={invite.team} options={d.teams} onChange={(v) => setInvite({ ...invite, team: v })} />
-              </div>
-              <div className="fl-aa-dialog__actions">
-                <button type="button" className="fl-btn fl-btn--secondary fl-aa-btn-sm" onClick={() => setInviteOpen(false)}>
-                  {d.cancel}
-                </button>
-                <button type="submit" className="fl-btn fl-btn--primary fl-aa-btn-sm">
-                  {d.inviteCta}
-                </button>
-              </div>
-            </form>
+        <Modal
+          variant="form"
+          title={d.inviteTitle}
+          description={d.inviteText}
+          confirmLabel={d.inviteCta}
+          cancelLabel={d.cancel}
+          onClose={() => setInviteOpen(false)}
+          onConfirm={() => {
+            submitInvite();
+            return false;
+          }}
+        >
+          <div className="fl-field">
+            <label htmlFor="fl-aa-inv-name">Full name</label>
+            <TextField
+              {...fieldProps("fl-aa-inv", "name", inviteErrors)}
+              name="name"
+              autoComplete="off"
+              data-autofocus
+              value={invite.name}
+              onChange={(e) => {
+                setInvite({ ...invite, name: e.target.value });
+                if (inviteErrors.name) setInviteErrors({ ...inviteErrors, name: undefined });
+              }}
+            />
+            {inviteErrors.name && (
+              <p id="fl-aa-inv-name-err" className="fl-aa-err">
+                {inviteErrors.name}
+              </p>
+            )}
           </div>
-        </div>
+          <div className="fl-field">
+            <label htmlFor="fl-aa-inv-email">Email</label>
+            <TextField
+              {...fieldProps("fl-aa-inv", "email", inviteErrors)}
+              name="email"
+              type="email"
+              autoComplete="off"
+              placeholder="name@example.com"
+              value={invite.email}
+              onChange={(e) => {
+                setInvite({ ...invite, email: e.target.value });
+                if (inviteErrors.email) setInviteErrors({ ...inviteErrors, email: undefined });
+              }}
+            />
+            {inviteErrors.email && (
+              <p id="fl-aa-inv-email-err" className="fl-aa-err">
+                {inviteErrors.email}
+              </p>
+            )}
+          </div>
+          <div className="fl-aa-row2">
+            <Pick id="fl-aa-inv-role" label="Role" value={invite.role} options={d.roles} onChange={(v) => setInvite({ ...invite, role: v })} />
+            <Pick id="fl-aa-inv-team" label="Team" value={invite.team} options={d.teams} onChange={(v) => setInvite({ ...invite, team: v })} />
+          </div>
+        </Modal>
       )}
 
       {confirm && (
-        <div className="fl-aa-overlay fl-aa-overlay--top" onMouseDown={(e) => e.target === e.currentTarget && setConfirm(null)}>
-          <div
-            ref={confirmRef}
-            className="fl-aa-dialog fl-aa-dialog--sm"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="fl-aa-confirm-title"
-            aria-describedby="fl-aa-confirm-text"
-            onKeyDown={(e) => trapKeys(e, confirmRef.current, () => setConfirm(null))}
-          >
-            <span className="fl-aa-dialog__icon" aria-hidden="true">
-              <Glyph d={P.warn} />
-            </span>
-            <h2 id="fl-aa-confirm-title" className="fl-aa-h2">
-              {d.confirmTitle(confirmIds.length)}
-            </h2>
-            <p id="fl-aa-confirm-text" className="fl-meta">
-              {d.confirmText}
-            </p>
-            {confirmIds.length > 0 && (
-              <ul className="fl-aa-confirm__names">
-                {confirmNames.slice(0, 4).map((n) => (
-                  <li key={n}>{n}</li>
-                ))}
-                {confirmNames.length > 4 && <li>and {confirmNames.length - 4} more</li>}
-              </ul>
-            )}
-            {confirm.includes(d.me.id) && <p className="fl-aa-note">{d.confirmSelf}</p>}
-            <div className="fl-aa-dialog__actions">
-              <button type="button" className="fl-btn fl-btn--secondary fl-aa-btn-sm" data-autofocus onClick={() => setConfirm(null)}>
-                {d.cancel}
-              </button>
-              <button type="button" className="fl-btn fl-aa-btn-sm fl-aa-btn--danger" disabled={confirmIds.length === 0} onClick={doDeactivate}>
-                {d.confirmCta}
-              </button>
-            </div>
-          </div>
-        </div>
+        <Modal
+          variant="danger"
+          icon="alert"
+          title={d.confirmTitle(confirmIds.length)}
+          description={d.confirmText}
+          warning={confirm.includes(d.me.id) ? d.confirmSelf : undefined}
+          confirmLabel={d.confirmCta}
+          cancelLabel={d.cancel}
+          onClose={() => setConfirm(null)}
+          onConfirm={() => {
+            if (confirmIds.length === 0) return false;
+            doDeactivate();
+          }}
+        >
+          {confirmIds.length > 0 && (
+            <ul className="fl-aa-confirm__names">
+              {confirmNames.slice(0, 4).map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+              {confirmNames.length > 4 && <li>and {confirmNames.length - 4} more</li>}
+            </ul>
+          )}
+        </Modal>
       )}
 
       <div className="fl-aa-toast fl-aa-toast--admin" role="status" aria-live="polite" data-show={toast ? "true" : undefined}>

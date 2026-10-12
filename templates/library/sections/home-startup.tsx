@@ -1,7 +1,18 @@
 /** @flowcode-library home-startup · Startup homepage (Homepages)
+ * Catalog ID: t.home-startup (template)
+ * Function: A whole startup homepage assembled from: nav (inline) > hero with task board (inline) > mission (inline) > product cards (inline) > progress stats and milestones (inline) > team (inline) > open roles with team filter and talent form (inline) > b.footer-simple.
+ * Use it as: Copy home-startup.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the company's own mission, numbers, team and open roles.
+ * Built from: b.footer-simple, c.button.primary, c.button.secondary, c.checkbox, c.avatar.person, c.card.surface, c.chip.filter, c.badge.status, c.empty-state.no-results, c.text-field.outlined, c.select.outlined
+ * Look: Bold left-aligned hero over a mesh background with a working household task board, then mission, product cards, dated progress, founders and an expandable list of open roles.
  * Use cases: startup homepage; company website; careers; open roles; about the team; mission statement; traction milestones; investor-facing site
  * Jobs to be done: understand what the company is building; learn who the founders are; find a job that fits me; hear about future roles
  * Keywords: page, homepage, startup, mission, traction, timeline, team, careers, hiring
+ */
+/**
+ * Assembled from: nav (inline) > hero with a working task board (inline) > mission (inline) > product cards (inline) >
+ * progress: stats and milestones (inline) > team (inline) > open roles with a team filter and a talent form (inline) >
+ * b.footer-simple. Every button is c.button, role filters are c.chip, the board is c.checkbox and c.avatar, cards are
+ * c.card, the form is c.text-field and c.select, and the empty list is c.empty-state.
  */
 /**
  * Page template: startup homepage. A whole page for an early-stage company that is selling a vision as much as a
@@ -13,6 +24,16 @@
  */
 import { useState, type FormEvent } from "react";
 import { Icon, Tick } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Chip } from "./chips-tags";
+import { Avatar } from "./avatars-variants";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Checkbox } from "./checkboxes-radios";
+import { EmptyState } from "./empty-states";
+import { FooterSimple } from "./footer-simple";
 
 // flowcode:sample
 const SAMPLE = {
@@ -32,10 +53,10 @@ const SAMPLE = {
   board: {
     title: "This week at the Okafor-Lindqvist house",
     items: [
-      { id: "bins", label: "Bins out (Tuesday night)", who: "TL", done: true },
-      { id: "dentist", label: "Book Ada's dentist check-up", who: "MO", done: false },
-      { id: "rent", label: "Pay rent share: $640", who: "TL", done: false },
-      { id: "shop", label: "Big shop for the week", who: "MO", done: false },
+      { id: "bins", label: "Bins out (Tuesday night)", who: "Tomas Lindqvist", done: true },
+      { id: "dentist", label: "Book Ada's dentist check-up", who: "Mara Okafor", done: false },
+      { id: "rent", label: "Pay rent share: $640", who: "Tomas Lindqvist", done: false },
+      { id: "shop", label: "Big shop for the week", who: "Mara Okafor", done: false },
     ],
   },
   missionLabel: "Our mission",
@@ -61,9 +82,9 @@ const SAMPLE = {
   ],
   teamTitle: "Small team, lived experience",
   team: [
-    { initials: "MO", name: "Mara Okafor", role: "Co-founder, CEO", bio: "Ran operations at a home-services company. Parent of two; owner of far too many lists." },
-    { initials: "TL", name: "Tomas Lindqvist", role: "Co-founder, CTO", bio: "Built sync engines for a note-taking app. Insists the app must work offline in a basement." },
-    { initials: "PR", name: "Priya Raman", role: "Head of Design", bio: "Designed tools for carers. Tests every flow with her grandmother and her flatmates." },
+    { name: "Mara Okafor", role: "Co-founder, CEO", bio: "Ran operations at a home-services company. Parent of two; owner of far too many lists." },
+    { name: "Tomas Lindqvist", role: "Co-founder, CTO", bio: "Built sync engines for a note-taking app. Insists the app must work offline in a basement." },
+    { name: "Priya Raman", role: "Head of Design", bio: "Designed tools for carers. Tests every flow with her grandmother and her flatmates." },
   ],
   jobsTitle: "Help us build it",
   jobsLede: "We pay at the top of our stage, share equity with everyone, and keep a four-day week in August.",
@@ -76,7 +97,7 @@ const SAMPLE = {
   ],
   futureTitle: "Nothing for you yet?",
   futureText: "Leave your details and the team you'd join. We'll write when a matching role opens, and never for anything else.",
-  footer: { base: "© 2026 Hearthly, Inc.", links: ["Press kit", "Privacy", "Contact"] },
+  footer: { links: ["Press kit", "Privacy", "Contact"] },
 };
 
 type Errors = Partial<Record<"name" | "email" | "team", string>>;
@@ -134,12 +155,12 @@ export default function HomeStartup() {
             ))}
           </ul>
           <div className="fl-nav__end">
-            <a className="fl-btn fl-btn--primary fl-hp-hide-sm" href="#beta">
+            <Button variant="primary" className="fl-hp-hide-sm" href="#beta">
               {d.cta}
-            </a>
-            <button type="button" className="fl-btn fl-btn--secondary fl-nav__menu" aria-expanded={menu} aria-controls="hp-st-menu" aria-label="Menu" onClick={() => setMenu((o) => !o)}>
+            </Button>
+            <Button variant="secondary" className="fl-nav__menu" aria-expanded={menu} aria-controls="hp-st-menu" aria-label="Menu" onClick={() => setMenu((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </nav>
         <ul id="hp-st-menu" className="fl-hp-menu" data-open={menu}>
@@ -163,13 +184,12 @@ export default function HomeStartup() {
               </h1>
               <p className="fl-lede">{d.lede}</p>
               <div className="fl-actions">
-                <a className="fl-btn fl-btn--primary" href="#hp-st-product">
+                <Button variant="primary" icon="arrow" iconAt="end" href="#hp-st-product">
                   {d.cta}
-                  <Icon name="arrow" />
-                </a>
-                <a className="fl-btn fl-btn--secondary" href="#hp-st-jobs">
+                </Button>
+                <Button variant="secondary" href="#hp-st-jobs">
                   {d.secondary} · {d.roles.length} roles
-                </a>
+                </Button>
               </div>
             </div>
             <div className="fl-hp-board" aria-labelledby="hp-st-board-title" role="group">
@@ -184,17 +204,16 @@ export default function HomeStartup() {
               <ul className="fl-hp-list" style={{ display: "grid", gap: "var(--space-2)" }}>
                 {tasks.map((t) => (
                   <li key={t.id} className="fl-hp-board__item" data-done={t.done}>
-                    <input
+                    <Checkbox
                       id={`hp-st-task-${t.id}`}
-                      type="checkbox"
                       checked={t.done}
                       onChange={() => setTasks((all) => all.map((x) => (x.id === t.id ? { ...x, done: !x.done } : x)))}
                     />
                     <label htmlFor={`hp-st-task-${t.id}`}>
                       <span>{t.label}</span>
                     </label>
-                    <span className="fl-hp-board__who" title={`Assigned to ${t.who}`}>
-                      {t.who}
+                    <span title={`Assigned to ${t.who}`}>
+                      <Avatar name={t.who} size={24} tone="a" decorative />
                     </span>
                   </li>
                 ))}
@@ -225,12 +244,14 @@ export default function HomeStartup() {
             </div>
             <ul className="fl-hp-list fl-grid fl-grid--3">
               {d.product.map((p) => (
-                <li key={p.title} className="fl-card">
-                  <span className="fl-icon">
-                    <Icon name={p.icon} />
-                  </span>
-                  <h3>{p.title}</h3>
-                  <p className="fl-text">{p.text}</p>
+                <li key={p.title} style={{ display: "grid" }}>
+                  <Card variant="surface">
+                    <span className="fl-icon">
+                      <Icon name={p.icon} />
+                    </span>
+                    <h3>{p.title}</h3>
+                    <p className="fl-text">{p.text}</p>
+                  </Card>
                 </li>
               ))}
             </ul>
@@ -278,17 +299,17 @@ export default function HomeStartup() {
             </div>
             <ul className="fl-hp-list fl-grid fl-grid--3">
               {d.team.map((p) => (
-                <li key={p.name} className="fl-card">
-                  <div className="fl-person">
-                    <span className="fl-person__avatar" aria-hidden="true">
-                      {p.initials}
-                    </span>
-                    <span>
-                      <strong>{p.name}</strong>
-                      <span>{p.role}</span>
-                    </span>
-                  </div>
-                  <p className="fl-text">{p.bio}</p>
+                <li key={p.name} style={{ display: "grid" }}>
+                  <Card variant="surface">
+                    <div className="fl-person">
+                      <Avatar name={p.name} size={48} decorative />
+                      <span>
+                        <strong>{p.name}</strong>
+                        <span>{p.role}</span>
+                      </span>
+                    </div>
+                    <p className="fl-text">{p.bio}</p>
+                  </Card>
                 </li>
               ))}
             </ul>
@@ -306,16 +327,18 @@ export default function HomeStartup() {
             </div>
             <div className="fl-hp-chips" role="group" aria-label="Filter roles by team" style={{ marginBottom: "var(--space-5)" }}>
               {d.teams.map((t) => (
-                <button key={t} type="button" className="fl-hp-chip" aria-pressed={filter === t} onClick={() => setFilter(t)}>
+                <Chip key={t} variant="filter" selected={filter === t} onClick={() => setFilter(t)}>
                   {t}
-                </button>
+                </Chip>
               ))}
             </div>
             <p className="fl-sr" aria-live="polite">
               {roles.length} {roles.length === 1 ? "role" : "roles"} shown
             </p>
             {roles.length === 0 ? (
-              <div className="fl-hp-empty">No open roles in {filter} right now. Leave your details below and we'll write when one opens.</div>
+              <EmptyState variant="no-results" title={`No open roles in ${filter} right now`}>
+                Leave your details below and we'll write when one opens.
+              </EmptyState>
             ) : (
               <ul className="fl-hp-list fl-hp-roles">
                 {roles.map((r) => {
@@ -343,10 +366,10 @@ export default function HomeStartup() {
                             ))}
                           </ul>
                           <div className="fl-actions">
-                            <span className="fl-badge">{r.pay}</span>
-                            <a className="fl-btn fl-btn--primary" href={`#apply-${r.id}`}>
+                            <Badge tone="info">{r.pay}</Badge>
+                            <Button variant="primary" href={`#apply-${r.id}`}>
                               Apply for this role
-                            </a>
+                            </Button>
                           </div>
                         </div>
                       ) : null}
@@ -356,7 +379,7 @@ export default function HomeStartup() {
               </ul>
             )}
 
-            <div className="fl-card fl-split fl-split--start" style={{ marginTop: "var(--space-8)" }}>
+            <Card variant="surface" className="fl-split fl-split--start" style={{ marginTop: "var(--space-8)" }}>
               <div style={{ display: "grid", gap: "var(--space-3)" }}>
                 <h3 className="fl-title fl-title--md">{d.futureTitle}</h3>
                 <p className="fl-text">{d.futureText}</p>
@@ -369,7 +392,7 @@ export default function HomeStartup() {
                 <form className="fl-form" onSubmit={submit} noValidate>
                   <div className="fl-field">
                     <label htmlFor="hp-st-name">Name</label>
-                    <input id="hp-st-name" name="name" className="fl-input" autoComplete="name" aria-invalid={errors.name ? true : undefined} aria-describedby={errors.name ? "hp-st-name-err" : undefined} />
+                    <TextField id="hp-st-name" name="name" autoComplete="name" invalid={!!errors.name} aria-describedby={errors.name ? "hp-st-name-err" : undefined} />
                     {errors.name ? (
                       <p id="hp-st-name-err" className="fl-hp-error">
                         {errors.name}
@@ -378,7 +401,7 @@ export default function HomeStartup() {
                   </div>
                   <div className="fl-field">
                     <label htmlFor="hp-st-email">Email</label>
-                    <input id="hp-st-email" name="email" type="email" className="fl-input" autoComplete="email" aria-invalid={errors.email ? true : undefined} aria-describedby={errors.email ? "hp-st-email-err" : undefined} />
+                    <TextField id="hp-st-email" name="email" type="email" autoComplete="email" invalid={!!errors.email} aria-describedby={errors.email ? "hp-st-email-err" : undefined} />
                     {errors.email ? (
                       <p id="hp-st-email-err" className="fl-hp-error">
                         {errors.email}
@@ -387,52 +410,24 @@ export default function HomeStartup() {
                   </div>
                   <div className="fl-field">
                     <label htmlFor="hp-st-team">Team you'd join</label>
-                    <span className="fl-hp-select">
-                      <select id="hp-st-team" name="team" className="fl-input" defaultValue="" aria-invalid={errors.team ? true : undefined} aria-describedby={errors.team ? "hp-st-team-err" : undefined}>
-                        <option value="" disabled>
-                          Choose a team
-                        </option>
-                        {d.teams.slice(1).map((t) => (
-                          <option key={t}>{t}</option>
-                        ))}
-                      </select>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
-                    </span>
+                    <Select id="hp-st-team" name="team" options={d.teams.slice(1)} placeholder="Choose a team" invalid={!!errors.team} aria-describedby={errors.team ? "hp-st-team-err" : undefined} />
                     {errors.team ? (
                       <p id="hp-st-team-err" className="fl-hp-error">
                         {errors.team}
                       </p>
                     ) : null}
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--secondary">
+                  <Button variant="secondary" type="submit">
                     Keep me posted
-                  </button>
+                  </Button>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
         </section>
       </main>
 
-      <footer className="fl-footer">
-        <div className="fl-wrap" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "var(--space-4)", alignItems: "center" }}>
-          <a className="fl-nav__brand" href="#top">
-            {d.brand}
-          </a>
-          <nav aria-label="Footer">
-            <ul style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-5)" }}>
-              {d.footer.links.map((l) => (
-                <li key={l}>
-                  <a href="#top">{l}</a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <span className="fl-meta">{d.footer.base}</span>
-        </div>
-      </footer>
+      <FooterSimple brand={d.brand} year={2026} links={d.footer.links.map((label) => ({ label, href: "#top" }))} />
     </div>
   );
 }

@@ -1,4 +1,9 @@
 /** @flowcode-library site-event · Conference site (Industry sites)
+ * Catalog ID: t.site-event (template)
+ * Function: A one-page conference site (t.site-event) with a schedule in day tabs and a saved My agenda, keynote and line-up speakers, a ticket picker that holds a reservation, and travel information; it is assembled inline from catalog components because no block matches its sections.
+ * Use it as: Copy site-event.tsx (FlowCode brings the components it uses); replace SAMPLE with the event's days, sessions, speakers and ticket types; connect the ticket reservation to the real checkout (it takes no payment as shipped); keep the credit to HTML5 UP.
+ * Built from: c.button.primary, c.button.secondary, c.badge.status, c.avatar.person, c.card.surface, c.radio, c.accordion.bordered, c.empty-state.first-use
+ * Look: A mesh-backed hero with the date and venue beside a ticket drawing, a tinted figures band, day tabs with a saved agenda, speaker spotlights, ticket choices with a quantity picker and travel cards.
  * Use cases: conference website; event schedule; agenda; speaker lineup; event tickets; summit; festival; meetup
  * Jobs to be done: plan which sessions to attend; see who is speaking; buy tickets for the event; find out how to get there
  * Keywords: page, event, conference, summit, schedule, agenda, tabs, speakers, tickets, travel, faq, html5up
@@ -12,8 +17,21 @@
  * Make it the app's own: replace SAMPLE with the event's real days, sessions, speakers and ticket types; connect the
  * reservation to the checkout the PRD describes.
  */
+/**
+ * Assembled from: nav (inline) > hero with the ticket picture (inline) > statement band with figures (inline) > schedule
+ * tabs with My agenda (inline) > speakers (inline) > tickets with a quantity picker (inline) > travel cards (inline,
+ * c.card.surface) + c.accordion > footer (inline). Every button is c.button, keynote and sold-out labels are c.badge,
+ * the line-up faces are c.avatar, ticket choices are c.radio, the empty agenda is c.empty-state.
+ */
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Avatar } from "./avatars-variants";
+import { Card } from "./cards-variants";
+import { Radio } from "./checkboxes-radios";
+import { Accordion } from "./accordion-variants";
+import { EmptyState } from "./empty-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -190,12 +208,12 @@ export default function SiteEvent() {
             ))}
           </ul>
           <div className="fl-st2-bar__end">
-            <a className="fl-btn fl-btn--primary" href="#ev-tickets">
+            <Button variant="primary" href="#ev-tickets">
               Get tickets
-            </a>
-            <button type="button" className="fl-btn fl-btn--secondary fl-st2-burger" aria-expanded={menuOpen} aria-controls="ev-links" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
+            </Button>
+            <Button variant="secondary" className="fl-st2-burger" aria-expanded={menuOpen} aria-controls="ev-links" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </nav>
       </header>
@@ -223,12 +241,12 @@ export default function SiteEvent() {
                 ))}
               </ul>
               <div className="fl-actions">
-                <a className="fl-btn fl-btn--primary" href="#ev-tickets">
+                <Button variant="primary" href="#ev-tickets">
                   Get your ticket
-                </a>
-                <a className="fl-btn fl-btn--secondary" href="#ev-schedule">
+                </Button>
+                <Button variant="secondary" href="#ev-schedule">
                   See the schedule
-                </a>
+                </Button>
               </div>
             </div>
             <svg className="fl-st2-ticketart" viewBox="0 0 320 220" aria-hidden="true">
@@ -301,13 +319,17 @@ export default function SiteEvent() {
             </div>
             <div id="ev-panel" role="tabpanel" aria-labelledby={`ev-tab-${tab}`} tabIndex={0}>
               {list.length === 0 ? (
-                <div className="fl-st2-empty">
-                  <strong>Your agenda is empty.</strong>
-                  <span>Star sessions on Day 1 or Day 2 and they'll appear here, in time order.</span>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setTab("d1")}>
-                    Browse Day 1
-                  </button>
-                </div>
+                <EmptyState
+                  variant="first-use"
+                  title="Your agenda is empty."
+                  action={
+                    <Button variant="secondary" onClick={() => setTab("d1")}>
+                      Browse Day 1
+                    </Button>
+                  }
+                >
+                  Star sessions on Day 1 or Day 2 and they'll appear here, in time order.
+                </EmptyState>
               ) : (
                 <ol className="fl-st2-agenda">
                   {list.map((s) => {
@@ -361,7 +383,7 @@ export default function SiteEvent() {
                     {k.initials}
                   </div>
                   <div className="fl-st2-spot__body">
-                    <span className="fl-badge">Keynote</span>
+                    <Badge tone="info">Keynote</Badge>
                     <h3 className="fl-title fl-title--md">{k.name}</h3>
                     <p className="fl-meta" style={{ margin: 0 }}>
                       {k.role}
@@ -378,9 +400,7 @@ export default function SiteEvent() {
             <ul className="fl-grid fl-grid--3" style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {d.speakers.others.map((p) => (
                 <li key={p.name} className="fl-person">
-                  <span className="fl-person__avatar" aria-hidden="true">
-                    {p.initials}
-                  </span>
+                  <Avatar name={p.name} label={p.initials} size={48} decorative />
                   <span>
                     <strong>{p.name}</strong>
                     <span>{p.role}</span>
@@ -401,28 +421,28 @@ export default function SiteEvent() {
             </div>
             <div aria-live="polite">
               {held ? (
-                <div className="fl-card fl-wrap--narrow" style={{ marginInline: "auto" }}>
+                <Card variant="surface" className="fl-wrap--narrow" style={{ marginInline: "auto" }}>
                   <p className="fl-done" role="status">
                     Held: {held.qty} × {held.name} ({`$${held.total.toLocaleString("en-US")}`}), reference {held.ref}. We'll keep them for 15 minutes.
                   </p>
                   <p className="fl-note" style={{ margin: 0 }}>
                     This is a preview, so no payment is taken. On the live site you'd now go to a secure checkout.
                   </p>
-                  <button type="button" className="fl-btn fl-btn--secondary" style={{ justifySelf: "start" }} onClick={() => setHeld(null)}>
+                  <Button variant="secondary" style={{ justifySelf: "start" }} onClick={() => setHeld(null)}>
                     Change tickets
-                  </button>
-                </div>
+                  </Button>
+                </Card>
               ) : (
                 <>
                   <fieldset className="fl-st2-tickets">
                     <legend className="fl-sr">Ticket type</legend>
                     {d.tickets.types.map((t) => (
                       <label key={t.id} className="fl-st2-ticket">
-                        <input type="radio" name="ev-ticket" value={t.id} checked={ticket === t.id} disabled={t.soldOut} onChange={() => setTicket(t.id)} />
+                        <Radio name="ev-ticket" value={t.id} checked={ticket === t.id} disabled={t.soldOut} onChange={() => setTicket(t.id)} />
                         <span style={{ fontWeight: "var(--weight-semibold)" }}>{t.name}</span>
                         <strong>${t.price}</strong>
                         <span className="fl-meta">{t.note}</span>
-                        {t.soldOut ? <span className="fl-st2-pill fl-st2-pill--muted">Sold out</span> : null}
+                        {t.soldOut ? <Badge tone="neutral">Sold out</Badge> : null}
                       </label>
                     ))}
                   </fieldset>
@@ -447,9 +467,9 @@ export default function SiteEvent() {
                         <span className="fl-meta">Total </span>
                         <span className="fl-st2-total">${(chosen.price * qtyClamped).toLocaleString("en-US")}</span>
                       </span>
-                      <button type="button" className="fl-btn fl-btn--primary" onClick={reserve}>
+                      <Button variant="primary" onClick={reserve}>
                         Reserve {qtyClamped} {qtyClamped === 1 ? "ticket" : "tickets"}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </>
@@ -467,22 +487,17 @@ export default function SiteEvent() {
             </div>
             <div className="fl-grid fl-grid--3">
               {d.travel.cards.map((c) => (
-                <article key={c.title} className="fl-card">
+                <Card key={c.title} variant="surface">
                   <span className="fl-icon">
                     <Icon name={c.icon} />
                   </span>
                   <h3>{c.title}</h3>
                   <p className="fl-text">{c.text}</p>
-                </article>
+                </Card>
               ))}
             </div>
-            <div className="fl-faq fl-wrap--narrow" style={{ marginTop: "var(--space-8)" }}>
-              {d.travel.faq.map((f) => (
-                <details key={f.q}>
-                  <summary>{f.q}</summary>
-                  <p>{f.a}</p>
-                </details>
-              ))}
+            <div className="fl-wrap--narrow" style={{ marginTop: "var(--space-8)" }}>
+              <Accordion items={d.travel.faq} />
             </div>
           </div>
         </section>

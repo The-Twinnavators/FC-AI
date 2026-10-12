@@ -1,4 +1,9 @@
 /** @flowcode-library site-clinic · Health clinic site (Industry sites)
+ * Catalog ID: t.site-clinic (template)
+ * Function: A one-page health clinic site (t.site-clinic) with services, practitioners, opening hours, a self-checking appointment request form with an emergency notice, and insurance, fees and FAQs; it is assembled inline from catalog components because no block matches its sections.
+ * Use it as: Copy site-clinic.tsx (FlowCode brings the components it uses); replace SAMPLE with the practice's services, team, hours and insurers; route the appointment request to the real booking flow and keep the emergency notice; keep the credit to HTML5 UP.
+ * Built from: c.button.primary, c.button.secondary, c.badge.status, c.chip.static, c.avatar.person, c.card.surface, c.alert.danger, c.media-frame, c.text-field.outlined, c.select.outlined, c.radio, c.checkbox, c.accordion.bordered
+ * Look: A soft wavy header with an emblem and a live open-now line, alternating service boxes, team cards, opening hours with today highlighted, and an appointment request form on a card.
  * Use cases: clinic website; medical practice; dental practice; physiotherapy; appointment request; practitioner profiles; opening hours; healthcare services
  * Jobs to be done: book an appointment; check if the clinic is open now; find the right practitioner; see if my insurance is accepted
  * Keywords: page, clinic, health, medical, practice, physiotherapy, services, practitioners, opening hours, appointment, insurance, faq, form, html5up
@@ -12,8 +17,26 @@
  * Make it the app's own: replace SAMPLE with the practice's real services, people, hours and insurers; route the
  * appointment request to the booking flow the PRD describes, and keep the emergency notice.
  */
+/**
+ * Assembled from: nav (inline) > header with the open-now line (inline) > services in alternating boxes (inline) > team
+ * (inline, c.card.surface) > opening hours with the map picture (inline, c.media-frame) > appointment form (inline,
+ * c.card.surface, c.alert.danger for the emergency notice) > insurance and fees (inline, c.chip, c.accordion) > footer
+ * (inline). Every button is c.button, every label c.badge, every face c.avatar, every form control c.text-field,
+ * c.select, c.radio or c.checkbox. No catalog block matches these sections' layout.
+ */
 import { useState, type FormEvent } from "react";
-import { Icon } from "./icons";
+import { Icon, Tick } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Chip } from "./chips-tags";
+import { Avatar } from "./avatars-variants";
+import { Card } from "./cards-variants";
+import { Alert } from "./alerts-states";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Checkbox, Radio } from "./checkboxes-radios";
+import { Accordion } from "./accordion-variants";
+import { MediaFrame } from "./media-frames";
 
 // flowcode:sample
 const SAMPLE = {
@@ -153,7 +176,8 @@ export default function SiteClinic() {
     setRequest({ ref, name: v("name").split(" ")[0], phone: v("phone"), service: v("service") });
   };
 
-  const err = (k: keyof Errors) => (errors[k] ? { "aria-invalid": true as const, "aria-describedby": `cl-${k}-err` } : {});
+  const err = (k: keyof Errors) => (errors[k] ? { invalid: true as const, "aria-describedby": `cl-${k}-err` } : {});
+  const errAria = (k: keyof Errors) => (errors[k] ? { "aria-invalid": true as const, "aria-describedby": `cl-${k}-err` } : {});
   const errText = (k: keyof Errors) =>
     errors[k] ? (
       <p id={`cl-${k}-err`} className="fl-st2-err">
@@ -181,12 +205,12 @@ export default function SiteClinic() {
             ))}
           </ul>
           <div className="fl-st2-bar__end">
-            <a className="fl-btn fl-btn--primary" href="#cl-appointment">
+            <Button variant="primary" href="#cl-appointment">
               Request appointment
-            </a>
-            <button type="button" className="fl-btn fl-btn--secondary fl-st2-burger" aria-expanded={menuOpen} aria-controls="cl-links" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
+            </Button>
+            <Button variant="secondary" className="fl-st2-burger" aria-expanded={menuOpen} aria-controls="cl-links" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </nav>
       </header>
@@ -207,13 +231,12 @@ export default function SiteClinic() {
               {openNow ? `Open now · until ${today.close}` : `Closed now · opens ${nextOpen}`}
             </p>
             <div className="fl-actions">
-              <a className="fl-btn fl-btn--primary" href="#cl-appointment">
+              <Button variant="primary" href="#cl-appointment">
                 Request an appointment
-              </a>
-              <a className="fl-btn fl-btn--secondary" href={`tel:${d.phone.replace(/\s/g, "")}`}>
-                <Icon name="phone" />
+              </Button>
+              <Button variant="secondary" href={`tel:${d.phone.replace(/\s/g, "")}`} icon="phone">
                 {d.phone}
-              </a>
+              </Button>
             </div>
           </div>
         </section>
@@ -238,9 +261,7 @@ export default function SiteClinic() {
                     <ul className="fl-checks">
                       {s.points.map((p) => (
                         <li key={p}>
-                          <span className="fl-tick">
-                            <Icon name="check" />
-                          </span>
+                          <Tick />
                           {p}
                         </li>
                       ))}
@@ -251,9 +272,11 @@ export default function SiteClinic() {
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-3)", alignItems: "center", justifyContent: "center", marginTop: "var(--space-7)" }}>
               <span className="fl-meta">Also at Ashgrove:</span>
-              <ul className="fl-st2-chips">
+              <ul style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", margin: 0, padding: 0, listStyle: "none" }}>
                 {d.services.more.map((m) => (
-                  <li key={m}>{m}</li>
+                  <li key={m}>
+                    <Chip variant="static">{m}</Chip>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -269,11 +292,10 @@ export default function SiteClinic() {
             </div>
             <ul className="fl-grid fl-grid--4" style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {d.team.people.map((p) => (
-                <li key={p.name} className="fl-card">
+                <li key={p.name} style={{ display: "grid" }}>
+                  <Card variant="surface">
                   <div className="fl-person">
-                    <span className="fl-person__avatar" aria-hidden="true">
-                      {p.initials}
-                    </span>
+                    <Avatar name={p.name} label={p.initials} size={48} decorative />
                     <span>
                       <strong>{p.name}</strong>
                       <span>{p.role}</span>
@@ -289,9 +311,10 @@ export default function SiteClinic() {
                       <dd style={{ display: "inline", margin: 0 }}>{p.days}</dd>
                     </div>
                   </dl>
-                  <span className={p.accepting ? "fl-st2-pill fl-st2-pill--calm" : "fl-st2-pill fl-st2-pill--muted"} style={{ justifySelf: "start" }}>
+                  <Badge tone={p.accepting ? "success" : "neutral"} style={{ justifySelf: "start" }}>
                     {p.accepting ? "Taking new patients" : "List full"}
-                  </span>
+                  </Badge>
+                  </Card>
                 </li>
               ))}
             </ul>
@@ -322,7 +345,7 @@ export default function SiteClinic() {
                         <tr key={h.day} className={i === todayIdx ? "fl-st2-today" : undefined} aria-current={i === todayIdx ? "date" : undefined}>
                           <th scope="row" style={{ fontWeight: "inherit" }}>
                             {h.day}
-                            {i === todayIdx ? <span className="fl-st2-pill" style={{ marginLeft: "var(--space-2)" }}>Today</span> : null}
+                            {i === todayIdx ? <Badge tone="info" style={{ marginLeft: "var(--space-2)" }}>Today</Badge> : null}
                           </th>
                           <td className="fl-st2-num">{h.open ? `${h.open}–${h.close}` : "Closed"}</td>
                         </tr>
@@ -336,9 +359,7 @@ export default function SiteClinic() {
               </p>
             </div>
             <div style={{ display: "grid", gap: "var(--space-4)" }}>
-              <div className="fl-media fl-media--wide" role="img" aria-label="Map placeholder showing the clinic on Ashgrove Road">
-                <span>Map: 22 Ashgrove Road</span>
-              </div>
+              <MediaFrame ratio="16-9" art="c" alt="Map placeholder showing the clinic on Ashgrove Road" caption="Map: 22 Ashgrove Road" />
               <p className="fl-text">{d.hours.address}</p>
             </div>
           </div>
@@ -352,32 +373,27 @@ export default function SiteClinic() {
               </h2>
               <p className="fl-lede">{d.appointment.lede}</p>
             </div>
-            <div className="fl-card" aria-live="polite">
+            <Card variant="surface" aria-live="polite">
               {request ? (
                 <div style={{ display: "grid", gap: "var(--space-4)" }}>
                   <p className="fl-done" role="status">
                     Request {request.ref} received. Thank you, {request.name}: we'll call {request.phone} within one working day to book your {request.service.toLowerCase()} appointment.
                   </p>
-                  <button type="button" className="fl-btn fl-btn--secondary" style={{ justifySelf: "start" }} onClick={() => setRequest(null)}>
+                  <Button variant="secondary" style={{ justifySelf: "start" }} onClick={() => setRequest(null)}>
                     Make another request
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <form className="fl-form" noValidate onSubmit={submit}>
-                  <p className="fl-st2-callout" style={{ margin: 0 }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" aria-hidden="true">
-                      <path d="M12 3 2 20h20zM12 10v4M12 17h.01" />
-                    </svg>
-                    <span>
-                      <strong>Not for emergencies.</strong> For chest pain, difficulty breathing or serious injury, call your local emergency number now.
-                    </span>
-                  </p>
+                  <Alert variant="danger" title="Not for emergencies.">
+                    For chest pain, difficulty breathing or serious injury, call your local emergency number now.
+                  </Alert>
                   <fieldset className="fl-st2-fieldset" aria-describedby={errors.patient ? "cl-patient-err" : undefined}>
                     <legend>Are you registered with us?</legend>
                     <div className="fl-st2-choices">
                       {["Yes, I'm a patient here", "No, I'm new"].map((x) => (
                         <label key={x} className="fl-st2-choice">
-                          <input type="radio" name="patient" value={x} aria-invalid={errors.patient ? true : undefined} />
+                          <Radio name="patient" value={x} aria-invalid={errors.patient ? true : undefined} />
                           {x}
                         </label>
                       ))}
@@ -387,52 +403,38 @@ export default function SiteClinic() {
                   <div className="fl-st2-row2">
                     <div className="fl-field">
                       <label htmlFor="cl-name">Patient's full name</label>
-                      <input id="cl-name" name="name" className="fl-input" autoComplete="name" {...err("name")} />
+                      <TextField id="cl-name" name="name" autoComplete="name" {...err("name")} />
                       {errText("name")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="cl-dob">Date of birth</label>
-                      <input id="cl-dob" name="dob" type="date" className="fl-input" autoComplete="bday" {...err("dob")} />
+                      <TextField id="cl-dob" name="dob" type="date" autoComplete="bday" {...err("dob")} />
                       {errText("dob")}
                     </div>
                   </div>
                   <div className="fl-st2-row2">
                     <div className="fl-field">
                       <label htmlFor="cl-phone">Phone</label>
-                      <input id="cl-phone" name="phone" type="tel" className="fl-input" autoComplete="tel" {...err("phone")} />
+                      <TextField id="cl-phone" name="phone" type="tel" autoComplete="tel" {...err("phone")} />
                       {errText("phone")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="cl-email">
                         Email <span className="fl-meta">(optional)</span>
                       </label>
-                      <input id="cl-email" name="email" type="email" className="fl-input" autoComplete="email" {...err("email")} />
+                      <TextField id="cl-email" name="email" type="email" autoComplete="email" {...err("email")} />
                       {errText("email")}
                     </div>
                   </div>
                   <div className="fl-st2-row2">
                     <div className="fl-field">
                       <label htmlFor="cl-service">Appointment for</label>
-                      <span className="fl-st2-select">
-                        <select id="cl-service" name="service" className="fl-input" defaultValue="" {...err("service")}>
-                          <option value="">Choose a service</option>
-                          {d.appointment.services.map((s) => (
-                            <option key={s}>{s}</option>
-                          ))}
-                        </select>
-                      </span>
+                      <Select id="cl-service" name="service" placeholder="Choose a service" options={d.appointment.services} {...err("service")} />
                       {errText("service")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="cl-who">Practitioner</label>
-                      <span className="fl-st2-select">
-                        <select id="cl-who" name="who" className="fl-input" defaultValue="No preference">
-                          <option>No preference</option>
-                          {d.team.people.map((p) => (
-                            <option key={p.name}>{p.name}</option>
-                          ))}
-                        </select>
-                      </span>
+                      <Select id="cl-who" name="who" defaultValue="No preference" options={["No preference", ...d.team.people.map((p) => p.name)]} />
                     </div>
                   </div>
                   <fieldset className="fl-st2-fieldset" aria-describedby={errors.days ? "cl-days-err" : undefined}>
@@ -440,7 +442,7 @@ export default function SiteClinic() {
                     <div className="fl-st2-choices">
                       {d.appointment.days.map((x) => (
                         <label key={x} className="fl-st2-choice">
-                          <input type="checkbox" name="days" value={x} aria-invalid={errors.days ? true : undefined} />
+                          <Checkbox name="days" value={x} aria-invalid={errors.days ? true : undefined} />
                           {x}
                         </label>
                       ))}
@@ -452,7 +454,7 @@ export default function SiteClinic() {
                     <div className="fl-st2-choices">
                       {d.appointment.times.map((x, i) => (
                         <label key={x} className="fl-st2-choice">
-                          <input type="radio" name="time" value={x} defaultChecked={i === 0} />
+                          <Radio name="time" value={x} defaultChecked={i === 0} />
                           {x}
                         </label>
                       ))}
@@ -462,24 +464,24 @@ export default function SiteClinic() {
                     <label htmlFor="cl-reason">
                       What's it about? <span className="fl-meta">(optional)</span>
                     </label>
-                    <textarea id="cl-reason" name="reason" className="fl-input" style={{ minHeight: "5rem" }} aria-describedby="cl-reason-note" />
+                    <TextField multiline id="cl-reason" name="reason" style={{ minHeight: "5rem" }} aria-describedby="cl-reason-note" />
                     <p id="cl-reason-note" className="fl-note" style={{ margin: 0 }}>
                       A line is enough. It helps us book the right length of appointment.
                     </p>
                   </div>
                   <div className="fl-field">
                     <label className="fl-st2-check" style={{ fontWeight: "var(--weight-regular)" }}>
-                      <input type="checkbox" name="consent" {...err("consent")} />
+                      <Checkbox name="consent" {...errAria("consent")} />
                       I agree that the clinic may use these details to contact me about this appointment.
                     </label>
                     {errText("consent")}
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     Send request
-                  </button>
+                  </Button>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
         </section>
 
@@ -492,9 +494,11 @@ export default function SiteClinic() {
                 </h2>
                 <p className="fl-lede">{d.insurance.lede}</p>
               </div>
-              <ul className="fl-st2-chips" aria-label="Insurers we work with">
+              <ul aria-label="Insurers we work with" style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", margin: 0, padding: 0, listStyle: "none" }}>
                 {d.insurance.insurers.map((i) => (
-                  <li key={i}>{i}</li>
+                  <li key={i}>
+                    <Chip variant="static">{i}</Chip>
+                  </li>
                 ))}
               </ul>
               <div className="fl-st2-tablewrap">
@@ -523,14 +527,7 @@ export default function SiteClinic() {
             </div>
             <div style={{ display: "grid", gap: "var(--space-4)" }}>
               <h3 className="fl-title fl-title--md">Common questions</h3>
-              <div className="fl-faq">
-                {d.insurance.faq.map((f) => (
-                  <details key={f.q}>
-                    <summary>{f.q}</summary>
-                    <p>{f.a}</p>
-                  </details>
-                ))}
-              </div>
+              <Accordion items={d.insurance.faq} />
             </div>
           </div>
         </section>

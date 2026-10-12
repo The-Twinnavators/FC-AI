@@ -1,7 +1,19 @@
 /** @flowcode-library home-devtool · Developer tool homepage (Homepages)
+ * Catalog ID: t.home-devtool (template)
+ * Function: A whole developer-tool homepage assembled from: nav (inline) > hero with install command and terminal (inline) > code sample tabs (inline) > features (inline) > how-it-works diagram (inline) > benchmarks (inline) > open-source band (inline) > pricing (inline) > b.faq-accordion > footer (inline).
+ * Use it as: Copy home-devtool.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the tool's own install command, code samples, benchmarks and plans, and redraw the SVG diagram around its architecture.
+ * Built from: b.faq-accordion, c.accordion.bordered, c.button.primary, c.button.secondary, c.segmented, c.quantity, c.card.surface, c.badge.status, c.avatar-stack
+ * Look: Developer-first page with a typing terminal and copyable install command, a switchable code sample, a bordered feature grid, an SVG diagram, switchable benchmark bars, free and team plans with a seat counter.
  * Use cases: developer tool homepage; open source project; sdk landing; cli tool; library homepage; api product; developer pricing; devtool marketing
  * Jobs to be done: install the library quickly; see how it works with my framework; compare performance with alternatives; choose a plan for my team
  * Keywords: developer, devtool, cli, sdk, open source, terminal, code, benchmarks, pricing, faq, landing
+ */
+/**
+ * Assembled from: nav (inline) > hero with install command and typing terminal (inline) > framework code sample with
+ * tabs (inline) > features grid (inline) > how-it-works diagram (inline) > benchmarks (inline) > open-source band
+ * (inline) > pricing with a seat counter (inline) > b.faq-accordion > footer (inline). Every button is c.button, the
+ * benchmark switch is c.segmented, the seat counter is c.quantity, plan cards are c.card, the plan label is c.badge and
+ * the contributor faces are c.avatar-stack.
  */
 /**
  * Page template: developer-tool homepage, here an open-source local-first sync library with a paid hosted relay.
@@ -15,6 +27,13 @@
  */
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { AvatarStack } from "./avatars-variants";
+import { Card } from "./cards-variants";
+import { Segmented } from "./segmented-control";
+import { Quantity } from "./input-quantity";
+import { FaqAccordion } from "./faq-accordion";
 
 // flowcode:sample
 const SAMPLE = {
@@ -170,8 +189,8 @@ const SAMPLE = {
       { label: "Weekly installs", value: "96k" },
       { label: "Median time to first reply on issues", value: "9 h" },
     ],
-    faces: ["MO", "TK", "AS", "JR", "LW", "PD"],
-    more: "+306",
+    faces: ["Mara Okafor", "Tomas Kline", "Aiko Sato", "Jonas Rye", "Lena Wu", "Pedro Diaz"],
+    more: "+306 more",
     release: "Latest release v2.0.3, 6 days ago",
   },
   pricingTitle: "Free to use. Pay when you want us to run it.",
@@ -210,18 +229,6 @@ const SAMPLE = {
     base: "MIT licensed · Made by the Tidepool maintainers",
   },
 };
-
-const copyIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" aria-hidden="true">
-    <rect x="9" y="9" width="11" height="11" rx="2" />
-    <path d="M5 15V5a1 1 0 0 1 1-1h10" />
-  </svg>
-);
-const starIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" aria-hidden="true">
-    <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" />
-  </svg>
-);
 
 const KEYWORDS = /^(import|from|const|await|export|function|return)$/;
 function highlight(line: string): ReactNode[] {
@@ -305,10 +312,9 @@ export default function HomeDevtool() {
   const copyButton = (key: string, text: string, label: string) => {
     const state = copied?.key === key ? (copied.ok ? "copied" : "failed") : "idle";
     return (
-      <button type="button" className="fl-dd-copy" data-state={state} onClick={() => copy(key, text)} aria-label={state === "idle" ? label : undefined}>
-        {state === "copied" ? <Icon name="check" /> : copyIcon}
+      <Button variant="secondary" size={32} icon={state === "copied" ? "check" : "copy"} data-state={state} onClick={() => copy(key, text)} aria-label={state === "idle" ? label : undefined}>
         {state === "copied" ? "Copied" : state === "failed" ? "Select to copy" : "Copy"}
-      </button>
+      </Button>
     );
   };
 
@@ -350,24 +356,16 @@ export default function HomeDevtool() {
             ))}
           </ul>
           <div className="fl-nav__end">
-            <a className="fl-dd-star fl-dd-hide-sm" href="#source" aria-label={`Source code, ${d.stars} stars`}>
-              {starIcon}
+            <Button variant="secondary" size={32} icon="star" className="fl-dd-hide-sm" href="#source" aria-label={`Source code, ${d.stars} stars`}>
               Star
-              <b>{d.stars}</b>
-            </a>
-            <a className="fl-btn fl-btn--primary fl-dd-hide-sm" href="#dd-hp-docs" style={{ minHeight: "var(--control-md)" }}>
+              <b style={{ paddingLeft: "var(--space-2)", borderLeft: "1px solid var(--color-border)", fontFamily: "var(--font-mono)" }}>{d.stars}</b>
+            </Button>
+            <Button variant="primary" size={40} className="fl-dd-hide-sm" href="#dd-hp-docs">
               Get started
-            </a>
-            <button
-              type="button"
-              className="fl-btn fl-btn--secondary fl-nav__menu"
-              aria-expanded={menu}
-              aria-controls="dd-hp-menu"
-              aria-label="Menu"
-              onClick={() => setMenu((o) => !o)}
-            >
+            </Button>
+            <Button variant="secondary" className="fl-nav__menu" aria-expanded={menu} aria-controls="dd-hp-menu" aria-label="Menu" onClick={() => setMenu((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </nav>
         <ul id="dd-hp-menu" className="fl-dd-menu" data-open={menu}>
@@ -402,13 +400,12 @@ export default function HomeDevtool() {
                 {copyButton("install", d.install, "Copy install command")}
               </div>
               <div className="fl-actions">
-                <a className="fl-btn fl-btn--primary" href="#dd-hp-docs">
+                <Button variant="primary" icon="arrow" iconAt="end" href="#dd-hp-docs">
                   {d.primary}
-                  <Icon name="arrow" />
-                </a>
-                <a className="fl-btn fl-btn--secondary" href="#dd-hp-how">
+                </Button>
+                <Button variant="secondary" href="#dd-hp-how">
                   {d.secondary}
-                </a>
+                </Button>
               </div>
               <p className="fl-meta" style={{ margin: 0 }}>
                 {d.meta}
@@ -421,9 +418,9 @@ export default function HomeDevtool() {
                 <span className="fl-dd-term__dot" aria-hidden="true" />
                 <span className="fl-dd-term__dot" aria-hidden="true" />
                 <span>{d.terminal.title}</span>
-                <button type="button" className="fl-dd-term__replay" onClick={replay} disabled={!done && !reduced}>
+                <Button variant="secondary" size={24} onClick={replay} disabled={!done && !reduced}>
                   Replay
-                </button>
+                </Button>
               </div>
               <div className="fl-dd-term__body" aria-hidden="true">
                 {lines.slice(0, Math.min(line + 1, lines.length)).map((l, i) => {
@@ -593,13 +590,12 @@ export default function HomeDevtool() {
               </h2>
               <p className="fl-text">{d.benchText}</p>
             </div>
-            <div className="fl-toggle" role="group" aria-label="Measure">
-              {d.bench.map((b, i) => (
-                <button key={b.id} type="button" aria-pressed={metric === i} onClick={() => setMetric(i)}>
-                  {b.label}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              label="Measure"
+              options={d.bench.map((b) => ({ value: b.id, label: b.label }))}
+              value={bench.id}
+              onChange={(v) => setMetric(Math.max(0, d.bench.findIndex((b) => b.id === v)))}
+            />
             <p className="fl-meta" style={{ margin: "var(--space-4) 0 0" }} aria-live="polite">
               {bench.caption} ({bench.unit}, lower is better)
             </p>
@@ -628,12 +624,10 @@ export default function HomeDevtool() {
                 {d.oss.title}
               </h2>
               <p className="fl-text">{d.oss.text}</p>
-              <ul className="fl-dd-faces" aria-label="Some of the contributors">
-                {d.oss.faces.map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
-                <li>{d.oss.more}</li>
-              </ul>
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--space-3)" }}>
+                <AvatarStack people={d.oss.faces.map((name) => ({ name }))} max={d.oss.faces.length} size={40} label="Some of the contributors" />
+                <span className="fl-text">{d.oss.more}</span>
+              </div>
               <p className="fl-text" style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)" }}>
                 {d.oss.release}
               </p>
@@ -658,7 +652,7 @@ export default function HomeDevtool() {
               </h2>
             </div>
             <div className="fl-dd-plans">
-              <article className="fl-card" aria-labelledby="dd-hp-plan-free">
+              <Card variant="surface" role="article" aria-labelledby="dd-hp-plan-free">
                 <h3 id="dd-hp-plan-free">{d.plans.free.name}</h3>
                 <p className="fl-price">
                   <strong>{d.plans.free.price}</strong>
@@ -675,12 +669,12 @@ export default function HomeDevtool() {
                     </li>
                   ))}
                 </ul>
-                <a className="fl-btn fl-btn--secondary" href="#dd-hp-docs">
+                <Button variant="secondary" href="#dd-hp-docs">
                   {d.plans.free.cta}
-                </a>
-              </article>
-              <article className="fl-card fl-card--featured" aria-labelledby="dd-hp-plan-team">
-                <span className="fl-badge">Hosted for you</span>
+                </Button>
+              </Card>
+              <Card variant="surface" className="fl-card--featured" role="article" aria-labelledby="dd-hp-plan-team">
+                <Badge tone="info">Hosted for you</Badge>
                 <h3 id="dd-hp-plan-team">{team.name}</h3>
                 <p className="fl-price">
                   <strong>${team.perSeat}</strong>
@@ -701,30 +695,14 @@ export default function HomeDevtool() {
                   <label htmlFor="dd-hp-seats" style={{ fontWeight: "var(--weight-semibold)", fontSize: "var(--text-sm)" }}>
                     Developers
                   </label>
-                  <div className="fl-dd-stepper">
-                    <button type="button" aria-label="One fewer developer" disabled={seats <= 1} onClick={() => setSeatCount(seats - 1)}>
-                      −
-                    </button>
-                    <input
-                      id="dd-hp-seats"
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      max={200}
-                      value={seats}
-                      onChange={(e) => setSeatCount(e.target.valueAsNumber)}
-                    />
-                    <button type="button" aria-label="One more developer" disabled={seats >= 200} onClick={() => setSeatCount(seats + 1)}>
-                      +
-                    </button>
-                  </div>
+                  <Quantity id="dd-hp-seats" label="developer" value={seats} min={1} max={200} onChange={(n) => setSeatCount(n)} />
                   <span className="fl-meta" aria-live="polite">
                     ${(seats * team.perSeat).toLocaleString("en-US")} a month
                   </span>
                 </div>
-                <button type="button" className="fl-btn fl-btn--primary" onClick={() => setTrial(true)}>
+                <Button variant="primary" onClick={() => setTrial(true)}>
                   {team.cta}
-                </button>
+                </Button>
                 <div aria-live="polite">
                   {trial ? (
                     <p className="fl-done" style={{ margin: 0 }}>
@@ -732,29 +710,14 @@ export default function HomeDevtool() {
                     </p>
                   ) : null}
                 </div>
-              </article>
+              </Card>
             </div>
           </div>
         </section>
 
-        <section className="fl-section fl-section--tint" id="dd-hp-faq" aria-labelledby="dd-hp-faq-title">
-          <div className="fl-wrap fl-wrap--narrow">
-            <div className="fl-head">
-              <p className="fl-eyebrow">FAQ</p>
-              <h2 id="dd-hp-faq-title" className="fl-title">
-                Questions developers ask first
-              </h2>
-            </div>
-            <div className="fl-faq">
-              {d.faq.map((f) => (
-                <details key={f.q}>
-                  <summary>{f.q}</summary>
-                  <p>{f.a}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
+        <div id="dd-hp-faq">
+          <FaqAccordion title="Questions developers ask first" items={d.faq} />
+        </div>
       </main>
 
       <footer className="fl-footer">

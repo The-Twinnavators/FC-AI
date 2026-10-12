@@ -1,4 +1,9 @@
 /** @flowcode-library site-coming-soon · Coming-soon page (Industry sites)
+ * Catalog ID: t.site-coming-soon (template)
+ * Function: A coming-soon page (t.site-coming-soon) for a business that has not opened yet. Assembled from: header (inline) > headline and countdown (inline) > notify-me card (inline with c.text-field, c.checkbox, c.button, c.alert) > progress list (inline) > footer (inline).
+ * Use it as: Copy site-coming-soon.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; set the opening date in SAMPLE and connect the form to the mailing list.
+ * Built from: c.button.primary, c.button.secondary, c.text-field.outlined, c.checkbox, c.alert.info
+ * Look: A full-screen aurora page with a promise, a live countdown, a glass notify-me card, a fit-out checklist and social links.
  * Use cases: coming soon; opening soon; new business launch; pre-opening; notify me; launch countdown; local business teaser; under construction
  * Jobs to be done: know when it opens; get notified on opening day; follow the opening progress
  * Keywords: page, coming soon, launch, pre-launch, countdown, notify, waitlist, email, local business, bakery, html5up
@@ -11,7 +16,16 @@
  * Make it the app's own: replace SAMPLE with the business's name, opening date and promise; send the sign-up to the
  * mailing list the PRD describes.
  */
+/**
+ * Assembled from: header (inline) > headline and countdown (inline) > notify-me card (inline, with c.text-field,
+ * c.checkbox, c.button and a c.alert for a repeat sign-up) > fit-out progress list (inline) > footer with social links
+ * (inline). It is one full-screen page, so no section block fits; the page's own form controls are the catalog's.
+ */
 import { useEffect, useState, type FormEvent } from "react";
+import { Button } from "./buttons-variants";
+import { Alert } from "./alerts-states";
+import { TextField } from "./text-fields-states";
+import { Checkbox } from "./checkboxes-radios";
 
 // flowcode:sample
 const SAMPLE = {
@@ -146,9 +160,9 @@ export default function SiteComingSoon() {
                 <p className="fl-done" role="status" style={{ margin: 0 }}>
                   You're on the list. We'll email {email.trim()} the week we open.
                 </p>
-                <button type="button" className="fl-btn fl-btn--secondary" style={{ justifySelf: "start" }} onClick={() => { setEmail(""); setState("idle"); }}>
+                <Button variant="secondary" style={{ justifySelf: "start" }} onClick={() => { setEmail(""); setState("idle"); }}>
                   Add another email
-                </button>
+                </Button>
               </div>
             ) : (
               <form className="fl-form" noValidate onSubmit={submit}>
@@ -159,10 +173,9 @@ export default function SiteComingSoon() {
                   <label htmlFor="soon-email" className="fl-sr">
                     Email address
                   </label>
-                  <input
+                  <TextField
                     id="soon-email"
                     type="email"
-                    className="fl-input"
                     placeholder="you@example.com"
                     autoComplete="email"
                     value={email}
@@ -173,9 +186,9 @@ export default function SiteComingSoon() {
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? "soon-email-err" : "soon-privacy"}
                   />
-                  <button type="submit" className="fl-btn fl-btn--primary" disabled={state === "saving"} aria-busy={state === "saving"}>
+                  <Button variant="primary" type="submit" busy={state === "saving"}>
                     {state === "saving" ? "Adding you…" : d.form.button}
-                  </button>
+                  </Button>
                 </div>
                 {error ? (
                   <p id="soon-email-err" className="fl-st2-err">
@@ -183,14 +196,9 @@ export default function SiteComingSoon() {
                   </p>
                 ) : null}
                 {state === "already" ? (
-                  <p className="fl-st2-impactline" role="status" style={{ background: "var(--color-surface-sunken)" }}>
-                    That email is already on the list, so there's nothing more to do. See you on opening day.
-                  </p>
+                  <Alert variant="info" title="That email is already on the list, so there's nothing more to do. See you on opening day." />
                 ) : null}
-                <label className="fl-st2-check">
-                  <input type="checkbox" name="tasting" />
-                  {d.form.tasting}
-                </label>
+                <Checkbox name="tasting" label={d.form.tasting} />
                 <p id="soon-privacy" className="fl-note" style={{ margin: 0 }}>
                   {d.form.privacy}
                 </p>

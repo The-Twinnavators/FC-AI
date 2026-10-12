@@ -1,4 +1,9 @@
 /** @flowcode-library landing-product-clothing · Product page: a garment (Landing pages)
+ * Catalog ID: t.landing-product-clothing (template)
+ * Function: A garment product page (t.landing-product-clothing) whose size row follows the stock in the chosen colour, with a size-guide dialog and a back-in-stock form. Assembled from: header (inline) > product page (inline) > size guide dialog (inline), using c.button and c.text-field.
+ * Use it as: Copy landing-product-clothing.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; replace the drawn shirt with photographs and keep the stock table honest.
+ * Built from: c.button.primary, c.button.secondary, c.text-field.outlined
+ * Look: A two-column product page: a drawn garment with view thumbnails beside colour and size pickers that know the stock, a buy row, fit notes and a size-guide dialog.
  * Use cases: clothing product page; fashion ecommerce; apparel store; shoes; size and colour picker; direct-to-consumer clothing
  * Jobs to be done: find the size that fits me; see whether my size is left in the colour I want; know how it is cut before I buy; hear when my size is back
  * Keywords: landing, product, clothing, ecommerce, size, size guide, stock, variant, page template
@@ -13,12 +18,18 @@
  * Suits clothing, shoes and anything else bought by size. Nothing is sent: adding to the bag updates the count in
  * the header, and the back-in-stock form only says it has your address.
  *
+ * Assembled from: header (inline) > product page (inline: gallery, colour and size pickers, buy row, fit notes) > size
+ * guide dialog (inline). No block fits a product-detail page, so the layout stays here; the page's own buttons and
+ * email field are the catalog's c.button and c.text-field.
+ *
  * Make it the app's own: replace SAMPLE with the real garment, its colours, its stock per size and its measurements,
  * and use photographs in place of the drawn shirt. Keep the stock table honest - a size shown as available and then
  * refused at checkout is the one thing this page exists to prevent.
  */
 import { useState } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { TextField } from "./text-fields-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -145,11 +156,11 @@ export default function LandingProductClothing() {
           </span>
           {d.brand}
         </a>
-        <a className="fl-btn fl-btn--secondary fl-ld-bag" href="#top" style={{ minHeight: "var(--control-md)" }}>
+        <Button variant="secondary" size={40} className="fl-ld-bag" href="#top">
           Bag
           <span className="fl-ld-bag__count">{bag}</span>
           <span className="fl-sr">items</span>
-        </a>
+        </Button>
       </header>
 
       <main id="top">
@@ -251,26 +262,26 @@ export default function LandingProductClothing() {
                     Email address
                   </label>
                   <div className="fl-inline-form">
-                    <input id="cloth-notify" className="fl-input" type="email" autoComplete="email" placeholder="you@example.com" value={notify} onChange={(e) => setNotify(e.target.value)} />
-                    <button type="submit" className="fl-btn fl-btn--secondary">
+                    <TextField id="cloth-notify" type="email" autoComplete="email" placeholder="you@example.com" value={notify} onChange={(e) => setNotify(e.target.value)} />
+                    <Button variant="secondary" type="submit">
                       Tell me when it is back
-                    </button>
+                    </Button>
                   </div>
                 </form>
               ) : (
                 <div className="fl-ld-buyrow">
                   <span className="fl-ld-qty">
-                    <button type="button" className="fl-btn fl-btn--secondary" aria-label="One fewer" onClick={() => setQty((n) => Math.max(1, n - 1))}>
+                    <Button variant="secondary" aria-label="One fewer" onClick={() => setQty((n) => Math.max(1, n - 1))}>
                       &minus;
-                    </button>
+                    </Button>
                     <output aria-label="Quantity">{qty}</output>
-                    <button type="button" className="fl-btn fl-btn--secondary" aria-label="One more" onClick={() => setQty((n) => Math.min(10, n + 1))}>
+                    <Button variant="secondary" aria-label="One more" onClick={() => setQty((n) => Math.min(10, n + 1))}>
                       +
-                    </button>
+                    </Button>
                   </span>
-                  <button type="button" className="fl-btn fl-btn--primary" onClick={add}>
+                  <Button variant="primary" onClick={add}>
                     Add to bag
-                  </button>
+                  </Button>
                 </div>
               )}
 
@@ -306,9 +317,9 @@ export default function LandingProductClothing() {
               <h2 id="cloth-guide-title" className="fl-title">
                 Size guide
               </h2>
-              <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setGuide(false)}>
+              <Button variant="secondary" onClick={() => setGuide(false)}>
                 Close
-              </button>
+              </Button>
             </div>
             <p className="fl-ld-fine">Measured flat, in inches. Chest is across the garment at the armhole and doubled.</p>
             <div className="fl-ld-guide-wrap">

@@ -1,4 +1,9 @@
 /** @flowcode-library app-support-inbox · Support inbox (App screens)
+ * Catalog ID: t.app-support-inbox (template)
+ * Function: A help-desk inbox screen (t.app-support-inbox) assembled from avatars, chips, list rows, chat bubbles, badges, a text field, buttons and empty states.
+ * Use it as: Copy app-support-inbox.tsx (FlowCode brings the components it uses); replace SAMPLE with the app's own conversations, canned replies and customer fields, and send replies through the app's own messaging.
+ * Built from: c.avatar.person, c.text-field.outlined, c.chip.filter, c.list-row.link, c.list-row.fact, c.badge.status, c.chat-bubble.mine, c.chat-bubble.theirs, c.button.primary, c.button.secondary, c.button.tertiary, c.empty-state.first-use, c.empty-state.done, c.empty-state.no-results
+ * Look: Three panes: a searchable conversation list with filter chips, the selected thread with chat bubbles and a reply box with canned replies, and a customer details column; folds to one column on phones.
  * Use cases: support inbox; help desk; customer messages; ticketing; shared inbox; customer service; live chat inbox; conversations
  * Jobs to be done: answer customer questions quickly; find a customer conversation; track which tickets are open; reply with a saved answer
  * Keywords: app, inbox, support, help desk, messages, chat, filters
@@ -10,16 +15,26 @@
  * customer details tucked under a disclosure. Use it for a help desk, a booking app's messages or any shared inbox.
  * Make it the app's own: replace SAMPLE with the app's real conversations, canned replies and customer fields, and
  * send replies through the app's own messaging instead of keeping them on this screen.
+ * Assembled from: top bar (inline, c.avatar) > list pane (c.text-field search, c.chip.filter filters, c.list-row.link
+ * conversations, c.empty-state) | thread pane (c.badge status, c.chip.filter status buttons, c.chat-bubble messages,
+ * c.button canned replies, c.text-field reply, c.button send) | customer pane (c.avatar, c.list-row.fact).
  */
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Avatar } from "./avatars-variants";
+import { Badge, type BadgeTone } from "./badges-status";
+import { Chip } from "./chips-tags";
+import { TextField } from "./text-fields-states";
+import { ListRow } from "./lists-rows";
+import { EmptyState } from "./empty-states";
+import { ChatBubble } from "./chat-bubbles";
 
 // flowcode:sample
 const SAMPLE = {
   product: "Kiln Room",
   mark: "K",
   screen: "Inbox",
-  agent: { name: "Ada Reyes", initials: "AR" },
+  agent: { name: "Ada Reyes" },
   searchLabel: "Search conversations",
   searchPlaceholder: "Search by name or subject",
   filters: [
@@ -124,6 +139,8 @@ const SAMPLE = {
 
 type Conversation = (typeof SAMPLE.conversations)[number];
 
+const STATUS_TONE: Record<string, BadgeTone> = { open: "info", pending: "neutral", closed: "success" };
+
 const SEARCH = "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4";
 const BACK = "M19 12H5M11 6l-6 6 6 6";
 
@@ -147,7 +164,7 @@ export default function AppSupportInbox() {
   const [say, setSay] = useState("");
   const threadEnd = useRef<HTMLDivElement>(null);
   const threadHead = useRef<HTMLHeadingElement>(null);
-  const listRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const listRef = useRef<HTMLUListElement>(null);
 
   const q = query.trim().toLowerCase();
   const inFilter = convos.filter((c) => c.status === filter);
@@ -171,7 +188,7 @@ export default function AppSupportInbox() {
   function back() {
     setView("list");
     const id = selected;
-    window.setTimeout(() => id && listRefs.current[id]?.focus(), 0);
+    window.setTimeout(() => id && listRef.current?.querySelector<HTMLElement>('[aria-current="true"]')?.focus(), 0);
   }
 
   function setStatus(status: string) {
@@ -205,10 +222,7 @@ export default function AppSupportInbox() {
         </div>
         <h1 className="fl-as-top__title">{d.screen}</h1>
         <div className="fl-as-top__end">
-          <span className="fl-as-avatar" title={d.agent.name}>
-            <span aria-hidden="true">{d.agent.initials}</span>
-            <span className="fl-sr">Signed in as {d.agent.name}</span>
-          </span>
+          <Avatar name={d.agent.name} />
         </div>
       </header>
 
@@ -224,105 +238,98 @@ export default function AppSupportInbox() {
                 {d.searchLabel}
               </label>
               <Glyph d={SEARCH} />
-              <input id="fl-as-in-q" className="fl-input" type="search" placeholder={d.searchPlaceholder} value={query} onChange={(e) => setQuery(e.target.value)} />
+              <TextField id="fl-as-in-q" type="search" placeholder={d.searchPlaceholder} value={query} onChange={(e) => setQuery(e.target.value)} />
             </div>
             <div className="fl-as-chips" role="group" aria-label="Show conversations that are">
               {d.filters.map((f) => (
-                <button key={f.id} type="button" className="fl-as-chip" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>
+                <Chip key={f.id} selected={filter === f.id} onClick={() => setFilter(f.id)}>
                   {f.label} <span className="fl-as-chip__n">{counts[f.id]}</span>
-                </button>
+                </Chip>
               ))}
             </div>
           </div>
           {shown.length === 0 ? (
-            <div className="fl-as-empty fl-as-empty--flat">
-              <span className="fl-icon">
-                <Icon name="mail" />
-              </span>
-              <p>
-                <strong>{inFilter.length === 0 ? d.emptyTitle[filter] : d.noMatch}</strong>
-              </p>
-              {inFilter.length === 0 ? (
-                <p className="fl-meta">{d.emptyText}</p>
-              ) : (
-                <button type="button" className="fl-as-btn fl-as-btn--quiet" onClick={() => setQuery("")}>
-                  Clear search
-                </button>
-              )}
-            </div>
+            inFilter.length === 0 ? (
+              <EmptyState variant={filter === "open" ? "done" : "first-use"} icon="mail" title={d.emptyTitle[filter]}>
+                {d.emptyText}
+              </EmptyState>
+            ) : (
+              <EmptyState
+                variant="no-results"
+                title={d.noMatch}
+                action={
+                  <Button variant="tertiary" size={32} onClick={() => setQuery("")}>
+                    Clear search
+                  </Button>
+                }
+              />
+            )
           ) : (
-            <ul className="fl-as-convos">
+            <ul ref={listRef} className="fl-as-convos fl-ctl-rows fl-ctl-rows--links">
               {shown.map((c) => (
-                <li key={c.id}>
-                  <button
-                    ref={(el) => {
-                      listRefs.current[c.id] = el;
-                    }}
-                    type="button"
-                    className="fl-as-convo"
-                    aria-current={selected === c.id ? "true" : undefined}
-                    onClick={() => open(c.id)}
-                  >
-                    <span className="fl-as-avatar fl-as-avatar--sm" aria-hidden="true">
-                      {c.initials}
-                    </span>
-                    <span className="fl-as-convo__body">
-                      <span className="fl-as-convo__row">
-                        <span className={`fl-as-convo__name${c.unread ? " is-unread" : ""}`}>{c.name}</span>
-                        <span className="fl-meta">{c.time}</span>
+                <ListRow
+                  key={c.id}
+                  variant="link"
+                  lead={<Avatar name={c.name} size={32} decorative />}
+                  title={c.name}
+                  meta={
+                    <>
+                      <span className="fl-as-convo__subject" style={{ display: "block" }}>
+                        {c.subject}
                       </span>
-                      <span className="fl-as-convo__subject">{c.subject}</span>
                       <span className="fl-as-convo__preview">{c.messages[c.messages.length - 1].text}</span>
-                    </span>
-                    {c.unread && (
-                      <span className="fl-as-dot">
-                        <span className="fl-sr">Unread</span>
-                      </span>
-                    )}
-                  </button>
-                </li>
+                    </>
+                  }
+                  aside={c.time}
+                  unread={c.unread}
+                  current={selected === c.id}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    open(c.id);
+                  }}
+                />
               ))}
             </ul>
           )}
         </section>
 
-        <section className="fl-as-inbox__thread" aria-labelledby="fl-as-in-subject">
+        <section className="fl-as-inbox__thread" aria-labelledby={current ? "fl-as-in-subject" : undefined} aria-label={current ? undefined : "Conversation"}>
           {!current ? (
-            <div className="fl-as-empty fl-as-empty--flat">
-              <p id="fl-as-in-subject">{d.noneSelected}</p>
-            </div>
+            <EmptyState title={d.noneSelected} icon="mail" />
           ) : (
             <>
               <div className="fl-as-thread__head">
-                <button type="button" className="fl-as-btn fl-as-btn--quiet fl-as-backbtn" onClick={back}>
-                  <Glyph d={BACK} />
-                  {d.back}
-                </button>
+                <span className="fl-as-backbtn">
+                  <Button variant="tertiary" size={32} onClick={back}>
+                    <Glyph d={BACK} />
+                    {d.back}
+                  </Button>
+                </span>
                 <div>
                   <h2 id="fl-as-in-subject" ref={threadHead} tabIndex={-1} className="fl-as-h2">
                     {current.subject}
                   </h2>
                   <span className="fl-meta">
-                    {current.name} · <span className={`fl-as-status fl-as-status--${current.status}`}>{current.status}</span>
+                    {current.name} {"\u00b7"}{" "}
+                    <Badge tone={STATUS_TONE[current.status] ?? "neutral"} style={{ textTransform: "capitalize" }}>
+                      {current.status}
+                    </Badge>
                   </span>
                 </div>
                 <div className="fl-as-thread__actions" role="group" aria-label="Set status">
                   {d.filters.map((f) => (
-                    <button key={f.id} type="button" className="fl-as-btn fl-as-btn--quiet" aria-pressed={current.status === f.id} onClick={() => setStatus(f.id)}>
+                    <Chip key={f.id} selected={current.status === f.id} onClick={() => setStatus(f.id)}>
                       {f.label}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               </div>
 
               <ol className="fl-as-msgs" aria-label="Messages">
                 {current.messages.map((m, i) => (
-                  <li key={i} className={`fl-as-msg fl-as-msg--${m.from}`}>
-                    <span className="fl-as-msg__who">
-                      {m.from === "agent" ? d.agent.name : current.name} · {m.at}
-                    </span>
-                    <p>{m.text}</p>
-                  </li>
+                  <ChatBubble key={i} first variant={m.from === "agent" ? "mine" : "theirs"} name={m.from === "agent" ? d.agent.name : current.name} at={m.at}>
+                    {m.text}
+                  </ChatBubble>
                 ))}
               </ol>
               <div ref={threadEnd} />
@@ -338,29 +345,29 @@ export default function AppSupportInbox() {
                 <div className="fl-as-canned" role="group" aria-label={d.cannedLabel}>
                   <span className="fl-meta">{d.cannedLabel}:</span>
                   {d.canned.map((c) => (
-                    <button
+                    <Button
                       key={c.title}
-                      type="button"
-                      className="fl-as-chip"
+                      variant="secondary"
+                      size={24}
                       onClick={() => {
                         setReply(c.text);
                         setError(false);
                       }}
                     >
                       {c.title}
-                    </button>
+                    </Button>
                   ))}
                 </div>
                 <label htmlFor="fl-as-in-reply" className="fl-sr">
                   {d.replyLabel} to {current.name}
                 </label>
-                <textarea
+                <TextField
+                  multiline
                   id="fl-as-in-reply"
-                  className="fl-input"
                   rows={3}
                   placeholder={d.replyPlaceholder}
                   value={reply}
-                  aria-invalid={error || undefined}
+                  invalid={error}
                   aria-describedby={error ? "fl-as-in-err" : undefined}
                   onChange={(e) => {
                     setReply(e.target.value);
@@ -381,9 +388,9 @@ export default function AppSupportInbox() {
                   ) : (
                     <span className="fl-meta">{say === d.sent ? d.sent : `Replying as ${d.agent.name}`}</span>
                   )}
-                  <button type="submit" className="fl-btn fl-btn--primary fl-as-btn-md">
+                  <Button type="submit" size={40}>
                     {d.send}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </>
@@ -396,33 +403,28 @@ export default function AppSupportInbox() {
               <summary>{d.detailsTitle}</summary>
               <div className="fl-as-customer">
                 <div className="fl-person">
-                  <span className="fl-person__avatar">{current.initials}</span>
+                  <Avatar name={current.name} />
                   <div>
                     <strong>{current.name}</strong>
                     <span>{current.email}</span>
                   </div>
                 </div>
-                <dl className="fl-as-dl">
-                  <div>
-                    <dt>Customer since</dt>
-                    <dd>{current.customer.since}</dd>
-                  </div>
-                  <div>
-                    <dt>Plan</dt>
-                    <dd>{current.customer.plan}</dd>
-                  </div>
-                  <div>
-                    <dt>Classes booked</dt>
-                    <dd>{current.customer.bookings}</dd>
-                  </div>
-                  <div>
-                    <dt>Total spent</dt>
-                    <dd>{current.customer.spent}</dd>
-                  </div>
-                  <div>
-                    <dt>Nearest studio</dt>
-                    <dd>{current.customer.location}</dd>
-                  </div>
+                <dl className="fl-ctl-rows fl-ctl-rows--facts">
+                  <ListRow variant="fact" title="Customer since">
+                    {current.customer.since}
+                  </ListRow>
+                  <ListRow variant="fact" title="Plan">
+                    {current.customer.plan}
+                  </ListRow>
+                  <ListRow variant="fact" title="Classes booked">
+                    {current.customer.bookings}
+                  </ListRow>
+                  <ListRow variant="fact" title="Total spent">
+                    {current.customer.spent}
+                  </ListRow>
+                  <ListRow variant="fact" title="Nearest studio">
+                    {current.customer.location}
+                  </ListRow>
                 </dl>
                 <a className="fl-link" href="#booking-history">
                   See {current.name.split(" ")[0]}'s bookings

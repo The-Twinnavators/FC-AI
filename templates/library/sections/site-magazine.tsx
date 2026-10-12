@@ -1,4 +1,9 @@
 /** @flowcode-library site-magazine · Online magazine (Industry sites)
+ * Catalog ID: t.site-magazine (template)
+ * Function: The online magazine or blog front page (t.site-magazine), assembled inline from its own sections with catalog fields, badges, buttons and an empty state; no page block fits its layout.
+ * Use it as: Copy site-magazine.tsx (FlowCode brings the components it uses); replace SAMPLE with the business's own content.
+ * Built from: c.badge.status, c.empty-state, c.text-field.outlined, c.button.primary, c.button.secondary, c.button.tertiary
+ * Look: An editorial front page with a sticky sidebar (search, sections, most read, saved), a cover story, section tiles, a feed of story cards and a newsletter band.
  * Use cases: online magazine; blog; news site; editorial; article feed; newsletter; content hub; publication front page
  * Jobs to be done: find something good to read; browse stories by section; save articles for later; subscribe to the newsletter
  * Keywords: page, template, magazine, blog, editorial, articles, search, categories, newsletter, html5up
@@ -9,10 +14,18 @@
  * featured story, section tiles that filter the feed, a latest-articles grid with save-for-later and "load more",
  * and a newsletter sign-up. Layout adapted from HTML5 UP "Editorial" (html5up.net, CC BY 3.0); keep the credit.
  * Saved stories and sign-ups stay in local storage; nothing is sent.
+ * Assembled from: header (inline) > featured story (inline) > section tiles (inline) with c.badge > latest-articles feed
+ * (inline) with c.button, c.empty-state > newsletter sign-up (inline) with c.text-field > footer (inline), beside a
+ * sidebar (inline) with a c.text-field search. No page block matches this magazine layout, so the sections stay in the
+ * template; every button, badge, field and empty state is the catalog component.
  * Make it the app's own: replace SAMPLE with real stories and sections, and point each article link at its page.
  */
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { TextField } from "./text-fields-states";
+import { EmptyState } from "./empty-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -139,10 +152,10 @@ export default function SiteMagazine() {
               <strong>{d.brand}</strong>
               <span>{d.strap}</span>
             </a>
-            <button type="button" className="fl-btn fl-btn--secondary fl-st-mag-sidebtn" aria-expanded={sidebar} aria-controls="mag-sidebar" aria-label="Sections and search" onClick={() => setSidebar((o) => !o)}>
+            <Button variant="secondary" className="fl-st-mag-sidebtn" aria-expanded={sidebar} aria-controls="mag-sidebar" aria-label="Sections and search" onClick={() => setSidebar((o) => !o)}>
               <Icon name="menu" />
               <span aria-hidden="true">Sections & search</span>
-            </button>
+            </Button>
           </header>
 
           <main>
@@ -157,9 +170,9 @@ export default function SiteMagazine() {
                   {d.featured.author} · {d.featured.read}
                 </p>
                 <div className="fl-actions">
-                  <a className="fl-btn fl-btn--primary" href={d.featured.action.href}>
+                  <Button variant="primary" href={d.featured.action.href}>
                     {d.featured.action.label}
-                  </a>
+                  </Button>
                 </div>
               </div>
               <div className="fl-media fl-st-mag-banner__img" role="img" aria-label="Placeholder for the cover photograph">
@@ -190,7 +203,7 @@ export default function SiteMagazine() {
                     </span>
                     <strong>{s.id}</strong>
                     <span className="fl-meta">{s.text}</span>
-                    <span className="fl-badge">{countFor(s.id)} stories</span>
+                    <Badge tone="info">{countFor(s.id)} stories</Badge>
                   </button>
                 ))}
               </div>
@@ -202,16 +215,16 @@ export default function SiteMagazine() {
                   {section ? `Latest in ${section}` : "Latest stories"}
                 </h2>
                 {section || query ? (
-                  <button
-                    type="button"
-                    className="fl-link fl-st-linkbtn"
+                  <Button
+                    variant="tertiary"
+                    size={32}
                     onClick={() => {
                       setQuery("");
                       pickSection(null);
                     }}
                   >
                     Clear filters
-                  </button>
+                  </Button>
                 ) : null}
               </div>
               <p className="fl-meta" aria-live="polite" style={{ marginBottom: "var(--space-4)" }}>
@@ -234,37 +247,39 @@ export default function SiteMagazine() {
                           <span className="fl-meta">
                             {a.date} · {a.read}
                           </span>
-                          <button type="button" className="fl-st-save" aria-pressed={isSaved} onClick={() => toggleSave(a.title)}>
-                            <Icon name="heart" />
+                          <Button variant="secondary" size={32} icon="heart" aria-pressed={isSaved} onClick={() => toggleSave(a.title)}>
                             <span>{isSaved ? "Saved" : "Save"}</span>
                             <span className="fl-sr"> “{a.title}”</span>
-                          </button>
+                          </Button>
                         </div>
                       </article>
                     );
                   })}
                 </div>
               ) : (
-                <div className="fl-st-empty">
-                  <strong>No stories match that.</strong>
-                  <span>Try a shorter word, or look in another section.</span>
-                  <button
-                    type="button"
-                    className="fl-btn fl-btn--secondary"
-                    onClick={() => {
-                      setQuery("");
-                      pickSection(null);
-                    }}
-                  >
-                    Show all stories
-                  </button>
-                </div>
+                <EmptyState
+                  variant="no-results"
+                  title="No stories match that."
+                  action={
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setQuery("");
+                        pickSection(null);
+                      }}
+                    >
+                      Show all stories
+                    </Button>
+                  }
+                >
+                  Try a shorter word, or look in another section.
+                </EmptyState>
               )}
               {matches.length > shown.length ? (
                 <div className="fl-actions" style={{ justifyContent: "center", marginTop: "var(--space-6)" }}>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={loadMore} disabled={loading} aria-busy={loading}>
+                  <Button variant="secondary" onClick={loadMore} busy={loading}>
                     {loading ? "Loading…" : `Load more (${matches.length - shown.length})`}
-                  </button>
+                  </Button>
                 </div>
               ) : null}
             </section>
@@ -285,20 +300,19 @@ export default function SiteMagazine() {
                   <label htmlFor="mag-email" className="fl-sr">
                     Email address
                   </label>
-                  <input
+                  <TextField
                     id="mag-email"
                     type="email"
-                    className="fl-input"
                     placeholder="you@example.com"
                     autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    aria-invalid={emailErr ? true : undefined}
+                    invalid={emailErr ? true : undefined}
                     aria-describedby={emailErr ? "mag-email-err" : undefined}
                   />
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     Subscribe
-                  </button>
+                  </Button>
                   {emailErr ? (
                     <p id="mag-email-err" className="fl-st-err" style={{ flexBasis: "100%" }}>
                       {emailErr}
@@ -328,10 +342,9 @@ export default function SiteMagazine() {
             <label htmlFor="mag-search" className="fl-sr">
               Search stories
             </label>
-            <input
+            <TextField
               id="mag-search"
               type="search"
-              className="fl-input"
               placeholder="Search stories"
               value={query}
               onChange={(e) => {

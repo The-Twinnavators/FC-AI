@@ -1,4 +1,9 @@
 /** @flowcode-library landing-prelaunch · Pre-launch waitlist (Landing pages)
+ * Catalog ID: t.landing-prelaunch (template)
+ * Function: A pre-launch waitlist page (t.landing-prelaunch) with countdown and referral. Assembled from: header, countdown and waitlist form (inline) > launch-day teasers (inline) > footer (inline).
+ * Use it as: Copy landing-prelaunch.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; set launchAt to the real date.
+ * Built from: c.button.primary, c.button.tertiary, c.text-field.outlined
+ * Look: One aurora-backed screen with a live countdown and a single email field, then three teasers; joining shows the visitor's place and a referral link.
  * Use cases: waitlist; pre-launch; coming soon; early access; beta signup; launch countdown; referral waitlist
  * Jobs to be done: join the waitlist early; know when it launches; move up the waitlist by sharing; see what is coming on launch day
  * Keywords: landing, pre-launch, waitlist, countdown, coming soon, referral, page template
@@ -9,9 +14,14 @@
  * countdown turns into a "we're live" message. Suits new apps, products and services collecting early sign-ups. The
  * waitlist is a prototype: places are counted in local storage, nothing is sent. Make it the app's own: replace SAMPLE
  * (set launchAt to the real date) and say plainly what people get for joining early.
+ *
+ * Assembled from: header, countdown and waitlist form (inline) > launch-day teasers (inline) > footer (inline).
+ * Buttons are c.button, fields c.text-field.
  */
 import { useEffect, useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { TextField } from "./text-fields-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -166,17 +176,17 @@ export default function LandingPrelaunch() {
                 <label htmlFor="ld-pre-link" className="fl-sr">
                   Your referral link
                 </label>
-                <input id="ld-pre-link" className="fl-input" readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
-                <button type="button" className="fl-btn fl-btn--primary" onClick={() => copy(link)}>
+                <TextField id="ld-pre-link" readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
+                <Button variant="primary" onClick={() => copy(link)}>
                   Copy link
-                </button>
+                </Button>
               </div>
               <p className="fl-note" aria-live="polite" style={{ margin: 0, minHeight: "1.4em" }}>
                 {copied}
               </p>
-              <button type="button" className="fl-link" style={{ background: "none", border: 0, cursor: "pointer", font: "inherit", fontSize: "var(--text-sm)" }} onClick={reset}>
+              <Button variant="tertiary" size={32} onClick={reset}>
                 Not you? Use a different email
-              </button>
+              </Button>
             </div>
           ) : (
             <form className="fl-ld-waitlist" onSubmit={join} noValidate>
@@ -184,20 +194,19 @@ export default function LandingPrelaunch() {
                 Email address
               </label>
               <div className="fl-inline-form">
-                <input
+                <TextField
                   id="ld-pre-email"
-                  className="fl-input"
                   type="email"
                   autoComplete="email"
                   placeholder="you@home.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  aria-invalid={error ? true : undefined}
+                  invalid={error ? true : undefined}
                   aria-describedby={error ? "ld-pre-err" : "ld-pre-hint"}
                 />
-                <button type="submit" className="fl-btn fl-btn--primary">
+                <Button variant="primary" type="submit">
                   {d.button}
-                </button>
+                </Button>
               </div>
               {error ? (
                 <p className="fl-ld-error" id="ld-pre-err">

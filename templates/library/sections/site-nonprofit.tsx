@@ -1,4 +1,9 @@
 /** @flowcode-library site-nonprofit · Charity site (Industry sites)
+ * Catalog ID: t.site-nonprofit (template)
+ * Function: A one-page charity site (t.site-nonprofit) with a mission box, programs, a one-off or monthly donation picker that only shows a confirmation, and a volunteer sign-up form; it is assembled inline from catalog components because no block matches its sections.
+ * Use it as: Copy site-nonprofit.tsx (FlowCode brings the components it uses); replace SAMPLE with the organization's mission, figures and programs; point the donation confirmation at the real payment step (it takes no payment as shipped); keep the credit to HTML5 UP.
+ * Built from: c.button.primary, c.button.secondary, c.card.surface, c.avatar.person, c.progress.bar, c.text-field.outlined, c.select.outlined, c.radio, c.checkbox
+ * Look: A tall glowing banner, a mission box lifted over it with impact figures, four programs and a quote, then a donation picker card and an accent-colored volunteer sign-up.
  * Use cases: charity website; nonprofit; donation page; fundraising; volunteer signup; foundation site; community group; impact report
  * Jobs to be done: donate to a cause i care about; see the impact of my gift; set up a monthly donation; sign up to volunteer
  * Keywords: page, nonprofit, charity, donate, donation, impact, programs, volunteer, sign-up, form, html5up
@@ -11,8 +16,21 @@
  * Make it the app's own: replace SAMPLE with the organization's mission, real figures and programs; point the
  * donation confirmation at the payment step the PRD describes.
  */
+/**
+ * Assembled from: nav (inline) > banner (inline) > mission box with impact figures (inline, c.card.surface) > programs
+ * and a quote (inline) > donation picker (inline, c.card.surface) > volunteer form (inline, c.card.surface) > footer
+ * (inline). Every button is c.button, the quote's avatar is c.avatar, the spend bars are c.progress, and every form
+ * control is c.text-field, c.select, c.radio or c.checkbox. No catalog block matches these sections' layout.
+ */
 import { useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Avatar } from "./avatars-variants";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Checkbox, Radio } from "./checkboxes-radios";
+import { Progress } from "./progress-indicators";
 
 // flowcode:sample
 const SAMPLE = {
@@ -146,7 +164,7 @@ export default function SiteNonprofit() {
     setVolunteer({ name: name.split(" ")[0], roles });
   };
 
-  const vErr = (k: keyof VolErrors) => (volErrors[k] ? { "aria-invalid": true as const, "aria-describedby": `np-${k}-err` } : {});
+  const vErr = (k: keyof VolErrors) => (volErrors[k] ? { invalid: true as const, "aria-describedby": `np-${k}-err` } : {});
   const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
   return (
@@ -167,12 +185,12 @@ export default function SiteNonprofit() {
             ))}
           </ul>
           <div className="fl-st2-bar__end">
-            <a className="fl-btn fl-btn--primary" href="#np-donate">
+            <Button variant="primary" href="#np-donate">
               Donate
-            </a>
-            <button type="button" className="fl-btn fl-btn--secondary fl-st2-burger" aria-expanded={menuOpen} aria-controls="np-links" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
+            </Button>
+            <Button variant="secondary" className="fl-st2-burger" aria-expanded={menuOpen} aria-controls="np-links" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </nav>
       </header>
@@ -186,18 +204,18 @@ export default function SiteNonprofit() {
             </h1>
             <p className="fl-lede">{d.banner.lede}</p>
             <div className="fl-actions">
-              <a className="fl-btn fl-btn--primary" href="#np-donate">
+              <Button variant="primary" href="#np-donate">
                 Give today
-              </a>
-              <a className="fl-btn fl-btn--secondary" href="#np-volunteer">
+              </Button>
+              <Button variant="secondary" href="#np-volunteer">
                 Volunteer with us
-              </a>
+              </Button>
             </div>
           </div>
         </section>
 
         <div className="fl-st2-lift" id="np-mission">
-          <section className="fl-wrap fl-card fl-st2-box" aria-labelledby="np-mission-title">
+          <Card variant="surface" role="region" className="fl-wrap fl-st2-box" aria-labelledby="np-mission-title">
             <h2 id="np-mission-title" className="fl-title fl-title--md">
               {d.mission.title}
             </h2>
@@ -212,7 +230,7 @@ export default function SiteNonprofit() {
                 </div>
               ))}
             </dl>
-          </section>
+          </Card>
         </div>
 
         <section className="fl-section" id="np-programmes" aria-labelledby="np-prog-title">
@@ -242,9 +260,7 @@ export default function SiteNonprofit() {
                 “{d.quote.text}”
               </blockquote>
               <figcaption className="fl-person">
-                <span className="fl-person__avatar" aria-hidden="true">
-                  {d.quote.name[0]}
-                </span>
+                <Avatar name={d.quote.name} size={48} decorative />
                 <span style={{ textAlign: "left" }}>
                   <strong>{d.quote.name}</strong>
                   <span>{d.quote.role}</span>
@@ -271,14 +287,12 @@ export default function SiteNonprofit() {
                       <span>{s.label}</span>
                       <strong style={{ fontVariantNumeric: "tabular-nums" }}>{s.pence}p</strong>
                     </span>
-                    <span aria-hidden="true" style={{ display: "block", height: "0.5rem", borderRadius: "999px", background: "var(--color-border)" }}>
-                      <span style={{ display: "block", height: "100%", width: `${s.pence}%`, borderRadius: "999px", background: "var(--color-accent)" }} />
-                    </span>
+                    <Progress variant="bar" value={s.pence} label={s.label} />
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="fl-card" aria-live="polite">
+            <Card variant="surface" aria-live="polite">
               {gift ? (
                 <div style={{ display: "grid", gap: "var(--space-4)" }}>
                   <p className="fl-done" role="status">
@@ -289,9 +303,9 @@ export default function SiteNonprofit() {
                   <p className="fl-note" style={{ margin: 0 }}>
                     This is a preview: no payment has been taken. On the live site you would now continue to a secure payment page.
                   </p>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setGift(null)}>
+                  <Button variant="secondary" onClick={() => setGift(null)}>
                     Change my gift
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <form className="fl-form" noValidate onSubmit={give}>
@@ -308,26 +322,25 @@ export default function SiteNonprofit() {
                     <div className="fl-st2-amounts">
                       {d.donate.amounts.map((a) => (
                         <label key={a} className="fl-st2-amount">
-                          <input type="radio" name="amount" value={a} checked={amount === a} onChange={() => { setAmount(a); setAmountError(""); }} />
+                          <Radio name="amount" value={a} checked={amount === a} onChange={() => { setAmount(a); setAmountError(""); }} />
                           <span>${a}</span>
                         </label>
                       ))}
                     </div>
                     <label className="fl-st2-check" style={{ marginTop: "var(--space-2)" }}>
-                      <input type="radio" name="amount" value="other" checked={amount === "other"} onChange={() => setAmount("other")} />
+                      <Radio name="amount" value="other" checked={amount === "other"} onChange={() => setAmount("other")} />
                       Another amount
                     </label>
                   </fieldset>
                   {amount === "other" ? (
                     <div className="fl-field">
                       <label htmlFor="np-other">Your amount in pounds</label>
-                      <input
+                      <TextField
                         id="np-other"
-                        className="fl-input"
                         inputMode="decimal"
                         value={other}
                         onChange={(e) => setOther(e.target.value)}
-                        aria-invalid={amountError ? true : undefined}
+                        invalid={amountError ? true : undefined}
                         aria-describedby={amountError ? "np-other-err" : undefined}
                         placeholder="e.g. 15"
                       />
@@ -340,18 +353,18 @@ export default function SiteNonprofit() {
                     </p>
                   ) : null}
                   <label className="fl-st2-check">
-                    <input type="checkbox" checked={giftAid} onChange={(e) => setGiftAid(e.target.checked)} />
+                    <Checkbox checked={giftAid} onChange={(e) => setGiftAid(e.target.checked)} />
                     Send me a tax receipt: gifts to Northlight are tax-deductible in the US.
                   </label>
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     {valid && value > 0 ? `Give ${money(value)}${monthly ? " a month" : ""}` : "Give"}
-                  </button>
+                  </Button>
                   <p className="fl-note" style={{ margin: 0 }}>
                     Cancel a monthly gift any time by emailing us. We never sell or share supporters' details.
                   </p>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
         </section>
 
@@ -374,27 +387,27 @@ export default function SiteNonprofit() {
                 ))}
               </ul>
             </div>
-            <div className="fl-card fl-st2-oncard" aria-live="polite">
+            <Card variant="surface" className="fl-st2-oncard" aria-live="polite">
               {volunteer ? (
                 <div style={{ display: "grid", gap: "var(--space-4)" }}>
                   <p className="fl-done" role="status">
                     Welcome aboard, {volunteer.name}. We've noted your interest in {volunteer.roles.join(", ").toLowerCase()}; our volunteer lead will email you an induction date within a week.
                   </p>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setVolunteer(null)}>
+                  <Button variant="secondary" onClick={() => setVolunteer(null)}>
                     Sign up someone else
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <form className="fl-form" noValidate onSubmit={signUp}>
                   <div className="fl-st2-row2">
                     <div className="fl-field">
                       <label htmlFor="np-name">Name</label>
-                      <input id="np-name" name="name" className="fl-input" autoComplete="name" {...vErr("name")} />
+                      <TextField id="np-name" name="name" autoComplete="name" {...vErr("name")} />
                       {volErrors.name ? <p id="np-name-err" className="fl-st2-err">{volErrors.name}</p> : null}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="np-email">Email</label>
-                      <input id="np-email" name="email" type="email" className="fl-input" autoComplete="email" {...vErr("email")} />
+                      <TextField id="np-email" name="email" type="email" autoComplete="email" {...vErr("email")} />
                       {volErrors.email ? <p id="np-email-err" className="fl-st2-err">{volErrors.email}</p> : null}
                     </div>
                   </div>
@@ -403,7 +416,7 @@ export default function SiteNonprofit() {
                     <div className="fl-st2-choices">
                       {d.volunteer.roles.map((r) => (
                         <label key={r} className="fl-st2-choice">
-                          <input type="checkbox" name="roles" value={r} aria-invalid={volErrors.roles ? true : undefined} />
+                          <Checkbox name="roles" value={r} aria-invalid={volErrors.roles ? true : undefined} />
                           {r}
                         </label>
                       ))}
@@ -412,28 +425,21 @@ export default function SiteNonprofit() {
                   </fieldset>
                   <div className="fl-field">
                     <label htmlFor="np-when">I'm usually free</label>
-                    <span className="fl-st2-select">
-                      <select id="np-when" name="when" className="fl-input" defaultValue="" {...vErr("when")}>
-                        <option value="">Choose one</option>
-                        {d.volunteer.availability.map((a) => (
-                          <option key={a}>{a}</option>
-                        ))}
-                      </select>
-                    </span>
+                    <Select id="np-when" name="when" placeholder="Choose one" options={d.volunteer.availability} {...vErr("when")} />
                     {volErrors.when ? <p id="np-when-err" className="fl-st2-err">{volErrors.when}</p> : null}
                   </div>
                   <div className="fl-field">
                     <label htmlFor="np-note">
                       Anything we should know? <span className="fl-meta">(optional)</span>
                     </label>
-                    <textarea id="np-note" name="note" className="fl-input" style={{ minHeight: "5rem" }} />
+                    <TextField multiline id="np-note" name="note" style={{ minHeight: "5rem" }} />
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     Sign me up
-                  </button>
+                  </Button>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
         </section>
       </main>

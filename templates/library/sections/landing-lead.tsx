@@ -1,4 +1,9 @@
 /** @flowcode-library landing-lead · Lead generation landing (Landing pages)
+ * Catalog ID: t.landing-lead (template)
+ * Function: A lead-generation landing page (t.landing-lead) that trades a name and email for a free guide. Assembled from: header and lead hero with form (inline) > what's inside (inline) > author and quotes (inline) > closing call to action (inline) > footer (inline).
+ * Use it as: Copy landing-lead.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; ask only for the form fields you will use.
+ * Built from: c.button.primary, c.text-field.outlined, c.select.outlined, c.avatar, c.card.surface
+ * Look: A mesh-backed hero with the promise beside a short form card, then chapters, an author card with quotes, and a closing call to action.
  * Use cases: lead magnet; free guide download; ebook landing; consultation booking; lead capture; checklist download; newsletter opt-in; webinar signup
  * Jobs to be done: get the free guide; learn what the guide covers; decide if the author is credible; book a free consultation
  * Keywords: landing, lead generation, form, guide, consultation, studio, page template
@@ -10,9 +15,18 @@
  * guide, checklist or consultation call. The form checks its fields and keeps the request in local storage; nothing is
  * sent. Make it the app's own: replace SAMPLE with the real offer and its chapters, and ask only for the fields you
  * will actually use.
+ *
+ * Assembled from: header and lead hero with form (inline) > what's inside (inline) > author and quotes (inline) >
+ * closing call to action (inline) > footer (inline). Buttons are c.button, fields c.text-field and c.select, people
+ * c.avatar, cards c.card.
  */
 import { useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Avatar } from "./avatars-variants";
+import { Card } from "./cards-variants";
 
 // flowcode:sample
 const SAMPLE = {
@@ -95,8 +109,7 @@ export default function LandingLead() {
   const field = (key: keyof Errors) => ({
     id: `ld-lead-${key}`,
     name: key,
-    className: "fl-input",
-    "aria-invalid": errors[key] ? true : undefined,
+    invalid: errors[key] ? true : undefined,
     "aria-describedby": errors[key] ? `ld-lead-${key}-err` : undefined,
   });
 
@@ -134,7 +147,7 @@ export default function LandingLead() {
               </ul>
             </div>
 
-            <div className="fl-card fl-ld-formcard" id="lead-form">
+            <Card variant="surface" className="fl-ld-formcard" id="lead-form">
               <h2 id="ld-lead-form-title">{d.form.title}</h2>
               {sent ? (
                 <p className="fl-done" role="status">
@@ -147,7 +160,7 @@ export default function LandingLead() {
                   </p>
                   <div className="fl-field">
                     <label htmlFor="ld-lead-name">First name</label>
-                    <input {...field("name")} autoComplete="given-name" />
+                    <TextField {...field("name")} autoComplete="given-name" />
                     {errors.name ? (
                       <p className="fl-ld-error" id="ld-lead-name-err">
                         {errors.name}
@@ -156,7 +169,7 @@ export default function LandingLead() {
                   </div>
                   <div className="fl-field">
                     <label htmlFor="ld-lead-email">Work email</label>
-                    <input {...field("email")} type="email" autoComplete="email" inputMode="email" />
+                    <TextField {...field("email")} type="email" autoComplete="email" inputMode="email" />
                     {errors.email ? (
                       <p className="fl-ld-error" id="ld-lead-email-err">
                         {errors.email}
@@ -165,28 +178,20 @@ export default function LandingLead() {
                   </div>
                   <div className="fl-field">
                     <label htmlFor="ld-lead-type">What kind of studio?</label>
-                    <select {...field("type")} className="fl-input fl-ld-select" defaultValue="">
-                      <option value="" disabled>
-                        Choose one
-                      </option>
-                      {d.form.studioTypes.map((t) => (
-                        <option key={t}>{t}</option>
-                      ))}
-                    </select>
+                    <Select {...field("type")} options={d.form.studioTypes} placeholder="Choose one" />
                     {errors.type ? (
                       <p className="fl-ld-error" id="ld-lead-type-err">
                         {errors.type}
                       </p>
                     ) : null}
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--primary fl-ld-btn-block">
+                  <Button variant="primary" type="submit" block icon="arrow" iconAt="end">
                     {d.form.button}
-                    <Icon name="arrow" />
-                  </button>
+                  </Button>
                   <p className="fl-ld-fine">By asking for the guide you agree to get one email from us. We never share your address.</p>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
           <div className="fl-wrap" style={{ marginTop: "var(--space-7)" }}>
             <ul className="fl-ld-trust">
@@ -231,10 +236,8 @@ export default function LandingLead() {
 
         <section className="fl-section fl-section--tint" aria-labelledby="ld-lead-proof">
           <div className="fl-wrap">
-            <div className="fl-card" style={{ gridTemplateColumns: "auto minmax(0, 1fr)", gap: "var(--space-5)", alignItems: "center", marginBottom: "var(--space-7)" }}>
-              <span className="fl-person__avatar" style={{ width: "4rem", height: "4rem", fontSize: "var(--text-lg)" }} aria-hidden="true">
-                {d.author.initials}
-              </span>
+            <Card variant="surface" style={{ gridTemplateColumns: "auto minmax(0, 1fr)", gap: "var(--space-5)", alignItems: "center", marginBottom: "var(--space-7)" }}>
+              <Avatar name={d.author.name} size={64} decorative />
               <div style={{ display: "grid", gap: "var(--space-2)" }}>
                 <h2 id="ld-lead-proof" className="fl-title fl-title--md">
                   Written by {d.author.name}
@@ -242,26 +245,23 @@ export default function LandingLead() {
                 <span className="fl-meta">{d.author.role}</span>
                 <p className="fl-text">{d.author.bio}</p>
               </div>
-            </div>
+            </Card>
             <div className="fl-grid fl-grid--3">
               {d.quotes.map((q) => (
-                <figure key={q.name} className="fl-card" style={{ margin: 0 }}>
-                  <blockquote className="fl-quote" style={{ margin: 0 }}>
-                    “{q.text}”
-                  </blockquote>
-                  <figcaption className="fl-person">
-                    <span className="fl-person__avatar" aria-hidden="true">
-                      {q.name
-                        .split(" ")
-                        .map((w) => w[0])
-                        .join("")}
-                    </span>
-                    <span>
-                      <strong>{q.name}</strong>
-                      <span>{q.role}</span>
-                    </span>
-                  </figcaption>
-                </figure>
+                <Card key={q.name} variant="surface">
+                  <figure style={{ display: "contents" }}>
+                    <blockquote className="fl-quote" style={{ margin: 0 }}>
+                      “{q.text}”
+                    </blockquote>
+                    <figcaption className="fl-person">
+                      <Avatar name={q.name} size={48} decorative />
+                      <span>
+                        <strong>{q.name}</strong>
+                        <span>{q.role}</span>
+                      </span>
+                    </figcaption>
+                  </figure>
+                </Card>
               ))}
             </div>
           </div>
@@ -273,9 +273,9 @@ export default function LandingLead() {
               {d.closing.title}
             </h2>
             <div className="fl-actions">
-              <a className="fl-btn fl-btn--primary" href="#lead-form">
+              <Button variant="primary" href="#lead-form">
                 {d.closing.button}
-              </a>
+              </Button>
             </div>
           </div>
         </section>

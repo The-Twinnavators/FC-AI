@@ -21,8 +21,8 @@ const tokens = (s: string) => new Set((s.toLowerCase().match(/[a-z]{3,}/g) ?? []
 const WEBSITE = /\b(landing|website|web site|homepage|home page|marketing|visitors?)\b/i;
 const groupOf = new Map(SECTION_CATEGORIES.map((c) => [c.id, c.group]));
 /** What an app screen may start from: app components and app screen templates (a style kit and backgrounds aren't picks). */
-const forApp = (s: LibrarySection) => (groupOf.get(s.category) === "app" && s.category !== "neobrutal") || s.category === "apptemplates" || s.category === "commerce";
-const forSite = (s: LibrarySection) => s.category !== "backgrounds" && s.category !== "neobrutal" && s.category !== "apptemplates";
+const forApp = (s: LibrarySection) => (groupOf.get(s.category) === "app") || s.category === "apptemplates" || s.category === "commerce";
+const forSite = (s: LibrarySection) => s.category !== "backgrounds" && s.category !== "apptemplates";
 
 /** The screen's words, plain, with a few spellings the library's tags use ("log in" and "authenticate" are sign-in). */
 const screenWords = (text: string) =>
@@ -90,7 +90,7 @@ export function screenPicks(screens: PlannedScreen[], already: string[] = [], mi
     // A specimen is every state of one component in a table, for people to look at and copy from. Seeded into a
     // screen it becomes the screen, and the design step is then required to keep it there: a "Brands" screen came out
     // as a chip state matrix labelled Wedding and Portrait. They stay in the library to browse; they never seed.
-    const ranked = LIBRARY_SECTIONS.filter((p) => !p.specimen).filter((p) => (site ? forSite : forApp)(p) || (groupOf.get(p.category) !== "template" && p.category !== "backgrounds" && p.category !== "neobrutal" && intent(screen, p) >= 6))
+    const ranked = LIBRARY_SECTIONS.filter((p) => !p.specimen).filter((p) => (site ? forSite : forApp)(p) || (groupOf.get(p.category) !== "template" && p.category !== "backgrounds" && intent(screen, p) >= 6))
       .map((piece) => ({ piece, score: fit(screen, piece) }))
       .filter((r) => r.score >= min)
       .sort((a, b) => b.score - a.score);

@@ -1,4 +1,9 @@
 /** @flowcode-library app-storefront · Shop home screen (App screens)
+ * Catalog ID: t.app-storefront (template)
+ * Function: A shop home screen (t.app-storefront) assembled from tabs, a text field, buttons, badges and an empty state around an inline header, promo, product grid and footer.
+ * Use it as: Copy app-storefront.tsx (FlowCode brings the components it uses); replace SAMPLE with the shop's own categories, products, promo and footer, and keep the bag in the app's own store.
+ * Built from: c.tabs.underline, c.text-field.outlined, c.button.primary, c.button.secondary, c.button.tertiary, c.button.on-accent, c.button.ghost-on-accent, c.badge.status, c.badge.count, c.empty-state.no-results
+ * Look: A shop header with search and a bag panel, a bold accent promo banner, category tabs and a four-column product grid with add-to-bag buttons, then a footer.
  * Use cases: shop home; online store; storefront; product catalog; marketplace home; booking shop; ecommerce app
  * Jobs to be done: browse products by category; search for a product; add items to my bag; find current deals
  * Keywords: app, shop, ecommerce, storefront, product grid, cart, search, tabs
@@ -9,9 +14,16 @@
  * a footer. Search with no matches shows an empty state with a way back. Use it as the first screen of a small online
  * shop or a booking app that sells extras. Make it the app's own: replace SAMPLE with the shop's real categories,
  * products and promo, and keep the bag in the app's own store instead of this screen's memory.
+ * Assembled from: header (inline: brand, links, c.text-field search, bag panel with c.button and c.badge) > promo
+ * banner (inline, c.button) > c.tabs (one panel per category) > product grid (inline, c.badge, c.button) > c.empty-state
+ * for no matches > footer (inline).
  */
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { Icon } from "./icons";
+import { useEffect, useState } from "react";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { TextField } from "./text-fields-states";
+import { Tabs } from "./tabs-variants";
+import { EmptyState } from "./empty-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -94,24 +106,21 @@ function ProductArt({ p }: { p: Product }) {
 
 export default function AppStorefront() {
   const d = SAMPLE;
-  const [cat, setCat] = useState("All");
+  const [resetKey, setResetKey] = useState(0);
   const [query, setQuery] = useState("");
   const [bag, setBag] = useState<Record<string, number>>({});
   const [bagOpen, setBagOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [promo, setPromo] = useState(true);
   const [say, setSay] = useState("");
-  const bagBtn = useRef<HTMLButtonElement>(null);
-  const bagPanel = useRef<HTMLDivElement>(null);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     if (!bagOpen) return;
-    bagPanel.current?.focus();
+    document.getElementById("fl-as-sf-bag")?.focus();
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key === "Escape") {
         setBagOpen(false);
-        bagBtn.current?.focus();
+        document.getElementById("fl-as-sf-bagbtn")?.focus();
       }
     };
     document.addEventListener("keydown", onKey);
@@ -119,7 +128,6 @@ export default function AppStorefront() {
   }, [bagOpen]);
 
   const q = query.trim().toLowerCase();
-  const shown = d.products.filter((p) => (cat === "All" || p.category === cat) && (!q || `${p.name} ${p.maker} ${p.category}`.toLowerCase().includes(q)));
   const count = Object.values(bag).reduce((n, v) => n + v, 0);
   const lines = d.products.filter((p) => bag[p.id]);
   const subtotal = lines.reduce((n, p) => n + p.price * bag[p.id], 0);
@@ -137,17 +145,64 @@ export default function AppStorefront() {
     });
     setSay(n <= 0 ? `Removed ${p.name}.` : `${p.name}: ${n} in your bag.`);
   }
-  function onTabKey(e: KeyboardEvent, i: number) {
-    const n = d.categories.length;
-    let j = -1;
-    if (e.key === "ArrowRight") j = (i + 1) % n;
-    else if (e.key === "ArrowLeft") j = (i - 1 + n) % n;
-    else if (e.key === "Home") j = 0;
-    else if (e.key === "End") j = n - 1;
-    if (j < 0) return;
-    e.preventDefault();
-    setCat(d.categories[j]);
-    tabRefs.current[j]?.focus();
+
+  /** One category's panel: the count line and either the products or the no-match state. */
+  function panel(cat: string) {
+    const shown = d.products.filter((p) => (cat === "All" || p.category === cat) && (!q || `${p.name} ${p.maker} ${p.category}`.toLowerCase().includes(q)));
+    return (
+      <div>
+        <p className="fl-meta" aria-live="polite" style={{ marginBlock: "0 var(--space-4)" }}>
+          {shown.length} {shown.length === 1 ? "piece" : "pieces"}
+          {q ? ` for \u201c${query.trim()}\u201d` : ""}
+        </p>
+        {shown.length === 0 ? (
+          <div className="fl-as-panel">
+            <EmptyState
+              variant="no-results"
+              title={d.noMatchTitle}
+              headingLevel={2}
+              action={
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setQuery("");
+                    setResetKey((k) => k + 1);
+                  }}
+                >
+                  {d.clear}
+                </Button>
+              }
+            >
+              {d.noMatchText}
+            </EmptyState>
+          </div>
+        ) : (
+          <ul className="fl-as-products">
+            {shown.map((p) => {
+              const inBag = bag[p.id] ?? 0;
+              return (
+                <li key={p.id} className="fl-as-product">
+                  <ProductArt p={p} />
+                  {p.tag && (
+                    <Badge className="fl-as-product__tag">{p.tag}</Badge>
+                  )}
+                  <div className="fl-as-product__body">
+                    <h3>{p.name}</h3>
+                    <span className="fl-meta">{p.maker}</span>
+                  </div>
+                  <div className="fl-as-product__foot">
+                    <strong>{money(p.price)}</strong>
+                    <Button size={32} variant={inBag ? "secondary" : "primary"} icon={inBag ? "check" : undefined} onClick={() => add(p)} aria-label={`${d.add}: ${p.name}`}>
+                      {inBag ? `${d.added} \u00b7 ${inBag}` : d.add}
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -175,38 +230,35 @@ export default function AppStorefront() {
             {d.searchLabel}
           </label>
           <Glyph d={SEARCH} />
-          <input id="fl-as-sf-q" className="fl-input" type="search" placeholder={d.searchPlaceholder} value={query} onChange={(e) => setQuery(e.target.value)} />
+          <TextField id="fl-as-sf-q" type="search" placeholder={d.searchPlaceholder} value={query} onChange={(e) => setQuery(e.target.value)} />
         </form>
         <div className="fl-as-top__end">
           <div className="fl-as-pop-wrap">
-            <button ref={bagBtn} type="button" className="fl-as-iconbtn fl-as-bagbtn" aria-expanded={bagOpen} aria-controls="fl-as-sf-bag" onClick={() => setBagOpen((o) => !o)}>
+            <Button id="fl-as-sf-bagbtn" variant="tertiary" size={40} className="fl-as-bagbtn" style={{ position: "relative" }} aria-expanded={bagOpen} aria-controls="fl-as-sf-bag" onClick={() => setBagOpen((o) => !o)}>
               <Glyph d={BAG} />
               <span className="fl-sr">
                 {d.bagLabel}, {count} {count === 1 ? "item" : "items"}
               </span>
-              {count > 0 && (
-                <span className="fl-as-count" aria-hidden="true">
-                  {count}
-                </span>
-              )}
-            </button>
+              <Badge variant="count" count={count} className="fl-as-count" />
+            </Button>
             {bagOpen && (
-              <div id="fl-as-sf-bag" ref={bagPanel} className="fl-as-pop fl-as-bag" role="dialog" aria-modal="false" aria-labelledby="fl-as-sf-bagtitle" tabIndex={-1}>
+              <div id="fl-as-sf-bag" className="fl-as-pop fl-as-bag" role="dialog" aria-modal="false" aria-labelledby="fl-as-sf-bagtitle" tabIndex={-1}>
                 <div className="fl-as-panelhead">
                   <h2 id="fl-as-sf-bagtitle" className="fl-as-h2">
                     {d.bagTitle}
                   </h2>
-                  <button
-                    type="button"
-                    className="fl-as-iconbtn"
+                  <Button
+                    variant="tertiary"
+                    size={32}
+                    icon="close"
+                    iconOnly
                     onClick={() => {
                       setBagOpen(false);
-                      bagBtn.current?.focus();
+                      document.getElementById("fl-as-sf-bagbtn")?.focus();
                     }}
                   >
-                    <Glyph d={CLOSE} />
-                    <span className="fl-sr">Close bag</span>
-                  </button>
+                    Close bag
+                  </Button>
                 </div>
                 {lines.length === 0 ? (
                   <p className="fl-text">{d.bagEmpty}</p>
@@ -220,13 +272,13 @@ export default function AppStorefront() {
                             <span className="fl-meta">{money(p.price * bag[p.id])}</span>
                           </div>
                           <div className="fl-as-qty" role="group" aria-label={`Quantity of ${p.name}`}>
-                            <button type="button" onClick={() => setQty(p, bag[p.id] - 1)} aria-label={bag[p.id] === 1 ? `${d.remove} ${p.name}` : `One fewer ${p.name}`}>
-                              −
-                            </button>
+                            <Button variant="tertiary" size={24} onClick={() => setQty(p, bag[p.id] - 1)} aria-label={bag[p.id] === 1 ? `${d.remove} ${p.name}` : `One fewer ${p.name}`}>
+                              {"\u2212"}
+                            </Button>
                             <span aria-live="polite">{bag[p.id]}</span>
-                            <button type="button" onClick={() => setQty(p, bag[p.id] + 1)} aria-label={`One more ${p.name}`}>
+                            <Button variant="tertiary" size={24} onClick={() => setQty(p, bag[p.id] + 1)} aria-label={`One more ${p.name}`}>
                               +
-                            </button>
+                            </Button>
                           </div>
                         </li>
                       ))}
@@ -235,19 +287,18 @@ export default function AppStorefront() {
                       <span>{d.bagTotal}</span>
                       <strong>{money(subtotal)}</strong>
                     </div>
-                    <a className="fl-btn fl-btn--primary" href="#checkout">
-                      {d.checkout}
-                    </a>
+                    <Button href="#checkout">{d.checkout}</Button>
                     <p className="fl-note">{d.checkoutNote}</p>
                   </>
                 )}
               </div>
             )}
           </div>
-          <button type="button" className="fl-as-iconbtn fl-as-menubtn" aria-expanded={menuOpen} aria-controls="fl-as-sf-nav" onClick={() => setMenuOpen((o) => !o)}>
-            <Icon name="menu" />
-            <span className="fl-sr">{d.menuLabel}</span>
-          </button>
+          <span className="fl-as-menubtn">
+            <Button variant="tertiary" size={40} icon="menu" iconOnly aria-expanded={menuOpen} aria-controls="fl-as-sf-nav" onClick={() => setMenuOpen((o) => !o)}>
+              {d.menuLabel}
+            </Button>
+          </span>
         </div>
       </header>
 
@@ -258,15 +309,13 @@ export default function AppStorefront() {
               <p className="fl-as-promo__eyebrow">{d.promo.eyebrow}</p>
               <h2 className="fl-as-promo__title">{d.promo.title}</h2>
               <p>{d.promo.text}</p>
-              <a className="fl-btn fl-btn--on-accent" href="#new">
+              <Button variant="on-accent" href="#new" icon="arrow" iconAt="end">
                 {d.promo.action}
-                <Icon name="arrow" />
-              </a>
+              </Button>
             </div>
-            <button type="button" className="fl-as-iconbtn fl-as-promo__close" onClick={() => setPromo(false)}>
-              <Glyph d={CLOSE} />
-              <span className="fl-sr">{d.promo.close}</span>
-            </button>
+            <Button variant="ghost-on-accent" size={32} icon="close" iconOnly className="fl-as-promo__close" onClick={() => setPromo(false)}>
+              {d.promo.close}
+            </Button>
           </aside>
         )}
 
@@ -277,78 +326,11 @@ export default function AppStorefront() {
           </div>
         </div>
 
-        <div className="fl-as-tabs" role="tablist" aria-label="Categories">
-          {d.categories.map((c, i) => (
-            <button
-              key={c}
-              ref={(el) => {
-                tabRefs.current[i] = el;
-              }}
-              type="button"
-              role="tab"
-              id={`fl-as-sf-tab-${i}`}
-              aria-selected={cat === c}
-              aria-controls="fl-as-sf-grid"
-              tabIndex={cat === c ? 0 : -1}
-              onClick={() => setCat(c)}
-              onKeyDown={(e) => onTabKey(e, i)}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-
         <p className="fl-sr" aria-live="polite">
           {say}
         </p>
 
-        <div id="fl-as-sf-grid" role="tabpanel" aria-labelledby={`fl-as-sf-tab-${d.categories.indexOf(cat)}`}>
-          <p className="fl-meta" aria-live="polite" style={{ marginBlock: "0 var(--space-4)" }}>
-            {shown.length} {shown.length === 1 ? "piece" : "pieces"}
-            {q ? ` for “${query.trim()}”` : ""}
-          </p>
-          {shown.length === 0 ? (
-            <div className="fl-as-panel fl-as-empty">
-              <span className="fl-icon">
-                <Glyph d={SEARCH} />
-              </span>
-              <h2 className="fl-as-h2">{d.noMatchTitle}</h2>
-              <p className="fl-text">{d.noMatchText}</p>
-              <button
-                type="button"
-                className="fl-btn fl-btn--secondary"
-                onClick={() => {
-                  setQuery("");
-                  setCat("All");
-                }}
-              >
-                {d.clear}
-              </button>
-            </div>
-          ) : (
-            <ul className="fl-as-products">
-              {shown.map((p) => {
-                const inBag = bag[p.id] ?? 0;
-                return (
-                  <li key={p.id} className="fl-as-product">
-                    <ProductArt p={p} />
-                    {p.tag && <span className="fl-badge fl-as-product__tag">{p.tag}</span>}
-                    <div className="fl-as-product__body">
-                      <h3>{p.name}</h3>
-                      <span className="fl-meta">{p.maker}</span>
-                    </div>
-                    <div className="fl-as-product__foot">
-                      <strong>{money(p.price)}</strong>
-                      <button type="button" className={`fl-as-btn ${inBag ? "fl-as-btn--done" : "fl-as-btn--primary"}`} onClick={() => add(p)} aria-label={`${d.add}: ${p.name}`}>
-                        {inBag ? `${d.added} · ${inBag}` : d.add}
-                      </button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+        <Tabs key={resetKey} label="Categories" tabs={d.categories.map((c) => ({ id: c, label: c, panel: panel(c) }))} />
       </main>
 
       <footer className="fl-as-foot">

@@ -1,4 +1,9 @@
 /** @flowcode-library site-real-estate · Real-estate agency website (Industry sites)
+ * Catalog ID: t.site-real-estate (template)
+ * Function: The real-estate or letting agency website (t.site-real-estate), assembled inline from its own sections with catalog cards, selects, fields, badges, avatars and buttons; no page block fits its layout.
+ * Use it as: Copy site-real-estate.tsx (FlowCode brings the components it uses); replace SAMPLE with the business's own content.
+ * Built from: c.card.surface, c.badge.status, c.avatar.person, c.empty-state, c.text-field.outlined, c.select.outlined, c.radio, c.button.primary, c.button.secondary
+ * Look: A real-estate agency page: a hero with a buy/rent search, proof points, listing cards with sort and save, agent cards and a valuation form.
  * Use cases: real estate listings; property search; rental listings; estate agent; letting agency; home valuation; property portal; agent profiles
  * Jobs to be done: find a home in my budget; search homes to buy or rent; save homes i like; get my home valued; find a local agent
  * Keywords: page, template, real estate, property, listings, search, filters, agents, valuation, form, html5up
@@ -10,9 +15,22 @@
  * (html5up.net, CC BY 3.0); keep the credit. The search filters the sample listings in memory; saved homes and
  * valuation requests stay in local storage; nothing is sent.
  * Make it the app's own: replace SAMPLE with real listings, areas and agents; keep only the filters buyers really use.
+ * Assembled from: header (inline) > hero with property search (inline) with c.select and c.button > proof points (inline) >
+ * listings (inline) with c.card.surface, c.badge, c.button and c.empty-state > agents (inline) with c.card.surface and
+ * c.avatar > valuation form (inline) with c.text-field, c.select and c.radio > footer (inline). No page block matches
+ * this agency layout, so the sections stay in the template; every button, badge, card, avatar, field, select, radio and
+ * empty state is the catalog component.
  */
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Avatar } from "./avatars-variants";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Radio } from "./checkboxes-radios";
+import { EmptyState } from "./empty-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -162,7 +180,7 @@ export default function SiteRealEstate() {
         {errors[k]}
       </p>
     ) : null;
-  const errProps = (k: keyof Errors) => ({ "aria-invalid": errors[k] ? true : undefined, "aria-describedby": errors[k] ? `estate-${k}-err` : undefined });
+  const errProps = (k: keyof Errors) => ({ invalid: errors[k] ? true : undefined, "aria-describedby": errors[k] ? `estate-${k}-err` : undefined });
 
   return (
     <div className="fl-st fl-st-estate" id="top">
@@ -191,12 +209,12 @@ export default function SiteRealEstate() {
             </ul>
           </nav>
           <div className="fl-st-estate-end">
-            <a className="fl-btn fl-btn--primary fl-st-hide-sm" href={d.cta.href}>
+            <Button variant="primary" className="fl-st-hide-sm" href={d.cta.href}>
               {d.cta.label}
-            </a>
-            <button type="button" className="fl-btn fl-btn--secondary fl-st-menubtn" aria-expanded={menuOpen} aria-controls="estate-nav" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
+            </Button>
+            <Button variant="secondary" className="fl-st-menubtn" aria-expanded={menuOpen} aria-controls="estate-nav" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -222,33 +240,19 @@ export default function SiteRealEstate() {
               <div className="fl-st-estate-fields">
                 <div className="fl-field">
                   <label htmlFor="estate-area">Area</label>
-                  <select id="estate-area" className="fl-input fl-st-select" value={area} onChange={(e) => setArea(e.target.value)}>
-                    {d.areas.map((a) => (
-                      <option key={a}>{a}</option>
-                    ))}
-                  </select>
+                  <Select id="estate-area" value={area} onChange={(e) => setArea(e.target.value)} options={d.areas} />
                 </div>
                 <div className="fl-field">
                   <label htmlFor="estate-beds">Bedrooms</label>
-                  <select id="estate-beds" className="fl-input fl-st-select" value={beds} onChange={(e) => setBeds(e.target.value)}>
-                    {d.bedOptions.map((b) => (
-                      <option key={b}>{b}</option>
-                    ))}
-                  </select>
+                  <Select id="estate-beds" value={beds} onChange={(e) => setBeds(e.target.value)} options={d.bedOptions} />
                 </div>
                 <div className="fl-field">
                   <label htmlFor="estate-max">Max price</label>
-                  <select id="estate-max" className="fl-input fl-st-select" value={max} onChange={(e) => setMax(Number(e.target.value))}>
-                    {d.maxPrice[mode].map((p) => (
-                      <option key={p.value} value={p.value}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
+                  <Select id="estate-max" value={String(max)} onChange={(e) => setMax(Number(e.target.value))} options={d.maxPrice[mode].map((p) => ({ value: String(p.value), label: p.label }))} />
                 </div>
-                <button type="submit" className="fl-btn fl-btn--primary">
+                <Button variant="primary" type="submit">
                   Show {results.length} {results.length === 1 ? "home" : "homes"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -285,11 +289,16 @@ export default function SiteRealEstate() {
               </div>
               <div className="fl-field fl-st-estate-sort">
                 <label htmlFor="estate-sort">Sort by</label>
-                <select id="estate-sort" className="fl-input fl-st-select" value={sort} onChange={(e) => setSort(e.target.value)}>
-                  <option value="newest">Newest first</option>
-                  <option value="low">Price, low to high</option>
-                  <option value="high">Price, high to low</option>
-                </select>
+                <Select
+                  id="estate-sort"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                  options={[
+                    { value: "newest", label: "Newest first" },
+                    { value: "low", label: "Price, low to high" },
+                    { value: "high", label: "Price, high to low" },
+                  ]}
+                />
               </div>
             </div>
             {results.length ? (
@@ -297,14 +306,19 @@ export default function SiteRealEstate() {
                 {results.map((l) => {
                   const isSaved = saved.includes(l.id);
                   return (
-                    <li key={l.id} className="fl-card fl-st-estate-card">
+                    <li key={l.id} style={{ display: "grid" }}>
+                      <Card variant="surface" className="fl-st-estate-card">
                       <div className={`fl-st-estate-card__img fl-st-tone-${(d.listings.indexOf(l) % 6) + 1}`} aria-hidden="true">
                         <svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid meet">
                           <path d="M30 70V40l30-22 30 22v30z" fill="currentColor" opacity="0.22" />
                           <path d="M52 70V52h16v18" fill="currentColor" opacity="0.35" />
                         </svg>
                       </div>
-                      {l.status ? <span className={`fl-badge fl-st-estate-status${l.status === "New" ? "" : " is-muted"}`}>{l.status}</span> : null}
+                      {l.status ? (
+                        <Badge tone={l.status === "New" ? "info" : "neutral"} look={l.status === "New" ? "solid" : "outline"} className={`fl-st-estate-status${l.status === "New" ? "" : " is-muted"}`}>
+                          {l.status}
+                        </Badge>
+                      ) : null}
                       <p className="fl-st-estate-price">
                         {money(l.price)}
                         {l.mode === "rent" ? <span> /mo</span> : null}
@@ -322,24 +336,28 @@ export default function SiteRealEstate() {
                         <a className="fl-link" href="#estate-agents">
                           Arrange a viewing
                         </a>
-                        <button type="button" className="fl-st-save" aria-pressed={isSaved} onClick={() => toggleSave(l.id)}>
-                          <Icon name="heart" />
+                        <Button variant="secondary" size={32} icon="heart" aria-pressed={isSaved} onClick={() => toggleSave(l.id)}>
                           <span>{isSaved ? "Saved" : "Save"}</span>
                           <span className="fl-sr"> {l.title}</span>
-                        </button>
+                        </Button>
                       </div>
+                      </Card>
                     </li>
                   );
                 })}
               </ul>
             ) : (
-              <div className="fl-st-empty">
-                <strong>No homes match those filters right now.</strong>
-                <span>New homes come on most weeks. Widen the search, or ask an agent to tell you first.</span>
-                <button type="button" className="fl-btn fl-btn--secondary" onClick={reset}>
-                  Reset filters
-                </button>
-              </div>
+              <EmptyState
+                variant="no-results"
+                title="No homes match those filters right now."
+                action={
+                  <Button variant="secondary" onClick={reset}>
+                    Reset filters
+                  </Button>
+                }
+              >
+                New homes come on most weeks. Widen the search, or ask an agent to tell you first.
+              </EmptyState>
             )}
           </div>
         </section>
@@ -354,16 +372,16 @@ export default function SiteRealEstate() {
             </div>
             <ul className="fl-grid fl-grid--4 fl-st-estate-agents">
               {d.agents.map((a) => (
-                <li key={a.name} className="fl-card">
-                  <span className="fl-person__avatar fl-st-estate-avatar" aria-hidden="true">
-                    {a.initials}
-                  </span>
+                <li key={a.name} style={{ display: "grid" }}>
+                  <Card variant="surface">
+                  <Avatar name={a.name} size={64} decorative />
                   <h3>{a.name}</h3>
                   <p className="fl-meta">{a.role}</p>
                   <p className="fl-text">{a.sold}</p>
                   <a className="fl-link" href={`tel:${a.phone.replace(/\s/g, "")}`}>
                     <Icon name="phone" /> {a.phone}
                   </a>
+                  </Card>
                 </li>
               ))}
             </ul>
@@ -389,80 +407,66 @@ export default function SiteRealEstate() {
                 ))}
               </ul>
             </div>
-            <div className="fl-card">
+            <Card variant="surface">
               {done ? (
                 <div className="fl-form" role="status">
                   <p className="fl-done">Thanks {done}. Your local agent will be in touch today to arrange a time.</p>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setDone(null)}>
+                  <Button variant="secondary" onClick={() => setDone(null)}>
                     Value another property
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <form className="fl-form" onSubmit={submit} noValidate>
                   <div className="fl-st-row2">
                     <div className="fl-field">
                       <label htmlFor="estate-address">Address</label>
-                      <input id="estate-address" name="address" className="fl-input" autoComplete="address-line1" {...errProps("address")} />
+                      <TextField id="estate-address" name="address" autoComplete="address-line1" {...errProps("address")} />
                       {errText("address")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="estate-postcode">ZIP code</label>
-                      <input id="estate-postcode" name="postcode" className="fl-input" autoComplete="postal-code" {...errProps("postcode")} />
+                      <TextField id="estate-postcode" name="postcode" autoComplete="postal-code" {...errProps("postcode")} />
                       {errText("postcode")}
                     </div>
                   </div>
                   <div className="fl-st-row2">
                     <div className="fl-field">
                       <label htmlFor="estate-type">Property type</label>
-                      <select id="estate-type" name="type" className="fl-input fl-st-select" defaultValue="" {...errProps("type")}>
-                        <option value="" disabled>
-                          Choose
-                        </option>
-                        {d.valuation.types.map((t) => (
-                          <option key={t}>{t}</option>
-                        ))}
-                      </select>
+                      <Select id="estate-type" name="type" placeholder="Choose" options={d.valuation.types} {...errProps("type")} />
                       {errText("type")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="estate-bedrooms">Bedrooms</label>
-                      <select id="estate-bedrooms" name="bedrooms" className="fl-input fl-st-select" defaultValue="3">
-                        {["1", "2", "3", "4", "5+"].map((b) => (
-                          <option key={b}>{b}</option>
-                        ))}
-                      </select>
+                      <Select id="estate-bedrooms" name="bedrooms" defaultValue="3" options={["1", "2", "3", "4", "5+"]} />
                     </div>
                   </div>
                   <fieldset className="fl-st-fieldset">
                     <legend>I'm thinking of</legend>
                     <div className="fl-st-chips">
                       {["Selling", "Letting", "Not sure yet"].map((o, i) => (
-                        <label key={o} className="fl-st-radio">
-                          <input type="radio" name="plan" value={o} defaultChecked={i === 0} />
-                          <span>{o}</span>
-                        </label>
+                        <Radio key={o} label={o} name="plan" value={o} defaultChecked={i === 0} />
                       ))}
                     </div>
                   </fieldset>
                   <div className="fl-st-row2">
                     <div className="fl-field">
                       <label htmlFor="estate-name">Your name</label>
-                      <input id="estate-name" name="name" className="fl-input" autoComplete="name" {...errProps("name")} />
+                      <TextField id="estate-name" name="name" autoComplete="name" {...errProps("name")} />
                       {errText("name")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="estate-contact">Email or phone</label>
-                      <input id="estate-contact" name="contact" className="fl-input" {...errProps("contact")} />
+                      <TextField id="estate-contact" name="contact" {...errProps("contact")} />
                       {errText("contact")}
                     </div>
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     Request my valuation
-                  </button>
+                  </Button>
                   <p className="fl-note">We only use your details to arrange the visit.</p>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
         </section>
       </main>

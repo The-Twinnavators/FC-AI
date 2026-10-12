@@ -1,4 +1,9 @@
 /** @flowcode-library site-fitness · Fitness studio site (Industry sites)
+ * Catalog ID: t.site-fitness (template)
+ * Function: A one-page fitness or yoga studio site (t.site-fitness) with a class timetable you can filter by day, trainers, membership prices and a self-checking free-trial form; it is assembled inline from catalog components because no block matches its sections.
+ * Use it as: Copy site-fitness.tsx (FlowCode brings the components it uses); replace SAMPLE with the studio's own classes, trainers, prices and contact details; keep the credit to HTML5 UP.
+ * Built from: c.button.primary, c.button.secondary, c.button.on-accent, c.button.ghost-on-accent, c.badge.status, c.card.surface, c.text-field.outlined, c.select.outlined, c.radio, c.checkbox, c.empty-state.no-results
+ * Look: A centered masthead over a dark intro band, a filterable day-by-day timetable, trainer cards, a monthly/annual membership switch and a free-trial form on a card.
  * Use cases: gym website; yoga studio; class timetable; fitness classes; pilates studio; membership pricing; free trial class; trainer profiles
  * Jobs to be done: find a class that fits my schedule; choose a membership; meet the trainers; book a free trial
  * Keywords: page, fitness, yoga, gym, studio, timetable, schedule, filter, pricing, trainers, free trial, form, html5up
@@ -11,8 +16,21 @@
  * Make it the app's own: replace SAMPLE with the studio's real classes, people and prices; keep the timetable and trial
  * form wired to whatever booking screen the PRD describes.
  */
+/**
+ * Assembled from: nav (inline) > intro band (inline) > timetable with day filter (inline) > what's included (inline) >
+ * trainers (inline cards) > membership with a monthly/annual switch (inline) > free-trial form (inline). Every button is
+ * c.button, every level or role label c.badge, every card c.card.surface, every field c.text-field, c.select, c.radio or
+ * c.checkbox, and the empty day is c.empty-state. No catalog block matches these sections' layout, so they stay in the page.
+ */
 import { useState, type FormEvent } from "react";
-import { Icon } from "./icons";
+import { Icon, Tick } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Checkbox, Radio } from "./checkboxes-radios";
+import { EmptyState } from "./empty-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -143,7 +161,8 @@ export default function SiteFitness() {
     setBooked({ name: v("name").split(" ")[0], email: v("email"), day: v("day") });
   };
 
-  const err = (k: keyof Errors) => (errors[k] ? { "aria-invalid": true as const, "aria-describedby": `fit-${k}-err` } : {});
+  const err = (k: keyof Errors) => (errors[k] ? { invalid: true as const, "aria-describedby": `fit-${k}-err` } : {});
+  const errAria = (k: keyof Errors) => (errors[k] ? { "aria-invalid": true as const, "aria-describedby": `fit-${k}-err` } : {});
 
   return (
     <div className="fl-st2-page" id="top">
@@ -163,9 +182,9 @@ export default function SiteFitness() {
             ))}
           </ul>
           <div className="fl-st2-bar__end">
-            <button type="button" className="fl-btn fl-btn--secondary fl-st2-burger" aria-expanded={menuOpen} aria-controls="fit-links" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
+            <Button variant="secondary" className="fl-st2-burger" aria-expanded={menuOpen} aria-controls="fit-links" aria-label="Menu" onClick={() => setMenuOpen((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </nav>
       </header>
@@ -181,12 +200,12 @@ export default function SiteFitness() {
             </h1>
             <p className="fl-lede">{d.intro.lede}</p>
             <div className="fl-actions" style={{ justifyContent: "center" }}>
-              <a className="fl-btn fl-btn--on-accent" href="#fit-trial">
+              <Button variant="on-accent" href="#fit-trial">
                 {d.intro.primary}
-              </a>
-              <a className="fl-btn fl-btn--ghost-on-accent" href="#fit-timetable">
+              </Button>
+              <Button variant="ghost-on-accent" href="#fit-timetable">
                 {d.intro.secondary}
-              </a>
+              </Button>
             </div>
           </div>
         </section>
@@ -212,7 +231,7 @@ export default function SiteFitness() {
                 ))}
               </div>
               <label className="fl-st2-check">
-                <input type="checkbox" checked={beginnerOnly} onChange={(e) => setBeginnerOnly(e.target.checked)} />
+                <Checkbox checked={beginnerOnly} onChange={(e) => setBeginnerOnly(e.target.checked)} />
                 Beginner-friendly only
               </label>
             </div>
@@ -220,13 +239,17 @@ export default function SiteFitness() {
               {shown.length} classes on {day}
             </p>
             {shown.length === 0 ? (
-              <div className="fl-st2-empty">
-                <strong>No beginner-friendly classes on {day}.</strong>
-                <span>Every {day} class is intermediate. Try another day, or show all levels.</span>
-                <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setBeginnerOnly(false)}>
-                  Show all levels
-                </button>
-              </div>
+              <EmptyState
+                variant="no-results"
+                title={`No beginner-friendly classes on ${day}.`}
+                action={
+                  <Button variant="secondary" onClick={() => setBeginnerOnly(false)}>
+                    Show all levels
+                  </Button>
+                }
+              >
+                {`Every ${day} class is intermediate. Try another day, or show all levels.`}
+              </EmptyState>
             ) : (
               <div className="fl-st2-tablewrap">
                 <table className="fl-st2-table">
@@ -254,7 +277,7 @@ export default function SiteFitness() {
                           </span>
                         </th>
                         <td>
-                          <span className={c.level === "Intermediate" ? "fl-st2-pill" : "fl-st2-pill fl-st2-pill--calm"}>{c.level}</span>
+                          <Badge tone={c.level === "Intermediate" ? "info" : "success"}>{c.level}</Badge>
                         </td>
                         <td>{c.trainer}</td>
                         <td>{c.room}</td>
@@ -294,22 +317,24 @@ export default function SiteFitness() {
             </div>
             <ul className="fl-grid fl-grid--3" style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {d.trainers.people.map((p) => (
-                <li key={p.name} className="fl-card fl-st2-trainer">
+                <li key={p.name} style={{ display: "grid" }}>
+                  <Card variant="surface" className="fl-st2-trainer">
                   <div className="fl-media fl-media--round" aria-hidden="true">
                     {p.initials}
                   </div>
                   <h3>{p.name}</h3>
-                  <span className="fl-badge" style={{ justifySelf: "center" }}>
+                  <Badge tone="info" style={{ justifySelf: "center" }}>
                     {p.role}
-                  </span>
+                  </Badge>
                   <p className="fl-text">{p.bio}</p>
                   <ul className="fl-st2-choices" aria-label={`${p.name} teaches`} style={{ margin: 0, padding: 0, listStyle: "none" }}>
                     {p.teaches.map((t) => (
-                      <li key={t} className="fl-st2-pill fl-st2-pill--muted">
-                        {t}
+                      <li key={t}>
+                        <Badge tone="neutral">{t}</Badge>
                       </li>
                     ))}
                   </ul>
+                  </Card>
                 </li>
               ))}
             </ul>
@@ -337,8 +362,9 @@ export default function SiteFitness() {
             </div>
             <ul className="fl-grid fl-grid--3" style={{ margin: 0, padding: 0, listStyle: "none" }}>
               {d.membership.plans.map((p) => (
-                <li key={p.name} className={p.featured ? "fl-card fl-card--featured" : "fl-card"}>
-                  {p.featured ? <span className="fl-badge">{p.note}</span> : <span className="fl-meta">{p.note}</span>}
+                <li key={p.name} style={{ display: "grid" }}>
+                  <Card variant="surface" className={p.featured ? "fl-card--featured" : undefined}>
+                  {p.featured ? <Badge tone="info">{p.note}</Badge> : <span className="fl-meta">{p.note}</span>}
                   <h3>{p.name}</h3>
                   <p className="fl-price" style={{ margin: 0 }}>
                     <strong>${annual ? p.annual : p.monthly}</strong>
@@ -347,16 +373,15 @@ export default function SiteFitness() {
                   <ul className="fl-checks">
                     {p.features.map((f) => (
                       <li key={f}>
-                        <span className="fl-tick">
-                          <Icon name="check" />
-                        </span>
+                        <Tick />
                         {f}
                       </li>
                     ))}
                   </ul>
-                  <a className={p.featured ? "fl-btn fl-btn--primary" : "fl-btn fl-btn--secondary"} href="#fit-trial" style={{ marginTop: "var(--space-3)" }}>
+                  <Button variant={p.featured ? "primary" : "secondary"} href="#fit-trial" style={{ marginTop: "var(--space-3)" }}>
                     Start with a free week
-                  </a>
+                  </Button>
+                  </Card>
                 </li>
               ))}
             </ul>
@@ -384,59 +409,45 @@ export default function SiteFitness() {
                 ))}
               </ul>
             </div>
-            <div className="fl-card" aria-live="polite">
+            <Card variant="surface" aria-live="polite">
               {booked ? (
                 <div style={{ display: "grid", gap: "var(--space-4)" }}>
                   <p className="fl-done" role="status">
                     You're in, {booked.name}. We've saved your free week starting {booked.day}; a confirmation will go to {booked.email}.
                   </p>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setBooked(null)}>
+                  <Button variant="secondary" onClick={() => setBooked(null)}>
                     Book for someone else
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <form className="fl-form" noValidate onSubmit={submit}>
                   <div className="fl-st2-row2">
                     <div className="fl-field">
                       <label htmlFor="fit-name">Name</label>
-                      <input id="fit-name" name="name" className="fl-input" autoComplete="name" {...err("name")} />
+                      <TextField id="fit-name" name="name" autoComplete="name" {...err("name")} />
                       {errors.name ? <p id="fit-name-err" className="fl-st2-err">{errors.name}</p> : null}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="fit-phone">
                         Phone <span className="fl-meta">(optional)</span>
                       </label>
-                      <input id="fit-phone" name="phone" type="tel" className="fl-input" autoComplete="tel" />
+                      <TextField id="fit-phone" name="phone" type="tel" autoComplete="tel" />
                     </div>
                   </div>
                   <div className="fl-field">
                     <label htmlFor="fit-email">Email</label>
-                    <input id="fit-email" name="email" type="email" className="fl-input" autoComplete="email" {...err("email")} />
+                    <TextField id="fit-email" name="email" type="email" autoComplete="email" {...err("email")} />
                     {errors.email ? <p id="fit-email-err" className="fl-st2-err">{errors.email}</p> : null}
                   </div>
                   <div className="fl-st2-row2">
                     <div className="fl-field">
                       <label htmlFor="fit-interest">I'd like to try</label>
-                      <span className="fl-st2-select">
-                        <select id="fit-interest" name="interest" className="fl-input" defaultValue="" {...err("interest")}>
-                          <option value="">Choose one</option>
-                          {d.trial.interests.map((i) => (
-                            <option key={i}>{i}</option>
-                          ))}
-                        </select>
-                      </span>
+                      <Select id="fit-interest" name="interest" placeholder="Choose one" options={d.trial.interests} {...err("interest")} />
                       {errors.interest ? <p id="fit-interest-err" className="fl-st2-err">{errors.interest}</p> : null}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="fit-day">First class on</label>
-                      <span className="fl-st2-select">
-                        <select id="fit-day" name="day" className="fl-input" defaultValue="" {...err("day")}>
-                          <option value="">Choose a day</option>
-                          {d.timetable.days.map((dy) => (
-                            <option key={dy}>{dy}</option>
-                          ))}
-                        </select>
-                      </span>
+                      <Select id="fit-day" name="day" placeholder="Choose a day" options={d.timetable.days} {...err("day")} />
                       {errors.day ? <p id="fit-day-err" className="fl-st2-err">{errors.day}</p> : null}
                     </div>
                   </div>
@@ -445,7 +456,7 @@ export default function SiteFitness() {
                     <div className="fl-st2-choices">
                       {d.trial.experience.map((x) => (
                         <label key={x} className="fl-st2-choice">
-                          <input type="radio" name="experience" value={x} aria-invalid={errors.experience ? true : undefined} />
+                          <Radio name="experience" value={x} aria-invalid={errors.experience ? true : undefined} />
                           {x}
                         </label>
                       ))}
@@ -454,20 +465,20 @@ export default function SiteFitness() {
                   </fieldset>
                   <div className="fl-field">
                     <label className="fl-st2-check" style={{ fontWeight: "var(--weight-regular)" }}>
-                      <input type="checkbox" name="consent" {...err("consent")} />
+                      <Checkbox name="consent" {...errAria("consent")} />
                       Contact me about my trial week. Nothing else, unless I ask.
                     </label>
                     {errors.consent ? <p id="fit-consent-err" className="fl-st2-err">{errors.consent}</p> : null}
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     Book my free week
-                  </button>
+                  </Button>
                   <p className="fl-note" style={{ margin: 0 }}>
                     New to exercise or recovering from an injury? Mention it at your first class and the trainer will adapt it.
                   </p>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
         </section>
       </main>

@@ -1,4 +1,9 @@
 /** @flowcode-library site-cafe · Cafe website (Industry sites)
+ * Catalog ID: t.site-cafe (template)
+ * Function: The cafe or restaurant one-page website (t.site-cafe), assembled inline from its own sections with catalog tabs, fields, selects, cards and buttons; no page block fits its layout.
+ * Use it as: Copy site-cafe.tsx (FlowCode brings the components it uses); replace SAMPLE with the business's own content.
+ * Built from: c.tabs.pills, c.checkbox, c.empty-state, c.card.surface, c.badge.status, c.text-field.outlined, c.select.outlined, c.button.primary, c.button.secondary
+ * Look: A warm, centered one-page cafe site: grain hero, three highlights, a pill-tabbed menu with dotted price lines, hours and map cards, and a booking form on an accent band.
  * Use cases: cafe website; restaurant website; menu; opening hours; table booking; bistro; bar website; bakery
  * Jobs to be done: see what is on the menu; check if they are open today; find how to get there; book a table
  * Keywords: page, template, cafe, restaurant, menu, tabs, hours, reservations, booking, form, html5up
@@ -8,11 +13,23 @@
  * centered header, warm hero, three highlights, a tabbed menu with a vegetarian filter, opening hours (today marked),
  * how to find you, a table-booking form and a footer. Layout adapted from HTML5 UP "Arcana" (html5up.net, CC BY 3.0);
  * keep the credit. The booking form checks its fields and keeps bookings in local storage; nothing is sent.
+ * Assembled from: header (inline) > hero (inline) > highlights (inline) > c.tabs.pills menu with a c.checkbox filter and
+ * c.empty-state > hours and find-us c.card.surface (inline) > booking section (inline) with c.text-field, c.select and
+ * c.button > footer (inline). No page block matches this cafe layout, so the sections stay in the template; every
+ * button, badge, card, field, select, checkbox, tab set and empty state is the catalog component.
  * Make it the app's own: replace SAMPLE with the real menu, prices, hours and address, and keep only the menu tabs and
  * booking fields the venue actually uses.
  */
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { Checkbox } from "./checkboxes-radios";
+import { Tabs } from "./tabs-variants";
+import { EmptyState } from "./empty-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -135,30 +152,54 @@ function todayIso() {
 export default function SiteCafe() {
   const d = SAMPLE;
   const [menuOpen, setMenuOpen] = useState(false);
-  const [tab, setTab] = useState(d.menu.tabs[0].id);
   const [vegOnly, setVegOnly] = useState(false);
-  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [today, setToday] = useState<number | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [booked, setBooked] = useState<null | { name: string; date: string; time: string; party: string }>(null);
 
   useEffect(() => setToday(new Date().getDay()), []);
 
-  const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-    const n = d.menu.tabs.length;
-    let next = i;
-    if (e.key === "ArrowRight") next = (i + 1) % n;
-    else if (e.key === "ArrowLeft") next = (i - 1 + n) % n;
-    else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = n - 1;
-    else return;
-    e.preventDefault();
-    setTab(d.menu.tabs[next].id);
-    tabRefs.current[next]?.focus();
+  const panelFor = (t: (typeof d.menu.tabs)[number]) => {
+    const items = vegOnly ? t.items.filter((it) => it.tags.includes("V") || it.tags.includes("VG")) : t.items;
+    return (
+      <div className="fl-st-cafe-panel">
+        <p className="fl-meta">{t.note}</p>
+        {items.length ? (
+          <ul className="fl-st-cafe-items">
+            {items.map((it) => (
+              <li key={it.name}>
+                <div className="fl-st-cafe-item__row">
+                  <strong>{it.name}</strong>
+                  <span className="fl-st-cafe-item__dots" aria-hidden="true" />
+                  <span className="fl-st-cafe-item__price">${it.price}</span>
+                </div>
+                <p className="fl-text">
+                  {it.desc}
+                  {it.tags.map((tg) => (
+                    <abbr key={tg} className="fl-st-diet" title={tg === "VG" ? "Vegan" : tg === "GF" ? "Gluten free" : "Vegetarian"}>
+                      {tg}
+                    </abbr>
+                  ))}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            variant="no-results"
+            title={`Nothing vegetarian in ${t.label.toLowerCase()} today.`}
+            action={
+              <Button variant="secondary" onClick={() => setVegOnly(false)}>
+                Show everything
+              </Button>
+            }
+          >
+            Ask at the counter; the kitchen can usually adapt a dish.
+          </EmptyState>
+        )}
+      </div>
+    );
   };
-
-  const current = d.menu.tabs.find((t) => t.id === tab) ?? d.menu.tabs[0];
-  const items = vegOnly ? current.items.filter((it) => it.tags.includes("V") || it.tags.includes("VG")) : current.items;
 
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -193,7 +234,7 @@ export default function SiteCafe() {
         {errors[k]}
       </p>
     ) : null;
-  const errProps = (k: keyof Errors) => ({ "aria-invalid": errors[k] ? true : undefined, "aria-describedby": errors[k] ? `cafe-${k}-err` : undefined });
+  const errProps = (k: keyof Errors) => ({ invalid: errors[k] ? true : undefined, "aria-describedby": errors[k] ? `cafe-${k}-err` : undefined });
 
   return (
     <div className="fl-st fl-st-cafe" id="top">
@@ -203,10 +244,10 @@ export default function SiteCafe() {
             <span>{d.brand}</span>
             <small>{d.tagline}</small>
           </a>
-          <button type="button" className="fl-btn fl-btn--secondary fl-st-menubtn" aria-expanded={menuOpen} aria-controls="cafe-nav" onClick={() => setMenuOpen((o) => !o)}>
+          <Button variant="secondary" className="fl-st-menubtn" aria-expanded={menuOpen} aria-controls="cafe-nav" onClick={() => setMenuOpen((o) => !o)}>
             <Icon name="menu" />
             <span>Menu</span>
-          </button>
+          </Button>
         </div>
         <nav aria-label="Main" id="cafe-nav" className={`fl-st-cafe-nav${menuOpen ? " is-open" : ""}`}>
           <ul>
@@ -236,12 +277,12 @@ export default function SiteCafe() {
             </h1>
             <p className="fl-lede">{d.hero.lede}</p>
             <div className="fl-actions">
-              <a className="fl-btn fl-btn--primary" href={d.hero.primary.href}>
+              <Button variant="primary" href={d.hero.primary.href}>
                 {d.hero.primary.label}
-              </a>
-              <a className="fl-btn fl-btn--secondary" href={d.hero.secondary.href}>
+              </Button>
+              <Button variant="secondary" href={d.hero.secondary.href}>
                 {d.hero.secondary.label}
-              </a>
+              </Button>
             </div>
           </div>
         </section>
@@ -268,65 +309,10 @@ export default function SiteCafe() {
               </h2>
               <p className="fl-lede">{d.menu.lede}</p>
             </div>
-            <div className="fl-st-cafe-menubar">
-              <div className="fl-st-tabs" role="tablist" aria-label="Menu sections">
-                {d.menu.tabs.map((t, i) => (
-                  <button
-                    key={t.id}
-                    ref={(el) => {
-                      tabRefs.current[i] = el;
-                    }}
-                    type="button"
-                    role="tab"
-                    id={`cafe-tab-${t.id}`}
-                    aria-selected={tab === t.id}
-                    aria-controls="cafe-menu-panel"
-                    tabIndex={tab === t.id ? 0 : -1}
-                    className="fl-st-tab"
-                    onClick={() => setTab(t.id)}
-                    onKeyDown={(e) => onTabKey(e, i)}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-              <label className="fl-st-check">
-                <input type="checkbox" checked={vegOnly} onChange={(e) => setVegOnly(e.target.checked)} />
-                {d.menu.vegLabel}
-              </label>
+            <div className="fl-st-cafe-menubar" style={{ justifyContent: "flex-end" }}>
+              <Checkbox label={d.menu.vegLabel} checked={vegOnly} onChange={(e) => setVegOnly(e.target.checked)} />
             </div>
-            <div id="cafe-menu-panel" role="tabpanel" aria-labelledby={`cafe-tab-${current.id}`} className="fl-st-cafe-panel" tabIndex={0}>
-              <p className="fl-meta">{current.note}</p>
-              {items.length ? (
-                <ul className="fl-st-cafe-items">
-                  {items.map((it) => (
-                    <li key={it.name}>
-                      <div className="fl-st-cafe-item__row">
-                        <strong>{it.name}</strong>
-                        <span className="fl-st-cafe-item__dots" aria-hidden="true" />
-                        <span className="fl-st-cafe-item__price">${it.price}</span>
-                      </div>
-                      <p className="fl-text">
-                        {it.desc}
-                        {it.tags.map((tg) => (
-                          <abbr key={tg} className="fl-st-diet" title={tg === "VG" ? "Vegan" : tg === "GF" ? "Gluten free" : "Vegetarian"}>
-                            {tg}
-                          </abbr>
-                        ))}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="fl-st-empty">
-                  <strong>Nothing vegetarian in {current.label.toLowerCase()} today.</strong>
-                  <span>Ask at the counter; the kitchen can usually adapt a dish.</span>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setVegOnly(false)}>
-                    Show everything
-                  </button>
-                </div>
-              )}
-            </div>
+            <Tabs variant="pills" label="Menu sections" tabs={d.menu.tabs.map((t) => ({ id: t.id, label: t.label, panel: panelFor(t) }))} />
           </div>
         </section>
 
@@ -338,7 +324,7 @@ export default function SiteCafe() {
               </h2>
             </div>
             <div className="fl-split fl-split--start">
-              <div className="fl-card">
+              <Card variant="surface">
                 <h3>{d.visit.hoursTitle}</h3>
                 <table className="fl-st-hours">
                   <caption className="fl-sr">{d.visit.hoursTitle}</caption>
@@ -347,7 +333,7 @@ export default function SiteCafe() {
                       <tr key={h.day} className={today === h.n ? "is-today" : undefined}>
                         <th scope="row">
                           {h.day}
-                          {today === h.n ? <span className="fl-badge">Today</span> : null}
+                          {today === h.n ? <Badge tone="info">Today</Badge> : null}
                         </th>
                         <td>{h.time}</td>
                       </tr>
@@ -355,8 +341,8 @@ export default function SiteCafe() {
                   </tbody>
                 </table>
                 <p className="fl-note">{d.visit.hoursNote}</p>
-              </div>
-              <div className="fl-card">
+              </Card>
+              <Card variant="surface">
                 <svg className="fl-st-cafe-map" viewBox="0 0 320 160" aria-hidden="true">
                   <rect width="320" height="160" rx="12" fill="currentColor" opacity="0.06" />
                   <path d="M0 108h320M120 0v160M0 40c80 10 160 6 320-8" stroke="currentColor" strokeWidth="10" opacity="0.14" fill="none" />
@@ -379,7 +365,7 @@ export default function SiteCafe() {
                     <Icon name="phone" /> {d.visit.phone}
                   </span>
                 </div>
-              </div>
+              </Card>
             </div>
           </div>
         </section>
@@ -393,69 +379,58 @@ export default function SiteCafe() {
               </h2>
               <p className="fl-lede">{d.booking.lede}</p>
             </div>
-            <div className="fl-card fl-st-oncard">
+            <Card variant="surface" className="fl-st-oncard">
               {booked ? (
                 <div className="fl-form" role="status">
                   <p className="fl-done">
                     Table held for {booked.party} on {booked.date} at {booked.time}, under {booked.name}. See you then.
                   </p>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setBooked(null)}>
+                  <Button variant="secondary" onClick={() => setBooked(null)}>
                     Make another booking
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <form className="fl-form" onSubmit={submit} noValidate>
                   <div className="fl-st-row2">
                     <div className="fl-field">
                       <label htmlFor="cafe-name">Name</label>
-                      <input id="cafe-name" name="name" className="fl-input" autoComplete="name" {...errProps("name")} />
+                      <TextField id="cafe-name" name="name" autoComplete="name" {...errProps("name")} />
                       {err("name")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="cafe-phone">Phone</label>
-                      <input id="cafe-phone" name="phone" type="tel" className="fl-input" autoComplete="tel" {...errProps("phone")} />
+                      <TextField id="cafe-phone" name="phone" type="tel" autoComplete="tel" {...errProps("phone")} />
                       {err("phone")}
                     </div>
                   </div>
                   <div className="fl-st-row3">
                     <div className="fl-field">
                       <label htmlFor="cafe-date">Date</label>
-                      <input id="cafe-date" name="date" type="date" min={todayIso()} className="fl-input" {...errProps("date")} />
+                      <TextField id="cafe-date" name="date" type="date" min={todayIso()} {...errProps("date")} />
                       {err("date")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="cafe-time">Time</label>
-                      <select id="cafe-time" name="time" className="fl-input fl-st-select" defaultValue="" {...errProps("time")}>
-                        <option value="" disabled>
-                          Choose
-                        </option>
-                        {d.booking.times.map((t) => (
-                          <option key={t}>{t}</option>
-                        ))}
-                      </select>
+                      <Select id="cafe-time" name="time" placeholder="Choose" options={d.booking.times} {...errProps("time")} />
                       {err("time")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="cafe-party">Guests</label>
-                      <select id="cafe-party" name="party" className="fl-input fl-st-select" defaultValue="2" {...errProps("party")}>
-                        {Array.from({ length: d.booking.maxParty }, (_, i) => String(i + 1)).map((n) => (
-                          <option key={n}>{n}</option>
-                        ))}
-                      </select>
+                      <Select id="cafe-party" name="party" defaultValue="2" options={Array.from({ length: d.booking.maxParty }, (_, i) => String(i + 1))} {...errProps("party")} />
                       {err("party")}
                     </div>
                   </div>
                   <div className="fl-field">
                     <label htmlFor="cafe-notes">Anything we should know? (optional)</label>
-                    <textarea id="cafe-notes" name="notes" className="fl-input" placeholder="Allergies, a highchair, a birthday…" />
+                    <TextField multiline id="cafe-notes" name="notes" placeholder="Allergies, a highchair, a birthday…" />
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     Request table
-                  </button>
+                  </Button>
                   <p className="fl-note">We'll text to confirm within the hour during opening times.</p>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
         </section>
       </main>

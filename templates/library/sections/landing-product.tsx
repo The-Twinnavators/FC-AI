@@ -1,4 +1,9 @@
 /** @flowcode-library landing-product · Single product page (Landing pages)
+ * Catalog ID: t.landing-product (template)
+ * Function: A single-product landing page (t.landing-product) for a physical product. Assembled from: header with bag (inline) > gallery and buy box (inline) with c.tabs.underline > reviews summary (inline) > footer (inline).
+ * Use it as: Copy landing-product.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the product's own content; use real photos in place of the drawn lamp.
+ * Built from: c.button.primary, c.button.secondary, c.button.tertiary, c.tabs.underline, c.card.surface
+ * Look: A gallery of four views beside a buy box with price, finish and shade pickers, quantity and Add to bag, then tabs for details, specs and shipping and a filterable reviews summary.
  * Use cases: product detail; product page; single product store; direct-to-consumer product; hero product; product reviews; item detail
  * Jobs to be done: see the product from every angle; choose the right option for me; add the product to my bag; read what other buyers think; check shipping and specs
  * Keywords: landing, product, ecommerce, gallery, options, reviews, tabs, page template
@@ -10,9 +15,16 @@
  * product, makers, and direct-to-customer brands. Adding to the bag only updates the count in the header; nothing is
  * sent. Make it the app's own: replace SAMPLE with the real product, its options and prices, and use real photos in
  * place of the drawn lamp.
+ *
+ * Assembled from: header with bag (inline) > gallery and buy box (inline; finish and shade pickers are custom swatches)
+ * with c.tabs.underline for details, specs and shipping > reviews summary (inline) > footer (inline). Buttons are
+ * c.button, the empty review state c.card.
  */
-import { useState, type KeyboardEvent } from "react";
+import { useState } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Tabs } from "./tabs-variants";
+import { Card } from "./cards-variants";
 
 // flowcode:sample
 const SAMPLE = {
@@ -74,8 +86,6 @@ const SAMPLE = {
   footer: { copy: "© 2026 Northlight Works", links: [{ label: "Shipping", href: "#shipping" }, { label: "Warranty", href: "#warranty" }, { label: "Contact", href: "#contact" }] },
 };
 
-type Tab = "details" | "specs" | "shipping";
-
 function Stars({ value }: { value: number }) {
   return (
     <span className="fl-ld-stars" aria-hidden="true">
@@ -121,7 +131,6 @@ export default function LandingProduct() {
   const [qty, setQty] = useState(1);
   const [bag, setBag] = useState(0);
   const [status, setStatus] = useState("");
-  const [tab, setTab] = useState<Tab>("details");
   const [starFilter, setStarFilter] = useState<number | null>(null);
 
   const chosenFinish = d.finishes.find((f) => f.id === finish) ?? d.finishes[0];
@@ -137,19 +146,6 @@ export default function LandingProduct() {
     setStatus(`Added ${qty} × ${d.name} (${chosenFinish.label}, ${shadeLabel}) to your bag.`);
   };
 
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "details", label: "Details" },
-    { id: "specs", label: "Specifications" },
-    { id: "shipping", label: "Shipping and returns" },
-  ];
-
-  const onTabKey = (e: KeyboardEvent, i: number) => {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-    const next = (i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length;
-    setTab(tabs[next].id);
-    document.getElementById(`ld-prod-tab-${tabs[next].id}`)?.focus();
-  };
-
   return (
     <div className="fl-ld-page">
       <header className="fl-ld-bar fl-ld-bar--line">
@@ -159,11 +155,11 @@ export default function LandingProduct() {
           </span>
           {d.brand}
         </a>
-        <a className="fl-btn fl-btn--secondary fl-ld-bag" href="#bag" style={{ minHeight: "var(--control-md)" }}>
+        <Button variant="secondary" size={40} className="fl-ld-bag" href="#bag">
           Bag
           <span className="fl-ld-bag__count">{bag}</span>
           <span className="fl-sr">items</span>
-        </a>
+        </Button>
       </header>
 
       <main id="top">
@@ -230,17 +226,17 @@ export default function LandingProduct() {
 
               <div className="fl-ld-buyrow">
                 <div className="fl-ld-qty" role="group" aria-label="Quantity">
-                  <button type="button" className="fl-ld-icon-btn" aria-label="One fewer" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
+                  <Button variant="secondary" size={40} style={{ paddingInline: 0, minWidth: "var(--control-md)" }} aria-label="One fewer" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
                     −
-                  </button>
+                  </Button>
                   <output aria-live="polite">{qty}</output>
-                  <button type="button" className="fl-ld-icon-btn" aria-label="One more" disabled={qty >= 5} onClick={() => setQty((q) => Math.min(5, q + 1))}>
+                  <Button variant="secondary" size={40} style={{ paddingInline: 0, minWidth: "var(--control-md)" }} aria-label="One more" disabled={qty >= 5} onClick={() => setQty((q) => Math.min(5, q + 1))}>
                     +
-                  </button>
+                  </Button>
                 </div>
-                <button type="button" className="fl-btn fl-btn--primary" onClick={add}>
+                <Button variant="primary" onClick={add}>
                   Add to bag · {money(unit * qty)}
-                </button>
+                </Button>
               </div>
               <p className="fl-note" role="status" style={{ margin: 0 }}>
                 {status ? <span className="fl-done" style={{ display: "block" }}>{status}</span> : qty >= 5 ? "Five per order. Need more? Ask about trade pricing." : d.stockNote}
@@ -255,40 +251,27 @@ export default function LandingProduct() {
                 ))}
               </ul>
 
-              <div>
-                <div className="fl-ld-tabs" role="tablist" aria-label="About the lamp">
-                  {tabs.map((t, i) => (
-                    <button
-                      key={t.id}
-                      id={`ld-prod-tab-${t.id}`}
-                      type="button"
-                      role="tab"
-                      className="fl-ld-tab"
-                      aria-selected={tab === t.id}
-                      aria-controls="ld-prod-panel"
-                      tabIndex={tab === t.id ? 0 : -1}
-                      onClick={() => setTab(t.id)}
-                      onKeyDown={(e) => onTabKey(e, i)}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-                <div className="fl-ld-tabpanel" id="ld-prod-panel" role="tabpanel" aria-labelledby={`ld-prod-tab-${tab}`} tabIndex={0}>
-                  {tab === "details" ? <p style={{ margin: 0 }}>{d.details}</p> : null}
-                  {tab === "specs" ? (
-                    <dl className="fl-ld-specs">
-                      {d.specs.map((s) => (
-                        <div key={s.k} style={{ display: "contents" }}>
-                          <dt>{s.k}</dt>
-                          <dd>{s.v}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  ) : null}
-                  {tab === "shipping" ? <p style={{ margin: 0 }}>{d.shipping}</p> : null}
-                </div>
-              </div>
+              <Tabs
+                label="About the lamp"
+                tabs={[
+                  { id: "details", label: "Details", panel: <p style={{ margin: 0 }}>{d.details}</p> },
+                  {
+                    id: "specs",
+                    label: "Specifications",
+                    panel: (
+                      <dl className="fl-ld-specs">
+                        {d.specs.map((s) => (
+                          <div key={s.k} style={{ display: "contents" }}>
+                            <dt>{s.k}</dt>
+                            <dd>{s.v}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    ),
+                  },
+                  { id: "shipping", label: "Shipping and returns", panel: <p style={{ margin: 0 }}>{d.shipping}</p> },
+                ]}
+              />
             </div>
           </div>
         </section>
@@ -320,9 +303,9 @@ export default function LandingProduct() {
                 ))}
               </ul>
               {starFilter ? (
-                <button type="button" className="fl-link" style={{ justifySelf: "start", background: "none", border: 0, cursor: "pointer", font: "inherit", fontSize: "var(--text-sm)" }} onClick={() => setStarFilter(null)}>
+                <Button variant="tertiary" size={32} style={{ justifySelf: "start" }} onClick={() => setStarFilter(null)}>
                   Show all reviews
-                </button>
+                </Button>
               ) : null}
             </div>
             <div aria-live="polite">
@@ -330,13 +313,13 @@ export default function LandingProduct() {
                 {starFilter ? `Showing ${starFilter}-star reviews` : "Most helpful first"}
               </p>
               {shown.length === 0 ? (
-                <div className="fl-card" style={{ justifyItems: "start" }}>
+                <Card variant="surface" style={{ justifyItems: "start" }}>
                   <h3>No {starFilter}-star reviews to show here yet</h3>
                   <p className="fl-text">These are a sample of recent reviews. Try another rating or show them all.</p>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setStarFilter(null)}>
+                  <Button variant="secondary" onClick={() => setStarFilter(null)}>
                     Show all reviews
-                  </button>
-                </div>
+                  </Button>
+                </Card>
               ) : (
                 shown.map((r) => (
                   <article key={r.name} className="fl-ld-review">

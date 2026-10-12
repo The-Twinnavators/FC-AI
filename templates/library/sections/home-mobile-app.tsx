@@ -1,7 +1,17 @@
 /** @flowcode-library home-mobile-app · Mobile app homepage (Homepages)
+ * Catalog ID: t.home-mobile-app (template)
+ * Function: A whole mobile app homepage assembled from: nav (inline) > hero with phone mockups (inline) > steps (inline) > feature tour (inline) > numbers (inline) > reviews (inline) > b.faq-accordion > text-me-the-link band (inline) > footer (inline).
+ * Use it as: Copy home-mobile-app.tsx (FlowCode brings the blocks and components it uses); replace SAMPLE with the app's own wording, redraw the phone screens as its main screens and point the store badges at the real listings.
+ * Built from: b.faq-accordion, c.accordion.bordered, c.button.primary, c.button.secondary, c.button.on-accent, c.card.surface, c.text-field.outlined
+ * Look: A soft split hero with two CSS phone mockups and store badges, a feature tour where choosing a feature changes the phone screen, reviews, and a strong color band that texts the download link.
  * Use cases: mobile app landing; app download page; app marketing site; budgeting app; feature tour; app store promotion; app reviews
  * Jobs to be done: decide whether to download the app; see how the app works; get the download link on my phone; read what users think
  * Keywords: page, homepage, mobile app, phone mockup, download, features, reviews, faq, budgeting
+ */
+/**
+ * Assembled from: nav (inline) > hero with two CSS phone mockups and store badges (inline) > four steps (inline) >
+ * feature tour with a phone stage (inline) > numbers (inline) > reviews (inline) > b.faq-accordion > text-me-the-link
+ * band (inline) > footer (inline). Every button is c.button, the phone field is c.text-field, review cards are c.card.
  */
 /**
  * Page template: mobile app homepage. A whole page for a phone app, here a budgeting app for households: navigation,
@@ -13,6 +23,10 @@
  */
 import { useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { FaqAccordion } from "./faq-accordion";
 
 // flowcode:sample
 const SAMPLE = {
@@ -279,12 +293,12 @@ export default function HomeMobileApp() {
             ))}
           </ul>
           <div className="fl-nav__end">
-            <a className="fl-btn fl-btn--primary fl-hp-hide-sm" href="#hp-app-get">
+            <Button variant="primary" className="fl-hp-hide-sm" href="#hp-app-get">
               {d.cta}
-            </a>
-            <button type="button" className="fl-btn fl-btn--secondary fl-nav__menu" aria-expanded={menu} aria-controls="hp-app-menu" aria-label="Menu" onClick={() => setMenu((o) => !o)}>
+            </Button>
+            <Button variant="secondary" className="fl-nav__menu" aria-expanded={menu} aria-controls="hp-app-menu" aria-label="Menu" onClick={() => setMenu((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </nav>
         <ul id="hp-app-menu" className="fl-hp-menu" data-open={menu}>
@@ -424,41 +438,29 @@ export default function HomeMobileApp() {
             </div>
             <ul className="fl-hp-list fl-grid fl-grid--3">
               {d.reviews.map((r) => (
-                <li key={r.name} className="fl-card">
-                  <span className="fl-hp-stars" role="img" aria-label="5 out of 5">
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <Star key={i} />
-                    ))}
-                  </span>
-                  <blockquote className="fl-quote" style={{ fontSize: "var(--text-md)" }}>
-                    “{r.quote}”
-                  </blockquote>
-                  <p className="fl-meta" style={{ margin: 0 }}>
-                    <strong style={{ color: "var(--color-text)" }}>{r.name}</strong> · {r.detail}
-                  </p>
+                <li key={r.name} style={{ display: "grid" }}>
+                  <Card variant="surface">
+                    <span className="fl-hp-stars" role="img" aria-label="5 out of 5">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <Star key={i} />
+                      ))}
+                    </span>
+                    <blockquote className="fl-quote" style={{ fontSize: "var(--text-md)" }}>
+                      “{r.quote}”
+                    </blockquote>
+                    <p className="fl-meta" style={{ margin: 0 }}>
+                      <strong style={{ color: "var(--color-text)" }}>{r.name}</strong> · {r.detail}
+                    </p>
+                  </Card>
                 </li>
               ))}
             </ul>
           </div>
         </section>
 
-        <section className="fl-section" id="hp-app-faq" aria-labelledby="hp-app-faq-title">
-          <div className="fl-wrap fl-wrap--narrow">
-            <div className="fl-head fl-head--center">
-              <h2 id="hp-app-faq-title" className="fl-title">
-                Questions before you download
-              </h2>
-            </div>
-            <div className="fl-faq">
-              {d.faqs.map((f) => (
-                <details key={f.q}>
-                  <summary>{f.q}</summary>
-                  <p>{f.a}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
+        <div id="hp-app-faq">
+          <FaqAccordion title="Questions before you download" items={d.faqs} />
+        </div>
 
         <section className="fl-section fl-bg-ink" id="hp-app-get" aria-labelledby="hp-app-cta-title">
           <div className="fl-wrap fl-wrap--narrow" style={{ display: "grid", gap: "var(--space-5)", justifyItems: "center", textAlign: "center" }}>
@@ -475,21 +477,20 @@ export default function HomeMobileApp() {
                 <label htmlFor="hp-app-phone" className="fl-sr">
                   Mobile number
                 </label>
-                <input
+                <TextField
                   id="hp-app-phone"
-                  className="fl-input"
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
                   placeholder="(555) 014-2290"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  aria-invalid={error ? true : undefined}
+                  invalid={!!error}
                   aria-describedby={error ? "hp-app-phone-err" : undefined}
                 />
-                <button type="submit" className="fl-btn fl-btn--on-accent">
+                <Button variant="on-accent" type="submit">
                   Text me the link
-                </button>
+                </Button>
               </form>
             )}
             <div aria-live="polite">

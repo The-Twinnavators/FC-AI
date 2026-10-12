@@ -1,4 +1,9 @@
 /** @flowcode-library site-agency · Creative agency website (Industry sites)
+ * Catalog ID: t.site-agency (template)
+ * Function: The creative agency one-page website (t.site-agency), assembled inline from its own sections with catalog chips, accordion, avatar, fields, radios and buttons; no page block fits its layout.
+ * Use it as: Copy site-agency.tsx (FlowCode brings the components it uses); replace SAMPLE with the business's own content.
+ * Built from: c.chip.filter, c.empty-state, c.accordion.bordered, c.badge.status, c.avatar.person, c.card.surface, c.text-field.outlined, c.radio, c.button.primary, c.button.secondary, c.button.on-accent, c.button.ghost-on-accent
+ * Look: A bold, ink-dark creative studio page: big banner, filterable tiles of work, accordion services, numbered process, client wordmarks with a quote, and an enquiry form.
  * Use cases: agency website; design studio; creative portfolio; services overview; case studies; client work; consultancy site; project enquiry
  * Jobs to be done: see the studio's past work; understand how they work; find out what services they offer; start a project with the studio
  * Keywords: page, template, agency, studio, portfolio, work, services, process, clients, contact, html5up
@@ -9,10 +14,24 @@
  * a four-step process, client names with a quote, and a project enquiry form beside the ways to get in touch. The
  * menu opens as a side panel. Layout adapted from HTML5 UP "Forty" (html5up.net, CC BY 3.0); keep the credit.
  * The form checks its fields and keeps enquiries in local storage; nothing is sent.
+ * Assembled from: header and side menu panel (inline) > banner (inline) > work showcase (inline) with c.chip.filter and
+ * c.empty-state > services c.accordion.bordered (inline section) > process steps (inline) > clients (inline) with c.avatar >
+ * contact c.card.surface (inline) with c.text-field and c.radio > footer (inline). No page block matches this studio
+ * layout, so the sections stay in the template; every button, chip, badge, card, avatar, field, radio, accordion and
+ * empty state is the catalog component.
  * Make it the app's own: replace SAMPLE with real projects, services and clients, and keep the budget options honest.
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Chip } from "./chips-tags";
+import { Avatar } from "./avatars-variants";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { Radio } from "./checkboxes-radios";
+import { Accordion } from "./accordion-variants";
+import { EmptyState } from "./empty-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -144,7 +163,7 @@ export default function SiteAgency() {
         {errors[k]}
       </p>
     ) : null;
-  const errProps = (k: keyof Errors) => ({ "aria-invalid": errors[k] ? true : undefined, "aria-describedby": errors[k] ? `agency-${k}-err` : undefined });
+  const errProps = (k: keyof Errors) => ({ invalid: errors[k] ? true : undefined, "aria-describedby": errors[k] ? `agency-${k}-err` : undefined });
 
   return (
     <div className="fl-st fl-st-agency" id="top">
@@ -173,9 +192,9 @@ export default function SiteAgency() {
                 </li>
               ))}
             </ul>
-            <button type="button" className="fl-btn fl-btn--secondary" onClick={closePanel}>
+            <Button variant="secondary" onClick={closePanel}>
               Close
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}
@@ -189,12 +208,12 @@ export default function SiteAgency() {
             </h1>
             <p className="fl-lede">{d.hero.lede}</p>
             <div className="fl-actions">
-              <a className="fl-btn fl-btn--on-accent" href={d.hero.action.href}>
+              <Button variant="on-accent" href={d.hero.action.href}>
                 {d.hero.action.label}
-              </a>
-              <a className="fl-btn fl-btn--ghost-on-accent" href={d.hero.secondary.href}>
+              </Button>
+              <Button variant="ghost-on-accent" href={d.hero.secondary.href}>
                 {d.hero.secondary.label}
-              </a>
+              </Button>
             </div>
           </div>
         </section>
@@ -206,9 +225,9 @@ export default function SiteAgency() {
             </h2>
             <div className="fl-st-chips" role="group" aria-label="Filter work">
               {d.work.filters.map((f) => (
-                <button key={f} type="button" className="fl-st-chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>
+                <Chip key={f} variant="filter" selected={filter === f} onClick={() => setFilter(f)}>
                   {f}
-                </button>
+                </Chip>
               ))}
             </div>
             <p className="fl-sr" aria-live="polite">
@@ -230,11 +249,18 @@ export default function SiteAgency() {
               ))}
             </ul>
           ) : (
-            <div className="fl-st-empty" style={{ margin: "var(--space-6) var(--space-5)" }}>
-              <strong>No {filter.toLowerCase()} projects to show yet.</strong>
-              <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setFilter("All")}>
-                Show all work
-              </button>
+            <div style={{ margin: "var(--space-6) var(--space-5)" }}>
+              <EmptyState
+                variant="no-results"
+                title={`No ${filter.toLowerCase()} projects to show yet.`}
+                action={
+                  <Button variant="secondary" onClick={() => setFilter("All")}>
+                    Show all work
+                  </Button>
+                }
+              >
+                Pick another category to see more.
+              </EmptyState>
             </div>
           )}
         </section>
@@ -248,18 +274,7 @@ export default function SiteAgency() {
               </h2>
               <p className="fl-lede">{d.services.lede}</p>
             </div>
-            <div className="fl-faq">
-              {d.services.items.map((s, i) => (
-                <details key={s.name} open={i === 0}>
-                  <summary>
-                    <span>
-                      {s.name} <span className="fl-meta">· {s.from}</span>
-                    </span>
-                  </summary>
-                  <p>{s.text}</p>
-                </details>
-              ))}
-            </div>
+            <Accordion variant="bordered" defaultOpen={[0]} items={d.services.items.map((it) => ({ q: `${it.name} · ${it.from}`, a: it.text }))} />
           </div>
         </section>
 
@@ -278,7 +293,7 @@ export default function SiteAgency() {
                   </span>
                   <h3>{s.title}</h3>
                   <p className="fl-text">{s.text}</p>
-                  <span className="fl-badge">{s.time}</span>
+                  <Badge tone="info">{s.time}</Badge>
                 </li>
               ))}
             </ol>
@@ -298,9 +313,7 @@ export default function SiteAgency() {
             <figure className="fl-st-agency-quote">
               <blockquote className="fl-quote fl-quote--xl">“{d.clients.quote}”</blockquote>
               <figcaption className="fl-person">
-                <span className="fl-person__avatar" aria-hidden="true">
-                  {d.clients.person.initials}
-                </span>
+                <Avatar name={d.clients.person.name} size={48} decorative />
                 <span>
                   <strong>{d.clients.person.name}</strong>
                   <span>{d.clients.person.role}</span>
@@ -319,25 +332,25 @@ export default function SiteAgency() {
               <p className="fl-lede">{d.contact.lede}</p>
             </div>
             <div className="fl-st-agency-contact">
-              <div className="fl-card">
+              <Card variant="surface">
                 {sent ? (
                   <div className="fl-form" role="status">
                     <p className="fl-done">Thanks {sent}. Your brief is with us and a designer will reply within two working days.</p>
-                    <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setSent(null)}>
+                    <Button variant="secondary" onClick={() => setSent(null)}>
                       Send another enquiry
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <form className="fl-form" onSubmit={submit} noValidate>
                     <div className="fl-st-row2">
                       <div className="fl-field">
                         <label htmlFor="agency-name">Name</label>
-                        <input id="agency-name" name="name" className="fl-input" autoComplete="name" {...errProps("name")} />
+                        <TextField id="agency-name" name="name" autoComplete="name" {...errProps("name")} />
                         {errText("name")}
                       </div>
                       <div className="fl-field">
                         <label htmlFor="agency-email">Email</label>
-                        <input id="agency-email" name="email" type="email" className="fl-input" autoComplete="email" {...errProps("email")} />
+                        <TextField id="agency-email" name="email" type="email" autoComplete="email" {...errProps("email")} />
                         {errText("email")}
                       </div>
                     </div>
@@ -345,25 +358,22 @@ export default function SiteAgency() {
                       <legend>Rough budget</legend>
                       <div className="fl-st-chips">
                         {d.contact.budgets.map((b) => (
-                          <label key={b} className="fl-st-radio">
-                            <input type="radio" name="budget" value={b} aria-invalid={errors.budget ? true : undefined} />
-                            <span>{b}</span>
-                          </label>
+                          <Radio key={b} label={b} name="budget" value={b} aria-invalid={errors.budget ? true : undefined} />
                         ))}
                       </div>
                       {errText("budget")}
                     </fieldset>
                     <div className="fl-field">
                       <label htmlFor="agency-message">About the project</label>
-                      <textarea id="agency-message" name="message" className="fl-input" placeholder="What are you making, and by when?" {...errProps("message")} />
+                      <TextField multiline id="agency-message" name="message" placeholder="What are you making, and by when?" {...errProps("message")} />
                       {errText("message")}
                     </div>
-                    <button type="submit" className="fl-btn fl-btn--primary">
+                    <Button variant="primary" type="submit">
                       Send enquiry
-                    </button>
+                    </Button>
                   </form>
                 )}
-              </div>
+              </Card>
               <ul className="fl-st-methods">
                 {d.contact.methods.map((m) => (
                   <li key={m.label} className="fl-person">

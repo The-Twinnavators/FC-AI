@@ -1,7 +1,19 @@
 /** @flowcode-library home-personal · Personal homepage (Homepages)
+ * Catalog ID: t.home-personal (template)
+ * Function: A whole personal portfolio homepage assembled from: nav (inline) > hero (inline) > selected work with filter (inline) > services and skills (inline) > experience (inline) > client quote (inline) > writing (inline) > enquiry form (inline) > footer (inline); no block fits this layout, so all sections are inline built from catalog components.
+ * Use it as: Copy home-personal.tsx (FlowCode brings the components it uses); replace SAMPLE with the person's own projects, roles, posts and contact details, and swap the drawn project covers for real screenshots.
+ * Built from: c.button.primary, c.button.secondary, c.button.tertiary, c.chip.filter, c.chip.static, c.badge.status, c.avatar.person, c.card.surface, c.empty-state.no-results, c.text-field.outlined, c.select.outlined
+ * Look: Quiet name-first page with a large typographic introduction and availability dot, filterable project covers, services, experience, a client quote, recent writing and an enquiry form.
  * Use cases: personal website; portfolio; freelancer site; designer portfolio; developer portfolio; online resume; personal blog; hire me
  * Jobs to be done: see the freelancer's best work; check if they are available; learn what services they offer; send a project enquiry
  * Keywords: page, homepage, personal, portfolio, freelancer, resume, blog, contact
+ */
+/**
+ * Assembled from: nav (inline) > hero with availability and portrait (inline) > selected work with a project filter
+ * (inline) > services and skills (inline) > experience timeline (inline) > client quote (inline) > recent writing
+ * (inline) > project enquiry form (inline) > footer (inline). Every button is c.button, project filters are c.chip,
+ * kind labels are c.badge, skills are static c.chip, service and form cards are c.card, people are c.avatar, the form
+ * is c.text-field and c.select, and the empty filter is c.empty-state.
  */
 /**
  * Page template: personal homepage. A whole one-person site for a freelancer, here a product designer who also
@@ -12,6 +24,14 @@
  */
 import { useState, type FormEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Chip } from "./chips-tags";
+import { Avatar } from "./avatars-variants";
+import { Card } from "./cards-variants";
+import { TextField } from "./text-fields-states";
+import { Select } from "./dropdowns-states";
+import { EmptyState } from "./empty-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -149,7 +169,7 @@ export default function HomePersonal() {
   const fieldProps = (k: Field) => ({
     id: `hp-me-${k}`,
     name: k,
-    "aria-invalid": errors[k] ? true : undefined,
+    invalid: !!errors[k],
     "aria-describedby": errors[k] ? `hp-me-${k}-err` : undefined,
   });
   const fieldError = (k: Field) =>
@@ -158,20 +178,12 @@ export default function HomePersonal() {
         {errors[k]}
       </p>
     ) : null;
-  const chevron = (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-
   return (
     <div className="fl-hp-page" id="top">
       <header className="fl-nav" style={{ background: "var(--color-bg)" }}>
         <nav className="fl-nav__row fl-hp-me-nav" aria-label="Main">
           <a className="fl-nav__brand" href="#top" style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-3)" }}>
-            <span className="fl-person__avatar" aria-hidden="true" style={{ width: "2.25rem", height: "2.25rem", fontSize: "var(--text-sm)" }}>
-              {d.initials}
-            </span>
+            <Avatar name={d.name} size={40} decorative />
             {d.name}
           </a>
           <ul className="fl-nav__links">
@@ -182,9 +194,9 @@ export default function HomePersonal() {
             ))}
           </ul>
           <div className="fl-nav__end">
-            <button type="button" className="fl-btn fl-btn--secondary fl-nav__menu" aria-expanded={menu} aria-controls="hp-me-menu" aria-label="Menu" onClick={() => setMenu((o) => !o)}>
+            <Button variant="secondary" className="fl-nav__menu" aria-expanded={menu} aria-controls="hp-me-menu" aria-label="Menu" onClick={() => setMenu((o) => !o)}>
               <Icon name="menu" />
-            </button>
+            </Button>
           </div>
         </nav>
         <ul id="hp-me-menu" className="fl-hp-menu" data-open={menu}>
@@ -214,15 +226,12 @@ export default function HomePersonal() {
               </h1>
               <p className="fl-lede">{d.lede}</p>
               <div className="fl-actions">
-                <a className="fl-btn fl-btn--primary" href="#hp-me-contact">
+                <Button variant="primary" href="#hp-me-contact">
                   {d.primary}
-                </a>
-                <a className="fl-link" href="#hp-me-work" style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)" }}>
+                </Button>
+                <Button variant="tertiary" icon="arrow" iconAt="end" href="#hp-me-work">
                   {d.secondary}
-                  <span style={{ width: "1rem", height: "1rem", display: "inline-flex" }}>
-                    <Icon name="arrow" />
-                  </span>
-                </a>
+                </Button>
               </div>
             </div>
             <div className="fl-hp-me-portrait" aria-hidden="true">
@@ -242,9 +251,9 @@ export default function HomePersonal() {
               </div>
               <div className="fl-hp-chips" role="group" aria-label="Filter projects">
                 {d.filters.map((f) => (
-                  <button key={f} type="button" className="fl-hp-chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>
+                  <Chip key={f} variant="filter" selected={filter === f} onClick={() => setFilter(f)}>
                     {f}
-                  </button>
+                  </Chip>
                 ))}
               </div>
             </div>
@@ -252,7 +261,9 @@ export default function HomePersonal() {
               {work.length} {work.length === 1 ? "project" : "projects"} shown
             </p>
             {work.length === 0 ? (
-              <div className="fl-hp-empty">No {filter.toLowerCase()} projects to show yet.</div>
+              <EmptyState variant="no-results" title={`No ${filter.toLowerCase()} projects to show yet`}>
+                Try another filter to see more work.
+              </EmptyState>
             ) : (
               <ul className="fl-hp-list fl-hp-work">
                 {work.map((w) => {
@@ -264,7 +275,7 @@ export default function HomePersonal() {
                           <Cover shape={w.shape} />
                         </div>
                         <div className="fl-hp-work__meta">
-                          <span className="fl-badge">{w.kind}</span>
+                          <Badge tone="info">{w.kind}</Badge>
                           <span className="fl-meta">{w.year}</span>
                         </div>
                         <h3>{w.title}</h3>
@@ -288,19 +299,25 @@ export default function HomePersonal() {
             </div>
             <ul className="fl-hp-list fl-grid fl-grid--3">
               {d.services.map((s) => (
-                <li key={s.title} className="fl-card">
-                  <span className="fl-icon">
-                    <Icon name={s.icon} />
-                  </span>
-                  <h3>{s.title}</h3>
-                  <p className="fl-text">{s.text}</p>
+                <li key={s.title} style={{ display: "grid" }}>
+                  <Card variant="surface">
+                    <span className="fl-icon">
+                      <Icon name={s.icon} />
+                    </span>
+                    <h3>{s.title}</h3>
+                    <p className="fl-text">{s.text}</p>
+                  </Card>
                 </li>
               ))}
             </ul>
             <h3 className="fl-sr">Skills</h3>
             <ul className="fl-hp-list fl-hp-tags" style={{ marginTop: "var(--space-6)" }}>
               {d.skills.map((s) => (
-                <li key={s}>{s}</li>
+                <li key={s} style={{ padding: 0, background: "none" }}>
+                  <Chip variant="static" size={24}>
+                    {s}
+                  </Chip>
+                </li>
               ))}
             </ul>
           </div>
@@ -337,12 +354,7 @@ export default function HomePersonal() {
               “{d.quote.text}”
             </blockquote>
             <figcaption className="fl-person">
-              <span className="fl-person__avatar" aria-hidden="true">
-                {d.quote.name
-                  .split(" ")
-                  .map((p) => p[0])
-                  .join("")}
-              </span>
+              <Avatar name={d.quote.name} size={48} decorative />
               <span style={{ textAlign: "left" }}>
                 <strong>{d.quote.name}</strong>
                 <span>{d.quote.role}</span>
@@ -400,67 +412,50 @@ export default function HomePersonal() {
                 </a>
               </p>
             </div>
-            <div className="fl-card">
+            <Card variant="surface">
               {sentTo ? (
                 <div role="status" style={{ display: "grid", gap: "var(--space-3)" }}>
                   <p className="fl-done">Thanks, {sentTo}. Your note is saved and I'll reply within two working days.</p>
-                  <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setSentTo("")}>
+                  <Button variant="secondary" onClick={() => setSentTo("")}>
                     Send another
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <form className="fl-form" onSubmit={submit} noValidate>
                   <div className="fl-grid fl-grid--2" style={{ gap: "var(--space-4)" }}>
                     <div className="fl-field">
                       <label htmlFor="hp-me-name">Your name</label>
-                      <input className="fl-input" autoComplete="name" {...fieldProps("name")} />
+                      <TextField autoComplete="name" {...fieldProps("name")} />
                       {fieldError("name")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="hp-me-email">Email</label>
-                      <input className="fl-input" type="email" autoComplete="email" {...fieldProps("email")} />
+                      <TextField type="email" autoComplete="email" {...fieldProps("email")} />
                       {fieldError("email")}
                     </div>
                   </div>
                   <div className="fl-grid fl-grid--2" style={{ gap: "var(--space-4)" }}>
                     <div className="fl-field">
                       <label htmlFor="hp-me-type">Project type</label>
-                      <span className="fl-hp-select">
-                        <select className="fl-input" defaultValue="" {...fieldProps("type")}>
-                          <option value="" disabled>
-                            Choose one
-                          </option>
-                          {d.types.map((t) => (
-                            <option key={t}>{t}</option>
-                          ))}
-                        </select>
-                        {chevron}
-                      </span>
+                      <Select options={d.types} placeholder="Choose one" {...fieldProps("type")} />
                       {fieldError("type")}
                     </div>
                     <div className="fl-field">
                       <label htmlFor="hp-me-budget">Budget (optional)</label>
-                      <span className="fl-hp-select">
-                        <select id="hp-me-budget" name="budget" className="fl-input" defaultValue="Not sure yet">
-                          {d.budgets.map((b) => (
-                            <option key={b}>{b}</option>
-                          ))}
-                        </select>
-                        {chevron}
-                      </span>
+                      <Select id="hp-me-budget" name="budget" options={d.budgets} defaultValue="Not sure yet" />
                     </div>
                   </div>
                   <div className="fl-field">
                     <label htmlFor="hp-me-message">What are you working on?</label>
-                    <textarea className="fl-input" {...fieldProps("message")} />
+                    <TextField multiline {...fieldProps("message")} />
                     {fieldError("message")}
                   </div>
-                  <button type="submit" className="fl-btn fl-btn--primary">
+                  <Button variant="primary" type="submit">
                     Send enquiry
-                  </button>
+                  </Button>
                 </form>
               )}
-            </div>
+            </Card>
           </div>
         </section>
       </main>

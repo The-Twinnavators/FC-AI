@@ -1,4 +1,9 @@
 /** @flowcode-library app-kanban · Task board (App screens)
+ * Catalog ID: t.app-kanban (template)
+ * Function: An app screen: a task board with drag and drop, keyboard moves, work-in-progress limits and inline card creation, assembled from catalog chips, avatars, badges, buttons and a text field.
+ * Use it as: Copy app-kanban.tsx (FlowCode brings the components it uses); replace SAMPLE with the app's own stages, work-in-progress limits, people and tasks, and store the cards in the app's data instead of localStorage.
+ * Built from: c.chip.filter, c.avatar.person, c.badge.status, c.button.primary, c.button.tertiary, c.text-field.outlined
+ * Look: A top bar with a person filter, then side-by-side columns of draggable task cards with an inline add-card form.
  * Use cases: kanban board; task board; project management; sprint board; sales pipeline; content calendar; workflow board; to-do board
  * Jobs to be done: track tasks through stages; move work forward; see what each person is working on; keep work in progress under control
  * Keywords: app, kanban, board, tasks, drag and drop, project, workflow
@@ -11,8 +16,18 @@
  * Use it for planning, production or any to-do flow with stages. Make it the app's own: replace SAMPLE with the app's
  * real stages, limits, people and tasks, and store the cards in the app's data instead of localStorage.
  */
+/**
+ * Assembled from: top bar (inline: brand, c.chip.filter + c.avatar people filter) > page head (c.button.tertiary) >
+ * board columns (inline, with drag and drop and Alt + arrow keys) > cards (c.badge.status, c.avatar, c.button.tertiary
+ * icon buttons) > add-card form (c.text-field.outlined, c.button.primary, c.button.tertiary).
+ */
 import { useEffect, useRef, useState, type DragEvent, type FormEvent, type KeyboardEvent } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge } from "./badges-status";
+import { Avatar } from "./avatars-variants";
+import { Chip } from "./chips-tags";
+import { TextField } from "./text-fields-states";
 
 // flowcode:sample
 const SAMPLE = {
@@ -52,17 +67,7 @@ const SAMPLE = {
 
 type Card = { id: string; col: string; title: string; who: string; tag: string; due: string };
 const STORE = "fl-as-kanban-cards";
-const ARROW_L = "M15 6l-6 6 6 6";
-const ARROW_R = "M9 6l6 6-6 6";
-const PLUS = "M12 5v14M5 12h14";
-
-function Glyph({ d }: { d: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={d} />
-    </svg>
-  );
-}
+const TONES = ["a", "b", "c", "d", "e"] as const;
 
 function load(): Card[] {
   try {
@@ -88,7 +93,6 @@ export default function AppKanban() {
   const [dropCol, setDropCol] = useState<string | null>(null);
   const [say, setSay] = useState("");
   const cardRefs = useRef<Record<string, HTMLLIElement | null>>({});
-  const addBtns = useRef<Record<string, HTMLButtonElement | null>>({});
   const focusAfter = useRef<string | null>(null);
 
   useEffect(() => {
@@ -105,6 +109,7 @@ export default function AppKanban() {
 
   const colIndex = (id: string) => d.columns.findIndex((c) => c.id === id);
   const person = (id: string) => d.people.find((p) => p.id === id);
+  const tone = (id: string) => TONES[Math.max(0, d.people.findIndex((p) => p.id === id)) % TONES.length];
 
   function moveTo(id: string, col: string, before?: string | null) {
     setCards((cs) => {
@@ -174,7 +179,7 @@ export default function AppKanban() {
     setAdding(null);
     setDraft("");
     setDraftError(false);
-    window.setTimeout(() => addBtns.current[col]?.focus(), 0);
+    window.setTimeout(() => document.getElementById(`fl-as-kb-addbtn-${col}`)?.focus(), 0);
   }
 
   function onDrop(e: DragEvent, col: string) {
@@ -196,12 +201,12 @@ export default function AppKanban() {
         </div>
         <div className="fl-as-top__end">
           <div className="fl-as-people" role="group" aria-label={d.filterLabel}>
-            <button type="button" className="fl-as-chip" aria-pressed={who === "all"} onClick={() => setWho("all")}>
+            <Chip variant="filter" selected={who === "all"} onClick={() => setWho("all")}>
               {d.everyone}
-            </button>
+            </Chip>
             {d.people.map((p) => (
               <button key={p.id} type="button" className="fl-as-avatar fl-as-avatar--btn" aria-pressed={who === p.id} title={p.name} onClick={() => setWho(who === p.id ? "all" : p.id)}>
-                <span aria-hidden="true">{p.initials}</span>
+                <Avatar name={p.name} size={32} tone={tone(p.id)} decorative />
                 <span className="fl-sr">{p.name}</span>
               </button>
             ))}
@@ -215,16 +220,16 @@ export default function AppKanban() {
             <h1 className="fl-as-h1">{d.board}</h1>
             <p className="fl-text">{d.boardText}</p>
           </div>
-          <button
-            type="button"
-            className="fl-as-btn fl-as-btn--quiet"
+          <Button
+            variant="tertiary"
+            size={32}
             onClick={() => {
               setCards(d.cards);
               setSay("Board reset to the starting cards.");
             }}
           >
             {d.reset}
-          </button>
+          </Button>
         </div>
         <p className="fl-meta" id="fl-as-kb-help">
           Tip: focus a card and press Alt + arrow keys to move it.
@@ -299,28 +304,20 @@ export default function AppKanban() {
                             setDropCol(null);
                           }}
                         >
-                          <span className="fl-badge">{card.tag}</span>
+                          <Badge tone="neutral">{card.tag}</Badge>
                           <p className="fl-as-card__title">{card.title}</p>
                           <div className="fl-as-card__foot">
-                            <span className="fl-as-avatar fl-as-avatar--xs" aria-hidden="true" title={p?.name}>
-                              {p?.initials}
-                            </span>
+                            <Avatar name={p?.name ?? "Unassigned"} size={24} tone={tone(card.who)} decorative />
                             <span className="fl-meta">
                               <Icon name="clock" /> {card.due}
                             </span>
                             <span className="fl-as-card__moves">
-                              <button type="button" className="fl-as-iconbtn fl-as-iconbtn--sm" disabled={ci === 0} onClick={() => step(card, -1)}>
-                                <Glyph d={ARROW_L} />
-                                <span className="fl-sr">
-                                  Move “{card.title}” to {d.columns[ci - 1]?.title ?? "previous column"}
-                                </span>
-                              </button>
-                              <button type="button" className="fl-as-iconbtn fl-as-iconbtn--sm" disabled={ci === d.columns.length - 1} onClick={() => step(card, 1)}>
-                                <Glyph d={ARROW_R} />
-                                <span className="fl-sr">
-                                  Move “{card.title}” to {d.columns[ci + 1]?.title ?? "next column"}
-                                </span>
-                              </button>
+                              <Button variant="tertiary" size={24} icon="arrow" iconOnly style={{ transform: "scaleX(-1)" }} disabled={ci === 0} onClick={() => step(card, -1)}>
+                                {`Move “${card.title}” to ${d.columns[ci - 1]?.title ?? "previous column"}`}
+                              </Button>
+                              <Button variant="tertiary" size={24} icon="arrow" iconOnly disabled={ci === d.columns.length - 1} onClick={() => step(card, 1)}>
+                                {`Move “${card.title}” to ${d.columns[ci + 1]?.title ?? "next column"}`}
+                              </Button>
                             </span>
                           </div>
                         </li>
@@ -334,9 +331,9 @@ export default function AppKanban() {
                     <label htmlFor={`fl-as-kb-add-${col.id}`} className="fl-sr">
                       New card title for {col.title}
                     </label>
-                    <textarea
+                    <TextField
+                      multiline
                       id={`fl-as-kb-add-${col.id}`}
-                      className="fl-input"
                       rows={2}
                       autoFocus
                       placeholder={d.addPlaceholder}
@@ -362,31 +359,30 @@ export default function AppKanban() {
                       </p>
                     )}
                     <div className="fl-as-addcard__row">
-                      <button type="submit" className="fl-as-btn fl-as-btn--primary">
+                      <Button type="submit" variant="primary" size={32}>
                         Add card
-                      </button>
-                      <button type="button" className="fl-as-btn fl-as-btn--quiet" onClick={() => closeAdd(col.id)}>
+                      </Button>
+                      <Button variant="tertiary" size={32} onClick={() => closeAdd(col.id)}>
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 ) : (
-                  <button
-                    ref={(el) => {
-                      addBtns.current[col.id] = el;
-                    }}
-                    type="button"
+                  <Button
+                    id={`fl-as-kb-addbtn-${col.id}`}
+                    variant="tertiary"
+                    size={32}
+                    icon="plus"
                     className="fl-as-addbtn"
+                    aria-label={`${d.addLabel} to ${col.title}`}
                     onClick={() => {
                       setAdding(col.id);
                       setDraft("");
                       setDraftError(false);
                     }}
                   >
-                    <Glyph d={PLUS} />
                     {d.addLabel}
-                    <span className="fl-sr"> to {col.title}</span>
-                  </button>
+                  </Button>
                 )}
               </section>
             );
