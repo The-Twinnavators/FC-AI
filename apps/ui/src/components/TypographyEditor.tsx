@@ -47,6 +47,7 @@ const PAIRS: Record<string, string[]> = {
   Quicksand: ["Fraunces", "Literata"],
   "DM Sans": ["Fraunces", "Playfair Display"],
   "Work Sans": ["Literata", "Source Serif 4"],
+  Roboto: ["Inter", "Source Serif 4", "Literata"],
   "Source Serif 4": ["Source Sans 3", "Inter"],
   Literata: ["Work Sans", "DM Sans"],
   Fraunces: ["Inter", "DM Sans"],

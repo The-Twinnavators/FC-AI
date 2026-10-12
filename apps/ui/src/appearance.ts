@@ -3,6 +3,8 @@
  *  - toggle: the top bar's light/dark button (the choice is remembered)
  *  - system: follow the computer's light or dark setting
  *  - custom: light or dark per page; moving between pages with different modes fades the colors over half a second
+ * Each theme also has a tone: dark is blue (FlowCode's navy) or grey (a neutral application grey); light is white or
+ * grey. The top bar's theme menu picks a theme and tone, or System.
  * Stored in this browser (a per-person preference), like the theme itself.
  */
 export type ThemeName = "light" | "dark";
@@ -13,7 +15,15 @@ export interface Appearance {
   pages: Record<string, ThemeName>;
 }
 
+export type DarkTone = "blue" | "grey";
+export type LightTone = "white" | "grey";
+export interface Tones {
+  dark: DarkTone;
+  light: LightTone;
+}
+
 const KEY = "fc.appearance";
+const TONES_KEY = "fc.tones";
 const THEME_KEY = "fc.theme";
 export const APPEARANCE_EVENT = "fc:appearance";
 
@@ -89,11 +99,32 @@ export function themeFor(section: string, a: Appearance = readAppearance()): The
   return manualTheme();
 }
 
+export function readTones(): Tones {
+  try {
+    const raw = JSON.parse(localStorage.getItem(TONES_KEY) ?? "null") as Partial<Tones> | null;
+    return { dark: raw?.dark === "grey" ? "grey" : "blue", light: raw?.light === "grey" ? "grey" : "white" };
+  } catch {
+    return { dark: "blue", light: "white" };
+  }
+}
+
+export function saveTones(t: Tones) {
+  try {
+    localStorage.setItem(TONES_KEY, JSON.stringify(t));
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+/** The tone for a theme, as the root's data-tone (the stylesheet's grey palettes key off it). */
+export const toneFor = (theme: ThemeName, t: Tones = readTones()) => (theme === "dark" ? t.dark : t.light);
+
 let fadeTimer: number | undefined;
 /** Applies a theme; a change fades over about half a second unless the person asked for less motion. */
 export function applyTheme(next: ThemeName, fade = true) {
   const root = document.documentElement;
-  if (root.dataset.theme === next) return;
+  const tone = toneFor(next);
+  if (root.dataset.theme === next && root.dataset.tone === tone) return;
   const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   if (fade && !calm) {
     root.classList.add("theme-shift");
@@ -101,4 +132,5 @@ export function applyTheme(next: ThemeName, fade = true) {
     fadeTimer = window.setTimeout(() => root.classList.remove("theme-shift"), 650);
   }
   root.dataset.theme = next;
+  root.dataset.tone = tone;
 }

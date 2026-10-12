@@ -50,7 +50,7 @@ const ROUNDED = `Quicksand, ui-rounded, "Hiragino Maru Gothic ProN", Quicksand, 
 const OLDSTYLE = `"Source Serif 4", "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, serif`;
 const TRANSITIONAL = `Literata, Charter, "Bitstream Charter", "Sitka Text", Cambria, serif`;
 const DIDONE = `"Playfair Display", Didot, "Bodoni MT", "Noto Serif Display", "URW Palladio L", P052, Sylfaen, serif`;
-const INDUSTRIAL = `Oswald, Bahnschrift, "DIN Alternate", "Franklin Gothic Medium", "Nimbus Sans Narrow", sans-serif-condensed, sans-serif`;
+const ROBOTO = `Roboto, "Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif`;
 
 export const DESIGN_TEMPLATES: DesignTemplate[] = [
   {
@@ -166,12 +166,12 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
   {
     id: "monochrome",
     name: "Monochrome",
-    description: "Black, white and greys with condensed headings.",
+    description: "Black, white and greys with Roboto headings.",
     dark: false,
     // Analogous (−30°) from a cool slate base (the accent is black, so it has no hue of its own): an ink slate that keeps the look monochrome.
     secondaryHarmony: { kind: "analogous", offset: -30 },
     colors: { bg: "#ffffff", surface: "#f6f6f6", surfaceSunken: "#ececec", text: "#111111", textMuted: "#4d4d4d", border: "#dddddd", borderStrong: "#737373", accent: "#111111", accentHover: "#333333", onAccent: "#ffffff", focus: "#111111", success: "#166534", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#3f5a63" },
-    fonts: { sans: NEO, display: INDUSTRIAL },
+    fonts: { sans: NEO, display: ROBOTO },
     radii: [0, 2, 4, 6],
   },
   {

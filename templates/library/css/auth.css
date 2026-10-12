@@ -33,6 +33,12 @@
 }
 .fl-auth-reveal:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
 .fl-auth-reveal:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* p.auth-form.icon-reveal: the eye alone, a square target at the field's right edge. */
+.fl-auth-pass--icon .fl-input { padding-right: calc(var(--control-sm) + var(--space-3)); }
+.fl-auth-reveal--icon { display: grid; place-items: center; width: var(--control-sm); padding: 0; color: var(--color-text-muted); }
+.fl-auth-reveal--icon:hover, .fl-auth-reveal--icon[aria-pressed="true"] { color: var(--color-accent); }
+.fl-auth-reveal--icon:disabled { opacity: var(--disabled-opacity, 0.5); cursor: not-allowed; }
+.fl-auth-reveal--icon svg { width: 18px; height: 18px; }
 
 /* Checkbox */
 .fl-auth-check { display: inline-flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-sm); line-height: var(--leading-normal); cursor: pointer; }

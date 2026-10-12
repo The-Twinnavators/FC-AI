@@ -15882,13 +15882,42 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .cl-tile__text strong { font-size: 14px; font-weight: 600; color: var(--text-0); }
 .cl-tile__text .muted { font-size: 12.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .cl-detail { display: grid; gap: 14px; }
-.modal-box.lib-modal:has(.cl-detail) { width: min(1180px, calc(100vw - 32px)); }
-/* A piece's catalog ID (copyable), its variants, what it uses and what uses it. */
-.cl-refs { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 12px 0 0; }
-.cl-refs > div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.cl-refs dt { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
-.cl-refs dd { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.cl-ref { font: 12px/1 var(--font-mono, ui-monospace, monospace); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--text-1); }
+/* A piece's sheet uses the window: wide, and as tall as it allows, with the preview taking whatever height the
+   details leave (never less than 360px; below that the sheet scrolls). */
+.modal-box.lib-modal:has(.cl-detail) { width: min(1440px, calc(100vw - 48px)); height: calc(100vh - 48px); max-height: none; }
+.lib-modal__content:has(> .cl-detail) { flex: 1 1 auto; }
+.lib-modal__content > .cl-detail { flex: 1 1 auto; grid-template-rows: auto minmax(360px, 1fr); }
+.cl-detail > .cl-frame-wrap { display: flex; flex-direction: column; min-height: 0; }
+.cl-detail > .cl-frame-wrap > .cl-frame { flex: 1 1 auto; height: auto; min-height: 0; }
+.cl-detail > .cl-frame-wrap--device { flex-direction: row; align-items: stretch; }
+.cl-detail > .cl-frame-wrap--device > .cl-frame { flex: none; }
+.cl-detail > .cl-code { max-height: none; min-height: 0; }
+
+/* A piece's catalog IDs: one labelled row per kind, labels in one column, each ID tinted by its level
+   (component, pattern, block, template, tokens) with a key beside the piece's own ID. */
+.cl-refs { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; margin: 14px 0 0; align-items: start; }
+.cl-refs__row { display: contents; }
+.cl-refs dt { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); line-height: 24px; white-space: nowrap; }
+.cl-refs dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.cl-refs { --lvl-component: #6aa5ff; --lvl-pattern: #b48cff; --lvl-block: #4fc79a; --lvl-template: #f0b45a; --lvl-tokens: #f07fae; }
+:root[data-theme="light"] .cl-refs { --lvl-component: #1f62d6; --lvl-pattern: #7a3fd8; --lvl-block: #0f8a5f; --lvl-template: #a56300; --lvl-tokens: #c2306f; }
+.cl-refs [data-level="component"] { --lvl: var(--lvl-component); }
+.cl-refs [data-level="pattern"] { --lvl: var(--lvl-pattern); }
+.cl-refs [data-level="block"] { --lvl: var(--lvl-block); }
+.cl-refs [data-level="template"] { --lvl: var(--lvl-template); }
+.cl-refs [data-level="tokens"] { --lvl: var(--lvl-tokens); }
+.cl-ref { font: 12px/1 var(--font-mono, ui-monospace, monospace); padding: 5px 8px; border-radius: 6px; color: var(--lvl, var(--text-1)); border: 1px solid color-mix(in srgb, var(--lvl, var(--line)) 35%, transparent); background: color-mix(in srgb, var(--lvl, transparent) 9%, transparent); }
+.cl-ref__base { opacity: 0.55; }
+.cl-ref-id .copy-btn { color: var(--lvl); border-color: color-mix(in srgb, var(--lvl) 45%, transparent); background: color-mix(in srgb, var(--lvl) 12%, transparent); }
+.cl-level { font-size: 12px; font-weight: 600; color: var(--lvl); }
+.cl-levels { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; margin-left: auto; font-size: 11.5px; color: var(--text-2); }
+.cl-levels__item { display: inline-flex; align-items: center; gap: 6px; }
+.cl-levels__item::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--lvl); }
+@media (max-width: 640px) {
+  .cl-refs { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .cl-refs dd { margin-bottom: 6px; }
+  .cl-levels { margin-left: 0; }
+}
 @media (prefers-reduced-motion: reduce) { .cl-tile { transition: none; } .cl-tile:hover { transform: none; } }
 .cl-detail__nav { display: inline-flex; align-items: center; gap: 10px; margin-right: auto; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 
@@ -15965,3 +15994,57 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .coder-switch { display: inline-flex; align-items: center; }
 .coder-switch__label { padding-inline: 10px 6px; font-size: 12px; color: var(--text-2); }
 .coder-switch .seg__btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Top bar theme menu: the four palettes and System, under the button. */
+.theme-menu { position: relative; display: inline-flex; }
+.theme-menu__list { position: absolute; top: calc(100% + 6px); right: 0; min-width: 200px; }
+.theme-menu__item { display: flex; align-items: center; gap: 10px; width: 100%; }
+.theme-menu__check { margin-left: auto; font-size: 13px; }
+.theme-menu__swatch { width: 16px; height: 16px; border-radius: 4px; flex: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+.theme-menu__swatch--dark-blue { background: linear-gradient(135deg, #151b26 50%, #3a60c4 50%); }
+.theme-menu__swatch--dark-grey { background: linear-gradient(135deg, #0e1014 50%, #30343d 50%); }
+.theme-menu__swatch--light-white { background: linear-gradient(135deg, #ffffff 50%, #f1f2f6 50%); }
+.theme-menu__swatch--light-grey { background: linear-gradient(135deg, #f3f5f9 50%, #c9d1de 50%); }
+.theme-menu__swatch--system { background: linear-gradient(135deg, #ffffff 50%, #1e1e1e 50%); }
+.theme-menu__note { margin: 6px 8px 4px; max-width: 220px; font-size: 11.5px; line-height: 1.4; color: #a8aebb; }
+
+/* Grey tones: a neutral application grey in place of the navy (dark) or the cool white (light). Same structure as the
+   theme tokens; the brand blue stays as the accent. */
+:root[data-theme="dark"][data-tone="grey"] {
+  --bg-0: #0e1014;
+  --bg-1: rgba(24, 27, 33, 0.72);
+  --bg-2: rgba(32, 35, 42, 0.6);
+  --bg-3: rgba(48, 52, 61, 0.5);
+  --bg-hover: rgba(200, 210, 230, 0.05);
+  --bg-active: rgba(200, 210, 230, 0.1);
+  --line: rgba(200, 210, 230, 0.09);
+  --line-strong: rgba(200, 210, 230, 0.18);
+  --text-1: #c6c9d0;
+  --text-2: #969aa5;
+  --text-inverse: #0e1014;
+  --bg-gradient: linear-gradient(180deg, #14161b 0%, #0e1014 100%);
+}
+:root[data-theme="light"][data-tone="grey"] {
+  --bg-0: #e4e8ef;
+  --bg-1: #f3f5f9;
+  --bg-2: #edf0f5;
+  --bg-3: #dbe0e9;
+  --bg-hover: rgba(58, 96, 196, 0.06);
+  --bg-active: rgba(58, 96, 196, 0.11);
+  --line: #cfd5df;
+  --line-strong: #bac2cf;
+  --text-0: #151b26;
+  --text-1: #3d4556;
+  --text-2: #545d70;
+  --bg-gradient: radial-gradient(1200px 520px at 50% -22%, rgba(58, 96, 196, 0.12), transparent 62%), linear-gradient(180deg, #e9edf3 0%, #e4e8ef 40%, #e4e8ef 100%);
+}
+/* Panels that set the navy directly take the grey too. */
+:root[data-theme="dark"][data-tone="grey"] .modal-box.lib-modal,
+:root[data-theme="dark"][data-tone="grey"] .lib-modal .detail-actions,
+:root[data-theme="dark"][data-tone="grey"] .modal-box.confirm-dlg,
+:root[data-theme="dark"][data-tone="grey"] .proj-settings-modal,
+:root[data-theme="dark"][data-tone="grey"] .section.proj-settings-modal,
+:root[data-theme="dark"][data-tone="grey"] .proj-settings-modal .settings-savebar,
+:root[data-theme="dark"][data-tone="grey"] .composer-modal,
+:root[data-theme="dark"][data-tone="grey"] .nb-modal .nb { background: #171a1f; }
+:root[data-theme="dark"][data-tone="grey"] .ctx-menu { background: rgba(23, 26, 31, 0.96); box-shadow: 0 0 0 1px rgba(200, 210, 230, 0.12), 0 18px 40px -12px rgba(0, 0, 0, 0.7); }

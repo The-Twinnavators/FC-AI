@@ -5,8 +5,8 @@ import { JournalView } from "./views/JournalView";
 import { ApprovalsView } from "./views/ApprovalsView";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { fitSideLists } from "./fitSideLists";
-import { APPEARANCE_EVENT, applyTheme, readAppearance, saveAppearance, saveManualTheme, themeFor } from "./appearance";
-import { Moon, Sun } from "lucide-react";
+import { APPEARANCE_EVENT, applyTheme, readAppearance, readTones, saveAppearance, saveManualTheme, saveTones, themeFor } from "./appearance";
+import { ThemeMenu, type ThemeChoice } from "./components/ThemeMenu";
 import type { Approval, Project } from "@flowcode/contracts";
 import { conn, post, useEventStream, useResource } from "./api";
 import { Icon, Logo } from "./components/ui";
@@ -183,17 +183,18 @@ export function App() {
     applyTheme(next);
     setThemeState(next);
   }, [section, appearance]);
-  const toggleTheme = () => {
-    const next = theme === "light" ? "dark" : "light";
-    // Per page: the button sets this page. Following the system: pressing it switches to the manual toggle.
-    if (appearance.mode === "custom") saveAppearance({ ...appearance, pages: { ...appearance.pages, [section]: next } });
+  // The theme menu: a palette (dark blue or grey, light white or grey) or System. Per page, a palette sets this page's
+  // theme; the tone is one choice for every page.
+  const pickTheme = (c: ThemeChoice) => {
+    if (c.theme === "system") return saveAppearance({ ...appearance, mode: "system" });
+    saveTones({ ...readTones(), [c.theme]: c.tone });
+    if (appearance.mode === "custom") saveAppearance({ ...appearance, pages: { ...appearance.pages, [section]: c.theme } });
     else {
-      saveManualTheme(next);
-      if (appearance.mode === "system") saveAppearance({ ...appearance, mode: "toggle" });
-      else applyTheme(next);
-      setThemeState(next);
+      saveManualTheme(c.theme);
+      saveAppearance({ ...appearance, mode: "toggle" });
     }
   };
+  const themeKey = appearance.mode === "system" ? "system" : `${theme}-${theme === "light" ? readTones().light : readTones().dark}`;
   const runId = section === "projects" && route.parts[2] === "runs" ? route.parts[3] : undefined;
   // Where to return when project settings close: the page you opened them from.
   const beforeSettings = useRef<string>("");
@@ -309,9 +310,7 @@ export function App() {
           <span className={`led ${health.data ? (health.data.providers.ollama.ok ? "led--ok" : "led--bad") : ""}`} aria-hidden="true" />
           {health.data ? (health.data.providers.ollama.ok ? "Local models · online" : "Local models · offline") : "Provider…"}
         </button>
-        <button className="theme-toggle" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"} title={appearance.mode === "custom" ? `${theme === "light" ? "Dark" : "Light"} theme for this page` : appearance.mode === "system" ? "Following your system theme. Click to choose by hand." : theme === "light" ? "Dark theme" : "Light theme"}>
-          {theme === "light" ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />}
-        </button>
+        <ThemeMenu theme={theme === "light" ? "light" : "dark"} current={themeKey} perPage={appearance.mode === "custom"} onPick={pickTheme} />
         <button data-guide="topbar.copilot" className="copilot-trigger" onClick={() => setCopilotOpen((o) => !o)} aria-expanded={copilotOpen} aria-controls="copilot-panel" title="Copilot (Ctrl+K)">
           <Logo size={16} />
           <span>Copilot</span>

@@ -15,7 +15,7 @@ import "./styles/about.css";
 import "./styles/component-tokens.css";
 import { App } from "./App";
 import { loadThemeOverrides } from "./theme";
-import { themeFor } from "./appearance";
+import { themeFor, toneFor } from "./appearance";
 import { registerBundledFonts } from "./bundledFonts";
 import { applyStartPage } from "./nav";
 
@@ -24,6 +24,7 @@ applyStartPage();
 
 // First paint: the theme this page should have (toggle, system or per page).
 document.documentElement.dataset.theme = themeFor(location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] ?? "");
+document.documentElement.dataset.tone = toneFor(document.documentElement.dataset.theme as "light" | "dark");
 
 // The fonts prototypes use, so previews here show the real typeface.
 registerBundledFonts();

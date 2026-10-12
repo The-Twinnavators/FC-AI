@@ -19,6 +19,7 @@ export const BUNDLED_FONTS: BundledFont[] = [
   { family: "Quicksand", file: "quicksand", kind: "sans" },
   { family: "DM Sans", file: "dm-sans", kind: "sans" },
   { family: "Work Sans", file: "work-sans", kind: "sans" },
+  { family: "Roboto", file: "roboto", kind: "sans" },
   { family: "Source Serif 4", file: "source-serif-4", kind: "serif" },
   { family: "Literata", file: "literata", kind: "serif" },
   { family: "Fraunces", file: "fraunces", kind: "serif" },

@@ -1,8 +1,8 @@
 /** @flowcode-library auth-sign-in · Sign in (Sign-in and sign-up)
  * Catalog ID: p.auth-form (pattern)
  * Function: The authentication screen pattern (p.auth-form): sign-in, sign-up, forgot-password and verify-code in a card or split layout, with validation, password show/hide, strength meter, code entry and resend countdown; the reference sheet shows sign-in.
- * Use it as: import { AuthForm } from "./auth-sign-in"; <AuthForm variant?="sign-in"|"sign-up"|"forgot-password"|"verify-code" layout?="card"|"split" brand title lede submitLabel? footer?={{text,linkLabel,href}} help?={{label,href}} doneTitle? doneText? side?={{tag,quote,person:{initials,name,role}}} /> plus per variant: sign-in demo?={{email,password}} providers?={["Continue with email link"]} forgotHref rememberKey?; sign-up takenEmails rules?={[{id:"length"|"number"|"case"|"symbol",label}]} strengthLabels termsHref privacyHref termsLabel privacyLabel storageKey; forgot-password cooldownSeconds linkValidMinutes; verify-code destination demoCode length resendSeconds attemptsAllowed expiresMinutes
- * Variants: p.auth-form.sign-in - returning users: email, password with show/hide, remember me, forgot link, optional provider buttons under an "or" rule, welcome-back confirmation; p.auth-form.sign-up - new users: name, email, password with strength meter and live rule checklist, terms checkbox, check-your-email confirmation; p.auth-form.forgot-password - locked-out users: ask for an email, then a check-your-email screen with steps and a resend button on a cooldown; p.auth-form.verify-code - confirm email, phone or two-step: six one-time-code boxes with paste and auto-advance, wrong-code feedback, resend countdown
+ * Use it as: import { AuthForm } from "./auth-sign-in"; <AuthForm variant?="sign-in"|"sign-up"|"forgot-password"|"verify-code" layout?="card"|"split" reveal?="text"|"icon" brand title lede submitLabel? footer?={{text,linkLabel,href}} help?={{label,href}} doneTitle? doneText? side?={{tag,quote,person:{initials,name,role}}} /> plus per variant: sign-in demo?={{email,password}} providers?={["Continue with email link"]} forgotHref rememberKey?; sign-up takenEmails rules?={[{id:"length"|"number"|"case"|"symbol",label}]} strengthLabels termsHref privacyHref termsLabel privacyLabel storageKey; forgot-password cooldownSeconds linkValidMinutes; verify-code destination demoCode length resendSeconds attemptsAllowed expiresMinutes
+ * Variants: p.auth-form.sign-in - returning users: email, password with show/hide, remember me, forgot link, optional provider buttons under an "or" rule, welcome-back confirmation; p.auth-form.sign-up - new users: name, email, password with strength meter and live rule checklist, terms checkbox, check-your-email confirmation; p.auth-form.forgot-password - locked-out users: ask for an email, then a check-your-email screen with steps and a resend button on a cooldown; p.auth-form.verify-code - confirm email, phone or two-step: six one-time-code boxes with paste and auto-advance, wrong-code feedback, resend countdown; p.auth-form.icon-reveal - any screen with a password (reveal="icon"): the show/hide control is a muted eye icon alone at the field's right edge, turning accent and crossed out while the password shows
  * Built from: c.text-field.outlined, c.checkbox, c.button.primary, c.button.secondary, c.alert.danger, c.alert.success, c.divider.labelled, c.card.surface
  * Look: A centered card (or a form beside a quote panel with layout split) holding a brand mark, heading, the form and a footer link, ending in a confirmation state.
  * Tokens: --color-accent --color-danger --color-danger-surface --color-border --color-text-muted --color-surface --space-2 --space-3 --space-4 --radius-md --text-sm --text-xs --weight-semibold --focus-ring
@@ -61,6 +61,9 @@ export type AuthFormProps = {
   doneText?: string;
   /** The picture panel; split layout only. */
   side?: AuthSide;
+  /** The password field's show/hide control: the words Show and Hide (text), or an eye icon alone (icon,
+   * p.auth-form.icon-reveal). text when left out. */
+  reveal?: "text" | "icon";
   className?: string;
 
   /** sign-in: the in-memory account checked on submit. Without it any well-formed email and password signs in. */
@@ -222,15 +225,23 @@ function Field({ id, label, error, aside, children }: { id: string; label: strin
   );
 }
 
-function PasswordInput({ id, value, onChange, autoComplete, disabled, invalid, describedBy }: { id: string; value: string; onChange: (v: string) => void; autoComplete: string; disabled?: boolean; invalid?: boolean; describedBy?: string }) {
+function PasswordInput({ id, value, onChange, autoComplete, disabled, invalid, describedBy, reveal = "text" }: { id: string; value: string; onChange: (v: string) => void; autoComplete: string; disabled?: boolean; invalid?: boolean; describedBy?: string; reveal?: "text" | "icon" }) {
   const [show, setShow] = useState(false);
+  const icon = reveal === "icon";
   return (
-    <div className="fl-auth-pass">
+    <div className={icon ? "fl-auth-pass fl-auth-pass--icon" : "fl-auth-pass"}>
       <TextField id={id} type={show ? "text" : "password"} autoComplete={autoComplete} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)} invalid={invalid} aria-describedby={describedBy} />
-      <button type="button" className="fl-auth-reveal" onClick={() => setShow((s) => !s)} aria-pressed={show} aria-controls={id}>
-        {show ? "Hide" : "Show"}
-        <span className="fl-sr"> password</span>
-      </button>
+      {icon ? (
+        // One fixed name and a pressed state, so a screen reader hears "Show password, toggle button, pressed".
+        <button type="button" className="fl-auth-reveal fl-auth-reveal--icon" onClick={() => setShow((s) => !s)} aria-pressed={show} aria-controls={id} aria-label="Show password" title={show ? "Hide password" : "Show password"} disabled={disabled}>
+          <Icon name={show ? "eye-off" : "eye"} />
+        </button>
+      ) : (
+        <button type="button" className="fl-auth-reveal" onClick={() => setShow((s) => !s)} aria-pressed={show} aria-controls={id}>
+          {show ? "Hide" : "Show"}
+          <span className="fl-sr"> password</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -263,7 +274,7 @@ function readRemembered(key?: string) {
 
 type SignInErrors = { email?: string; password?: string; form?: string };
 
-function SignIn({ id, brand, title, lede, submitLabel = "Sign in", footer, doneTitle = "You're signed in", doneText = "Good to see you again.", demo, providers = [], forgotHref = "#forgot-password", rememberKey }: Inner) {
+function SignIn({ id, brand, title, lede, submitLabel = "Sign in", footer, doneTitle = "You're signed in", doneText = "Good to see you again.", demo, providers = [], forgotHref = "#forgot-password", rememberKey, reveal }: Inner) {
   const [email, setEmail] = useState(() => readRemembered(rememberKey));
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(() => readRemembered(rememberKey) !== "");
@@ -356,6 +367,7 @@ function SignIn({ id, brand, title, lede, submitLabel = "Sign in", footer, doneT
           }
         >
           <PasswordInput
+            reveal={reveal}
             id={`${id}-pass`}
             value={password}
             autoComplete="current-password"
@@ -461,6 +473,7 @@ function SignUp({
   termsLabel = "terms",
   privacyLabel = "privacy notice",
   storageKey = "accounts",
+  reveal,
 }: Inner) {
   const [values, setValues] = useState({ name: "", email: "", password: "" });
   const [terms, setTerms] = useState(false);
@@ -535,6 +548,7 @@ function SignUp({
         <div className="fl-field">
           <label htmlFor={`${id}-password`}>Password</label>
           <PasswordInput
+            reveal={reveal}
             id={`${id}-password`}
             value={values.password}
             autoComplete="new-password"

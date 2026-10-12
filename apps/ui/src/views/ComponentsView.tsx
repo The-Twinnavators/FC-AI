@@ -18,11 +18,10 @@ const key = (id: string) => `../../../../templates/library/sections/${id}.tsx`;
  * focus and Escape act on that window, never on FlowCode's page. The preview page reports its height.
  */
 /**
- * One height for every preview, so the frame is a viewport rather than a measurement of its own contents.
- * Sizing it from the content made vh circular: a piece asking for 88vh grew the frame, which grew the 88vh, which
- * grew the frame. landing-prelaunch settled at 3631px for 435px of content, centred in the middle of the emptiness.
+ * The frame takes the room the sheet leaves it (the stylesheet sizes it from the window), so it is a viewport rather
+ * than a measurement of its own contents. Sizing it from the content made vh circular: a piece asking for 88vh grew
+ * the frame, which grew the 88vh, which grew the frame. landing-prelaunch settled at 3631px for 435px of content.
  */
-const PREVIEW_HEIGHT = 760;
 
 function SectionFrame({ id, look, title, width }: { id: string; look: string; title: string; width: number }) {
   // Until the section has drawn, the frame shows the loading bar (never an empty white box). The page still reports
@@ -44,7 +43,7 @@ function SectionFrame({ id, look, title, width }: { id: string; look: string; ti
           <span className="is-indeterminate" />
         </span>
       )}
-      <iframe className="cl-frame" title={`${title} preview`} src={src} loading="lazy" style={{ height: PREVIEW_HEIGHT, ...(width ? { width } : {}) }} />
+      <iframe className="cl-frame" title={`${title} preview`} src={src} loading="lazy" style={width ? { width } : undefined} />
     </div>
   );
 }
@@ -312,56 +311,71 @@ export function ComponentsView() {
   );
 }
 
-/** A piece's catalog ID to copy, its variants' IDs, what it's built from and what uses it. */
+const LEVEL_NAMES = { component: "Component", pattern: "Pattern", block: "Block", template: "Template", tokens: "Tokens" } as const;
+
+/** One catalog ID, tinted by its level (component, pattern, block, template, tokens). With `base`, the part it shares
+ * with the piece's own ID is dimmed so a variant reads as its suffix. */
+function RefChip({ id, base }: { id: string; base?: string }) {
+  const shared = base && (id.startsWith(`${base}.`) || id.startsWith(`${base}@`)) ? base : "";
+  return (
+    <code className="cl-ref" data-level={levelOf(id) ?? "component"} title={id}>
+      {shared ? <span className="cl-ref__base">{shared}</span> : null}
+      {id.slice(shared.length)}
+    </code>
+  );
+}
+
+/** A piece's catalog ID to copy, its variants' IDs, what it's built from and what uses it, one labelled row each, with
+ * a key to the level colours used on this sheet. */
 function PieceRefs({ piece }: { piece: LibrarySection }) {
   if (!piece.ref) return null;
-  const users = usedBy(piece.ref);
-  const versions = versionsOf(piece.ref);
-  const refs = (list: string[]) => list.map((r) => <code key={r} className="cl-ref">{r}</code>);
+  const ref = piece.ref;
+  const own = (r: string) => r === ref || r.startsWith(`${ref}.`) || r.startsWith(`${ref}@`);
+  // A piece's own variants and versions are listed above; "Used by" is for the pieces built on top of it.
+  const users = usedBy(ref).filter((u) => !own(u.ref ?? u.id));
+  const rows: [string, string[]][] = [
+    ["Variants", (piece.variants ?? []).map((v) => v.ref)],
+    ["Also", (piece.also ?? []).flatMap((a) => [a.ref, ...(a.variants ?? []).map((v) => v.ref)])],
+    ["Version of", piece.versionOf ? [piece.versionOf] : []],
+    ["Versions", versionsOf(ref).map((v) => v.ref!)],
+    ["Uses", piece.uses ?? []],
+    ["Used by", users.map((u) => u.ref ?? u.id)],
+  ];
+  const shown = rows.filter(([, ids]) => ids.length);
+  const level = levelOf(ref) ?? "component";
+  const levels = [...new Set([ref, ...shown.flatMap(([, ids]) => ids)].map((r) => levelOf(r) ?? "component"))];
   return (
     <dl className="cl-refs">
-      <div>
+      <div className="cl-refs__row">
         <dt>Catalog ID</dt>
         <dd>
-          <CopyButton text={piece.ref} label={piece.ref} />
+          <span className="cl-ref-id" data-level={level}>
+            <CopyButton text={ref} label={ref} />
+          </span>
+          <span className="cl-level" data-level={level}>
+            {LEVEL_NAMES[level]}
+          </span>
+          {levels.length > 1 ? (
+            <span className="cl-levels" aria-label="Colour key">
+              {levels.map((l) => (
+                <span key={l} className="cl-levels__item" data-level={l}>
+                  {LEVEL_NAMES[l]}
+                </span>
+              ))}
+            </span>
+          ) : null}
         </dd>
       </div>
-      {piece.variants?.length ? (
-        <div>
-          <dt>Variants</dt>
-          <dd>{refs(piece.variants.map((v) => v.ref))}</dd>
+      {shown.map(([label, ids]) => (
+        <div key={label} className="cl-refs__row">
+          <dt>{label}</dt>
+          <dd>
+            {ids.map((id) => (
+              <RefChip key={id} id={id} base={label === "Variants" || label === "Versions" ? ref : undefined} />
+            ))}
+          </dd>
         </div>
-      ) : null}
-      {piece.also?.length ? (
-        <div>
-          <dt>Also</dt>
-          <dd>{refs(piece.also.flatMap((a) => [a.ref, ...(a.variants ?? []).map((v) => v.ref)]))}</dd>
-        </div>
-      ) : null}
-      {piece.versionOf ? (
-        <div>
-          <dt>Version of</dt>
-          <dd>{refs([piece.versionOf])}</dd>
-        </div>
-      ) : null}
-      {versions.length ? (
-        <div>
-          <dt>Versions</dt>
-          <dd>{refs(versions.map((v) => v.ref!))}</dd>
-        </div>
-      ) : null}
-      {piece.uses?.length ? (
-        <div>
-          <dt>Uses</dt>
-          <dd>{refs(piece.uses)}</dd>
-        </div>
-      ) : null}
-      {users.length ? (
-        <div>
-          <dt>Used by</dt>
-          <dd>{refs(users.map((u) => u.ref ?? u.id))}</dd>
-        </div>
-      ) : null}
+      ))}
     </dl>
   );
 }
