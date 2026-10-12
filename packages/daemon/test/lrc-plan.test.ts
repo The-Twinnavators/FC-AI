@@ -216,6 +216,10 @@ describe("a spec build plans from the checklist", () => {
         if (String(req.messages[0]?.content ?? "").startsWith("You decide which screens")) {
           return { content: JSON.stringify({ product: "Calendar", screens: [{ name: "Calendar", purpose: "See events by month, week or day." }] }), toolCalls: [], model: "stub", durationMs: 1 };
         }
+        // The screen briefs, in a call of their own after the plan.
+        if (String(req.messages[0]?.content ?? "").startsWith("You plan the screens")) {
+          return { content: JSON.stringify({ screens: [{ screen: "Calendar", who: "Planners", goal: "See the week", workflow: ["Pick a view"], firstView: "This week", primaryAction: "Add an event", sections: [{ title: "Week", purpose: "Events by day", part: "" }] }] }), toolCalls: [], model: "stub", durationMs: 1 };
+        }
         screenNotes.push(user.includes("src/screens/CalendarScreen.tsx: Calendar"));
         const lines = [...user.matchAll(/(R\d+) \[([^\]]*)\]/g)].map((m) => ({ id: m[1], section: m[2] }));
         sections.push(...new Set(lines.map((l) => l.section)));

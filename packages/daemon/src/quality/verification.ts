@@ -3,6 +3,7 @@
  * adapter (scripts, dev server, Playwright, axe, static analyzers) and stores evidence references.
  * Task acceptance criteria are evaluated here — independently of any agent claim.
  */
+import { screenBriefKey, screenBriefNote, type ScreenBrief } from "../orchestrator/screenBrief.js";
 import fs from "node:fs";
 import path from "node:path";
 import type { Finding, Run, Task, VerificationCheck, VerificationKind, VerificationStatus } from "@flowcode/contracts";
@@ -705,6 +706,12 @@ export class Verifier {
    * navigation and audits what's on screen (see lookCheck.ts). Returns undefined when it can't run (no dependencies,
    * no preview, server didn't start); the step is then judged on its other checks.
    */
+  /** The run's screen briefs, for the reviews: a screen is judged against what its person came to do. */
+  private briefFor(runId: string): string {
+    const briefs = this.store.getSetting<ScreenBrief[]>(screenBriefKey(runId), []);
+    return briefs.length ? `\n\nJudge each screen against its brief (does its top show what the person must see first, in this order?):\n${screenBriefNote(briefs).slice(0, 2500)}` : "";
+  }
+
   async lookCheckTask(run: Run, task: Task, signal?: AbortSignal, opts: { crit?: boolean; structureOnly?: boolean; designStep?: boolean } = {}): Promise<LookFinding[] | undefined> {
     const project = this.store.projects.require(run.projectId);
     const jail = this.projects.jail(project);
@@ -753,7 +760,7 @@ export class Verifier {
           f.message = `${f.message} (for the step that owns this screen)`;
         }
       }
-      const review = opts.structureOnly ? { findings: [], model: undefined, limitation: undefined } : await lookReview(this.router, [run.modelAssignments.coder, run.modelAssignments.coder?.providerId.startsWith("hosted") ? run.modelAssignments.critic : run.modelAssignments.critic?.providerId.startsWith("hosted") ? this.router.roleAssignments(project.id).critic : run.modelAssignments.critic], result.screens, `${run.objective}\nThis step: ${task.title}`, { projectId: project.id, runId: run.id, signal });
+      const review = opts.structureOnly ? { findings: [], model: undefined, limitation: undefined } : await lookReview(this.router, [run.modelAssignments.coder, run.modelAssignments.coder?.providerId.startsWith("hosted") ? run.modelAssignments.critic : run.modelAssignments.critic?.providerId.startsWith("hosted") ? this.router.roleAssignments(project.id).critic : run.modelAssignments.critic], result.screens, `${run.objective}\nThis step: ${task.title}${this.briefFor(run.id)}`, { projectId: project.id, runId: run.id, signal });
       // The look review's taste ("reads like a landing page") is the design steps' to act on. On a feature step it's advice:
       // with a cloud reviewer it blocked Sort Controls and Responsive three times each on a design they couldn't change.
       result.findings.push(...review.findings.map((f) => ({ ...f, serious: opts.designStep ? f.serious : false, message: `${f.message} (look review, ${review.model})` })));
@@ -768,7 +775,7 @@ export class Verifier {
         const direction = this.store.getSetting<DesignDirection | null>(`designDirection:${project.id}`, null);
         // The bar includes the design research on the best products in the category, when there is some.
         const research = this.store.getSetting<DesignResearch | null>(researchKey(project.id), null);
-        const crit = await designCrit(this.router, hosted, result.screens, `${run.objective.slice(0, 800)}\nThis step: ${task.title}${direction ? `\n${directionBrief(direction)}` : ""}${research ? `\nThe bar, from design research on the best products in this category:\n${designResearchBrief(research)}` : ""}`, { projectId: project.id, runId: run.id, signal }).catch(() => undefined);
+        const crit = await designCrit(this.router, hosted, result.screens, `${run.objective.slice(0, 800)}\nThis step: ${task.title}${this.briefFor(run.id)}${direction ? `\n${directionBrief(direction)}` : ""}${research ? `\nThe bar, from design research on the best products in this category:\n${designResearchBrief(research)}` : ""}`, { projectId: project.id, runId: run.id, signal }).catch(() => undefined);
         if (crit) {
           this.bus.emit({ type: "verification.completed", projectId: project.id, runId: run.id, taskId: task.id, message: `Design crit on "${task.title}" (${crit.model}): ${crit.level}${crit.improvements.length ? `. To raise it: ${crit.improvements.join(" · ")}` : ""}`.slice(0, 1200), level: crit.level === "portfolio" ? "info" : "warning" });
           for (const imp of crit.improvements) result.findings.push({ screen: "Design crit", rule: "design-crit", serious: true, message: imp });

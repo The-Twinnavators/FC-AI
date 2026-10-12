@@ -6,7 +6,7 @@
  * Look: A rounded accent-tinted pill with a sparkle icon and a short bold label; the confidence form is a labeled bar with a sentence.
  * Tokens: --color-accent --color-text-muted --color-surface --color-border --radius-md --space-1 --space-2 --space-3 --text-xs --text-sm --focus-ring
  * Use cases: a generated draft; a suggestion in a field; a streaming answer; a citation; a confidence note
- * Jobs to be done: tell generated text from written text; see the model working; decide whether to trust it
+ * Jobs to be done: tell generated text from written text; see the model working; decide whether to trust a generated answer
  * Keywords: AI, generated, suggestion, streaming, confidence, provenance, citation, disclosure
  */
 /**

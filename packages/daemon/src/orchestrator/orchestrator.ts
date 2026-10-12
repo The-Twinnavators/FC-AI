@@ -63,6 +63,7 @@ import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, p
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
+import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBriefs, prdForBrief, screenBriefKey, screenBriefNote } from "./screenBrief.js";
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
 import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
@@ -711,7 +712,7 @@ export class Orchestrator {
     const features = featureTasks ?? specFallbackTasks(refs, starter.id, run.objective);
     const polish = polishTask(features.map((t) => t.key));
     const cleanup = cleanupTask([polish.key]);
-    const tasks = this.withScreenPicks(run, [...runtime, ...features, polish, cleanup, { ...assembleTask([cleanup.key], starter.id), key: "m_assemble" }], screenPlan);
+    const tasks = await this.withScreenBriefs(run, this.withScreenPicks(run, [...runtime, ...features, polish, cleanup, { ...assembleTask([cleanup.key], starter.id), key: "m_assemble" }], screenPlan), screenPlan, signal);
     return {
       goal: run.objective,
       assumptions: [
@@ -752,6 +753,41 @@ export class Orchestrator {
           ? { ...t, objective: `${t.objective}\n\n${screenPickGuidance(extra, sectionFile)}` }
           : t,
     );
+  }
+
+  /**
+   * Screen briefs (screenBrief.ts): who arrives on each screen, their goal and workflow, what they must see first, and
+   * the screen as ordered sections built from its matched catalog parts. One planner call; the design steps get the
+   * briefs as their target and the visual review judges against them. Without briefs the plan stands as it was.
+   */
+  private async withScreenBriefs(run: Run, tasks: PlanTask[], screens: ScreenPlan | undefined, signal: AbortSignal): Promise<PlanTask[]> {
+    if (!screens?.screens.length || !tasks.some((t) => t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH)) return tasks;
+    const ev = { projectId: run.projectId, runId: run.id };
+    const prd = prdForBrief(prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, [])));
+    const manifest = this.catalogManifestOf(run);
+    let briefs: ReturnType<typeof parseScreenBriefs> = [];
+    try {
+      const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, {
+        messages: [
+          { role: "system", content: SCREEN_BRIEF_SYSTEM },
+          { role: "user", content: untrusted("screen-brief", briefRequest(run.objective, prd, screens, manifest)) },
+        ],
+        format: SCREEN_BRIEF_SCHEMA,
+        timeoutMs: 180_000,
+        signal,
+      });
+      briefs = parseScreenBriefs(JSON.parse(extractJson(res.content)), screens, manifest);
+    } catch (err) {
+      if (signal.aborted) throw err;
+    }
+    if (!briefs.length) {
+      this.d.bus.emit({ ...ev, type: "plan.proposed", message: "No screen briefs this time (the planner's answer wasn't usable); the design steps work from the screen list and the catalog", level: "warning" });
+      return tasks;
+    }
+    this.d.store.setSetting(screenBriefKey(run.id), briefs);
+    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Screen briefs: ${briefs.map((b) => `${b.screen}: first view "${b.firstView.slice(0, 90)}", ${b.sections.length} sections (${b.sections.map((x) => x.part || x.title).join(", ")})`).join("; ")}`, data: { briefs } });
+    const note = screenBriefNote(briefs);
+    return tasks.map((t) => (t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH ? { ...t, objective: `${t.objective}\n\n${note}` } : t));
   }
 
   /**
@@ -917,7 +953,7 @@ export class Orchestrator {
       riskNotes: ["Dependency installation (npm install) runs package lifecycle scripts and uses the network"],
       validationPlan: specRequiredChecks(refs, templateId),
       rollbackStrategy: "Every file change is snapshotted; restore the 'Plan approved' checkpoint to return to an empty workspace.",
-      tasks: this.withScreenPicks(run, [...fixed, ...features, polish, cleanup, assemble], screenPlan),
+      tasks: await this.withScreenBriefs(run, this.withScreenPicks(run, [...fixed, ...features, polish, cleanup, assemble], screenPlan), screenPlan, signal),
     };
   }
 
