@@ -273,7 +273,7 @@
 }
 .fl-aa-nav__list a svg { width: 1.15rem; height: 1.15rem; }
 .fl-aa-nav__list a:hover { opacity: 1; background: color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 10%, transparent); }
-.fl-aa-nav__list a[aria-current="page"] { opacity: 1; font-weight: var(--weight-semibold); background: color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 18%, transparent); box-shadow: inset 3px 0 0 var(--color-on-secondary, var(--color-on-accent)); }
+.fl-aa-nav__list a[aria-current="page"] { opacity: 1; font-weight: var(--weight-semibold); background: color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 18%, transparent); }
 .fl-aa-nav .fl-icon { background: none; }
 .fl-aa-nav__plan {
   display: grid; gap: var(--space-1); margin-top: auto; padding: var(--space-4); border-radius: min(var(--radius-lg), 24px);

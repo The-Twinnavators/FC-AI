@@ -259,30 +259,28 @@ export default function PaginationVariants() {
   const upTo = Math.min(page * perPage, count);
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-paging-list">
-        <li>
-          <p className="fl-ctl-matrix-kind">Numbered</p>
-          <p className="fl-ctl-matrix-what">For lists people come back to. The ends disable rather than disappear.</p>
-          <Pagination page={page} pageCount={last} onPageChange={setPage} />
-          <p className="fl-ctl-matrix-what" role="status" aria-live="polite">
-            Showing {first.toLocaleString("en-US")} to {upTo.toLocaleString("en-US")} of {count.toLocaleString("en-US")}
-          </p>
-        </li>
+      <div className="fl-ctl-spec fl-ctl-spec--wide">
+        <h3>Numbered</h3>
+        <p className="fl-ctl-btn-what">For lists people come back to. The ends disable rather than disappear.</p>
+        <Pagination page={page} pageCount={last} onPageChange={setPage} />
+        <p className="fl-ctl-matrix-what" role="status" aria-live="polite">
+          Showing {first.toLocaleString("en-US")} to {upTo.toLocaleString("en-US")} of {count.toLocaleString("en-US")}
+        </p>
+      </div>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">Previous and next</p>
-          <p className="fl-ctl-matrix-what">When the page number does not matter, only the movement.</p>
-          <Pagination variant="simple" page={simple} pageCount={last} onPageChange={setSimple} prevLabel="Newer" nextLabel="Older" />
-        </li>
+      <div className="fl-ctl-spec">
+        <h3>Previous and next</h3>
+        <p className="fl-ctl-btn-what">When the page number does not matter, only the movement.</p>
+        <Pagination variant="simple" page={simple} pageCount={last} onPageChange={setSimple} prevLabel="Newer" nextLabel="Older" />
+      </div>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">Load more</p>
-          <p className="fl-ctl-matrix-what">For a feed. It says what is left, so it is never a mystery button.</p>
-          <Pagination variant="load-more" shown={shown} total={count} onLoadMore={() => setShown((n) => Math.min(count, n + 25))} />
-        </li>
-      </ul>
+      <div className="fl-ctl-spec">
+        <h3>Load more</h3>
+        <p className="fl-ctl-btn-what">For a feed. It says what is left, so it is never a mystery button.</p>
+        <Pagination variant="load-more" shown={shown} total={count} onLoadMore={() => setShown((n) => Math.min(count, n + 25))} />
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide">
         <h3>Versions</h3>
         <p className="fl-ctl-btn-what">
           c.pagination@classic: numbered pages with chevron Previous and Next, an ellipsis for long ranges, a Showing line and a
@@ -291,7 +289,7 @@ export default function PaginationVariants() {
         <Pagination version="classic" total={312} defaultPage={2} defaultPageSize={20} pageSizes={[10, 20, 50]} />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Rows per page</h3>
         <p className="fl-ctl-btn-what">Beside the paging, not inside it: changing the page size moves you back to the first page.</p>
         <span className="fl-ctl-select fl-ctl-paging-size">

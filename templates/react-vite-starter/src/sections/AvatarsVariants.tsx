@@ -359,18 +359,20 @@ export default function AvatarsVariants() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <h3>Sizes</h3>
-      <p className="fl-ctl-btn-what">Ten steps, up to 120 px for a profile page. Under 24 px the initials stop being readable, so those are for a stack or a dot, not for standing alone.</p>
-      <ul className="fl-ctl-size-list fl-ctl-avatar-sizes">
-        {d.sizes.map((s) => (
-          <li key={s}>
-            <Avatar name="Ana Moreau" tone="a" size={s} status={s >= 44 ? "online" : undefined} />
-            <span className="fl-ctl-btn-what">{s} px</span>
-          </li>
-        ))}
-      </ul>
+      <div className="fl-ctl-spec fl-ctl-spec--wide">
+        <h3>Sizes</h3>
+        <p className="fl-ctl-btn-what">Ten steps, up to 120 px for a profile page. Under 24 px the initials stop being readable, so those are for a stack or a dot, not for standing alone.</p>
+        <ul className="fl-ctl-size-list fl-ctl-avatar-sizes">
+          {d.sizes.map((s) => (
+            <li key={s}>
+              <Avatar name="Ana Moreau" tone="a" size={s} status={s >= 44 ? "online" : undefined} />
+              <span className="fl-ctl-btn-what">{s} px</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Round or square</h3>
         <p className="fl-ctl-btn-what">Round for a person, square for an organisation. Mixing the two in one list is how people tell them apart.</p>
         <div className="fl-ctl-avatar-row">
@@ -385,7 +387,7 @@ export default function AvatarsVariants() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>When the picture is not there</h3>
         <p className="fl-ctl-btn-what">
           Three fallbacks in order: the photograph, the initials, and a question mark. The middle one is loaded from a
@@ -411,7 +413,7 @@ export default function AvatarsVariants() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Presence</h3>
         <p className="fl-ctl-btn-what">A dot on the corner, with the word behind it for anyone who cannot see the color.</p>
         <ul className="fl-ctl-avatar-people">
@@ -427,7 +429,7 @@ export default function AvatarsVariants() {
         </ul>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>A stack</h3>
         <p className="fl-ctl-btn-what">Four at most, then a count. The whole stack is one thing to a screen reader, so it reads as a sentence rather than six names in a row.</p>
         <AvatarStack people={d.people} label="On this shoot" />
@@ -447,14 +449,14 @@ export default function AvatarsVariants() {
         ) : null}
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Version: classic (c.avatar-stack@classic)</h3>
         <p className="fl-ctl-btn-what">
           The team-presence stack: larger themed discs that overlap, a count button that opens the full list, and a key for the
           four presence dots, including busy (teaching, in a meeting). The sheet below also shows the sizes and the people list behind the count.
         </p>
+        <ClassicAvatarGroup {...d.group} />
       </div>
-      <ClassicAvatarGroup {...d.group} />
     </section>
   );
 }

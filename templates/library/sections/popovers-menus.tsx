@@ -538,58 +538,52 @@ export default function PopoversMenus() {
   const [said, setSaid] = useState("");
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-pop-list">
-        <li>
-          <p className="fl-ctl-matrix-kind">A small form</p>
-          <p className="fl-ctl-matrix-what">Change several things, then apply. Pressing outside puts your changes back rather than keeping half of them.</p>
-          <FilterPopover say={setSaid} />
-        </li>
-        <li>
-          <p className="fl-ctl-matrix-kind">A panel with one job</p>
-          <p className="fl-ctl-matrix-what">A choice and the thing it produces, side by side.</p>
-          <SharePopover say={setSaid} />
-        </li>
-        <li>
-          <p className="fl-ctl-matrix-kind">On a name</p>
-          <p className="fl-ctl-matrix-what">A card about whatever you pressed. Anchored to the word, not the page.</p>
-          <CardPopover />
-        </li>
-        <li>
-          <p className="fl-ctl-matrix-kind">Aligned to the right edge</p>
-          <p className="fl-ctl-matrix-what">align=&quot;end&quot; opens the panel flush with the trigger&apos;s right edge, for a button at the end of a bar.</p>
-          <Popover label="Sort" icon="filter" align="end" panelLabel="Sort the gallery">
-            {(close) => (
-              <>
-                <p className="fl-ctl-matrix-what">Newest first, oldest first, or by client.</p>
-                <div className="fl-ctl-pop-foot">
-                  <Button size={32} onClick={() => (setSaid("Sorted."), close())}>Done</Button>
-                </div>
-              </>
-            )}
-          </Popover>
-        </li>
-        <li>
-          <p className="fl-ctl-matrix-kind">An action menu</p>
-          <p className="fl-ctl-matrix-what">One press per action, and it closes. Arrow keys move, Enter chooses.</p>
-          <Menu label="Shoot actions" icon="more" items={SAMPLE.actions} onSelect={(id) => setSaid(`Chose ${SAMPLE.actions.find((a) => a.id === id)?.label}`)} />
-        </li>
-        <li>
-          <p className="fl-ctl-matrix-kind">A menu on a row</p>
-          <p className="fl-ctl-matrix-what">An icon-only button for a list, lined up to its right edge. Type a letter to jump to an item.</p>
-          <Menu iconOnly align="end" label="Actions for Riverside wedding" items={SAMPLE.actions} onSelect={(id) => setSaid(`Chose ${SAMPLE.actions.find((a) => a.id === id)?.label} on the row`)} />
-        </li>
-        <li>
-          <p className="fl-ctl-matrix-kind">c.menu@classic</p>
-          <p className="fl-ctl-matrix-what">A bordered three-dot button and a compact list with a rule before the destructive item.</p>
-          <Menu version="classic" label="Actions for Riverside wedding" items={CLASSIC_ACTIONS} onSelect={(id) => setSaid(`Chose ${CLASSIC_ACTIONS.find((a) => a.id === id)?.label} (classic)`)} />
-        </li>
-      </ul>
+      <div className="fl-ctl-spec">
+        <h3>A small form</h3>
+        <p className="fl-ctl-btn-what">Change several things, then apply. Pressing outside puts your changes back rather than keeping half of them.</p>
+        <FilterPopover say={setSaid} />
+      </div>
+      <div className="fl-ctl-spec">
+        <h3>A panel with one job</h3>
+        <p className="fl-ctl-btn-what">A choice and the thing it produces, side by side.</p>
+        <SharePopover say={setSaid} />
+      </div>
+      <div className="fl-ctl-spec">
+        <h3>On a name</h3>
+        <p className="fl-ctl-btn-what">A card about whatever you pressed. Anchored to the word, not the page.</p>
+        <CardPopover />
+      </div>
+      <div className="fl-ctl-spec">
+        <h3>Aligned to the right edge</h3>
+        <p className="fl-ctl-btn-what">align=&quot;end&quot; opens the panel flush with the trigger&apos;s right edge, for a button at the end of a bar.</p>
+        <Popover label="Sort" icon="filter" align="end" panelLabel="Sort the gallery">
+          {(close) => (
+            <>
+              <p className="fl-ctl-matrix-what">Newest first, oldest first, or by client.</p>
+              <div className="fl-ctl-pop-foot">
+                <Button size={32} onClick={() => (setSaid("Sorted."), close())}>Done</Button>
+              </div>
+            </>
+          )}
+        </Popover>
+      </div>
+      <div className="fl-ctl-spec">
+        <h3>An action menu</h3>
+        <p className="fl-ctl-btn-what">One press per action, and it closes. Arrow keys move, Enter chooses.</p>
+        <Menu label="Shoot actions" icon="more" items={SAMPLE.actions} onSelect={(id) => setSaid(`Chose ${SAMPLE.actions.find((a) => a.id === id)?.label}`)} />
+      </div>
+      <div className="fl-ctl-spec">
+        <h3>A menu on a row</h3>
+        <p className="fl-ctl-btn-what">An icon-only button for a list, lined up to its right edge. Type a letter to jump to an item.</p>
+        <Menu iconOnly align="end" label="Actions for Riverside wedding" items={SAMPLE.actions} onSelect={(id) => setSaid(`Chose ${SAMPLE.actions.find((a) => a.id === id)?.label} on the row`)} />
+      </div>
+      <div className="fl-ctl-spec">
+        <h3>c.menu@classic</h3>
+        <p className="fl-ctl-btn-what">A bordered three-dot button and a compact list with a rule before the destructive item.</p>
+        <Menu version="classic" label="Actions for Riverside wedding" items={CLASSIC_ACTIONS} onSelect={(id) => setSaid(`Chose ${CLASSIC_ACTIONS.find((a) => a.id === id)?.label} (classic)`)} />
+      </div>
 
-      <p className="fl-ctl-status" role="status" aria-live="polite">
-        {said || "Open one, then press Escape, or press outside it."}
-      </p>
-
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Popover, tooltip or menu</h3>
         <ul className="fl-ctl-tip-rules">
           <li>
@@ -605,6 +599,12 @@ export default function PopoversMenus() {
             <span className="fl-ctl-matrix-what">A panel with several things in it. Opens on press only, and stays until you are done.</span>
           </li>
         </ul>
+      </div>
+
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "Open one, then press Escape, or press outside it."}
+        </p>
       </div>
     </section>
   );

@@ -247,64 +247,66 @@ export default function TopNavVariants() {
   const [said, setSaid] = useState("");
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-nav-list">
-        <li>
-          <p className="fl-ctl-matrix-kind">Marketing header</p>
-          <p className="fl-ctl-matrix-what">For people who are not signed in: a few links and one thing to do. Narrow it and the links fold behind the button.</p>
-          <TopNav
-            brand={d.brand}
-            links={d.marketing}
-            current="Work"
-            actions={[{ label: "Sign in", variant: "tertiary" }, { label: "Start a project" }]}
-            onSelect={(l) => setSaid(l === "Sign in" || l === "Start a project" ? l : `Went to ${l}`)}
-          />
-        </li>
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <ul className="fl-ctl-nav-list">
+          <li>
+            <p className="fl-ctl-matrix-kind">Marketing header</p>
+            <p className="fl-ctl-matrix-what">For people who are not signed in: a few links and one thing to do. Narrow it and the links fold behind the button.</p>
+            <TopNav
+              brand={d.brand}
+              links={d.marketing}
+              current="Work"
+              actions={[{ label: "Sign in", variant: "tertiary" }, { label: "Start a project" }]}
+              onSelect={(l) => setSaid(l === "Sign in" || l === "Start a project" ? l : `Went to ${l}`)}
+            />
+          </li>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">Centered header</p>
-          <p className="fl-ctl-matrix-what">For a portfolio or studio: links in the middle and one quiet action. Here the brand is a plain wordmark (mark off).</p>
-          <TopNav
-            variant="centered"
-            brand="Atelier North"
-            mark={false}
-            links={[{ label: "Work" }, { label: "Studio" }, { label: "Journal" }]}
-            actions={[{ label: "Get in touch", variant: "secondary" }]}
-            onSelect={(l) => setSaid(l === "Get in touch" ? l : `Went to ${l}`)}
-          />
-        </li>
+          <li>
+            <p className="fl-ctl-matrix-kind">Centered header</p>
+            <p className="fl-ctl-matrix-what">For a portfolio or studio: links in the middle and one quiet action. Here the brand is a plain wordmark (mark off).</p>
+            <TopNav
+              variant="centered"
+              brand="Atelier North"
+              mark={false}
+              links={[{ label: "Work" }, { label: "Studio" }, { label: "Journal" }]}
+              actions={[{ label: "Get in touch", variant: "secondary" }]}
+              onSelect={(l) => setSaid(l === "Get in touch" ? l : `Went to ${l}`)}
+            />
+          </li>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">App bar</p>
-          <p className="fl-ctl-matrix-what">For people already in: sections, a search, and the account menu. Press a section, or open the avatar.</p>
-          <TopNav
-            variant="app"
-            brand={d.brand}
-            links={d.app}
-            current="Shoots"
-            search="Search shoots"
-            account={{ initials: "AM", items: d.account }}
-            onSelect={(l) => setSaid(d.account.includes(l) ? l : `Went to ${l}`)}
-          />
-        </li>
+          <li>
+            <p className="fl-ctl-matrix-kind">App bar</p>
+            <p className="fl-ctl-matrix-what">For people already in: sections, a search, and the account menu. Press a section, or open the avatar.</p>
+            <TopNav
+              variant="app"
+              brand={d.brand}
+              links={d.app}
+              current="Shoots"
+              search="Search shoots"
+              account={{ initials: "AM", items: d.account }}
+              onSelect={(l) => setSaid(d.account.includes(l) ? l : `Went to ${l}`)}
+            />
+          </li>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">On a phone</p>
-          <p className="fl-ctl-matrix-what">Everything but the logo folds behind one button, which says whether it is open.</p>
-          <TopNav
-            variant="phone"
-            brand={d.brand}
-            links={d.marketing}
-            actions={[{ label: "Start a project" }]}
-            onSelect={(l) => setSaid(l === "Start a project" ? "Sign up" : `Went to ${l}`)}
-          />
-        </li>
-      </ul>
+          <li>
+            <p className="fl-ctl-matrix-kind">On a phone</p>
+            <p className="fl-ctl-matrix-what">Everything but the logo folds behind one button, which says whether it is open.</p>
+            <TopNav
+              variant="phone"
+              brand={d.brand}
+              links={d.marketing}
+              actions={[{ label: "Start a project" }]}
+              onSelect={(l) => setSaid(l === "Start a project" ? "Sign up" : `Went to ${l}`)}
+            />
+          </li>
+        </ul>
 
-      <p className="fl-ctl-status" role="status" aria-live="polite">
-        {said || "Press anything in the bars above."}
-      </p>
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "Press anything in the bars above."}
+        </p>
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>The rules these follow</h3>
         <p className="fl-ctl-btn-what">
           The current section carries aria-current, not just a color. The first thing in the tab order is a skip link,

@@ -1,13 +1,13 @@
 /** @flowcode-library cards-variants · Cards: kinds, elevation and states (Cards)
  * Catalog ID: c.card (component)
  * Function: The card (c.card) that holds a tile or list item, and its reference sheet: plain, clickable and selectable kinds across their states, a priced choice group made of selectable cards, and three elevations.
- * Use it as: import { Card } from "./CardsVariants"; <Card version?="default"|"tick"|"neobrutal" variant?="plain"|"clickable"|"selectable" elevation?="flat"|"raised"|"floating" selected? disabled? name? onSelect? pickLabel? icon? tag? onClick? ref?>content</Card>  // ref reaches the card's root element (a <label> when selectable, else a <div>)
+ * Use it as: import { Card } from "./CardsVariants"; <Card version?="default"|"tick"|"sticker" variant?="plain"|"clickable"|"selectable" elevation?="flat"|"raised"|"floating" selected? disabled? name? onSelect? pickLabel? icon? tag? onClick? ref?>content</Card>  // ref reaches the card's root element (a <label> when selectable, else a <div>)
  * Variants: c.card.plain - content that does nothing: a bordered surface; c.card.clickable - the whole card opens something: a bordered surface with an arrow, hover and focus states; c.card.selectable - one choice of a set: a bordered surface with a radio in the corner and an accent outline when chosen
  * Look: A bordered surface with padded content, optionally lifted by a flat, raised or floating shadow; clickable ones show an arrow, selectable ones a radio; icon adds a tile at the top and tag pins a short label to the corner.
  * Tokens: --accent-bg --color-accent --color-border --color-border-strong --color-surface --color-text-muted --control-edge --control-radius --control-radius-sm --control-shadow --edge-width --space-1 --space-3 --space-4 --surface-bg --surface-blur --surface-border --surface-edge --surface-radius --surface-radius-sm --surface-shadow --surface-shadow-selected --tag-tilt --radius-md
  * Use cases: dashboard tiles; project list; article list; settings groups; pickable options; plan selection; delivery options; shipping method; subscription tier; checkout options; membership choice; service package; pricing card; profile card; feature card; plan picker; team member card; creator profile; bold product page
  * Jobs to be done: scan a list of things; open one of them; choose one of several; pick the plan that suits me; choose how my order is delivered; compare options with prices; confirm my choice; choose a plan; follow a person i like; learn about a key feature
- * Keywords: card, tile, elevation, surface, clickable, selected, radio, radio cards, plan picker, delivery options, fieldset, choice, cards, pricing, profile, feature, sticker, neobrutalism
+ * Keywords: card, tile, elevation, surface, clickable, selected, radio, radio cards, plan picker, delivery options, fieldset, choice, cards, pricing, profile, feature, sticker
  */
 /**
  * A card is a surface, and what matters is whether it does anything. A plain card holds content; a clickable card is
@@ -37,8 +37,8 @@ import { Button } from "./ButtonsVariants";
 
 export type CardVariant = "plain" | "clickable" | "selectable" | "surface";
 export type CardElevation = "flat" | "raised" | "floating";
-/** default follows the app's tokens; tick = a radio card with a tick-in-circle mark; neobrutal = the neobrutalism kit's card. */
-export type CardVersion = "default" | "tick" | "neobrutal";
+/** default = the plain card; tick = a radio card with a tick-in-circle mark; sticker = a card with a tilted sticker tag, a large avatar, a stats row and a footer. Every version's look follows the style and surface tokens. */
+export type CardVersion = "default" | "tick" | "sticker";
 
 // Written out in full (not built from the variant name) so a build finds every class the card needs.
 // surface: the card page sections are built on (.fl-card in library.css): roomier, a heading and text stacked, no app states.
@@ -62,20 +62,20 @@ type CardOwn = {
   icon?: string;
   /** A short label pinned to the card's top corner, like "Most picked" (a style may tilt it like a sticker). */
   tag?: string;
-  /** "tick" draws a radio card (a real radio, a tick-in-circle mark, price or other `aside` at the right); "neobrutal" the kit's card. Default when left out. */
+  /** "tick" draws a radio card (a real radio, a tick-in-circle mark, price or other `aside` at the right); "sticker" a card with a tilted sticker tag, a large avatar with `lead`, a stats row and a footer. Default when left out. */
   version?: CardVersion;
   /** tick: uncontrolled start state when `selected` is not passed (the native radio group keeps the choice). */
   defaultSelected?: boolean;
   /** tick: content at the right edge of the card, usually the price. */
   aside?: ReactNode;
-  /** neobrutal: tint the card with the accent color. A chosen card (`selected`) turns green and lifts. */
+  /** sticker: tint the card with the accent color. A chosen card (`selected`) takes the success tint and the selected shadow. */
   accent?: boolean;
-  /** neobrutal: initials in a 4rem round avatar with a hard shadow, with `lead` (name, role) beside it. */
+  /** sticker: initials in a 4rem round avatar, with `lead` (name, role) beside it. */
   avatar?: string;
   lead?: ReactNode;
-  /** neobrutal: a strip of figures under the content. */
+  /** sticker: a row of figures under the content. */
   stats?: { label: string; value: string }[];
-  /** neobrutal: content under the stats strip (a follow row, an action). */
+  /** sticker: content under the stats row (a follow row, an action). */
   footer?: ReactNode;
   className?: string;
   children?: ReactNode;
@@ -84,7 +84,7 @@ type CardOwn = {
 // The ref goes to the card's root element (a <label> when selectable, otherwise a <div>).
 export const Card = forwardRef<HTMLElement, CardOwn & Omit<HTMLAttributes<HTMLElement>, keyof CardOwn>>(function Card(props, ref) {
   const { variant = "plain", version = "default", defaultSelected, aside, accent, avatar, lead, stats, footer, elevation, selected, disabled, name, onSelect, pickLabel, icon, tag, className, children, onClick, onKeyDown, ...rest } = props;
-  const nb = version === "neobrutal";
+  const sk = version === "sticker";
   if (version === "tick") {
     // A radio card: the input is hidden and the tick mark shows the choice (:has(input:checked) in inputs.css).
     const cls = ["fl-in-rcard", disabled ? "fl-in-rcard--disabled" : "", className ?? ""].filter(Boolean).join(" ");
@@ -107,28 +107,28 @@ export const Card = forwardRef<HTMLElement, CardOwn & Omit<HTMLAttributes<HTMLEl
     );
   }
   const head = icon ? (
-    <span className={nb ? "fl-nb-tile" : "fl-ctl-card-tile"}>
+    <span className={sk ? "fl-card-sticker__tile" : "fl-ctl-card-tile"}>
       <Icon name={icon} />
     </span>
   ) : null;
-  const sticker = tag ? <span className={nb ? "fl-nb-sticker" : "fl-ctl-card-tag"}>{tag}</span> : null;
-  const nbCls = ["fl-nb fl-nb-box fl-nb-card", accent ? "fl-nb-card--accent" : "", selected ? "fl-nb-card--success fl-nb-card--selected" : "", disabled ? "is-off" : "", className ?? ""].filter(Boolean).join(" ");
-  const cls = nb ? nbCls : [variant === "surface" ? "" : "fl-ctl-card", VARIANT[variant], elevation ? ELEVATION[elevation] : "", selected && variant === "selectable" ? "is-on" : "", disabled ? "is-off" : "", className ?? ""].filter(Boolean).join(" ");
-  const own = { className: cls, "data-fl": nb ? "c.card@neobrutal" : `c.card.${variant}` };
-  if (nb) {
+  const sticker = tag ? <span className={sk ? "fl-card-sticker__tag" : "fl-ctl-card-tag"}>{tag}</span> : null;
+  const skCls = ["fl-card--sticker", accent ? "fl-card-sticker--accent" : "", selected ? "fl-card-sticker--selected" : "", disabled ? "is-off" : "", className ?? ""].filter(Boolean).join(" ");
+  const cls = sk ? skCls : [variant === "surface" ? "" : "fl-ctl-card", VARIANT[variant], elevation ? ELEVATION[elevation] : "", selected && variant === "selectable" ? "is-on" : "", disabled ? "is-off" : "", className ?? ""].filter(Boolean).join(" ");
+  const own = { className: cls, "data-fl": sk ? "c.card@sticker" : `c.card.${variant}` };
+  if (sk) {
     const body = (
       <>
         {avatar ? (
-          <div className="fl-nb-person">
-            <span className="fl-nb-avatar" aria-hidden="true">
+          <div className="fl-card-sticker__person">
+            <span className="fl-card-sticker__avatar" aria-hidden="true">
               {avatar}
             </span>
-            <div style={{ display: "grid", gap: "var(--space-1)" }}>{lead}</div>
+            <div className="fl-card-sticker__lead">{lead}</div>
           </div>
         ) : null}
         {children}
         {stats ? (
-          <dl className="fl-nb-stats">
+          <dl className="fl-card-sticker__stats">
             {stats.map((s) => (
               <div key={s.label}>
                 <dt>{s.label}</dt>
@@ -337,9 +337,9 @@ export function RadioCardsForm(d: RadioCardsFormProps) {
   );
 }
 
-// ── c.card@neobrutal in use: the neobrutalism kit's feature, pricing and profile cards (nb-cards wraps this). ──
+// ── c.card@sticker in use: a feature, a pricing and a profile card (cards-sticker wraps this). The look follows the style and surface. ──
 
-export type NeobrutalCardsProps = {
+export type StickerCardsProps = {
   eyebrow: string;
   title: string;
   feature: { icon: string; title: string; text: string; link: string };
@@ -347,46 +347,42 @@ export type NeobrutalCardsProps = {
   profile: { initials: string; name: string; role: string; bio: string; stats: { label: string; value: string }[]; followers: number };
 };
 
-export function NeobrutalCards(d: NeobrutalCardsProps) {
+export function StickerCards(d: StickerCardsProps) {
   const uid = useId();
   const [chosen, setChosen] = useState(false);
   const [following, setFollowing] = useState(false);
   const followers = d.profile.followers + (following ? 1 : 0);
 
   return (
-    <section className="fl-section fl-section--tint fl-nb" aria-labelledby={`${uid}-title`}>
-      <div className="fl-wrap fl-nb-stack">
+    <section className="fl-section fl-section--tint" aria-labelledby={`${uid}-title`}>
+      <div className="fl-wrap">
         <div className="fl-head">
-          <p className="fl-nb-kicker">{d.eyebrow}</p>
+          <p className="fl-eyebrow">{d.eyebrow}</p>
           <h2 id={`${uid}-title`} className="fl-title">
             {d.title}
           </h2>
         </div>
 
-        <ul className="fl-nb-cards">
+        <ul className="fl-card-sticker__grid">
           <li>
-            <Card version="neobrutal" accent>
-              <span className="fl-nb-tile">
-                <Icon name={d.feature.icon} />
-              </span>
+            <Card version="sticker" accent icon={d.feature.icon}>
               <h3>{d.feature.title}</h3>
               <p>{d.feature.text}</p>
-              <a className="fl-nb-btn fl-nb-btn--sm fl-nb-btn--plain" href="#how-booking-works" style={{ justifySelf: "start" }}>
+              <Button variant="secondary" size={40} href="#how-booking-works" icon="arrow" iconAt="end" style={{ justifySelf: "start" }}>
                 {d.feature.link}
-                <Icon name="arrow" />
-              </a>
+              </Button>
             </Card>
           </li>
 
           <li>
-            <Card version="neobrutal" selected={chosen} tag={d.pricing.sticker} style={{ marginTop: "var(--space-4)" }}>
+            <Card version="sticker" selected={chosen} tag={d.pricing.sticker} style={{ marginTop: "var(--space-4)" }}>
               <h3>{d.pricing.name}</h3>
-              <p className="fl-nb-price">
+              <p className="fl-card-sticker__price">
                 <strong>{d.pricing.price}</strong>
                 <span>{d.pricing.per}</span>
               </p>
               <p>{d.pricing.text}</p>
-              <ul className="fl-nb-list">
+              <ul className="fl-card-sticker__list">
                 {d.pricing.features.map((f) => (
                   <li key={f}>
                     <Tick />
@@ -394,10 +390,10 @@ export function NeobrutalCards(d: NeobrutalCardsProps) {
                   </li>
                 ))}
               </ul>
-              <Button version="neobrutal" variant={chosen ? "secondary" : "primary"} block pressed={chosen} icon={chosen ? "check" : undefined} onClick={() => setChosen(!chosen)}>
+              <Button variant={chosen ? "secondary" : "primary"} block pressed={chosen} icon={chosen ? "check" : undefined} onClick={() => setChosen(!chosen)}>
                 {chosen ? d.pricing.chosen : d.pricing.choose}
               </Button>
-              <p className="fl-nb-status" role="status" aria-live="polite">
+              <p className="fl-card-sticker__status" role="status" aria-live="polite">
                 {chosen ? "Nice pick. Tap again to undo." : ""}
               </p>
             </Card>
@@ -405,23 +401,23 @@ export function NeobrutalCards(d: NeobrutalCardsProps) {
 
           <li>
             <Card
-              version="neobrutal"
+              version="sticker"
               avatar={d.profile.initials}
               lead={
                 <>
                   <h3>{d.profile.name}</h3>
-                  <span className="fl-nb-badge fl-nb-badge--square fl-nb-tone-info" style={{ justifySelf: "start" }}>
+                  <Badge tone="info" style={{ justifySelf: "start" }}>
                     {d.profile.role}
-                  </span>
+                  </Badge>
                 </>
               }
               stats={d.profile.stats}
               footer={
-                <div className="fl-nb-row" style={{ justifyContent: "space-between" }}>
+                <div className="fl-card-sticker__row">
                   <span className="fl-meta" aria-live="polite">
                     {followers} followers
                   </span>
-                  <Button version="neobrutal" variant={following ? "tertiary" : "primary"} size={40} pressed={following} icon={following ? "check" : "users"} onClick={() => setFollowing(!following)}>
+                  <Button variant={following ? "tertiary" : "primary"} size={40} pressed={following} icon={following ? "check" : "users"} onClick={() => setFollowing(!following)}>
                     {following ? "Following" : `Follow ${d.profile.name.split(" ")[0]}`}
                   </Button>
                 </div>
@@ -486,7 +482,7 @@ const SAMPLE = {
     missing: "Choose a delivery option.",
     done: (plan: string, delivery: string) => `All set: ${plan}, ${delivery.toLowerCase()}. Your first box arrives next week.`,
   },
-  nb: {
+  sticker: {
     eyebrow: "Cards",
     title: "Blocks with a bit of attitude",
     feature: { icon: "bolt", title: "Book in ten seconds", text: "Pick a class, pick a time, done. No account needed for your first visit.", link: "How booking works" },
@@ -530,71 +526,72 @@ export default function CardsVariants() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-matrix-wrap">
-        <table className="fl-ctl-matrix">
-          <caption className="fl-sr">Each kind of card in each state</caption>
-          <thead>
-            <tr>
-              <th scope="col">State</th>
-              {d.kinds.map((k) => (
-                <th key={k.id} scope="col">
-                  <span className="fl-ctl-matrix-kind">{k.label}</span>
-                  <span className="fl-ctl-matrix-what">{k.what}</span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {d.states.map((s) => (
-              <tr key={s.id}>
-                <th scope="row">
-                  <span className="fl-ctl-matrix-kind">{s.label}</span>
-                </th>
-                {d.kinds.map((k) => {
-                  const off = s.id === "disabled";
-                  const on = k.id === "selectable" && picked === s.id;
-                  const hovered = s.id === "hover" ? "is-hover" : undefined;
-                  // A plain card reacts to nothing, and only the selectable one can stay chosen.
-                  const why = k.id === "plain" && s.id !== "rest" ? "Not applicable" : k.id === "clickable" && s.id === "selected" ? "Not applicable: opens something" : "";
-                  if (why) {
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <div className="fl-ctl-matrix-wrap">
+          <table className="fl-ctl-matrix">
+            <caption className="fl-sr">Each kind of card in each state</caption>
+            <thead>
+              <tr>
+                <th scope="col">State</th>
+                {d.kinds.map((k) => (
+                  <th key={k.id} scope="col">
+                    <span className="fl-ctl-matrix-kind">{k.label}</span>
+                    <span className="fl-ctl-matrix-what">{k.what}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {d.states.map((s) => (
+                <tr key={s.id}>
+                  <th scope="row">
+                    <span className="fl-ctl-matrix-kind">{s.label}</span>
+                  </th>
+                  {d.kinds.map((k) => {
+                    const off = s.id === "disabled";
+                    const on = k.id === "selectable" && picked === s.id;
+                    const hovered = s.id === "hover" ? "is-hover" : undefined;
+                    // A plain card reacts to nothing, and only the selectable one can stay chosen.
+                    const why = k.id === "plain" && s.id !== "rest" ? "Not applicable" : k.id === "clickable" && s.id === "selected" ? "Not applicable: opens something" : "";
+                    if (why) {
+                      return (
+                        <td key={k.id} data-state={k.label}>
+                          <span className="fl-ctl-matrix-what">{why}</span>
+                        </td>
+                      );
+                    }
                     return (
                       <td key={k.id} data-state={k.label}>
-                        <span className="fl-ctl-matrix-what">{why}</span>
+                        <Card
+                          variant={k.id}
+                          className={hovered}
+                          disabled={off}
+                          selected={on}
+                          name="card-pick"
+                          pickLabel={`Choose the ${s.label.toLowerCase()} card`}
+                          onSelect={() => {
+                            setPicked(s.id);
+                            setSaid(`Chose the ${s.label.toLowerCase()} card`);
+                          }}
+                          onClick={() => setSaid(`Opened ${d.shoot.name}`)}
+                        >
+                          <strong>{d.shoot.name}</strong>
+                          <span className="fl-ctl-matrix-what">{d.shoot.meta}</span>
+                        </Card>
                       </td>
                     );
-                  }
-                  return (
-                    <td key={k.id} data-state={k.label}>
-                      <Card
-                        variant={k.id}
-                        className={hovered}
-                        disabled={off}
-                        selected={on}
-                        name="card-pick"
-                        pickLabel={`Choose the ${s.label.toLowerCase()} card`}
-                        onSelect={() => {
-                          setPicked(s.id);
-                          setSaid(`Chose the ${s.label.toLowerCase()} card`);
-                        }}
-                        onClick={() => setSaid(`Opened ${d.shoot.name}`)}
-                      >
-                        <strong>{d.shoot.name}</strong>
-                        <span className="fl-ctl-matrix-what">{d.shoot.meta}</span>
-                      </Card>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "Open a clickable card, or choose a selectable one."}
+        </p>
       </div>
 
-      <p className="fl-ctl-status" role="status" aria-live="polite">
-        {said || "Open a clickable card, or choose a selectable one."}
-      </p>
-
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--bare">
         <h3>A choice with a price</h3>
         <p className="fl-ctl-btn-what">
           Selectable cards as the options of a plan or delivery picker: a title, a badge, a line of text and a price inside
@@ -621,7 +618,7 @@ export default function CardsVariants() {
         </fieldset>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Elevation</h3>
         <p className="fl-ctl-btn-what">How far off the page a card sits. One level per list: a grid of mixed elevations reads as a mistake.</p>
         <ul className="fl-ctl-elev-list">
@@ -636,7 +633,7 @@ export default function CardsVariants() {
         </ul>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--bare">
         <h3>Icon tile and corner tag</h3>
         <p className="fl-ctl-btn-what">
           <code>icon</code> puts a tile at the top of a feature card; <code>tag</code> pins a short label to the corner, for the plan
@@ -657,23 +654,24 @@ export default function CardsVariants() {
           </li>
         </ul>
       </div>
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Version: tick (c.card@tick)</h3>
         <p className="fl-ctl-btn-what">
           A radio card with a tick-in-circle mark instead of a corner radio: title, badge and text on the left, the price on
           the right. Real radios in a fieldset; the group checks that each is chosen before it confirms.
         </p>
+        <RadioCardsForm {...d.radio} />
       </div>
-      <RadioCardsForm {...d.radio} />
 
-      <div className="fl-ctl-sizes">
-        <h3>Version: neobrutal (c.card@neobrutal)</h3>
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <h3>Version: sticker (c.card@sticker)</h3>
         <p className="fl-ctl-btn-what">
-          The neobrutalism kit's card: a thick ink border and hard shadow that lifts on hover, a green tint and deeper shadow
-          when chosen, a tilted sticker tag, a stats strip and a 4rem avatar with a hard shadow.
+          A card built for a feature, a plan or a person: a tilted sticker tag in the corner, a 4rem avatar beside a lead, a
+          stats row and a footer. It lifts on hover and takes a success tint when chosen; edges, corners and shadow follow
+          the style and surface.
         </p>
+        <StickerCards {...d.sticker} />
       </div>
-      <NeobrutalCards {...d.nb} />
 
     </section>
   );

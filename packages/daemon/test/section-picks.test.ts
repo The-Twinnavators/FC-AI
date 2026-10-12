@@ -51,7 +51,7 @@ describe("library styles in an app", () => {
     const cart = libraryStyles(`<aside className="fl-shop-drawer"><div className="fl-shop-line" /></aside>`);
     const none = libraryStyles("");
     expect(cart).toContain(".fl-shop-");
-    expect(cart).not.toContain(".fl-nb-");
+    expect(cart).not.toContain(".fl-aa-");
     expect(cart).toContain(".fl-bg-mesh");
     expect(none.length).toBeLessThan(all.length / 3);
     expect(cart.length).toBeLessThan(all.length / 2);

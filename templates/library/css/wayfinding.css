@@ -287,3 +287,6 @@
   .fl-way-tip--left, .fl-way-tip--right { left: 50%; right: auto; top: auto; bottom: calc(100% + var(--fl-way-tip-gap)); translate: -50% 0; }
   .fl-way-tip--left::after, .fl-way-tip--right::after { left: calc(50% - 0.25rem); right: auto; top: calc(100% - 0.25rem); }
 }
+
+/* Reference sheets as cards: lists-rows, media-frames, modals-dialogs, motion-presets, pagination-variants, panels-drawers, popovers-menus, progress-indicators */
+.fl-ctl-spec > .fl-way-menu-wrap { justify-self: start; }

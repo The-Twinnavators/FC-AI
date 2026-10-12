@@ -18,7 +18,7 @@ const STOP = new Set("a an and the of to for in on at by with from your their it
 const stem = (w: string) => w.toLowerCase().replace(/ies$/, "y").replace(/(ison|ation|ment|ing|ed|es|s)$/, "").replace(/e$/, "").replace(/(.)\1$/, "$1");
 const tokens = (s: string) => new Set((s.toLowerCase().match(/[a-z]{3,}/g) ?? []).filter((w) => !STOP.has(w)).map(stem));
 
-const WEBSITE = /\b(landing|website|web site|homepage|home page|marketing|visitors?)\b/i;
+export const WEBSITE = /\b(landing|website|web site|homepage|home page|marketing|visitors?)\b/i;
 const groupOf = new Map(SECTION_CATEGORIES.map((c) => [c.id, c.group]));
 /** What an app screen may start from: app components and app screen templates (a style kit and backgrounds aren't picks). */
 const forApp = (s: LibrarySection) => (groupOf.get(s.category) === "app") || s.category === "apptemplates" || s.category === "commerce";

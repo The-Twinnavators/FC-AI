@@ -275,3 +275,34 @@
   .fl-dsp-marquee__track ul { flex-wrap: wrap; justify-content: center; gap: var(--space-5) var(--space-8); }
   .fl-dsp-marquee__track ul[aria-hidden="true"], .fl-dsp-marquee-toggle { display: none; }
 }
+
+/* ── c.accordion@plus: each question its own box; the open header fills with the accent and its plus turns into a
+   cross. Edges, corners, fill and shadow come from the style and surface tokens. ── */
+.fl-acc--plus { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.fl-acc-plus__item {
+  overflow: hidden; background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); box-shadow: var(--surface-shadow, none);
+}
+.fl-acc-plus__item h4 { margin: 0; font: inherit; }
+.fl-acc-plus__btn {
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: var(--space-4);
+  padding: var(--space-4) var(--space-5); border: 0; background: transparent; color: var(--color-text); text-align: left;
+  font: var(--weight-semibold) var(--text-md) / var(--leading-snug) var(--font-sans); cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing);
+}
+.fl-acc-plus__btn:hover { background: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 10%, var(--color-surface))); }
+.fl-acc-plus__btn:focus-visible { outline: none; box-shadow: inset var(--focus-ring); }
+.fl-acc-plus__btn[aria-expanded="true"] { background: var(--accent-bg, var(--color-accent)); color: var(--color-on-accent); border-bottom: var(--surface-border, 1px solid var(--color-border)); }
+.fl-acc-plus__meta { margin-left: auto; font-weight: var(--weight-regular, 400); font-size: var(--text-sm); opacity: 0.85; }
+.fl-acc-plus__sign {
+  display: inline-grid; place-items: center; width: 1.75rem; height: 1.75rem; flex: none;
+  border: var(--edge-width, 1px) solid var(--control-edge, var(--color-border)); border-radius: var(--control-radius-sm, var(--radius-sm));
+  background: var(--color-surface); color: var(--color-text); transition: transform var(--duration-base) var(--easing);
+}
+.fl-acc-plus__sign svg { width: 1rem; height: 1rem; }
+.fl-acc-plus__btn[aria-expanded="true"] .fl-acc-plus__sign { transform: rotate(45deg); }
+.fl-acc-plus__panel { padding: var(--space-4) var(--space-5) var(--space-5); line-height: var(--leading-relaxed); }
+.fl-acc-plus__panel p { margin: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .fl-acc-plus__btn, .fl-acc-plus__sign { transition: none; }
+}

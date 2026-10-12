@@ -245,7 +245,7 @@ export default function SlidersStates() {
   const d = SAMPLE;
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-matrix-wrap">
+      <div className="fl-ctl-matrix-wrap fl-ctl-spec fl-ctl-spec--wide">
         <table className="fl-ctl-matrix">
           <caption className="fl-sr">A slider in each state</caption>
           <thead>
@@ -293,13 +293,13 @@ export default function SlidersStates() {
         </table>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>A range, with two thumbs</h3>
         <p className="fl-ctl-btn-what">Two inputs, one above the other, with the pair written out. Each thumb keeps its own label for the keyboard.</p>
         <Slider variant="range" label="price" defaultValue={[25, 75]} format={(n) => `$${n * 10}`} />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Version: filled (c.slider@filled)</h3>
         <p className="fl-ctl-btn-what">
           The filter-panel look: the label and the live value above an accent-filled track, the ends written beneath, and a
@@ -309,7 +309,7 @@ export default function SlidersStates() {
         <Slider version="filled" variant="range" label="Price per workshop" min={0} max={300} step={5} minGap={10} defaultValue={[40, 180]} format={(n) => `$${n}`} prefix="$" fields />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>With a scale, and a gap the thumbs keep</h3>
         <p className="fl-ctl-btn-what">
           The lowest and highest value written under the ends of the track, and a range whose thumbs stay at least a set

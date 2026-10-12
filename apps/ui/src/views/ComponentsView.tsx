@@ -23,7 +23,7 @@ const key = (id: string) => `../../../../templates/library/sections/${id}.tsx`;
  * the frame, which grew the 88vh, which grew the frame. landing-prelaunch settled at 3631px for 435px of content.
  */
 
-function SectionFrame({ id, look, title, width }: { id: string; look: string; title: string; width: number }) {
+function SectionFrame({ id, look, title, width, focus }: { id: string; look: string; title: string; width: number; focus?: string }) {
   // Until the section has drawn, the frame shows the loading bar (never an empty white box). The page still reports
   // its height; it is what tells us it has drawn, and no longer what sets the frame's size.
   const [ready, setReady] = useState(false);
@@ -35,7 +35,7 @@ function SectionFrame({ id, look, title, width }: { id: string; look: string; ti
     addEventListener("message", onMessage);
     return () => removeEventListener("message", onMessage);
   }, [id]);
-  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&${look}`, document.baseURI).href;
+  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&${look}${focus ? `&focus=${encodeURIComponent(focus)}` : ""}`, document.baseURI).href;
   return (
     <div className={`cl-frame-wrap${ready ? "" : " is-loading"}${width ? " cl-frame-wrap--device" : ""}`}>
       {ready ? null : (
@@ -49,7 +49,7 @@ function SectionFrame({ id, look, title, width }: { id: string; look: string; ti
 }
 
 /** A tile's picture: the section drawn at desktop width (1280px) and scaled down to fit the tile, not interactive. */
-function SectionThumb({ id, look, title }: { id: string; look: string; title: string }) {
+function SectionThumb({ id, look, title, focus }: { id: string; look: string; title: string; focus?: string }) {
   const box = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.2);
   // Each thumbnail is a whole page, so it starts only when its tile comes near the screen (the browser's own lazy
@@ -64,7 +64,7 @@ function SectionThumb({ id, look, title }: { id: string; look: string; title: st
     io.observe(el);
     return () => (ro.disconnect(), io.disconnect());
   }, []);
-  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&${look}`, document.baseURI).href;
+  const src = new URL(`section-preview.html?id=${encodeURIComponent(id)}&${look}${focus ? `&focus=${encodeURIComponent(focus)}` : ""}`, document.baseURI).href;
   return (
     <div ref={box} className="cl-thumb" aria-hidden="true">
       {near ? <iframe className="cl-thumb__frame" title={`${title} thumbnail`} src={src} tabIndex={-1} style={{ transform: `scale(${scale})` }} /> : null}
@@ -84,7 +84,53 @@ const levelGroup = (s: LibrarySection) => {
   const l = s.ref ? levelOf(s.ref) : undefined;
   return l === "template" || l === "block" || l === "pattern" ? l : "component";
 };
-const shelfOf = (s: LibrarySection) => `${levelGroup(s)}:${s.category}`;
+/** A component piece's own component: its version's or variant's base ID (c.card@tick and c.background.mesh sit with
+ * c.card and c.background); token sheets are their own. */
+const OWNER = new Map(LIBRARY_SECTIONS.flatMap((s) => (s.ref ? (s.also ?? []).map((a) => [a.ref, s.ref!] as const) : [])));
+const componentOf = (s: LibrarySection) => {
+  const ref = s.versionOf ?? s.ref;
+  if (!ref) return s.category;
+  if (ref.startsWith("tokens.")) return ref;
+  const base = ref.split("@")[0]!.split(".").slice(0, 2).join(".");
+  // A version of a secondary ID (c.avatar-stack on the avatar piece) shelves with that piece's component.
+  return OWNER.get(base) ?? base;
+};
+/**
+ * A library entry: a piece, or one variant of a piece shown on its own (focus is the variant's catalog ID; the preview
+ * page hides the rest of the piece's sheet). Variants that already have a piece of their own (p.auth-form.sign-up) are
+ * not repeated.
+ */
+type Item = LibrarySection & { focus?: string; variantOf?: string };
+const uid = (x: Item) => (x.focus ? `${x.id}#${x.focus}` : x.id);
+const OWN_PIECES = new Set(LIBRARY_SECTIONS.map((s) => s.ref).filter(Boolean));
+const variantItems = (s: LibrarySection): Item[] =>
+  s.ref
+    ? [...(s.variants ?? []).map((v) => ({ v, of: s.ref! })), ...(s.also ?? []).flatMap((a) => (a.variants ?? []).map((v) => ({ v, of: a.ref })))]
+        .filter(({ v }) => !OWN_PIECES.has(v.ref))
+        .map(({ v, of }) => ({
+          ...s,
+          // The sheet that draws it: its own piece's, or the one the catalog names (the vertical tabs).
+          id: (v as { sheet?: string }).sheet ?? s.id,
+          ref: v.ref,
+          focus: v.ref,
+          variantOf: of,
+          variants: undefined,
+          also: undefined,
+          versionOf: undefined,
+          uses: undefined,
+          name: `${of.startsWith("c.") ? componentName(of) : s.name.split(":")[0]} · ${v.ref.slice(of.length + 1).replace(/-/g, " ")}`,
+          description: `${v.look.charAt(0).toUpperCase()}${v.look.slice(1)}${/[.!?]$/.test(v.look) ? "" : "."}`,
+          tags: [...s.tags, v.ref.slice(of.length + 1)],
+        }))
+    : [];
+
+/** Components get one shelf each (the component and its versions); everything else shelves by category. */
+const shelfOf = (s: LibrarySection) => (levelGroup(s) === "component" ? `component:${componentOf(s)}` : `${levelGroup(s)}:${s.category}`);
+const NAMES: Record<string, string> = { "c.ai-indicator": "AI indicators", "c.kpi": "KPI cards", "c.area-chart": "Area charts", "c.chat-bubble": "Chat bubbles", "c.media-frame": "Media frames", "c.list-row": "List rows", "c.empty-state": "Empty states", "c.text-field": "Text fields", "c.button-group": "Button groups", "c.animated-number": "Animated numbers", "c.avatar-stack": "Avatar stacks", "c.toast-stack": "Toast stacks", "c.accordion": "Accordions", "c.breadcrumbs": "Breadcrumbs", "c.progress": "Progress", "c.quantity": "Quantity steppers", "c.segmented": "Segmented controls", "c.skeleton": "Skeletons", "c.switch": "Switches", "c.tabs": "Tabs", "c.pagination": "Pagination", "c.background": "Backgrounds", "c.combobox": "Combo boxes", "c.checkbox": "Checkboxes and radios", "c.select": "Selects and combo boxes", "c.avatar": "Avatars", "tokens.focus-ring": "Focus rings (tokens)", "tokens.motion": "Motion (tokens)" };
+/** A component shelf's name: "c.badge" → "Badges". */
+const componentName = (ref: string) => NAMES[ref] ?? ((w) => w.charAt(0).toUpperCase() + w.slice(1) + "s")(ref.replace(/^c./, "").replace(/-/g, " "));
+/** Every entry on the shelves: each piece followed by its variants. */
+const ALL_ITEMS: Item[] = LIBRARY_SECTIONS.flatMap((p) => [p, ...variantItems(p)]);
 
 export function ComponentsView() {
   // "proposed": new pieces waiting for the owner's approval, not in the library yet.
@@ -108,7 +154,7 @@ export function ComponentsView() {
     }
   });
   const look = `style=${encodeURIComponent(styleId)}${surface ? `&surface=${encodeURIComponent(surface)}` : ""}`;
-  const [open, setOpen] = useState<LibrarySection>();
+  const [open, setOpen] = useState<Item>();
   const [code, setCode] = useState<string>();
   const [showCode, setShowCode] = useState(false);
   const [device, setDevice] = useState<Device>("desktop");
@@ -126,22 +172,27 @@ export function ComponentsView() {
   }, [open]);
   const counts = useMemo(() => {
     const m = new Map<string, number>();
-    for (const s of LIBRARY_SECTIONS) m.set(shelfOf(s), (m.get(shelfOf(s)) ?? 0) + 1);
+    for (const s of ALL_ITEMS) m.set(shelfOf(s), (m.get(shelfOf(s)) ?? 0) + 1);
     return m;
   }, []);
   const catOrder = useMemo(() => new Map(SECTION_CATEGORIES.map((c, i) => [c.id, i])), []);
   // Search: every word must appear in the piece's name, description, tags or shelf (within the shelf you're on).
   const [q, setQ] = useState("");
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-  const label = (c: string) => SECTION_CATEGORIES.find((x) => x.id === c.split(":").pop())?.label ?? c;
-  const matches = (x: LibrarySection) => !words.length || words.every((w) => `${x.name} ${x.description} ${x.tags.join(" ")} ${label(x.category)}`.toLowerCase().includes(w));
+  const label = (c: string) => (c.startsWith("component:") ? componentName(c.slice(10)) : SECTION_CATEGORIES.find((x) => x.id === c.split(":").pop())?.label ?? c);
+  // Component shelves in alphabetical order.
+  const componentShelves = useMemo(() => [...counts.keys()].filter((k) => k.startsWith("component:")).sort((a, b) => label(a).localeCompare(label(b))), [counts]);
+  const matches = (x: Item) => !words.length || words.every((w) => `${x.name} ${x.description} ${x.tags.join(" ")} ${x.ref ?? ""} ${label(x.category)}`.toLowerCase().includes(w));
   // The grid follows the shelves beside it: categories in their listed order, and inside one, the order they are
   // written in (sort is stable). On a single shelf every piece shares a category, so this changes nothing there.
   const byCategory = (a: LibrarySection, b: LibrarySection) =>
-    LEVELS.findIndex(([l]) => l === levelGroup(a)) - LEVELS.findIndex(([l]) => l === levelGroup(b)) || (catOrder.get(a.category) ?? SECTION_CATEGORIES.length) - (catOrder.get(b.category) ?? SECTION_CATEGORIES.length);
-  const shown = (cat === "proposed" ? PROPOSED_SECTIONS.filter(matches) : LIBRARY_SECTIONS.filter((s) => (cat === "all" || shelfOf(s) === cat) && matches(s))).sort(byCategory);
+    LEVELS.findIndex(([l]) => l === levelGroup(a)) - LEVELS.findIndex(([l]) => l === levelGroup(b)) ||
+    (levelGroup(a) === "component"
+      ? label(shelfOf(a)).localeCompare(label(shelfOf(b))) || Number(!!a.versionOf) - Number(!!b.versionOf)
+      : (catOrder.get(a.category) ?? SECTION_CATEGORIES.length) - (catOrder.get(b.category) ?? SECTION_CATEGORIES.length));
+  const shown: Item[] = (cat === "proposed" ? PROPOSED_SECTIONS.filter(matches) : ALL_ITEMS.filter((s) => (cat === "all" || shelfOf(s) === cat) && matches(s))).sort(byCategory);
   // Previous and next in the details modal, through the pieces on the current shelf (← and → keys too).
-  const at = open ? shown.findIndex((x) => x.id === open.id) : -1;
+  const at = open ? shown.findIndex((x) => uid(x) === uid(open)) : -1;
   const step = (d: number) => {
     if (at < 0 || !shown.length) return;
     setShowCode(false);
@@ -218,19 +269,22 @@ export function ComponentsView() {
           ) : null}
           <button type="button" className="lib-shelf" aria-current={cat === "all"} onClick={() => pick("all")}>
             <span className="lib-shelf__label">All sections</span>
-            <span className="lib-shelf__count">{LIBRARY_SECTIONS.length}</span>
+            <span className="lib-shelf__count">{ALL_ITEMS.length}</span>
           </button>
-          {LEVELS.filter(([l]) => SECTION_CATEGORIES.some((c) => counts.get(`${l}:${c.id}`))).map(([l, heading]) => (
-            <div key={l} className="cl-group">
-              <p className="lib-shelves__heading">{heading}</p>
-              {SECTION_CATEGORIES.filter((c) => counts.get(`${l}:${c.id}`)).map((c) => (
-                <button key={c.id} type="button" className="lib-shelf" aria-current={cat === `${l}:${c.id}`} onClick={() => pick(`${l}:${c.id}`)}>
-                  <span className="lib-shelf__label">{c.label}</span>
-                  <span className="lib-shelf__count">{counts.get(`${l}:${c.id}`)}</span>
-                </button>
-              ))}
-            </div>
-          ))}
+          {LEVELS.map(([l, heading]) => {
+            const shelves = l === "component" ? componentShelves : SECTION_CATEGORIES.map((c) => `${l}:${c.id}`).filter((k) => counts.get(k));
+            return shelves.length ? (
+              <div key={l} className="cl-group">
+                <p className="lib-shelves__heading">{heading}</p>
+                {shelves.map((k) => (
+                  <button key={k} type="button" className="lib-shelf" aria-current={cat === k} onClick={() => pick(k)}>
+                    <span className="lib-shelf__label">{label(k)}</span>
+                    <span className="lib-shelf__count">{counts.get(k)}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null;
+          })}
         </nav>
         {!shown.length ? (
           <div className="cl-none" role="status">
@@ -256,9 +310,9 @@ export function ComponentsView() {
             </li>
           ) : null}
           {shown.map((s) => (
-            <li key={s.id}>
+            <li key={uid(s)}>
               <button type="button" className="cl-tile" onClick={() => (setShowCode(false), setOpen(s))} aria-label={`${s.name}: open details`}>
-                <SectionThumb id={s.id} look={look} title={s.name} />
+                <SectionThumb id={s.id} look={look} title={s.name} focus={s.focus} />
                 <span className="cl-tile__text">
                   <strong>{s.name}</strong>
                   <span className="muted">{s.description}</span>
@@ -274,7 +328,7 @@ export function ComponentsView() {
           label={`${SECTION_CATEGORIES.find((c) => c.id === open.category)?.label ?? "Section"} · ${showCode ? "code" : "preview"}`}
           onClose={() => setOpen(undefined)}
           toolbar={showCode ? undefined : <PreviewSizes value={device} onChange={setDevice} />}
-          scrollKey={`${open.id}:${showCode ? "code" : "preview"}`}
+          scrollKey={`${uid(open)}:${showCode ? "code" : "preview"}`}
           actions={
             <>
               <span className="cl-detail__nav">
@@ -303,7 +357,7 @@ export function ComponentsView() {
               </p>
               <PieceRefs piece={open} />
             </div>
-            {showCode ? <pre className="cl-code">{code ?? "Loading…"}</pre> : <SectionFrame id={open.id} look={look} title={open.name} width={deviceWidth(device)} />}
+            {showCode ? <pre className="cl-code">{code ?? "Loading…"}</pre> : <SectionFrame id={open.id} look={look} title={open.name} width={deviceWidth(device)} focus={open.focus} />}
           </div>
         </LibModal>
       ) : null}
@@ -327,13 +381,14 @@ function RefChip({ id, base }: { id: string; base?: string }) {
 
 /** A piece's catalog ID to copy, its variants' IDs, what it's built from and what uses it, one labelled row each, with
  * a key to the level colours used on this sheet. */
-function PieceRefs({ piece }: { piece: LibrarySection }) {
+function PieceRefs({ piece }: { piece: Item }) {
   if (!piece.ref) return null;
   const ref = piece.ref;
   const own = (r: string) => r === ref || r.startsWith(`${ref}.`) || r.startsWith(`${ref}@`);
   // A piece's own variants and versions are listed above; "Used by" is for the pieces built on top of it.
   const users = usedBy(ref).filter((u) => !own(u.ref ?? u.id));
   const rows: [string, string[]][] = [
+    ["Variant of", piece.variantOf ? [piece.variantOf] : []],
     ["Variants", (piece.variants ?? []).map((v) => v.ref)],
     ["Also", (piece.also ?? []).flatMap((a) => [a.ref, ...(a.variants ?? []).map((v) => v.ref)])],
     ["Version of", piece.versionOf ? [piece.versionOf] : []],

@@ -69,81 +69,83 @@ export default function MotionPresets() {
 
   return (
     <section className="fl-section fl-section--specimen" style={style}>
-      <div className="fl-ctl-mo-bar">
-        <span className="fl-ctl-mo-pick">
-          <label className="fl-sr" htmlFor="mo-ms">
-            Duration
-          </label>
-          <span className="fl-ctl-select">
-            <select id="mo-ms" className="fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--32" value={ms} onChange={(e) => setMs(Number(e.target.value))}>
-              {d.durations.map((x) => (
-                <option key={x.id} value={x.id}>
-                  {x.label}
-                </option>
-              ))}
-            </select>
-            <Icon name="chevron-down" />
-          </span>
-        </span>
-        <span className="fl-ctl-mo-pick">
-          <label className="fl-sr" htmlFor="mo-ease">
-            Easing
-          </label>
-          <span className="fl-ctl-select">
-            <select
-              id="mo-ease"
-              className="fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--32"
-              value={ease.id}
-              onChange={(e) => setEase(d.easings.find((x) => x.id === e.target.value) ?? d.easings[0])}
-            >
-              {d.easings.map((x) => (
-                <option key={x.id} value={x.id}>
-                  {x.label}
-                </option>
-              ))}
-            </select>
-            <Icon name="chevron-down" />
-          </span>
-        </span>
-        <Button size={32} icon="refresh" onClick={() => setRun((n) => n + 1)}>
-          Play them all
-        </Button>
-        <label className="fl-ctl-choice fl-ctl-choice--inline">
-          <span className="fl-ctl-switch fl-ctl-switch--20">
-            <input type="checkbox" checked={calm} onChange={(e) => setCalm(e.target.checked)} />
-            <span className="fl-ctl-switch-track" aria-hidden="true">
-              <span className="fl-ctl-switch-thumb" />
+      <div className="fl-ctl-spec fl-ctl-spec--wide">
+        <div className="fl-ctl-mo-bar">
+          <span className="fl-ctl-mo-pick">
+            <label className="fl-sr" htmlFor="mo-ms">
+              Duration
+            </label>
+            <span className="fl-ctl-select">
+              <select id="mo-ms" className="fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--32" value={ms} onChange={(e) => setMs(Number(e.target.value))}>
+                {d.durations.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.label}
+                  </option>
+                ))}
+              </select>
+              <Icon name="chevron-down" />
             </span>
           </span>
-          <span>
-            <strong>Respect reduced motion</strong>
+          <span className="fl-ctl-mo-pick">
+            <label className="fl-sr" htmlFor="mo-ease">
+              Easing
+            </label>
+            <span className="fl-ctl-select">
+              <select
+                id="mo-ease"
+                className="fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--32"
+                value={ease.id}
+                onChange={(e) => setEase(d.easings.find((x) => x.id === e.target.value) ?? d.easings[0])}
+              >
+                {d.easings.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.label}
+                  </option>
+                ))}
+              </select>
+              <Icon name="chevron-down" />
+            </span>
           </span>
-        </label>
-      </div>
-
-      <p className="fl-ctl-matrix-what" role="status" aria-live="polite">
-        {calm ? "Reduced: every preset becomes a short cross-fade, and nothing moves across the screen." : `${ms} ms, ${ease.label.toLowerCase()} — ${ease.what.toLowerCase()}.`}
-      </p>
-
-      <ul className="fl-ctl-mo-grid">
-        {d.moves.map((m) => (
-          <li key={m.id}>
-            <p className="fl-ctl-matrix-kind">{m.label}</p>
-            <p className="fl-ctl-matrix-what">{m.what}</p>
-            <span className="fl-ctl-mo-stage">
-              <span key={`${m.id}-${run}-${ms}-${ease.id}-${calm}`} className={`fl-ctl-mo fl-ctl-mo--${calm ? "fade" : m.id}`}>
-                <Icon name="image" />
-                <span>{m.label}</span>
+          <Button size={32} icon="refresh" onClick={() => setRun((n) => n + 1)}>
+            Play them all
+          </Button>
+          <label className="fl-ctl-choice fl-ctl-choice--inline">
+            <span className="fl-ctl-switch fl-ctl-switch--20">
+              <input type="checkbox" checked={calm} onChange={(e) => setCalm(e.target.checked)} />
+              <span className="fl-ctl-switch-track" aria-hidden="true">
+                <span className="fl-ctl-switch-thumb" />
               </span>
             </span>
-            <Button variant="tertiary" size={32} onClick={() => setRun((n) => n + 1)}>
-              Play
-            </Button>
-          </li>
-        ))}
-      </ul>
+            <span>
+              <strong>Respect reduced motion</strong>
+            </span>
+          </label>
+        </div>
 
-      <div className="fl-ctl-sizes">
+        <p className="fl-ctl-matrix-what" role="status" aria-live="polite">
+          {calm ? "Reduced: every preset becomes a short cross-fade, and nothing moves across the screen." : `${ms} ms, ${ease.label.toLowerCase()} — ${ease.what.toLowerCase()}.`}
+        </p>
+
+        <ul className="fl-ctl-mo-grid">
+          {d.moves.map((m) => (
+            <li key={m.id}>
+              <p className="fl-ctl-matrix-kind">{m.label}</p>
+              <p className="fl-ctl-matrix-what">{m.what}</p>
+              <span className="fl-ctl-mo-stage">
+                <span key={`${m.id}-${run}-${ms}-${ease.id}-${calm}`} className={`fl-ctl-mo fl-ctl-mo--${calm ? "fade" : m.id}`}>
+                  <Icon name="image" />
+                  <span>{m.label}</span>
+                </span>
+              </span>
+              <Button variant="tertiary" size={32} onClick={() => setRun((n) => n + 1)}>
+                Play
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Durations</h3>
         <ul className="fl-ctl-tip-rules">
           {d.durations.map((x) => (
@@ -155,7 +157,7 @@ export default function MotionPresets() {
         </ul>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Easings</h3>
         <ul className="fl-ctl-tip-rules">
           {d.easings.map((x) => (
@@ -169,7 +171,7 @@ export default function MotionPresets() {
         </ul>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>The rules</h3>
         <ul className="fl-ctl-tip-rules">
           <li>

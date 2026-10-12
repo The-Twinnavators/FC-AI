@@ -157,7 +157,7 @@ const LEVEL_RANK: Record<string, number> = { p: 0, b: 1, c: 2, t: 3 };
 const CORE_COMPONENTS = ["c.button", "c.text-field", "c.select", "c.checkbox", "c.card", "c.badge", "c.alert", "c.modal", "c.tabs", "c.empty-state", "c.list-row", "c.avatar"];
 
 /** A piece's catalog line for a brief: its ID, then how to use it (the import part left out: add_library_piece gives it). */
-const briefLine = (s: LibrarySection, max: number) => {
+export const briefLine = (s: LibrarySection, max: number) => {
   const use = (s.usage ?? "").replace(/^import \{[^}]*\} from "[^"]+";\s*/, "");
   const what = use && !use.startsWith("Copy ") && !use.startsWith("A ready-to-place") ? use : (s.description.split(/(?<=\.)\s/)[0] ?? s.description);
   const text = `- ${s.ref}: ${what}`;

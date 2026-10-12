@@ -214,30 +214,32 @@ export default function BreadcrumbsVariants() {
   const d = SAMPLE;
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-crumb-list">
-        <li>
-          <p className="fl-ctl-matrix-kind">Full trail</p>
-          <p className="fl-ctl-matrix-what">Every level, when they fit.</p>
-          <Breadcrumbs items={d.full} label="Full trail" />
-        </li>
-        <li>
-          <p className="fl-ctl-matrix-kind">Folded</p>
-          <p className="fl-ctl-matrix-what">The middle levels behind a button, when they do not. Press it to open them.</p>
-          <Breadcrumbs items={d.full} label="Folded trail" variant="folded" />
-        </li>
-        <li>
-          <p className="fl-ctl-matrix-kind">Home icon</p>
-          <p className="fl-ctl-matrix-what">The first level as a house, for a trail that starts at the home page.</p>
-          <Breadcrumbs items={[{ label: "Home" }, ...d.full.slice(1)]} label="Home trail" homeIcon />
-        </li>
-        <li>
-          <p className="fl-ctl-matrix-kind">On a phone</p>
-          <p className="fl-ctl-matrix-what">Just the way back up one level, which is all there is room for.</p>
-          <Breadcrumbs items={d.full} label="Back" variant="back" />
-        </li>
-      </ul>
+      <div className="fl-ctl-spec">
+        <ul className="fl-ctl-crumb-list">
+          <li>
+            <p className="fl-ctl-matrix-kind">Full trail</p>
+            <p className="fl-ctl-matrix-what">Every level, when they fit.</p>
+            <Breadcrumbs items={d.full} label="Full trail" />
+          </li>
+          <li>
+            <p className="fl-ctl-matrix-kind">Folded</p>
+            <p className="fl-ctl-matrix-what">The middle levels behind a button, when they do not. Press it to open them.</p>
+            <Breadcrumbs items={d.full} label="Folded trail" variant="folded" />
+          </li>
+          <li>
+            <p className="fl-ctl-matrix-kind">Home icon</p>
+            <p className="fl-ctl-matrix-what">The first level as a house, for a trail that starts at the home page.</p>
+            <Breadcrumbs items={[{ label: "Home" }, ...d.full.slice(1)]} label="Home trail" homeIcon />
+          </li>
+          <li>
+            <p className="fl-ctl-matrix-kind">On a phone</p>
+            <p className="fl-ctl-matrix-what">Just the way back up one level, which is all there is room for.</p>
+            <Breadcrumbs items={d.full} label="Back" variant="back" />
+          </li>
+        </ul>
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Versions</h3>
         <p className="fl-ctl-btn-what">
           c.breadcrumbs@responsive: press a crumb to go up to that level and the trail shortens. On a phone the middle levels fold behind
@@ -246,7 +248,7 @@ export default function BreadcrumbsVariants() {
         <Breadcrumbs version="responsive" items={d.responsive} label="Responsive trail" homeIcon restoreLabel="Back to the product" />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Sizes</h3>
         <p className="fl-ctl-btn-what">A breadcrumb is a label, not a control, so it runs at text sizes.</p>
         <ul className="fl-ctl-size-list">

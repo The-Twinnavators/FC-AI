@@ -199,169 +199,169 @@ export default function ListsRows() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-list-grid">
-        <li>
-          <p className="fl-ctl-matrix-kind">Plain rows</p>
-          <p className="fl-ctl-matrix-what">Facts about one thing. Nothing here can be pressed, so nothing here reacts to the pointer.</p>
-          <dl className="fl-ctl-rows fl-ctl-rows--facts">
-            {d.facts.map((f) => (
-              <ListRow key={f.k} variant="fact" title={f.k}>
-                {f.v}
-              </ListRow>
-            ))}
-          </dl>
-        </li>
+      <div className="fl-ctl-spec fl-ctl-spec--bare">
+        <h3>Plain rows</h3>
+        <p className="fl-ctl-btn-what">Facts about one thing. Nothing here can be pressed, so nothing here reacts to the pointer.</p>
+        <dl className="fl-ctl-rows fl-ctl-rows--facts">
+          {d.facts.map((f) => (
+            <ListRow key={f.k} variant="fact" title={f.k}>
+              {f.v}
+            </ListRow>
+          ))}
+        </dl>
+      </div>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">Rows that open</p>
-          <p className="fl-ctl-matrix-what">
-            Each row is a link to one thing. The one you are looking at stays marked, and opening a message reads it for good.
-          </p>
-          <ul className="fl-ctl-rows fl-ctl-rows--links">
-            {d.mail.map((m) => {
-              const unread = m.unread && !read.includes(m.id);
-              return (
-                <ListRow
-                  key={m.id}
-                  variant="link"
-                  title={m.who}
-                  meta={m.sub}
-                  aside={m.when}
-                  current={m.id === open}
-                  unread={unread}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setOpen(m.id);
-                    setRead((v) => (v.includes(m.id) ? v : [...v, m.id]));
-                    setSaid(`Opened: ${m.sub}`);
-                  }}
-                />
-              );
-            })}
-          </ul>
-          {read.length ? (
-            <Button variant="tertiary" size={32} onClick={() => setRead([])}>
-              Mark them unread again
-            </Button>
-          ) : null}
-        </li>
-
-        <li>
-          <p className="fl-ctl-matrix-kind">Facts you can fix</p>
-          <p className="fl-ctl-matrix-what">A fact row with a button beside the value: the value reads as before, and the button is the only thing to press.</p>
-          <dl className="fl-ctl-rows fl-ctl-rows--facts">
-            {d.record.map((f) => (
+      <div className="fl-ctl-spec fl-ctl-spec--bare">
+        <h3>Rows that open</h3>
+        <p className="fl-ctl-btn-what">
+          Each row is a link to one thing. The one you are looking at stays marked, and opening a message reads it for good.
+        </p>
+        <ul className="fl-ctl-rows fl-ctl-rows--links">
+          {d.mail.map((m) => {
+            const unread = m.unread && !read.includes(m.id);
+            return (
               <ListRow
-                key={f.k}
-                variant="fact"
-                title={f.k}
-                actions={
-                  <Button variant="tertiary" size={32} onClick={() => setSaid(f.edit ? `Editing ${f.k.toLowerCase()}` : "Reference copied")}>
-                    {f.edit ? `Edit ${f.k.toLowerCase()}` : "Copy"}
-                  </Button>
-                }
-              >
-                {f.v}
-              </ListRow>
-            ))}
-          </dl>
-        </li>
-
-        <li>
-          <p className="fl-ctl-matrix-kind">Rows that open in place</p>
-          <p className="fl-ctl-matrix-what">A person, what they booked, an amount and a status; press the row to read more beneath it.</p>
-          <ul className="fl-ctl-rows">
-            {d.clients.map((c) => (
-              <ListRow
-                key={c.id}
+                key={m.id}
                 variant="link"
-                lead={<Avatar name={c.name} size={32} decorative />}
-                title={c.name}
-                meta={c.meta}
-                aside={
-                  <>
-                    {c.amount} <Badge tone={c.tone}>{c.status}</Badge>
-                  </>
-                }
-                expanded={openClient === c.id}
-                detail={c.note}
-                onClick={() => setOpenClient(openClient === c.id ? null : c.id)}
+                title={m.who}
+                meta={m.sub}
+                aside={m.when}
+                current={m.id === open}
+                unread={unread}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setOpen(m.id);
+                  setRead((v) => (v.includes(m.id) ? v : [...v, m.id]));
+                  setSaid(`Opened: ${m.sub}`);
+                }}
               />
-            ))}
-          </ul>
-        </li>
+            );
+          })}
+        </ul>
+        {read.length ? (
+          <Button variant="tertiary" size={32} onClick={() => setRead([])}>
+            Mark them unread again
+          </Button>
+        ) : null}
+      </div>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">Rows you act on</p>
-          <p className="fl-ctl-matrix-what">The row itself does nothing; the buttons do. They stay visible, because hover does not exist on a phone.</p>
-          <ul className="fl-ctl-rows">
-            {files.map((f) => (
-              <ListRow
-                key={f.id}
-                variant="action"
-                icon="folder"
-                title={f.name}
-                meta={f.meta}
-                actions={
-                  <>
-                    <Button variant="tertiary" size={32} icon="download" iconOnly onClick={() => setSaid(`Downloading ${f.name}`)}>
-                      {`Download ${f.name}`}
-                    </Button>
-                    <Button
-                      variant="tertiary"
-                      size={32}
-                      icon="close"
-                      iconOnly
-                      onClick={() => {
-                        setFiles((v) => v.filter((x) => x.id !== f.id));
-                        setSaid(`Removed ${f.name}`);
-                      }}
-                    >
-                      {`Remove ${f.name}`}
-                    </Button>
-                  </>
-                }
-              />
-            ))}
-            {files.length ? null : (
-              <li className="fl-spec-row fl-ctl-row--static">
-                <span className="fl-ctl-matrix-what">Nothing attached.</span>
-                <Button variant="secondary" size={32} onClick={() => setFiles(d.files)}>
-                  Put them back
+      <div className="fl-ctl-spec fl-ctl-spec--bare">
+        <h3>Facts you can fix</h3>
+        <p className="fl-ctl-btn-what">A fact row with a button beside the value: the value reads as before, and the button is the only thing to press.</p>
+        <dl className="fl-ctl-rows fl-ctl-rows--facts">
+          {d.record.map((f) => (
+            <ListRow
+              key={f.k}
+              variant="fact"
+              title={f.k}
+              actions={
+                <Button variant="tertiary" size={32} onClick={() => setSaid(f.edit ? `Editing ${f.k.toLowerCase()}` : "Reference copied")}>
+                  {f.edit ? `Edit ${f.k.toLowerCase()}` : "Copy"}
                 </Button>
-              </li>
-            )}
-          </ul>
-        </li>
+              }
+            >
+              {f.v}
+            </ListRow>
+          ))}
+        </dl>
+      </div>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">Rows you reorder</p>
-          <p className="fl-ctl-matrix-what">A handle, and two buttons that do the same job for anyone who cannot drag.</p>
-          <ol className="fl-ctl-rows fl-ctl-rows--order">
-            {order.map((o, n) => (
-              <ListRow
-                key={o}
-                variant="reorder"
-                title={`${n + 1}. ${o}`}
-                actions={
-                  <>
-                    <Button variant="tertiary" size={32} icon="chevron-down" iconOnly className="fl-ctl-row-up" disabled={n === 0} onClick={() => shift(n, -1)}>
-                      {`Move ${o} up`}
-                    </Button>
-                    <Button variant="tertiary" size={32} icon="chevron-down" iconOnly disabled={n === order.length - 1} onClick={() => shift(n, 1)}>
-                      {`Move ${o} down`}
-                    </Button>
-                  </>
-                }
-              />
-            ))}
-          </ol>
-        </li>
-      </ul>
+      <div className="fl-ctl-spec fl-ctl-spec--bare">
+        <h3>Rows that open in place</h3>
+        <p className="fl-ctl-btn-what">A person, what they booked, an amount and a status; press the row to read more beneath it.</p>
+        <ul className="fl-ctl-rows">
+          {d.clients.map((c) => (
+            <ListRow
+              key={c.id}
+              variant="link"
+              lead={<Avatar name={c.name} size={32} decorative />}
+              title={c.name}
+              meta={c.meta}
+              aside={
+                <>
+                  {c.amount} <Badge tone={c.tone}>{c.status}</Badge>
+                </>
+              }
+              expanded={openClient === c.id}
+              detail={c.note}
+              onClick={() => setOpenClient(openClient === c.id ? null : c.id)}
+            />
+          ))}
+        </ul>
+      </div>
 
-      <p className="fl-ctl-status" role="status" aria-live="polite">
-        {said || "Open a message, remove a file, or move a part of the day."}
-      </p>
+      <div className="fl-ctl-spec fl-ctl-spec--bare">
+        <h3>Rows you act on</h3>
+        <p className="fl-ctl-btn-what">The row itself does nothing; the buttons do. They stay visible, because hover does not exist on a phone.</p>
+        <ul className="fl-ctl-rows">
+          {files.map((f) => (
+            <ListRow
+              key={f.id}
+              variant="action"
+              icon="folder"
+              title={f.name}
+              meta={f.meta}
+              actions={
+                <>
+                  <Button variant="tertiary" size={32} icon="download" iconOnly onClick={() => setSaid(`Downloading ${f.name}`)}>
+                    {`Download ${f.name}`}
+                  </Button>
+                  <Button
+                    variant="tertiary"
+                    size={32}
+                    icon="close"
+                    iconOnly
+                    onClick={() => {
+                      setFiles((v) => v.filter((x) => x.id !== f.id));
+                      setSaid(`Removed ${f.name}`);
+                    }}
+                  >
+                    {`Remove ${f.name}`}
+                  </Button>
+                </>
+              }
+            />
+          ))}
+          {files.length ? null : (
+            <li className="fl-spec-row fl-ctl-row--static">
+              <span className="fl-ctl-matrix-what">Nothing attached.</span>
+              <Button variant="secondary" size={32} onClick={() => setFiles(d.files)}>
+                Put them back
+              </Button>
+            </li>
+          )}
+        </ul>
+      </div>
+
+      <div className="fl-ctl-spec fl-ctl-spec--bare">
+        <h3>Rows you reorder</h3>
+        <p className="fl-ctl-btn-what">A handle, and two buttons that do the same job for anyone who cannot drag.</p>
+        <ol className="fl-ctl-rows fl-ctl-rows--order">
+          {order.map((o, n) => (
+            <ListRow
+              key={o}
+              variant="reorder"
+              title={`${n + 1}. ${o}`}
+              actions={
+                <>
+                  <Button variant="tertiary" size={32} icon="chevron-down" iconOnly className="fl-ctl-row-up" disabled={n === 0} onClick={() => shift(n, -1)}>
+                    {`Move ${o} up`}
+                  </Button>
+                  <Button variant="tertiary" size={32} icon="chevron-down" iconOnly disabled={n === order.length - 1} onClick={() => shift(n, 1)}>
+                    {`Move ${o} down`}
+                  </Button>
+                </>
+              }
+            />
+          ))}
+        </ol>
+      </div>
+
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "Open a message, remove a file, or move a part of the day."}
+        </p>
+      </div>
     </section>
   );
 }

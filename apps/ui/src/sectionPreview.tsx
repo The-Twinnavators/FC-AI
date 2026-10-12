@@ -63,12 +63,47 @@ const withImports = async (path: string, seen = new Set<string>()): Promise<stri
   const deps = [...text.matchAll(/from "\.\/([a-z0-9-]+)"/g)].map((m) => `../../../templates/library/sections/${m[1]}.tsx`);
   return [text, ...(await Promise.all(deps.map((d) => withImports(d, seen))))].join("\n");
 };
+// &focus=<variant ID> (c.tabs.pills): show only that variant of a component's sheet, for its own entry in the library.
+// The sheet marks each drawn variant with data-fl; the variant's block is the largest one around it that holds no other
+// variant of the same component (its label and note come with it), and everything beside that block is hidden.
+const focus = params.get("focus") ?? "";
+const isolate = () => {
+  if (!focus) return;
+  const target = document.querySelector(`#root [data-fl="${CSS.escape(focus)}"]`);
+  const root = document.getElementById("root")!;
+  if (!target) {
+    const note = document.createElement("p");
+    note.textContent = `${focus} isn't drawn on its own on this sheet, so the whole sheet is shown.`;
+    note.style.cssText = "margin:0;padding:10px 24px;font:13px/1.4 system-ui,sans-serif;background:#fff7e0;color:#5c4400";
+    root.prepend(note);
+    return;
+  }
+  const base = focus.split(".").slice(0, 2).join(".");
+  const others = (scope: Element) => [...scope.querySelectorAll(`[data-fl^="${CSS.escape(base)}."], [data-fl="${CSS.escape(base)}"]`)].some((e) => e.getAttribute("data-fl") !== focus);
+  // Column headings and section headings stay, so a row of states keeps its labels.
+  const keep = (el: HTMLElement) => el.tagName === "STYLE" || el.tagName === "THEAD" || /(^|\s)fl-[a-z0-9-]*(head|header)(\s|$)/.test(el.className) || el.getAttribute("role") === "columnheader" || (!!el.querySelector("[role=columnheader], th") && !el.querySelector("[data-fl]"));
+  let block = target;
+  while (block.parentElement && block.parentElement !== root && !others(block.parentElement)) block = block.parentElement;
+  // A state table whose variants are its columns (Outlined | Filled | Underlined, a state per row): the block stops at
+  // one cell, so keep that variant's whole column, every state, plus the row labels, and hide the other columns.
+  const cell = block.closest("td, th");
+  const table = cell?.closest("table");
+  if (cell instanceof HTMLTableCellElement && table) {
+    const col = cell.cellIndex;
+    for (const row of table.rows) for (const c of row.cells) if (c.cellIndex !== 0 && c.cellIndex !== col) c.style.display = "none";
+    block = table;
+  }
+  for (let n: Element = block; n.parentElement && n !== root; n = n.parentElement)
+    for (const sib of n.parentElement.children) if (sib !== n && sib instanceof HTMLElement && !keep(sib)) sib.style.display = "none";
+};
+
 const load = modules[file];
 const root = createRoot(document.getElementById("root")!);
 if (load)
   void Promise.all([load(), withImports(file)]).then(([m, used]) => {
     addStyles(used);
     root.render(<m.default />);
+    setTimeout(isolate, 60);
     requestAnimationFrame(report);
   });
 else (addStyles(""), root.render(<p style={{ padding: 24 }}>No section called “{id}”.</p>));

@@ -311,52 +311,50 @@ export default function PanelsDrawers() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-panel-grid">
-        {d.kinds.map((k) => (
-          <li key={k.id}>
-            <div className="fl-ctl-panel-head">
-              <span>
-                <span className="fl-ctl-matrix-kind">{k.label}</span>
-                <span className="fl-ctl-matrix-what">{k.what}</span>
-              </span>
-              <Button variant="secondary" size={32} aria-expanded={open[k.id]} onClick={() => toggle(k.id, k.label)}>
-                {open[k.id] ? "Close" : "Open"}
-              </Button>
-            </div>
-            <Drawer
-              side={k.id}
-              open={open[k.id]}
-              label={k.label}
-              title={d.record.title}
-              behind={
-                <>
-                  <span />
-                  <span />
-                  <span />
-                </>
-              }
-              onClose={(via) => {
-                setOpen((o) => ({ ...o, [k.id]: false }));
-                setStatus(via === "escape" ? `${k.label} closed with Escape.` : `${k.label} closed.`);
-              }}
-              actions={
-                <>
-                  <Button size={32} onClick={() => (toggle(k.id, k.label), setStatus("Saved and closed."))}>
-                    Save
-                  </Button>
-                  <Button variant="secondary" size={32} onClick={() => toggle(k.id, k.label)}>
-                    Cancel
-                  </Button>
-                </>
-              }
-            >
-              <p className="fl-ctl-matrix-what">{d.record.meta}</p>
-              <p className="fl-ctl-matrix-what">The body scrolls on its own, so the header and the actions stay put.</p>
-            </Drawer>
-          </li>
-        ))}
-      </ul>
-      <div className="fl-ctl-sizes">
+      {d.kinds.map((k) => (
+        <div key={k.id} className="fl-ctl-spec fl-ctl-spec--bare">
+          <div className="fl-ctl-panel-head">
+            <span>
+              <span className="fl-ctl-matrix-kind">{k.label}</span>
+              <span className="fl-ctl-matrix-what">{k.what}</span>
+            </span>
+            <Button variant="secondary" size={32} aria-expanded={open[k.id]} onClick={() => toggle(k.id, k.label)}>
+              {open[k.id] ? "Close" : "Open"}
+            </Button>
+          </div>
+          <Drawer
+            side={k.id}
+            open={open[k.id]}
+            label={k.label}
+            title={d.record.title}
+            behind={
+              <>
+                <span />
+                <span />
+                <span />
+              </>
+            }
+            onClose={(via) => {
+              setOpen((o) => ({ ...o, [k.id]: false }));
+              setStatus(via === "escape" ? `${k.label} closed with Escape.` : `${k.label} closed.`);
+            }}
+            actions={
+              <>
+                <Button size={32} onClick={() => (toggle(k.id, k.label), setStatus("Saved and closed."))}>
+                  Save
+                </Button>
+                <Button variant="secondary" size={32} onClick={() => toggle(k.id, k.label)}>
+                  Cancel
+                </Button>
+              </>
+            }
+          >
+            <p className="fl-ctl-matrix-what">{d.record.meta}</p>
+            <p className="fl-ctl-matrix-what">The body scrolls on its own, so the header and the actions stay put.</p>
+          </Drawer>
+        </div>
+      ))}
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Over the whole page</h3>
         <p className="fl-ctl-btn-what">
           In an app a drawer usually covers the window, not a box. Add overlay and it does: a scrim over the page, Tab stays
@@ -395,7 +393,7 @@ export default function PanelsDrawers() {
           <p className="fl-ctl-matrix-what">This one covers the window. Tab around: focus cannot leave it.</p>
         </Drawer>
       </div>
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Versions</h3>
         <p className="fl-ctl-btn-what">Two older designs, chosen with version. Both cover the whole window; Escape, the scrim or the close button shuts them.</p>
         <div className="fl-ctl-tip-bar">
@@ -440,9 +438,11 @@ export default function PanelsDrawers() {
           onClose={() => setVer("")}
         />
       </div>
-      <p className="fl-ctl-status" role="status" aria-live="polite">
-        {status}
-      </p>
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {status}
+        </p>
+      </div>
     </section>
   );
 }

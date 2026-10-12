@@ -79,7 +79,7 @@ export default function SwitchesStates() {
   const [said, setSaid] = useState("");
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-matrix-wrap">
+      <div className="fl-ctl-matrix-wrap fl-ctl-spec fl-ctl-spec--wide">
         <table className="fl-ctl-matrix">
           <caption className="fl-sr">A switch in each state, at each size</caption>
           <thead>
@@ -109,7 +109,7 @@ export default function SwitchesStates() {
         </table>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--bare">
         <h3>In a settings row</h3>
         <p className="fl-ctl-btn-what">Where a switch usually lives: the setting on the left, the switch on the right.</p>
         <ul className="fl-ctl-setting-list">

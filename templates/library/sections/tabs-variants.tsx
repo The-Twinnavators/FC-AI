@@ -1,13 +1,13 @@
 /** @flowcode-library tabs-variants · Horizontal tabs: underline, pills and enclosed (Tabs, breadcrumbs and paging)
  * Catalog ID: c.tabs (component)
  * Function: The one tabs control (c.tabs), horizontal or vertical; this sheet shows the three horizontal looks and three heights, with arrow-key navigation. It also shows controlled tabs driven by an outside button and a trailing button sharing the bar.
- * Use it as: import { Tabs } from "./tabs-variants"; <Tabs tabs={[{ id, label, count?, icon?, disabled?, panel? }]} label="Sections" orientation?="horizontal"|"vertical" variant?="underline"|"pills"|"enclosed"|"plain"|"filled" size?={32|40|44} version?="underline-slide"|"pill"|"neobrutal" countNoun? defaultId? value? onChange?={(id) => ...} trailing?={node at the end of the bar} />
+ * Use it as: import { Tabs } from "./tabs-variants"; <Tabs tabs={[{ id, label, count?, icon?, disabled?, panel? }]} label="Sections" orientation?="horizontal"|"vertical" variant?="underline"|"pills"|"enclosed"|"plain"|"filled" size?={32|40|44} version?="underline-slide"|"pill"|"folder" countNoun? defaultId? value? onChange?={(id) => ...} trailing?={node at the end of the bar} />
  * Variants: c.tabs.underline - the default across an app (horizontal): a rule under the selected tab; c.tabs.pills - tabs on a tinted surface (horizontal): a filled accent pill marks the selected tab; c.tabs.enclosed - tabs joined to the panel below (horizontal): folder tabs; c.tabs.plain - a long list of sections (vertical rail): a line down the side marks the selected tab; c.tabs.filled - a vertical rail on a busy page: the selected row is a tinted accent block
  * Look: A row or vertical rail of text tabs with an optional icon and count; the selected tab is marked and its panel sits below or beside the list.
  * Tokens: --color-accent --color-on-accent --color-text --color-text-muted --color-border --color-surface --color-surface-sunken --radius-md --radius-lg --space-2 --space-4 --weight-medium --text-sm --focus-ring
  * Use cases: record detail sections; settings groups; report views; inbox filters; dashboard ranges; section tabs; profile tabs; inbox folders; order status tabs; settings sections; project views; dashboard views; order queue; status tabs; order fulfilment; pipeline stages; ticket queue; task stages; filtered list views; kitchen orders; faq; class details; plan comparison; product details; help section; tabbed content; policies
  * Jobs to be done: move between parts of one thing; see which part I am on; count what is in each part; switch between views quickly; see how many items are in each group; find the right section of a page; sort work into stages; move an order to the next stage; see how many items are waiting; focus on one group at a time; find answers to my questions; compare details between options; read only the part i need
- * Keywords: tabs, underline, pills, enclosed, selected, disabled, badge, navigation, counts, tablist, keyboard, accordion, faq, disclosure, neobrutalism
+ * Keywords: tabs, underline, pills, enclosed, selected, disabled, badge, navigation, counts, tablist, keyboard, accordion, faq, disclosure
  */
 /**
  * Three looks for one control, and all three work: click a tab or use the arrow keys, and the panel below changes.
@@ -35,7 +35,7 @@ export type TabsOrientation = "horizontal" | "vertical";
 export type TabsVariant = "underline" | "pills" | "enclosed" | "plain" | "filled";
 export type TabsSize = 32 | 40 | 44;
 /** Alternative designs of the same control (c.tabs@<version>); left out = the default look. */
-export type TabsVersion = "underline-slide" | "pill" | "neobrutal";
+export type TabsVersion = "underline-slide" | "pill" | "folder";
 export type TabItem = {
   id: string;
   label: string;
@@ -60,7 +60,7 @@ const LOOK: Record<TabsVariant, string> = {
 const VERSION: Record<TabsVersion, { root: string; wrap: string; list: string; tab: string; count: string; panel: string }> = {
   "underline-slide": { root: "", wrap: "fl-ctl-tabs", list: "fl-ctl-tablist", tab: "fl-ctl-tab", count: "fl-ctl-tab__count", panel: "fl-ctl-panel" },
   pill: { root: "", wrap: "", list: "fl-way-pills", tab: "fl-way-pill", count: "fl-way-pill__count", panel: "fl-way-panel" },
-  neobrutal: { root: "fl-nb fl-nb-tabs", wrap: "", list: "fl-nb-tablist", tab: "fl-nb-tab", count: "", panel: "fl-nb-box fl-nb-panel" },
+  folder: { root: "fl-tabs--folder", wrap: "", list: "fl-tabs-folder__list", tab: "fl-tabs-folder__tab", count: "", panel: "fl-tabs-folder__panel" },
 };
 const SIZE: Record<TabsSize, string> = { 32: "fl-ctl-tabset--32", 40: "fl-ctl-tabset--40", 44: "fl-ctl-tabset--44" };
 
@@ -81,7 +81,7 @@ type TabsProps = {
   onChange?: (id: string) => void;
   /** Content at the end of the tab bar (a copy button, say), outside the tab list. Horizontal only. */
   trailing?: ReactNode;
-  /** An alternative design of the whole control (horizontal only): underline-slide, pill or neobrutal. */
+  /** An alternative design of the whole control (horizontal only): underline-slide, pill or folder (folder tabs that join the panel below). The look follows the style and surface tokens. */
   version?: TabsVersion;
   /** Screen-reader word after each count in a version ("items" reads "3 items"). */
   countNoun?: string;
@@ -267,7 +267,7 @@ const SAMPLE = {
   versions: [
     { id: "underline-slide" as const, what: "The underline slides and stretches to the open tab; counts read as items." },
     { id: "pill" as const, what: "Rounded pills with a count bubble, for sorting one list into stages." },
-    { id: "neobrutal" as const, what: "Thick-inked folder tabs that join a hard-shadowed panel." },
+    { id: "folder" as const, what: "Folder tabs that join the panel below; the open tab shares the panel's surface." },
   ],
   versionTabs: [
     { id: "today", label: "Today", count: 3, panel: "Water the plants, take the recycling out, book the boiler check." },
@@ -281,18 +281,20 @@ export default function TabsVariants() {
   const [picked, setPicked] = useState("open");
   const [copied, setCopied] = useState(false);
   return (
-    <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-tabs-list">
-        {d.looks.map((l) => (
-          <li key={l.id}>
-            <p className="fl-ctl-matrix-kind">{l.label}</p>
-            <p className="fl-ctl-matrix-what">{l.what} · click a tab, or use the arrow keys.</p>
-            <Tabs tabs={d.tabs} label={`${l.label} tabs`} variant={l.id} defaultId="open" />
-          </li>
-        ))}
-      </ul>
+    <section className="fl-section fl-section--specimen fl-ctl-specs--single">
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <ul className="fl-ctl-tabs-list">
+          {d.looks.map((l) => (
+            <li key={l.id} className="fl-ctl-spec">
+              <p className="fl-ctl-matrix-kind">{l.label}</p>
+              <p className="fl-ctl-matrix-what">{l.what} · click a tab, or use the arrow keys.</p>
+              <Tabs tabs={d.tabs} label={`${l.label} tabs`} variant={l.id} defaultId="open" />
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Controlled, and a button sharing the bar</h3>
         <p className="fl-ctl-btn-what">
           value and onChange let the page own which tab is open, so a button elsewhere can switch it. trailing puts content at the end
@@ -320,15 +322,15 @@ export default function TabsVariants() {
         />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Versions</h3>
         <p className="fl-ctl-btn-what">
-          Alternative designs of the same control, chosen by preference: version="underline-slide", "pill" or "neobrutal". Arrow keys,
+          Alternative designs of the same control, chosen by preference: version="underline-slide", "pill" or "folder". Arrow keys,
           Home and End work in each.
         </p>
         <ul className="fl-ctl-tabs-list">
           {d.versions.map((v) => (
-            <li key={v.id}>
+            <li key={v.id} className="fl-ctl-spec">
               <p className="fl-ctl-matrix-kind">c.tabs@{v.id}</p>
               <p className="fl-ctl-matrix-what">{v.what}</p>
               <Tabs tabs={d.versionTabs} label={`${v.id} tabs`} version={v.id} countNoun="items" />
@@ -337,7 +339,7 @@ export default function TabsVariants() {
         </ul>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Heights</h3>
         <p className="fl-ctl-btn-what">Three of the button heights. Tabs sit above content, so they rarely need to be taller than 44.</p>
         <ul className="fl-ctl-size-list">

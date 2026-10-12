@@ -125,28 +125,33 @@ export default function AiIndicators() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <h3>What a model made</h3>
-      <p className="fl-ctl-btn-what">A badge on the output itself. It survives being copied into a document, which is the whole point of putting it there and not on the button.</p>
-      <div className="fl-ctl-ai-card">
-        <div className="fl-ctl-ai-head">
-          <AiIndicator label="AI draft" />
-          <span className="fl-ctl-matrix-what">Written by a model from your venue notes. Check it before it goes out.</span>
+      <div className="fl-ctl-spec fl-ctl-spec--bare">
+        <h3>What a model made</h3>
+        <p className="fl-ctl-btn-what">A badge on the output itself. It survives being copied into a document, which is the whole point of putting it there and not on the button.</p>
+        <div className="fl-ctl-ai-card">
+          <div className="fl-ctl-ai-head">
+            <AiIndicator label="AI draft" />
+            <span className="fl-ctl-matrix-what">Written by a model from your venue notes. Check it before it goes out.</span>
+          </div>
+          <p>{d.answer}</p>
+          <div className="fl-ctl-ai-foot">
+            <Button size={32} onClick={() => setAccepted("Kept the draft")}>
+              Keep it
+            </Button>
+            <Button variant="secondary" size={32} icon="refresh" onClick={() => setAccepted("Asked for another one")}>
+              Try again
+            </Button>
+            <Button variant="tertiary" size={32} onClick={() => setAccepted("Discarded the draft")}>
+              Discard
+            </Button>
+          </div>
         </div>
-        <p>{d.answer}</p>
-        <div className="fl-ctl-ai-foot">
-          <Button size={32} onClick={() => setAccepted("Kept the draft")}>
-            Keep it
-          </Button>
-          <Button variant="secondary" size={32} icon="refresh" onClick={() => setAccepted("Asked for another one")}>
-            Try again
-          </Button>
-          <Button variant="tertiary" size={32} onClick={() => setAccepted("Discarded the draft")}>
-            Discard
-          </Button>
-        </div>
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {accepted || "Nothing accepted yet."}
+        </p>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>A suggestion inside a field</h3>
         <p className="fl-ctl-btn-what">
           Ghost text the person can take or ignore. It is marked as a suggestion in words, so it is never mistaken for
@@ -180,7 +185,7 @@ export default function AiIndicators() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--bare">
         <h3>While it is working</h3>
         <p className="fl-ctl-btn-what">Text arriving a few letters at a time, and a way to stop it. The region is polite, so it does not interrupt a screen reader on every word.</p>
         <div className="fl-ctl-ai-stream">
@@ -216,7 +221,7 @@ export default function AiIndicators() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>How sure it is</h3>
         <p className="fl-ctl-btn-what">A bar is not enough. Each level says, in a sentence, what it is based on - which is the thing people actually need in order to decide.</p>
         <ul className="fl-ctl-ai-sure">
@@ -228,7 +233,7 @@ export default function AiIndicators() {
         </ul>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Where it came from</h3>
         <p className="fl-ctl-btn-what">Named sources, pressable, under the answer. An answer with no sources should say that too, rather than saying nothing.</p>
         <ul className="fl-ctl-ai-src">
@@ -245,10 +250,6 @@ export default function AiIndicators() {
           ))}
         </ul>
       </div>
-
-      <p className="fl-ctl-status" role="status" aria-live="polite">
-        {accepted || "Nothing accepted yet."}
-      </p>
     </section>
   );
 }

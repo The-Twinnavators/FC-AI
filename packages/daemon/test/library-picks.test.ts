@@ -121,7 +121,7 @@ describe("a pattern's use cases", () => {
 describe("a screen's intent", () => {
   it("can use a piece from another shelf when its job matches, but never a whole website template", () => {
     expect(screenPicks([S("Contact", "Customers get in touch with the team")]).map((p) => p.id)).toEqual(["contact-split"]);
-    expect(screenPicks([S("Plans", "Studio owners compare plans and pick one for their budget")]).map((p) => p.id)).toEqual(["pricing-tiers"]);
+    expect(screenPicks([S("Plans", "Studio owners compare plans and pick one for their budget")]).map((p) => p.id)).toEqual(["table-plan-compare", "pricing-tiers"]);
   });
 });
 

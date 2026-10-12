@@ -266,7 +266,7 @@ export default function CheckboxesRadios() {
   ];
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-matrix-wrap">
+      <div className="fl-ctl-matrix-wrap fl-ctl-spec fl-ctl-spec--wide">
         <table className="fl-ctl-matrix">
           <caption className="fl-sr">Checkboxes and radios in each state</caption>
           <thead>
@@ -301,7 +301,7 @@ export default function CheckboxesRadios() {
         </table>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>With a label and a description</h3>
         <p className="fl-ctl-btn-what">How a choice looks when it needs explaining. The whole block is clickable.</p>
         <ul className="fl-ctl-choice-list">
@@ -314,7 +314,7 @@ export default function CheckboxesRadios() {
         </ul>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Select all, in practice</h3>
         <p className="fl-ctl-btn-what">
           Tick one or two rows and the box above them goes indeterminate; tick them all and it fills. Pressing it when
@@ -323,7 +323,7 @@ export default function CheckboxesRadios() {
         <SelectAll />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Drawn choices: swatches, pills and tiles</h3>
         <p className="fl-ctl-btn-what">
           For a color, a size or a plan, the options are drawn but still real radios, so the arrow keys move between them and
@@ -337,7 +337,7 @@ export default function CheckboxesRadios() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Sizes</h3>
         <p className="fl-ctl-btn-what">A checkbox sits beside text, so the scale is smaller than a button's. 20 px and up are the comfortable ones to tap.</p>
         <ul className="fl-ctl-size-list">

@@ -136,7 +136,7 @@ export default function ChipsTags() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-matrix-wrap">
+      <div className="fl-ctl-matrix-wrap fl-ctl-spec fl-ctl-spec--wide">
         <table className="fl-ctl-matrix">
           <caption className="fl-sr">Each kind of chip in each state</caption>
           <thead>
@@ -186,7 +186,7 @@ export default function ChipsTags() {
         </table>
       </div>
 
-      <div className="fl-ctl-sizes fl-ctl-try">
+      <div className="fl-ctl-sizes fl-ctl-try fl-ctl-spec">
         <h3>A filter bar you can use</h3>
         <p className="fl-ctl-btn-what">Switch a filter on or off, take one off the bar, or clear the lot. The count follows what is on.</p>
         <div className="fl-ctl-chip-bar">
@@ -230,7 +230,7 @@ export default function ChipsTags() {
         </p>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Heights</h3>
         <p className="fl-ctl-btn-what">The lower half of the button scale, so a chip and a button in the same bar line up. A chip is never a screen's main action, so it stops at 44.</p>
         <ul className="fl-ctl-size-list">

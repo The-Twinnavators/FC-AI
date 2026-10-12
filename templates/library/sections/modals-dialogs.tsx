@@ -377,120 +377,127 @@ export default function ModalsDialogs() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-dlg-list">
-        {d.kinds.map((k) => (
-          <li key={k.id}>
-            <p className="fl-ctl-matrix-kind">{k.label}</p>
-            <p className="fl-ctl-matrix-what">{k.what}</p>
-            <Button variant={k.id === "danger" ? "destructive" : "secondary"} size={40} onClick={() => (setVer(""), setOpen(k.id))}>
-              {k.open}
-            </Button>
-          </li>
-        ))}
-      </ul>
+      {/* The buttons on the left, the panel they open into on the right. */}
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <div className="fl-ctl-dlg-split">
+          <div className="fl-ctl-dlg-pick">
+            <ul className="fl-ctl-dlg-list">
+              {d.kinds.map((k) => (
+                <li key={k.id}>
+                  <p className="fl-ctl-matrix-kind">{k.label}</p>
+                  <p className="fl-ctl-matrix-what">{k.what}</p>
+                  <Button variant={k.id === "danger" ? "destructive" : "secondary"} size={40} onClick={() => (setVer(""), setOpen(k.id))}>
+                    {k.open}
+                  </Button>
+                </li>
+              ))}
+            </ul>
 
-      <div className="fl-ctl-sizes">
-        <h3>Versions</h3>
-        <p className="fl-ctl-btn-what">Two older designs, chosen with version. Open one and it appears in the panel below.</p>
-        <ul className="fl-ctl-dlg-list">
-          <li>
-            <p className="fl-ctl-matrix-kind">c.modal@classic-confirm</p>
-            <p className="fl-ctl-matrix-what">An alert dialog with an icon beside the title; Cancel is focused first.</p>
-            <Button variant="secondary" size={40} onClick={() => (setOpen(""), setVer("classic-confirm"))}>
-              Delete booking
-            </Button>
-          </li>
-          <li>
-            <p className="fl-ctl-matrix-kind">c.modal@classic-form</p>
-            <p className="fl-ctl-matrix-what">A titled form dialog with a plain close button.</p>
-            <Button variant="secondary" size={40} onClick={() => (setOpen(""), setVer("classic-form"))}>
-              New booking
-            </Button>
-          </li>
-        </ul>
-      </div>
-
-      {/* The stage stands in for the page a dialog covers. In an app a modal covers the whole window; here it is
-          `contained`, a box of its own, so the dialog opens beside the button that opened it rather than off-screen. */}
-      <div className="fl-ctl-dlg-demo">
-        {ver === "classic-confirm" ? (
-          <Modal
-            key={ver}
-            contained
-            version="classic-confirm"
-            title="Delete this booking?"
-            description="Your 2 seats on Saturday will go back to the waiting list. You can book again later if there is space."
-            icon="trash"
-            warning="This cannot be undone once you leave this page."
-            cancelLabel="Keep booking"
-            confirmLabel="Delete booking"
-            busy={busy}
-            busyLabel="Deleting..."
-            onConfirm={() => {
-              setBusy(true);
-              timer.current = window.setTimeout(() => {
-                setBusy(false);
-                setSaid("Booking deleted");
-                setVer("");
-              }, 700);
-              return false;
-            }}
-            onClose={() => setVer("")}
-          />
-        ) : ver === "classic-form" ? (
-          <Modal
-            key={ver}
-            contained
-            version="classic-form"
-            title="New booking"
-            description="We'll hold the table for 15 minutes after the start time."
-            confirmLabel="Save booking"
-            onConfirm={(data) => {
-              if (!String(data.get("name") ?? "").trim()) {
-                setError("Enter the name the booking is for.");
-                return false;
-              }
-              setError("");
-              setSaid("Booking saved");
-            }}
-            onClose={() => (setError(""), setVer(""))}
-          >
-            <div className="fl-field">
-              <label htmlFor="dlg-classic-name">Name on the booking</label>
-              <input id="dlg-classic-name" name="name" className="fl-input" autoComplete="name" data-autofocus aria-invalid={error ? true : undefined} aria-describedby={error ? "dlg-classic-name-error" : undefined} />
-              {error ? (
-                <p id="dlg-classic-name-error" className="fl-dlg-error">
-                  {error}
-                </p>
-              ) : null}
+            <div className="fl-ctl-sizes">
+              <h3>Versions</h3>
+              <p className="fl-ctl-btn-what">Two older designs, chosen with version. Open one and it appears in the panel.</p>
+              <ul className="fl-ctl-dlg-list">
+                <li>
+                  <p className="fl-ctl-matrix-kind">c.modal@classic-confirm</p>
+                  <p className="fl-ctl-matrix-what">An alert dialog with an icon beside the title; Cancel is focused first.</p>
+                  <Button variant="secondary" size={40} onClick={() => (setOpen(""), setVer("classic-confirm"))}>
+                    Delete booking
+                  </Button>
+                </li>
+                <li>
+                  <p className="fl-ctl-matrix-kind">c.modal@classic-form</p>
+                  <p className="fl-ctl-matrix-what">A titled form dialog with a plain close button.</p>
+                  <Button variant="secondary" size={40} onClick={() => (setOpen(""), setVer("classic-form"))}>
+                    New booking
+                  </Button>
+                </li>
+              </ul>
             </div>
-          </Modal>
-        ) : open ? (
-          <Modal
-            key={open}
-            contained
-            variant={open}
-            title={d.dialogs[open].title}
-            confirmLabel={d.dialogs[open].confirm}
-            icon={open === "danger" ? "trash" : undefined}
-            warning={open === "danger" ? "This cannot be undone once you leave this page." : undefined}
-            busy={busy}
-            busyLabel="Deleting..."
-            onConfirm={confirm(open)}
-            onClose={() => (setError(""), setOpen(""))}
-          >
-            <DialogBody kind={open} error={error} />
-          </Modal>
-        ) : (
-          <p className="fl-ctl-matrix-what">Open one of the dialogs above and it appears here, over this panel.</p>
-        )}
+          </div>
+
+          {/* The stage stands in for the page a dialog covers. In an app a modal covers the whole window; here it is
+              `contained`, a box of its own, so the dialog opens beside the button that opened it rather than off-screen. */}
+          <div className="fl-ctl-dlg-demo">
+            {ver === "classic-confirm" ? (
+              <Modal
+                key={ver}
+                contained
+                version="classic-confirm"
+                title="Delete this booking?"
+                description="Your 2 seats on Saturday will go back to the waiting list. You can book again later if there is space."
+                icon="trash"
+                warning="This cannot be undone once you leave this page."
+                cancelLabel="Keep booking"
+                confirmLabel="Delete booking"
+                busy={busy}
+                busyLabel="Deleting..."
+                onConfirm={() => {
+                  setBusy(true);
+                  timer.current = window.setTimeout(() => {
+                    setBusy(false);
+                    setSaid("Booking deleted");
+                    setVer("");
+                  }, 700);
+                  return false;
+                }}
+                onClose={() => setVer("")}
+              />
+            ) : ver === "classic-form" ? (
+              <Modal
+                key={ver}
+                contained
+                version="classic-form"
+                title="New booking"
+                description="We'll hold the table for 15 minutes after the start time."
+                confirmLabel="Save booking"
+                onConfirm={(data) => {
+                  if (!String(data.get("name") ?? "").trim()) {
+                    setError("Enter the name the booking is for.");
+                    return false;
+                  }
+                  setError("");
+                  setSaid("Booking saved");
+                }}
+                onClose={() => (setError(""), setVer(""))}
+              >
+                <div className="fl-field">
+                  <label htmlFor="dlg-classic-name">Name on the booking</label>
+                  <input id="dlg-classic-name" name="name" className="fl-input" autoComplete="name" data-autofocus aria-invalid={error ? true : undefined} aria-describedby={error ? "dlg-classic-name-error" : undefined} />
+                  {error ? (
+                    <p id="dlg-classic-name-error" className="fl-dlg-error">
+                      {error}
+                    </p>
+                  ) : null}
+                </div>
+              </Modal>
+            ) : open ? (
+              <Modal
+                key={open}
+                contained
+                variant={open}
+                title={d.dialogs[open].title}
+                confirmLabel={d.dialogs[open].confirm}
+                icon={open === "danger" ? "trash" : undefined}
+                warning={open === "danger" ? "This cannot be undone once you leave this page." : undefined}
+                busy={busy}
+                busyLabel="Deleting..."
+                onConfirm={confirm(open)}
+                onClose={() => (setError(""), setOpen(""))}
+              >
+                <DialogBody kind={open} error={error} />
+              </Modal>
+            ) : (
+              <p className="fl-ctl-matrix-what">Open one of the dialogs and it appears here, over this panel.</p>
+            )}
+          </div>
+        </div>
+
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "Open one. Tab around inside it; focus will not leave."}
+        </p>
       </div>
 
-      <p className="fl-ctl-status" role="status" aria-live="polite">
-        {said || "Open one. Tab around inside it; focus will not leave."}
-      </p>
-
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>What makes it a dialog rather than a box</h3>
         <ul className="fl-ctl-tip-rules">
           <li>

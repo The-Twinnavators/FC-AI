@@ -89,30 +89,32 @@ export default function DividersRules() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <h3>A line, or just space</h3>
-      <p className="fl-ctl-btn-what">The same list twice. Switch the lines off and see whether anything was lost.</p>
-      <label className="fl-ctl-choice fl-ctl-choice--inline">
-        <span className="fl-ctl-switch fl-ctl-switch--20">
-          <input type="checkbox" checked={lines} onChange={(e) => setLines(e.target.checked)} />
-          <span className="fl-ctl-switch-track" aria-hidden="true">
-            <span className="fl-ctl-switch-thumb" />
+      <div className="fl-ctl-spec">
+        <h3>A line, or just space</h3>
+        <p className="fl-ctl-btn-what">The same list twice. Switch the lines off and see whether anything was lost.</p>
+        <label className="fl-ctl-choice fl-ctl-choice--inline">
+          <span className="fl-ctl-switch fl-ctl-switch--20">
+            <input type="checkbox" checked={lines} onChange={(e) => setLines(e.target.checked)} />
+            <span className="fl-ctl-switch-track" aria-hidden="true">
+              <span className="fl-ctl-switch-thumb" />
+            </span>
           </span>
-        </span>
-        <span>
-          <strong>Draw the lines</strong>
-          <span className="fl-ctl-matrix-what">{lines ? "On. Useful in a dense list where rows nearly touch." : "Off. In a roomy list, space does the whole job."}</span>
-        </span>
-      </label>
-      <ul className={`fl-ctl-div-list${lines ? " has-rules" : ""}`}>
-        {d.rows.map((r) => (
-          <li key={r}>
-            <strong>{r}</strong>
-            <span className="fl-ctl-matrix-what">12 June &middot; 420 photos</span>
-          </li>
-        ))}
-      </ul>
+          <span>
+            <strong>Draw the lines</strong>
+            <span className="fl-ctl-matrix-what">{lines ? "On. Useful in a dense list where rows nearly touch." : "Off. In a roomy list, space does the whole job."}</span>
+          </span>
+        </label>
+        <ul className={`fl-ctl-div-list${lines ? " has-rules" : ""}`}>
+          {d.rows.map((r) => (
+            <li key={r}>
+              <strong>{r}</strong>
+              <span className="fl-ctl-matrix-what">12 June &middot; 420 photos</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Horizontal</h3>
         <p className="fl-ctl-btn-what">Three weights. Pick one for the whole app: hairline inside a card, regular between sections, heavy almost never.</p>
         <div className="fl-ctl-div-weights">
@@ -127,7 +129,7 @@ export default function DividersRules() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Vertical</h3>
         <p className="fl-ctl-btn-what">Between groups in a toolbar, so a row of buttons reads as two or three sets rather than seven buttons.</p>
         <div className="fl-ctl-div-bar">
@@ -151,7 +153,7 @@ export default function DividersRules() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>With a label</h3>
         <p className="fl-ctl-btn-what">A line with a word in it, for when the break itself means something. The word is real text, so it is read out.</p>
         <div className="fl-ctl-div-labelled">

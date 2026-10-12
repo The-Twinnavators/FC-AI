@@ -56,46 +56,48 @@ export default function FocusRings() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <p className="fl-ctl-btn-what">
-        Tab through this rather than reading it. Every button below takes focus; nothing else about them changes.
-      </p>
+      <div className="fl-ctl-spec fl-ctl-spec--wide">
+        <p className="fl-ctl-btn-what">
+          Tab through this rather than reading it. Every button below takes focus; nothing else about them changes.
+        </p>
 
-      <div className="fl-ctl-matrix-wrap">
-        <table className="fl-ctl-matrix">
-          <caption className="fl-sr">Each ring on each background</caption>
-          <thead>
-            <tr>
-              <th scope="col">Ring</th>
-              {d.grounds.map((g) => (
-                <th key={g.id} scope="col">
-                  <span className="fl-ctl-matrix-kind">{g.label}</span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {d.rings.map((r) => (
-              <tr key={r.id}>
-                <th scope="row">
-                  <span className="fl-ctl-matrix-kind">{r.label}</span>
-                  <span className="fl-ctl-matrix-what">{r.what}</span>
-                </th>
+        <div className="fl-ctl-matrix-wrap">
+          <table className="fl-ctl-matrix">
+            <caption className="fl-sr">Each ring on each background</caption>
+            <thead>
+              <tr>
+                <th scope="col">Ring</th>
                 {d.grounds.map((g) => (
-                  <td key={g.id} data-state={g.label}>
-                    <span className={`fl-ctl-ring-ground fl-ctl-ring-ground--${g.id}`}>
-                      <Button variant="secondary" size={32} className={`fl-ctl-focus fl-ctl-focus--${r.id}${mouseToo ? " is-mouse" : ""}`}>
-                        Tab to me
-                      </Button>
-                    </span>
-                  </td>
+                  <th key={g.id} scope="col">
+                    <span className="fl-ctl-matrix-kind">{g.label}</span>
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {d.rings.map((r) => (
+                <tr key={r.id}>
+                  <th scope="row">
+                    <span className="fl-ctl-matrix-kind">{r.label}</span>
+                    <span className="fl-ctl-matrix-what">{r.what}</span>
+                  </th>
+                  {d.grounds.map((g) => (
+                    <td key={g.id} data-state={g.label}>
+                      <span className={`fl-ctl-ring-ground fl-ctl-ring-ground--${g.id}`}>
+                        <Button variant="secondary" size={32} className={`fl-ctl-focus fl-ctl-focus--${r.id}${mouseToo ? " is-mouse" : ""}`}>
+                          Tab to me
+                        </Button>
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>:focus or :focus-visible</h3>
         <p className="fl-ctl-btn-what">
           Turn this on and the rings above switch to plain :focus, so they appear on a mouse press too. That is what
@@ -117,7 +119,7 @@ export default function FocusRings() {
         </label>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide">
         <h3>Everything that takes focus</h3>
         <p className="fl-ctl-btn-what">A ring has to work on all of these, not only on buttons. Tab across the row.</p>
         <div className="fl-ctl-focus-row">
@@ -148,7 +150,7 @@ export default function FocusRings() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>The rules</h3>
         <ul className="fl-ctl-tip-rules">
           <li>

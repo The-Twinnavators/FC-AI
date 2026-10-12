@@ -140,19 +140,21 @@ export default function MediaFrames() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <h3>Ratios</h3>
-      <p className="fl-ctl-btn-what">The frame holds its shape before anything is in it, which is what stops the page jumping as pictures arrive.</p>
-      <ul className="fl-ctl-media-row">
-        {d.ratios.map((r) => (
-          <li key={r.id}>
-            <MediaFrame ratio={r.id} />
-            <span className="fl-ctl-matrix-kind">{r.label}</span>
-            <span className="fl-ctl-matrix-what">{r.what}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="fl-ctl-spec fl-ctl-spec--wide">
+        <h3>Ratios</h3>
+        <p className="fl-ctl-btn-what">The frame holds its shape before anything is in it, which is what stops the page jumping as pictures arrive.</p>
+        <ul className="fl-ctl-media-row">
+          {d.ratios.map((r) => (
+            <li key={r.id}>
+              <MediaFrame ratio={r.id} />
+              <span className="fl-ctl-matrix-kind">{r.label}</span>
+              <span className="fl-ctl-matrix-what">{r.what}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Cover or contain</h3>
         <p className="fl-ctl-btn-what">
           The same tall picture in the same wide frame. Cover fills the frame and cuts the edges off; contain keeps all
@@ -172,7 +174,7 @@ export default function MediaFrames() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide">
         <h3>Before it arrives, and when it never does</h3>
         <p className="fl-ctl-btn-what">Two states a frame has to have. Switch them on and watch the layout hold still through both.</p>
         <div className="fl-ctl-alert-pick">
@@ -192,7 +194,7 @@ export default function MediaFrames() {
         </ul>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>What a frame has to carry</h3>
         <ul className="fl-ctl-tip-rules">
           <li>

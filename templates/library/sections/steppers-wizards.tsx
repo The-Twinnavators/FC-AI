@@ -180,49 +180,51 @@ export default function SteppersWizards() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-step-block">
+      <div className="fl-ctl-step-block fl-ctl-spec fl-ctl-spec--wide">
         <p className="fl-ctl-matrix-kind">Numbered</p>
         <p className="fl-ctl-matrix-what">Every step named, finished ones ticked and still reachable. Steps ahead cannot be jumped to.</p>
         <Stepper steps={d.steps} current={at} failed={failed} onStep={setAt} />
       </div>
 
-      <div className="fl-ctl-step-panel">
-        <h4>{here.label}</h4>
-        <p className="fl-ctl-matrix-what">
-          Step {at + 1} of {d.steps.length}. {here.what}.
-        </p>
-        <div className="fl-ctl-step-actions">
-          <Button variant="secondary" size={40} icon="arrow" disabled={at === 0} onClick={() => setAt((n) => Math.max(0, n - 1))}>
-            Back
-          </Button>
-          <Button size={40} icon="arrow" iconAt="end" disabled={at === last} onClick={() => setAt((n) => Math.min(last, n + 1))}>
-            {at === last - 1 ? "Review and pay" : "Next"}
-          </Button>
-          <Button variant="tertiary" size={40} onClick={() => setFailed((f) => (f === at ? -1 : at))}>
-            {failed === at ? "Clear this step's error" : "Make this step fail"}
-          </Button>
+      <div className="fl-ctl-spec fl-ctl-spec--bare">
+        <div className="fl-ctl-step-panel">
+          <h4>{here.label}</h4>
+          <p className="fl-ctl-matrix-what">
+            Step {at + 1} of {d.steps.length}. {here.what}.
+          </p>
+          <div className="fl-ctl-step-actions">
+            <Button variant="secondary" size={40} icon="arrow" disabled={at === 0} onClick={() => setAt((n) => Math.max(0, n - 1))}>
+              Back
+            </Button>
+            <Button size={40} icon="arrow" iconAt="end" disabled={at === last} onClick={() => setAt((n) => Math.min(last, n + 1))}>
+              {at === last - 1 ? "Review and pay" : "Next"}
+            </Button>
+            <Button variant="tertiary" size={40} onClick={() => setFailed((f) => (f === at ? -1 : at))}>
+              {failed === at ? "Clear this step's error" : "Make this step fail"}
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Just a bar</h3>
         <p className="fl-ctl-btn-what">When the step names do not help, say how far along it is and nothing else.</p>
         <Stepper variant="bar" steps={d.steps} current={at} />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
+        <h3>Vertical</h3>
+        <p className="fl-ctl-btn-what">For steps that each need a line of explanation, or that are read before they are done.</p>
+        <Stepper variant="vertical" steps={d.steps} current={at} failed={failed} />
+      </div>
+
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide">
         <h3>Versions</h3>
         <p className="fl-ctl-btn-what">
           p.stepper@hinted: round numbered dots, each with a one-line hint; a row on wide screens and a column on phones. Finished steps
           can be pressed to go back. Driven here by the same Back and Next buttons.
         </p>
         <Stepper version="hinted" label="Booking progress" steps={d.steps} current={at} onStep={setAt} />
-      </div>
-
-      <div className="fl-ctl-sizes">
-        <h3>Vertical</h3>
-        <p className="fl-ctl-btn-what">For steps that each need a line of explanation, or that are read before they are done.</p>
-        <Stepper variant="vertical" steps={d.steps} current={at} failed={failed} />
       </div>
     </section>
   );

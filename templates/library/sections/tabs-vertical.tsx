@@ -47,17 +47,19 @@ export default function TabsVertical() {
   const d = SAMPLE;
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-vtabs-list">
-        {d.looks.map((l) => (
-          <li key={l.id}>
-            <p className="fl-ctl-matrix-kind">{l.label}</p>
-            <p className="fl-ctl-matrix-what">{l.what}</p>
-            <Tabs orientation="vertical" variant={l.id} tabs={d.tabs} label="Settings sections" />
-          </li>
-        ))}
-      </ul>
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <ul className="fl-ctl-vtabs-list">
+          {d.looks.map((l) => (
+            <li key={l.id} className="fl-ctl-spec">
+              <p className="fl-ctl-matrix-kind">{l.label}</p>
+              <p className="fl-ctl-matrix-what">{l.what}</p>
+              <Tabs orientation="vertical" variant={l.id} tabs={d.tabs} label="Settings sections" />
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>When to turn tabs on their side</h3>
         <p className="fl-ctl-btn-what">
           Six sections or more, or labels longer than two words: a vertical rail holds them without wrapping. Fewer and

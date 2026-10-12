@@ -63,6 +63,7 @@ import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, p
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
+import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
 import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
@@ -339,6 +340,7 @@ export class Orchestrator {
         try {
           const screens = await this.decideScreens(run, "", ctrl.signal);
           if (screens) {
+            this.matchCatalogFor(run, screens);
             const note = screenPlanNote(screens);
             // The steps after the layout (runtime steps ignore their objective).
             plan = { ...plan, tasks: plan.tasks.map((t) => (t.role === "coder" && t.title !== APP_LAYOUT ? { ...t, objective: `${t.objective}\n\n${note}` } : t)) };
@@ -734,6 +736,7 @@ export class Orchestrator {
    * like NOBIO's got nothing but a sidebar.
    */
   private withScreenPicks(run: Run, tasks: PlanTask[], screens: ScreenPlan | undefined): PlanTask[] {
+    if (screens) this.matchCatalogFor(run, screens);
     const lib = tasks.find((t) => t.title === ADD_SECTIONS);
     if (!screens || !lib) return tasks;
     const have = picksIn(lib.objective);
@@ -749,6 +752,48 @@ export class Orchestrator {
           ? { ...t, objective: `${t.objective}\n\n${screenPickGuidance(extra, sectionFile)}` }
           : t,
     );
+  }
+
+  /**
+   * The catalog matched to this run's PRD and screens, once, deterministically (catalogMatch.ts): stored for the
+   * builders' briefs and the visual review's next-best options, and announced in the build log.
+   */
+  private matchCatalogFor(run: Run, screens: ScreenPlan): CatalogManifest {
+    const prd = prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, [])) || run.objective;
+    const manifest = matchCatalog(`${run.objective}\n${prd}`, screens.screens);
+    this.d.store.setSetting(catalogManifestKey(run.id), manifest);
+    this.d.bus.emit({ type: "plan.proposed", projectId: run.projectId, runId: run.id, message: manifestSummary(manifest), data: { catalog: manifest } });
+    return manifest;
+  }
+
+  /**
+   * For screens the visual review sent back: the next catalog option matched to each (one per screen, never one
+   * offered before), as an instruction the next attempt can act on with add_library_piece. A design crit with no named
+   * screen offers it for the step's first screens. Nothing when the list has no option left: the review's own words
+   * are then the prompt.
+   */
+  private nextCatalogOptions(run: Run, screens: string[], crit: boolean): string[] {
+    const manifest = this.catalogManifestOf(run);
+    if (!manifest) return [];
+    const names = screens.length ? screens : crit ? manifest.screens.slice(0, 2).map((s) => s.screen) : [];
+    const tried = this.d.store.getSetting<string[]>(catalogTriedKey(run.id), []);
+    const out: string[] = [];
+    for (const name of names) {
+      const next = nextBest(manifest, name, tried);
+      if (!next) continue;
+      tried.push(next.ref);
+      out.push(`Next best catalog option for the ${name} screen: ${next.ref} (${next.name}, matched on ${next.why}). Put it in with add_library_piece("${next.ref}") in place of the part that isn't working there, then fill it with this screen's real content.`);
+    }
+    if (out.length) this.d.store.setSetting(catalogTriedKey(run.id), tried);
+    return out;
+  }
+
+  /** The run's catalog list: stored at planning, or matched now from the stored screens (a run planned before this existed). */
+  private catalogManifestOf(run: Run): CatalogManifest | undefined {
+    const stored = this.d.store.getSetting<CatalogManifest | undefined>(catalogManifestKey(run.id), undefined);
+    if (stored) return stored;
+    const screens = this.d.store.getSetting<ScreenPlan | undefined>(screenPlanKey(run.id), undefined);
+    return screens?.screens?.length ? this.matchCatalogFor(run, screens) : undefined;
   }
 
   /**
@@ -1575,7 +1620,8 @@ export class Orchestrator {
       if (serious.length) {
         const crits = serious.filter((f) => f.rule === "design-crit").map((f) => `Design crit: ${f.message}`);
         const lookFails = serious.filter((f) => f.rule !== "design-crit").slice(0, 5).map((f) => `Look check (${f.screen}): ${f.message}`);
-        verdict = { ...verdict, allMet: false, failures: [...verdict.failures, ...lookFails, ...(crits.length ? ["A design lead reviewed the screens: make these changes to raise the design to portfolio level (keep everything that works, and keep the tests passing):", ...crits] : [])] };
+        const options = this.nextCatalogOptions(run, [...new Set(serious.map((f) => f.screen).filter((x) => x && x !== "Design crit"))], crits.length > 0);
+        verdict = { ...verdict, allMet: false, failures: [...verdict.failures, ...lookFails, ...options, ...(crits.length ? ["A design lead reviewed the screens: make these changes to raise the design to portfolio level (keep everything that works, and keep the tests passing):", ...crits] : [])] };
       }
       this.d.bus.emit({ ...ev, type: "verification.completed", message: look ? `Look check on "${task.title}": ${look.length ? `${serious.length} serious, ${look.length - serious.length} minor` : "looks right"}` : `Look check skipped for "${task.title}" (preview not available yet)`, level: serious.length ? "warning" : "info" });
     }
@@ -1841,7 +1887,7 @@ export class Orchestrator {
     const reuse = uiWork ? scanComponentLibrary(jail).brief : "";
     // An app with FlowCode's library gets the catalog too: the parts to assemble screens from, one line each, so the
     // agent adds a catalog piece instead of writing the markup (a build used the starter kit and nothing from it).
-    const catalog = uiWork && (role === "coder" || role === "debugger") && fs.existsSync(path.join(jail.root, "src/styles/library.css")) ? catalogBrief(`${task.title} ${task.objective}`) : "";
+    const catalog = uiWork && (role === "coder" || role === "debugger") && fs.existsSync(path.join(jail.root, "src/styles/library.css")) ? ((m) => (m ? manifestBrief(m, `${task.title} ${task.objective}`) : catalogBrief(`${task.title} ${task.objective}`)))(this.catalogManifestOf(run)) : "";
     const system = rolePrompt + renderSkills(skills) + (reuse ? `\n\n${reuse}` : "") + (catalog ? `\n\n${catalog}` : "");
     // Skills are guidance in the system prompt only. Their checklists used to be added to the step as "manual"
     // criteria that always counted as met: a dozen per step, none checked (Calculator test 1). A step's criteria are its

@@ -234,7 +234,7 @@ export default function CommandPaletteSpecimen() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-cmd-open">
+      <div className="fl-ctl-cmd-open fl-ctl-spec">
         <Button
           variant="secondary"
           size={40}
@@ -253,20 +253,22 @@ export default function CommandPaletteSpecimen() {
       </div>
 
       {open ? (
-        <CommandPalette
-          key={opened}
-          groups={SAMPLE_GROUPS}
-          autoFocus={opened > 0}
-          searched={`Looked through ${d.items.length} commands, your sections and your recent shoots. Try a shorter word.`}
-          onSelect={(item, group) => {
-            setRan(`${group}: ${item.label}`);
-            setOpen(false);
-          }}
-          onClose={() => setOpen(false)}
-        />
+        <div className="fl-ctl-spec fl-ctl-spec--bare">
+          <CommandPalette
+            key={opened}
+            groups={SAMPLE_GROUPS}
+            autoFocus={opened > 0}
+            searched={`Looked through ${d.items.length} commands, your sections and your recent shoots. Try a shorter word.`}
+            onSelect={(item, group) => {
+              setRan(`${group}: ${item.label}`);
+              setOpen(false);
+            }}
+            onClose={() => setOpen(false)}
+          />
+        </div>
       ) : null}
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>What makes it usable</h3>
         <ul className="fl-ctl-tip-rules">
           <li>

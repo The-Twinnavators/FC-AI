@@ -186,3 +186,55 @@ th[aria-sort="descending"] .fl-tbl-sort svg { transform: rotate(180deg); }
   .fl-tbl-row .fl-person__avatar { width: 2.25rem; height: 2.25rem; font-size: var(--text-sm); }
   .fl-tbl-bulk { position: sticky; top: 0; z-index: 2; }
 }
+
+/* ── p.plan-comparison: plans across the top, grouped features down the side; groups open and close, a feature can
+   show a line of detail, and the plan most people pick is tinted down its column. ── */
+.fl-plan { display: grid; gap: var(--space-4); }
+.fl-plan-top { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: end; justify-content: space-between; }
+.fl-plan-scroll {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); box-shadow: var(--surface-shadow, none);
+}
+.fl-plan-scroll:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-plan-table { width: 100%; min-width: 42rem; table-layout: fixed; border-collapse: collapse; font-size: var(--text-sm); color: var(--color-text); }
+.fl-plan-table th, .fl-plan-table td { padding: var(--space-3) var(--space-4); text-align: left; vertical-align: middle; border-bottom: 1px solid var(--color-border); }
+.fl-plan-table td { text-align: center; }
+.fl-plan-table thead th { vertical-align: top; border-bottom: 1px solid var(--color-border-strong, var(--color-border)); }
+.fl-plan-feat-head { color: var(--color-text-muted); font-size: var(--text-xs); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-wide); text-transform: uppercase; vertical-align: bottom !important; }
+/* The feature names stay in place while the plans scroll sideways on a phone. */
+.fl-plan-table :is(thead th:first-child, .fl-plan-feat) { position: sticky; left: 0; z-index: 1; background: var(--surface-bg, var(--color-surface)); min-width: 13rem; }
+/* Fixed widths, so opening a detail line never shifts the plans sideways. */
+.fl-plan-table thead th:first-child { width: 32%; }
+.fl-plan-col { min-width: 10rem; }
+.fl-plan-table thead .fl-plan-col { padding-block: var(--space-4); }
+.fl-plan-col.is-pick { background: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 7%, var(--color-surface))); }
+.fl-plan-table thead .fl-plan-col > * + * { margin-top: var(--space-2); }
+.fl-plan-name { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; font: var(--weight-semibold) var(--text-md) / var(--leading-snug) var(--font-display); }
+.fl-plan-price { display: flex; align-items: baseline; gap: var(--space-1); }
+.fl-plan-price strong { font: var(--weight-bold) var(--text-2xl) / 1 var(--font-display); font-variant-numeric: tabular-nums; }
+.fl-plan-price span, .fl-plan-note { color: var(--color-text-muted); font-size: var(--text-sm); font-weight: var(--weight-regular); }
+.fl-plan-note { display: block; }
+/* A group heading names the features under it; it doesn't open or close. */
+.fl-plan-group th { padding: var(--space-2) var(--space-4); background: var(--color-surface-sunken); color: var(--color-text); font-weight: var(--weight-semibold); font-size: var(--text-xs); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+/* A feature row opens: its name is the button, and its details appear under the name. */
+.fl-plan-table tbody th, .fl-plan-table tbody td { vertical-align: top; }
+.fl-plan-feat { font-weight: var(--weight-medium); }
+.fl-plan-feat-btn {
+  display: flex; align-items: flex-start; gap: var(--space-2); width: 100%; margin: calc(var(--space-1) * -1) 0; padding: var(--space-1) 0; border: 0; border-radius: var(--radius-sm);
+  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.fl-plan-feat-btn:hover { color: var(--color-accent); }
+.fl-plan-feat-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-plan-feat-text { display: block; padding-left: calc(1rem + var(--space-2)); }
+.fl-plan-caret { display: inline-grid; place-items: center; flex: none; width: 1rem; height: 1.25rem; color: var(--color-text-muted); transition: transform var(--duration-fast) var(--easing); }
+.fl-plan-caret svg { width: 1rem; height: 1rem; }
+.fl-plan-feat-btn[aria-expanded="true"] .fl-plan-caret { transform: rotate(90deg); color: var(--color-accent); }
+.fl-plan-row.is-open > *, .fl-plan-table .fl-plan-row.is-open > .fl-plan-feat { background-image: linear-gradient(color-mix(in srgb, var(--color-accent) 4%, transparent), color-mix(in srgb, var(--color-accent) 4%, transparent)); }
+.fl-plan-detail { display: block; max-width: 100%; margin-top: var(--space-2); padding-left: calc(1rem + var(--space-2)); color: var(--color-text-muted); font-size: var(--text-xs); font-weight: var(--weight-regular); line-height: var(--leading-normal); }
+.fl-plan-detail[hidden] { display: none; }
+.fl-plan-yes { display: inline-grid; place-items: center; color: var(--color-success); }
+.fl-plan-yes svg { width: 1.1rem; height: 1.1rem; }
+.fl-plan-no { color: var(--color-text-muted); }
+.fl-plan-table tbody:last-child tr:last-child > * { border-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .fl-plan-caret { transition: none; } }

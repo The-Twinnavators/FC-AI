@@ -178,52 +178,54 @@ export default function ChatBubbles() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-chat">
-        <div className="fl-ctl-chat-head">
-          <Avatar name={d.them.name} size={40} tone="a" decorative />
-          <span>
-            <strong>{d.them.name}</strong>
-            <span className="fl-ctl-matrix-what">
-              <span className="fl-ctl-dot fl-ctl-dot--online" aria-hidden="true" /> Here now
+      <div className="fl-ctl-spec fl-ctl-spec--bare">
+        <div className="fl-ctl-chat">
+          <div className="fl-ctl-chat-head">
+            <Avatar name={d.them.name} size={40} tone="a" decorative />
+            <span>
+              <strong>{d.them.name}</strong>
+              <span className="fl-ctl-matrix-what">
+                <span className="fl-ctl-dot fl-ctl-dot--online" aria-hidden="true" /> Here now
+              </span>
             </span>
-          </span>
+          </div>
+
+          <ol className="fl-ctl-chat-log" role="log" aria-live="polite" aria-label={`Conversation with ${d.them.name}`}>
+            {msgs.map((m, n) => (
+              <ChatBubble
+                key={m.id}
+                variant={m.who === "me" ? "mine" : "theirs"}
+                name={d.them.name}
+                at={m.at}
+                first={n === 0 || msgs[n - 1].who !== m.who}
+                status={m.state}
+                onRetry={() => setMsgs((v) => v.map((x) => (x.id === m.id ? { ...x, state: "sending" } : x)))}
+              >
+                {m.text}
+              </ChatBubble>
+            ))}
+            {typing ? <ChatBubble name={d.them.name} typing /> : null}
+          </ol>
+
+          <form
+            className="fl-ctl-chat-send"
+            onSubmit={(e) => {
+              e.preventDefault();
+              send();
+            }}
+          >
+            <label className="fl-sr" htmlFor="chat-text">
+              Write a message
+            </label>
+            <input id="chat-text" className="fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--40" placeholder="Write a message" value={text} onChange={(e) => setText(e.target.value)} />
+            <Button type="submit" size={40} icon="send" iconOnly disabled={!text.trim()}>
+              Send
+            </Button>
+          </form>
         </div>
-
-        <ol className="fl-ctl-chat-log" role="log" aria-live="polite" aria-label={`Conversation with ${d.them.name}`}>
-          {msgs.map((m, n) => (
-            <ChatBubble
-              key={m.id}
-              variant={m.who === "me" ? "mine" : "theirs"}
-              name={d.them.name}
-              at={m.at}
-              first={n === 0 || msgs[n - 1].who !== m.who}
-              status={m.state}
-              onRetry={() => setMsgs((v) => v.map((x) => (x.id === m.id ? { ...x, state: "sending" } : x)))}
-            >
-              {m.text}
-            </ChatBubble>
-          ))}
-          {typing ? <ChatBubble name={d.them.name} typing /> : null}
-        </ol>
-
-        <form
-          className="fl-ctl-chat-send"
-          onSubmit={(e) => {
-            e.preventDefault();
-            send();
-          }}
-        >
-          <label className="fl-sr" htmlFor="chat-text">
-            Write a message
-          </label>
-          <input id="chat-text" className="fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--40" placeholder="Write a message" value={text} onChange={(e) => setText(e.target.value)} />
-          <Button type="submit" size={40} icon="send" iconOnly disabled={!text.trim()}>
-            Send
-          </Button>
-        </form>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>An assistant reply</h3>
         <p className="fl-ctl-btn-what">Full width with no bubble, so paragraphs, lists and code have room. Actions sit under it; while it streams, the working indicator shows.</p>
         <ol className="fl-ctl-chat-log" role="log" aria-label="Assistant reply">
@@ -255,7 +257,7 @@ export default function ChatBubbles() {
         </ol>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>What a thread has to do</h3>
         <ul className="fl-ctl-tip-rules">
           <li>

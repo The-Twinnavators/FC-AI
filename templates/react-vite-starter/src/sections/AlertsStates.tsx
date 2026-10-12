@@ -1,7 +1,7 @@
 /** @flowcode-library alerts-states · Alerts: four tones, inline, banner and toast (Alerts and states)
  * Catalog ID: c.alert (component)
- * Function: The alert (c.alert) in four tones and three places (inline, banner, bleed strip, toast), each dismissible and able to carry an action, plus the self-closing toast region (c.toast-stack); the reference sheet shows each, the roles that announce them, and a live banner, strip and toast stack. Versions: tone-card, announcement and neobrutal; the sheet shows each and the toast-stack cards.
- * Use it as: import { Alert } from "./AlertsStates"; <Alert version?="tone-card"|"announcement"|"neobrutal" variant?="info"|"success"|"warning"|"danger" placement?="inline"|"banner"|"toast" bleed? tag? title="Shoot saved" onDismiss? dismissLabel? action?={<Button/> or a link}>Detail text</Alert> (tone-card also takes actionLabel? onAction? dismissible?; announcement takes rememberKey? restoreLabel? tag?; neobrutal takes icon? dismissible?)
+ * Function: The alert (c.alert) in four tones and three places (inline, banner, bleed strip, toast), each dismissible and able to carry an action, plus the self-closing toast region (c.toast-stack); the reference sheet shows each, the roles that announce them, and a live banner, strip and toast stack. Versions: tone-card and announcement; the sheet shows each and the toast-stack cards.
+ * Use it as: import { Alert } from "./AlertsStates"; <Alert version?="tone-card"|"announcement" variant?="info"|"success"|"warning"|"danger" placement?="inline"|"banner"|"toast" bleed? tag? title="Shoot saved" onDismiss? dismissLabel? action?={<Button/> or a link}>Detail text</Alert> (tone-card also takes actionLabel? onAction? dismissible?; announcement takes rememberKey? restoreLabel? tag?)
  * Variants: c.alert.info - neutral news that needs no action: accent tint with an i icon; c.alert.success - something worked: green tint with a check icon; c.alert.warning - take care before going on: amber tint with an alert icon; c.alert.danger - something failed and needs a fix: red tint, announced at once (role alert)
  * Look: A rounded, tinted box with a round tone icon, a bold title and a line of detail; inline it can carry an action button and a dismiss x, as a banner it spans the page (or, with bleed, is a full-width accent strip with an optional tag) with a link and a dismiss button, as a toast it is a pill with a small x, an optional detail line and an action such as Undo.
  * Tokens: --color-accent --color-success --color-warning --color-danger --color-border --color-surface --color-surface-sunken --color-text-muted --radius-lg --radius-md --space-1 --space-2 --space-3 --space-4 --duration-med --easing --color-on-accent --color-text --surface-shadow-hover --color-secondary --radius-sm --space-5 --weight-bold --text-xs --text-sm --text-md --tracking-wide --duration-fast --duration-base --focus-ring
@@ -10,7 +10,7 @@
  *   Look: A column of toast cards in the page corner, each with a tone icon, title, optional second line and Undo, a close x and a thin bar along the bottom that shrinks as the toast counts down. Hover or focus pauses the count; Escape closes it; only the newest max show.
  * Use cases: form saved; something failed; a warning before an action; a tip; a site-wide notice; form errors; success message; warning notice; system status; account notices; payment failed; validation feedback; info message; announcement bar; promo banner; new feature announcement; maintenance notice; sale announcement; cookie or policy notice; event promotion; notifications; save confirmation; undo action; background task updates; activity alerts; error notifications; upload complete; alerts; status badges; upload progress; system messages; booking status; dashboard notices
  * Jobs to be done: know something happened; understand what went wrong; get told without losing my place; know what went wrong and fix it; confirm my change was saved; notice something that needs my attention; dismiss a message i've read; hear about what's new; find out about a sale or offer; learn about planned downtime; hide a notice i've seen; know my action worked; undo something i did by mistake; stay aware of updates while working; notice errors without losing my place; know if something worked; see the status of my booking; track an upload until it finishes; dismiss notices i have read
- * Keywords: alert, toast, banner, notice, success, warning, error, info, dismiss, message, status, feedback, dismissible, announcement, snackbar, notification, undo, alerts, badges, progress, notifications, neobrutalism
+ * Keywords: alert, toast, banner, notice, success, warning, error, info, dismiss, message, status, feedback, dismissible, announcement, snackbar, notification, undo, alerts, badges, progress, notifications
  */
 /**
  * The same four tones in the three places a message can appear. Where it appears decides how it behaves: an inline
@@ -45,9 +45,9 @@ export type AlertPlacement = "inline" | "banner" | "toast";
 /**
  * Other designs of the same alert. "default" follows the app's tokens; "tone-card" is a list card with a colored left
  * edge, a screen-reader tone word and a text action; "announcement" is the full-width accent strip that stays closed
- * once dismissed; "neobrutal" is the neobrutalism kit's alert (thick ink border, hard shadow).
+ * once dismissed. The look of each follows the style and surface tokens.
  */
-export type AlertVersion = "default" | "tone-card" | "announcement" | "neobrutal";
+export type AlertVersion = "default" | "tone-card" | "announcement";
 
 // Written out in full (not built from the variant name) so a build finds every class the alert needs.
 const TONE: Record<AlertVariant, string> = {
@@ -67,9 +67,6 @@ const CARD_PATH: Record<AlertVariant, string> = {
   warning: "M12 4 2.5 20h19zM12 10v4M12 17h.01",
   danger: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9 9l6 6M15 9l-6 6",
 };
-// neobrutal: the tone class sets the ink-box color and the icon tile.
-const NB_TONE: Record<AlertVariant, string> = { info: "fl-nb-tone-info", success: "fl-nb-tone-success", warning: "fl-nb-tone-warning", danger: "fl-nb-tone-error" };
-const NB_ICON: Record<AlertVariant, string> = { info: "sparkle", success: "check", warning: "clock", danger: "shield" };
 
 type AlertProps = {
   /** Another design of the alert; "default" when left out. See AlertVersion. */
@@ -87,13 +84,11 @@ type AlertProps = {
   tag?: string;
   /** A button or link for the person to act on: Fix it (inline), See the timetable (banner), Undo (toast). */
   action?: ReactNode;
-  /** tone-card and neobrutal: show a dismiss x that hides the alert by itself (no onDismiss needed). */
+  /** tone-card only: show a dismiss x that hides the alert by itself (no onDismiss needed). */
   dismissible?: boolean;
   /** tone-card only: a text action button with this label (instead of an action node); onAction runs when pressed. */
   actionLabel?: string;
   onAction?: () => void;
-  /** neobrutal only: an icon name from ./icons to use instead of the tone's own. */
-  icon?: string;
   /** announcement only: the key under which the dismissal is remembered on this device, so it stays closed. */
   rememberKey?: string;
   /** announcement only: the button that brings a dismissed announcement back (left out, nothing shows once closed). */
@@ -115,7 +110,6 @@ export function Alert(props: AlertProps) {
   const { version = "default", ...own } = props;
   if (version === "tone-card") return <ToneCardAlert {...own} />;
   if (version === "announcement") return <Announcement {...own} />;
-  if (version === "neobrutal") return <NeobrutalAlert {...own} />;
   return <BaseAlert {...own} />;
 }
 
@@ -125,7 +119,7 @@ function ToneCardAlert({ variant = "info", title, onDismiss, dismissible, dismis
   if (gone) return null;
   const close = onDismiss || dismissible ? () => { onDismiss?.(); setGone(true); } : undefined;
   const act = action ?? (actionLabel ? <button type="button" className="fl-alr__action" onClick={onAction}>{actionLabel}</button> : null);
-  const { bleed: _b, tag: _t, placement: _p, icon: _i, rememberKey: _r, restoreLabel: _rl, ...attrs } = rest as AlertProps;
+  const { bleed: _b, tag: _t, placement: _p, rememberKey: _r, restoreLabel: _rl, ...attrs } = rest as AlertProps;
   return (
     <div role={variant === "danger" ? "alert" : undefined} {...(attrs as HTMLAttributes<HTMLDivElement>)} className={["fl-alr", CARD_TONE[variant], className ?? ""].filter(Boolean).join(" ")} data-fl="c.alert@tone-card">
       <span className="fl-alr__icon">
@@ -232,32 +226,7 @@ function Announcement({ title, tag, action, onDismiss, dismissLabel, rememberKey
   );
 }
 
-// c.alert@neobrutal: the neobrutalism kit's alert, a thick-ink box with a colored icon tile and a hard shadow.
-function NeobrutalAlert({ variant = "info", title, onDismiss, dismissible, dismissLabel, icon, action, className, children, ...rest }: Omit<AlertProps, "version">) {
-  const [gone, setGone] = useState(false);
-  if (gone) return null;
-  const close = onDismiss || dismissible ? () => { onDismiss?.(); setGone(true); } : undefined;
-  const { bleed: _b, tag: _t, placement: _p, actionLabel: _a, onAction: _o, rememberKey: _r, restoreLabel: _rl, ...attrs } = rest as AlertProps;
-  return (
-    <div role={variant === "danger" ? "alert" : undefined} {...(attrs as HTMLAttributes<HTMLDivElement>)} className={["fl-nb", "fl-nb-box", "fl-nb-alert", NB_TONE[variant], className ?? ""].filter(Boolean).join(" ")} data-fl="c.alert@neobrutal">
-      <span className="fl-nb-alert__icon" aria-hidden="true">
-        <Icon name={icon ?? NB_ICON[variant]} />
-      </span>
-      <div className="fl-nb-alert__body">
-        <p className="fl-nb-alert__title">{title}</p>
-        {children ? <p className="fl-nb-alert__text">{children}</p> : null}
-        {action}
-      </div>
-      {close ? (
-        <button type="button" className="fl-nb-close" aria-label={dismissLabel ?? `Dismiss: ${title}`} onClick={close}>
-          <CloseGlyph width={2.5} />
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
-function BaseAlert({ variant = "info", placement = "inline", title, onDismiss, dismissLabel, action, bleed, tag, className, children, dismissible: _d, actionLabel: _a, onAction: _o, icon: _i, rememberKey: _r, restoreLabel: _rl, ...rest }: Omit<AlertProps, "version">) {
+function BaseAlert({ variant = "info", placement = "inline", title, onDismiss, dismissLabel, action, bleed, tag, className, children, dismissible: _d, actionLabel: _a, onAction: _o, rememberKey: _r, restoreLabel: _rl, ...rest }: Omit<AlertProps, "version">) {
   const cls = [PLACE[placement], TONE[variant], className ?? ""].filter(Boolean).join(" ");
   const icon = (
     <span className="fl-ctl-alert-icon" aria-hidden="true">
@@ -540,7 +509,6 @@ export default function AlertsStates() {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [strip, setStrip] = useState(true);
   const [cardGone, setCardGone] = useState<AlertVariant[]>([]);
-  const [nbGone, setNbGone] = useState<AlertVariant[]>([]);
   const seq = useRef(0);
 
   // A toast says its piece and leaves (ToastStack counts it down); anything that needs acting on belongs inline.
@@ -554,39 +522,41 @@ export default function AlertsStates() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <h3>Inline</h3>
-      <p className="fl-ctl-btn-what">In the flow, next to what it is about. It stays until the thing it describes changes.</p>
-      <ul className="fl-ctl-alert-list">
-        {d.tones.filter((t) => !gone.includes(t.id)).map((t) => (
-          <li key={t.id}>
-            <Alert
-              variant={t.id}
-              title={t.title}
-              onDismiss={t.id === "danger" ? undefined : () => setGone((v) => [...v, t.id])}
-              action={
-                t.id === "danger" ? (
-                  <Button variant="secondary" size={32}>
-                    Fix it
-                  </Button>
-                ) : undefined
-              }
-            >
-              {t.body}
-            </Alert>
-            <p className="fl-ctl-matrix-what">
-              {t.label} &middot; {t.id === "danger" ? 'role="alert", announced at once' : 'role="status", announced in a gap'}
-            </p>
-          </li>
-        ))}
-      </ul>
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <h3>Inline</h3>
+        <p className="fl-ctl-btn-what">In the flow, next to what it is about. It stays until the thing it describes changes.</p>
+        <ul className="fl-ctl-alert-list">
+          {d.tones.filter((t) => !gone.includes(t.id)).map((t) => (
+            <li key={t.id}>
+              <Alert
+                variant={t.id}
+                title={t.title}
+                onDismiss={t.id === "danger" ? undefined : () => setGone((v) => [...v, t.id])}
+                action={
+                  t.id === "danger" ? (
+                    <Button variant="secondary" size={32}>
+                      Fix it
+                    </Button>
+                  ) : undefined
+                }
+              >
+                {t.body}
+              </Alert>
+              <p className="fl-ctl-matrix-what">
+                {t.label} &middot; {t.id === "danger" ? 'role="alert", announced at once' : 'role="status", announced in a gap'}
+              </p>
+            </li>
+          ))}
+        </ul>
 
-      {gone.length ? (
-        <Button variant="tertiary" size={32} onClick={() => setGone([])}>
-          Bring back the dismissed alerts
-        </Button>
-      ) : null}
+        {gone.length ? (
+          <Button variant="tertiary" size={32} onClick={() => setGone([])}>
+            Bring back the dismissed alerts
+          </Button>
+        ) : null}
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--bare">
         <h3>Banner</h3>
         <p className="fl-ctl-btn-what">Across the top of the page, about the whole app rather than one field. It can be dismissed; it should not come back on the next page.</p>
         <div className="fl-ctl-alert-pick">
@@ -624,7 +594,7 @@ export default function AlertsStates() {
         )}
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Toast</h3>
         <p className="fl-ctl-btn-what">
           Arrives in a corner, says one thing and goes after a few seconds. Only for things that need no reply, and never an
@@ -657,7 +627,7 @@ export default function AlertsStates() {
         </ul>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Versions</h3>
         <p className="fl-ctl-btn-what">
           Other designs of the same alert, chosen with <code>version</code>. Each keeps the four tones; pick the one that suits the app.
@@ -691,21 +661,6 @@ export default function AlertsStates() {
           (<code>rememberKey</code>); <code>restoreLabel</code> adds a button to bring it back.
         </p>
         <Alert version="announcement" rememberKey="alerts-states-sheet-announcement" restoreLabel="Show the announcement again" tag="New" title="Autumn term bookings are open." action={<a href="#timetable">See the timetable &rarr;</a>} />
-
-        <p className="fl-ctl-matrix-kind">c.alert@neobrutal</p>
-        <p className="fl-ctl-btn-what">The neobrutalism kit's alert: a thick ink border, a hard shadow and a colored icon tile.</p>
-        <div className="fl-nb-alerts">
-          {d.tones.filter((t) => !nbGone.includes(t.id)).map((t) => (
-            <Alert key={t.id} version="neobrutal" variant={t.id} title={t.title} onDismiss={() => setNbGone((v) => [...v, t.id])}>
-              {t.body}
-            </Alert>
-          ))}
-        </div>
-        {nbGone.length ? (
-          <Button variant="tertiary" size={32} onClick={() => setNbGone([])}>
-            Show the neobrutal alerts again
-          </Button>
-        ) : null}
 
         <p className="fl-ctl-matrix-kind">c.toast-stack@cards</p>
         <p className="fl-ctl-btn-what">Toast cards with a countdown bar, stacked in a corner (the version of the toast region above). Try the buttons.</p>

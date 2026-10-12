@@ -1,7 +1,7 @@
 /** @flowcode-library badges-status · Badges: status pills, counts and dots (Small components)
  * Catalog ID: c.badge (component)
- * Function: The badge component (c.badge): the reference sheet shows status pills in five tones and three looks, counts that cap at 99+, and live-state dots. Versions: signal-chip and neobrutal.
- * Use it as: import { Badge } from "./BadgesStatus"; <Badge version?="signal-chip"|"neobrutal" variant?="status"|"count"|"dot" tone?="neutral"|"info"|"success"|"warning"|"danger"|"online"|"away"|"offline" look?="soft"|"solid"|"outline"|"chip" led? pulse? count?={n} label?>Label</Badge>
+ * Function: The badge component (c.badge): the reference sheet shows status pills in five tones and three looks, counts that cap at 99+, and live-state dots. Version: signal-chip.
+ * Use it as: import { Badge } from "./BadgesStatus"; <Badge version?="signal-chip" variant?="status"|"count"|"dot" tone?="neutral"|"info"|"success"|"warning"|"danger"|"online"|"away"|"offline" look?="soft"|"solid"|"outline"|"chip" led? pulse? count?={n} label?>Label</Badge>
  * Variants: c.badge.status - the state a row is in, read as words: a small pill in a tone (neutral, info, success, warning, danger) and a look (soft tint, solid fill, outline); look chip is small square corners in uppercase mono with a signal light, for a status key; c.badge.count - how many are waiting: a small round number on the corner of an icon; renders nothing at 0 and reads 99+ past 99; c.badge.dot - live or away at a glance: a tiny colored dot (online, away, offline) that needs a word nearby or a label prop
  * Look: A small rounded pill with a short label in a tone color, a round count on an icon, or a tiny colored dot.
  * Tokens: --color-accent --color-danger --color-success --color-surface --color-surface-sunken --color-text --color-text-muted --color-border --color-on-accent --text-xs --weight-semibold --radius-sm --space-1 --space-2 --color-warning --font-mono --tracking-wide --color-secondary --color-on-secondary --weight-bold
@@ -40,10 +40,10 @@ export type BadgeLook = "soft" | "solid" | "outline" | "chip";
 export type BadgeLive = "online" | "away" | "offline";
 /**
  * Other designs of the status badge. "default" follows the app's tokens; "signal-chip" is the small square-cornered
- * uppercase chip with a signal light (pulsing while work is in progress); "neobrutal" is the neobrutalism kit's
- * badge (thick ink border, hard shadow). Both apply to variant "status" only.
+ * uppercase chip with a signal light (pulsing while work is in progress); it applies to variant "status" only. The look
+ * of each follows the style and surface tokens.
  */
-export type BadgeVersion = "default" | "signal-chip" | "neobrutal";
+export type BadgeVersion = "default" | "signal-chip";
 
 // Written out in full (not built from the names) so a build finds every class the badge needs.
 const TONE: Record<BadgeTone, string> = {
@@ -62,8 +62,6 @@ const LED: Record<BadgeTone, string> = {
   warning: "fl-ctl-tone-waiting",
   danger: "fl-ctl-tone-failed",
 };
-// neobrutal: the tone class sets the dot color and the paper tint.
-const NB_TONE: Record<BadgeTone, string> = { neutral: "", info: "fl-nb-tone-info", success: "fl-nb-tone-success", warning: "fl-nb-tone-warning", danger: "fl-nb-tone-error" };
 const LIVE: Record<BadgeLive, string> = { online: "fl-ctl-dot--online", away: "fl-ctl-dot--away", offline: "fl-ctl-dot--offline" };
 
 type BadgeProps = {
@@ -72,7 +70,7 @@ type BadgeProps = {
   variant?: BadgeVariant;
   /** status: the color. dot: online, away or offline. Defaults to neutral (status) or offline (dot). */
   tone?: BadgeTone | BadgeLive;
-  /** status only: soft tint (default), solid fill, outline, or chip (small square corners, uppercase mono, with a light). In the neobrutal version, solid is the filled square tag without a dot. */
+  /** status only: soft tint (default), solid fill, outline, or chip (small square corners, uppercase mono, with a light). */
   look?: BadgeLook;
   /** status only: a small signal light before the label, so the status reads by shape as well as color. */
   led?: boolean;
@@ -89,16 +87,6 @@ type BadgeProps = {
 
 export function Badge({ version = "default", variant = "status", tone, look = "soft", led, pulse, count = 0, label, className, children, ...rest }: BadgeProps) {
   const extra = className ? ` ${className}` : "";
-  if (variant === "status" && version === "neobrutal") {
-    const solid = look === "solid";
-    const cls = ["fl-nb", "fl-nb-badge", NB_TONE[(tone as BadgeTone) ?? "neutral"] ?? "", solid ? "fl-nb-badge--solid fl-nb-badge--square" : ""].filter(Boolean).join(" ");
-    return (
-      <span {...rest} className={`${cls}${extra}`} data-fl="c.badge@neobrutal">
-        {solid ? null : <span className="fl-nb-dot" aria-hidden="true" />}
-        {children}
-      </span>
-    );
-  }
   if (variant === "status" && version === "signal-chip") {
     const ledTone = LED[(tone as BadgeTone) ?? "neutral"] ?? LED.neutral;
     return (
@@ -182,7 +170,7 @@ export default function BadgesStatus() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-matrix-wrap">
+      <div className="fl-ctl-matrix-wrap fl-ctl-spec fl-ctl-spec--wide">
         <table className="fl-ctl-matrix">
           <caption className="fl-sr">Each status in each look</caption>
           <thead>
@@ -216,7 +204,7 @@ export default function BadgesStatus() {
         </table>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>With a light</h3>
         <p className="fl-ctl-btn-what">
           A signal light before the word, for a list of orders or jobs read at a glance. The light pulses only while work is
@@ -231,7 +219,7 @@ export default function BadgesStatus() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Chip</h3>
         <p className="fl-ctl-btn-what">
           Small square corners, uppercase mono and a light: a status key for a dashboard or order list (look="chip").
@@ -245,7 +233,7 @@ export default function BadgesStatus() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Versions</h3>
         <p className="fl-ctl-btn-what">Other designs of the status badge, chosen with <code>version</code>.</p>
         <p className="fl-ctl-matrix-kind">c.badge@signal-chip</p>
@@ -257,21 +245,9 @@ export default function BadgesStatus() {
             </Badge>
           ))}
         </div>
-        <p className="fl-ctl-matrix-kind">c.badge@neobrutal</p>
-        <p className="fl-ctl-btn-what">The neobrutalism kit's badge: a thick ink border, a hard shadow and a dot; look solid gives the filled square tag.</p>
-        <div className="fl-nb-badges">
-          {d.tones.map((t) => (
-            <Badge key={t.id} version="neobrutal" tone={t.id}>
-              {t.label}
-            </Badge>
-          ))}
-          <Badge version="neobrutal" look="solid">
-            12 booked
-          </Badge>
-        </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Counts</h3>
         <p className="fl-ctl-btn-what">
           A number on top of something. Past 99 it becomes 99+, because three digits do not fit on an icon and nobody
@@ -305,7 +281,7 @@ export default function BadgesStatus() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Dots</h3>
         <p className="fl-ctl-btn-what">
           The smallest badge there is. A dot alone says nothing to a screen reader and nothing to anyone who cannot tell

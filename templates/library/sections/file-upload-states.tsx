@@ -356,44 +356,46 @@ export default function FileUploadStates() {
   const d = SAMPLE;
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-zone-grid">
-        {d.zones.map((z) => (
-          <li key={z.id}>
-            <p className="fl-ctl-matrix-kind">{z.label}</p>
-            <p className="fl-ctl-matrix-what">{z.what}</p>
-            <div className={`fl-ctl-zone${z.cls}`}>
-              <Icon name={z.id === "error" ? "close" : "download"} />
-              {z.id === "idle" ? (
-                <>
-                  <strong>Drop files here</strong>
-                  <span className="fl-ctl-matrix-what">PDF, PNG or JPG, up to {d.limitMb} MB</span>
-                </>
-              ) : null}
-              {z.id === "over" ? <strong>Let go to add them</strong> : null}
-              {z.id === "busy" ? (
-                <>
-                  <strong>Adding 2 files</strong>
-                  <Progress thin value={62} label="Adding 2 files" />
-                </>
-              ) : null}
-              {z.id === "error" ? (
-                <>
-                  <strong>That file was not added</strong>
-                  <span className="fl-ctl-matrix-what">shot-list.xlsx is 18 MB. The most is {d.limitMb} MB.</span>
-                </>
-              ) : null}
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div className="fl-ctl-spec fl-ctl-spec--wide">
+        <ul className="fl-ctl-zone-grid">
+          {d.zones.map((z) => (
+            <li key={z.id}>
+              <p className="fl-ctl-matrix-kind">{z.label}</p>
+              <p className="fl-ctl-matrix-what">{z.what}</p>
+              <div className={`fl-ctl-zone${z.cls}`}>
+                <Icon name={z.id === "error" ? "close" : "download"} />
+                {z.id === "idle" ? (
+                  <>
+                    <strong>Drop files here</strong>
+                    <span className="fl-ctl-matrix-what">PDF, PNG or JPG, up to {d.limitMb} MB</span>
+                  </>
+                ) : null}
+                {z.id === "over" ? <strong>Let go to add them</strong> : null}
+                {z.id === "busy" ? (
+                  <>
+                    <strong>Adding 2 files</strong>
+                    <Progress thin value={62} label="Adding 2 files" />
+                  </>
+                ) : null}
+                {z.id === "error" ? (
+                  <>
+                    <strong>That file was not added</strong>
+                    <span className="fl-ctl-matrix-what">shot-list.xlsx is 18 MB. The most is {d.limitMb} MB.</span>
+                  </>
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>The live one, and the files underneath</h3>
         <p className="fl-ctl-btn-what">One row per file: what it is, how it is going, and what you can do about it. This one takes images and PDFs only; anything else, or anything over the size, is refused with the reason.</p>
         <FileUpload limitMb={d.limitMb} accept="image/*,.pdf" hint="JPG, PNG, WebP or PDF" initialFiles={d.files} />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Version: classic (p.file-upload@classic)</h3>
         <p className="fl-ctl-btn-what">
           A roomy drop zone with a Browse button beside "or", then a list with a type icon, a progress bar and a remove button

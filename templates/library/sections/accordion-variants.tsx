@@ -1,7 +1,7 @@
 /** @flowcode-library accordion-variants · Accordion styles (FAQ)
  * Catalog ID: c.accordion (component)
  * Function: The open-and-close question list (c.accordion) in three looks, one at a time or several open; the reference sheet shows all three side by side.
- * Use it as: import { Accordion } from "./accordion-variants"; <Accordion variant?="bordered"|"cards"|"icons" items={[{q,a,icon?,meta?}]} version?="neobrutal" (c.accordion@neobrutal: chunky bordered rows, accent-filled open header, plus turns to a cross) multiple? defaultOpen?={[0]} open?={number[]} onOpenChange? /> (a is text or any content such as a list; meta is shown at the end of the header, e.g. "4 lessons" or a price)
+ * Use it as: import { Accordion } from "./accordion-variants"; <Accordion variant?="bordered"|"cards"|"icons" items={[{q,a,icon?,meta?}]} version?="plus" (c.accordion@plus: separate boxed rows, accent-filled open header, plus turns to a cross) multiple? defaultOpen?={[0]} open?={number[]} onOpenChange? /> (a is text or any content such as a list; meta is shown at the end of the header, e.g. "4 lessons" or a price)
  * Variants: c.accordion.bordered - help and policies: one bordered box with dividers between questions; c.accordion.cards - friendly FAQs: each question is its own card with space between; c.accordion.icons - scannable topics: a round icon before each question, rows divided by rules
  * Look: Question rows with a chevron that turns when open; the answer opens in place below, and arrow keys move between questions. An item can carry a meta label (a count or price) before the chevron, and its answer can be rich content.
  * Tokens: --color-border --color-surface --color-surface-sunken --color-accent --color-text-muted --radius-lg --space-3 --space-4 --duration-fast --focus-ring
@@ -22,7 +22,7 @@ import { Icon } from "./icons";
 
 export type AccordionVariant = "bordered" | "cards" | "icons";
 /** An alternative design of the whole list (c.accordion@<version>); left out = the variant's look. */
-export type AccordionVersion = "neobrutal";
+export type AccordionVersion = "plus";
 export type AccordionItem = {
   q: string;
   /** The answer: text, or any content such as a list of lessons. */
@@ -46,7 +46,7 @@ export type AccordionProps = {
   /** Controlled: the open indexes, with onOpenChange to receive the next ones. */
   open?: number[];
   onOpenChange?: (open: number[]) => void;
-  /** neobrutal: chunky bordered rows, the open header fills with the accent and its plus turns into a cross. variant is ignored. */
+  /** plus: each question is its own box; the open header fills with the accent and its plus turns into a cross. variant is ignored. The look follows the style and surface tokens. */
   version?: AccordionVersion;
   className?: string;
 };
@@ -80,14 +80,14 @@ export function Accordion({ variant = "bordered", items, multiple, defaultOpen =
     e.preventDefault();
     refs.current[to]?.focus();
   }
-  if (version === "neobrutal") {
+  if (version === "plus") {
     return (
-      <ul className={["fl-nb fl-nb-acc", className ?? ""].filter(Boolean).join(" ")} data-fl="c.accordion@neobrutal">
+      <ul className={["fl-acc--plus", className ?? ""].filter(Boolean).join(" ")} data-fl="c.accordion@plus">
         {items.map((it, i) => {
           const isOpen = open.includes(i);
           const key = `${uid}-${i}`;
           return (
-            <li key={key} className="fl-nb-box fl-nb-acc__item">
+            <li key={key} className="fl-acc-plus__item">
               <h4 style={{ margin: 0 }}>
                 <button
                   ref={(el) => {
@@ -95,20 +95,20 @@ export function Accordion({ variant = "bordered", items, multiple, defaultOpen =
                   }}
                   type="button"
                   id={`${key}-btn`}
-                  className="fl-nb-acc__btn"
+                  className="fl-acc-plus__btn"
                   aria-expanded={isOpen}
                   aria-controls={`${key}-panel`}
                   onClick={() => toggle(i)}
                   onKeyDown={(e) => onKey(e, i)}
                 >
                   {it.q}
-                  {it.meta != null ? <span>{it.meta}</span> : null}
-                  <span className="fl-nb-acc__sign">
+                  {it.meta != null ? <span className="fl-acc-plus__meta">{it.meta}</span> : null}
+                  <span className="fl-acc-plus__sign">
                     <PlusSign />
                   </span>
                 </button>
               </h4>
-              <div id={`${key}-panel`} role="region" aria-labelledby={`${key}-btn`} className="fl-nb-acc__panel" hidden={!isOpen}>
+              <div id={`${key}-panel`} role="region" aria-labelledby={`${key}-btn`} className="fl-acc-plus__panel" hidden={!isOpen}>
                 {typeof it.a === "string" ? <p>{it.a}</p> : it.a}
               </div>
             </li>
@@ -250,9 +250,9 @@ export default function AccordionVariants() {
           ))}
         </div>
         <div className="fl-dsp-acc-col" style={{ marginTop: "var(--space-6)" }}>
-          <h3>c.accordion@neobrutal</h3>
-          <p className="fl-ctl-matrix-what">Chunky bordered rows; the open header fills with the accent and its plus turns into a cross. Several can stay open.</p>
-          <Accordion version="neobrutal" multiple defaultOpen={[0]} items={d.groups[1].items} />
+          <h3>c.accordion@plus</h3>
+          <p className="fl-ctl-matrix-what">Each question its own box; the open header fills with the accent and its plus turns into a cross. Several can stay open. Edges, corners and shadow follow the style and surface.</p>
+          <Accordion version="plus" multiple defaultOpen={[0]} items={d.groups[1].items} />
         </div>
       </div>
     </section>

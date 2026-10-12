@@ -3,6 +3,29 @@
  * Everything here is prefixed fl-ctl-, like controls.css and inputs.css, and uses only the library's own tokens.
  */
 
+/* ── Reference sheet layout ─────────────────────────────────────────────────
+   A sheet is a grid of topic cards (fl-ctl-spec): each holds one heading, one line on what it shows, and the working
+   examples. Cards sit side by side when there is room, so a sheet is a screen or two, not a long scroll. A card that
+   needs the full width (a state matrix, a toolbar, a live demo) adds fl-ctl-spec--wide. A topic whose examples are
+   themselves cards or panels uses fl-ctl-spec--bare: same place in the grid, no frame, so no card sits inside a card. */
+.fl-section--specimen:has(> .fl-ctl-spec) {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); grid-auto-flow: row dense; gap: var(--space-4); align-items: start;
+}
+.fl-ctl-spec {
+  display: grid; gap: var(--space-2); align-content: start; min-width: 0; margin: 0; padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 16px); background: var(--color-surface);
+}
+.fl-ctl-spec--wide { grid-column: 1 / -1; }
+.fl-ctl-spec--bare { padding: 0; border: 0; background: none; }
+.fl-ctl-spec > h3 { margin: 0; font-size: var(--text-md); line-height: var(--leading-snug); }
+.fl-ctl-spec > .fl-ctl-btn-what { margin: 0 0 var(--space-2); }
+/* Inside a card the examples keep to themselves: no extra air above or below their lists and bars. */
+.fl-ctl-spec > :is(ul, ol, div, table):not(:first-child) { margin-top: 0; margin-bottom: 0; }
+.fl-ctl-spec.fl-ctl-sizes { margin-top: 0; }
+/* Labels in a sheet are lines, not paragraphs: their default margins doubled the height of every example. */
+.fl-section--specimen :is(p.fl-ctl-matrix-kind, p.fl-ctl-matrix-what) { margin: 0; }
+.fl-section--specimen p.fl-ctl-matrix-kind { font-weight: var(--weight-semibold); }
+
 /* ── Vertical tabs ──────────────────────────────────────────────────────────── */
 .fl-ctl-vtabs-list { display: grid; gap: var(--space-6); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
 .fl-ctl-vtabs-list > li { display: grid; gap: var(--space-1, 0.25rem); min-width: 0; }
@@ -231,8 +254,11 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-tip-wrap--right .fl-ctl-tip { left: calc(100% + 6px); top: 50%; transform: translate(-4px, -50%); }
 .fl-ctl-tip-wrap--right .fl-ctl-tip.is-open { transform: translate(0, -50%); }
 .fl-ctl-tip-bar { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); padding: var(--space-5) 0; }
+/* In a card the placements need only room for the tooltip to open into, not a full section of air. */
+.fl-ctl-spec .fl-ctl-tip-grid > li { padding: var(--space-3) 0 var(--space-6); }
+.fl-ctl-spec .fl-ctl-tip-bar { margin-top: 0; padding: var(--space-2) 0 var(--space-6); }
 .fl-ctl-tip-rules { display: grid; gap: var(--space-3); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
-.fl-ctl-tip-rules > li { display: grid; gap: 2px; border-left: 2px solid var(--color-border); padding-left: var(--space-3); }
+.fl-ctl-tip-rules > li { display: grid; gap: 2px; }
 
 /* ── Progress ───────────────────────────────────────────────────────────────── */
 .fl-ctl-prog-run { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); }
@@ -303,6 +329,20 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
   border: 1px dashed var(--color-border); border-radius: min(var(--radius-lg), 24px); background: var(--color-surface-sunken);
   padding: var(--space-4); overflow: hidden;
 }
+/* Buttons on the left, the stage on the right; the stage stays in view while the buttons scroll. */
+.fl-ctl-dlg-split { display: grid; grid-template-columns: minmax(17rem, 26rem) minmax(0, 1fr); gap: var(--space-6); align-items: stretch; }
+/* Each dialog is one compact row (its name and note, its button at the end), so the whole list sits beside the stage. */
+.fl-ctl-dlg-pick { display: grid; gap: var(--space-4); }
+.fl-ctl-dlg-split .fl-ctl-dlg-list { grid-template-columns: minmax(0, 1fr); gap: 0; margin: 0; }
+.fl-ctl-dlg-split .fl-ctl-dlg-list > li { grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-3); row-gap: 2px; align-items: center; padding-block: var(--space-2); border-bottom: 1px solid var(--color-border); }
+.fl-ctl-dlg-split .fl-ctl-dlg-list > li > p { grid-column: 1; margin: 0; }
+.fl-ctl-dlg-split .fl-ctl-dlg-list > li > .fl-ctl-matrix-kind { font-weight: var(--weight-semibold); }
+.fl-ctl-dlg-split .fl-ctl-dlg-list > li > .fl-ctl-matrix-what { font-size: var(--text-sm); }
+.fl-ctl-dlg-split .fl-ctl-dlg-list > li > :not(p) { grid-column: 2; grid-row: 1 / span 2; }
+.fl-ctl-dlg-pick .fl-ctl-sizes { display: grid; gap: var(--space-1); margin: 0; }
+.fl-ctl-dlg-pick .fl-ctl-sizes > h3, .fl-ctl-dlg-pick .fl-ctl-sizes > p { margin: 0; }
+/* The stage stays put beside the list (and in view if the page does scroll). */
+.fl-ctl-dlg-split .fl-ctl-dlg-demo { position: sticky; top: var(--space-4); min-height: 26rem; margin-bottom: 0; }
 .fl-ctl-dlg-stage { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; padding: var(--space-4); }
 .fl-ctl-dlg {
   position: relative; display: grid; gap: var(--space-4); width: min(30rem, 100%); max-height: 100%; overflow: auto;
@@ -350,7 +390,8 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-focus-range { width: 8rem; }
 
 @container specimen (max-width: 760px) {
-  .fl-ctl-alert-list, .fl-ctl-prog-grid, .fl-ctl-dlg-list, .fl-ctl-pop-list, .fl-ctl-tip-grid { grid-template-columns: minmax(0, 1fr); }
+  .fl-ctl-alert-list, .fl-ctl-prog-grid, .fl-ctl-dlg-list, .fl-ctl-pop-list, .fl-ctl-tip-grid, .fl-ctl-dlg-split { grid-template-columns: minmax(0, 1fr); }
+  .fl-ctl-dlg-split .fl-ctl-dlg-demo { position: relative; top: auto; min-height: 20rem; }
   .fl-ctl-pop, .fl-ctl-pop--wide { width: min(16rem, 72vw); }
 }
 
@@ -371,6 +412,11 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-tbl.is-dense th, .fl-ctl-tbl.is-dense td { padding: var(--space-1, 0.25rem) var(--space-3); }
 .fl-ctl-tbl thead th { position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--color-border-strong, var(--color-border)); background: var(--color-surface); font-size: var(--text-xs, 0.78rem); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); padding: 0; }
 .fl-ctl-tbl thead th.fl-ctl-tbl-pick { padding: var(--space-3); }
+/* A heading with no sort button inside it gets the cells' own padding (the sort button carries it otherwise), and the
+   first and last headings follow the frame's top corners so their fill never pokes past the rounding. */
+.fl-ctl-tbl thead th:not(:has(> .fl-ctl-tbl-sort)):not(.fl-ctl-tbl-pick) { padding: var(--space-3); }
+.fl-ctl-tbl thead tr > th:first-child { border-top-left-radius: calc(min(var(--surface-radius, var(--radius-lg)), 24px) - 1px); }
+.fl-ctl-tbl thead tr > th:last-child { border-top-right-radius: calc(min(var(--surface-radius, var(--radius-lg)), 24px) - 1px); }
 .fl-ctl-tbl tbody tr { border-top: 1px solid var(--color-border); }
 .fl-ctl-tbl.is-zebra tbody tr:nth-child(even) { background: color-mix(in srgb, var(--color-surface-sunken) 55%, transparent); }
 .fl-ctl-tbl tbody tr:hover { background: var(--color-surface-sunken); }
@@ -628,3 +674,30 @@ button.fl-spec-row:focus-visible { outline: none; box-shadow: var(--focus-ring);
   .fl-ctl-bubble--typing > span, .fl-ctl-ai-pulse, .fl-ctl-ai-caret, .fl-ctl-mo { animation: none; }
   .fl-ctl-mo { opacity: 1; }
 }
+
+/* Reference sheets as cards: checkboxes-radios, chips-tags, command-palette, dividers-rules, dropdowns-states, empty-states, file-upload-states, focus-rings */
+.fl-ctl-spec.fl-ctl-cmd-open { margin: 0; }
+.fl-ctl-spec > .fl-ctl-empty-grid { margin: 0; }
+
+/* Reference sheets as cards: sidebar-nav-variants, sliders-states, steppers-wizards, switches-states, tables-states, tabs-variants, tabs-vertical, text-fields-states, top-nav-variants */
+.fl-ctl-spec > .fl-ctl-vtabs-list { margin: 0; gap: var(--space-5); grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr)); }
+.fl-ctl-spec > .fl-ctl-nav-list { margin: 0; gap: var(--space-5); }
+.fl-ctl-spec.fl-ctl-step-block { margin-bottom: 0; }
+.fl-ctl-spec > .fl-ctl-step-panel { margin-bottom: 0; }
+.fl-ctl-spec > .fl-ctl-side-stage { margin-bottom: 0; }
+.fl-ctl-spec > .fl-ctl-status { margin-top: 0; }
+
+/* Reference sheets as cards: ai-indicators, alerts-states, avatars-variants, badges-status, breadcrumbs-variants, buttons-variants, cards-variants, chat-bubbles */
+.fl-ctl-spec > .fl-section { padding: 0; }
+.fl-ctl-spec > .fl-section--tint { padding: var(--space-5); border-radius: min(var(--radius-lg), 24px); }
+.fl-ctl-spec > .fl-ctl-avatar-sizes { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-4) var(--space-5); }
+.fl-ctl-spec > .fl-ctl-avatar-sizes > li { flex-direction: column; align-items: center; gap: var(--space-2); }
+
+/* Reference sheets as cards: lists-rows, media-frames, modals-dialogs, motion-presets, pagination-variants, panels-drawers, popovers-menus, progress-indicators */
+.fl-ctl-spec > .fl-ctl-pop-wrap { justify-self: start; margin-top: 0; }
+.fl-ctl-spec > .fl-ctl-mo-bar, .fl-ctl-spec > .fl-ctl-prog-run { margin: 0; }
+
+/* A sheet whose examples need the full width (tabs): one card per row, and each example in a list is its own card. */
+.fl-section--specimen.fl-ctl-specs--single:has(> .fl-ctl-spec) { grid-template-columns: minmax(0, 1fr); }
+.fl-ctl-specs--single .fl-ctl-spec--bare > ul:has(> li.fl-ctl-spec) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.fl-ctl-specs--single .fl-ctl-spec--bare > h3 + .fl-ctl-btn-what { margin-bottom: var(--space-2); }

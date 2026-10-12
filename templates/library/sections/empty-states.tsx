@@ -171,160 +171,162 @@ export default function EmptyStates() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <ul className="fl-ctl-empty-grid">
-        <li>
-          <p className="fl-ctl-matrix-kind">Nothing yet</p>
-          <p className="fl-ctl-matrix-what">A new account. There is nothing because nothing has been made.</p>
-          <EmptyState
-            title="No shoots yet"
-            action={
-              <Button size={40} icon="plus" onClick={() => setSaid("Started a first shoot")}>
-                Add your first shoot
-              </Button>
-            }
-          >
-            Your first shoot takes about a minute to set up, and you can change any of it later.
-          </EmptyState>
-        </li>
-
-        <li>
-          <p className="fl-ctl-matrix-kind">Nothing yet, with art</p>
-          <p className="fl-ctl-matrix-what">The same state with a drawn illustration, for a page that has the room.</p>
-          <EmptyState
-            art={LIST_ART}
-            title="Nothing on the list yet"
-            action={
-              <Button size={40} icon="plus" onClick={() => setSaid("Added a first item")}>
-                Add your first item
-              </Button>
-            }
-          >
-            Everyone at home sees the same list, so nobody buys milk twice.
-          </EmptyState>
-        </li>
-
-        <li>
-          <p className="fl-ctl-matrix-kind">c.empty-state@illustrated</p>
-          <p className="fl-ctl-matrix-what">version="illustrated": the roomy first-run panel. Add an item and the list appears; remove them all and it returns.</p>
-          {items.length === 0 ? (
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <ul className="fl-ctl-empty-grid">
+          <li>
+            <p className="fl-ctl-matrix-kind">Nothing yet</p>
+            <p className="fl-ctl-matrix-what">A new account. There is nothing because nothing has been made.</p>
             <EmptyState
-              version="illustrated"
+              title="No shoots yet"
+              action={
+                <Button size={40} icon="plus" onClick={() => setSaid("Started a first shoot")}>
+                  Add your first shoot
+                </Button>
+              }
+            >
+              Your first shoot takes about a minute to set up, and you can change any of it later.
+            </EmptyState>
+          </li>
+
+          <li>
+            <p className="fl-ctl-matrix-kind">Nothing yet, with art</p>
+            <p className="fl-ctl-matrix-what">The same state with a drawn illustration, for a page that has the room.</p>
+            <EmptyState
+              art={LIST_ART}
               title="Nothing on the list yet"
               action={
-                <Button ref={addRef} size={40} onClick={addItem}>
+                <Button size={40} icon="plus" onClick={() => setSaid("Added a first item")}>
                   Add your first item
                 </Button>
               }
             >
-              Add what the house needs this week. Everyone at home sees the same list, so nobody buys milk twice.
+              Everyone at home sees the same list, so nobody buys milk twice.
             </EmptyState>
-          ) : (
-            <>
-              <ul className="fl-alr-empty__list" aria-label={`${items.length} ${items.length === 1 ? "item" : "items"} on the list`}>
-                {items.map((i) => (
-                  <li key={i.id}>
-                    <div>
-                      <strong>{i.name}</strong>
-                      <span className="fl-meta">{i.note}</span>
-                    </div>
-                    <Button variant="tertiary" size={32} icon="close" iconOnly onClick={() => removeItem(i.id, i.name)}>
-                      {`Remove ${i.name}`}
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-              <Button size={40} onClick={addItem}>
-                Add another
-              </Button>
-            </>
-          )}
-        </li>
+          </li>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">Heading, left-aligned</p>
-          <p className="fl-ctl-matrix-what">headingLevel makes the title a real h3; align="start" sets it against the left edge.</p>
-          <EmptyState headingLevel={3} align="start" title="No invoices yet">
-            Invoices you send will be listed here.
-          </EmptyState>
-        </li>
-
-        <li>
-          <p className="fl-ctl-matrix-kind">Nothing found</p>
-          <p className="fl-ctl-matrix-what">There is something, but not this. Type a word that is not there.</p>
-          {hits.length ? (
-            <div className="fl-spec-empty">
-              {search}
-              <ul className="fl-ctl-empty-hits">
-                {hits.map((h) => (
-                  <li key={h}>{h}</li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <EmptyState
-              variant="no-results"
-              before={search}
-              title={`Nothing matches "${q}"`}
-              action={
-                <Button variant="secondary" size={32} onClick={() => setQ("")}>
-                  Clear the search
+          <li>
+            <p className="fl-ctl-matrix-kind">c.empty-state@illustrated</p>
+            <p className="fl-ctl-matrix-what">version="illustrated": the roomy first-run panel. Add an item and the list appears; remove them all and it returns.</p>
+            {items.length === 0 ? (
+              <EmptyState
+                version="illustrated"
+                title="Nothing on the list yet"
+                action={
+                  <Button ref={addRef} size={40} onClick={addItem}>
+                    Add your first item
+                  </Button>
+                }
+              >
+                Add what the house needs this week. Everyone at home sees the same list, so nobody buys milk twice.
+              </EmptyState>
+            ) : (
+              <>
+                <ul className="fl-alr-empty__list" aria-label={`${items.length} ${items.length === 1 ? "item" : "items"} on the list`}>
+                  {items.map((i) => (
+                    <li key={i.id}>
+                      <div>
+                        <strong>{i.name}</strong>
+                        <span className="fl-meta">{i.note}</span>
+                      </div>
+                      <Button variant="tertiary" size={32} icon="close" iconOnly onClick={() => removeItem(i.id, i.name)}>
+                        {`Remove ${i.name}`}
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+                <Button size={40} onClick={addItem}>
+                  Add another
                 </Button>
-              }
-            >
-              Four shoots are here, just not that one. Check the spelling, or clear the search.
-            </EmptyState>
-          )}
-        </li>
+              </>
+            )}
+          </li>
 
-        <li>
-          <p className="fl-ctl-matrix-kind">Nothing left</p>
-          <p className="fl-ctl-matrix-what">Finished, not broken. This is the only empty that should feel good.</p>
-          <EmptyState variant="done" title="Nothing waiting on you">
-            Every approval is handled. We will put the next one here.
-          </EmptyState>
-        </li>
-
-        <li>
-          <p className="fl-ctl-matrix-kind">Nothing worked</p>
-          <p className="fl-ctl-matrix-what">Empty because something failed. Say so, and offer the retry.</p>
-          {broke ? (
-            <EmptyState
-              variant="error"
-              title="We could not load your shoots"
-              action={
-                <Button
-                  variant="secondary"
-                  size={40}
-                  icon="refresh"
-                  onClick={() => {
-                    setBroke(false);
-                    setSaid("Loaded on the second try");
-                  }}
-                >
-                  Try again
-                </Button>
-              }
-            >
-              The connection dropped partway. Nothing was lost.
+          <li>
+            <p className="fl-ctl-matrix-kind">Heading, left-aligned</p>
+            <p className="fl-ctl-matrix-what">headingLevel makes the title a real h3; align="start" sets it against the left edge.</p>
+            <EmptyState headingLevel={3} align="start" title="No invoices yet">
+              Invoices you send will be listed here.
             </EmptyState>
-          ) : (
-            <EmptyState
-              variant="done"
+          </li>
+
+          <li>
+            <p className="fl-ctl-matrix-kind">Nothing found</p>
+            <p className="fl-ctl-matrix-what">There is something, but not this. Type a word that is not there.</p>
+            {hits.length ? (
+              <div className="fl-spec-empty">
+                {search}
+                <ul className="fl-ctl-empty-hits">
+                  {hits.map((h) => (
+                    <li key={h}>{h}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <EmptyState
+                variant="no-results"
+                before={search}
+                title={`Nothing matches "${q}"`}
+                action={
+                  <Button variant="secondary" size={32} onClick={() => setQ("")}>
+                    Clear the search
+                  </Button>
+                }
+              >
+                Four shoots are here, just not that one. Check the spelling, or clear the search.
+              </EmptyState>
+            )}
+          </li>
+
+          <li>
+            <p className="fl-ctl-matrix-kind">Nothing left</p>
+            <p className="fl-ctl-matrix-what">Finished, not broken. This is the only empty that should feel good.</p>
+            <EmptyState variant="done" title="Nothing waiting on you">
+              Every approval is handled. We will put the next one here.
+            </EmptyState>
+          </li>
+
+          <li>
+            <p className="fl-ctl-matrix-kind">Nothing worked</p>
+            <p className="fl-ctl-matrix-what">Empty because something failed. Say so, and offer the retry.</p>
+            {broke ? (
+              <EmptyState
+                variant="error"
+                title="We could not load your shoots"
+                action={
+                  <Button
+                    variant="secondary"
+                    size={40}
+                    icon="refresh"
+                    onClick={() => {
+                      setBroke(false);
+                      setSaid("Loaded on the second try");
+                    }}
+                  >
+                    Try again
+                  </Button>
+                }
+              >
+                The connection dropped partway. Nothing was lost.
+              </EmptyState>
+            ) : (
+              <EmptyState
+                variant="done"
              
-              title="Four shoots loaded"
-              action={
-                <Button variant="tertiary" size={32} onClick={() => setBroke(true)}>
-                  Break it again
-                </Button>
-              }
-            />
-          )}
-        </li>
-      </ul>
+                title="Four shoots loaded"
+                action={
+                  <Button variant="tertiary" size={32} onClick={() => setBroke(true)}>
+                    Break it again
+                  </Button>
+                }
+              />
+            )}
+          </li>
+        </ul>
 
-      <p className="fl-ctl-status" role="status" aria-live="polite">
-        {said || "Four empties, four different reasons."}
-      </p>
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "Four empties, four different reasons."}
+        </p>
+      </div>
     </section>
   );
 }

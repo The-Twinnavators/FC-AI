@@ -173,23 +173,25 @@ export default function TooltipsVariants() {
   const d = SAMPLE;
   return (
     <section className="fl-section fl-section--specimen">
-      <h3>Where it sits</h3>
-      <p className="fl-ctl-btn-what">Four placements. Point at a button, or tab to it: both open the tooltip, and Escape shuts it. Move onto the tooltip itself and it stays open.</p>
-      <ul className="fl-ctl-tip-grid">
-        {d.places.map((p) => (
-          <li key={p.id}>
-            <p className="fl-ctl-matrix-kind">{p.label}</p>
-            <p className="fl-ctl-matrix-what">{p.what}</p>
-            <Tooltip place={p.id} tip="New shoot">
-              <Button variant="secondary" size={40} icon="plus" iconOnly>
-                New shoot
-              </Button>
-            </Tooltip>
-          </li>
-        ))}
-      </ul>
+      <div className="fl-ctl-spec fl-ctl-spec--wide">
+        <h3>Where it sits</h3>
+        <p className="fl-ctl-btn-what">Four placements. Point at a button, or tab to it: both open the tooltip, and Escape shuts it. Move onto the tooltip itself and it stays open.</p>
+        <ul className="fl-ctl-tip-grid">
+          {d.places.map((p) => (
+            <li key={p.id}>
+              <p className="fl-ctl-matrix-kind">{p.label}</p>
+              <p className="fl-ctl-matrix-what">{p.what}</p>
+              <Tooltip place={p.id} tip="New shoot">
+                <Button variant="secondary" size={40} icon="plus" iconOnly>
+                  New shoot
+                </Button>
+              </Tooltip>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>What tooltips are actually for</h3>
         <p className="fl-ctl-btn-what">
           A toolbar of icon buttons. Each already carries its name for screen readers in aria-label; the tooltip is the
@@ -206,7 +208,7 @@ export default function TooltipsVariants() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>A short sentence, with no wait</h3>
         <p className="fl-ctl-btn-what">
           For a text button whose consequence is not obvious: a sentence at most, and delay={"{0}"} when the hint is the point. It
@@ -221,7 +223,7 @@ export default function TooltipsVariants() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>c.tooltip@arrow</h3>
         <p className="fl-ctl-btn-what">
           The original toolbar tooltip: a dark label with a pointer, on any side, that opens the moment you point at the control
@@ -238,7 +240,7 @@ export default function TooltipsVariants() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>What does not belong in one</h3>
         <ul className="fl-ctl-tip-rules">
           <li>

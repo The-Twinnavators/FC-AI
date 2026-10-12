@@ -740,7 +740,7 @@ export default function DropdownsStates() {
   const [said, setSaid] = useState("");
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-matrix-wrap">
+      <div className="fl-ctl-matrix-wrap fl-ctl-spec fl-ctl-spec--wide">
         <table className="fl-ctl-matrix">
           <caption className="fl-sr">A select and a combo box in each state</caption>
           <thead>
@@ -803,7 +803,7 @@ export default function DropdownsStates() {
         </table>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>With a prompt, and options that differ from the words</h3>
         <p className="fl-ctl-btn-what">
           A placeholder is the first line, shown until something is picked and not pickable afterward. Options can carry a
@@ -827,7 +827,7 @@ export default function DropdownsStates() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>Combobox with avatars and detail lines</h3>
         <p className="fl-ctl-btn-what">
           Each option can carry an avatar and a second line. The listbox takes type-ahead (press a letter), the search field
@@ -849,7 +849,7 @@ export default function DropdownsStates() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide">
         <h3>Menus, open</h3>
         <p className="fl-ctl-btn-what">
           Three shapes behind the same control. Choose one marks with a tick; choosing several needs checkboxes because a
@@ -890,14 +890,14 @@ export default function DropdownsStates() {
         </p>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Version: classic (c.select@classic, c.combobox@classic)</h3>
         <p className="fl-ctl-btn-what">
           The form-panel look: a custom list whose options carry an initial-letter chip and a detail line, a native select drawn
           to match it, and a search field with a magnifier that narrows as you type. Saving checks each was chosen.
         </p>
+        <ClassicSelects {...d.classic} />
       </div>
-      <ClassicSelects {...d.classic} />
     </section>
   );
 }

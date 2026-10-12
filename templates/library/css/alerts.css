@@ -1,10 +1,11 @@
 /* Alerts and feedback: inline alerts, top banner, toasts, empty state, 404 page. Tokens only. */
 
 /* ── Tones: each sets one color the parts below read from ── */
-.fl-alr-tone-info { --fl-alr-tone: var(--color-secondary, var(--color-accent)); }
-.fl-alr-tone-success { --fl-alr-tone: var(--color-success); }
-.fl-alr-tone-warning { --fl-alr-tone: color-mix(in srgb, var(--color-danger) 50%, var(--color-success)); }
-.fl-alr-tone-error { --fl-alr-tone: var(--color-danger); }
+/* Tones outrank the base rules below, which set the neutral default. */
+:is(.fl-alr, .fl-alr-toast, .fl-alr-tone-info).fl-alr-tone-info { --fl-alr-tone: var(--color-secondary, var(--color-accent)); }
+:is(.fl-alr, .fl-alr-toast, .fl-alr-tone-success).fl-alr-tone-success { --fl-alr-tone: var(--color-success); }
+:is(.fl-alr, .fl-alr-toast, .fl-alr-tone-warning).fl-alr-tone-warning { --fl-alr-tone: color-mix(in srgb, var(--color-danger) 50%, var(--color-success)); }
+:is(.fl-alr, .fl-alr-toast, .fl-alr-tone-error).fl-alr-tone-error { --fl-alr-tone: var(--color-danger); }
 
 /* ── Inline alert ── */
 .fl-alr-stack { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
@@ -15,7 +16,7 @@
   padding: var(--_p) var(--space-5); border-radius: var(--_r);
   background: color-mix(in srgb, var(--fl-alr-tone) 9%, var(--color-surface));
   border: 1px solid color-mix(in srgb, var(--fl-alr-tone) 32%, var(--color-border));
-  border-left: 0.25rem solid var(--fl-alr-tone); color: var(--color-text);
+  color: var(--color-text);
 }
 .fl-alr__icon {
   display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; flex: none;

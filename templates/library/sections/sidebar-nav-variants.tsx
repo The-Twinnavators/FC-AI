@@ -1105,29 +1105,31 @@ export default function SidebarNavVariants() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-side-stage">
-        <SideNav
-          title={d.title}
-          groups={d.groups}
-          current="shoots"
-          onSelect={(it) => setSaid(`Went to ${it.label}`)}
-          onToggle={(c) => setSaid(c ? "Sidebar folded to a rail" : "Sidebar open")}
-        />
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <div className="fl-ctl-side-stage">
+          <SideNav
+            title={d.title}
+            groups={d.groups}
+            current="shoots"
+            onSelect={(it) => setSaid(`Went to ${it.label}`)}
+            onToggle={(c) => setSaid(c ? "Sidebar folded to a rail" : "Sidebar open")}
+          />
 
-        <div className="fl-ctl-side-page">
-          <p className="fl-ctl-matrix-kind">The page beside it</p>
-          <p className="fl-ctl-matrix-what">Folding the sidebar gives this back about 150 px, which is why apps offer it at all.</p>
-          <span className="fl-spec-skel" />
-          <span className="fl-spec-skel" />
-          <span className="fl-spec-skel fl-ctl-skel--short" />
+          <div className="fl-ctl-side-page">
+            <p className="fl-ctl-matrix-kind">The page beside it</p>
+            <p className="fl-ctl-matrix-what">Folding the sidebar gives this back about 150 px, which is why apps offer it at all.</p>
+            <span className="fl-spec-skel" />
+            <span className="fl-spec-skel" />
+            <span className="fl-spec-skel fl-ctl-skel--short" />
+          </div>
         </div>
+
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "Fold the sidebar, shut a group, or pick an area."}
+        </p>
       </div>
 
-      <p className="fl-ctl-status" role="status" aria-live="polite">
-        {said || "Fold the sidebar, shut a group, or pick an area."}
-      </p>
-
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>App shell</h3>
         <p className="fl-ctl-btn-what">
           variant="app": search, grouped pages with counts, one main action and the person with an account menu. It folds to icons (names become tooltips)
@@ -1160,7 +1162,7 @@ export default function SidebarNavVariants() {
         />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Icon rail and panel</h3>
         <p className="fl-ctl-btn-what">variant="rail": a slim rail of section icons beside a panel listing the chosen section's pages. Good for an app with a few big areas.</p>
         <SideNav
@@ -1172,7 +1174,7 @@ export default function SidebarNavVariants() {
         />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Nested groups with pins</h3>
         <p className="fl-ctl-btn-what">variant="nested": projects open into their pages, and any page can be pinned to a list at the top. What is open and pinned is remembered.</p>
         <SideNav
@@ -1188,7 +1190,7 @@ export default function SidebarNavVariants() {
         />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>What folding must keep</h3>
         <p className="fl-ctl-btn-what">
           A folded rail still carries every label: visually hidden for screen readers, and in a title for the pointer. A

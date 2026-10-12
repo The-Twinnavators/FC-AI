@@ -685,59 +685,61 @@ export default function TablesStates() {
 
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-tbl-bar">
-        <label className="fl-ctl-choice fl-ctl-choice--inline">
-          <Checkbox size={16} checked={dense} onChange={(e) => setDense(e.target.checked)} />
-          <span>
-            <strong>Dense rows</strong>
-          </span>
-        </label>
-        <label className="fl-ctl-choice fl-ctl-choice--inline">
-          <Checkbox size={16} checked={zebra} onChange={(e) => setZebra(e.target.checked)} />
-          <span>
-            <strong>Striped</strong>
-          </span>
-        </label>
-        <label className="fl-ctl-choice fl-ctl-choice--inline">
-          <Checkbox size={16} checked={loading} onChange={(e) => setLoading(e.target.checked)} />
-          <span>
-            <strong>Loading</strong>
-          </span>
-        </label>
-        <label className="fl-ctl-choice fl-ctl-choice--inline">
-          <Checkbox size={16} checked={empty} onChange={(e) => setEmpty(e.target.checked)} />
-          <span>
-            <strong>No rows</strong>
-          </span>
-        </label>
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
+        <div className="fl-ctl-tbl-bar">
+          <label className="fl-ctl-choice fl-ctl-choice--inline">
+            <Checkbox size={16} checked={dense} onChange={(e) => setDense(e.target.checked)} />
+            <span>
+              <strong>Dense rows</strong>
+            </span>
+          </label>
+          <label className="fl-ctl-choice fl-ctl-choice--inline">
+            <Checkbox size={16} checked={zebra} onChange={(e) => setZebra(e.target.checked)} />
+            <span>
+              <strong>Striped</strong>
+            </span>
+          </label>
+          <label className="fl-ctl-choice fl-ctl-choice--inline">
+            <Checkbox size={16} checked={loading} onChange={(e) => setLoading(e.target.checked)} />
+            <span>
+              <strong>Loading</strong>
+            </span>
+          </label>
+          <label className="fl-ctl-choice fl-ctl-choice--inline">
+            <Checkbox size={16} checked={empty} onChange={(e) => setEmpty(e.target.checked)} />
+            <span>
+              <strong>No rows</strong>
+            </span>
+          </label>
+        </div>
+
+        <DataTable
+          key={empty ? "empty" : "rows"}
+          caption="Shoots, sortable and selectable"
+          columns={COLUMNS}
+          rows={empty ? [] : (d.rows as Shoot[])}
+          selectable
+          defaultSort={{ col: "date", up: true }}
+          dense={dense}
+          striped={zebra}
+          loading={loading}
+          emptyTitle="No shoots match these filters"
+          emptyAction="Clear the filters"
+          onEmptyAction={() => setEmpty(false)}
+          bulk={() => (
+            <>
+              <Button variant="secondary" size={32} icon="download">
+                Export
+              </Button>
+              <Button variant="destructive" size={32} icon="trash">
+                Delete
+              </Button>
+            </>
+          )}
+        />
       </div>
 
-      <DataTable
-        key={empty ? "empty" : "rows"}
-        caption="Shoots, sortable and selectable"
-        columns={COLUMNS}
-        rows={empty ? [] : (d.rows as Shoot[])}
-        selectable
-        defaultSort={{ col: "date", up: true }}
-        dense={dense}
-        striped={zebra}
-        loading={loading}
-        emptyTitle="No shoots match these filters"
-        emptyAction="Clear the filters"
-        onEmptyAction={() => setEmpty(false)}
-        bulk={() => (
-          <>
-            <Button variant="secondary" size={32} icon="download">
-              Export
-            </Button>
-            <Button variant="destructive" size={32} icon="trash">
-              Delete
-            </Button>
-          </>
-        )}
-      />
-
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Row actions, in a fixed order</h3>
         <p className="fl-ctl-btn-what">
           rowActions adds a last column of buttons for each row, with a hidden "Actions" heading; sortable turns the heading
@@ -766,7 +768,7 @@ export default function TablesStates() {
         </p>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Paging, controlled sorting and a bare table</h3>
         <p className="fl-ctl-btn-what">
           pageSize sorts every row first, then shows one page with Pagination and a "Showing x–y of z" line; select-all takes the
@@ -796,7 +798,7 @@ export default function TablesStates() {
         </div>
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Version: sortable (p.data-table@sortable)</h3>
         <p className="fl-ctl-btn-what">
           The report table: a visible caption with a hint line, an arrow on every heading that turns to show the order, tabular
@@ -812,7 +814,7 @@ export default function TablesStates() {
         />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <h3>Version: selectable (p.data-table@selectable)</h3>
         <p className="fl-ctl-btn-what">
           The to-do table: native tick boxes, a mixed select-all, click anywhere on a row to tick it, a bar of bulk actions once
@@ -821,7 +823,7 @@ export default function TablesStates() {
         <SelectableTodos title="Studio to-dos" lede="Tick the jobs you've handled, then mark them done or clear them in one go." rows={d.todos} emptyTitle="All clear" emptyText="No to-dos left. New jobs you add will show up here." />
       </div>
 
-      <div className="fl-ctl-sizes">
+      <div className="fl-ctl-sizes fl-ctl-spec">
         <h3>The rules a table lives by</h3>
         <ul className="fl-ctl-tip-rules">
           <li>
