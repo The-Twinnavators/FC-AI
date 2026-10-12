@@ -228,7 +228,7 @@ function HealthPanel() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: 10 }} role="list" aria-label="Subsystems">
           {data.subsystems.map((s) => (
-            <div key={s.id} role="listitem" style={{ border: "1px solid var(--line)", borderRadius: 8, padding: "10px 12px", display: "grid", gap: 4, borderLeft: `2px solid ${statusLed(s.status) === "passed" ? "var(--sig-ok)" : statusLed(s.status) === "failed" ? "var(--sig-bad)" : "var(--sig-warn)"}` }}>
+            <div key={s.id} role="listitem" className={`subsys subsys--${statusLed(s.status)}`}>
               <span style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                 <strong style={{ fontSize: 13 }}>{s.label}</strong>
                 <span style={{ display: "inline-flex", gap: 6, alignItems: "center", fontSize: 11.5, color: "var(--text-1)", textTransform: "capitalize" }}>

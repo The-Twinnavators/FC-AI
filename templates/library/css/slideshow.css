@@ -1,0 +1,78 @@
+/**
+ * Slideshow (c.slideshow): cross-fading slides with a pause control, thumbnails, and the full-screen lightbox.
+ * Prefixed fl-show-; only the library's tokens.
+ */
+.fl-show { display: grid; gap: var(--space-3); min-width: 0; }
+.fl-show-stage { display: grid; gap: var(--space-2); min-width: 0; border-radius: var(--surface-radius, var(--radius-lg)); }
+.fl-show-stage:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-show-frame {
+  position: relative; overflow: hidden; aspect-ratio: 16 / 9; max-height: 32rem; width: 100%;
+  border-radius: var(--surface-radius, var(--radius-lg)); background: var(--color-surface-sunken);
+}
+.fl-show-slide { position: absolute; inset: 0; opacity: 0; transition: opacity var(--duration-slow) var(--easing); }
+.fl-show-slide.is-on { opacity: 1; }
+.fl-show-slide img { width: 100%; height: 100%; object-fit: cover; }
+.fl-show-tint { display: block; width: 100%; height: 100%; background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 70%, var(--color-surface)), color-mix(in srgb, var(--color-accent) 22%, var(--color-surface))); }
+.fl-show-tint[data-tone="1"] { background: linear-gradient(135deg, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 65%, var(--color-surface)), color-mix(in srgb, var(--color-secondary, var(--color-accent)) 20%, var(--color-surface))); }
+.fl-show-tint[data-tone="2"] { background: linear-gradient(135deg, color-mix(in srgb, var(--color-success) 55%, var(--color-surface)), color-mix(in srgb, var(--color-success) 18%, var(--color-surface))); }
+.fl-show-tint[data-tone="3"] { background: linear-gradient(135deg, color-mix(in srgb, var(--color-text) 35%, var(--color-surface)), var(--color-surface-sunken)); }
+/* Round controls over the picture: a solid surface so they read on any photo. */
+.fl-show-arrow, .fl-show-open, .fl-show-play, .fl-show-close {
+  display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border: 1px solid var(--overlay-border, var(--color-border)); border-radius: var(--pill-radius, 999px);
+  background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow); cursor: pointer;
+  transition: opacity var(--duration-fast) var(--easing), transform var(--duration-fast) var(--easing), background var(--duration-fast) var(--easing);
+}
+.fl-show-arrow svg, .fl-show-open svg, .fl-show-play svg, .fl-show-close svg { width: 1.2rem; height: 1.2rem; }
+.fl-show-arrow:hover, .fl-show-open:hover, .fl-show-play:hover, .fl-show-close:hover { background: var(--color-surface-sunken); }
+.fl-show-arrow:active, .fl-show-play:active { transform: scale(var(--press-scale, 0.96)); }
+:is(.fl-show-arrow, .fl-show-open, .fl-show-play, .fl-show-close):focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-show-arrow { position: absolute; top: 50%; translate: 0 -50%; z-index: 2; }
+.fl-show-arrow--prev { left: var(--space-3); }
+.fl-show-arrow--next { right: var(--space-3); }
+.fl-show-open { position: absolute; top: var(--space-3); right: var(--space-3); z-index: 2; width: 2.25rem; height: 2.25rem; }
+/* On a device with a mouse, the arrows show when the slideshow is hovered or has focus; on touch they always show. */
+@media (hover: hover) {
+  .fl-show-frame .fl-show-arrow, .fl-show-frame .fl-show-open { opacity: 0; }
+  .fl-show-stage:is(:hover, :focus-within) .fl-show-arrow, .fl-show-stage:is(:hover, :focus-within) .fl-show-open { opacity: 1; }
+}
+.fl-show-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: color-mix(in srgb, var(--color-surface) 40%, transparent); z-index: 2; }
+.fl-show-progress__bar { display: block; height: 100%; width: 0; background: var(--color-accent); }
+.fl-show-progress__bar.is-running { animation: fl-show-progress linear forwards; }
+@keyframes fl-show-progress { from { width: 0; } to { width: 100%; } }
+.fl-show-under { display: flex; align-items: center; gap: var(--space-3); min-height: 2.75rem; }
+.fl-show-caption { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); margin: 0; min-width: 0; font-size: var(--text-sm); }
+.fl-show-count { color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.fl-show-credit { color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-show-thumbs { display: flex; gap: var(--space-2); margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; }
+.fl-show-thumbs::-webkit-scrollbar { display: none; }
+.fl-show-thumb {
+  display: block; width: 5.5rem; aspect-ratio: 4 / 3; padding: 0; overflow: hidden; border: 2px solid transparent; border-radius: var(--radius-md);
+  background: var(--color-surface-sunken); opacity: 0.65; cursor: pointer; transition: opacity var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
+}
+.fl-show-thumb img, .fl-show-thumb .fl-show-tint, .fl-show-grid__item img, .fl-show-grid__item .fl-show-tint { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fl-show-thumb:hover { opacity: 1; }
+.fl-show-thumb[aria-current="true"] { opacity: 1; border-color: var(--color-accent); }
+.fl-show-thumb:focus-visible { outline: none; box-shadow: var(--focus-ring); opacity: 1; }
+/* The gallery the full-screen view opens from. */
+.fl-show-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-show-grid__item { display: block; width: 100%; aspect-ratio: 1; padding: 0; overflow: hidden; border: 0; border-radius: var(--radius-md); background: var(--color-surface-sunken); cursor: zoom-in; }
+.fl-show-grid__item > * { transition: transform var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-show-grid__item:hover > * { transform: scale(1.04); }
+.fl-show-grid__item:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Full screen: the page color, solid (no blur, nothing showing through), the picture as large as the window allows. */
+.fl-show-lightbox {
+  position: fixed; inset: 0; z-index: 60; display: grid; grid-template-rows: auto 1fr; gap: var(--space-3);
+  padding: max(var(--space-4), env(safe-area-inset-top, 0px)) var(--space-4) max(var(--space-4), env(safe-area-inset-bottom, 0px));
+  background: var(--color-bg); color: var(--color-text); animation: fl-show-in var(--duration-base) var(--ease-out, var(--easing));
+}
+@keyframes fl-show-in { from { opacity: 0; } }
+.fl-show-lightbox__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.fl-show-lightbox__title { margin: 0; font-weight: var(--weight-semibold); }
+.fl-show-lightbox .fl-show-stage { grid-template-rows: minmax(0, 1fr) auto; min-height: 0; height: 100%; }
+.fl-show-stage--big .fl-show-frame { height: 100%; max-height: none; min-height: 12rem; aspect-ratio: auto; background: transparent; }
+.fl-show-stage--big .fl-show-slide img { object-fit: contain; }
+.fl-show-stage--big .fl-show-arrow, .fl-show-stage--big .fl-show-open { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .fl-show-slide, .fl-show-thumb, .fl-show-grid__item > * { transition: none; }
+  .fl-show-lightbox { animation: none; }
+}

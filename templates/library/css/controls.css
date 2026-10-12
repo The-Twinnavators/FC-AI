@@ -387,7 +387,7 @@
 .fl-ctl-card-tag {
   position: absolute; top: calc(var(--space-3) * -1); right: var(--space-4); transform: rotate(var(--tag-tilt, 0deg));
   padding: var(--space-1) var(--space-3); border: var(--edge-width, 1px) solid var(--control-edge, transparent); border-radius: var(--control-radius-sm, var(--radius-sm));
-  background: var(--color-accent); color: var(--color-on-accent); box-shadow: var(--control-shadow, none);
+  background: var(--color-secondary, var(--color-accent)); color: var(--color-on-secondary, var(--color-on-accent)); box-shadow: var(--control-shadow, none);
   font: var(--weight-semibold) var(--text-xs) / 1.2 var(--font-sans); letter-spacing: var(--tracking-wide); text-transform: uppercase;
 }
 .fl-card:has(> .fl-ctl-card-tag) { position: relative; }

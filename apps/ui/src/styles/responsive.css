@@ -16088,3 +16088,7 @@ body.cp-driving #copilot-panel { z-index: 80; }
   .signoff__body { grid-template-columns: minmax(0, 1fr); }
   .signoff__facts { grid-template-columns: max-content minmax(0, 1fr); }
 }
+
+/* System Health subsystems: an even border all round; the ones online or running carry a slight teal tint. */
+.subsys { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.subsys--passed { border-color: color-mix(in srgb, var(--sig-ok) 28%, var(--line)); background: color-mix(in srgb, var(--sig-ok) 7%, transparent); }

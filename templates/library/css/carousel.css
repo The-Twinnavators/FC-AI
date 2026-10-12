@@ -1,0 +1,55 @@
+/**
+ * Carousel (c.carousel): a row of items that scrolls natively with snap points, with the next item peeking. Prefixed
+ * fl-car-; only the library's tokens.
+ */
+.fl-car { display: grid; gap: var(--space-3); min-width: 0; }
+.fl-car-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.fl-car-pos { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.fl-car-btns { display: flex; gap: var(--space-2); }
+.fl-car-btn {
+  display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: var(--pill-radius, 999px);
+  background: var(--color-surface); color: var(--color-text); cursor: pointer; transition: background var(--duration-fast) var(--easing);
+}
+.fl-car-btn svg { width: 1.15rem; height: 1.15rem; }
+.fl-car-btn:hover:not(:disabled) { background: var(--color-surface-sunken); }
+.fl-car-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-car-btn:disabled { opacity: 0.4; cursor: default; }
+.fl-car-track {
+  display: grid; grid-auto-flow: column; gap: var(--space-3); margin: 0; padding: 0; list-style: none;
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: 0; border-radius: var(--radius-lg);
+  /* No scrollbar: the buttons, the arrow keys, swiping and the trackpad move it, and the count says where you are. */
+  scrollbar-width: none;
+}
+.fl-car-track::-webkit-scrollbar { display: none; }
+.fl-car-track:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-car-item { scroll-snap-align: start; min-width: 0; }
+/* How wide each item is decides the layout: several cards, one large with the next peeking, or one across the width. */
+.fl-car { container-type: inline-size; }
+/* About three and a third cards (up to 17rem each), so the next one is cut off at the edge; one and a half on a phone. */
+.fl-car--multi .fl-car-track { grid-auto-columns: min(17rem, calc((100% - 3 * var(--space-3)) / 3.35)); }
+@container (max-width: 34rem) { .fl-car--multi .fl-car-track { grid-auto-columns: calc((100% - var(--space-3)) / 1.5); } }
+.fl-car--hero .fl-car-track { grid-auto-columns: 82%; }
+.fl-car--full .fl-car-track { grid-auto-columns: 100%; }
+.fl-car-card {
+  display: grid; gap: var(--space-2); width: 100%; height: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; text-decoration: none; cursor: default;
+}
+button.fl-car-card, a.fl-car-card { cursor: pointer; }
+.fl-car-media { position: relative; display: block; overflow: hidden; border-radius: var(--surface-radius, var(--radius-lg)); aspect-ratio: 4 / 3; background: var(--color-surface-sunken); }
+.fl-car--hero .fl-car-media { aspect-ratio: auto; height: clamp(11rem, 32cqi, 20rem); }
+.fl-car--full .fl-car-media { aspect-ratio: auto; height: clamp(9rem, 40cqi, 15rem); }
+.fl-car-media img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--duration-slow) var(--ease-out, var(--easing)); }
+:is(button, a).fl-car-card:hover .fl-car-media img, :is(button, a).fl-car-card:hover .fl-car-tint { transform: scale(1.03); }
+.fl-car-tint { display: block; width: 100%; height: 100%; transition: transform var(--duration-slow) var(--ease-out, var(--easing)); background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 70%, var(--color-surface)), color-mix(in srgb, var(--color-accent) 25%, var(--color-surface))); }
+.fl-car-tint[data-tone="1"] { background: linear-gradient(135deg, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 65%, var(--color-surface)), color-mix(in srgb, var(--color-secondary, var(--color-accent)) 20%, var(--color-surface))); }
+.fl-car-tint[data-tone="2"] { background: linear-gradient(135deg, color-mix(in srgb, var(--color-success) 55%, var(--color-surface)), color-mix(in srgb, var(--color-success) 18%, var(--color-surface))); }
+.fl-car-tint[data-tone="3"] { background: linear-gradient(135deg, color-mix(in srgb, var(--color-text) 35%, var(--color-surface)), var(--color-surface-sunken)); }
+.fl-car-text { display: grid; gap: 2px; }
+.fl-car-title { font-weight: var(--weight-semibold); }
+.fl-car--hero .fl-car-title, .fl-car--full .fl-car-title { font-family: var(--font-display); font-size: var(--text-lg); }
+.fl-car-caption { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-car-dots { display: flex; justify-content: center; gap: var(--space-2); }
+.fl-car-dot { width: 0.5rem; height: 0.5rem; border-radius: var(--pill-radius, 999px); background: var(--color-border-strong, var(--color-border)); transition: width var(--duration-base) var(--ease-out, var(--easing)), background var(--duration-base) var(--easing); }
+.fl-car-dot.is-on { width: 1.5rem; background: var(--color-accent); }
+@media (prefers-reduced-motion: reduce) {
+  .fl-car-media img, .fl-car-tint, .fl-car-dot { transition: none; }
+}

@@ -6,22 +6,22 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
     items: [
       { path: "/quality", icon: "checklist", label: "My Projects" },
       // Create PRD: research a problem and write the PRD a build starts from.
-      { path: "/discover", icon: "compass", label: "Create PRD" },
+      { path: "/discover", icon: "write", label: "Create PRD" },
       // Everything waiting on you, and the decision log.
-      { path: "/approvals", icon: "flag", label: "Approvals" },
+      { path: "/approvals", icon: "thumbsUp", label: "Approvals" },
     ],
   },
   {
     label: "Repo tools",
     // Reports on any repo folder on this computer (not only FlowCode projects).
-    items: [{ path: "/flowreport", icon: "reports", label: "Repo Report" }],
+    items: [{ path: "/flowreport", icon: "folderOpen", label: "Repo Report" }],
   },
   {
     label: "Intelligence",
     items: [
       { path: "/library", icon: "library", label: "Prompts & Skills" },
       { path: "/components", icon: "layers", label: "Component library" },
-      { path: "/knowledge", icon: "knowledge", label: "Knowledge Hub" },
+      { path: "/knowledge", icon: "bulb", label: "Knowledge Hub" },
       { path: "/topics", icon: "search", label: "Topic Search" },
       // What FlowCode proposes to change about how it works, from run reviews.
     ],
@@ -37,11 +37,11 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
   {
     label: "System",
     items: [
-      { path: "/about", icon: "help", label: "About FlowCode" },
-      { path: "/guide", icon: "library", label: "Feature guide" },
+      { path: "/about", icon: "flowcode", label: "About FlowCode" },
+      { path: "/guide", icon: "guide", label: "Feature guide" },
       { path: "/settings", icon: "settings", label: "Settings" },
-      { path: "/primitives", icon: "layers", label: "Branding" },
-      { path: "/system", icon: "server", label: "System Health" },
+      { path: "/primitives", icon: "palette", label: "Branding" },
+      { path: "/system", icon: "gauge", label: "System Health" },
     ],
   },
 ];

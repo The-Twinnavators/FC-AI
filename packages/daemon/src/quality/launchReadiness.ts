@@ -932,6 +932,19 @@ export function launchMarkdown(r: LrcReport, now = new Date()): { markdown: stri
 }
 
 /** One line per project for the checklist overview: readiness %, open gates and status counts. */
+/**
+ * How far the prototype build has got: the steps of the project's latest prototype build (its spec build, or the
+ * latest build with steps when it has none) that are done, out of all its steps, and where its review stands.
+ */
+export function prototypeProgress(app: App, projectId: string): { runId: string; done: number; total: number; status: string; review?: string } | undefined {
+  const runs = app.store.runs.where("project_id = ? ORDER BY created_at DESC", projectId);
+  const withSteps = (r: (typeof runs)[number]) => app.store.tasks.where("run_id = ?", r.id).length > 0;
+  const run = runs.find((r) => r.strategy?.kind === "spec_build") ?? runs.find(withSteps);
+  if (!run) return undefined;
+  const tasks = app.store.tasks.where("run_id = ?", run.id);
+  return { runId: run.id, done: tasks.filter((t) => t.status === "verified" || t.status === "skipped").length, total: tasks.length, status: run.status, review: run.review };
+}
+
 export async function launchSummaries(app: App) {
   const out = [];
   for (const p of app.store.projects.list("updated_at DESC")) {
@@ -939,6 +952,7 @@ export async function launchSummaries(app: App) {
       const r = await launchReadiness(app, p.id);
       const latest = app.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 1", p.id)[0];
       out.push({
+        build: prototypeProgress(app, p.id),
         projectId: p.id,
         name: p.name,
         projectType: r.projectType,

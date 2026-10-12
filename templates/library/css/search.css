@@ -1,0 +1,44 @@
+/**
+ * Search (c.search): the search bar with suggestions and the inline filter field. Prefixed fl-srch-; only the
+ * library's tokens.
+ */
+.fl-srch { position: relative; display: grid; gap: var(--space-2); width: 100%; max-width: 36rem; }
+.fl-srch__field {
+  display: flex; align-items: center; gap: var(--space-2); min-height: var(--control-lg, 3.5rem); padding: 0 var(--space-2) 0 var(--space-4);
+  border: 1px solid transparent; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); color: var(--color-text);
+  transition: background var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), border-radius var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-srch__field:hover { background: color-mix(in srgb, var(--color-text) 6%, var(--color-surface-sunken)); }
+.fl-srch__field:focus-within { background: var(--color-surface); border-color: var(--control-edge, var(--color-accent)); box-shadow: var(--control-shadow-focus, var(--focus-ring)); }
+/* Open, the bar and its suggestions read as one panel. */
+.fl-srch.is-open .fl-srch__field { border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: none; border-color: var(--overlay-border, var(--color-border)); border-bottom-color: var(--color-border); }
+.fl-srch--inline .fl-srch__field { min-height: var(--control-md, 2.75rem); border-radius: var(--field-radius, var(--control-radius, var(--radius-md))); border-color: var(--color-border-strong, var(--color-border)); background: var(--control-bg, var(--color-surface)); }
+.fl-srch__icon { display: grid; place-items: center; color: var(--color-text-muted); }
+.fl-srch__icon svg, .fl-srch__clear svg, .fl-srch__opt-icon svg, .fl-srch__remove svg { width: 1.15rem; height: 1.15rem; }
+.fl-srch__input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: inherit; font: inherit; font-size: var(--text-md); outline: none; }
+.fl-srch__input::placeholder { color: var(--color-text-muted); }
+.fl-srch__input::-webkit-search-cancel-button { display: none; }
+.fl-srch__clear, .fl-srch__remove {
+  display: grid; place-items: center; width: 2.25rem; height: 2.25rem; flex: none; border: 0; border-radius: var(--pill-radius, 999px);
+  background: transparent; color: var(--color-text-muted); cursor: pointer;
+}
+.fl-srch__clear:hover, .fl-srch__remove:hover { background: var(--color-surface-sunken); color: var(--color-text); }
+.fl-srch__clear:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-srch__pop {
+  position: absolute; z-index: 20; top: calc(var(--control-lg, 3.5rem) - 1px); left: 0; right: 0; padding: var(--space-2) 0;
+  border: 1px solid var(--overlay-border, var(--color-border)); border-top: 0; border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: var(--color-surface); box-shadow: var(--surface-shadow-overlay, var(--surface-shadow));
+  animation: fl-srch-drop var(--duration-base) var(--ease-out, var(--easing));
+}
+@keyframes fl-srch-drop { from { opacity: 0; transform: translateY(-4px); } }
+.fl-srch__group { margin: 0; padding: var(--space-1) var(--space-4); color: var(--color-text-muted); font-size: var(--text-xs); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+.fl-srch__list { margin: 0; padding: 0; list-style: none; }
+.fl-srch__opt { display: flex; align-items: center; gap: var(--space-3); min-height: 2.75rem; padding: 0 var(--space-2) 0 var(--space-4); cursor: pointer; }
+.fl-srch__opt.is-active { background: var(--color-surface-sunken); }
+.fl-srch__opt-icon { display: grid; place-items: center; color: var(--color-text-muted); }
+.fl-srch__opt-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-srch-mark { background: none; color: inherit; font-weight: var(--weight-bold); }
+.fl-srch__count { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-srch-results { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-srch-results li { padding: var(--space-1) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); font-size: var(--text-sm); }
+@media (prefers-reduced-motion: reduce) { .fl-srch__pop { animation: none; } .fl-srch__field { transition: none; } }

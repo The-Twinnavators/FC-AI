@@ -1,10 +1,10 @@
 /**
- * My Projects: one card per project with its launch readiness (checklist progress, open gates) and its
+ * My Projects: one card per project with its prototype build's progress (steps built, review) and its
  * latest build analysis (health score, open issues). Pick one to open that project's page; the ⋯ menu
  * renames or deletes it, as on the home page.
  */
 import { useEffect, useState } from "react";
-import type { Project } from "@flowcode/contracts";
+import { runStatusLabel, type Project } from "@flowcode/contracts";
 import { get, useResource } from "../api";
 import { navigate } from "../router";
 import { Empty, StatusChip, ago } from "../components/ui";
@@ -31,6 +31,8 @@ interface Launch {
   needsReview: number;
   latestRunStatus?: string;
   updatedAt: string;
+  /** The prototype build: its steps done out of all its steps, and where its review stands. */
+  build?: { runId: string; done: number; total: number; status: string; review?: string };
 }
 
 /**
@@ -96,10 +98,10 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                   </div>
                   <div className="qa-card__metrics">
                     <div className="qa-metric">
-                      <RadialGauge value={(l?.percent ?? 0) / 100} size={gauge} stroke={compact ? 4 : 5} label={`${p.name} launch readiness`} />
+                      {l?.build?.total ? <RadialGauge value={l.build.done / l.build.total} size={gauge} stroke={compact ? 4 : 5} label={`${p.name} prototype build progress`} /> : <span className="qa-metric__none" aria-hidden="true">—</span>}
                       <span>
-                        <span className="label">Launch</span>
-                        <span className="qa-metric__val">{l ? `${l.completed} of ${l.counted} done` : "No checklist yet"}</span>
+                        <span className="label">Prototype</span>
+                        <span className="qa-metric__val" title={l?.build?.review ? runStatusLabel(l.build) : undefined}>{l?.build?.total ? `${l.build.done} of ${l.build.total} steps built` : "No steps yet"}</span>
                       </span>
                     </div>
                     <div className="qa-metric">
