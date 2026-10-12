@@ -1395,11 +1395,15 @@ export class Orchestrator {
       // Fast model first: a step's first tries (writing, then repairing) run on the smaller local model; the run's
       // coder/debugger models only take over after those don't pass.
       const opts = runtimeOptions(this.d.store);
+      // The coder as it is now: switching a build to the cloud (or back) mid-build takes effect from the next attempt.
+      run = this.d.store.runs.get(run.id) ?? run;
       const base = run.modelAssignments.coder;
       const fastTries = Math.max(1, Math.min(3, opts.fastModel.tries || 1));
       // Edits that went round in a circle skip the rest of the fast model's tries.
       const cycled = this.d.store.getSetting(`taskCycled:${task.id}`, false);
-      const useFast = !cycled && task.attempts <= fastTries && task.role === "coder" && opts.fastModel.enabled && !!opts.fastModel.model && !!base && opts.fastModel.model !== base.model;
+      // A build switched to a cloud coder skips the fast local model: the person chose the cloud model to write it.
+      const chosenCloud = !!base?.providerId.startsWith("hosted");
+      const useFast = !cycled && !chosenCloud && task.attempts <= fastTries && task.role === "coder" && opts.fastModel.enabled && !!opts.fastModel.model && !!base && opts.fastModel.model !== base.model;
       if (useFast) {
         this.d.store.setSetting(`taskFast:${task.id}`, true);
         if (task.attempts === 1) this.d.bus.emit({ ...ev, type: "model.tier", message: `Trying the fast model (${opts.fastModel.model}) first; ${base!.model} takes over if ${fastTries === 1 ? "this attempt doesn't" : `${fastTries} attempts don't`} pass` });

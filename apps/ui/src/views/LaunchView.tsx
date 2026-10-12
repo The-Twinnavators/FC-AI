@@ -221,7 +221,7 @@ export function LaunchView({ projectId, projects, embedded }: { projectId?: stri
       <header className="lrc__head" data-reveal>
         <div>
           {embedded ? (
-            <h2 className="lrc__title lrc__title--sub">Launch readiness</h2>
+            <h2 className="lrc__title lrc__title--sub">Launch readiness plan</h2>
           ) : (
             <>
               <span className="label">My Projects</span>

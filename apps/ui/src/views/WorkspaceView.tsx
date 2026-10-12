@@ -203,6 +203,22 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
   const changedPaths = useMemo(() => new Set(view?.snapshots.filter((s) => !s.restoredAt).map((s) => s.relativePath) ?? []), [view?.snapshots]);
   const project = projectRes.data?.project;
 
+  // Who writes the code for the rest of this build: the local coder, or the cloud model set up on the Models page.
+  // Choosing the cloud sends this project's code and screenshots to that provider, which bills for it; the steps
+  // already done stay as they are.
+  const cloudCoder = useResource<{ ready: boolean; problem: string; model: string; providerLabel: string }>("/models/cloud-coder");
+  const onCloud = !!view?.run.modelAssignments.coder?.providerId.startsWith("hosted");
+  const switchCoder = async (coder: "cloud" | "local") => {
+    if (!view) return;
+    try {
+      await post(`/runs/${view.run.id}/coder`, { coder });
+      announce(coder === "cloud" ? `The next steps are coded by ${cloudCoder.data?.model} in the cloud.` : "The next steps are coded by the local model.");
+    } catch (e) {
+      announce(friendlyError((e as Error).message, "switch the coder").title);
+    }
+    setRunTick((t) => t + 1);
+  };
+
   const control = async (action: "start" | "cancel" | "resume" | "pause" | "unpause") => {
     if (!view) return;
     try {
@@ -218,6 +234,29 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
 
   const controls = view ? (
     <>
+      {!["done", "done_with_warnings", "done_unverified", "cancelled"].includes(view.run.status) ? (
+        <div className="seg coder-switch" role="radiogroup" aria-label="Who writes the code">
+          <span className="coder-switch__label">Coder</span>
+          <button type="button" role="radio" aria-checked={!onCloud} className={`seg__btn${onCloud ? "" : " is-on"}`} onClick={() => onCloud && switchCoder("local")} title="The local model on this computer writes the code: nothing leaves this computer">
+            Local
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={onCloud}
+            className={`seg__btn${onCloud ? " is-on" : ""}`}
+            disabled={!onCloud && !cloudCoder.data?.ready}
+            onClick={() => !onCloud && switchCoder("cloud")}
+            title={
+              cloudCoder.data?.ready
+                ? `${cloudCoder.data.model} (${cloudCoder.data.providerLabel}) writes the code for the rest of this build: its code and screenshots go to that provider, which bills you`
+                : `The cloud model isn't set up: ${cloudCoder.data?.problem ?? "open the Models page"}`
+            }
+          >
+            Cloud
+          </button>
+        </div>
+      ) : null}
       {view.run.status === "running" && !view.active && view.run.planApproved && !view.resumable && !view.probing ? (
         <button className="btn btn--primary" onClick={() => control("start")}>
           <Icon name="play" size={14} /> Start

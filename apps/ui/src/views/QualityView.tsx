@@ -23,10 +23,10 @@ import { ProjectDecisions, useProjectDecisions } from "../components/ProjectDeci
 export type QualityTab = "plan" | "waiting" | "ideas" | "launch" | "reports" | "performance" | "intel";
 const TABS: Array<{ id: QualityTab; label: string }> = [
   { id: "plan", label: "Prototype plan" },
+  { id: "launch", label: "Launch readiness plan" },
   // This project's decision cards (the same records as the Approvals page).
   { id: "waiting", label: "Waiting on you" },
   { id: "ideas", label: "Suggestions" },
-  { id: "launch", label: "Launch readiness" },
   { id: "reports", label: "Run reports" },
   { id: "performance", label: "Performance" },
   { id: "intel", label: "Repository intelligence" },
