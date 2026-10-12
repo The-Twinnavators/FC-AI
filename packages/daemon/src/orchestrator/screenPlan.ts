@@ -71,7 +71,43 @@ export const SCREENS_SCHEMA = {
 const words = (s: string) => s.replace(/[^A-Za-z0-9 ]+/g, " ").trim().split(/\s+/).filter(Boolean);
 
 /** The planner's answer as a screen plan with derived ids and files; undefined when it names no usable screen. */
-export function parseScreenPlan(raw: unknown): ScreenPlan | undefined {
+/**
+ * The screens a PRD names itself, in a section about its screens or pages (a table of screen and responsibility, or a
+ * list of names). A PRD that lists "Home Screen" and "Brand Detail Screen" means two pages; the planner's habit of
+ * folding a detail view into its list (right for a vague request) built one page and left the second out (Build test
+ * 3). Empty when the PRD has no such section.
+ */
+export function declaredScreens(prd: string): Array<{ name: string; purpose: string }> {
+  const lines = prd.split(/\r?\n/);
+  const at = lines.findIndex((l) => /^#{1,4}\s/.test(l) && /\b(screens?|pages?)\b/i.test(l) && !/\b(states?|errors?|empty)\b/i.test(l));
+  if (at < 0) return [];
+  const level = (/^#+/.exec(lines[at]!)?.[0].length ?? 2);
+  const out: Array<{ name: string; purpose: string }> = [];
+  const add = (name: string, purpose: string) => {
+    const clean = name.replace(/[*_`]/g, "").replace(/\s+(screen|page|view)$/i, "").replace(/\s+/g, " ").trim();
+    if (!clean || clean.length > 40 || /^(screen|page|name|responsibilit(y|ies)|purpose|-+)$/i.test(clean)) return;
+    if (!out.some((x) => x.name.toLowerCase() === clean.toLowerCase())) out.push({ name: clean, purpose: purpose.replace(/[*_`]/g, "").replace(/\s+/g, " ").trim().slice(0, 200) });
+  };
+  for (const line of lines.slice(at + 1)) {
+    const h = /^(#+)\s/.exec(line);
+    if (h && h[1]!.length <= level) break;
+    const row = /^\s*\|(.+)\|\s*$/.exec(line);
+    if (row) {
+      const cells = row[1]!.split("|").map((c) => c.trim());
+      if (cells.every((c) => /^:?-{2,}:?$/.test(c))) continue;
+      add(cells[0] ?? "", cells.slice(1).join(" "));
+      continue;
+    }
+    const item = /^\s*(?:[-*]|\d+[.)])\s+(.+)$/.exec(line);
+    if (item) {
+      const [name, ...rest] = item[1]!.split(/\s*(?::|—|–| - )\s*/);
+      add(name ?? "", rest.join(" "));
+    }
+  }
+  return out.slice(0, MAX_SCREENS);
+}
+
+export function parseScreenPlan(raw: unknown, declared: Array<{ name: string; purpose: string }> = []): ScreenPlan | undefined {
   const r = (raw ?? {}) as { product?: unknown; screens?: unknown };
   const list = Array.isArray(r.screens) ? r.screens : [];
   const screens: PlannedScreen[] = [];
@@ -87,8 +123,31 @@ export function parseScreenPlan(raw: unknown): ScreenPlan | undefined {
     screens.push({ id, label: label[0]!.toUpperCase() + label.slice(1), component: `${base}Screen`, file: `src/screens/${base}Screen.tsx`, purpose });
     if (screens.length === MAX_SCREENS) break;
   }
-  if (!screens.length) return undefined;
   const product = String(r.product ?? "").replace(/\s+/g, " ").trim().slice(0, 60) || "App";
+  // The PRD's own screens are the plan: its names, in its order, none folded away. Each keeps the planner's sentence
+  // for the screen it most resembles (the planner writes who and why); the PRD's own words otherwise.
+  if (declared.length) {
+    const toks = (x: string) => new Set(words(x.toLowerCase()).filter((w) => w.length > 2).map(stem));
+    const used = new Set<PlannedScreen>();
+    const own: PlannedScreen[] = [];
+    for (const d of declared) {
+      const want = toks(`${d.name} ${d.purpose}`);
+      let best: PlannedScreen | undefined;
+      let score = 0;
+      for (const p of screens) {
+        if (used.has(p)) continue;
+        const n = [...toks(`${p.label} ${p.purpose}`)].filter((w) => want.has(w)).length;
+        if (n > score) (best = p), (score = n);
+      }
+      if (best && score >= 2) used.add(best);
+      const parts = words(d.name);
+      const base = parts.map((w) => w[0]!.toUpperCase() + w.slice(1)).join("").replace(/Screen$/, "");
+      if (!base || own.some((x) => x.component === `${base}Screen`)) continue;
+      own.push({ id: parts.map((w) => w.toLowerCase()).join("-"), label: d.name[0]!.toUpperCase() + d.name.slice(1), component: `${base}Screen`, file: `src/screens/${base}Screen.tsx`, purpose: best && score >= 2 ? best.purpose : d.purpose });
+    }
+    if (own.length) return { product, screens: own };
+  }
+  if (!screens.length) return undefined;
   return { product, screens: foldActionScreens(screens) };
 }
 

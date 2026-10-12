@@ -356,10 +356,10 @@ export default function FileUploadStates() {
   const d = SAMPLE;
   return (
     <section className="fl-section fl-section--specimen">
-      <div className="fl-ctl-spec fl-ctl-spec--wide">
+      <div className="fl-ctl-spec fl-ctl-spec--wide fl-ctl-spec--bare">
         <ul className="fl-ctl-zone-grid">
           {d.zones.map((z) => (
-            <li key={z.id}>
+            <li key={z.id} className="fl-ctl-spec">
               <p className="fl-ctl-matrix-kind">{z.label}</p>
               <p className="fl-ctl-matrix-what">{z.what}</p>
               <div className={`fl-ctl-zone${z.cls}`}>

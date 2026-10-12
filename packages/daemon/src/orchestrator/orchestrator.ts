@@ -64,7 +64,7 @@ import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js"
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
-import { APP_LAYOUT, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
+import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
 import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
@@ -804,17 +804,20 @@ export class Orchestrator {
   private async decideScreens(run: Run, requirements: string, signal: AbortSignal): Promise<ScreenPlan | undefined> {
     const ev = { projectId: run.projectId, runId: run.id };
     let plan: ScreenPlan | undefined;
+    // The screens the PRD names itself (its "Main screens" table): each one is a page, whatever the planner folds.
+    const declared = declaredScreens(prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, [])));
+    const named = declared.length ? `\n\nThe PRD names these screens; each is its own screen, with these names: ${declared.map((d) => d.name).join(", ")}` : "";
     try {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.1 }, {
         messages: [
           { role: "system", content: SCREENS_SYSTEM },
-          { role: "user", content: `Product request:\n${untrusted("request", run.objective.slice(0, 1500))}${requirements ? `\n\nRequirements:\n${untrusted("requirements", requirements)}` : ""}` },
+          { role: "user", content: `Product request:\n${untrusted("request", run.objective.slice(0, 1500))}${requirements ? `\n\nRequirements:\n${untrusted("requirements", requirements)}` : ""}${named}` },
         ],
         format: SCREENS_SCHEMA,
         timeoutMs: 180_000,
         signal,
       });
-      plan = parseScreenPlan(JSON.parse(extractJson(res.content)));
+      plan = parseScreenPlan(JSON.parse(extractJson(res.content)), declared);
     } catch (err) {
       if (signal.aborted) throw err;
     }
@@ -1526,13 +1529,21 @@ export class Orchestrator {
         task = this.d.store.tasks.require(task.id);
       }
     }
-    // The library pieces FlowCode put into the screens are their starting structure: the design step keeps each one in
-    // a screen, or names it with the reason in its summary. Otherwise "the model may use the library" quietly becomes
-    // "the model wrote its own" (NOBIO: the sidebar FlowCode added was never used).
-    if (verdict.allMet && (task.title === DESIGN_SCREENS || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_SCREENS)) {
-      const placed = this.d.store.getSetting<Placement[]>(placedKey(run.id), []);
+    // The library pieces FlowCode put into the screens are their starting structure: every step keeps each one in a
+    // screen, or names it with the reason in its summary (once; a piece removed with a reason stays removed). Otherwise
+    // "the model may use the library" quietly becomes "the model wrote its own" (NOBIO: the sidebar FlowCode added was
+    // never used). Not only the design step: in Build test 3 the design step left the pieces in, and the next feature
+    // step replaced the whole Brands screen with a hand-built one and 109 lines of its own CSS.
+    const placedNow = this.d.store.getSetting<Array<Placement & { screenFile?: string }>>(placedKey(run.id), []);
+    const touchesPlaced = [...changed].some((p) => placedNow.some((x) => x.screenFile && p.replace(/\\/g, "/") === x.screenFile));
+    if (verdict.allMet && !runtimeStep && (task.title === DESIGN_SCREENS || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_SCREENS || touchesPlaced)) {
+      const releasedKey = `placedReleased:${run.id}`;
+      const released = this.d.store.getSetting<string[]>(releasedKey, []);
+      const placed = placedNow.filter((p) => !released.includes(p.component));
       const summary = outcome.kind === "complete" ? outcome.summary : "";
       const imported = importedSections(jail);
+      const named = placed.filter((p) => !imported.has(p.component) && summary.toLowerCase().includes(p.component.toLowerCase()));
+      if (named.length) this.d.store.setSetting(releasedKey, [...released, ...named.map((p) => p.component)]);
       const dropped = placed.filter((p) => !imported.has(p.component) && !summary.toLowerCase().includes(p.component.toLowerCase()));
       if (dropped.length) {
         verdict = {

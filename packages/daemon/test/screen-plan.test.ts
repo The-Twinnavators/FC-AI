@@ -6,7 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { layoutFiles, parseScreenPlan, screenPlanNote, writesLayout } from "../src/orchestrator/screenPlan.js";
+import { declaredScreens, layoutFiles, parseScreenPlan, screenPlanNote, writesLayout } from "../src/orchestrator/screenPlan.js";
 import { PathJail } from "../src/security/pathJail.js";
 
 describe("the app's screens, decided once", () => {
@@ -64,5 +64,42 @@ describe("actions named as screens", () => {
   it("fold into the screen they act on (NOBIO: filter, search, sort and detail screens for one list)", () => {
     const plan = parseScreenPlan({ product: "NOBIO", screens: ["Brands List", "Brand Detail", "Filter Brands", "Search Brands", "Shopping list", "Event Creation"].map((name) => ({ name, purpose: "x" })) })!;
     expect(plan.screens.map((s) => s.label)).toEqual(["Brands List", "Shopping list", "Event Creation"]);
+  });
+});
+
+describe("the screens a PRD names", () => {
+  const PRD = `# Brands finder PRD
+
+## 12. Main screens and screen responsibilities
+
+| Screen | Responsibility |
+| --- | --- |
+| Home Screen | Show the list of trusted non-GMO brands |
+| Brand Detail Screen | Show details about a specific non-GMO brand |
+
+## 13. Data
+- Brand: name, category`;
+
+  it("are read from its screens section, as a table or a list", () => {
+    expect(declaredScreens(PRD)).toEqual([
+      { name: "Home", purpose: "Show the list of trusted non-GMO brands" },
+      { name: "Brand Detail", purpose: "Show details about a specific non-GMO brand" },
+    ]);
+    expect(declaredScreens("## Pages\n- Dashboard: see today's numbers\n- Settings — change the plan\n\n## Other\n- Not a page")).toEqual([
+      { name: "Dashboard", purpose: "see today's numbers" },
+      { name: "Settings", purpose: "change the plan" },
+    ]);
+    expect(declaredScreens("# PRD\n## Goals\n- Faster checkout")).toEqual([]);
+  });
+
+  it("are each a page, never folded into a list (Build test 3 built one page for two), keeping the planner's purpose where it fits", () => {
+    const planner = { product: "Brands", screens: [{ name: "Brands", purpose: "Parents scan a list of trusted non-GMO brands, search and open a brand's details" }] };
+    const plan = parseScreenPlan(planner, declaredScreens(PRD))!;
+    expect(plan.screens.map((s) => s.label)).toEqual(["Home", "Brand Detail"]);
+    expect(plan.screens.map((s) => s.file)).toEqual(["src/screens/HomeScreen.tsx", "src/screens/BrandDetailScreen.tsx"]);
+    expect(plan.screens[0]!.purpose).toContain("Parents scan");
+    expect(plan.screens[1]!.purpose).toBe("Show details about a specific non-GMO brand");
+    // Without a screens section the planner's answer stands (a detail view stays on its list).
+    expect(parseScreenPlan(planner)!.screens.map((s) => s.label)).toEqual(["Brands"]);
   });
 });

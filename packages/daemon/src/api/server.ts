@@ -598,9 +598,11 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       app.store.setSetting(`designCustomPalette:${params.id}`, paletteOf(jail).config);
     }
     try {
-      const out = applyDesign(jail, app.ops, ctx, { theme: "default", values });
       // The Colors card reads the saved ramps, not the theme tokens, so a style that only wrote tokens left them green.
+      // Ramps first: building them also rewrites the role colours (background, text, borders) from the accent alone,
+      // which turned Soft Neutral's cream background pink. The style's own tokens are written after, so they win.
       const ramps = applyPalette(jail, app.ops, ctx, paletteFromTokens({ "--color-accent": t.colors.accent, "--color-secondary": t.colors.secondary }));
+      const out = applyDesign(jail, app.ops, ctx, { theme: "default", values });
       app.store.setSetting(`designChoice:${params.id}`, record);
       return { ...record, changed: [...out.changed, ...ramps.changed] };
     } catch (e) {

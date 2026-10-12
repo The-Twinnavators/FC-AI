@@ -526,3 +526,6 @@ textarea.fl-ctl-field { min-height: 5rem; padding: var(--space-3); line-height: 
 /* Reference sheets as cards: sidebar-nav-variants, sliders-states, steppers-wizards, switches-states, tables-states, tabs-variants, tabs-vertical, text-fields-states, top-nav-variants */
 .fl-ctl-spec .fl-ctl-size-list li:has(> .fl-ctl-field) { flex-wrap: wrap; }
 .fl-ctl-spec .fl-ctl-size-list li > .fl-ctl-field { flex: 1 1 12rem; width: auto; min-width: 0; }
+/* Each dropzone state in its own card: the grid keeps them side by side, with the card's own spacing. */
+.fl-ctl-zone-grid > li.fl-ctl-spec { display: flex; flex-direction: column; gap: var(--space-2); }
+.fl-ctl-zone-grid > li.fl-ctl-spec > .fl-ctl-zone { margin-top: auto; }
