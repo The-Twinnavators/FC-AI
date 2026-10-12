@@ -6,9 +6,9 @@
  * Built from: c.progress.bar, c.button.primary, c.button.secondary, c.button.tertiary
  * Look: Numbered circles joined in a row (or column) with the current step accented, finished steps ticked and a failed step marked in the danger color; or a thin progress bar.
  * Tokens: --color-accent --color-border --color-danger --color-on-accent --color-surface-sunken --focus-ring --radius-lg --radius-md --space-2 --space-3 --space-4 --space-5
- * Use cases: checkout; onboarding; a long form split up; an import wizard; a booking flow
- * Jobs to be done: see how many steps are left; go back to a step I finished; know which step failed
- * Keywords: stepper, wizard, steps, progress, multi-step, back, next, current step
+ * Use cases: checkout; onboarding; a long form split up; an import wizard; a booking flow; checkout steps; booking flow; onboarding wizard; multi-step form; application process; setup wizard; order progress; registration steps
+ * Jobs to be done: see how many steps are left; go back to a step I finished; know which step failed; see how far along i am; move through a booking step by step; go back and change an earlier step; finish a long form in parts
+ * Keywords: stepper, wizard, steps, progress, multi-step, back, next, current step, booking
  */
 /**
  * A flow broken into steps, in the three shapes that cover almost every wizard: numbered across the top, a plain bar

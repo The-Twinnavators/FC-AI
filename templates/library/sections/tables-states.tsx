@@ -1,19 +1,20 @@
 /** @flowcode-library tables-states · Tables: sorting, selection, density and the states a row reaches (Tables and lists)
  * Catalog ID: p.data-table (pattern)
- * Function: The data table pattern (p.data-table); the reference sheet shows sorting, row selection with a bulk bar, totals, dense and striped looks, and the loading and empty states.
- * Use it as: import { DataTable } from "./tables-states"; <DataTable caption="Shoots" columns={[{ id, label, num?, render?, total? }]} rows={[{ id, ... }]} selectable? bulk?={(ids, clear) => buttons} defaultSort?={{ col, up }} dense? striped? loading? emptyTitle? emptyHint? emptyAction? onEmptyAction? />
+ * Function: The data table pattern (p.data-table); the reference sheet shows sorting (announced to screen readers), row selection by box or by clicking the row, a bulk bar, totals, dense and striped looks, the loading and empty states, and a table with row actions in a fixed order.
+ * Use it as: import { DataTable } from "./tables-states"; <DataTable caption="Shoots" columns={[{ id, label, num?, render?, total?, sortable? }]} rows={[{ id, ... }]} sortable? selectable? onSelectionChange?={(ids) => ...} bulk?={(ids, clear) => buttons} rowActions?={(row) => buttons} defaultSort?={{ col, up }} dense? striped? loading? emptyTitle? emptyHint? emptyAction? onEmptyAction? />
  * Built from: c.checkbox, c.button.tertiary, c.button.secondary, c.progress.spinner, c.badge.status
  * Look: A full-width table with a muted sticky header, a caret on the sorted column, right-aligned tabular numbers, a tinted row when ticked and an accent bar above it counting the chosen rows.
  * Tokens: --color-surface --color-surface-sunken --color-border --color-text --color-text-muted --color-accent --radius-md --space-2 --space-3 --text-sm
- * Use cases: an admin list; invoices; search results; a report; anything with more than three columns
- * Jobs to be done: sort by a column; pick some rows and act on them; read a long table without losing the row
- * Keywords: table, data table, sort, select rows, sticky header, zebra, density, empty, aria-sort
+ * Use cases: an admin list; invoices; search results; a report; anything with more than three columns; data table; report table; sales report; leaderboard; budget breakdown; price list; inventory list; expense report; bulk actions; task list; inbox management; order processing; admin table; file manager; user management; moderation queue
+ * Jobs to be done: sort by a column; pick some rows and act on them; read a long table without losing the row; sort data to find the highest values; compare figures across rows; see the total at a glance; review numbers in a report; handle many items at once; mark several tasks as done; delete items in bulk; undo a bulk change
+ * Keywords: table, data table, sort, select rows, sticky header, zebra, density, empty, aria-sort, data, numbers, checkbox, select, bulk actions, undo
  */
 /**
  * One table doing the four things tables have to do: sort, select, stay readable while it scrolls, and say something
  * sensible when it is empty.
  *
- * It all works. Press a column heading to sort, and aria-sort moves with it; tick rows and a bar appears saying how
+ * It all works. Press a column heading to sort, and aria-sort moves with it while a polite live line says "Sorted by
+ * <column>, ascending"; tick rows, or click anywhere on a row, and a bar appears saying how
  * many and what can be done to them; the select-all box goes indeterminate when only some are ticked. Numbers are
  * right-aligned and set in tabular figures, which is the one typographic rule a table cannot do without.
  *
@@ -21,8 +22,8 @@
  */
 /**
  * How to try it
- * - Press a column heading to sort; press it again to reverse. aria-sort moves with it.
- * - Tick rows: an actions bar appears and the header box goes indeterminate.
+ * - Press a column heading to sort; press it again to reverse. aria-sort moves with it, and a screen reader hears "Sorted by Date, ascending".
+ * - Tick rows, or click anywhere on a row (not on a button or link in it): an actions bar appears and the header box goes indeterminate.
  * - Switch Dense, Striped, Loading and "No rows" to see the table's other states, including an empty one that keeps its headings.
  *
  * Dependencies: React (useState), and the library's own inline icon set ("./icons"), which is a table of
@@ -30,7 +31,7 @@
  * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
  * built app exactly as it runs here.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 import { Badge, type BadgeTone } from "./badges-status";
@@ -49,6 +50,8 @@ export type TableColumn<R extends TableRow = TableRow> = {
   render?: (row: R) => ReactNode;
   /** Draws this column's cell in the totals row; no totals row unless some column has one. */
   total?: (rows: R[]) => ReactNode;
+  /** false: this column's heading is plain text, not a sort button. */
+  sortable?: boolean;
 };
 
 type TableProps<R extends TableRow> = {
@@ -57,8 +60,14 @@ type TableProps<R extends TableRow> = {
   /** The first column is the row header (a th), so a screen reader can say which row a cell belongs to. */
   columns: TableColumn<R>[];
   rows: R[];
+  /** Headings sort their column when pressed (true when left out); false for a fixed order. */
+  sortable?: boolean;
   /** A tick box on every row and a select-all in the header. */
   selectable?: boolean;
+  /** Called with the ids of the ticked rows whenever they change. */
+  onSelectionChange?: (ids: string[]) => void;
+  /** Buttons at the end of each row, such as Edit and Delete: add a final column with a hidden "Actions" heading. */
+  rowActions?: (row: R) => ReactNode;
   /** What to show above the table while rows are ticked: the chosen ids and a function that clears them. */
   bulk?: (ids: string[], clear: () => void) => ReactNode;
   defaultSort?: { col: string; up: boolean };
@@ -80,7 +89,10 @@ export function DataTable<R extends TableRow>({
   caption,
   columns,
   rows: data,
+  sortable = true,
   selectable,
+  onSelectionChange,
+  rowActions,
   bulk,
   defaultSort,
   dense,
@@ -94,6 +106,14 @@ export function DataTable<R extends TableRow>({
 }: TableProps<R>) {
   const [sort, setSort] = useState(defaultSort ?? { col: "", up: true });
   const [on, setOn] = useState<string[]>([]);
+  const [said, setSaid] = useState("");
+
+  function sortBy(c: TableColumn<R>) {
+    const next = { col: c.id, up: sort.col === c.id ? !sort.up : true };
+    setSort(next);
+    setSaid(`Sorted by ${c.label}, ${next.up ? "ascending" : "descending"}`);
+  }
+  const toggle = (id: string) => setOn((v) => (v.includes(id) ? v.filter((x) => x !== id) : [...v, id]));
 
   const shown = loading ? [] : data;
   const rows = sort.col
@@ -107,6 +127,10 @@ export function DataTable<R extends TableRow>({
   const chosen = on.filter((id) => rows.some((r) => r.id === id));
   const clear = () => setOn([]);
   const hasTotals = columns.some((c) => c.total);
+  const notify = useRef(onSelectionChange);
+  notify.current = onSelectionChange;
+  const key = chosen.join("|");
+  useEffect(() => notify.current?.(key ? key.split("|") : []), [key]);
 
   return (
     <div className={className} data-fl="p.data-table">
@@ -121,6 +145,10 @@ export function DataTable<R extends TableRow>({
           </Button>
         </div>
       ) : null}
+
+      <p className="fl-sr" role="status" aria-live="polite">
+        {said}
+      </p>
 
       <div className="fl-ctl-tbl-wrap">
         <table className={`fl-ctl-tbl${dense ? " is-dense" : ""}${striped ? " is-zebra" : ""}`} aria-busy={loading || undefined}>
@@ -141,9 +169,16 @@ export function DataTable<R extends TableRow>({
               ) : null}
               {columns.map((c) => {
                 const here = sort.col === c.id;
+                if (!sortable || c.sortable === false) {
+                  return (
+                    <th key={c.id} scope="col" className={c.num ? "is-num" : undefined}>
+                      {c.label}
+                    </th>
+                  );
+                }
                 return (
                   <th key={c.id} scope="col" className={c.num ? "is-num" : undefined} aria-sort={here ? (sort.up ? "ascending" : "descending") : "none"}>
-                    <button type="button" className="fl-ctl-tbl-sort" onClick={() => setSort((s) => ({ col: c.id, up: s.col === c.id ? !s.up : true }))}>
+                    <button type="button" className="fl-ctl-tbl-sort" onClick={() => sortBy(c)}>
                       {c.label}
                       <span className={`fl-ctl-tbl-caret${here ? " is-on" : ""}${here && !sort.up ? " is-down" : ""}`} aria-hidden="true">
                         <Icon name="chevron-down" />
@@ -152,17 +187,33 @@ export function DataTable<R extends TableRow>({
                   </th>
                 );
               })}
+              {rowActions ? (
+                <th scope="col" className="fl-ctl-tbl-acts">
+                  <span className="fl-sr">Actions</span>
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className={chosen.includes(r.id) ? "is-on" : undefined}>
+              <tr
+                key={r.id}
+                className={chosen.includes(r.id) ? "is-on" : undefined}
+                onClick={
+                  selectable
+                    ? (e) => {
+                        // A click on the row ticks it, unless it landed on a control inside the row.
+                        if (!(e.target as HTMLElement).closest("button, a, input, select, textarea, label")) toggle(r.id);
+                      }
+                    : undefined
+                }
+              >
                 {selectable ? (
                   <td className="fl-ctl-tbl-pick">
                     <Checkbox
                       size={16}
                       checked={chosen.includes(r.id)}
-                      onChange={() => setOn((v) => (v.includes(r.id) ? v.filter((x) => x !== r.id) : [...v, r.id]))}
+                      onChange={() => toggle(r.id)}
                       aria-label={`Choose ${String(r[columns[0].id] ?? r.id)}`}
                     />
                   </td>
@@ -179,6 +230,7 @@ export function DataTable<R extends TableRow>({
                     </td>
                   );
                 })}
+                {rowActions ? <td className="fl-ctl-tbl-acts">{rowActions(r)}</td> : null}
               </tr>
             ))}
           </tbody>
@@ -197,6 +249,7 @@ export function DataTable<R extends TableRow>({
                     </td>
                   )
                 )}
+                {rowActions ? <td className="fl-ctl-tbl-acts" /> : null}
               </tr>
             </tfoot>
           ) : null}
@@ -262,6 +315,7 @@ export default function TablesStates() {
   const [zebra, setZebra] = useState(true);
   const [empty, setEmpty] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [said, setSaid] = useState("");
 
   return (
     <section className="fl-section fl-section--specimen">
@@ -318,6 +372,35 @@ export default function TablesStates() {
       />
 
       <div className="fl-ctl-sizes">
+        <h3>Row actions, in a fixed order</h3>
+        <p className="fl-ctl-btn-what">
+          rowActions adds a last column of buttons for each row, with a hidden "Actions" heading; sortable turns the heading
+          buttons off for a table whose order is the point. Ticking rows reports the chosen ids.
+        </p>
+        <DataTable
+          caption="Shoots, with row actions"
+          columns={COLUMNS.slice(0, 3).concat(COLUMNS[4])}
+          rows={d.rows as Shoot[]}
+          sortable={false}
+          selectable
+          onSelectionChange={(ids) => setSaid(ids.length ? `${ids.length} shoot${ids.length === 1 ? "" : "s"} chosen` : "No shoots chosen")}
+          rowActions={(r) => (
+            <>
+              <Button variant="tertiary" size={32} icon="pencil" iconOnly onClick={() => setSaid(`Editing ${r.name}`)}>
+                {`Edit ${r.name}`}
+              </Button>
+              <Button variant="tertiary" size={32} icon="trash" iconOnly onClick={() => setSaid(`Delete ${r.name}: it would ask first`)}>
+                {`Delete ${r.name}`}
+              </Button>
+            </>
+          )}
+        />
+        <p className="fl-ctl-status" role="status" aria-live="polite">
+          {said || "Tick a row or press a row button."}
+        </p>
+      </div>
+
+      <div className="fl-ctl-sizes">
         <h3>The rules a table lives by</h3>
         <ul className="fl-ctl-tip-rules">
           <li>
@@ -327,6 +410,14 @@ export default function TablesStates() {
           <li>
             <strong>The sorted column says so.</strong>
             <span className="fl-ctl-matrix-what">aria-sort on the heading, not just an arrow. Press a heading above and watch it move.</span>
+          </li>
+          <li>
+            <strong>A sort is announced.</strong>
+            <span className="fl-ctl-matrix-what">A polite live line says "Sorted by Date, ascending" when a heading is pressed, so the change is heard as well as seen.</span>
+          </li>
+          <li>
+            <strong>The whole row is a target.</strong>
+            <span className="fl-ctl-matrix-what">In a selectable table, click anywhere on a row to tick it. A click on a button, link or box inside the row does its own job instead (try Edit in the second table).</span>
           </li>
           <li>
             <strong>Row headers are th, not td.</strong>

@@ -1,13 +1,17 @@
 /** @flowcode-library dropdowns-states · Dropdowns: select, combo box and the open menu (Forms)
  * Catalog ID: c.select (component)
- * Function: The native select (c.select; the combo box and open menus on the sheet are custom, not part of the export) with a reference sheet showing a select and a combo box in every state plus four open menus.
- * Use it as: import { Select } from "./dropdowns-states"; <Select options={["A", "B"]} variant?="outlined"|"filled"|"underlined" invalid? disabled? id? defaultValue? value? onChange?/>
+ * Function: The native select (c.select; the combo box and open menus on the sheet are custom, not part of the export) with a reference sheet showing a select and a combo box in every state, a select with a prompt and labeled options, and four open menus.
+ * Use it as: import { Select } from "./dropdowns-states"; <Select options={["A", "B"] or [{ value, label, disabled? }]} placeholder? variant?="outlined"|"filled"|"underlined" invalid? disabled? id? defaultValue? value? onChange?/>
  * Variants: c.select.outlined - the default field in a form: a bordered box on the surface color; c.select.filled - a quiet field on a tinted background with no visible border; c.select.underlined - a dense field in a toolbar or table: only a bottom line
  * Look: A native select styled like the text fields, with a chevron 8px from the right edge; accent focus ring, danger border when invalid, dimmed when disabled.
  * Tokens: --color-surface --color-surface-sunken --color-border --color-border-strong --color-accent --color-danger --color-text-muted --focus-ring --space-2
- * Use cases: country picker; status filter; assignee picker; sort order; settings choice
- * Jobs to be done: choose one from many; find an option by typing; see what is chosen now
- * Keywords: select, dropdown, combo box, menu, option, disabled
+ * Also: c.combobox (component)
+ *   Use it as: import { Combobox } from "./dropdowns-states"; <Combobox variant?="listbox"|"search" options={[{ value, label, detail?, avatar?: { name, src? }, disabled? }]} multiple? value?/defaultValue? (string, or string[] when multiple) onChange?(value) placeholder? emptyText? invalid? disabled? inline? id? label?/>
+ *   Variants: c.combobox.listbox - pick from a short or medium list of rich options (avatar and detail line per option): a button showing the choice that opens a styled list; arrows, Home/End, Enter, Escape and type-a-letter jump; c.combobox.search - pick from a long list by typing: a text field that narrows the list by label or detail as you type and says when nothing matches; focus stays in the field, arrows move the highlight
+ *   Look: A bordered field (a button for listbox, a text input for search) with a chevron at the right edge and a floating list under it; each option can have an avatar, a second muted detail line and a tick when chosen; the highlighted option has an accent tint, unavailable options are dimmed. With multiple the list stays open and toggles options; with inline the list is drawn open in the page.
+ * Use cases: country picker; status filter; assignee picker; sort order; settings choice; category select; searchable dropdown; form selects; timezone picker; settings options
+ * Jobs to be done: choose one from many; find an option by typing; see what is chosen now; pick an option from a long list; find my option by typing; choose a category for my item
+ * Keywords: select, dropdown, combo box, menu, option, disabled, listbox, combobox, searchable select, type-ahead, native select
  */
 /**
  * A select for a short list, a combo box when the list is long enough to need typing, and the open menu itself with a
@@ -31,13 +35,15 @@
  * the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built
  * app exactly as it runs here.
  */
-import { useEffect, useState, type SelectHTMLAttributes } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type SelectHTMLAttributes } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
+import { Avatar } from "./avatars-variants";
 
-// ── c.select: the native select. Every piece's dropdown fields are this; the combo box and open menus below are custom. ──
+// ── c.select: the native select. Every piece's dropdown fields are this; c.combobox below is the custom one. ──
 
 export type SelectVariant = "outlined" | "filled" | "underlined";
+export type SelectOption = { value: string; label: string; disabled?: boolean };
 
 // Written out in full (not built from the variant name) so a build finds every class the select needs.
 const VARIANT: Record<SelectVariant, string> = {
@@ -48,25 +54,359 @@ const VARIANT: Record<SelectVariant, string> = {
 
 type SelectOwn = {
   variant?: SelectVariant;
-  /** The choices, as plain strings. */
-  options: string[];
+  /** The choices: plain strings, or { value, label } when the stored value differs from the words shown. */
+  options: (string | SelectOption)[];
+  /** A first, unchosen prompt such as "Choose a room". Shown until something is picked; it cannot be picked again. */
+  placeholder?: string;
   /** Draw the error state; pair it with a message under the field. */
   invalid?: boolean;
   /** Goes on the select itself, e.g. is-focus to draw the focus ring. */
   className?: string;
 };
 
-export function Select({ variant = "outlined", options, invalid, className, ...rest }: SelectOwn & Omit<SelectHTMLAttributes<HTMLSelectElement>, keyof SelectOwn>) {
+export function Select({ variant = "outlined", options, placeholder, invalid, className, ...rest }: SelectOwn & Omit<SelectHTMLAttributes<HTMLSelectElement>, keyof SelectOwn>) {
   const cls = ["fl-input", "fl-ctl-field", VARIANT[variant], invalid ? "is-invalid" : "", className ?? ""].filter(Boolean).join(" ");
+  // A placeholder starts the field unchosen unless the caller sets a value.
+  const start = placeholder && rest.value === undefined && rest.defaultValue === undefined ? { defaultValue: "" } : {};
   return (
     <span className="fl-ctl-select" data-fl={`c.select.${variant}`}>
-      <select {...rest} className={cls} aria-invalid={invalid || undefined}>
-        {options.map((o) => (
-          <option key={o}>{o}</option>
-        ))}
+      <select {...start} {...rest} className={cls} aria-invalid={invalid || undefined}>
+        {placeholder ? (
+          <option value="" disabled>
+            {placeholder}
+          </option>
+        ) : null}
+        {options.map((o) => {
+          const opt = typeof o === "string" ? { value: o, label: o } : o;
+          return (
+            <option key={opt.value} value={opt.value} disabled={"disabled" in opt ? opt.disabled : undefined}>
+              {opt.label}
+            </option>
+          );
+        })}
       </select>
       <Icon name="chevron-down" />
     </span>
+  );
+}
+
+// ── c.combobox: a styled listbox (variant listbox) or a type-to-filter field (variant search). ──
+
+export type ComboboxVariant = "listbox" | "search";
+export type ComboOption = { value: string; label: string; detail?: string; avatar?: { name: string; src?: string }; disabled?: boolean };
+
+type ComboboxProps = {
+  /** listbox: a button that opens a styled list, with type-ahead. search: an input that narrows the list as you type. */
+  variant?: ComboboxVariant;
+  /** The choices; plain strings work when value and label are the same. */
+  options: (string | ComboOption)[];
+  /** Chosen value (a string, or string[] with multiple). Leave out to let the box keep its own. */
+  value?: string | string[];
+  defaultValue?: string | string[];
+  /** Called with the chosen value (string, or string[] with multiple; "" when nothing is chosen). */
+  onChange?: (value: string | string[]) => void;
+  /** Choose several: the list stays open and each option toggles. */
+  multiple?: boolean;
+  placeholder?: string;
+  /** Said when typing matches nothing (search). */
+  emptyText?: string;
+  invalid?: boolean;
+  disabled?: boolean;
+  /** Draw the list always open, in the page flow, instead of floating under the field. */
+  inline?: boolean;
+  /** Goes on the field, so a <label htmlFor> can name it. */
+  id?: string;
+  /** The list's accessible name. */
+  label?: string;
+  /** Goes on the field itself, e.g. is-focus to draw the focus ring. */
+  className?: string;
+};
+
+const asList = (v: string | string[] | undefined) => (v === undefined || v === "" ? [] : Array.isArray(v) ? v : [v]);
+
+function Chevron() {
+  return (
+    <svg className="fl-in-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+export function Combobox({ variant = "listbox", options, value, defaultValue, onChange, multiple, placeholder, emptyText = "Nothing matches that", invalid, disabled, inline, id, label, className }: ComboboxProps) {
+  const auto = useId();
+  const fid = id ?? `cb${auto.replace(/:/g, "")}`;
+  const search = variant === "search";
+  const opts: ComboOption[] = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
+  const [inner, setInner] = useState<string[]>(asList(defaultValue));
+  const sel = value !== undefined ? asList(value) : inner;
+  const one = multiple ? undefined : opts.find((o) => o.value === sel[0]);
+  const [open, setOpen] = useState(false);
+  const isOpen = Boolean(inline) || open;
+  const [query, setQuery] = useState(one?.label ?? "");
+  const [active, setActive] = useState(() => Math.max(0, opts.findIndex((o) => o.value === sel[0])));
+  const root = useRef<HTMLDivElement>(null);
+  const typed = useRef({ text: "", at: 0 });
+
+  // Search narrows by what is typed, unless the text is just the chosen option's own label.
+  const q = query.trim().toLowerCase();
+  const narrowed = search && q !== "" && !(one && q === one.label.toLowerCase());
+  const items = narrowed ? opts.filter((o) => o.label.toLowerCase().includes(q) || (o.detail ?? "").toLowerCase().includes(q)) : opts;
+  const optId = (i: number) => `${fid}-opt-${i}`;
+  const clamp = (n: number) => Math.max(0, Math.min(items.length - 1, n));
+  // The next enabled option from a position, in a direction; stays put at either end.
+  const step = (from: number, dir: 1 | -1) => {
+    for (let n = from + dir; n >= 0 && n < items.length; n += dir) if (!items[n].disabled) return n;
+    return clamp(from);
+  };
+
+  // Closed and single: the field shows the chosen label again.
+  useEffect(() => {
+    if (search && !multiple && !isOpen) setQuery(one?.label ?? "");
+  }, [search, multiple, isOpen, one?.label]);
+  // New matches: the highlight goes to the first enabled one.
+  useEffect(() => {
+    if (search) setActive(Math.max(0, items.findIndex((o) => !o.disabled)));
+  }, [query, search]); // eslint-disable-line react-hooks/exhaustive-deps
+  // A click outside a floating list closes it.
+  useEffect(() => {
+    if (!open || inline) return;
+    const away = (e: MouseEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", away);
+    return () => document.removeEventListener("mousedown", away);
+  }, [open, inline]);
+  // Keep the highlighted option in view in a long list.
+  useEffect(() => {
+    if (isOpen) document.getElementById(optId(active))?.scrollIntoView?.({ block: "nearest" });
+  }, [isOpen, active]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function commit(next: string[]) {
+    if (value === undefined) setInner(next);
+    onChange?.(multiple ? next : next[0] ?? "");
+  }
+  function openAt(i: number) {
+    setActive(clamp(i));
+    setOpen(true);
+  }
+  function choose(i: number) {
+    const o = items[i];
+    if (!o || o.disabled) return;
+    if (multiple) {
+      commit(sel.includes(o.value) ? sel.filter((v) => v !== o.value) : [...sel, o.value]);
+      return;
+    }
+    commit([o.value]);
+    setQuery(o.label);
+    setOpen(false);
+  }
+
+  function onKey(e: ReactKeyboardEvent<HTMLElement>) {
+    if (disabled) return;
+    const cur = Math.max(0, items.findIndex((o) => sel.includes(o.value)));
+    switch (e.key) {
+      case "ArrowDown":
+      case "ArrowUp":
+        e.preventDefault();
+        if (!isOpen) openAt(cur);
+        else setActive(step(active, e.key === "ArrowDown" ? 1 : -1));
+        return;
+      case "Home":
+      case "End":
+        // In the search field these keep moving the caret.
+        if (isOpen && !search) {
+          e.preventDefault();
+          setActive(e.key === "Home" ? step(-1, 1) : step(items.length, -1));
+        }
+        return;
+      case "Enter":
+      case " ":
+        if (search && (e.key === " " || !isOpen)) return;
+        e.preventDefault();
+        if (isOpen) choose(active);
+        else openAt(cur);
+        return;
+      case "Escape":
+        if (isOpen && !inline) {
+          e.preventDefault();
+          setOpen(false);
+        } else if (search && query) {
+          e.preventDefault();
+          setQuery("");
+          if (!inline && !multiple) commit([]);
+        }
+        return;
+      case "Tab":
+        if (open && !inline) {
+          if (!multiple && !search) choose(active);
+          setOpen(false);
+        }
+        return;
+    }
+    // Type-ahead on the list: letters typed within half a second build a search string.
+    if (!search && e.key.length === 1 && /\S/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+      const now = Date.now();
+      typed.current.text = now - typed.current.at > 500 ? e.key.toLowerCase() : typed.current.text + e.key.toLowerCase();
+      typed.current.at = now;
+      const from = isOpen ? active : cur;
+      const order = [...items.slice(from + 1), ...items.slice(0, from + 1)];
+      const hit = order.find((o) => !o.disabled && o.label.toLowerCase().startsWith(typed.current.text));
+      if (hit) {
+        if (isOpen) setActive(items.indexOf(hit));
+        else if (!multiple) commit([hit.value]);
+      }
+    }
+  }
+
+  const content = (o: ComboOption, plain: boolean) =>
+    plain && !o.avatar && !o.detail ? (
+      o.label
+    ) : (
+      <>
+        {o.avatar ? <Avatar name={o.avatar.name} src={o.avatar.src} size={24} decorative /> : null}
+        <span className="fl-in-option__text">
+          <span>{o.label}</span>
+          {o.detail ? <span className="fl-meta">{o.detail}</span> : null}
+        </span>
+      </>
+    );
+
+  const common = {
+    id: fid,
+    role: "combobox" as const,
+    "aria-expanded": isOpen,
+    "aria-controls": isOpen ? `${fid}-list` : undefined,
+    "aria-activedescendant": isOpen && items[active] ? optId(active) : undefined,
+    "aria-invalid": invalid || undefined,
+    disabled,
+    onKeyDown: onKey,
+  };
+  const extra = className ? ` ${className}` : "";
+
+  let field = null;
+  if (search) {
+    field = (
+      <span className="fl-ctl-combo">
+        <input
+          {...common}
+          type="text"
+          autoComplete="off"
+          aria-autocomplete="list"
+          className={`fl-input fl-ctl-field fl-ctl-field--outlined${invalid ? " is-invalid" : ""}${extra}`}
+          placeholder={placeholder}
+          value={query}
+          onFocus={() => !inline && !disabled && setOpen(true)}
+          onClick={() => !inline && !disabled && setOpen(true)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (!inline) setOpen(true);
+          }}
+        />
+        <Icon name={inline ? "search" : "chevron-down"} />
+      </span>
+    );
+  } else if (!inline) {
+    const shown = multiple ? sel.length > 0 : Boolean(one);
+    field = (
+      <>
+        <button
+          {...common}
+          type="button"
+          aria-haspopup="listbox"
+          className={`fl-in-trigger${shown ? "" : " fl-in-trigger--empty"}${extra}`}
+          onClick={() => (open ? setOpen(false) : openAt(Math.max(0, items.findIndex((o) => sel.includes(o.value)))))}
+        >
+          <span className="fl-in-trigger__value">
+            {multiple ? (
+              sel.length ? `${sel.length} chosen` : placeholder ?? "Choose"
+            ) : one ? (
+              <>
+                {one.avatar ? <Avatar name={one.avatar.name} src={one.avatar.src} size={24} decorative /> : null}
+                {one.label}
+              </>
+            ) : (
+              placeholder ?? "Choose"
+            )}
+          </span>
+        </button>
+        <Chevron />
+      </>
+    );
+  }
+
+  const list = isOpen ? (
+    <ul
+      id={`${fid}-list`}
+      role="listbox"
+      aria-label={label ?? placeholder ?? "Options"}
+      aria-multiselectable={multiple || undefined}
+      className={inline ? "fl-ctl-menu" : "fl-in-listbox"}
+      {...(inline && !search ? { tabIndex: disabled ? -1 : 0, "aria-activedescendant": items[active] ? optId(active) : undefined, onKeyDown: onKey } : {})}
+    >
+      {items.length === 0 ? (
+        inline ? (
+          <li aria-disabled className="is-disabled">
+            <span className="fl-ctl-menu-tick" />
+            {emptyText}
+          </li>
+        ) : (
+          <li className="fl-in-noresult" role="option" aria-disabled="true" aria-selected={false}>
+            {emptyText}
+          </li>
+        )
+      ) : (
+        items.map((o, i) => {
+          const on = sel.includes(o.value);
+          const props = {
+            id: optId(i),
+            role: "option" as const,
+            "aria-selected": on,
+            "aria-disabled": o.disabled || undefined,
+            onMouseEnter: () => !o.disabled && setActive(i),
+            onClick: () => choose(i),
+          };
+          return inline ? (
+            <li key={o.value} {...props} className={`${i === active ? "is-hover" : ""}${o.disabled ? " is-disabled" : ""}`.trim() || undefined}>
+              {multiple ? (
+                <input type="checkbox" className="fl-ctl-check fl-ctl-check--16" tabIndex={-1} aria-hidden checked={on} readOnly style={{ pointerEvents: "none" }} />
+              ) : (
+                <span className="fl-ctl-menu-tick">{on ? <Icon name="check" /> : null}</span>
+              )}
+              {content(o, true)}
+            </li>
+          ) : (
+            <li key={o.value} {...props} className={`fl-in-option${i === active ? " fl-in-option--active" : ""}`} onMouseDown={(e) => e.preventDefault()}>
+              {content(o, false)}
+              {on ? (
+                <span className="fl-in-option__check" aria-hidden="true">
+                  <Icon name="check" />
+                </span>
+              ) : null}
+            </li>
+          );
+        })
+      )}
+    </ul>
+  ) : null;
+
+  return (
+    <div ref={root} className={inline ? "fl-ctl-combo-open" : "fl-in-select"} data-fl={`c.combobox.${variant}`}>
+      {field}
+      {list}
+      {inline && multiple ? (
+        <div className="fl-ctl-menu-foot">
+          <span className="fl-ctl-matrix-what">
+            {sel.length} of {opts.length} chosen
+          </span>
+          <Button variant="tertiary" size={32} disabled={!sel.length || disabled} onClick={() => commit([])}>
+            Clear
+          </Button>
+        </div>
+      ) : null}
+      <p className="fl-sr" aria-live="polite">
+        {isOpen ? (items.length ? `${items.length} options available` : emptyText) : ""}
+      </p>
+    </div>
   );
 }
 
@@ -92,6 +432,13 @@ const SAMPLE = {
     { id: "m3", label: "Shot", on: false },
     { id: "m4", label: "Delivered", on: false },
   ],
+  people: [
+    { value: "ana", label: "Ana Ferreira", detail: "Wheel and glazing", avatar: { name: "Ana Ferreira" } },
+    { value: "ben", label: "Ben Okafor", detail: "Hand building", avatar: { name: "Ben Okafor" } },
+    { value: "cleo", label: "Cleo Marsh", detail: "Beginners", avatar: { name: "Cleo Marsh" } },
+    { value: "dev", label: "Dev Patel", detail: "Raku firing (on leave)", avatar: { name: "Dev Patel" }, disabled: true },
+    { value: "erin", label: "Erin Walsh", detail: "Sculpture", avatar: { name: "Erin Walsh" } },
+  ],
   actions: [
     { id: "a1", label: "Rename", icon: "pencil", keys: "F2" },
     { id: "a2", label: "Duplicate", icon: "plus", keys: "" },
@@ -103,86 +450,21 @@ const SAMPLE = {
 
 /** Choose one: a listbox with a roving active option and a tick on the chosen one. */
 function ChooseOne({ say }: { say: (s: string) => void }) {
-  const opts = SAMPLE.options;
-  const [chosen, setChosen] = useState("Booked");
-  const [active, setActive] = useState(opts.indexOf("Booked"));
-  const pick = (n: number) => {
-    setChosen(opts[n]);
-    say(`Status: ${opts[n]}`);
-  };
-  return (
-    <ul
-      className="fl-ctl-menu"
-      role="listbox"
-      aria-label="Status"
-      tabIndex={0}
-      aria-activedescendant={`dd-one-${active}`}
-      onKeyDown={(e) => {
-        if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Home" || e.key === "End") {
-          e.preventDefault();
-          setActive((n) => (e.key === "ArrowDown" ? Math.min(opts.length - 1, n + 1) : e.key === "ArrowUp" ? Math.max(0, n - 1) : e.key === "Home" ? 0 : opts.length - 1));
-        } else if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          pick(active);
-        }
-      }}
-    >
-      {opts.map((o, n) => (
-        <li
-          key={o}
-          id={`dd-one-${n}`}
-          role="option"
-          aria-selected={o === chosen}
-          className={n === active ? "is-hover" : undefined}
-          onMouseEnter={() => setActive(n)}
-          onClick={() => pick(n)}
-        >
-          <span className="fl-ctl-menu-tick">{o === chosen ? <Icon name="check" /> : null}</span>
-          {o}
-        </li>
-      ))}
-    </ul>
-  );
+  return <Combobox inline label="Status" options={SAMPLE.options} defaultValue="Booked" onChange={(v) => say(`Status: ${v}`)} />;
 }
 
-/** Choose several: checkboxes, a count, and a Clear that empties them. */
+/** Choose several: a tick-box per option, a count, and a Clear that empties them. */
 function ChooseSeveral({ say }: { say: (s: string) => void }) {
   const all = SAMPLE.multi;
-  const [on, setOn] = useState<string[]>(all.filter((m) => m.on).map((m) => m.id));
-  const toggle = (id: string, label: string) => {
-    const next = on.includes(id) ? on.filter((x) => x !== id) : [...on, id];
-    setOn(next);
-    say(`${label} ${on.includes(id) ? "off" : "on"}, ${next.length} of ${all.length} chosen`);
-  };
   return (
-    <div className="fl-ctl-menu" role="group" aria-label="Statuses">
-      <ul>
-        {all.map((m) => (
-          <li key={m.id}>
-            <label className="fl-ctl-menu-check">
-              <input type="checkbox" className="fl-ctl-check fl-ctl-check--16" checked={on.includes(m.id)} onChange={() => toggle(m.id, m.label)} />
-              {m.label}
-            </label>
-          </li>
-        ))}
-      </ul>
-      <div className="fl-ctl-menu-foot">
-        <span className="fl-ctl-matrix-what">
-          {on.length} of {all.length} chosen
-        </span>
-        <Button
-          variant="tertiary"
-          size={32}
-          disabled={!on.length}
-          onClick={() => {
-            setOn([]);
-            say("Statuses cleared");
-          }}
-        >
-          Clear
-        </Button>
-      </div>
-    </div>
+    <Combobox
+      inline
+      multiple
+      label="Statuses"
+      options={all.map((m) => ({ value: m.id, label: m.label }))}
+      defaultValue={all.filter((m) => m.on).map((m) => m.id)}
+      onChange={(v) => say(`${(v as string[]).length} of ${all.length} chosen`)}
+    />
   );
 }
 
@@ -300,7 +582,6 @@ export default function DropdownsStates() {
                 {d.kinds.map((k) => {
                   const id = `dd-${k.id}-${s.id}`;
                   const invalid = s.id === "invalid";
-                  const cls = `fl-input fl-ctl-field fl-ctl-field--outlined${s.id === "focus" ? " is-focus" : ""}${invalid ? " is-invalid" : ""}`;
                   return (
                     <td key={k.id} data-state={k.label}>
                       <label className="fl-sr" htmlFor={id}>
@@ -317,7 +598,18 @@ export default function DropdownsStates() {
                           onChange={(e) => setSaid(`Status: ${e.target.value}`)}
                         />
                       ) : (
-                        <Combo id={id} cls={cls} state={s.id} invalid={invalid} say={setSaid} />
+                        <Combobox
+                          variant="search"
+                          id={id}
+                          className={s.id === "focus" ? "is-focus" : undefined}
+                          options={d.options}
+                          placeholder="Search statuses"
+                          disabled={s.id === "disabled"}
+                          defaultValue={s.id === "chosen" ? "Booked" : undefined}
+                          invalid={invalid}
+                          label="Statuses found"
+                          onChange={(v) => setSaid(`Status: ${v || "none"}`)}
+                        />
                       )}
                       {invalid ? <span className="fl-ctl-field-msg">Choose a status to carry on</span> : null}
                     </td>
@@ -327,6 +619,52 @@ export default function DropdownsStates() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>With a prompt, and options that differ from the words</h3>
+        <p className="fl-ctl-btn-what">
+          A placeholder is the first line, shown until something is picked and not pickable afterward. Options can carry a
+          value apart from their label, and one can be unavailable.
+        </p>
+        <div className="fl-ctl-live-form">
+          <p>
+            <label htmlFor="dd-room">Room</label>
+            <Select
+              id="dd-room"
+              placeholder="Choose a room"
+              options={[
+                { value: "front", label: "Front studio" },
+                { value: "kiln", label: "Kiln room" },
+                { value: "shed", label: "Garden shed" },
+                { value: "loft", label: "Upstairs loft (full)", disabled: true },
+              ]}
+              onChange={(e) => setSaid(`Room: ${e.target.value}`)}
+            />
+          </p>
+        </div>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Combobox with avatars and detail lines</h3>
+        <p className="fl-ctl-btn-what">
+          Each option can carry an avatar and a second line. The listbox takes type-ahead (press a letter), the search field
+          narrows by name or detail, and an unavailable option is skipped by the arrow keys.
+        </p>
+        <div className="fl-ctl-live-form">
+          <p>
+            <label htmlFor="dd-teacher">Teacher (listbox)</label>
+            <Combobox id="dd-teacher" placeholder="Choose a teacher" label="Teachers" options={d.people} onChange={(v) => setSaid(`Teacher: ${v}`)} />
+          </p>
+          <p>
+            <label htmlFor="dd-teacher-search">Teacher (search)</label>
+            <Combobox id="dd-teacher-search" variant="search" placeholder="Search teachers" label="Teachers found" options={d.people} onChange={(v) => setSaid(`Teacher: ${v || "none"}`)} />
+          </p>
+          <p>
+            <label htmlFor="dd-teacher-multi">Teachers (several)</label>
+            <Combobox id="dd-teacher-multi" multiple placeholder="Choose teachers" label="Teachers" options={d.people} onChange={(v) => setSaid(`${(v as string[]).length} teachers chosen`)} />
+          </p>
+        </div>
       </div>
 
       <div className="fl-ctl-sizes">
@@ -351,7 +689,12 @@ export default function DropdownsStates() {
           <div>
             <p className="fl-ctl-matrix-kind">Combo box, open</p>
             <p className="fl-ctl-matrix-what">Type and the list narrows. An empty result says so rather than showing nothing.</p>
-            <ComboOpen say={setSaid} />
+            <div>
+              <label className="fl-sr" htmlFor="dd-combo-open">
+                Search statuses
+              </label>
+              <Combobox inline variant="search" id="dd-combo-open" label="Statuses found" className="fl-ctl-field--32" placeholder="Type to narrow" options={d.options} onChange={(v) => setSaid(`Status: ${v}`)} />
+            </div>
           </div>
 
           <div>
@@ -365,84 +708,5 @@ export default function DropdownsStates() {
         </p>
       </div>
     </section>
-  );
-}
-
-/** The combo box as it sits in a form: typeable, and it says whether it has narrowed anything. */
-function Combo({ id, cls, state, invalid, say }: { id: string; cls: string; state: string; invalid: boolean; say: (s: string) => void }) {
-  const [text, setText] = useState(state === "chosen" ? "Booked" : "");
-  const hits = SAMPLE.options.filter((o) => o.toLowerCase().includes(text.trim().toLowerCase()));
-  return (
-    <span className="fl-ctl-combo">
-      <input
-        id={id}
-        className={cls}
-        role="combobox"
-        aria-expanded={Boolean(text) && hits.length > 0}
-        aria-autocomplete="list"
-        placeholder="Search statuses"
-        value={text}
-        disabled={state === "disabled"}
-        aria-invalid={invalid || undefined}
-        onChange={(e) => {
-          setText(e.target.value);
-          const found = SAMPLE.options.filter((o) => o.toLowerCase().includes(e.target.value.trim().toLowerCase()));
-          say(e.target.value ? `${found.length} status${found.length === 1 ? "" : "es"} match "${e.target.value}"` : "Nothing typed");
-        }}
-      />
-      <Icon name="chevron-down" />
-    </span>
-  );
-}
-
-/** The same combo box with its list open, narrowing as you type. Inline, so it can be read here. */
-function ComboOpen({ say }: { say: (s: string) => void }) {
-  const [text, setText] = useState("");
-  const [chosen, setChosen] = useState("");
-  const hits = SAMPLE.options.filter((o) => o.toLowerCase().includes(text.trim().toLowerCase()));
-  return (
-    <div className="fl-ctl-combo-open">
-      <label className="fl-sr" htmlFor="dd-combo-open">
-        Search statuses
-      </label>
-      <span className="fl-ctl-combo">
-        <input
-          id="dd-combo-open"
-          className="fl-input fl-ctl-field fl-ctl-field--outlined fl-ctl-field--32"
-          role="combobox"
-          aria-expanded
-          aria-controls="dd-combo-open-list"
-          aria-autocomplete="list"
-          placeholder="Type to narrow"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <Icon name="search" />
-      </span>
-      <ul className="fl-ctl-menu" id="dd-combo-open-list" role="listbox" aria-label="Statuses found">
-        {hits.length ? (
-          hits.map((o) => (
-            <li
-              key={o}
-              role="option"
-              aria-selected={o === chosen}
-              onClick={() => {
-                setChosen(o);
-                setText(o);
-                say(`Status: ${o}`);
-              }}
-            >
-              <span className="fl-ctl-menu-tick">{o === chosen ? <Icon name="check" /> : null}</span>
-              {o}
-            </li>
-          ))
-        ) : (
-          <li aria-disabled className="is-disabled">
-            <span className="fl-ctl-menu-tick" />
-            Nothing matches that
-          </li>
-        )}
-      </ul>
-    </div>
   );
 }

@@ -170,6 +170,12 @@ th[aria-sort="descending"] .fl-tbl-sort svg { transform: rotate(180deg); }
   .fl-tbl-bulk, .fl-tbl-toast { animation: none; }
 }
 
+/* A table with a per-row menu: the menu opens past the table's edge, so the frame must not clip it (phones scroll again). */
+.fl-tbl-resource .fl-ctl-tbl-wrap { overflow: visible; }
+.fl-tbl-resource-foot { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; justify-content: space-between; }
+.fl-tbl-resource-foot .fl-ctl-paging { margin: 0; }
+@media (max-width: 600px) { .fl-tbl-resource .fl-ctl-tbl-wrap { overflow-x: auto; } .fl-tbl-resource-foot { justify-content: center; } }
+
 /* ── Phones ── */
 @media (max-width: 600px) {
   .fl-tbl-table caption { padding-inline: var(--space-4); }

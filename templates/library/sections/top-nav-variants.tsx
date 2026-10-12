@@ -1,8 +1,8 @@
 /** @flowcode-library top-nav-variants · Top nav: app bar, marketing header and the phone menu (Navigation)
  * Catalog ID: p.top-nav (pattern)
- * Function: The top navigation bar (p.top-nav) in three shapes, marketing header, app bar and phone menu, with its folding menu, search and account popover.
- * Use it as: import { TopNav } from "./top-nav-variants"; <TopNav variant?="marketing"|"app"|"phone" brand="Name" links={[{ label, icon? }]} current?="Label" actions?={[{ label, variant?, onClick? }]} search?="Placeholder" account?={{ initials, items }} onSelect?={(label) => ...} />
- * Variants: p.top-nav.marketing - a public site header: the brand, a few links, then sign-in and one main action; the links fold behind a menu button when the bar runs out of room; p.top-nav.app - a signed-in app bar: the brand, icon links for the sections, a search field and an avatar that opens the account menu; p.top-nav.phone - a phone header: the brand and one menu button; links and the main action sit in a sheet below when open
+ * Function: The top navigation bar (p.top-nav) in four shapes, marketing header, centered header, app bar and phone menu, with its folding menu, search and account popover; mark={false} gives a plain wordmark.
+ * Use it as: import { TopNav } from "./top-nav-variants"; <TopNav variant?="marketing"|"centered"|"app"|"phone" brand="Name" mark?={false} links={[{ label, icon?, href? }]} current?="Label" actions?={[{ label, variant?, href?, onClick? }]} search?="Placeholder" account?={{ initials, items }} onSelect?={(label) => ...} />
+ * Variants: p.top-nav.marketing - a public site header: the brand, a few links, then sign-in and one main action; the links fold behind a menu button when the bar runs out of room; p.top-nav.centered - an editorial or portfolio header: the brand at the left, the links centered, one quiet secondary action at the right; p.top-nav.app - a signed-in app bar: the brand, icon links for the sections, a search field and an avatar that opens the account menu; p.top-nav.phone - a phone header: the brand and one menu button; links and the main action sit in a sheet below when open
  * Built from: c.button.tertiary, c.button.primary
  * Look: A full-width bar with the brand mark at the left, links beside it and actions or an account avatar at the right; below its own width it folds the links behind one menu button; a skip link appears on focus.
  * Tokens: --color-accent --color-border --color-on-accent --color-surface --color-surface-sunken --color-text --duration-fast --easing --focus-ring --radius-lg --radius-md --shadow-lg --space-1 --space-2 --space-3 --space-4 --space-5 --space-6 --text-sm
@@ -40,13 +40,17 @@ import { Button, type ButtonVariant } from "./buttons-variants";
 
 // ── p.top-nav: the bar across the top. Built from c.button; the menu, fold and account popover live inside it. ──
 
-export type TopNavVariant = "marketing" | "app" | "phone";
-export type TopNavLink = { label: string; icon?: string };
-export type TopNavAction = { label: string; variant?: ButtonVariant; onClick?: () => void };
+export type TopNavVariant = "marketing" | "centered" | "app" | "phone";
+/** A link: with an href the browser follows it; without one the bar just marks it current. */
+export type TopNavLink = { label: string; icon?: string; href?: string };
+/** An action: with an href it is a link styled as a button; without one it is a button. */
+export type TopNavAction = { label: string; variant?: ButtonVariant; href?: string; onClick?: () => void };
 export type TopNavProps = {
-  /** marketing: links and actions; app: links, search and account menu; phone: everything folded behind one button. */
+  /** marketing: links and actions; centered: the links in the middle; app: links, search and account menu; phone: everything folded behind one button. */
   variant?: TopNavVariant;
   brand: string;
+  /** The small brand mark before the name; on unless set to false (a plain wordmark). */
+  mark?: boolean;
   links: TopNavLink[];
   /** Label of the current link; marked with aria-current. */
   current?: string;
@@ -61,7 +65,7 @@ export type TopNavProps = {
   className?: string;
 };
 
-export function TopNav({ variant = "marketing", brand, links, current, actions = [], search, account, onSelect, className }: TopNavProps) {
+export function TopNav({ variant = "marketing", brand, mark = true, links, current, actions = [], search, account, onSelect, className }: TopNavProps) {
   const uid = useId();
   const linksId = `${uid}-links`;
   const [here, setHere] = useState(current);
@@ -88,14 +92,16 @@ export function TopNav({ variant = "marketing", brand, links, current, actions =
 
   const brandEl = (
     <a className="fl-ctl-nav-brand" href="#top">
-      <span className="fl-ctl-nav-mark" aria-hidden="true">
-        <Icon name="bolt" />
-      </span>
+      {mark ? (
+        <span className="fl-ctl-nav-mark" aria-hidden="true">
+          <Icon name="bolt" />
+        </span>
+      ) : null}
       {brand}
     </a>
   );
   const go = (l: TopNavLink) => (e: { preventDefault: () => void }) => {
-    e.preventDefault();
+    if (!l.href) e.preventDefault();
     setHere(l.label);
     setFolded(false);
     say(l.label);
@@ -116,14 +122,14 @@ export function TopNav({ variant = "marketing", brand, links, current, actions =
           <ul>
             {links.map((l) => (
               <li key={l.label}>
-                <a href="#top" aria-current={l.label === here ? "page" : undefined} onClick={go(l)}>
+                <a href={l.href ?? "#top"} aria-current={l.label === here ? "page" : undefined} onClick={go(l)}>
                   {l.label}
                 </a>
               </li>
             ))}
           </ul>
           {main ? (
-            <Button size={44} variant={main.variant ?? "primary"} onClick={() => (main.onClick?.(), say(main.label))}>
+            <Button size={44} variant={main.variant ?? "primary"} {...(main.href ? { href: main.href } : {})} onClick={() => (main.onClick?.(), say(main.label))}>
               {main.label}
             </Button>
           ) : null}
@@ -142,11 +148,12 @@ export function TopNav({ variant = "marketing", brand, links, current, actions =
           </a>
         )}
         {brandEl}
+        {variant === "centered" ? <span className="fl-ctl-nav-spacer" /> : null}
         <nav aria-label={isApp ? "Sections" : "Site"} className="fl-ctl-nav-links" id={linksId}>
           <ul>
             {links.map((l) => (
               <li key={l.label}>
-                <a href="#top" aria-current={l.label === here ? "page" : undefined} className={l.label === here ? "is-on" : undefined} onClick={go(l)}>
+                <a href={l.href ?? "#top"} aria-current={l.label === here ? "page" : undefined} className={l.label === here ? "is-on" : undefined} onClick={go(l)}>
                   {l.icon ? <Icon name={l.icon} /> : null}
                   {l.label}
                 </a>
@@ -197,6 +204,7 @@ export function TopNav({ variant = "marketing", brand, links, current, actions =
                 key={a.label}
                 size={40}
                 variant={a.variant ?? (n === actions.length - 1 ? "primary" : "tertiary")}
+                {...(a.href ? { href: a.href } : {})}
                 onClick={() => (setFolded(false), a.onClick?.(), say(a.label))}
               >
                 {a.label}
@@ -249,6 +257,19 @@ export default function TopNavVariants() {
             current="Work"
             actions={[{ label: "Sign in", variant: "tertiary" }, { label: "Start a project" }]}
             onSelect={(l) => setSaid(l === "Sign in" || l === "Start a project" ? l : `Went to ${l}`)}
+          />
+        </li>
+
+        <li>
+          <p className="fl-ctl-matrix-kind">Centered header</p>
+          <p className="fl-ctl-matrix-what">For a portfolio or studio: links in the middle and one quiet action. Here the brand is a plain wordmark (mark off).</p>
+          <TopNav
+            variant="centered"
+            brand="Atelier North"
+            mark={false}
+            links={[{ label: "Work" }, { label: "Studio" }, { label: "Journal" }]}
+            actions={[{ label: "Get in touch", variant: "secondary" }]}
+            onSelect={(l) => setSaid(l === "Get in touch" ? l : `Went to ${l}`)}
           />
         </li>
 

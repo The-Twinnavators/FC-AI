@@ -1,14 +1,20 @@
 /** @flowcode-library navbar-simple · Simple navigation (Navigation)
+ * Catalog ID: p.top-nav.marketing (pattern)
+ * Function: A ready-to-place marketing header (p.top-nav.marketing) for a public site.
+ * Use it as: A ready-to-place p.top-nav.marketing: copy navbar-simple.tsx and replace SAMPLE (FlowCode brings the pattern file with it).
+ * Built from: p.top-nav.marketing
+ * Look: A full-width header with a plain wordmark at the left, a few links, then a quiet Sign in and one primary action; the links fold behind a menu button when narrow.
  * Use cases: site header; marketing navigation; landing page header; product site menu; top navigation; mobile menu; saas homepage header
  * Jobs to be done: find my way around the site; get to the page i need; start a free trial from anywhere; open the menu on my phone
  * Keywords: header, navbar, menu, navigation
  */
 /**
- * Navigation: simple. Brand on the left, page links, one main action on the right. On phones the links fold into a
- * menu button. Make it the app's own: replace SAMPLE, point each link at a real screen, keep one primary action.
+ * Navigation: simple. This is p.top-nav.marketing (plain wordmark, mark off) with this piece's sample content; the
+ * implementation lives in the pattern, in ./top-nav-variants. Brand on the left, page links, sign-in and one main
+ * action on the right; on phones the links fold into a menu button. Make it the app's own: replace SAMPLE, point each
+ * link at a real screen, keep one primary action.
  */
-import { useState } from "react";
-import { Icon } from "./icons";
+import { TopNav } from "./top-nav-variants";
 
 // flowcode:sample
 const SAMPLE = {
@@ -19,49 +25,9 @@ const SAMPLE = {
     { label: "Stories", href: "#stories" },
     { label: "Help", href: "#help" },
   ],
-  signIn: { label: "Sign in", href: "#signin" },
-  action: { label: "Start free", href: "#start" },
+  actions: [{ label: "Sign in", variant: "tertiary" as const, href: "#signin" }, { label: "Start free", href: "#start" }],
 };
 
 export default function NavbarSimple() {
-  const d = SAMPLE;
-  const [open, setOpen] = useState(false);
-  return (
-    <header className="fl-nav">
-      <nav className="fl-nav__row" aria-label="Main">
-        <a className="fl-nav__brand" href="#top">
-          {d.brand}
-        </a>
-        <ul className="fl-nav__links">
-          {d.links.map((l) => (
-            <li key={l.href}>
-              <a href={l.href}>{l.label}</a>
-            </li>
-          ))}
-        </ul>
-        <div className="fl-nav__end">
-          <a className="fl-link" href={d.signIn.href}>
-            {d.signIn.label}
-          </a>
-          <a className="fl-btn fl-btn--primary" href={d.action.href}>
-            {d.action.label}
-          </a>
-          <button type="button" className="fl-btn fl-btn--secondary fl-nav__menu" aria-expanded={open} aria-label="Menu" onClick={() => setOpen((o) => !o)}>
-            <Icon name="menu" />
-          </button>
-        </div>
-      </nav>
-      {open ? (
-        <ul className="fl-nav__links fl-nav__links--open" style={{ display: "grid", padding: "var(--space-4) var(--space-5)", gap: "var(--space-3)" }}>
-          {d.links.map((l) => (
-            <li key={l.href}>
-              <a href={l.href} onClick={() => setOpen(false)}>
-                {l.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </header>
-  );
+  return <TopNav variant="marketing" mark={false} {...SAMPLE} />;
 }

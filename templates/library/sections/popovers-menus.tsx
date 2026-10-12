@@ -1,16 +1,16 @@
 /** @flowcode-library popovers-menus · Popovers: a panel on a button, and how it differs from a tooltip (Dialogs and drawers)
  * Catalog ID: c.menu (component)
- * Function: The action menu (c.menu) and the panel on a button (c.popover); the reference sheet shows a filter form, a share panel, a card on a name and an arrow-key action menu.
- * Use it as: import { Menu } from "./popovers-menus"; <Menu label icon? items={[{ id, label, icon?, keys?, danger?, disabled? }]} onSelect={(id) => ...} />
+ * Function: The action menu (c.menu) and the panel on a button (c.popover); the reference sheet shows a filter form, a share panel, a card on a name, an arrow-key action menu and the same menu as an icon-only row button with type-ahead.
+ * Use it as: import { Menu } from "./popovers-menus"; <Menu label icon? iconOnly? align?="start"|"end" items={[{ id, label, icon?, keys?, danger?, disabled? }]} onSelect={(id) => ...} />  // iconOnly: a quiet three-dot button for a row; label then names it for screen readers
  * Look: A secondary button that opens a raised list of one-press actions with icons and shortcut hints; arrow keys move, Enter chooses, Escape closes and returns focus.
  * Tokens: --color-surface --color-surface-sunken --color-border --color-danger --color-text-muted --radius-sm --radius-md --shadow-md --space-2 --space-3
  * Also: c.popover (component)
  *   Use it as: import { Popover } from "./popovers-menus"; <Popover variant?="button"|"link" label icon? count? chevron? panelLabel wide? onDismiss?>{(close) => body}</Popover>
  *   Variants: c.popover.button - a filter, share or date panel: a secondary button (optional icon, count, arrow) that opens a small panel under it; c.popover.link - a card about a name in running text: an underlined accent word that opens a panel under it
  *   Look: A small raised panel anchored under the button or name that opened it, holding controls you can press; closes on Escape or a press outside and gives focus back.
- * Use cases: a filter panel; a date picker; a share panel; a profile card on a name; an action menu
- * Jobs to be done: change a few things without leaving the page; look something up in place; act on one row
- * Keywords: popover, menu, dropdown panel, flyout, anchored, placement, dismiss, aria-expanded
+ * Use cases: a filter panel; a date picker; a share panel; a profile card on a name; an action menu; row actions; file list actions; document list; item management; context menu; project list; record actions
+ * Jobs to be done: change a few things without leaving the page; look something up in place; act on one row; rename or duplicate an item; delete something i no longer need; share a link to an item; undo a mistake quickly
+ * Keywords: popover, menu, dropdown panel, flyout, anchored, placement, dismiss, aria-expanded, dropdown, actions, kebab, keyboard
  */
 /**
  * A popover is a small panel anchored to the control that opened it, holding things you can press. That last part is
@@ -71,11 +71,15 @@ function useAnchored(open: boolean, close: (via: "escape" | "outside") => void) 
 
 export type MenuItem = { id: string; label: string; icon?: string; keys?: string; danger?: boolean; disabled?: boolean };
 
-export function Menu({ label, icon, items, onSelect, menuLabel, className }: {
-  /** The words on the button that opens the menu. */
+export function Menu({ label, icon, iconOnly, align = "start", items, onSelect, menuLabel, className }: {
+  /** The words on the button that opens the menu. With iconOnly they name the button for screen readers instead. */
   label: string;
-  /** An icon name from ./icons, before the label. */
+  /** An icon name from ./icons, before the label. With iconOnly it is the whole button; "more" (three dots) when left out. */
   icon?: string;
+  /** A quiet icon-only trigger, for a menu on each row of a list. */
+  iconOnly?: boolean;
+  /** Which edge of the button the list lines up with; end for a button at the right of a row. */
+  align?: "start" | "end";
   items: MenuItem[];
   /** Called with the chosen item's id; the menu closes and focus returns to the button. */
   onSelect: (id: string) => void;
@@ -87,6 +91,9 @@ export function Menu({ label, icon, items, onSelect, menuLabel, className }: {
   const [active, setActive] = useState(0);
   const list = useRef<HTMLUListElement>(null);
   const box = useAnchored(open, () => setOpen(false));
+  const typed = useRef("");
+  const typedTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(typedTimer.current), []);
 
   // Real focus follows the highlighted item, so a screen reader announces it.
   useEffect(() => {
@@ -114,9 +121,10 @@ export function Menu({ label, icon, items, onSelect, menuLabel, className }: {
   return (
     <div className={["fl-ctl-pop-wrap", className ?? ""].filter(Boolean).join(" ")} ref={box} data-fl="c.menu">
       <Button
-        variant="secondary"
-        size={40}
-        icon={icon}
+        variant={iconOnly ? "tertiary" : "secondary"}
+        size={iconOnly ? 32 : 40}
+        icon={iconOnly ? (icon ?? "more") : icon}
+        iconOnly={iconOnly}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => (open ? setOpen(false) : openAt(enabled(-1, 1)))}
@@ -128,13 +136,13 @@ export function Menu({ label, icon, items, onSelect, menuLabel, className }: {
         }}
       >
         {label}
-        <Icon name="chevron-down" />
+        {iconOnly ? null : <Icon name="chevron-down" />}
       </Button>
       {open ? (
         <ul
           ref={list}
           className="fl-ctl-menu fl-ctl-menu--actions"
-          style={{ position: "absolute", zIndex: 10, top: "calc(100% + var(--space-2))", left: 0, minWidth: "14rem" }}
+          style={{ position: "absolute", zIndex: 10, top: "calc(100% + var(--space-2))", ...(align === "end" ? { right: 0 } : { left: 0 }), minWidth: "14rem" }}
           role="menu"
           aria-label={menuLabel ?? label}
           onKeyDown={(e) => {
@@ -149,6 +157,18 @@ export function Menu({ label, icon, items, onSelect, menuLabel, className }: {
               run(items[active]);
             } else if (e.key === "Tab") {
               setOpen(false);
+            } else if (e.key.length === 1 && /\S/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+              // Type-ahead: the first letters you type jump to the item that starts with them.
+              window.clearTimeout(typedTimer.current);
+              typed.current += e.key.toLowerCase();
+              typedTimer.current = window.setTimeout(() => (typed.current = ""), 600);
+              const starts = (n: number) => !items[n].disabled && items[n].label.toLowerCase().startsWith(typed.current);
+              const order = items.map((_, n) => (active + (typed.current.length === 1 ? 1 : 0) + n) % items.length);
+              const next = order.find(starts) ?? -1;
+              if (next >= 0) {
+                e.preventDefault();
+                setActive(next);
+              }
             }
           }}
         >
@@ -373,6 +393,11 @@ export default function PopoversMenus() {
           <p className="fl-ctl-matrix-kind">An action menu</p>
           <p className="fl-ctl-matrix-what">One press per action, and it closes. Arrow keys move, Enter chooses.</p>
           <Menu label="Shoot actions" icon="more" items={SAMPLE.actions} onSelect={(id) => setSaid(`Chose ${SAMPLE.actions.find((a) => a.id === id)?.label}`)} />
+        </li>
+        <li>
+          <p className="fl-ctl-matrix-kind">A menu on a row</p>
+          <p className="fl-ctl-matrix-what">An icon-only button for a list, lined up to its right edge. Type a letter to jump to an item.</p>
+          <Menu iconOnly align="end" label="Actions for Riverside wedding" items={SAMPLE.actions} onSelect={(id) => setSaid(`Chose ${SAMPLE.actions.find((a) => a.id === id)?.label} on the row`)} />
         </li>
       </ul>
 

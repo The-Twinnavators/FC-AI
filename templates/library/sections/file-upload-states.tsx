@@ -1,13 +1,13 @@
 /** @flowcode-library file-upload-states · File upload: dropzone and the files after it (Forms)
  * Catalog ID: p.file-upload (pattern)
- * Function: The file upload pattern (p.file-upload); the reference sheet shows the dropzone in waiting, dragged-over, uploading and refused states, plus a live one with the file list and its retry and remove actions.
- * Use it as: import { FileUpload } from "./file-upload-states"; <FileUpload limitMb?={10} hint?="PDF, PNG or JPG" initialFiles?={[{ id, name, size, state: "done"|"busy"|"error", note, pct, retry }]} onChange?={(rows) => ...} />
+ * Function: The file upload pattern (p.file-upload); the reference sheet shows the dropzone in waiting, dragged-over, uploading and refused states, plus a live one that takes only images and PDFs, with the file list and its retry and remove actions.
+ * Use it as: import { FileUpload } from "./file-upload-states"; <FileUpload limitMb?={10} hint?="PDF, PNG or JPG" accept?="image/*,.pdf" multiple? initialFiles?={[{ id, name, size, state: "done"|"busy"|"error", note, pct, retry }]} onChange?={(rows) => ...} />
  * Built from: c.button.secondary, c.button.tertiary, c.progress.bar
  * Look: A dashed dropzone that tints when a file is dragged over it, with a list under it: name, size and note per file, a thin progress bar while uploading, and Try again or a remove button at the right.
  * Tokens: --color-surface --color-border-strong --color-accent --color-danger --color-text-muted --radius-lg --space-2 --space-4 --space-6
- * Use cases: attach a PRD; upload photos; import a spreadsheet; profile picture; supporting documents
- * Jobs to be done: add a file; see it is going up; know when it failed and try again
- * Keywords: upload, dropzone, drag and drop, progress, attachment, error
+ * Use cases: attach a PRD; upload photos; import a spreadsheet; profile picture; supporting documents; file upload; photo upload; document upload; receipt upload; attachments; id verification upload; resume upload; image upload
+ * Jobs to be done: add a file; see it is going up; know when it failed and try again; attach photos to my request; upload receipts or documents; remove a file i added by mistake; see my upload finish
+ * Keywords: upload, dropzone, drag and drop, progress, attachment, error, file, validation
  */
 /**
  * A dropzone in each state it passes through, and the list of files underneath it, because an upload is never only
@@ -46,6 +46,10 @@ type UploadProps = {
   limitMb?: number;
   /** Said inside the dropzone, for example "PDF, PNG or JPG". The limit is added after it. */
   hint?: string;
+  /** Kinds taken, as an input's accept list, for example "image/*,.pdf". Anything else lands as refused with no retry. */
+  accept?: string;
+  /** More than one file at a time (true when left out). */
+  multiple?: boolean;
   /** Rows already in the list. */
   initialFiles?: UploadRow[];
   /** Called with the whole list whenever it changes. */
@@ -58,7 +62,14 @@ function saySize(bytes: number) {
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
-export function FileUpload({ limitMb = 10, hint = "PDF, PNG or JPG", initialFiles = [], onChange, className }: UploadProps) {
+/** Does the file match an accept list such as "image/*,.pdf"? An empty list takes everything. */
+function accepted(f: File, accept?: string) {
+  const want = (accept ?? "").split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+  if (!want.length) return true;
+  return want.some((t) => (t.startsWith(".") ? f.name.toLowerCase().endsWith(t) : t.endsWith("/*") ? f.type.toLowerCase().startsWith(t.slice(0, -1)) : f.type.toLowerCase() === t));
+}
+
+export function FileUpload({ limitMb = 10, hint = "PDF, PNG or JPG", accept, multiple = true, initialFiles = [], onChange, className }: UploadProps) {
   const [rows, setRows] = useState<UploadRow[]>(initialFiles);
   const [over, setOver] = useState(false);
   const [said, setSaid] = useState("");
@@ -86,22 +97,23 @@ export function FileUpload({ limitMb = 10, hint = "PDF, PNG or JPG", initialFile
   const take = (files: FileList | null) => {
     if (!files || !files.length) return;
     const limit = limitMb * 1048576;
-    const added: UploadRow[] = Array.from(files).map((f) => {
+    const added: UploadRow[] = Array.from(multiple ? files : [files[0]]).map((f) => {
       seq.current += 1;
+      const wrongKind = !accepted(f, accept);
       const tooBig = f.size > limit;
       return {
         id: `up-${seq.current}`,
         name: f.name,
         size: saySize(f.size),
-        state: tooBig ? "error" : "busy",
-        note: tooBig ? `Too big: ${limitMb} MB is the most` : "0%",
+        state: wrongKind || tooBig ? "error" : "busy",
+        note: wrongKind ? `Not a kind we take: ${hint}` : tooBig ? `Too big: ${limitMb} MB is the most` : "0%",
         pct: 0,
         retry: false,
       };
     });
     setRows((rs) => [...rs, ...added]);
     const refused = added.filter((r) => r.state === "error").length;
-    setSaid(refused ? `${added.length} added, ${refused} refused for size` : `Adding ${added.length} file${added.length === 1 ? "" : "s"}`);
+    setSaid(refused ? `${added.length} added, ${refused} refused` : `Adding ${added.length} file${added.length === 1 ? "" : "s"}`);
   };
 
   const retry = (id: string) => {
@@ -132,7 +144,8 @@ export function FileUpload({ limitMb = 10, hint = "PDF, PNG or JPG", initialFile
       >
         <input
           type="file"
-          multiple
+          multiple={multiple}
+          accept={accept}
           className="fl-sr"
           onChange={(e) => {
             take(e.target.files);
@@ -140,7 +153,7 @@ export function FileUpload({ limitMb = 10, hint = "PDF, PNG or JPG", initialFile
           }}
         />
         <Icon name="download" />
-        <strong>{over ? "Let go to add them" : "Drop files here"}</strong>
+        <strong>{over ? "Let go to add them" : multiple ? "Drop files here" : "Drop a file here"}</strong>
         <span className="fl-ctl-matrix-what">
           {hint}, up to {limitMb} MB
         </span>
@@ -234,8 +247,8 @@ export default function FileUploadStates() {
 
       <div className="fl-ctl-sizes">
         <h3>The live one, and the files underneath</h3>
-        <p className="fl-ctl-btn-what">One row per file: what it is, how it is going, and what you can do about it.</p>
-        <FileUpload limitMb={d.limitMb} initialFiles={d.files} />
+        <p className="fl-ctl-btn-what">One row per file: what it is, how it is going, and what you can do about it. This one takes images and PDFs only; anything else, or anything over the size, is refused with the reason.</p>
+        <FileUpload limitMb={d.limitMb} accept="image/*,.pdf" hint="JPG, PNG, WebP or PDF" initialFiles={d.files} />
       </div>
     </section>
   );

@@ -1,13 +1,13 @@
 /** @flowcode-library progress-indicators · Progress: bars, rings, spinners and skeletons (Alerts and states)
  * Catalog ID: c.progress (component)
- * Function: The progress indicator (c.progress); the reference sheet shows bar, indeterminate bar, ring and spinner on one live run, plus skeletons and a rule for which to use.
- * Use it as: import { Progress } from "./progress-indicators"; <Progress variant?="bar"|"ring"|"spinner" value?={0-100} label? size?={16|24|32} thin? />
- * Variants: c.progress.bar - How far along something is (or a sliding bar when value is left out): a rounded track with an accent fill; c.progress.ring - The same percentage where a bar would not fit, such as a card corner or table cell: a circle filling clockwise with the number inside; c.progress.spinner - Something short with no known length, in a button or beside a row: a small turning arc in 16, 24 or 32 px
- * Look: An accent fill on a sunken track, as a bar or a ring with the percentage in its middle, or a small turning arc.
- * Tokens: --color-accent --color-surface-sunken --text-sm --duration-fast --easing --space-3
- * Use cases: a file uploading; a report building; a page loading; a long save; a queue of jobs
- * Jobs to be done: know something is happening; know how much is left; know whether to wait
- * Keywords: progress, bar, spinner, loader, skeleton, indeterminate, loading, percent
+ * Function: The progress indicator (c.progress); the reference sheet shows bar, indeterminate bar, ring and spinner on one live run, bar tones, steps, a stacked share bar, skeletons and a rule for which to use.
+ * Use it as: import { Progress } from "./progress-indicators"; <Progress variant?="bar"|"ring"|"spinner"|"steps"|"stacked" value?={0-100} label? size?={16|24|32} thin? large? tone?="accent"|"success"|"danger" steps?={["Ordered","Paid"]} current?={index} segments?={[{label,value}]} max? unit?>words beside a large ring</Progress>
+ * Variants: c.progress.bar - How far along something is (or a sliding bar when value is left out): a rounded track with an accent fill; c.progress.ring - The same percentage where a bar would not fit, such as a card corner or table cell: a circle filling clockwise with the number inside; c.progress.spinner - Something short with no known length, in a button or beside a row: a small turning arc in 16, 24 or 32 px; c.progress.steps - Where something is in a known list of stages (an order: Ordered, Paid, Fired, Ready): a row of short segments, finished ones filled, the current one tinted and bold, with the stage names under; c.progress.stacked - How one whole is shared out (storage by kind): a single bar split into colored parts with a legend of amounts and the free space left over
+ * Look: An accent fill on a sunken track, as a bar or ring (green when finished, red when failed; the ring can be large with words beside it), a small turning arc, a row of stage segments, or one bar split into shares.
+ * Tokens: --color-accent --color-surface-sunken --text-sm --duration-fast --easing --space-3 --color-success --color-danger --color-text-muted --color-border
+ * Use cases: a file uploading; a report building; a page loading; a long save; a queue of jobs; upload progress; order status; storage usage; goal tracking; quota usage; fundraising goal; delivery tracking; fitness goal
+ * Jobs to be done: know something is happening; know how much is left; know whether to wait; track my order's progress; see how much storage i have left; check progress toward my goal; follow an upload until it finishes
+ * Keywords: progress, bar, spinner, loader, skeleton, indeterminate, loading, percent, progress bar, steps, usage, storage, ring, circular, goal
  */
 /**
  * Four ways to say "wait", and the rule for choosing between them: if you know how far along it is, show a number; if
@@ -29,16 +29,22 @@
  * styles are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs
  * in a built app exactly as it runs here.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "./buttons-variants";
 
 // ── c.progress: the one progress indicator. Every piece's progress is this component; the specimen below shows each variant. ──
 
-export type ProgressVariant = "bar" | "ring" | "spinner";
+export type ProgressVariant = "bar" | "ring" | "spinner" | "steps" | "stacked";
 export type ProgressSize = 16 | 24 | 32;
+export type ProgressTone = "accent" | "success" | "danger";
+export type ProgressSegment = { label: string; value: number };
 
 // Written out in full (not built from the size) so a build finds every class the spinner needs.
 const SPIN: Record<ProgressSize, string> = { 16: "fl-ctl-spin--16", 24: "fl-ctl-spin--24", 32: "fl-ctl-spin--32" };
+
+const TONE: Record<ProgressTone, string> = { accent: "", success: " fl-ctl-bar--high", danger: " fl-ctl-bar--low" };
+// Four segment colors, in order; written out so a build finds each class.
+const SEG: string[] = ["fl-dsp-c1", "fl-dsp-c2", "fl-dsp-c3", "fl-dsp-c4"];
 
 type ProgressProps = {
   variant?: ProgressVariant;
@@ -50,30 +56,101 @@ type ProgressProps = {
   size?: ProgressSize;
   /** Bar only: the 6 px track instead of the 8 px one. */
   thin?: boolean;
+  /** Ring only: draw it large (120px) with children as text beside it. */
+  large?: boolean;
+  /** Bar and ring: accent (default), success once finished, danger once failed or cancelled. */
+  tone?: ProgressTone;
+  /** Steps only: the stage names, in order. */
+  steps?: string[];
+  /** Steps only: the index of the stage in progress; earlier ones read as done. Past the last, all are done. */
+  current?: number;
+  /** Stacked only: the parts that share one bar, such as storage by kind (up to four colors). */
+  segments?: ProgressSegment[];
+  /** Stacked only: the whole the parts are measured against; the rest is free. */
+  max?: number;
+  /** Stacked only: the unit written after each amount, such as "GB". */
+  unit?: string;
   className?: string;
+  /** Large ring only: the words beside it, such as "9 of 12 classes". */
+  children?: ReactNode;
 };
 
-export function Progress({ variant = "bar", value, label, size = 24, thin, className }: ProgressProps) {
+const TONE_STROKE: Record<ProgressTone, string> = { accent: "var(--color-accent)", success: "var(--color-success)", danger: "var(--color-danger)" };
+
+export function Progress({ variant = "bar", value, label, size = 24, thin, tone = "accent", steps = [], current = 0, segments = [], max = 100, unit = "", large, className, children }: ProgressProps) {
   const extra = className ? ` ${className}` : "";
   const fl = `c.progress.${variant}`;
+  if (variant === "steps") {
+    const last = steps.length - 1;
+    return (
+      <ol className={`fl-dsp-steps${extra}`} aria-label={label ?? "Progress"} data-fl={fl}>
+        {steps.map((s, i) => (
+          <li key={s} data-state={i < current || current > last ? "done" : i === current ? "current" : "todo"} aria-current={i === current ? "step" : undefined}>
+            <span>{s}</span>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+  if (variant === "stacked") {
+    const used = segments.reduce((n, p) => n + p.value, 0);
+    const amount = (n: number) => `${Number(n.toFixed(1))}${unit ? ` ${unit}` : ""}`;
+    return (
+      <div className={extra.trim() || undefined} style={{ display: "grid", gap: "var(--space-3)" }} data-fl={fl}>
+        <div className="fl-dsp-track" role="img" aria-label={`${amount(used)} of ${amount(max)}: ${segments.map((p) => `${p.label} ${amount(p.value)}`).join(", ")}`} style={{ height: "0.875rem" }}>
+          {segments.map((p, i) => (
+            <div key={p.label} className={`fl-dsp-seg ${SEG[i % SEG.length]}`} style={{ width: `${(p.value / max) * 100}%` }} />
+          ))}
+        </div>
+        <ul className="fl-dsp-legend">
+          {segments.map((p, i) => (
+            <li key={p.label}>
+              <i className={SEG[i % SEG.length]} aria-hidden="true" />
+              {p.label} <span>{amount(p.value)}</span>
+            </li>
+          ))}
+          <li>
+            <i aria-hidden="true" style={{ background: "var(--color-surface-sunken)", border: "1px solid var(--color-border)" }} />
+            Free <span>{amount(max - used)}</span>
+          </li>
+        </ul>
+      </div>
+    );
+  }
   if (variant === "spinner") {
     return <span {...(label ? { role: "status", "aria-label": label } : { "aria-hidden": true })} data-fl={fl} className={`fl-ctl-spin ${SPIN[size]}${extra}`} />;
   }
   const now = value === undefined ? {} : { "aria-valuenow": value, "aria-valuemin": 0, "aria-valuemax": 100 };
   if (variant === "ring") {
     const v = value ?? 0;
+    const stroke = { stroke: TONE_STROKE[tone] };
+    if (large) {
+      const circ = 2 * Math.PI * 52;
+      return (
+        <div className={`fl-dsp-ring${extra}`} data-fl={fl}>
+          <div className="fl-dsp-ring__wrap" role="progressbar" aria-valuenow={v} aria-valuemin={0} aria-valuemax={100} aria-label={label ?? "Progress"}>
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle className="fl-dsp-ring__bg" cx="60" cy="60" r="52" />
+              <circle className="fl-dsp-ring__fg" cx="60" cy="60" r="52" style={stroke} strokeDasharray={circ} strokeDashoffset={circ * (1 - v / 100)} />
+            </svg>
+            <strong>{v}%</strong>
+          </div>
+          {children ? <div className="fl-dsp-ring__text">{children}</div> : null}
+        </div>
+      );
+    }
     return (
       <span className={`fl-ctl-ring${extra}`} role="progressbar" aria-valuenow={v} aria-valuemin={0} aria-valuemax={100} aria-label={label ?? "Progress"} data-fl={fl}>
         <svg viewBox="0 0 36 36" aria-hidden="true">
           <circle className="fl-ctl-ring-track" cx="18" cy="18" r="15.5" />
-          <circle className="fl-ctl-ring-fill" cx="18" cy="18" r="15.5" style={{ strokeDasharray: `${(v / 100) * 97.4} 97.4` }} />
+          <circle className="fl-ctl-ring-fill" cx="18" cy="18" r="15.5" style={{ ...stroke, strokeDasharray: `${(v / 100) * 97.4} 97.4` }} />
         </svg>
         <span className="fl-ctl-ring-num">{v}%</span>
       </span>
     );
   }
   return (
-    <span className={`fl-ctl-bar${thin ? "" : " fl-ctl-bar--lg"}${value === undefined ? " fl-ctl-bar--idle" : ""}${extra}`} role="progressbar" {...now} aria-label={label ?? "Progress"} data-fl={fl}>
+    <span className={`fl-ctl-bar${thin ? "" : " fl-ctl-bar--lg"}${TONE[tone]}${value === undefined ? " fl-ctl-bar--idle" : ""}${extra}`} role="progressbar" {...now} aria-label={label ?? "Progress"} data-fl={fl}>
       <span style={value === undefined ? undefined : { width: `${value}%` }} />
     </span>
   );
@@ -82,12 +159,21 @@ export function Progress({ variant = "bar", value, label, size = 24, thin, class
 // flowcode:sample
 const SAMPLE = {
   steps: ["Reading your files", "Working out the layout", "Writing the pages", "Tidying up"],
+  order: ["Ordered", "Paid", "Thrown", "Fired", "Ready to collect"],
+  storage: [
+    { label: "Photos", value: 8.4 },
+    { label: "Videos", value: 5.1 },
+    { label: "Documents", value: 1.9 },
+    { label: "Other", value: 1.2 },
+  ],
 };
 
 export default function ProgressIndicators() {
   const d = SAMPLE;
   const [pct, setPct] = useState(38);
   const [running, setRunning] = useState(false);
+  const [stage, setStage] = useState(2);
+  const [goal, setGoal] = useState(9);
   const step = Math.min(d.steps.length - 1, Math.floor((pct / 100) * d.steps.length));
 
   useEffect(() => {
@@ -158,6 +244,48 @@ export default function ProgressIndicators() {
           </Button>
         </li>
       </ul>
+
+      <div className="fl-ctl-sizes">
+        <h3>Tones, steps and shares</h3>
+        <p className="fl-ctl-btn-what">
+          A bar turns green when it finishes and red when it fails. Steps show where in a known list of stages something
+          is. Stacked shows how one whole is shared out, with the rest left as free space.
+        </p>
+        <ul className="fl-ctl-prog-grid">
+          <li>
+            <p className="fl-ctl-matrix-kind">Bar, finished and failed</p>
+            <Progress value={100} tone="success" label="Upload finished" />
+            <Progress value={42} tone="danger" label="Upload cancelled" />
+          </li>
+          <li>
+            <p className="fl-ctl-matrix-kind">Steps</p>
+            <Progress variant="steps" steps={d.order} current={stage} label="Order progress" />
+            <span className="fl-ctl-prog-run">
+              <Button variant="tertiary" size={32} disabled={stage === 0} onClick={() => setStage((v) => Math.max(0, v - 1))}>
+                Back a step
+              </Button>
+              <Button variant="secondary" size={32} disabled={stage > d.order.length - 1} onClick={() => setStage((v) => v + 1)}>
+                Next step
+              </Button>
+            </span>
+          </li>
+          <li>
+            <p className="fl-ctl-matrix-kind">Stacked</p>
+            <Progress variant="stacked" segments={d.storage} max={20} unit="GB" />
+          </li>
+          <li>
+            <p className="fl-ctl-matrix-kind">Large ring, with words</p>
+            <Progress variant="ring" large value={Math.round((goal / 12) * 100)} label="Classes this month" tone={goal >= 12 ? "success" : "accent"}>
+              <span className="fl-ctl-matrix-what" aria-live="polite">
+                {goal} of 12 classes
+              </span>
+              <Button variant="secondary" size={32} disabled={goal >= 12} onClick={() => setGoal((g) => g + 1)}>
+                Log a class
+              </Button>
+            </Progress>
+          </li>
+        </ul>
+      </div>
 
       <div className="fl-ctl-sizes">
         <h3>Skeleton</h3>

@@ -1,8 +1,9 @@
 /** @flowcode-library lists-rows · Lists: plain rows, rows that open, rows you act on, and rows you reorder (Tables and lists)
  * Catalog ID: c.list-row (component)
- * Function: The list row (c.list-row), one component for rows that state a fact, open something, carry actions or reorder; the reference sheet shows all four lists working.
- * Use it as: import { ListRow } from "./lists-rows"; <ul className="fl-ctl-rows"><ListRow variant?="fact"|"link"|"action"|"reorder" title meta? aside? icon? actions?={<Button…/>} href? current? unread? onClick?>fact value</ListRow></ul>
- * Variants: c.list-row.fact - a label and its value, nothing to press (use inside <dl className="fl-ctl-rows fl-ctl-rows--facts">): two columns, no hover; c.list-row.link - a row that opens one thing: whole row is a link with title, subtitle, time at the right, an unread dot and a marked current row; c.list-row.action - a row you act on through its buttons: optional leading icon, title and meta, icon Buttons at the right that stay visible; c.list-row.reorder - a row you reorder: a drag grip at the left, the title, and move up/down icon Buttons at the right
+ * Function: The list row (c.list-row), one component for rows that state a fact, open something (a link, or in place), carry actions or reorder; the reference sheet shows all the lists working.
+ * Use it as: import { ListRow } from "./lists-rows"; <ul className="fl-ctl-rows"><ListRow variant?="fact"|"link"|"action"|"reorder" title meta? aside? lead? icon? actions?={<Button…/>} href? current? unread? expanded? detail? onClick?>fact value</ListRow></ul>
+ * Variants: c.list-row.fact - a label and its value, nothing to press (use inside <dl className="fl-ctl-rows fl-ctl-rows--facts">): two columns, no hover; pass actions for an Edit or Copy button beside the value; c.list-row.link - a row that opens one thing: whole row is a link with title, subtitle, time at the right, an unread dot and a marked current row; lead puts an Avatar before the text, aside can hold an amount and a Badge, expanded makes it a button that opens detail beneath; c.list-row.action - a row you act on through its buttons: optional leading icon, title and meta, icon Buttons at the right that stay visible; c.list-row.reorder - a row you reorder: a drag grip at the left, the title, and move up/down icon Buttons at the right
+ * Built from: c.avatar.person, c.badge.status, c.button.tertiary
  * Look: Bordered, divided rows with a title, quieter second line and optional leading icon and trailing controls; only link rows react to the pointer.
  * Tokens: --color-border --color-surface-sunken --color-accent --color-text --color-text-muted --radius-lg --space-2 --space-3 --text-sm --focus-ring
  * Use cases: a settings list; an inbox; search results; a queue; a playlist
@@ -34,6 +35,8 @@
 import { useState, type MouseEventHandler, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
+import { Avatar } from "./avatars-variants";
+import { Badge } from "./badges-status";
 
 // ── c.list-row: one row of a list. The kind says what pressing it does. ──
 
@@ -46,17 +49,19 @@ const ROW: Record<ListRowVariant, string> = { fact: "", link: "fl-spec-row", act
  * Put rows inside a list that carries the row classes: <ul className="fl-ctl-rows"> (add fl-ctl-rows--links for links,
  * fl-ctl-rows--order for an <ol> of reorderable rows), or <dl className="fl-ctl-rows fl-ctl-rows--facts"> for facts.
  */
-export function ListRow({ variant = "action", title, meta, aside, icon, actions, href, current, unread, onClick, className, children }: {
+export function ListRow({ variant = "action", title, meta, aside, lead, icon, actions, href, current, unread, expanded, detail, onClick, className, children }: {
   variant?: ListRowVariant;
   /** The row's main text. For a fact, its label. */
   title: ReactNode;
   /** A quiet second line under the title. */
   meta?: ReactNode;
-  /** Quiet text at the right end of a link row, such as a time. */
+  /** The right end of a link row: quiet text such as a time, or an amount and a Badge. */
   aside?: ReactNode;
+  /** Link rows: something before the text, usually an <Avatar>. */
+  lead?: ReactNode;
   /** An icon name from ./icons, before the text of an action row. */
   icon?: string;
-  /** Buttons at the right end of an action or reorder row. They stay visible, because hover does not exist on touch. */
+  /** Buttons at the right end of an action or reorder row, or beside a fact's value. They stay visible, because hover does not exist on touch. */
   actions?: ReactNode;
   /** Link rows: where it goes. */
   href?: string;
@@ -64,7 +69,11 @@ export function ListRow({ variant = "action", title, meta, aside, icon, actions,
   current?: boolean;
   /** Link rows: bold, with a dot, until it has been opened. */
   unread?: boolean;
-  onClick?: MouseEventHandler<HTMLAnchorElement>;
+  /** Link rows: true or false makes the row a button that opens and closes its detail; leave out for a plain link. */
+  expanded?: boolean;
+  /** Link rows: shown beneath the row while expanded. */
+  detail?: ReactNode;
+  onClick?: MouseEventHandler<HTMLElement>;
   className?: string;
   /** For a fact, its value. */
   children?: ReactNode;
@@ -74,7 +83,10 @@ export function ListRow({ variant = "action", title, meta, aside, icon, actions,
     return (
       <div data-fl={fl} className={className}>
         <dt>{title}</dt>
-        <dd>{children}</dd>
+        <dd className={actions ? "has-actions" : undefined}>
+          {actions ? <span>{children}</span> : children}
+          {actions}
+        </dd>
       </div>
     );
   }
@@ -85,13 +97,32 @@ export function ListRow({ variant = "action", title, meta, aside, icon, actions,
     </span>
   );
   if (variant === "link") {
+    const inner = (
+      <>
+        <span className="fl-ctl-row-unread" aria-hidden="true" />
+        {unread ? <span className="fl-sr">Unread. </span> : null}
+        {lead}
+        {main}
+        {aside ? <span className="fl-ctl-matrix-what">{aside}</span> : null}
+      </>
+    );
+    if (expanded !== undefined) {
+      return (
+        <li data-fl={fl} className={className}>
+          <button type="button" className={`${ROW.link}${current ? " is-on" : ""}${unread ? " is-unread" : ""}`} aria-expanded={expanded} onClick={onClick}>
+            {inner}
+            <span className={`fl-ctl-row-chev${expanded ? " is-open" : ""}`} aria-hidden="true">
+              <Icon name="chevron-down" />
+            </span>
+          </button>
+          {expanded && detail ? <div className="fl-ctl-row-detail">{detail}</div> : null}
+        </li>
+      );
+    }
     return (
       <li data-fl={fl} className={className}>
         <a href={href ?? "#top"} className={`${ROW.link}${current ? " is-on" : ""}${unread ? " is-unread" : ""}`} aria-current={current ? "true" : undefined} onClick={onClick}>
-          <span className="fl-ctl-row-unread" aria-hidden="true" />
-          {unread ? <span className="fl-sr">Unread. </span> : null}
-          {main}
-          {aside ? <span className="fl-ctl-matrix-what">{aside}</span> : null}
+          {inner}
         </a>
       </li>
     );
@@ -132,6 +163,16 @@ const SAMPLE = {
     { id: "f3", name: "shot-list.docx", meta: "41 KB · 11 March" },
   ],
   order: ["Getting ready", "First look", "Ceremony", "Portraits", "Reception"],
+  clients: [
+    { id: "c1", name: "Maya Okafor", meta: "Portrait session · Mon 5 Oct, 10:00", amount: "$180.00", status: "Paid", tone: "success" as const, note: "Wants two outfit changes. Bringing her own props." },
+    { id: "c2", name: "Tom Reyes", meta: "Product shoot · Tue 6 Oct, 13:30", amount: "$520.00", status: "Upcoming", tone: "info" as const, note: "Twelve ceramic pieces, white background, square crops." },
+    { id: "c3", name: "Jonah Patel", meta: "Family session · Fri 9 Oct, 11:00", amount: "$240.00", status: "Cancelled", tone: "danger" as const, note: "Moved to next month. Deposit kept as credit." },
+  ],
+  record: [
+    { k: "Guest name", v: "Priya Nair", edit: "name" },
+    { k: "Email", v: "priya.nair@example.com", edit: "email" },
+    { k: "Reference", v: "BK-24-08812", edit: "" },
+  ],
 };
 
 export default function ListsRows() {
@@ -142,6 +183,7 @@ export default function ListsRows() {
   const [files, setFiles] = useState(d.files);
   const [order, setOrder] = useState(d.order);
   const [said, setSaid] = useState("");
+  const [openClient, setOpenClient] = useState<string | null>(null);
 
   const shift = (n: number, dir: number) => {
     const to = n + dir;
@@ -199,6 +241,51 @@ export default function ListsRows() {
               Mark them unread again
             </Button>
           ) : null}
+        </li>
+
+        <li>
+          <p className="fl-ctl-matrix-kind">Facts you can fix</p>
+          <p className="fl-ctl-matrix-what">A fact row with a button beside the value: the value reads as before, and the button is the only thing to press.</p>
+          <dl className="fl-ctl-rows fl-ctl-rows--facts">
+            {d.record.map((f) => (
+              <ListRow
+                key={f.k}
+                variant="fact"
+                title={f.k}
+                actions={
+                  <Button variant="tertiary" size={32} onClick={() => setSaid(f.edit ? `Editing ${f.k.toLowerCase()}` : "Reference copied")}>
+                    {f.edit ? `Edit ${f.k.toLowerCase()}` : "Copy"}
+                  </Button>
+                }
+              >
+                {f.v}
+              </ListRow>
+            ))}
+          </dl>
+        </li>
+
+        <li>
+          <p className="fl-ctl-matrix-kind">Rows that open in place</p>
+          <p className="fl-ctl-matrix-what">A person, what they booked, an amount and a status; press the row to read more beneath it.</p>
+          <ul className="fl-ctl-rows">
+            {d.clients.map((c) => (
+              <ListRow
+                key={c.id}
+                variant="link"
+                lead={<Avatar name={c.name} size={32} decorative />}
+                title={c.name}
+                meta={c.meta}
+                aside={
+                  <>
+                    {c.amount} <Badge tone={c.tone}>{c.status}</Badge>
+                  </>
+                }
+                expanded={openClient === c.id}
+                detail={c.note}
+                onClick={() => setOpenClient(openClient === c.id ? null : c.id)}
+              />
+            ))}
+          </ul>
         </li>
 
         <li>

@@ -378,6 +378,7 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-tbl tbody th { font-weight: 600; }
 .fl-ctl-tbl .is-num { text-align: right; font-variant-numeric: tabular-nums; }
 .fl-ctl-tbl-pick { width: 1px; }
+.fl-ctl-tbl-acts { width: 1px; white-space: nowrap; text-align: right; }
 .fl-ctl-tbl-sort { display: inline-flex; align-items: center; gap: var(--space-1, 0.25rem); width: 100%; border: 0; background: none; padding: var(--space-3); color: inherit; font: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; }
 .fl-ctl-tbl th.is-num .fl-ctl-tbl-sort { justify-content: flex-end; }
 .fl-ctl-tbl-sort:hover { color: var(--color-text); }
@@ -399,10 +400,18 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-rows--facts > div { display: grid; grid-template-columns: minmax(6rem, 10rem) minmax(0, 1fr); gap: var(--space-3); padding: var(--space-3); font-size: var(--text-sm); }
 .fl-ctl-rows--facts dt { color: var(--color-text-muted); }
 .fl-ctl-rows--facts dd { margin: 0; }
+.fl-ctl-rows--facts dd.has-actions { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
 .fl-spec-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); color: inherit; font-size: var(--text-sm); text-decoration: none; }
 a.fl-spec-row:hover { background: var(--color-surface-sunken); }
 a.fl-spec-row.is-on { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
 a.fl-spec-row:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+button.fl-spec-row { width: 100%; border: 0; background: transparent; font: inherit; font-size: var(--text-sm); text-align: left; cursor: pointer; }
+button.fl-spec-row:hover { background: var(--color-surface-sunken); }
+button.fl-spec-row:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-ctl-row-chev { display: grid; flex: none; color: var(--color-text-muted); }
+.fl-ctl-row-chev svg { width: 1rem; height: 1rem; }
+.fl-ctl-row-chev:not(.is-open) svg { transform: rotate(-90deg); }
+.fl-ctl-row-detail { padding: var(--space-3); border-top: 1px dashed var(--color-border); background: var(--color-surface-sunken); font-size: var(--text-sm); }
 .fl-ctl-row-main { display: grid; flex: 1; gap: 2px; min-width: 0; }
 .fl-ctl-row-main strong, .fl-ctl-row-main .fl-ctl-matrix-what { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Unread: its own mark, in its own gutter. The gutter stays when the row is read, so nothing shifts under the
@@ -444,6 +453,9 @@ a.fl-spec-row:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .fl-ctl-avatar-stack { display: inline-flex; margin-top: var(--space-3); }
 .fl-ctl-avatar-stack > .fl-ctl-avatar { border: 2px solid var(--color-surface); margin-left: -0.6rem; }
 .fl-ctl-avatar-stack > .fl-ctl-avatar:first-child { margin-left: 0; }
+.fl-ctl-avatar-more { display: inline-flex; margin-left: -0.6rem; padding: 0; border: 0; border-radius: 999px; background: none; cursor: pointer; }
+.fl-ctl-avatar-more .fl-ctl-avatar { border: 2px solid var(--color-surface); }
+.fl-ctl-avatar-more:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
 /* ── Media frames ───────────────────────────────────────────────────────────── */
 .fl-ctl-media-row { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: var(--space-3) 0 var(--space-4); padding: 0; list-style: none; }

@@ -5,9 +5,9 @@
  * Variants: c.pagination.numbered - A list people come back to: page numbers with an ellipsis between Previous and Next, the current page filled with the accent color; c.pagination.simple - Only the movement matters: Newer/Previous and Older/Next buttons around "Page x of y"; c.pagination.load-more - A feed: one secondary button that says how many it adds, and a "shown of total" count beneath
  * Look: A row of small bordered buttons with arrows and, when numbered, page numbers; the ends disable rather than disappear.
  * Tokens: --color-accent --color-on-accent --color-text --color-text-muted --color-surface-sunken --radius-sm --space-1 --space-2 --space-3 --weight-semibold
- * Use cases: long lists; search results; tables; galleries; activity feeds
- * Jobs to be done: get to the next page; jump to a page; see how much there is left
- * Keywords: pagination, paging, next, previous, page size, load more
+ * Use cases: long lists; search results; tables; galleries; activity feeds; paged list; order history; bookings list; transaction list; data table paging; records list; archive
+ * Jobs to be done: get to the next page; jump to a page; see how much there is left; browse through a long list; jump to a specific page; show more results per page; filter records by status
+ * Keywords: pagination, paging, next, previous, page size, load more, pages, list, navigation
  */
 /**
  * Three ways through a long list. Numbered paging when people need to come back to a place; previous and next when

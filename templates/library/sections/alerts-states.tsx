@@ -1,13 +1,16 @@
 /** @flowcode-library alerts-states · Alerts: four tones, inline, banner and toast (Alerts and states)
  * Catalog ID: c.alert (component)
- * Function: The alert (c.alert) in four tones and three places (inline, banner, toast); the reference sheet shows each, the roles that announce them, and a live banner and toast stack.
- * Use it as: import { Alert } from "./alerts-states"; <Alert variant?="info"|"success"|"warning"|"danger" placement?="inline"|"banner"|"toast" title="Shoot saved" onDismiss? dismissLabel? action?>Detail text</Alert>
+ * Function: The alert (c.alert) in four tones and three places (inline, banner, bleed strip, toast), each dismissible and able to carry an action, plus the self-closing toast region (c.toast-stack); the reference sheet shows each, the roles that announce them, and a live banner, strip and toast stack.
+ * Use it as: import { Alert } from "./alerts-states"; <Alert variant?="info"|"success"|"warning"|"danger" placement?="inline"|"banner"|"toast" bleed? tag? title="Shoot saved" onDismiss? dismissLabel? action?={<Button/> or a link}>Detail text</Alert>
  * Variants: c.alert.info - neutral news that needs no action: accent tint with an i icon; c.alert.success - something worked: green tint with a check icon; c.alert.warning - take care before going on: amber tint with an alert icon; c.alert.danger - something failed and needs a fix: red tint, announced at once (role alert)
- * Look: A rounded, tinted box with a round tone icon, a bold title and a line of detail; inline it can carry an action button, as a banner it spans the page with a dismiss button, as a toast it is a one-line pill with a small x.
- * Tokens: --color-accent --color-success --color-warning --color-danger --color-border --color-surface --color-surface-sunken --color-text-muted --radius-lg --radius-md --space-1 --space-2 --space-3 --space-4 --duration-med --easing
- * Use cases: form saved; something failed; a warning before an action; a tip; a site-wide notice
- * Jobs to be done: know something happened; understand what went wrong; get told without losing my place
- * Keywords: alert, toast, banner, notice, success, warning, error, info, dismiss
+ * Look: A rounded, tinted box with a round tone icon, a bold title and a line of detail; inline it can carry an action button and a dismiss x, as a banner it spans the page (or, with bleed, is a full-width accent strip with an optional tag) with a link and a dismiss button, as a toast it is a pill with a small x, an optional detail line and an action such as Undo.
+ * Tokens: --color-accent --color-success --color-warning --color-danger --color-border --color-surface --color-surface-sunken --color-text-muted --radius-lg --radius-md --space-1 --space-2 --space-3 --space-4 --duration-med --easing --color-on-accent --color-text --surface-shadow-hover
+ * Also: c.toast-stack (component)
+ *   Use it as: import { ToastStack } from "./alerts-states"; <ToastStack toasts={[{id, variant?, title, text?, onUndo?}]} onDismiss={(id) => ...} max?={4} duration?={5000} contained? />
+ *   Look: A column of toast cards in the page corner, each with a tone icon, title, optional second line and Undo, a close x and a thin bar along the bottom that shrinks as the toast counts down. Hover or focus pauses the count; Escape closes it; only the newest max show.
+ * Use cases: form saved; something failed; a warning before an action; a tip; a site-wide notice; form errors; success message; warning notice; system status; account notices; payment failed; validation feedback; info message; announcement bar; promo banner; new feature announcement; maintenance notice; sale announcement; cookie or policy notice; event promotion; notifications; save confirmation; undo action; background task updates; activity alerts; error notifications; upload complete
+ * Jobs to be done: know something happened; understand what went wrong; get told without losing my place; know what went wrong and fix it; confirm my change was saved; notice something that needs my attention; dismiss a message i've read; hear about what's new; find out about a sale or offer; learn about planned downtime; hide a notice i've seen; know my action worked; undo something i did by mistake; stay aware of updates while working; notice errors without losing my place
+ * Keywords: alert, toast, banner, notice, success, warning, error, info, dismiss, message, status, feedback, dismissible, announcement, snackbar, notification, undo
  */
 /**
  * The same four tones in the three places a message can appear. Where it appears decides how it behaves: an inline
@@ -31,7 +34,7 @@
  * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
  * built app exactly as it runs here.
  */
-import { useEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
+import { useEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 
@@ -55,17 +58,21 @@ type AlertProps = {
   /** Inline sits in the flow; banner spans the page; toast is a one-line pill (render it inside a <ul>). */
   placement?: AlertPlacement;
   title: string;
-  /** Set it and a dismiss button appears (banner and toast). */
+  /** Set it and a dismiss button appears (any placement). */
   onDismiss?: () => void;
   dismissLabel?: string;
-  /** A button for the person to act on, inline only. */
+  /** Banner only: draw the full-width accent strip (an announcement) instead of the tinted box. */
+  bleed?: boolean;
+  /** Banner with bleed only: a small label before the message, such as "New". */
+  tag?: string;
+  /** A button or link for the person to act on: Fix it (inline), See the timetable (banner), Undo (toast). */
   action?: ReactNode;
   className?: string;
   /** The detail line under (inline) or after (banner) the title. */
   children?: ReactNode;
 } & Omit<HTMLAttributes<HTMLElement>, "title" | "children" | "className">;
 
-export function Alert({ variant = "info", placement = "inline", title, onDismiss, dismissLabel, action, className, children, ...rest }: AlertProps) {
+export function Alert({ variant = "info", placement = "inline", title, onDismiss, dismissLabel, action, bleed, tag, className, children, ...rest }: AlertProps) {
   const cls = [PLACE[placement], TONE[variant], className ?? ""].filter(Boolean).join(" ");
   const icon = (
     <span className="fl-ctl-alert-icon" aria-hidden="true">
@@ -77,13 +84,41 @@ export function Alert({ variant = "info", placement = "inline", title, onDismiss
     return (
       <li {...(rest as HTMLAttributes<HTMLLIElement>)} {...own}>
         {icon}
-        {title}
+        {children ? (
+          <span className="fl-ctl-alert-text">
+            <strong>{title}</strong>
+            <span className="fl-ctl-matrix-what">{children}</span>
+          </span>
+        ) : (
+          title
+        )}
+        {action}
         {onDismiss ? (
           <button type="button" className="fl-ctl-toast-x" aria-label={dismissLabel ?? `Dismiss: ${title}`} onClick={onDismiss}>
             <Icon name="close" />
           </button>
         ) : null}
       </li>
+    );
+  }
+  if (placement === "banner" && bleed) {
+    return (
+      <div role="status" {...rest} className={["fl-alr-banner", className ?? ""].filter(Boolean).join(" ")} data-fl={own["data-fl"]}>
+        <div className="fl-alr-banner__row">
+          <p className="fl-alr-banner__msg">
+            {tag ? <span className="fl-alr-banner__tag">{tag}</span> : null}
+            <span>
+              <strong>{title}</strong> {children}
+            </span>
+            {action}
+          </p>
+          {onDismiss ? (
+            <button type="button" className="fl-alr__close" aria-label={dismissLabel ?? "Dismiss announcement"} onClick={onDismiss}>
+              <Icon name="close" />
+            </button>
+          ) : null}
+        </div>
+      </div>
     );
   }
   if (placement === "banner") {
@@ -93,6 +128,7 @@ export function Alert({ variant = "info", placement = "inline", title, onDismiss
         <span>
           <strong>{title}</strong> {children}
         </span>
+        {action}
         {onDismiss ? (
           <Button variant="tertiary" size={32} icon="close" iconOnly onClick={onDismiss}>
             {dismissLabel ?? "Dismiss this notice"}
@@ -109,6 +145,110 @@ export function Alert({ variant = "info", placement = "inline", title, onDismiss
         {children ? <span className="fl-ctl-matrix-what">{children}</span> : null}
       </span>
       {action}
+      {onDismiss ? (
+        <Button variant="tertiary" size={32} icon="close" iconOnly onClick={onDismiss}>
+          {dismissLabel ?? `Dismiss: ${title}`}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+// ── c.toast-stack: the region toasts arrive in. Each one counts down and leaves; hover or focus pauses it. ──
+
+export type ToastItem = {
+  id: number;
+  variant?: AlertVariant;
+  title: string;
+  /** A second line under the title. */
+  text?: string;
+  /** Set it and an Undo button appears; pressing it runs this, then closes the toast. */
+  onUndo?: () => void;
+};
+
+// Written out in full so a build finds every class.
+const TOAST_TONE: Record<AlertVariant, string> = { info: "fl-alr-tone-info", success: "fl-alr-tone-success", warning: "fl-alr-tone-warning", danger: "fl-alr-tone-error" };
+
+function ToastRow({ toast, duration, onClose }: { toast: ToastItem; duration: number; onClose: (id: number) => void }) {
+  const [paused, setPaused] = useState(false);
+  const remaining = useRef(duration);
+  const startedAt = useRef(0);
+  const variant = toast.variant ?? "info";
+
+  useEffect(() => {
+    if (paused) return;
+    startedAt.current = Date.now();
+    const timer = window.setTimeout(() => onClose(toast.id), remaining.current);
+    return () => {
+      window.clearTimeout(timer);
+      remaining.current = Math.max(0, remaining.current - (Date.now() - startedAt.current));
+    };
+  }, [paused, toast.id, onClose]);
+
+  const onKey = (e: KeyboardEvent<HTMLLIElement>) => {
+    if (e.key === "Escape") onClose(toast.id);
+  };
+
+  return (
+    <li
+      className={`fl-alr-toast ${TOAST_TONE[variant]}`}
+      data-fl={`c.toast-stack.${variant}`}
+      data-paused={paused}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPaused(false);
+      }}
+      onKeyDown={onKey}
+    >
+      <span className="fl-alr__icon" aria-hidden="true">
+        <Icon name={TONE_ICON[variant]} />
+      </span>
+      <div className="fl-alr__body" style={{ paddingTop: 0 }}>
+        <p className="fl-alr__title">{toast.title}</p>
+        {toast.text ? <p className="fl-alr__text">{toast.text}</p> : null}
+        {toast.onUndo ? (
+          <button
+            type="button"
+            className="fl-alr-toast__undo"
+            onClick={() => {
+              toast.onUndo?.();
+              onClose(toast.id);
+            }}
+          >
+            Undo
+          </button>
+        ) : null}
+      </div>
+      <button type="button" className="fl-alr__close" aria-label={`Close: ${toast.title}`} onClick={() => onClose(toast.id)}>
+        <Icon name="close" />
+      </button>
+      <span className="fl-alr-toast__bar" style={{ animationDuration: `${duration}ms` }} aria-hidden="true" />
+    </li>
+  );
+}
+
+export function ToastStack({ toasts, onDismiss, max = 4, duration = 5000, contained, label = "Notifications" }: {
+  toasts: ToastItem[];
+  /** Called with the toast's id when it times out, is closed, or Escape is pressed on it. */
+  onDismiss: (id: number) => void;
+  /** At most this many show, the newest kept. */
+  max?: number;
+  /** Milliseconds a toast stays; hover or focus pauses the count. */
+  duration?: number;
+  /** Sit inside the nearest positioned box (a stage) instead of the page corner. */
+  contained?: boolean;
+  label?: string;
+}) {
+  const style = contained ? { position: "absolute" as const, right: "var(--space-4)", bottom: "var(--space-4)", width: "min(24rem, calc(100% - 2 * var(--space-4)))" } : undefined;
+  return (
+    <div role="region" aria-label={label}>
+      <ol className="fl-alr-toasts" style={style} aria-live="polite" aria-relevant="additions">
+        {toasts.slice(-max).map((t) => (
+          <ToastRow key={t.id} toast={t} duration={duration} onClose={onDismiss} />
+        ))}
+      </ol>
     </div>
   );
 }
@@ -125,20 +265,17 @@ const SAMPLE = {
 
 export default function AlertsStates() {
   const d = SAMPLE;
+  const [gone, setGone] = useState<AlertVariant[]>([]);
   const [banner, setBanner] = useState<AlertVariant | "">("warning");
-  const [toasts, setToasts] = useState<{ id: number; tone: AlertVariant; title: string }[]>([]);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [strip, setStrip] = useState(true);
   const seq = useRef(0);
 
-  // A toast says its piece and leaves; anything that needs acting on belongs inline.
-  useEffect(() => {
-    if (!toasts.length) return;
-    const t = window.setTimeout(() => setToasts((v) => v.slice(1)), 3200);
-    return () => window.clearTimeout(t);
-  }, [toasts]);
-
-  const toast = (tone: AlertVariant, title: string) => {
+  // A toast says its piece and leaves (ToastStack counts it down); anything that needs acting on belongs inline.
+  const close = useRef((id: number) => setToasts((v) => v.filter((x) => x.id !== id))).current;
+  const toast = (variant: AlertVariant, title: string, text?: string, onUndo?: () => void) => {
     seq.current += 1;
-    setToasts((v) => [...v, { id: seq.current, tone, title }].slice(-3));
+    setToasts((v) => [...v, { id: seq.current, variant, title, text, onUndo }]);
   };
 
   const bannerTone = d.tones.find((t) => t.id === banner);
@@ -148,11 +285,12 @@ export default function AlertsStates() {
       <h3>Inline</h3>
       <p className="fl-ctl-btn-what">In the flow, next to what it is about. It stays until the thing it describes changes.</p>
       <ul className="fl-ctl-alert-list">
-        {d.tones.map((t) => (
+        {d.tones.filter((t) => !gone.includes(t.id)).map((t) => (
           <li key={t.id}>
             <Alert
               variant={t.id}
               title={t.title}
+              onDismiss={t.id === "danger" ? undefined : () => setGone((v) => [...v, t.id])}
               action={
                 t.id === "danger" ? (
                   <Button variant="secondary" size={32}>
@@ -170,6 +308,12 @@ export default function AlertsStates() {
         ))}
       </ul>
 
+      {gone.length ? (
+        <Button variant="tertiary" size={32} onClick={() => setGone([])}>
+          Bring back the dismissed alerts
+        </Button>
+      ) : null}
+
       <div className="fl-ctl-sizes">
         <h3>Banner</h3>
         <p className="fl-ctl-btn-what">Across the top of the page, about the whole app rather than one field. It can be dismissed; it should not come back on the next page.</p>
@@ -184,23 +328,42 @@ export default function AlertsStates() {
           </Button>
         </div>
         {bannerTone ? (
-          <Alert variant={bannerTone.id} placement="banner" title={bannerTone.title} onDismiss={() => setBanner("")}>
+          <Alert
+            variant={bannerTone.id}
+            placement="banner"
+            title={bannerTone.title}
+            action={<a href="#timetable">See details</a>}
+            onDismiss={() => setBanner("")}
+          >
             {bannerTone.body}
           </Alert>
         ) : (
           <p className="fl-ctl-matrix-what">Dismissed. Pick a tone to bring it back.</p>
+        )}
+        <p className="fl-ctl-btn-what">
+          For a promotion or news rather than a status, the full-width strip: <code>bleed</code>, with an optional tag.
+        </p>
+        {strip ? (
+          <Alert placement="banner" bleed tag="New" title="Autumn term bookings are open." action={<a href="#timetable">See the timetable &rarr;</a>} onDismiss={() => setStrip(false)} />
+        ) : (
+          <Button variant="tertiary" size={32} onClick={() => setStrip(true)}>
+            Show the strip again
+          </Button>
         )}
       </div>
 
       <div className="fl-ctl-sizes">
         <h3>Toast</h3>
         <p className="fl-ctl-btn-what">
-          Arrives in a corner, says one thing and goes after a few seconds. Only for things that need no reply: three at
-          most, oldest first, and never an error.
+          Arrives in a corner, says one thing and goes after a few seconds. Only for things that need no reply, and never an
+          error. An Undo button is fine: the person has the length of the count to change their mind.
         </p>
         <div className="fl-ctl-alert-pick">
           <Button variant="secondary" size={32} onClick={() => toast("success", "Shoot saved")}>
             Save something
+          </Button>
+          <Button variant="secondary" size={32} onClick={() => toast("info", "Class removed", "Pottery for beginners, Sat 11:00", () => toast("success", "Class restored"))}>
+            Remove something
           </Button>
           <Button variant="secondary" size={32} onClick={() => toast("info", "Copied to the clipboard")}>
             Copy something
@@ -210,13 +373,16 @@ export default function AlertsStates() {
           </Button>
         </div>
         <div className="fl-ctl-toast-stage">
-          <ul className="fl-ctl-toasts" role="status" aria-live="polite" aria-label="Notifications">
-            {toasts.map((t) => (
-              <Alert key={t.id} variant={t.tone} placement="toast" title={t.title} onDismiss={() => setToasts((v) => v.filter((x) => x.id !== t.id))} />
-            ))}
-          </ul>
+          <ToastStack toasts={toasts} onDismiss={close} max={4} duration={5000} contained />
           {toasts.length ? null : <p className="fl-ctl-matrix-what">Nothing showing. Press one of the buttons above.</p>}
         </div>
+        <p className="fl-ctl-btn-what">
+          Each toast counts down along its bottom edge. Hover or focus pauses the count; Escape or the x closes it at
+          once. Four at most show, newest kept. The compact pill (placement toast) is for a one-line message:
+        </p>
+        <ul className="fl-ctl-toasts" style={{ position: "static", justifyItems: "start" }} aria-label="Compact toast">
+          <Alert variant="success" placement="toast" title="Shoot saved" />
+        </ul>
       </div>
     </section>
   );

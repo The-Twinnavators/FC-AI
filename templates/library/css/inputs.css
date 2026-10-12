@@ -400,6 +400,7 @@ input.fl-ctl-field--56 { height: 56px; min-height: 56px; padding-inline: var(--s
 .fl-ctl-range:disabled { opacity: 0.55; cursor: not-allowed; }
 .fl-ctl-slider-value { font-size: var(--text-sm); color: var(--color-text-muted); }
 .fl-ctl-slider--range { max-width: 26rem; }
+.fl-ctl-slider-ends { display: flex; justify-content: space-between; }
 
 /* ── Chips: a filter is a button, a label is not ── */
 .fl-ctl-chip-item { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-3); border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: 999px; background: var(--color-surface); color: var(--color-text); font-size: var(--text-sm); cursor: pointer; }
@@ -485,3 +486,4 @@ textarea.fl-ctl-field { min-height: 5rem; padding: var(--space-3); line-height: 
 .fl-ctl-menu:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .fl-ctl-menu li[role="option"], .fl-ctl-menu li[role="menuitem"] { cursor: pointer; }
 .fl-ctl-menu li.is-disabled, .fl-ctl-menu li[aria-disabled="true"] { cursor: not-allowed; }
+.fl-in-option[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }

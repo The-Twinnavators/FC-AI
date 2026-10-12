@@ -1,115 +1,123 @@
 /** @flowcode-library input-textarea · Textareas (Forms)
+ * Catalog ID: p.comment-box (pattern)
+ * Function: The comment box pattern (p.comment-box): a textarea that opens a Bold/Italic/List toolbar with Cancel and Post, counts characters against a limit, and lists the posted comments above it.
+ * Use it as: import { CommentBox } from "./input-textarea"; <CommentBox comments={[{ id, who, when, text }]} title? label? placeholder? postLabel? cancelLabel? emptyText? needText? overText? doneText? you? limit? warnAt? storageKey? onPost?={(text) => ...} />
+ * Built from: c.text-field.underlined, c.button.primary, c.button.tertiary, c.avatar.person
+ * Look: A card with a count in the heading, the comments (initial avatar, name, time, text) and a bordered box that is one line until focused, then grows a toolbar bar with Cancel and Post and a character count below.
+ * Tokens: --color-surface --color-surface-sunken --color-border --color-border-strong --color-accent --color-danger --color-text-muted --radius-md --space-3 --space-4 --text-sm --focus-ring
  * Use cases: comments; reviews; feedback form; booking notes; message box; discussion thread; notes field; support message
  * Jobs to be done: leave a comment; write a review; add notes to my booking; send feedback within the limit
  * Keywords: textarea, character count, auto grow, comment box, comments, limit
  */
 /**
- * Input: textareas. A message field that grows with what you type and counts characters, warning as you near the
- * limit and refusing to send once you're over it; and a comment box with a small formatting toolbar, Cancel and Post.
- * Posted comments appear in a list above it, kept in local storage on this device. Use it for booking notes, reviews,
- * feedback and comment threads. Make it the app's own: replace SAMPLE with the real wording and limit, and post to the
- * real thread.
+ * Comment box: the posted comments in a list and, under them, a box that is one line until you click into it. Open, it
+ * shows a small formatting toolbar (bold, italic, list), Cancel and Post. An optional limit counts characters down,
+ * warns near the end and refuses to post once over. An empty post is refused with a message and focus returns to the
+ * box. Escape cancels; Ctrl or Cmd+Enter posts. Comments are kept in local storage on this device when a storageKey
+ * is given. Make it the app's own: pass the real comments and wording, and send each post to the real thread through
+ * onPost.
  */
-import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
+import { Button } from "./buttons-variants";
+import { TextField } from "./text-fields-states";
+import { Avatar } from "./avatars-variants";
 
-// flowcode:sample
-const SAMPLE = {
-  storageKey: "textarea-comments",
-  message: {
-    title: "Anything we should know?",
-    label: "Notes for your host",
-    hint: "Allergies, access needs or a late arrival. Your host reads this before you come.",
-    placeholder: "We'll arrive around 9pm and have a small dog.",
-    limit: 280,
-    warnAt: 240,
-    submit: "Save notes",
-    empty: "Write a note before saving, or skip this step.",
-    over: "That's over the limit. Trim it a little so your host sees all of it.",
-    done: "Notes saved. Your host will see them with the booking.",
-  },
-  comments: {
-    title: "Comments",
-    label: "Add a comment",
-    placeholder: "Ask a question or share a tip about this recipe…",
-    post: "Post",
-    cancel: "Cancel",
-    empty: "No comments yet. Be the first to say how it went.",
-    needText: "Write a comment before posting.",
-    you: "You",
-    seed: [
-      { id: "c1", who: "Priya N.", when: "2 days ago", text: "Halved the chilli and it was still lovely. Kids asked for seconds." },
-      { id: "c2", who: "Tom W.", when: "Yesterday", text: "Does this freeze well? Planning to batch cook on Sunday." },
-    ],
-  },
+// ── p.comment-box: comments above a growing composer. Built from c.text-field, c.button and c.avatar. ──
+
+export type Comment = { id: string; who: string; when: string; text: string };
+
+export type CommentBoxProps = {
+  /** The comments to start with, oldest first. */
+  comments?: Comment[];
+  /** The heading above the list; the count follows it. */
+  title?: string;
+  /** The box's accessible name (hidden label). */
+  label?: string;
+  placeholder?: string;
+  postLabel?: string;
+  cancelLabel?: string;
+  /** Shown instead of the list while there are no comments. */
+  emptyText?: string;
+  /** The error when Post is pressed with nothing written. */
+  needText?: string;
+  /** The error when Post is pressed over the limit. */
+  overText?: string;
+  /** Said (and shown) after a comment is posted. */
+  doneText?: string;
+  /** The name put on a comment the person posts. */
+  you?: string;
+  /** Maximum characters; no counter and no limit when left out. */
+  limit?: number;
+  /** The count turns to a warning from this many characters; 90% of the limit when left out. */
+  warnAt?: number;
+  /** Keep the comments in local storage on this device under this key. Left out, they live in memory. */
+  storageKey?: string;
+  /** Called with the trimmed text of each posted comment. */
+  onPost?: (text: string) => void;
+  className?: string;
 };
 
-type Comment = { id: string; who: string; when: string; text: string };
-
-function loadComments(): Comment[] {
+function load(key: string | undefined, seed: Comment[]): Comment[] {
+  if (!key) return seed;
   try {
-    const raw = localStorage.getItem(SAMPLE.storageKey);
+    const raw = localStorage.getItem(key);
     if (raw) return JSON.parse(raw) as Comment[];
   } catch {
-    /* storage unavailable: start from the sample */
+    /* storage unavailable: start from the given comments */
   }
-  return SAMPLE.comments.seed;
+  return seed;
 }
 
-function useAutoGrow(value: string) {
-  const ref = useRef<HTMLTextAreaElement>(null);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${el.scrollHeight + 2}px`;
-  }, [value]);
-  return ref;
-}
+// The composer sits inside a bordered box that draws its own border and focus ring, so the field itself is bare.
+const BARE = { border: 0, boxShadow: "none", background: "transparent", resize: "none", overflow: "hidden", minHeight: "var(--control-lg)", borderRadius: "inherit" } as const;
 
-export default function InputTextarea() {
-  const d = SAMPLE;
+export function CommentBox({
+  comments: seed = [],
+  title = "Comments",
+  label = "Add a comment",
+  placeholder = "Write a comment…",
+  postLabel = "Post",
+  cancelLabel = "Cancel",
+  emptyText = "No comments yet.",
+  needText = "Write a comment before posting.",
+  overText = "That's over the limit. Trim it a little before posting.",
+  doneText = "Comment posted.",
+  you = "You",
+  limit,
+  warnAt,
+  storageKey,
+  onPost,
+  className,
+}: CommentBoxProps) {
   const uid = useId();
-
-  // Message with counter
-  const m = d.message;
-  const [msg, setMsg] = useState("");
-  const [msgError, setMsgError] = useState("");
-  const [msgDone, setMsgDone] = useState(false);
-  const msgRef = useAutoGrow(msg);
-  const left = m.limit - msg.length;
-  const tone = left < 0 ? "over" : msg.length >= m.warnAt ? "warn" : "ok";
-
-  function saveMsg(e: FormEvent) {
-    e.preventDefault();
-    if (!msg.trim()) return setMsgError(m.empty);
-    if (left < 0) return setMsgError(m.over);
-    setMsgError("");
-    setMsgDone(true);
-  }
-
-  // Comment box
-  const c = d.comments;
-  const [comments, setComments] = useState<Comment[]>(loadComments);
+  const fieldId = `${uid}-draft`;
+  const [list, setList] = useState<Comment[]>(() => load(storageKey, seed));
   const [draft, setDraft] = useState("");
   const [focused, setFocused] = useState(false);
-  const [cError, setCError] = useState("");
-  const [announce, setAnnounce] = useState("");
-  const draftRef = useAutoGrow(draft);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState("");
+  // The field is a c.text-field, which owns its ref, so it is found by id.
+  const field = () => document.getElementById(fieldId) as HTMLTextAreaElement | null;
 
   useEffect(() => {
+    if (!storageKey) return;
     try {
-      localStorage.setItem(d.storageKey, JSON.stringify(comments));
+      localStorage.setItem(storageKey, JSON.stringify(list));
     } catch {
       /* storage unavailable: keep in memory */
     }
-  }, [comments, d.storageKey]);
+  }, [list, storageKey]);
+
+  const open = focused || draft.length > 0;
+  const left = limit === undefined ? 0 : limit - draft.length;
+  const warn = warnAt ?? (limit === undefined ? 0 : Math.floor(limit * 0.9));
+  const tone = limit === undefined ? "ok" : left < 0 ? "over" : draft.length >= warn ? "warn" : "ok";
 
   function wrap(before: string, after: string) {
-    const el = draftRef.current;
+    const el = field();
     if (!el) return;
     const { selectionStart: s, selectionEnd: e } = el;
-    const next = draft.slice(0, s) + before + draft.slice(s, e) + after + draft.slice(e);
-    setDraft(next);
+    setDraft(draft.slice(0, s) + before + draft.slice(s, e) + after + draft.slice(e));
     setFocused(true);
     requestAnimationFrame(() => {
       el.focus();
@@ -117,162 +125,160 @@ export default function InputTextarea() {
     });
   }
 
-  function post(e: FormEvent) {
-    e.preventDefault();
-    if (!draft.trim()) {
-      setCError(c.needText);
-      draftRef.current?.focus();
+  function post(e?: FormEvent) {
+    e?.preventDefault();
+    const text = draft.trim();
+    if (!text) {
+      setError(needText);
+      field()?.focus();
       return;
     }
-    setComments((list) => [...list, { id: `${Date.now()}`, who: c.you, when: "Just now", text: draft.trim() }]);
+    if (left < 0) {
+      setError(overText);
+      field()?.focus();
+      return;
+    }
+    setList((l) => [...l, { id: `${Date.now()}`, who: you, when: "Just now", text }]);
+    onPost?.(text);
     setDraft("");
-    setCError("");
+    setError("");
     setFocused(false);
-    setAnnounce("Comment posted.");
+    setDone(doneText);
   }
 
   function cancel() {
     setDraft("");
-    setCError("");
+    setError("");
     setFocused(false);
-    draftRef.current?.blur();
+    field()?.blur();
   }
 
-  const open = focused || draft.length > 0;
+  const describe = [error ? `${uid}-err` : "", limit !== undefined ? `${uid}-count` : ""].filter(Boolean).join(" ") || undefined;
 
   return (
-    <section className="fl-section" aria-labelledby={`${uid}-title`}>
-      <div className="fl-wrap fl-wrap--narrow fl-in-stack">
-        <form className="fl-card fl-in-panel" noValidate onSubmit={saveMsg}>
-          <h2 id={`${uid}-title`} className="fl-title fl-title--md">
-            {m.title}
-          </h2>
-          <div className="fl-field">
-            <label htmlFor={`${uid}-msg`}>{m.label}</label>
-            <span id={`${uid}-msg-hint`} className="fl-note">
-              {m.hint}
-            </span>
-            <textarea
-              ref={msgRef}
-              id={`${uid}-msg`}
-              className="fl-input fl-in-grow"
-              rows={3}
-              placeholder={m.placeholder}
-              value={msg}
-              aria-invalid={!!msgError || tone === "over" || undefined}
-              aria-describedby={`${uid}-msg-hint ${uid}-msg-count${msgError ? ` ${uid}-msg-err` : ""}`}
-              onChange={(e) => {
-                setMsg(e.target.value);
-                setMsgDone(false);
-                if (msgError) setMsgError("");
-              }}
-            />
-            <div className="fl-in-countrow">
-              {msgError ? (
-                <span id={`${uid}-msg-err`} className="fl-in-error" role="alert">
-                  {msgError}
-                </span>
-              ) : (
-                <span />
-              )}
-              <span id={`${uid}-msg-count`} className={`fl-in-count fl-in-count--${tone}`} aria-live={tone === "ok" ? "off" : "polite"}>
-                {left >= 0 ? `${left} characters left` : `${-left} over the limit`}
-              </span>
+    <div className={["fl-card", "fl-in-panel", className ?? ""].filter(Boolean).join(" ")} data-fl="p.comment-box" role="region" aria-labelledby={`${uid}-title`}>
+      <h3 id={`${uid}-title`}>
+        {title} <span className="fl-meta">({list.length})</span>
+      </h3>
+      {list.length === 0 ? (
+        <p className="fl-in-empty">{emptyText}</p>
+      ) : (
+        <ul className="fl-in-comments">
+          {list.map((x) => (
+            <li key={x.id} className="fl-in-comment">
+              <Avatar name={x.who} size={32} decorative />
+              <div>
+                <p className="fl-in-comment__meta">
+                  <strong>{x.who}</strong> <span className="fl-meta">· {x.when}</span>
+                </p>
+                <p className="fl-in-comment__text">{x.text}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form className={`fl-in-cbox${open ? " fl-in-cbox--open" : ""}${error ? " fl-in-cbox--invalid" : ""}`} noValidate onSubmit={post}>
+        <label htmlFor={fieldId} className="fl-sr">
+          {label}
+        </label>
+        <TextField
+          multiline
+          autoGrow
+          variant="underlined"
+          id={fieldId}
+          className="fl-in-cbox__field"
+          style={BARE}
+          rows={open ? 3 : 1}
+          placeholder={placeholder}
+          value={draft}
+          invalid={!!error || tone === "over"}
+          aria-describedby={describe}
+          onFocus={() => setFocused(true)}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            if (error) setError("");
+            if (done) setDone("");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") cancel();
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) post();
+          }}
+        />
+        {open && (
+          <div className="fl-in-cbox__bar">
+            <div className="fl-in-bgroup fl-in-bgroup--quiet" role="toolbar" aria-label="Comment formatting">
+              <button type="button" className="fl-in-glyph fl-in-glyph--bold" aria-label="Bold" title="Bold" onClick={() => wrap("**", "**")}>
+                B
+              </button>
+              <button type="button" className="fl-in-glyph fl-in-glyph--italic" aria-label="Italic" title="Italic" onClick={() => wrap("_", "_")}>
+                I
+              </button>
+              <button type="button" aria-label="Bulleted list" title="Bulleted list" onClick={() => wrap("\n- ", "")}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
+                  <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
+                </svg>
+              </button>
+            </div>
+            <div className="fl-in-cbox__actions">
+              <Button variant="tertiary" size={32} onClick={cancel}>
+                {cancelLabel}
+              </Button>
+              <Button variant="primary" size={32} type="submit">
+                {postLabel}
+              </Button>
             </div>
           </div>
-          {msgDone && (
-            <p className="fl-done" role="status">
-              {m.done}
-            </p>
-          )}
-          <div className="fl-actions">
-            <button type="submit" className="fl-btn fl-btn--primary">
-              {m.submit}
-            </button>
-          </div>
-        </form>
-
-        <div className="fl-card fl-in-panel" aria-labelledby={`${uid}-ctitle`} role="region">
-          <h3 id={`${uid}-ctitle`}>
-            {c.title} <span className="fl-meta">({comments.length})</span>
-          </h3>
-          {comments.length === 0 ? (
-            <p className="fl-in-empty">{c.empty}</p>
+        )}
+      </form>
+      {(error || limit !== undefined) && (
+        <div className="fl-in-countrow">
+          {error ? (
+            <span id={`${uid}-err`} className="fl-in-error" role="alert">
+              {error}
+            </span>
           ) : (
-            <ul className="fl-in-comments">
-              {comments.map((x) => (
-                <li key={x.id} className="fl-in-comment">
-                  <span className="fl-person__avatar" aria-hidden="true">
-                    {x.who.slice(0, 1)}
-                  </span>
-                  <div>
-                    <p className="fl-in-comment__meta">
-                      <strong>{x.who}</strong> <span className="fl-meta">· {x.when}</span>
-                    </p>
-                    <p className="fl-in-comment__text">{x.text}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <span />
           )}
-          <form className={`fl-in-cbox${open ? " fl-in-cbox--open" : ""}${cError ? " fl-in-cbox--invalid" : ""}`} noValidate onSubmit={post}>
-            <label htmlFor={`${uid}-draft`} className="fl-sr">
-              {c.label}
-            </label>
-            <textarea
-              ref={draftRef}
-              id={`${uid}-draft`}
-              className="fl-in-cbox__field"
-              rows={open ? 3 : 1}
-              placeholder={c.placeholder}
-              value={draft}
-              aria-invalid={!!cError || undefined}
-              aria-describedby={cError ? `${uid}-draft-err` : undefined}
-              onFocus={() => setFocused(true)}
-              onChange={(e) => {
-                setDraft(e.target.value);
-                if (cError) setCError("");
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") cancel();
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) post(e);
-              }}
-            />
-            {open && (
-              <div className="fl-in-cbox__bar">
-                <div className="fl-in-bgroup fl-in-bgroup--quiet" role="toolbar" aria-label="Comment formatting">
-                  <button type="button" className="fl-in-glyph fl-in-glyph--bold" aria-label="Bold" title="Bold" onClick={() => wrap("**", "**")}>
-                    B
-                  </button>
-                  <button type="button" className="fl-in-glyph fl-in-glyph--italic" aria-label="Italic" title="Italic" onClick={() => wrap("_", "_")}>
-                    I
-                  </button>
-                  <button type="button" aria-label="Bulleted list" title="Bulleted list" onClick={() => wrap("\n- ", "")}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
-                      <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="fl-in-cbox__actions">
-                  <button type="button" className="fl-in-textbtn" onClick={cancel}>
-                    {c.cancel}
-                  </button>
-                  <button type="submit" className="fl-btn fl-btn--primary fl-in-btn-sm">
-                    {c.post}
-                  </button>
-                </div>
-              </div>
-            )}
-          </form>
-          {cError && (
-            <p id={`${uid}-draft-err`} className="fl-in-error" role="alert">
-              {cError}
-            </p>
+          {limit !== undefined && (
+            <span id={`${uid}-count`} className={`fl-in-count fl-in-count--${tone}`} aria-live={tone === "ok" ? "off" : "polite"}>
+              {left >= 0 ? `${left} characters left` : `${-left} over the limit`}
+            </span>
           )}
-          <p className="fl-sr" aria-live="polite">
-            {announce}
-          </p>
         </div>
+      )}
+      <p className={done ? "fl-done" : "fl-sr"} role="status" aria-live="polite">
+        {done}
+      </p>
+    </div>
+  );
+}
+
+// flowcode:sample
+const SAMPLE = {
+  storageKey: "textarea-comments",
+  title: "Comments",
+  label: "Add a comment",
+  placeholder: "Ask a question or share a tip about this recipe…",
+  postLabel: "Post",
+  cancelLabel: "Cancel",
+  emptyText: "No comments yet. Be the first to say how it went.",
+  needText: "Write a comment before posting.",
+  overText: "That's over the limit. Trim it a little so everyone sees all of it.",
+  doneText: "Comment posted.",
+  you: "You",
+  limit: 280,
+  warnAt: 240,
+  comments: [
+    { id: "c1", who: "Priya N.", when: "2 days ago", text: "Halved the chilli and it was still lovely. Kids asked for seconds." },
+    { id: "c2", who: "Tom W.", when: "Yesterday", text: "Does this freeze well? Planning to batch cook on Sunday." },
+  ],
+};
+
+export default function InputTextarea() {
+  return (
+    <section className="fl-section">
+      <div className="fl-wrap fl-wrap--narrow fl-in-stack">
+        <CommentBox {...SAMPLE} />
       </div>
     </section>
   );

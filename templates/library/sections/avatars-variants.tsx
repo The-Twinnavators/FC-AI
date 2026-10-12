@@ -1,13 +1,16 @@
 /** @flowcode-library avatars-variants · Avatars: sizes, shapes, initials, status and a stack (Small components)
  * Catalog ID: c.avatar (component)
- * Function: The avatar (c.avatar) that identifies a person or organization, and its reference sheet: sizes, round or square, the initials fallback when a picture fails, presence dots and a stack.
- * Use it as: import { Avatar } from "./avatars-variants"; <Avatar variant?="person"|"organization" name size?={20|24|32|40|48|64} tone?="a"|"b"|"c"|"d"|"e"|"rest" src? status?="online"|"away"|"offline" label? decorative? />
+ * Function: The avatar (c.avatar) that identifies a person or organization, and its reference sheet: sizes, round or square, the initials fallback when a picture fails, presence dots and a stack. Also exports c.avatar-stack (AvatarStack).
+ * Use it as: import { Avatar } from "./avatars-variants"; <Avatar variant?="person"|"organization" name size?={20|24|32|40|48|64} tone?="a"|"b"|"c"|"d"|"e"|"rest" src? status?="online"|"away"|"offline" label? decorative? />; <AvatarStack people={[{ name, tone?, src?, status? }]} max?={4} size?={32} label? onMore?={() => ...} />
  * Variants: c.avatar.person - a person: a round avatar; c.avatar.organization - a company or team: a square avatar with rounded corners
  * Look: A small colored disc (or rounded square) holding a picture or the name's initials, with an optional status dot on the corner; six sizes from 20 to 64 px.
  * Tokens: --color-surface-sunken --color-text --color-text-muted --color-accent --color-success --color-danger --color-warning --color-surface --color-border --color-border-strong --radius-md
- * Use cases: a comment's author; a team list; an assignee picker; a chat header; a presence row
- * Jobs to be done: tell people apart at a glance; see who is on something; see who is here now
- * Keywords: avatar, initials, profile picture, presence, status dot, avatar group, fallback
+ * Also: c.avatar-stack (component)
+ *   Use it as: import { AvatarStack } from "./avatars-variants"; <AvatarStack people={[{ name, tone?, src?, status? }]} max?={4} size?={20|24|32|40|48|64} label?="On this shoot" onMore?={() => ...} expanded? />
+ *   Look: Overlapping round avatars with a white ring, ending in a +N circle that becomes a button when onMore is passed; the whole stack reads as one labeled image.
+ * Use cases: a comment's author; a team list; an assignee picker; a chat header; a presence row; team members; collaborators; attendee list; online presence; shared with; project members; participants; assignees
+ * Jobs to be done: tell people apart at a glance; see who is on something; see who is here now; see who is on the team; check who is online now; see everyone attending; find a specific person
+ * Keywords: avatar, initials, profile picture, presence, status dot, avatar group, fallback, avatars, team, status, people
  */
 /**
  * An avatar is a fallback waiting to happen: a picture that fails, a person with one name, a name with an accent, a
@@ -100,10 +103,47 @@ export function Avatar({ variant = "person", name, size = 40, tone = "e", src, s
   );
 }
 
+export type StackPerson = { name: string; tone?: AvatarTone; src?: string; status?: AvatarStatus };
+
+/**
+ * c.avatar-stack: overlapping avatars that end in a "+N" count. The whole stack is one labeled image for a screen
+ * reader; pass onMore to make the count a button that reveals everyone (for example to open the full list).
+ */
+export function AvatarStack({ people, max = 4, size = 32, label, onMore, expanded, className }: {
+  people: StackPerson[];
+  /** How many faces to draw before the count. */
+  max?: number;
+  size?: AvatarSize;
+  /** What the stack reads as, such as "On this shoot". The names are added after it. */
+  label?: string;
+  /** Makes the "+N" a button; called when it is pressed. */
+  onMore?: () => void;
+  /** With onMore: whether the list it controls is open. */
+  expanded?: boolean;
+  className?: string;
+}) {
+  const shown = people.slice(0, max);
+  const rest = people.length - shown.length;
+  const faces = shown.map((p) => <Avatar key={p.name} name={p.name} tone={p.tone} src={p.src} status={undefined} size={size} decorative />);
+  const more = rest > 0 ? <Avatar name={`${rest} more`} tone="rest" size={size} label={expanded ? "–" : `+${rest}`} decorative /> : null;
+  const names = `${label ? `${label}: ` : ""}${people.map((p) => p.name).join(", ")}`;
+  return (
+    <span className={["fl-ctl-avatar-stack", className ?? ""].filter(Boolean).join(" ")} data-fl="c.avatar-stack" role={onMore ? "group" : "img"} aria-label={names}>
+      {faces}
+      {more && onMore ? (
+        <button type="button" className="fl-ctl-avatar-more" aria-expanded={expanded} aria-label={expanded ? "Show fewer people" : `Show ${rest} more people`} onClick={onMore}>
+          {more}
+        </button>
+      ) : (
+        more
+      )}
+    </span>
+  );
+}
+
 export default function AvatarsVariants() {
   const d = SAMPLE;
-  const shown = d.people.slice(0, 4);
-  const rest = d.people.length - shown.length;
+  const [all, setAll] = useState(false);
 
   return (
     <section className="fl-section fl-section--specimen">
@@ -178,14 +218,21 @@ export default function AvatarsVariants() {
       <div className="fl-ctl-sizes">
         <h3>A stack</h3>
         <p className="fl-ctl-btn-what">Four at most, then a count. The whole stack is one thing to a screen reader, so it reads as a sentence rather than six names in a row.</p>
-        <span className="fl-ctl-avatar-stack" role="img" aria-label={`On this shoot: ${d.people.map((p) => p.name).join(", ")}`}>
-          {shown.map((p) => (
-            <Avatar key={p.id} name={p.name} tone={p.tone} size={32} decorative />
-          ))}
-          {rest > 0 ? (
-            <Avatar name={`${rest} more`} tone="rest" size={32} label={`+${rest}`} decorative />
-          ) : null}
-        </span>
+        <AvatarStack people={d.people} label="On this shoot" />
+        <p className="fl-ctl-btn-what">With onMore the count is a button, and the list it opens is yours to draw.</p>
+        <AvatarStack people={d.people} max={3} label="Team on the Saturday rota" onMore={() => setAll((v) => !v)} expanded={all} />
+        {all ? (
+          <ul className="fl-ctl-avatar-people">
+            {d.people.map((p) => (
+              <li key={p.id}>
+                <Avatar name={p.name} tone={p.tone} size={32} status={p.here} />
+                <span>
+                  <strong>{p.name}</strong>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </section>
   );

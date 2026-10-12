@@ -1,13 +1,13 @@
 /** @flowcode-library badges-status · Badges: status pills, counts and dots (Small components)
  * Catalog ID: c.badge (component)
  * Function: The badge component (c.badge): the reference sheet shows status pills in five tones and three looks, counts that cap at 99+, and live-state dots.
- * Use it as: import { Badge } from "./badges-status"; <Badge variant?="status"|"count"|"dot" tone?="neutral"|"info"|"success"|"warning"|"danger"|"online"|"away"|"offline" look?="soft"|"solid"|"outline" count?={n} label?>Label</Badge>
- * Variants: c.badge.status - the state a row is in, read as words: a small pill in a tone (neutral, info, success, warning, danger) and a look (soft tint, solid fill, outline); c.badge.count - how many are waiting: a small round number on the corner of an icon; renders nothing at 0 and reads 99+ past 99; c.badge.dot - live or away at a glance: a tiny colored dot (online, away, offline) that needs a word nearby or a label prop
+ * Use it as: import { Badge } from "./badges-status"; <Badge variant?="status"|"count"|"dot" tone?="neutral"|"info"|"success"|"warning"|"danger"|"online"|"away"|"offline" look?="soft"|"solid"|"outline"|"chip" led? pulse? count?={n} label?>Label</Badge>
+ * Variants: c.badge.status - the state a row is in, read as words: a small pill in a tone (neutral, info, success, warning, danger) and a look (soft tint, solid fill, outline); look chip is small square corners in uppercase mono with a signal light, for a status key; c.badge.count - how many are waiting: a small round number on the corner of an icon; renders nothing at 0 and reads 99+ past 99; c.badge.dot - live or away at a glance: a tiny colored dot (online, away, offline) that needs a word nearby or a label prop
  * Look: A small rounded pill with a short label in a tone color, a round count on an icon, or a tiny colored dot.
- * Tokens: --color-accent --color-danger --color-success --color-surface --color-surface-sunken --color-text --color-text-muted --color-border --color-on-accent --text-xs --weight-semibold --radius-sm --space-1 --space-2
- * Use cases: a row's status; unread counts; an online dot; a plan label; a new flag
- * Jobs to be done: see the state of a row at a glance; see how many are waiting; tell live from stale
- * Keywords: badge, pill, status, count, dot, notification, label, tone
+ * Tokens: --color-accent --color-danger --color-success --color-surface --color-surface-sunken --color-text --color-text-muted --color-border --color-on-accent --text-xs --weight-semibold --radius-sm --space-1 --space-2 --color-warning --font-mono --tracking-wide
+ * Use cases: a row's status; unread counts; an online dot; a plan label; a new flag; order status; task status; deployment status; job queue; ticket status; build progress; workflow tracker; delivery tracking
+ * Jobs to be done: see the state of a row at a glance; see how many are waiting; tell live from stale; see where each item stands; spot what failed at a glance; know when something is still working; track progress over time
+ * Keywords: badge, pill, status, count, dot, notification, label, tone, chip, signal light, indicator
  */
 /**
  * Three different things that all get called badges. A status pill says what state a thing is in and is read as words.
@@ -36,7 +36,7 @@ import { Button } from "./buttons-variants";
 
 export type BadgeVariant = "status" | "count" | "dot";
 export type BadgeTone = "neutral" | "info" | "success" | "warning" | "danger";
-export type BadgeLook = "soft" | "solid" | "outline";
+export type BadgeLook = "soft" | "solid" | "outline" | "chip";
 export type BadgeLive = "online" | "away" | "offline";
 
 // Written out in full (not built from the names) so a build finds every class the badge needs.
@@ -47,15 +47,27 @@ const TONE: Record<BadgeTone, string> = {
   warning: "fl-ctl-badge--warning",
   danger: "fl-ctl-badge--danger",
 };
-const LOOK: Record<BadgeLook, string> = { soft: "fl-ctl-badge--soft", solid: "fl-ctl-badge--solid", outline: "fl-ctl-badge--outline" };
+const LOOK: Record<BadgeLook, string> = { soft: "fl-ctl-badge--soft", solid: "fl-ctl-badge--solid", outline: "fl-ctl-badge--outline", chip: "" };
+// The signal light inside a status pill takes its color from these tone classes (controls.css).
+const LED: Record<BadgeTone, string> = {
+  neutral: "fl-ctl-tone-draft",
+  info: "fl-ctl-tone-progress",
+  success: "fl-ctl-tone-done",
+  warning: "fl-ctl-tone-waiting",
+  danger: "fl-ctl-tone-failed",
+};
 const LIVE: Record<BadgeLive, string> = { online: "fl-ctl-dot--online", away: "fl-ctl-dot--away", offline: "fl-ctl-dot--offline" };
 
 type BadgeProps = {
   variant?: BadgeVariant;
   /** status: the color. dot: online, away or offline. Defaults to neutral (status) or offline (dot). */
   tone?: BadgeTone | BadgeLive;
-  /** status only: soft tint (default), solid fill or outline. */
+  /** status only: soft tint (default), solid fill, outline, or chip (small square corners, uppercase mono, with a light). */
   look?: BadgeLook;
+  /** status only: a small signal light before the label, so the status reads by shape as well as color. */
+  led?: boolean;
+  /** status only (with led): the light pulses, for work in progress. */
+  pulse?: boolean;
   /** count only: the number. 0 renders nothing; past 99 it reads 99+. */
   count?: number;
   /** dot only: the word a screen reader hears, such as "Online". */
@@ -65,7 +77,7 @@ type BadgeProps = {
   children?: ReactNode;
 } & Omit<HTMLAttributes<HTMLSpanElement>, "children" | "className">;
 
-export function Badge({ variant = "status", tone, look = "soft", count = 0, label, className, children, ...rest }: BadgeProps) {
+export function Badge({ variant = "status", tone, look = "soft", led, pulse, count = 0, label, className, children, ...rest }: BadgeProps) {
   const extra = className ? ` ${className}` : "";
   if (variant === "count") {
     if (!count) return null;
@@ -81,8 +93,20 @@ export function Badge({ variant = "status", tone, look = "soft", count = 0, labe
     return <span {...rest} {...a11y} className={`fl-ctl-dot ${live}${extra}`} data-fl="c.badge.dot" />;
   }
   const t = TONE[(tone as BadgeTone) ?? "neutral"] ?? TONE.neutral;
+  const ledTone = LED[(tone as BadgeTone) ?? "neutral"] ?? LED.neutral;
+  const showLed = led ?? look === "chip";
+  const light = showLed ? <span className={`fl-ctl-led ${ledTone}${pulse ? " fl-ctl-led--pulse" : ""}`} aria-hidden="true" /> : null;
+  if (look === "chip") {
+    return (
+      <span {...rest} className={`fl-ctl-chip ${ledTone}${extra}`} data-fl="c.badge.status">
+        {light}
+        {children}
+      </span>
+    );
+  }
   return (
     <span {...rest} className={`fl-ctl-badge ${LOOK[look]} ${t}${extra}`} data-fl="c.badge.status">
+      {light}
       {children}
     </span>
   );
@@ -97,10 +121,24 @@ const SAMPLE = {
     { id: "warning" as const, label: "Needs changes", what: "Finished, and not good" },
     { id: "danger" as const, label: "Rejected", what: "Stopped" },
   ],
+  chips: [
+    { id: "neutral" as const, label: "Draft", pulse: false },
+    { id: "warning" as const, label: "Waiting", pulse: false },
+    { id: "info" as const, label: "In progress", pulse: true },
+    { id: "success" as const, label: "Done", pulse: false },
+    { id: "danger" as const, label: "Failed", pulse: false },
+  ],
   looks: [
     { id: "soft" as const, label: "Soft", what: "A tinted pill: the default, quiet enough for a whole column" },
     { id: "solid" as const, label: "Solid", what: "Filled: for one row that needs pulling out" },
     { id: "outline" as const, label: "Outline", what: "A border only: for a dense table where fills would be noise" },
+  ],
+  statuses: [
+    { id: "neutral" as const, label: "Draft", led: false },
+    { id: "warning" as const, label: "Waiting", led: false },
+    { id: "info" as const, label: "In progress", led: true },
+    { id: "success" as const, label: "Done", led: false },
+    { id: "danger" as const, label: "Failed", led: false },
   ],
   live: [
     { id: "online" as const, label: "Online", what: "Here now" },
@@ -147,6 +185,35 @@ export default function BadgesStatus() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>With a light</h3>
+        <p className="fl-ctl-btn-what">
+          A signal light before the word, for a list of orders or jobs read at a glance. The light pulses only while work is
+          in progress; the word is always there.
+        </p>
+        <div className="fl-ctl-badge-count-row">
+          {d.statuses.map((s) => (
+            <Badge key={s.id} tone={s.id} led pulse={s.led}>
+              {s.label}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="fl-ctl-sizes">
+        <h3>Chip</h3>
+        <p className="fl-ctl-btn-what">
+          Small square corners, uppercase mono and a light: a status key for a dashboard or order list (look="chip").
+        </p>
+        <div className="fl-ctl-badge-count-row">
+          {d.chips.map((c) => (
+            <Badge key={c.id} look="chip" tone={c.id} pulse={c.pulse}>
+              {c.label}
+            </Badge>
+          ))}
+        </div>
       </div>
 
       <div className="fl-ctl-sizes">

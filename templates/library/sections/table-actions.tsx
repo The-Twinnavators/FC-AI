@@ -1,31 +1,275 @@
 /** @flowcode-library table-actions · Table with row actions (Tables and lists)
+ * Catalog ID: p.resource-table (pattern)
+ * Function: The resource table pattern (p.resource-table): a search box above a data table whose every row has an Edit, Duplicate and Delete menu, with an edit dialog, a delete confirmation and numbered pagination with row counts below.
+ * Use it as: import { ResourceTable } from "./table-actions"; <ResourceTable title? lede? noun="booking" columns={[{ id, label, num?, render? }]} rows={[{ id, ... }]} editFields={[{ key, label, kind?: "text"|"number", error? }]} nameKey? pageSize? searchLabel? searchPlaceholder? copyOverrides? describe?={(row) => text} onRowsChange?={(rows) => ...} />
+ * Built from: p.data-table, c.menu, c.modal.form, c.modal.danger, c.text-field.outlined, c.pagination.numbered, c.badge.status, c.button.secondary
+ * Look: A heading, a search box with a live row count, a table with a three-dot menu at the end of each row, a footer with "Showing 1-4 of 9" beside page numbers, and a quiet status line announcing each change.
+ * Tokens: --color-surface --color-surface-sunken --color-border --color-text-muted --color-success --radius-lg --space-2 --space-3 --space-4 --text-sm
  * Use cases: admin table; user management; order management; bookings list; invoice list; inventory management; customer list; content management
  * Jobs to be done: find a record quickly; edit or remove an entry; check the status of each order; manage records page by page
  * Keywords: table, search, pagination, admin, status
  */
 /**
- * Table: search, row actions and pages. Status badges, a per-row menu (edit, duplicate, delete with a confirm step),
- * a search box above and pagination below. Use it for admin lists people manage day to day: bookings, orders, stock.
- * Make it the app's own: replace SAMPLE with real rows and statuses, and change `pageSize` to suit the screen.
+ * Resource table: search, row actions and pages. A search box above filters the rows; each row has a menu (edit,
+ * duplicate, delete); Edit opens a dialog with the editable fields checked before saving, Delete asks first, and a
+ * status line announces what changed. Pagination sits below with the row counts. Use it for admin lists people manage
+ * day to day: bookings, orders, stock. Make it the app's own: pass real rows and columns, name the editable fields, and
+ * save through onRowsChange.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent, KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
+import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { Icon } from "./icons";
+import { Button } from "./buttons-variants";
+import { Badge, type BadgeTone } from "./badges-status";
+import { DataTable, type TableColumn, type TableRow } from "./tables-states";
+import { Menu, type MenuItem } from "./popovers-menus";
+import { Modal } from "./modals-dialogs";
+import { TextField } from "./text-fields-states";
+import { Pagination } from "./pagination-variants";
+
+// ── p.resource-table: search, a menu on every row, edit and delete dialogs, pages. Built from p.data-table, c.menu, c.modal, c.pagination. ──
+
+export type ResourceField = {
+  /** The row key this field edits. */
+  key: string;
+  label: string;
+  /** number: a figure of 0 or more. Text (not empty) when left out. */
+  kind?: "text" | "number";
+  /** The message when the entry is refused; a plain default per kind when left out. */
+  error?: string;
+};
+
+export type ResourceTableProps<R extends TableRow = TableRow> = {
+  title?: string;
+  lede?: string;
+  /** What one row is, singular: "booking". Used in the count, the dialogs and the status line. */
+  noun?: string;
+  columns: TableColumn<R>[];
+  rows: R[];
+  /** The fields the Edit dialog offers. */
+  editFields: ResourceField[];
+  /** The row key that names a row; the first column when left out. */
+  nameKey?: string;
+  pageSize?: number;
+  searchLabel?: string;
+  searchPlaceholder?: string;
+  /** Values set on the copy a Duplicate makes, such as { status: "pending" }. The name gets " (copy)". */
+  copyOverrides?: Record<string, unknown>;
+  /** One sentence for the delete confirmation, saying what goes. */
+  describe?: (row: R) => string;
+  /** Called with the full list of rows after an edit, duplicate or delete. */
+  onRowsChange?: (rows: R[]) => void;
+  className?: string;
+};
+
+const MENU: MenuItem[] = [
+  { id: "edit", label: "Edit", icon: "pencil" },
+  { id: "duplicate", label: "Duplicate", icon: "copy" },
+  { id: "delete", label: "Delete…", icon: "trash", danger: true },
+];
+
+export function ResourceTable<R extends TableRow>({
+  title,
+  lede,
+  noun = "item",
+  columns,
+  rows: given,
+  editFields,
+  nameKey,
+  pageSize = 10,
+  searchLabel = "Search",
+  searchPlaceholder = "Search",
+  copyOverrides,
+  describe,
+  onRowsChange,
+  className,
+}: ResourceTableProps<R>) {
+  const [rows, setRows] = useState<R[]>(given);
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [dialog, setDialog] = useState<{ kind: "edit" | "delete"; row: R } | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState("");
+  const name = nameKey ?? columns[0].id;
+  const nameOf = (r: R) => String(r[name] ?? r.id);
+  const searchId = `rt-search-${noun}`;
+  const fieldId = (key: string) => `rt-${noun}-${key}`;
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return q ? rows.filter((r) => columns.map((c) => String(r[c.id] ?? "")).join(" ").toLowerCase().includes(q)) : rows;
+  }, [rows, query, columns]);
+  const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const current = Math.min(page, pages);
+  const visible = filtered.slice((current - 1) * pageSize, current * pageSize);
+  const from = filtered.length ? (current - 1) * pageSize + 1 : 0;
+  const to = Math.min(current * pageSize, filtered.length);
+  const plural = (n: number) => `${n} ${noun}${n === 1 ? "" : "s"}`;
+
+  function commit(next: R[]) {
+    setRows(next);
+    onRowsChange?.(next);
+  }
+
+  function pick(row: R, id: string) {
+    if (id === "duplicate") {
+      const copy = { ...row, ...copyOverrides, id: `${row.id}-${Date.now()}`, [name]: `${nameOf(row)} (copy)` } as R;
+      const i = rows.findIndex((r) => r.id === row.id);
+      commit([...rows.slice(0, i + 1), copy, ...rows.slice(i + 1)]);
+      setStatus(`Duplicated the ${noun} for ${nameOf(row)}.`);
+      return;
+    }
+    setErrors({});
+    setDialog({ kind: id === "edit" ? "edit" : "delete", row });
+  }
+
+  function saveEdit(data: FormData): false | void {
+    if (!dialog) return false;
+    const next: Record<string, string> = {};
+    const patch: Record<string, unknown> = {};
+    for (const f of editFields) {
+      const raw = String(data.get(f.key) ?? "").trim();
+      if (f.kind === "number") {
+        const n = Number(raw);
+        if (!raw || Number.isNaN(n) || n < 0) next[f.key] = f.error ?? "Enter a figure of 0 or more, numbers only.";
+        else patch[f.key] = n;
+      } else if (!raw) next[f.key] = f.error ?? `Enter the ${f.label.toLowerCase()}.`;
+      else patch[f.key] = raw;
+    }
+    setErrors(next);
+    const bad = editFields.find((f) => next[f.key]);
+    if (bad) {
+      document.getElementById(fieldId(bad.key))?.focus();
+      return false;
+    }
+    commit(rows.map((r) => (r.id === dialog.row.id ? { ...r, ...patch } : r)));
+    setStatus(`Saved changes to ${String(patch[name] ?? nameOf(dialog.row))}'s ${noun}.`);
+    setDialog(null);
+  }
+
+  function confirmDelete() {
+    if (!dialog) return;
+    const gone = nameOf(dialog.row);
+    commit(rows.filter((r) => r.id !== dialog.row.id));
+    setStatus(`Deleted the ${noun} for ${gone}.`);
+    setDialog(null);
+    // The row's menu button is gone, so focus goes back to the search box.
+    requestAnimationFrame(() => document.getElementById(searchId)?.focus());
+  }
+
+  return (
+    <div className={["fl-tbl", "fl-tbl-resource", className ?? ""].filter(Boolean).join(" ")} data-fl="p.resource-table">
+      {title || lede ? (
+        <div className="fl-head" style={{ marginBottom: 0 }}>
+          {title ? <h2 className="fl-title fl-title--md">{title}</h2> : null}
+          {lede ? <p className="fl-text">{lede}</p> : null}
+        </div>
+      ) : null}
+      <div className="fl-tbl-toolbar">
+        <div className="fl-tbl-search" role="search">
+          <Icon name="search" />
+          <TextField
+            id={searchId}
+            type="search"
+            aria-label={searchLabel}
+            placeholder={searchPlaceholder}
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+        <p className="fl-meta" aria-live="polite" style={{ margin: 0 }}>
+          {plural(filtered.length)}
+        </p>
+      </div>
+
+      <div>
+        <DataTable
+          caption={`${title ?? `${noun}s`}, page ${current} of ${pages}`}
+          columns={columns}
+          rows={visible}
+          sortable={false}
+          emptyTitle={rows.length ? `No ${noun}s match` : `No ${noun}s yet`}
+          emptyHint={rows.length ? "Try a different search, or clear it." : `New ${noun}s appear here.`}
+          emptyAction={query ? "Clear search" : undefined}
+          onEmptyAction={() => setQuery("")}
+          rowActions={(r) => <Menu iconOnly align="end" label={`Actions for ${nameOf(r)}`} items={MENU} onSelect={(id) => pick(r, id)} />}
+        />
+        <div className="fl-tbl-resource-foot" style={{ paddingTop: "var(--space-3)" }}>
+          <p className="fl-meta" style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}>
+            {filtered.length ? `Showing ${from}–${to} of ${filtered.length}` : "Nothing to show"}
+          </p>
+          <Pagination page={current} pageCount={pages} onPageChange={setPage} />
+        </div>
+      </div>
+
+      <p className="fl-note" role="status" aria-live="polite" style={{ margin: 0, minHeight: "1.5em", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+        {status && (
+          <>
+            <span className="fl-tick">
+              <Icon name="check" />
+            </span>
+            {status}
+          </>
+        )}
+      </p>
+
+      {dialog?.kind === "edit" && (
+        <Modal variant="form" title={`Edit ${noun}`} confirmLabel="Save changes" onConfirm={saveEdit} onClose={() => setDialog(null)}>
+          {editFields.map((f) => (
+            <p key={f.key}>
+              <label htmlFor={fieldId(f.key)}>{f.label}</label>
+              <TextField
+                id={fieldId(f.key)}
+                name={f.key}
+                size={40}
+                inputMode={f.kind === "number" ? "decimal" : undefined}
+                defaultValue={String(dialog.row[f.key] ?? "")}
+                invalid={!!errors[f.key]}
+                aria-describedby={errors[f.key] ? `${fieldId(f.key)}-error` : undefined}
+              />
+              {errors[f.key] ? (
+                <span id={`${fieldId(f.key)}-error`} className="fl-dlg-error">
+                  {errors[f.key]}
+                </span>
+              ) : null}
+            </p>
+          ))}
+        </Modal>
+      )}
+
+      {dialog?.kind === "delete" && (
+        <Modal
+          variant="danger"
+          title={`Delete this ${noun}?`}
+          description={describe ? describe(dialog.row) : `${nameOf(dialog.row)} will be removed.`}
+          warning="This can't be undone."
+          confirmLabel={`Delete ${noun}`}
+          cancelLabel="Keep it"
+          onConfirm={confirmDelete}
+          onClose={() => setDialog(null)}
+        />
+      )}
+    </div>
+  );
+}
 
 // flowcode:sample
 const SAMPLE = {
   title: "Bookings",
   lede: "Everything booked at the studio. Use the row menu to edit, copy or remove a booking.",
+  noun: "booking",
   searchLabel: "Search bookings",
   searchPlaceholder: "Search by client or service",
   pageSize: 4,
-  currency: "$",
-  statuses: {
-    confirmed: { label: "Confirmed", tone: "accent" },
-    paid: { label: "Paid", tone: "success" },
-    pending: { label: "Awaiting deposit", tone: "muted" },
-    cancelled: { label: "Cancelled", tone: "danger" },
-  },
+  nameKey: "client",
+  copyOverrides: { status: "pending" },
+  editFields: [
+    { key: "client", label: "Client", kind: "text" as const, error: "Enter the client's name." },
+    { key: "amount", label: "Amount ($)", kind: "number" as const, error: "Enter an amount of 0 or more, numbers only." },
+  ],
   rows: [
     { id: "r1", client: "Maya Okafor", service: "Portrait session", date: "Mon 5 Oct", amount: 180, status: "paid" },
     { id: "r2", client: "Tom Reyes", service: "Product shoot", date: "Tue 6 Oct", amount: 520, status: "confirmed" },
@@ -37,413 +281,34 @@ const SAMPLE = {
     { id: "r8", client: "Green Door Florist", service: "Product shoot", date: "Mon 12 Oct", amount: 440, status: "confirmed" },
     { id: "r9", client: "Priya Nair", service: "Headshots", date: "Tue 13 Oct", amount: 95, status: "paid" },
   ],
-  emptyTitle: "No bookings match",
-  emptyText: "Try a different name or service, or clear the search.",
+  statuses: {
+    confirmed: { label: "Confirmed", tone: "info" },
+    paid: { label: "Paid", tone: "success" },
+    pending: { label: "Awaiting deposit", tone: "neutral" },
+    cancelled: { label: "Cancelled", tone: "danger" },
+  } as Record<string, { label: string; tone: BadgeTone }>,
 };
 
-type Row = (typeof SAMPLE.rows)[number];
-type StatusKey = keyof typeof SAMPLE.statuses;
+type Booking = (typeof SAMPLE.rows)[number] & Record<string, unknown>;
 
-function Svg({ d }: { d: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={d} />
-    </svg>
-  );
-}
-const ICON = {
-  dots: "M12 6.5h.01M12 12h.01M12 17.5h.01",
-  search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4",
-  edit: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
-  copy: "M8 8h11v11H8zM5 16V5h11",
-  trash: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
-  prev: "M15 6l-6 6 6 6",
-  next: "M9 6l6 6-6 6",
-};
+const money = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-/** A small modal: labelled, Escape closes, focus moves in and goes back to whatever opened it. */
-function Dialog({ title, onClose, children, returnTo }: { title: string; onClose: () => void; children: ReactNode; returnTo: HTMLElement | null }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const box = ref.current;
-    box?.querySelector<HTMLElement>("input, button")?.focus();
-    return () => {
-      if (returnTo && document.body.contains(returnTo)) returnTo.focus();
-    };
-  }, [returnTo]);
-  function onKey(e: ReactKeyboardEvent) {
-    if (e.key === "Escape") {
-      e.stopPropagation();
-      onClose();
-    }
-    if (e.key === "Tab" && ref.current) {
-      const items = Array.from(ref.current.querySelectorAll<HTMLElement>("input, button"));
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    }
-  }
-  return (
-    <div className="fl-tbl-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={ref} className="fl-tbl-dialog" role="dialog" aria-modal="true" aria-labelledby="table-actions-dialog-title" onKeyDown={onKey}>
-        <h3 id="table-actions-dialog-title">{title}</h3>
-        {children}
-      </div>
-    </div>
-  );
-}
+const COLUMNS: TableColumn<Booking>[] = [
+  { id: "client", label: "Client" },
+  { id: "service", label: "Service" },
+  { id: "date", label: "Date" },
+  { id: "status", label: "Status", render: (r): ReactNode => <Badge tone={SAMPLE.statuses[r.status].tone}>{SAMPLE.statuses[r.status].label}</Badge> },
+  { id: "amount", label: "Amount", num: true, render: (r) => money(r.amount) },
+];
 
 export default function TableActions() {
-  const d = SAMPLE;
-  const [rows, setRows] = useState<Row[]>(d.rows);
-  const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const [menuFor, setMenuFor] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<{ kind: "edit" | "delete"; row: Row } | null>(null);
-  const [draft, setDraft] = useState({ client: "", amount: "" });
-  const [errors, setErrors] = useState<{ client?: string; amount?: string }>({});
-  const [status, setStatus] = useState("");
-  const triggers = useRef<Record<string, HTMLButtonElement | null>>({});
-  const searchRef = useRef<HTMLInputElement>(null);
-  const [returnTo, setReturnTo] = useState<HTMLElement | null>(null);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return q ? rows.filter((r) => `${r.client} ${r.service}`.toLowerCase().includes(q)) : rows;
-  }, [rows, query]);
-  const pages = Math.max(1, Math.ceil(filtered.length / d.pageSize));
-  const current = Math.min(page, pages);
-  const visible = filtered.slice((current - 1) * d.pageSize, current * d.pageSize);
-  const from = filtered.length ? (current - 1) * d.pageSize + 1 : 0;
-  const to = Math.min(current * d.pageSize, filtered.length);
-
-  // Close the open row menu on an outside click.
-  useEffect(() => {
-    if (!menuFor) return;
-    const close = (e: MouseEvent) => {
-      if (!(e.target as HTMLElement).closest(".fl-tbl-actions-cell")) setMenuFor(null);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [menuFor]);
-
-  // When a menu opens, move focus to its first item.
-  useEffect(() => {
-    if (menuFor) document.querySelector<HTMLButtonElement>(`#menu-${menuFor} button`)?.focus();
-  }, [menuFor]);
-
-  const money = (n: number) => `${d.currency}${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-  function closeMenu(id: string) {
-    setMenuFor(null);
-    triggers.current[id]?.focus();
-  }
-
-  function onMenuKey(e: ReactKeyboardEvent<HTMLUListElement>, id: string) {
-    const items = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>("button"));
-    const i = items.indexOf(document.activeElement as HTMLButtonElement);
-    if (e.key === "Escape") {
-      e.preventDefault();
-      closeMenu(id);
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      items[(i + 1) % items.length].focus();
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      items[(i - 1 + items.length) % items.length].focus();
-    } else if (e.key === "Home") {
-      e.preventDefault();
-      items[0].focus();
-    } else if (e.key === "End") {
-      e.preventDefault();
-      items[items.length - 1].focus();
-    } else if (e.key === "Tab") {
-      setMenuFor(null);
-    }
-  }
-
-  function openDialog(kind: "edit" | "delete", row: Row) {
-    setReturnTo(triggers.current[row.id] ?? null);
-    setMenuFor(null);
-    setErrors({});
-    setDraft({ client: row.client, amount: String(row.amount) });
-    setDialog({ kind, row });
-  }
-
-  function duplicate(row: Row) {
-    const copy: Row = { ...row, id: `${row.id}-${Date.now()}`, client: `${row.client} (copy)`, status: "pending" };
-    setRows((rs) => {
-      const i = rs.findIndex((r) => r.id === row.id);
-      return [...rs.slice(0, i + 1), copy, ...rs.slice(i + 1)];
-    });
-    setStatus(`Duplicated the booking for ${row.client}.`);
-    closeMenu(row.id);
-  }
-
-  function saveEdit(e: FormEvent) {
-    e.preventDefault();
-    if (!dialog) return;
-    const next: typeof errors = {};
-    const amount = Number(draft.amount);
-    if (!draft.client.trim()) next.client = "Enter the client's name.";
-    if (!draft.amount.trim() || Number.isNaN(amount) || amount < 0) next.amount = "Enter an amount of 0 or more, numbers only.";
-    setErrors(next);
-    if (next.client || next.amount) {
-      document.getElementById(next.client ? "ta-client" : "ta-amount")?.focus();
-      return;
-    }
-    setRows((rs) => rs.map((r) => (r.id === dialog.row.id ? { ...r, client: draft.client.trim(), amount } : r)));
-    setStatus(`Saved changes to ${draft.client.trim()}'s booking.`);
-    setDialog(null);
-  }
-
-  function confirmDelete() {
-    if (!dialog) return;
-    const name = dialog.row.client;
-    setRows((rs) => rs.filter((r) => r.id !== dialog.row.id));
-    setStatus(`Deleted the booking for ${name}.`);
-    setDialog(null);
-    // The row's menu button is gone, so focus goes back to the search box.
-    requestAnimationFrame(() => searchRef.current?.focus());
-  }
-
+  const { statuses: _statuses, rows, ...rest } = SAMPLE;
+  void _statuses;
   return (
-    <section className="fl-section fl-section--tint" aria-labelledby="table-actions-title">
-      <div className="fl-wrap fl-tbl">
-        <div className="fl-tbl-toolbar">
-          <div className="fl-head" style={{ marginBottom: 0 }}>
-            <h2 id="table-actions-title" className="fl-title fl-title--md">
-              {d.title}
-            </h2>
-            <p className="fl-text">{d.lede}</p>
-          </div>
-        </div>
-        <div className="fl-tbl-toolbar">
-          <div className="fl-tbl-search" role="search">
-            <label htmlFor="ta-search" className="fl-sr">
-              {d.searchLabel}
-            </label>
-            <Svg d={ICON.search} />
-            <input
-              ref={searchRef}
-              id="ta-search"
-              className="fl-input"
-              type="search"
-              placeholder={d.searchPlaceholder}
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setPage(1);
-              }}
-            />
-          </div>
-          <p className="fl-meta" aria-live="polite" style={{ margin: 0 }}>
-            {filtered.length} {filtered.length === 1 ? "booking" : "bookings"}
-          </p>
-        </div>
-
-        <div className="fl-tbl-panel">
-          <div className="fl-tbl-scroll">
-            <table className="fl-tbl-table" style={{ minWidth: "40rem" }}>
-              <caption className="fl-sr">
-                {d.title}, page {current} of {pages}
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Client</th>
-                  <th scope="col">Service</th>
-                  <th scope="col">Date</th>
-                  <th scope="col">Status</th>
-                  <th scope="col" className="fl-tbl-num">
-                    Amount
-                  </th>
-                  <th scope="col" className="fl-tbl-actions-cell">
-                    <span className="fl-sr">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {visible.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="fl-tbl-empty-cell">
-                      <div className="fl-tbl-empty">
-                        <span className="fl-icon">
-                          <Svg d={ICON.search} />
-                        </span>
-                        <strong>{rows.length ? d.emptyTitle : "No bookings yet"}</strong>
-                        <span>{rows.length ? d.emptyText : "New bookings appear here."}</span>
-                        {query && (
-                          <button type="button" className="fl-btn fl-btn--secondary fl-tbl-btn-sm" onClick={() => setQuery("")}>
-                            Clear search
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-                {visible.map((r) => {
-                  const s = d.statuses[r.status as StatusKey];
-                  const open = menuFor === r.id;
-                  return (
-                    <tr key={r.id}>
-                      <th scope="row">{r.client}</th>
-                      <td>{r.service}</td>
-                      <td className="fl-tbl-nowrap">{r.date}</td>
-                      <td>
-                        <span className={`fl-tbl-status fl-tbl-status--${s.tone}`}>{s.label}</span>
-                      </td>
-                      <td className="fl-tbl-num">{money(r.amount)}</td>
-                      <td className="fl-tbl-actions-cell">
-                        <button
-                          ref={(el) => {
-                            triggers.current[r.id] = el;
-                          }}
-                          type="button"
-                          className="fl-tbl-icon-btn"
-                          aria-haspopup="menu"
-                          aria-expanded={open}
-                          aria-controls={open ? `menu-${r.id}` : undefined}
-                          aria-label={`Actions for ${r.client}`}
-                          onClick={() => setMenuFor(open ? null : r.id)}
-                        >
-                          <Svg d={ICON.dots} />
-                        </button>
-                        {open && (
-                          <ul id={`menu-${r.id}`} className="fl-tbl-menu" role="menu" aria-label={`Actions for ${r.client}`} onKeyDown={(e) => onMenuKey(e, r.id)}>
-                            <li role="none">
-                              <button type="button" role="menuitem" tabIndex={-1} onClick={() => openDialog("edit", r)}>
-                                <Svg d={ICON.edit} /> Edit
-                              </button>
-                            </li>
-                            <li role="none">
-                              <button type="button" role="menuitem" tabIndex={-1} onClick={() => duplicate(r)}>
-                                <Svg d={ICON.copy} /> Duplicate
-                              </button>
-                            </li>
-                            <li role="none">
-                              <hr />
-                            </li>
-                            <li role="none">
-                              <button type="button" role="menuitem" tabIndex={-1} className="fl-tbl-danger" onClick={() => openDialog("delete", r)}>
-                                <Svg d={ICON.trash} /> Delete…
-                              </button>
-                            </li>
-                          </ul>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <nav className="fl-tbl-foot" aria-label="Pages">
-            <p className="fl-meta" style={{ margin: 0, fontVariantNumeric: "tabular-nums" }}>
-              {filtered.length ? `Showing ${from}–${to} of ${filtered.length}` : "Nothing to show"}
-            </p>
-            <ul className="fl-tbl-pages">
-              <li>
-                <button type="button" className="fl-tbl-page" aria-label="Previous page" disabled={current === 1} onClick={() => setPage(current - 1)}>
-                  <Svg d={ICON.prev} />
-                </button>
-              </li>
-              {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
-                <li key={n}>
-                  <button type="button" className="fl-tbl-page" aria-label={`Page ${n}`} aria-current={n === current ? "page" : undefined} onClick={() => setPage(n)}>
-                    {n}
-                  </button>
-                </li>
-              ))}
-              <li>
-                <button type="button" className="fl-tbl-page" aria-label="Next page" disabled={current === pages} onClick={() => setPage(current + 1)}>
-                  <Svg d={ICON.next} />
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-
-        <p className="fl-note" role="status" aria-live="polite" style={{ margin: 0, minHeight: "1.5em", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-          {status && (
-            <>
-              <span className="fl-tick">
-                <Icon name="check" />
-              </span>
-              {status}
-            </>
-          )}
-        </p>
+    <section className="fl-section fl-section--tint">
+      <div className="fl-wrap">
+        <ResourceTable {...rest} columns={COLUMNS} rows={rows as Booking[]} describe={(r) => `${r.client}'s ${r.service.toLowerCase()} on ${r.date} will be removed.`} />
       </div>
-
-      {dialog?.kind === "edit" && (
-        <Dialog title="Edit booking" onClose={() => setDialog(null)} returnTo={returnTo}>
-          <form className="fl-form" onSubmit={saveEdit} noValidate>
-            <div className="fl-field">
-              <label htmlFor="ta-client">Client</label>
-              <input
-                id="ta-client"
-                className="fl-input"
-                value={draft.client}
-                aria-invalid={!!errors.client}
-                aria-describedby={errors.client ? "ta-client-error" : undefined}
-                onChange={(e) => setDraft({ ...draft, client: e.target.value })}
-              />
-              {errors.client && (
-                <span id="ta-client-error" className="fl-note" style={{ color: "var(--color-danger)" }}>
-                  {errors.client}
-                </span>
-              )}
-            </div>
-            <div className="fl-field">
-              <label htmlFor="ta-amount">Amount ({d.currency})</label>
-              <input
-                id="ta-amount"
-                className="fl-input"
-                inputMode="decimal"
-                value={draft.amount}
-                aria-invalid={!!errors.amount}
-                aria-describedby={errors.amount ? "ta-amount-error" : undefined}
-                onChange={(e) => setDraft({ ...draft, amount: e.target.value })}
-              />
-              {errors.amount && (
-                <span id="ta-amount-error" className="fl-note" style={{ color: "var(--color-danger)" }}>
-                  {errors.amount}
-                </span>
-              )}
-            </div>
-            <div className="fl-actions" style={{ justifyContent: "flex-end" }}>
-              <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setDialog(null)}>
-                Cancel
-              </button>
-              <button type="submit" className="fl-btn fl-btn--primary">
-                Save changes
-              </button>
-            </div>
-          </form>
-        </Dialog>
-      )}
-
-      {dialog?.kind === "delete" && (
-        <Dialog title="Delete this booking?" onClose={() => setDialog(null)} returnTo={returnTo}>
-          <p className="fl-text">
-            {dialog.row.client}'s {dialog.row.service.toLowerCase()} on {dialog.row.date} will be removed. This can't be undone.
-          </p>
-          <div className="fl-actions">
-            <button type="button" className="fl-btn fl-btn--secondary" onClick={() => setDialog(null)}>
-              Keep it
-            </button>
-            <button type="button" className="fl-btn fl-tbl-btn-danger" onClick={confirmDelete}>
-              Delete booking
-            </button>
-          </div>
-        </Dialog>
-      )}
     </section>
   );
 }

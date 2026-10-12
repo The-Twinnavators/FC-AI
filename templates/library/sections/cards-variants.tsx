@@ -1,13 +1,13 @@
 /** @flowcode-library cards-variants · Cards: kinds, elevation and states (Cards)
  * Catalog ID: c.card (component)
- * Function: The card (c.card) that holds a tile or list item, and its reference sheet: plain, clickable and selectable kinds across their states, and three elevations.
+ * Function: The card (c.card) that holds a tile or list item, and its reference sheet: plain, clickable and selectable kinds across their states, a priced choice group made of selectable cards, and three elevations.
  * Use it as: import { Card } from "./cards-variants"; <Card variant?="plain"|"clickable"|"selectable" elevation?="flat"|"raised"|"floating" selected? disabled? name? onSelect? pickLabel? onClick?>content</Card>
  * Variants: c.card.plain - content that does nothing: a bordered surface; c.card.clickable - the whole card opens something: a bordered surface with an arrow, hover and focus states; c.card.selectable - one choice of a set: a bordered surface with a radio in the corner and an accent outline when chosen
  * Look: A bordered surface with padded content, optionally lifted by a flat, raised or floating shadow; clickable ones show an arrow, selectable ones a radio.
  * Tokens: --color-surface --color-border --color-border-strong --color-accent --color-text-muted --radius-md --space-1 --space-3 --space-4
- * Use cases: dashboard tiles; project list; article list; settings groups; pickable options
- * Jobs to be done: scan a list of things; open one of them; choose one of several
- * Keywords: card, tile, elevation, surface, clickable, selected
+ * Use cases: dashboard tiles; project list; article list; settings groups; pickable options; plan selection; delivery options; shipping method; subscription tier; checkout options; membership choice; service package
+ * Jobs to be done: scan a list of things; open one of them; choose one of several; pick the plan that suits me; choose how my order is delivered; compare options with prices; confirm my choice
+ * Keywords: card, tile, elevation, surface, clickable, selected, radio, radio cards, plan picker, delivery options, fieldset, choice
  */
 /**
  * A card is a surface, and what matters is whether it does anything. A plain card holds content; a clickable card is
@@ -30,6 +30,7 @@
  */
 import { useState, type HTMLAttributes, type ReactNode } from "react";
 import { Icon } from "./icons";
+import { Badge } from "./badges-status";
 
 // ── c.card: the one card. Every piece's tiles and list items are this component; the specimen below shows every variant. ──
 
@@ -122,6 +123,12 @@ const SAMPLE = {
     { id: "floating" as const, label: "Floating", what: "A deeper shadow: something over the page" },
   ],
   shoot: { name: "Riverside wedding", meta: "12 June · 420 photos" },
+  plans: [
+    { id: "small", title: "Small box", text: "For one or two. About 6 kinds of veg.", price: "$18", per: "/week", badge: "", off: false },
+    { id: "family", title: "Family box", text: "For three to five. About 9 kinds, plus fruit.", price: "$29", per: "/week", badge: "Most chosen", off: false },
+    { id: "large", title: "Large box", text: "For big households or batch cooks.", price: "$38", per: "/week", badge: "", off: false },
+    { id: "saturday", title: "Saturday morning", text: "Full until next month.", price: "$4", per: "", badge: "Full", off: true },
+  ],
 };
 
 export default function CardsVariants() {
@@ -129,6 +136,7 @@ export default function CardsVariants() {
   // One radio group across the whole column: choosing one card lets go of the last.
   const [picked, setPicked] = useState("selected");
   const [said, setSaid] = useState("");
+  const [plan, setPlan] = useState("family");
 
   return (
     <section className="fl-section fl-section--specimen">
@@ -195,6 +203,33 @@ export default function CardsVariants() {
       <p className="fl-ctl-status" role="status" aria-live="polite">
         {said || "Open a clickable card, or choose a selectable one."}
       </p>
+
+      <div className="fl-ctl-sizes">
+        <h3>A choice with a price</h3>
+        <p className="fl-ctl-btn-what">
+          Selectable cards as the options of a plan or delivery picker: a title, a badge, a line of text and a price inside
+          each. They are real radios in a fieldset, so the arrow keys move between them, and one that is unavailable is
+          disabled and says why.
+        </p>
+        <fieldset className="fl-in-fieldset">
+          <legend>Box size</legend>
+          <div className="fl-in-cards">
+            {d.plans.map((o) => (
+              <Card key={o.id} variant="selectable" name="card-plan" selected={plan === o.id} disabled={o.off} pickLabel={o.title} onSelect={() => setPlan(o.id)}>
+                <span className="fl-in-rcard__top">
+                  <strong>{o.title}</strong>
+                  {o.badge ? <Badge tone={o.off ? "neutral" : "info"}>{o.badge}</Badge> : null}
+                </span>
+                <span className="fl-in-rcard__text">{o.text}</span>
+                <span className="fl-in-rcard__price">
+                  <strong>{o.price}</strong>
+                  {o.per ? <span className="fl-meta">{o.per}</span> : null}
+                </span>
+              </Card>
+            ))}
+          </div>
+        </fieldset>
+      </div>
 
       <div className="fl-ctl-sizes">
         <h3>Elevation</h3>

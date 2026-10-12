@@ -59,7 +59,7 @@ import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
-import { ADD_SECTIONS, SECTION_STEPS, keptSection, pickSections, picksIn, sectionFile, sectionsObjective } from "./sectionRecipes.js";
+import { ADD_SECTIONS, SECTION_STEPS, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
@@ -1285,7 +1285,10 @@ export class Orchestrator {
           kept = "";
         }
         if (kept) {
-          const res = this.d.ops.create_file({ jail, projectId: project.id, runId: run.id, taskId: task.id, toolCallId: `fc_sidenav_${task.id}`, approved: true }, { path: sectionFile(id), content: kept } as never);
+          // The piece and the pieces it's built from (the side nav pattern and its components), each at its app name.
+          const nctx = { jail, projectId: project.id, runId: run.id, taskId: task.id, toolCallId: `fc_sidenav_${task.id}`, approved: true };
+          for (const dep of pieceFiles(id).slice(1)) if (!fs.existsSync(path.join(jail.root, dep.rel))) this.d.ops.create_file(nctx, { path: dep.rel, content: dep.content } as never);
+          const res = this.d.ops.create_file(nctx, { path: sectionFile(id), content: pieceFiles(id)[0]?.content ?? kept } as never);
           if (res.ok) {
             const note = `This app has ${labels.length} screens (${labels.join(", ")}). A side navigation from the library is in ${sectionFile(id)} as a starting point${pick ? ` (${pick.reason})` : ""}: use it in place of the top navigation if it suits the app, with the real screen names and icons, or delete it.`;
             this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), note].slice(-12));

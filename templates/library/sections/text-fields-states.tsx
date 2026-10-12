@@ -1,7 +1,7 @@
 /** @flowcode-library text-fields-states · Text fields: every variant and state (Forms)
  * Catalog ID: c.text-field (component)
- * Function: The text field (c.text-field) in three looks and six heights; the reference sheet shows rest, focused, filled, invalid, disabled and read-only states plus a live field with message and counter.
- * Use it as: import { TextField } from "./text-fields-states"; <TextField variant?="outlined"|"filled"|"underlined" size?={24|32|40|44|48|56} multiline? invalid? id name type value placeholder disabled readOnly aria-label? aria-describedby? onChange? />
+ * Function: The text field (c.text-field) in three looks and six heights, with an auto-growing multiline option; the reference sheet shows rest, focused, filled, invalid, disabled and read-only states plus a live field with message, counter and a note that grows as you type.
+ * Use it as: import { TextField } from "./text-fields-states"; <TextField variant?="outlined"|"filled"|"underlined" size?={24|32|40|44|48|56} multiline? autoGrow? invalid? id name type value placeholder disabled readOnly aria-label? aria-describedby? onChange? />
  * Variants: c.text-field.outlined - the default for forms: a visible border on every side; c.text-field.filled - dense or dark screens: a tinted box, no border until focus; c.text-field.underlined - sparse, editorial forms: a single rule under the text
  * Look: A full-width one-line input (or multi-line textarea) with an accent focus ring, a danger border when invalid, dimmed when disabled and a sunken tint when read-only.
  * Tokens: --color-border --color-border-strong --color-surface --color-surface-sunken --color-accent --color-danger --color-text-muted --focus-ring --space-2 --space-3 --space-4 --space-5 --text-sm --text-xs
@@ -28,7 +28,7 @@
  * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
  * exactly as it runs here.
  */
-import { useState, type InputHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { useLayoutEffect, useRef, useState, type InputHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 // ── c.text-field: the one text field. Every form's inputs are this component; the specimen below shows every look and state. ──
 
@@ -58,15 +58,40 @@ type TextFieldOwn = {
   invalid?: boolean;
   className?: string;
 };
-type AsInput = TextFieldOwn & { multiline?: false } & Omit<InputHTMLAttributes<HTMLInputElement>, keyof TextFieldOwn>;
-type AsTextarea = TextFieldOwn & { multiline: true } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, keyof TextFieldOwn>;
+type AsInput = TextFieldOwn & { multiline?: false; autoGrow?: undefined } & Omit<InputHTMLAttributes<HTMLInputElement>, keyof TextFieldOwn>;
+/** autoGrow: the textarea gets taller as you type instead of scrolling. */
+type AsTextarea = TextFieldOwn & { multiline: true; autoGrow?: boolean } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, keyof TextFieldOwn>;
 
 /** Give it a label (a <label htmlFor> or aria-label); the field does not draw one. */
 export function TextField(props: AsInput | AsTextarea) {
-  const { variant = "outlined", size, invalid, className, multiline, ...rest } = props;
-  const cls = ["fl-input", "fl-ctl-field", VARIANT[variant], size && !multiline ? SIZE[size] : "", invalid ? "is-invalid" : "", className ?? ""].filter(Boolean).join(" ");
+  const { variant = "outlined", size, invalid, className, multiline, autoGrow, ...rest } = props;
+  const area = useRef<HTMLTextAreaElement>(null);
+  const grow = () => {
+    const el = area.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight + 2}px`;
+  };
+  const value = (rest as { value?: unknown }).value;
+  useLayoutEffect(() => {
+    if (multiline && autoGrow) grow();
+  }, [multiline, autoGrow, value]);
+  const cls = ["fl-input", "fl-ctl-field", VARIANT[variant], size && !multiline ? SIZE[size] : "", multiline && autoGrow ? "fl-in-grow" : "", invalid ? "is-invalid" : "", className ?? ""].filter(Boolean).join(" ");
   const own = { className: cls, "data-fl": `c.text-field.${variant}`, "aria-invalid": invalid || undefined };
-  if (multiline) return <textarea {...(rest as TextareaHTMLAttributes<HTMLTextAreaElement>)} {...own} />;
+  if (multiline) {
+    const ta = rest as TextareaHTMLAttributes<HTMLTextAreaElement>;
+    return (
+      <textarea
+        {...ta}
+        {...own}
+        ref={area}
+        onInput={(e) => {
+          if (autoGrow) grow();
+          ta.onInput?.(e);
+        }}
+      />
+    );
+  }
   return <input {...(rest as InputHTMLAttributes<HTMLInputElement>)} {...own} />;
 }
 
@@ -165,7 +190,7 @@ export default function TextFieldsStates() {
       <div className="fl-ctl-sizes">
         <h3>The same field, live</h3>
         <p className="fl-ctl-btn-what">
-          A field that validates on the way out, not on every keystroke, and a note with a count that turns into an
+          A field that validates on the way out, not on every keystroke, and a note that grows as you type, with a count that turns into an
           error when you go past the limit. Both are the states above, arriving in order.
         </p>
         <div className="fl-ctl-live-form">
@@ -190,6 +215,7 @@ export default function TextFieldsStates() {
             <label htmlFor="fld-live-note">Anything we should know?</label>
             <TextField
               multiline
+              autoGrow
               id="fld-live-note"
               invalid={left < 0}
               rows={3}

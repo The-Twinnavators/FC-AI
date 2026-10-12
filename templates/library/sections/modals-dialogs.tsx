@@ -1,13 +1,13 @@
 /** @flowcode-library modals-dialogs · Modals: confirm, destructive, form and the one you cannot dismiss (Dialogs and drawers)
  * Catalog ID: c.modal (component)
- * Function: The one dialog over the page (c.modal), with focus trapping, Escape and focus return built in; the reference sheet shows confirm, destructive, short-form and blocking dialogs.
- * Use it as: import { Modal } from "./modals-dialogs"; <Modal variant?="confirm"|"danger"|"form"|"blocking" title confirmLabel cancelLabel? onConfirm? onClose contained?>body</Modal>
+ * Function: The one dialog over the page (c.modal), with focus trapping, scroll lock, Escape and focus return built in; the reference sheet shows confirm, destructive (with an icon, a warning box and a busy delete), short-form (with validation that keeps it open) and blocking dialogs.
+ * Use it as: import { Modal } from "./modals-dialogs"; <Modal variant?="confirm"|"danger"|"form"|"blocking" title description? icon? warning? confirmLabel cancelLabel? busy? busyLabel? onConfirm?(formData) onClose contained?>body</Modal>
  * Variants: c.modal.confirm - one decision, nothing lost either way: a dialog with Cancel and a primary verb button; c.modal.danger - names what will be destroyed: an alert dialog with a danger rule on top and a destructive button; c.modal.form - a few fields then save or cancel: a dialog that holds focus until it is done; c.modal.blocking - a choice that has to be made: an alert dialog with no close button that ignores Escape and the scrim
  * Look: A rounded card centered over a dimmed scrim, with a title and close button on top, a short body, and right-aligned Cancel and verb buttons at the bottom.
- * Tokens: --color-surface --color-text-muted --color-danger --radius-lg --shadow-lg --space-3 --space-4 --space-5 --duration-med --easing --text-sm
- * Use cases: confirm before deleting; a short form over the page; sign-in prompt; unsaved changes; a required choice
- * Jobs to be done: decide one thing without losing the page; be stopped before something destructive; get back out
- * Keywords: modal, dialog, confirm, destructive, focus trap, escape, scrim, alertdialog
+ * Tokens: --color-surface --color-text-muted --color-danger --radius-lg --shadow-lg --space-3 --space-4 --space-5 --duration-med --easing --text-sm --color-border --color-danger-surface
+ * Use cases: confirm before deleting; a short form over the page; sign-in prompt; unsaved changes; a required choice; delete confirmation; cancel booking; remove item; discard changes; destructive action; cancel subscription; archive confirmation; new booking; add item; quick create; new task; add contact; new appointment; create event; add expense
+ * Jobs to be done: decide one thing without losing the page; be stopped before something destructive; get back out; avoid deleting something by mistake; confirm i really want to cancel; undo a deletion i regret; add a new item without leaving the page; book an appointment quickly; create an entry with the right details; fix mistakes before saving
+ * Keywords: modal, dialog, confirm, destructive, focus trap, escape, scrim, alertdialog, delete, undo, form, validation
  */
 /**
  * A dialog over the page, in the four shapes that cover almost all of them. The differences are not decoration: a
@@ -34,9 +34,10 @@
  * nothing fetched at run time. The styles are the library's own fl- classes in templates/library/css, and the sample data
  * is in the file, so the piece runs in a built app exactly as it runs here.
  */
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "./buttons-variants";
 import { Select } from "./dropdowns-states";
+import { Icon } from "./icons";
 import { TextField } from "./text-fields-states";
 
 // ── c.modal: the one dialog. Every piece's confirm, delete and short-form dialogs are this component. ──
@@ -53,17 +54,31 @@ const VARIANT: Record<ModalVariant, string> = {
 
 const FOCUSABLE = "button, input, select, textarea, [href]";
 
-export function Modal({ variant = "confirm", title, children, confirmLabel, cancelLabel = "Cancel", onConfirm, onClose, contained, className }: {
+export function Modal({ variant = "confirm", title, description, icon, warning, children, confirmLabel, cancelLabel = "Cancel", busyLabel, busy, onConfirm, onClose, contained, className }: {
   variant?: ModalVariant;
   /** The question or the name of the task. It is also the dialog's accessible name. */
   title: string;
-  /** The body: a sentence, or a few fields. */
+  /** A line of context under the title, such as what happens next. Part of the dialog's accessible description. */
+  description?: ReactNode;
+  /** An icon name from ./icons, drawn in a round danger-tinted badge above the title. Meant for the danger variant. */
+  icon?: string;
+  /** A red warning box above the body, for what cannot be undone. Meant for the danger variant. */
+  warning?: ReactNode;
+  /** The body: a sentence, or a few fields. A form modal wraps it in a <form>, so name the fields. */
   children?: ReactNode;
   /** The verb on the main button: "Delete shoot", never "OK". */
   confirmLabel: string;
   cancelLabel?: string;
-  /** Runs when the main button is pressed; the modal then closes itself through onClose. */
-  onConfirm?: () => void;
+  /** While true the main button shows `busyLabel`, and Escape, the scrim and both buttons do nothing (a save in flight). */
+  busy?: boolean;
+  /** The main button's words while busy: "Deleting...". */
+  busyLabel?: string;
+  /**
+   * Runs when the main button is pressed; the modal then closes itself through onClose. Return false to stay open (a
+   * failed check, or a save the parent will finish and close). A form modal receives the form's FormData and runs this
+   * on submit, so Enter in a field confirms.
+   */
+  onConfirm?: (data: FormData) => void | false;
   /** Close it: the parent stops rendering the modal. A blocking modal never calls this on Escape or the scrim. */
   onClose: () => void;
   /** Sit inside the nearest positioned box instead of covering the window (for demos and previews). */
@@ -74,15 +89,22 @@ export function Modal({ variant = "confirm", title, children, confirmLabel, canc
   const id = useId();
   const blocking = variant === "blocking";
   const danger = variant === "danger";
+  const isForm = variant === "form";
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
 
   // Focus goes in on open and back to whatever had it on close; Tab stays inside; Escape closes unless blocking.
+  // A destructive dialog lands on Cancel, the safe choice. Over a whole window the page behind stops scrolling.
   useEffect(() => {
     const from = document.activeElement as HTMLElement | null;
-    box.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+    const overflow = document.body.style.overflow;
+    if (!contained) document.body.style.overflow = "hidden";
+    (box.current?.querySelector<HTMLElement>("[data-autofocus]") ?? box.current?.querySelector<HTMLElement>(FOCUSABLE))?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !blocking) {
+        if (busyRef.current) return;
         closeRef.current();
         return;
       }
@@ -99,13 +121,34 @@ export function Modal({ variant = "confirm", title, children, confirmLabel, canc
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
       if (from && document.contains(from)) from.focus();
     };
-  }, [blocking]);
+  }, [blocking, contained]);
+
+  const confirm = (data: FormData) => {
+    if (busy) return;
+    if (onConfirm?.(data) === false) return;
+    onClose();
+  };
+  const submit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    confirm(new FormData(e.currentTarget));
+  };
+
+  // The form wraps the head, body and buttons without taking part in the layout.
+  const wrap = (inner: ReactNode) =>
+    isForm ? (
+      <form noValidate onSubmit={submit} style={{ display: "contents" }}>
+        {inner}
+      </form>
+    ) : (
+      inner
+    );
 
   return (
     <div className="fl-ctl-dlg-stage" style={contained ? undefined : { position: "fixed" }}>
-      <div className="fl-ctl-scrim" onClick={() => !blocking && onClose()} />
+      <div className="fl-ctl-scrim" onClick={() => !blocking && !busy && onClose()} />
       <div
         className={["fl-ctl-dlg", VARIANT[variant], className ?? ""].filter(Boolean).join(" ")}
         data-fl={`c.modal.${variant}`}
@@ -113,38 +156,49 @@ export function Modal({ variant = "confirm", title, children, confirmLabel, canc
         aria-modal="true"
         aria-labelledby={`${id}-title`}
         aria-describedby={`${id}-body`}
+        aria-busy={busy || undefined}
         ref={box}
       >
-        <div className="fl-ctl-dlg-head">
-          <h4 id={`${id}-title`}>{title}</h4>
-          {blocking ? null : (
-            <Button variant="tertiary" size={32} icon="close" iconOnly onClick={onClose}>
-              Close
-            </Button>
-          )}
-        </div>
+        {wrap(
+          <>
+          {icon ? (
+            <span className="fl-dlg-icon">
+              <Icon name={icon} />
+            </span>
+          ) : null}
+          <div className="fl-ctl-dlg-head">
+            <h4 id={`${id}-title`}>{title}</h4>
+            {blocking ? null : (
+              <Button variant="tertiary" size={32} icon="close" iconOnly disabled={busy} onClick={onClose}>
+                Close
+              </Button>
+            )}
+          </div>
 
-        <div className="fl-ctl-dlg-body" id={`${id}-body`}>
-          {children}
-        </div>
+          <div className="fl-ctl-dlg-body" id={`${id}-body`}>
+            {description ? <p>{description}</p> : null}
+            {warning ? <p className="fl-dlg-warn">{warning}</p> : null}
+            {children}
+          </div>
 
-        <div className="fl-ctl-dlg-foot">
-          {blocking ? null : (
-            <Button variant="secondary" size={40} onClick={onClose}>
-              {cancelLabel}
+          <div className="fl-ctl-dlg-foot">
+            {blocking ? null : (
+              <Button variant="secondary" size={40} disabled={busy} data-autofocus={danger ? "" : undefined} onClick={onClose}>
+                {cancelLabel}
+              </Button>
+            )}
+            <Button
+              variant={danger ? "destructive" : "primary"}
+              size={40}
+              type={isForm ? "submit" : "button"}
+              aria-disabled={busy || undefined}
+              onClick={isForm ? undefined : () => confirm(new FormData())}
+            >
+              {busy && busyLabel ? busyLabel : confirmLabel}
             </Button>
-          )}
-          <Button
-            variant={danger ? "destructive" : "primary"}
-            size={40}
-            onClick={() => {
-              onConfirm?.();
-              onClose();
-            }}
-          >
-            {confirmLabel}
-          </Button>
-        </div>
+          </div>
+          </>,
+        )}
       </div>
     </div>
   );
@@ -167,7 +221,7 @@ const SAMPLE = {
   roles: ["Look at everything", "Edit shoots", "Run the studio"],
 };
 
-function DialogBody({ kind }: { kind: ModalVariant }) {
+function DialogBody({ kind, error }: { kind: ModalVariant; error?: string }) {
   if (kind === "confirm") return <p>The client gets an email with the link. You can unpublish at any time.</p>;
   if (kind === "danger") return <p>420 photos and the whole client conversation go with it. This cannot be undone.</p>;
   if (kind === "blocking") return <p>It has been two hours since you signed in. Sign in again to carry on; nothing you typed was lost.</p>;
@@ -175,11 +229,16 @@ function DialogBody({ kind }: { kind: ModalVariant }) {
     <div className="fl-ctl-live-form">
       <p>
         <label htmlFor="dlg-email">Their email address</label>
-        <TextField id="dlg-email" size={40} type="email" placeholder="you@example.com" />
+        <TextField id="dlg-email" name="email" size={40} type="email" placeholder="you@example.com" invalid={!!error} aria-describedby={error ? "dlg-email-error" : undefined} />
+        {error ? (
+          <span id="dlg-email-error" className="fl-dlg-error">
+            {error}
+          </span>
+        ) : null}
       </p>
       <p>
         <label htmlFor="dlg-role">What they may do</label>
-        <Select id="dlg-role" options={SAMPLE.roles} className="fl-ctl-field--40" />
+        <Select id="dlg-role" name="role" options={SAMPLE.roles} className="fl-ctl-field--40" />
       </p>
     </div>
   );
@@ -189,6 +248,30 @@ export default function ModalsDialogs() {
   const d = SAMPLE;
   const [open, setOpen] = useState<"" | ModalVariant>("");
   const [said, setSaid] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  // A destructive confirm shows its work: the button goes busy, then the dialog closes. A form that fails its check
+  // stays open and says why. Both are the same Modal; it is the parent that decides when it is done.
+  const confirm = (kind: ModalVariant) => (data: FormData) => {
+    if (kind === "danger") {
+      setBusy(true);
+      timer.current = window.setTimeout(() => {
+        setBusy(false);
+        setSaid(d.dialogs.danger.done);
+        setOpen("");
+      }, 700);
+      return false;
+    }
+    if (kind === "form" && !String(data.get("email") ?? "").includes("@")) {
+      setError("Enter their full email address.");
+      return false;
+    }
+    setError("");
+    setSaid(d.dialogs[kind].done);
+  };
 
   return (
     <section className="fl-section fl-section--specimen">
@@ -214,10 +297,14 @@ export default function ModalsDialogs() {
             variant={open}
             title={d.dialogs[open].title}
             confirmLabel={d.dialogs[open].confirm}
-            onConfirm={() => setSaid(d.dialogs[open].done)}
-            onClose={() => setOpen("")}
+            icon={open === "danger" ? "trash" : undefined}
+            warning={open === "danger" ? "This cannot be undone once you leave this page." : undefined}
+            busy={busy}
+            busyLabel="Deleting..."
+            onConfirm={confirm(open)}
+            onClose={() => (setError(""), setOpen(""))}
           >
-            <DialogBody kind={open} />
+            <DialogBody kind={open} error={error} />
           </Modal>
         ) : (
           <p className="fl-ctl-matrix-what">Open one of the four above and it appears here, over this panel.</p>

@@ -5,9 +5,9 @@
  * Variants: c.tabs.underline - the default across an app (horizontal): a rule under the selected tab; c.tabs.pills - tabs on a tinted surface (horizontal): a filled accent pill marks the selected tab; c.tabs.enclosed - tabs joined to the panel below (horizontal): folder tabs; c.tabs.plain - a long list of sections (vertical rail): a line down the side marks the selected tab; c.tabs.filled - a vertical rail on a busy page: the selected row is a tinted accent block
  * Look: A row or vertical rail of text tabs with an optional icon and count; the selected tab is marked and its panel sits below or beside the list.
  * Tokens: --color-accent --color-on-accent --color-text --color-text-muted --color-border --color-surface --color-surface-sunken --radius-md --radius-lg --space-2 --space-4 --weight-medium --text-sm --focus-ring
- * Use cases: record detail sections; settings groups; report views; inbox filters; dashboard ranges
- * Jobs to be done: move between parts of one thing; see which part I am on; count what is in each part
- * Keywords: tabs, underline, pills, enclosed, selected, disabled, badge
+ * Use cases: record detail sections; settings groups; report views; inbox filters; dashboard ranges; section tabs; profile tabs; inbox folders; order status tabs; settings sections; project views; dashboard views; order queue; status tabs; order fulfilment; pipeline stages; ticket queue; task stages; filtered list views; kitchen orders
+ * Jobs to be done: move between parts of one thing; see which part I am on; count what is in each part; switch between views quickly; see how many items are in each group; find the right section of a page; sort work into stages; move an order to the next stage; see how many items are waiting; focus on one group at a time
+ * Keywords: tabs, underline, pills, enclosed, selected, disabled, badge, navigation, counts, tablist, keyboard
  */
 /**
  * Three looks for one control, and all three work: click a tab or use the arrow keys, and the panel below changes.
