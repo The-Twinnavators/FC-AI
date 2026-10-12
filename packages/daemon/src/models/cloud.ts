@@ -63,8 +63,10 @@ export function cloudCoder(router: ModelRouter, store: Store): CloudCoder {
   const provider = cloudProviderId(store);
   const hosted = router.providerConfigs().find((p) => p.id === provider);
   const saved = store.getSetting<{ model?: string; models?: Record<string, string> } | undefined>("cloudCoder", undefined);
-  // Each provider remembers its own model, so switching back and forth keeps both.
-  const model = saved?.models?.[provider] ?? (provider === CLOUD_PROVIDER ? saved?.model : undefined) ?? "";
+  // Each provider remembers its own model, so switching back and forth keeps both. The single `model` of older
+  // settings (before `models`) was the OpenAI-compatible one; once `models` exists, `model` is just the last one saved,
+  // whichever provider it was for, and borrowing it put a Claude model name on the OpenAI-compatible endpoint.
+  const model = saved?.models?.[provider] ?? (provider === CLOUD_PROVIDER && !saved?.models ? saved?.model : undefined) ?? "";
   const keyPresent = !!(hosted?.apiKeyRef && process.env[hosted.apiKeyRef]);
   const problem = !hosted ? "no hosted provider" : !hosted.baseUrl ? "no endpoint URL set" : !model ? "no model chosen" : !hosted.enabled ? "it's turned off" : !keyPresent ? `the API key isn't set (environment variable ${hosted.apiKeyRef} on the FlowCode daemon)` : "";
   return { provider, providerLabel: hosted?.label ?? provider, baseUrl: hosted?.baseUrl ?? "", model, enabled: !!hosted?.enabled, keyVariable: hosted?.apiKeyRef ?? "", keyPresent, ready: !problem, problem, assignment: { providerId: provider, model, temperature: 0.1 } };

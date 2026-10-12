@@ -224,7 +224,11 @@ async function addSections({ deps, run, task, jail, onChanged }: RuntimeStepArgs
   const added: string[] = [];
   let usedSource = "";
   for (const s of LIBRARY_SECTIONS) {
-    const src = fs.readFileSync(path.join(lib, "sections", `${s.id}.tsx`), "utf8");
+    // A piece the catalog names but the library no longer has (folded into a component while the daemon ran on the
+    // older catalog) is skipped: one missing file stopped a whole build at "Add library sections".
+    const file = path.join(lib, "sections", `${s.id}.tsx`);
+    if (!fs.existsSync(file)) continue;
+    const src = fs.readFileSync(file, "utf8");
     write(keptSection(s.id), src);
     if (planned.has(s.id)) {
       // The piece and the pieces it's built from (a template's blocks, a block's components).

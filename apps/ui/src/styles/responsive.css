@@ -13718,7 +13718,7 @@ p.nb__starter b {
   height: 18px;
   color: var(--brand-ink);
 }
-.cloud-models__none {
+.cloud-models li.cloud-models__none {
   grid-template-columns: minmax(0, 1fr);
   color: var(--text-2);
   cursor: default;
