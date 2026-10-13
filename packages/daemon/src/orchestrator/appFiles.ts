@@ -24,6 +24,10 @@ const DEFAULT_ICON: Record<ModelView["kind"], string> = { list: "folder", create
 const pascal = (id: string) => id.split(/[^a-zA-Z0-9]+/).filter(Boolean).map((w) => w[0]!.toUpperCase() + w.slice(1)).join("");
 export const screenFileOf = (v: ModelView) => `src/screens/${pascal(v.id)}Screen.tsx`;
 const q = (s: string) => JSON.stringify(s);
+/** A JSX attribute value from the model's words: an expression holding a JS string, so no quote ends it early. */
+const attr = (s: string) => `{${JSON.stringify(s)}}`;
+/** The model's words inside a comment: nothing that closes it or starts a new line. */
+export const commentSafe = (s: string) => s.replace(/\*\//g, "* /").replace(/[\r\n\u2028\u2029]+/g, " ");
 
 /** The views that get a screen file (placeholders are drawn by the frame). */
 export const builtViews = (m: AppModel) => m.nav.flatMap((g) => g.items).filter((v) => v.kind !== "placeholder");
@@ -42,28 +46,28 @@ function screenSource(m: AppModel, v: ModelView): string {
   const e = m.entities.find((x) => x.key === v.entity) ?? m.entities[0]!;
   const r = entityRoutes(m, e.key);
   const name = `${pascal(v.id)}Screen`;
-  const head = `/**\n * ${v.label}${v.purpose ? `: ${v.purpose.replace(/\*\//g, "")}` : ""}\n * Built by FlowCode from the app model; it reads and writes the app's one store (src/app/store.ts).\n */`;
+  const head = `/**\n * ${commentSafe(v.label)}${v.purpose ? `: ${commentSafe(v.purpose)}` : ""}\n * Built by FlowCode from the app model; it reads and writes the app's one store (src/app/store.ts).\n */`;
   const nav = `import { go } from "../app/routes";\nimport { store } from "../app/store";`;
   const open = r.detail ? `(id) => go(${q(r.detail)}, id)` : "undefined";
   switch (v.kind) {
     case "list":
-      return `${head}\nimport { ResourceIndex } from "../sections/ResourceIndex";\n${nav}\n\nexport default function ${name}() {\n  return <ResourceIndex store={store} entity=${q(e.key)} title=${q(v.label)} onOpen={${open}}${r.create ? ` onCreate={() => go(${q(r.create)})}` : ""} />;\n}\n`;
+      return `${head}\nimport { ResourceIndex } from "../sections/ResourceIndex";\n${nav}\n\nexport default function ${name}() {\n  return <ResourceIndex store={store} entity=${attr(e.key)} title=${attr(v.label)} onOpen={${open}}${r.create ? ` onCreate={() => go(${q(r.create)})}` : ""} />;\n}\n`;
     case "queue": {
       // The status that waits on someone: the first one a transition moves records out of, after the first.
       const waiting = e.transitions?.find((t) => t.from.length && t.from[0] !== e.statuses?.[0]?.key)?.from[0] ?? e.statuses?.[1]?.key;
-      return `${head}\nimport { ResourceIndex } from "../sections/ResourceIndex";\n${nav}\n\nexport default function ${name}() {\n  return <ResourceIndex store={store} entity=${q(e.key)} title=${q(v.label)}${v.purpose ? ` description=${q(v.purpose)}` : ""}${waiting ? ` initialStatus=${q(waiting)}` : ""} onOpen={${open}} />;\n}\n`;
+      return `${head}\nimport { ResourceIndex } from "../sections/ResourceIndex";\n${nav}\n\nexport default function ${name}() {\n  return <ResourceIndex store={store} entity=${attr(e.key)} title=${attr(v.label)}${v.purpose ? ` description=${attr(v.purpose)}` : ""}${waiting ? ` initialStatus=${attr(waiting)}` : ""} onOpen={${open}} />;\n}\n`;
     }
     case "create": {
       const submit = e.transitions?.find((t) => t.from.includes(e.statuses?.[0]?.key ?? ""))?.key;
-      return `${head}\nimport { RecordWizard } from "../sections/RecordWizard";\nimport { useHashId } from "../sections/AppData";\n${nav}\n\nexport default function ${name}() {\n  const draftId = useHashId(${q(v.id)});\n  return (\n    <RecordWizard\n      key={draftId ?? "new"}\n      store={store}\n      entity=${q(e.key)}\n      draftId={draftId}${submit ? `\n      submitTransition=${q(submit)}` : ""}\n      onDone={${r.detail ? `(id) => go(${q(r.detail)}, id)` : r.list ? `() => go(${q(r.list)})` : "undefined"}}\n      onCancel={${r.list ? `() => go(${q(r.list)})` : "undefined"}}\n    />\n  );\n}\n`;
+      return `${head}\nimport { RecordWizard } from "../sections/RecordWizard";\nimport { useHashId } from "../sections/AppData";\n${nav}\n\nexport default function ${name}() {\n  const draftId = useHashId(${q(v.id)});\n  return (\n    <RecordWizard\n      key={draftId ?? "new"}\n      store={store}\n      entity=${attr(e.key)}\n      draftId={draftId}${submit ? `\n      submitTransition=${attr(submit)}` : ""}\n      onDone={${r.detail ? `(id) => go(${q(r.detail)}, id)` : r.list ? `() => go(${q(r.list)})` : "undefined"}}\n      onCancel={${r.list ? `() => go(${q(r.list)})` : "undefined"}}\n    />\n  );\n}\n`;
     }
     case "detail":
-      return `${head}\nimport { RecordDetail } from "../sections/RecordDetail";\nimport { useHashId } from "../sections/AppData";\n${nav}\n\nexport default function ${name}() {\n  const id = useHashId(${q(v.id)}) ?? "";\n  return <RecordDetail store={store} entity=${q(e.key)} id={id}${r.list ? ` onBack={() => go(${q(r.list)})}` : ""}${r.create ? ` onOpenDraft={(draft) => go(${q(r.create)}, draft)}` : ""} />;\n}\n`;
+      return `${head}\nimport { RecordDetail } from "../sections/RecordDetail";\nimport { useHashId } from "../sections/AppData";\n${nav}\n\nexport default function ${name}() {\n  const id = useHashId(${q(v.id)}) ?? "";\n  return <RecordDetail store={store} entity=${attr(e.key)} id={id}${r.list ? ` onBack={() => go(${q(r.list)})}` : ""}${r.create ? ` onOpenDraft={(draft) => go(${q(r.create)}, draft)}` : ""} />;\n}\n`;
     case "dashboard":
-      return `${head}\nimport { AppDashboard } from "../sections/AppDashboard";\n${nav}\n\nexport default function ${name}() {\n  return <AppDashboard store={store} entity=${q(e.key)} title=${q(v.label)}${v.purpose ? ` description=${q(v.purpose)}` : ""} onOpen={${open}}${r.list ? ` onViewAll={() => go(${q(r.list)})}` : ""}${r.create ? ` onCreate={() => go(${q(r.create)})}` : ""} />;\n}\n`;
+      return `${head}\nimport { AppDashboard } from "../sections/AppDashboard";\n${nav}\n\nexport default function ${name}() {\n  return <AppDashboard store={store} entity=${attr(e.key)} title=${attr(v.label)}${v.purpose ? ` description=${attr(v.purpose)}` : ""} onOpen={${open}}${r.list ? ` onViewAll={() => go(${q(r.list)})}` : ""}${r.create ? ` onCreate={() => go(${q(r.create)})}` : ""} />;\n}\n`;
     default:
       // A custom page: the design and feature steps build it from its purpose, on the same store.
-      return `${head}\nimport { PageHeader } from "../components/ui";\n${nav}\n\nexport default function ${name}() {\n  void store;\n  void go;\n  return (\n    <main className="fl-wrap">\n      <PageHeader title=${q(v.label)}${v.purpose ? ` description=${q(v.purpose)}` : ""} />\n      {/* 1. ${v.label}: ${(v.purpose ?? "this page's working content").replace(/\*\//g, "")} */}\n    </main>\n  );\n}\n`;
+      return `${head}\nimport { PageHeader } from "../components/ui";\n${nav}\n\nexport default function ${name}() {\n  void store;\n  void go;\n  return (\n    <main className="fl-wrap">\n      <PageHeader title=${attr(v.label)}${v.purpose ? ` description=${attr(v.purpose)}` : ""} />\n      {/* 1. ${commentSafe(v.label)}: ${commentSafe(v.purpose ?? "this page's working content")} */}\n    </main>\n  );\n}\n`;
   }
 }
 
@@ -97,7 +101,7 @@ export function appFiles(m: AppModel): Array<{ path: string; content: string }> 
     {
       path: "src/App.tsx",
       content: [
-        `/** ${m.product}: the app frame with the whole navigation, and the page for each destination. Written by FlowCode from the app model. */`,
+        `/** ${commentSafe(m.product)}: the app frame with the whole navigation, and the page for each destination. Written by FlowCode from the app model. */`,
         `import type { ComponentType } from "react";`,
         `import { AppFrame } from "./sections/AppFrame";`,
         `import { useRoute } from "./lib/screens";`,
@@ -113,7 +117,7 @@ export function appFiles(m: AppModel): Array<{ path: string; content: string }> 
         `  const { screen } = useRoute(SCREEN_IDS);`,
         `  const View = VIEWS[screen];`,
         `  return (`,
-        `    <AppFrame product=${q(m.product)} nav={NAV} current={PARENT[screen] ?? screen} onNavigate={(id) => go(id)} store={store} user={{ name: "You" }} env="PROTOTYPE">`,
+        `    <AppFrame product=${attr(m.product)} nav={NAV} current={PARENT[screen] ?? screen} onNavigate={(id) => go(id)} store={store} user={{ name: "You" }} env="PROTOTYPE">`,
         `      {View ? <View key={screen} /> : null}`,
         `    </AppFrame>`,
         `  );`,

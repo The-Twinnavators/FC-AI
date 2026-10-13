@@ -1,3 +1,4 @@
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { appModelNote, parseAppModel } from "../src/orchestrator/appModel.js";
 import { appFiles, completeAppTasks, customPlanOf, namedIndexHtml, screenPlanOf, WRITE_APP } from "../src/orchestrator/appFiles.js";
@@ -110,5 +111,32 @@ describe("the app model", () => {
     const plan = screenPlanOf(model!);
     expect(plan.screens.map((x) => x.file)).toContain("src/screens/TreatyMasterScreen.tsx");
     expect(customPlanOf(model!).screens.every((x) => model!.nav.flatMap((g) => g.items).find((v) => v.id === x.id)?.kind === "custom")).toBe(true);
+  });
+
+  it("writes the model's words as data, never as code, whatever they contain", () => {
+    const evil = 'Ops" onClick={() => alert(1)} x="*/ alert(2); /*';
+    const hostile = {
+      ...raw,
+      product: `Treaty ${evil}`,
+      nav: [{ label: "Main", items: [
+        { id: "home", label: evil, kind: "dashboard", entity: "treaty", purpose: evil },
+        { id: "treaty-master", label: evil, kind: "list", entity: "treaty", purpose: evil },
+        { id: "notes", label: evil, kind: "custom", purpose: evil },
+      ] }],
+    };
+    const { model } = parseAppModel(hostile);
+    for (const f of appFiles(model!).filter((x) => /\.tsx?$/.test(x.path))) {
+      const src = ts.createSourceFile(f.path, f.content, ts.ScriptTarget.Latest, true, f.path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+      expect((src as unknown as { parseDiagnostics: unknown[] }).parseDiagnostics, f.path).toEqual([]);
+      // The words only ever reach the page as string values: no handler or call the model wrote.
+      let calls = 0;
+      const visit = (n: ts.Node) => {
+        if (ts.isJsxAttribute(n) && n.name.getText(src) === "onClick") calls++;
+        if (ts.isCallExpression(n) && n.expression.getText(src) === "alert") calls++;
+        ts.forEachChild(n, visit);
+      };
+      visit(src);
+      expect(calls, f.path).toBe(0);
+    }
   });
 });
