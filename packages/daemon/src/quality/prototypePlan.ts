@@ -60,7 +60,11 @@ export interface PlanView {
 const cleanDescription = (d: string) => d.replace(/ Covers [^.]*\.$/, "");
 
 /** The stored plan as steps and notes; `taskOf` finds a step's build task (pure, so it can be tested without a store). */
-export function planView(projectId: string, plan: LrcPlan | null, taskOf: (taskId: string) => Task | undefined): PlanView {
+/**
+ * `stepOf` gives a build task's step number as the build page shows it ("Step 10"), so both pages number a step the
+ * same way; the plan's own order is only the fallback before the build has its steps.
+ */
+export function planView(projectId: string, plan: LrcPlan | null, taskOf: (taskId: string) => Task | undefined, stepOf?: (taskId: string) => number | undefined): PlanView {
   if (!plan) return { projectId, hasPlan: false, steps: [], review: [], later: [] };
   const reqText = new Map(plan.requirements.map((r) => [r.id, r.text]));
   const covers = (i: PlanItem) => i.covers.map((id) => ({ id, text: reqText.get(id) ?? "" }));
@@ -72,11 +76,17 @@ export function planView(projectId: string, plan: LrcPlan | null, taskOf: (taskI
     if (!step) {
       const task = i.taskId ? taskOf(i.taskId) : undefined;
       const v = task ? fromTask(task) : { status: "not_started" as const, evidence: "Starts when the build reaches it" };
-      step = { key: i.stepKey, n: order.get(i.stepKey) ?? steps.size + 1, title: task?.title ?? i.title, kind: i.categoryId.startsWith("spec.") ? "feature" : "setup", status: v.status, taskStatus: task?.status, evidence: v.evidence, runId: task?.runId, taskId: task?.id, items: [] };
+      step = { key: i.stepKey, n: (task && stepOf?.(task.id)) || (order.get(i.stepKey) ?? steps.size + 1), title: task?.title ?? i.title, kind: i.categoryId.startsWith("spec.") ? "feature" : "setup", status: v.status, taskStatus: task?.status, evidence: v.evidence, runId: task?.runId, taskId: task?.id, items: [] };
       steps.set(i.stepKey, step);
     }
     step.items.push({ id: i.id, title: i.title, description: cleanDescription(i.description), section: i.categoryTitle, covers: covers(i), tests: i.tests ?? [], files: i.files.filter((f) => !f.endsWith("/")) });
   }
+  // A planned step the build doesn't have (the complete-app path drops the ready-made layouts): last, unnumbered.
+  if (stepOf) for (const s of steps.values()) if (!s.taskId) {
+      s.n = 0;
+      s.status = "not_applicable";
+      s.evidence = "Not part of this build";
+    }
   // A step that builds several items shows them all in its title when the task doesn't exist yet.
   for (const s of steps.values()) if (!s.taskId && s.items.length > 1) s.title = s.items.map((x) => x.title).join(", ");
   const note = (i: PlanItem): PlanViewNote => ({ id: i.id, title: i.title, description: i.description, section: i.categoryTitle, covers: covers(i), ...(i.later ? { reason: i.later, realApp: /real app|real product/i.test(i.later) } : {}) });
@@ -86,7 +96,7 @@ export function planView(projectId: string, plan: LrcPlan | null, taskOf: (taskI
     runId: plan.runId,
     createdAt: plan.createdAt,
     requirements: requirementCounts(plan),
-    steps: [...steps.values()].sort((a, b) => a.n - b.n),
+    steps: [...steps.values()].sort((a, b) => (a.n || Infinity) - (b.n || Infinity)),
     review: plan.items.filter((i) => i.executionType !== "code" && !i.later).map(note),
     later: plan.items.filter((i) => i.later).map(note),
   };
@@ -95,5 +105,9 @@ export function planView(projectId: string, plan: LrcPlan | null, taskOf: (taskI
 /** GET /projects/:id/plan */
 export function prototypePlan(app: App, projectId: string): PlanView {
   app.store.projects.require(projectId);
-  return planView(projectId, app.store.getSetting<LrcPlan | null>(planKey(projectId), null), (id) => app.store.tasks.get(id));
+  const plan = app.store.getSetting<LrcPlan | null>(planKey(projectId), null);
+  // The build page numbers its steps by their place in the run's task list: the same numbers here.
+  const runTasks = plan?.runId ? app.orchestrator.graph.tasks(plan.runId) : [];
+  const stepOf = runTasks.length ? (id: string) => { const i = runTasks.findIndex((t) => t.id === id); return i >= 0 ? i + 1 : undefined; } : undefined;
+  return planView(projectId, plan, (id) => app.store.tasks.get(id), stepOf);
 }

@@ -311,7 +311,7 @@ export function PlanView({ projectId }: { projectId: string }) {
           return (
             <li key={s.key} className={`pp-step pp-step--${s.status}${s.kind === "setup" ? " pp-step--setup" : ""}${expanded ? " is-open" : ""}`}>
               <button type="button" className="pp-step__head" aria-expanded={expanded} aria-controls={`pp-${s.key}`} onClick={() => setOpen((o) => ({ ...o, [s.key]: !expanded }))}>
-                <span className="pp-step__n mono">{s.n}</span>
+                <span className="pp-step__n mono">{s.n || "–"}</span>
                 <span className={`pp-dot pp-dot--${s.status}`} aria-hidden="true" />
                 <span className="pp-step__text">
                   <span className="pp-step__title">{s.title}</span>

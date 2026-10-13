@@ -157,6 +157,20 @@ describe("the prototype plan view", () => {
     expect(v.requirements).toMatchObject({ total: plan.requirements.length, forPeople: 1, later: 2 });
   });
 
+  it("numbers each step as the build page does, and puts a planned step the build doesn't have last, unnumbered", () => {
+    const plan = makePlan("run_1");
+    const write = plan.items.find((i) => i.title === "Write and list notes")!;
+    write.taskId = "task_1";
+    const task = { id: "task_1", runId: "run_1", title: "Write and list notes", status: "running", attempts: 1 } as unknown as Task;
+    // The build's step list has this task at position 10 (the build page shows "Step 10").
+    const v = planView("p1", plan, (id) => (id === "task_1" ? task : undefined), (id) => (id === "task_1" ? 10 : undefined));
+    expect(v.steps.map((s) => [s.n, s.title])).toEqual([
+      [10, "Write and list notes"],
+      [0, "Search notes"],
+    ]);
+    expect(v.steps[1]).toMatchObject({ status: "not_applicable", evidence: "Not part of this build" });
+  });
+
   it("is empty for a project built before prototype plans", () => {
     expect(planView("p1", null, () => undefined)).toEqual({ projectId: "p1", hasPlan: false, steps: [], review: [], later: [] });
   });
