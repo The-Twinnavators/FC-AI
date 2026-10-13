@@ -171,3 +171,20 @@ describe("sized for the planner's provider", () => {
     expect(localContext(undefined, 64_000)).toBe(32_768);
   });
 });
+
+describe("a look-up app's landing page", () => {
+  it("may use the look-up pieces: the search, ZIP prompt, category tiles and featured entries are its working parts", async () => {
+    const { checkComposition } = await import("../src/orchestrator/pageTypes.js");
+    const sections = [
+      { title: "Hero: promise, search, ZIP", part: "p.lookup-catalog.search" },
+      { title: "Find it near you", part: "p.place-finder.prompt" },
+      { title: "Featured categories", part: "p.lookup-catalog.categories" },
+      { title: "Most liked", part: "p.lookup-catalog.grid" },
+    ];
+    const { sections: kept, issues } = checkComposition("Home", "marketing", sections);
+    expect(issues.filter((i) => /belongs on/.test(i.reason))).toEqual([]);
+    expect(kept.map((s) => s.part)).toEqual(sections.map((s) => s.part));
+    // Still app-only: an entry page and a list don't belong on a marketing page.
+    expect(checkComposition("Home", "marketing", [{ title: "A list", part: "p.list-builder.list" }]).issues.some((i) => /belongs on app screens/.test(i.reason))).toBe(true);
+  });
+});

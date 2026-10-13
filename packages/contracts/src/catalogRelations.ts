@@ -110,6 +110,14 @@ const RELATIONS: Record<string, Rel> = {
   "c.slideshow": { provides: ["media"], requires: ["pictures"], avoidWhen: ["text the person must read: a moving slide hides it"] },
   "c.media-frame": { provides: ["media"] },
   "p.top-nav": { provides: ["navigation"] },
+  // Look-up apps (find it and where to get it): their landing page is the app's own front door, so its search, ZIP code
+  // prompt, category tiles and featured entries are the working pieces, on marketing pages as on app screens (Clean
+  // Cart's plan was told to rebuild them by hand).
+  "p.lookup-catalog": { provides: ["results", "search", "filter", "sort", "empty state", "loading state"], contexts: ["app", "marketing"] },
+  "p.lookup-entry": { provides: ["detail", "review"], contexts: ["app"] },
+  "p.place-finder": { provides: ["search", "results"], contexts: ["app", "marketing"] },
+  "p.list-builder": { provides: ["edit", "form"], contexts: ["app"] },
+  "p.lookup-frame": { provides: ["navigation"], contexts: ["app", "marketing"] },
   "p.side-nav": { provides: ["navigation"], contexts: ["app"] },
   "c.tabs": { provides: ["navigation"] },
   "c.breadcrumbs": { provides: ["navigation"], requires: ["pages nested more than one level deep"] },
