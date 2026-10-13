@@ -249,18 +249,25 @@ describe("a scaffolded starter becomes the product in the PRD", () => {
     const { starterIdentity, personalizeStarterFile } = await import("../src/orchestrator/starterIdentity.js");
     const id = starterIdentity([], "Garden Planner", "Plan a vegetable garden by season");
     expect(id.colors).toEqual([]);
-    expect(personalizeStarterFile("src/styles/tokens.css", ":root {\n  --color-accent: #24423a;\n}\n", id)).toBe(":root {\n  --color-accent: #24423a;\n}\n");
+    // The light colours stay the starter's; only the dark theme (switched by data-theme) is added from them.
+    const out = personalizeStarterFile("src/styles/tokens.css", ":root {\n  --color-accent: #24423a;\n}\n", id);
+    expect(out.startsWith(":root {\n  --color-accent: #24423a;\n}\n")).toBe(true);
+    expect(out).toMatch(/:root\[data-theme="dark"\]/);
     expect(JSON.parse(personalizeStarterFile(".flowcode/design-brief.json", "{}", id)).subject).toBe("Garden Planner");
   });
 
-  it("drops the starter's automatic dark mode unless the PRD asks for one, so the app shows its style whatever the system setting", async () => {
+  it("gives every app a dark theme from its own colours that only data-theme switches, never the computer's setting", async () => {
     const { starterIdentity, personalizeStarterFile } = await import("../src/orchestrator/starterIdentity.js");
-    const tokens = ":root {\n  --color-bg: #ffffff;\n}\n\n@media (prefers-color-scheme: dark) {\n  :root {\n    --color-bg: #141816;\n  }\n}\n";
+    const tokens = ":root {\n  --color-bg: #ffffff;\n  --color-accent: #2f6f5e;\n}\n\n@media (prefers-color-scheme: dark) {\n  :root {\n    --color-bg: #141816;\n  }\n}\n";
     const plain = starterIdentity([], "Clean Cart", "Find food without GMOs");
-    expect(personalizeStarterFile("src/styles/tokens.css", tokens, plain)).not.toMatch(/prefers-color-scheme/);
     const dark = starterIdentity([{ name: "prd.md", role: "prd", content: "# App\nIt has a dark mode for night use." }], "Night Owl", "A reading app");
-    expect(dark.wantsDark).toBe(true);
-    expect(personalizeStarterFile("src/styles/tokens.css", tokens, dark)).toMatch(/prefers-color-scheme: dark/);
+    for (const id of [plain, dark]) {
+      const out = personalizeStarterFile("src/styles/tokens.css", tokens, id);
+      expect(out).not.toMatch(/prefers-color-scheme/);
+      expect(out).toMatch(/:root\[data-theme="dark"\] \{\n {2}color-scheme: dark;/);
+      // The starter's own dark background is gone: the dark theme comes from this app's accent.
+      expect(out).not.toContain("#141816");
+    }
   });
 });
 

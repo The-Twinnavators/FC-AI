@@ -13,6 +13,7 @@ import path from "node:path";
 import type { PathJail } from "../security/pathJail.js";
 import type { FileOperations } from "./operations.js";
 import { parseCustomProperties, validTokenValue } from "./styleTokens.js";
+import { withDarkTheme } from "./darkTheme.js";
 import { uiGallery } from "./componentLibrary.js";
 import { CONFIGURABLE_BLOCKS, buildPalette, componentStyleSpec, componentStylesCss, paletteFromTokens, rampTokens, roleTokens, type ComponentStyleValues, type Palette, type PaletteConfig } from "@flowcode/contracts";
 
@@ -130,7 +131,12 @@ export function applyPalette(jail: PathJail, ops: FileOperations, ctx: { project
     changed.push("ramps");
   }
   css = setTokenValues(css, "default", roleTokens(palette, false), changed);
-  if (parseCustomProperties(css).some((d) => isDark(d.selectors))) css = setTokenValues(css, "dark", roleTokens(palette, true), changed);
+  // The dark theme follows the palette: written from it, switched only by data-theme (never the computer's setting).
+  const withDark = withDarkTheme(css, palette);
+  if (withDark !== css) {
+    css = withDark;
+    changed.push("dark theme");
+  }
   saveDesign(jail, { palette: cfg });
   return { ...writeTokens(jail, ops, ctx, css, changed), palette };
 }

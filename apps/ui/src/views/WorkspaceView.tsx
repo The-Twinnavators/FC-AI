@@ -13,7 +13,7 @@ import { KnowledgePicker } from "../components/KnowledgePicker";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { checkName, friendlyError } from "@flowcode/contracts";
 import { Check, Copy, ExternalLink, ListChecks, MessageSquare, RefreshCw } from "lucide-react";
-import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
+import { PreviewSizes, PreviewThemeToggle, deviceWidth, storePreviewTheme, storedPreviewTheme, type Device, type PreviewTheme } from "../components/PreviewSizes";
 import type { Approval, Checkpoint, CommandRecord, FlowEvent, KnowledgeItem, PreflightRecord, Project, Run, Snapshot, Task, VerificationCheck } from "@flowcode/contracts";
 import { artifactUrl, get, post, useEventStream, useResource } from "../api";
 import { ApprovalCard } from "../components/ApprovalCard";
@@ -1233,6 +1233,18 @@ function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: 
   const [error, setError] = useState<string>();
   // Bumped by Refresh: a new key reloads the preview (the app runs on another origin, so it can't be reloaded from here).
   const [reloads, setReloads] = useState(0);
+  // Light or dark for the app in the preview: sent to the app (it switches itself), so it changes without a reload.
+  const [theme, setTheme] = useState<PreviewTheme>(storedPreviewTheme);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const sendTheme = (t: PreviewTheme) => frameRef.current?.contentWindow?.postMessage({ type: "flowcode:theme", theme: t }, "*");
+  const pickTheme = (t: PreviewTheme) => {
+    setTheme(t);
+    storePreviewTheme(t);
+    sendTheme(t);
+  };
+  // The address carries the theme the frame opened with, so the first paint is already right.
+  const [openedTheme] = useState(theme);
+  const frameSrc = live.data?.url ? `${live.data.url}${live.data.url.includes("?") ? "&" : "?"}theme=${openedTheme}` : undefined;
   // Only the latest verification’s screenshots (one per viewport); older runs stay in Reports.
   const shots = latestShots(artifacts.filter((a) => a.kind === "screenshot"));
   const start = async () => {
@@ -1258,6 +1270,7 @@ function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: 
             </a>
             <CopyUrl url={live.data.url} />
             <PreviewSizes value={device} onChange={setDevice} style={{ marginLeft: "auto" }} />
+            <PreviewThemeToggle value={theme} onChange={pickTheme} />
             <button type="button" className="btn btn--sm btn--icon" data-cp="point-something" onClick={() => setPointing(true)} aria-label="Point &amp; Edit" title="Point &amp; Edit: click what should change on a fresh picture of your app, and say how">
               <MonitorPointer />
             </button>
@@ -1279,7 +1292,7 @@ function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: 
       {live.data?.url || shots.length ? <DemoBanner projectId={projectId} /> : null}
       {live.data?.url ? (
         <div className={`preview-stage${frameWidth ? " preview-stage--device" : ""}`}>
-          <iframe key={reloads} className="preview-frame" title={`Live preview, ${device}`} src={live.data.url} sandbox="allow-scripts allow-same-origin allow-forms" style={{ ...(frameWidth ? { width: frameWidth, maxWidth: "100%" } : {}) }} />
+          <iframe key={reloads} ref={frameRef} onLoad={() => sendTheme(theme)} className="preview-frame" title={`Live preview, ${device}, ${theme} mode`} src={frameSrc} sandbox="allow-scripts allow-same-origin allow-forms" style={{ ...(frameWidth ? { width: frameWidth, maxWidth: "100%" } : {}) }} />
         </div>
       ) : shots.length ? (
         <ScreenshotGallery shots={shots} />

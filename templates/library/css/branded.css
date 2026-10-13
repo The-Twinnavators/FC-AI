@@ -159,15 +159,7 @@
   border-radius: min(var(--radius-xl), 12px); background: var(--fl-brd-surface); color: var(--fl-brd-ink);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fl-brd-ink) 12%, transparent);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .fl-brd-hero {
-    --fl-brd-surface: var(--color-surface-sunken);
-    --fl-brd-ink: var(--color-text);
-    --fl-brd-ink-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-bg));
-    --fl-brd-from: var(--color-secondary, var(--color-accent));
-    --fl-brd-to: var(--color-success);
-  }
-}
+/* The app's dark theme (data-theme="dark", from the preview's toggle), never the computer's setting. */
 :root[data-theme="dark"] .fl-brd-hero {
   --fl-brd-surface: var(--color-surface-sunken);
   --fl-brd-ink: var(--color-text);

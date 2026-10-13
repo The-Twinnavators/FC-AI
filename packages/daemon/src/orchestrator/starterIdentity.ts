@@ -8,6 +8,7 @@
  *   reads. The starter's sample brief described a schedule app and would judge any other product against it.
  * Pure functions: the scaffold step calls personalizeStarterFile() on each file before writing it.
  */
+import { withDarkTheme } from "../workspace/darkTheme.js";
 import { BUILD_EXTRAS, defaultSecondary, secondaryTokens, styleVibe, TEMPLATE_VIBES, templateTokens, vibeFromText, vibeTokens, type DesignTemplate, type ReferenceFile, type StyleVibe } from "@flowcode/contracts";
 import { contrastRatio } from "../quality/tokens.js";
 
@@ -295,9 +296,8 @@ function personalizeFile(rel: string, content: string, id: StarterIdentity): str
     ["--radius-sm", "--radius-md", "--radius-lg", "--radius-xl"].forEach((r, i) => set(r, `${t.radii[i]}px`));
     root = root.replace(/\/\* Shape — radius never exceeds 10px \*\//, "/* Shape */");
     root = `${root.replace(/\s*$/, "")}\n\n  /* Visual style: ${t.name}${t.dark ? " (dark)" : ""} */\n  color-scheme: ${t.dark ? "dark" : "light"};\n`;
-    let css = root + content.slice(rootEnd);
-    css = css.replace(/\n*@media \(prefers-color-scheme: dark\) \{[\s\S]*?\n\}\n?/, "\n");
-    return css;
+    // The style's own dark theme (from its palette), switched by data-theme; the starter's dark palette goes.
+    return withDarkTheme(root + content.slice(rootEnd));
   }
   if (/(^|\/)tokens\.css$/.test(rel) && id.colors.length) {
     let css = content;
@@ -308,15 +308,12 @@ function personalizeFile(rel: string, content: string, id: StarterIdentity): str
     const brand = id.colors.map((c) => `  --brand-${c.name}: ${c.hex};${c.use ? ` /* ${c.use.replace(/\*\//g, "").slice(0, 70)} */` : ""}`).join("\n");
     root = `${root.replace(/\s*$/, "")}\n\n  /* Brand colours from the PRD (also mapped onto the roles above) */\n${brand}\n`;
     css = root + css.slice(rootEnd);
-    // The starter's dark palette was made for the starter's colours; without a dark theme in the PRD it would show the
-    // starter's colours to anyone whose system is in dark mode, so it goes.
-    if (!id.wantsDark) css = css.replace(/\n*@media \(prefers-color-scheme: dark\) \{[\s\S]*?\n\}\n?/, "\n");
-    return css;
+    // The starter's dark palette was made for the starter's colours: the dark theme is written from these instead.
+    return withDarkTheme(css);
   }
-  // No style or colours yet (they come later, from Capture the style): the starter's dark palette still goes unless
-  // the PRD asks for a dark mode, so the app shows its CSSVibes style whatever the computer's light or dark setting
-  // (Clean Cart's preview turned dark with the system, with a dark block a later step filled with Ocean Breeze).
-  if (/(^|\/)tokens\.css$/.test(rel) && !id.wantsDark) return content.replace(/\n*@media \(prefers-color-scheme: dark\) \{[\s\S]*?\n\}\n?/, "\n");
+  // No style or colours yet (they come later, from Capture the style): the dark theme still switches only with
+  // data-theme, never with the computer's setting (Clean Cart's preview turned dark with the system).
+  if (/(^|\/)tokens\.css$/.test(rel)) return withDarkTheme(content);
   return content;
 }
 
