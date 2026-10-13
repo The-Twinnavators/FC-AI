@@ -2825,7 +2825,7 @@ input:checked + .fl-ld-option { border-color: var(--color-accent); box-shadow: i
 .fl-plc-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .fl-plc-chip {
   display: inline-flex; align-items: baseline; gap: var(--space-2); padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); background: var(--color-surface);
   color: var(--color-text); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer;
   transition: border-color var(--duration-fast) var(--easing), background var(--duration-fast) var(--easing);
 }
@@ -2970,7 +2970,7 @@ input:checked + .fl-ld-option { border-color: var(--color-accent); box-shadow: i
 .fl-plc-badge-wrap { position: relative; z-index: 5; display: inline-flex; min-width: 0; max-width: 100%; }
 .fl-plc-badge {
   display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; max-width: 100%; height: 2.25rem; padding: 0 var(--space-3);
-  border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); background: var(--color-surface);
   color: var(--color-text); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer;
 }
 .fl-plc-badge:hover, .fl-plc-badge[aria-expanded="true"] { border-color: var(--color-accent); }
