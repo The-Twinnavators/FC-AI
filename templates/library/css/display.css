@@ -151,8 +151,8 @@
   position: fixed; left: 50%; bottom: var(--space-5); z-index: 40; transform: translateX(-50%);
   display: flex; align-items: center; gap: var(--space-4); width: min(36rem, calc(100% - 2 * var(--space-4)));
   padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5); border-radius: min(var(--radius-lg), 24px);
-  background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none));
-  animation: fl-dsp-rise var(--duration-base) var(--easing);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border)); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none));
+  animation: fl-dsp-rise var(--duration-base) var(--easing); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
 .fl-dsp-float p { flex: 1; margin: 0; font-size: var(--text-sm); line-height: var(--leading-normal); }
 .fl-dsp-float__acts { display: flex; gap: var(--space-2); align-items: center; }
@@ -172,7 +172,7 @@
 .fl-dsp-logo--caps span { font-family: var(--font-sans); text-transform: uppercase; letter-spacing: var(--tracking-wide); font-size: var(--text-md); }
 .fl-dsp-logo--serif span { font-weight: var(--weight-medium); font-style: italic; }
 .fl-dsp-logo-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin: 0; padding: 0; list-style: none; background: var(--color-border); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 24px); overflow: hidden; }
-.fl-dsp-logo-grid li { display: grid; place-items: center; padding: var(--space-6) var(--space-4); background: var(--color-surface); }
+.fl-dsp-logo-grid li { display: grid; place-items: center; padding: var(--space-6) var(--space-4); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-dsp-marquee { position: relative; overflow: hidden; border-radius: var(--radius-md); -webkit-mask-image: linear-gradient(90deg, transparent, var(--color-text) 10%, var(--color-text) 90%, transparent); mask-image: linear-gradient(90deg, transparent, var(--color-text) 10%, var(--color-text) 90%, transparent); }
 .fl-dsp-marquee__track { display: flex; width: max-content; gap: var(--space-8); padding-block: var(--space-3); animation: fl-dsp-scroll 32s linear infinite; }
 .fl-dsp-marquee__track ul { display: flex; gap: var(--space-8); margin: 0; padding: 0; list-style: none; }

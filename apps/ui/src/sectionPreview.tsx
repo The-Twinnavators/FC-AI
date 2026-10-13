@@ -27,7 +27,8 @@ const addStyles = (used: string) => {
   const style = document.createElement("style");
   style.textContent = [
     previewBaseCss(styleId, surface),
-    "html,body{margin:0;overflow-x:hidden;background:var(--color-bg);color:var(--color-text);font-family:var(--font-sans);font-size:var(--text-md);-webkit-font-smoothing:antialiased}body{overflow-y:auto}html{height:100%}body{min-height:100%}*,*::before,*::after{box-sizing:border-box}",
+    // The surface's backdrop (liquid glass's colour wash, for one) behind the page, as a built app paints it.
+    "html,body{margin:0;overflow-x:hidden;background:var(--color-bg);background-image:var(--page-backdrop,none);background-attachment:fixed;color:var(--color-text);font-family:var(--font-sans);font-size:var(--text-md);-webkit-font-smoothing:antialiased}body{overflow-y:auto}html{height:100%}body{min-height:100%}*,*::before,*::after{box-sizing:border-box}",
     baseCss,
     ...Object.keys(categoryCss)
       .sort()

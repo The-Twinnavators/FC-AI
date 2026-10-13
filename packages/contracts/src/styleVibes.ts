@@ -34,6 +34,7 @@ export const SURFACE_DEFAULTS: Record<string, string> = {
   "--control-shadow-hover": "none",
   "--header-bg": "var(--color-surface)",
   "--page-backdrop": "none",
+  "--page-fill": "var(--color-bg)", // fill of a decorative section background; transparent where the surface paints a backdrop
   "--heading-weight": "var(--weight-bold)",
   // Extra traits any style can set. The defaults reproduce the flat look; `initial` means "not set", so each
   // component keeps its own colour (e.g. a variant's accent border) until a style provides one.
@@ -82,6 +83,7 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-radius": "10px",
       "--header-bg": "color-mix(in srgb, var(--color-surface) 70%, transparent)",
       "--page-backdrop": "radial-gradient(60% 55% at 8% 0%, color-mix(in srgb, var(--color-accent) 24%, transparent), transparent 70%), radial-gradient(50% 50% at 100% 35%, color-mix(in srgb, var(--color-focus) 18%, transparent), transparent 70%)",
+      "--page-fill": "transparent",
       "--control-bg": "color-mix(in srgb, var(--color-surface) 55%, transparent)",
       "--surface-shadow-overlay": `0 18px 48px -14px ${T(45)}, inset 0 1px 0 ${W(40)}`,
       "--surface-shadow-selected": `0 0 0 1px var(--color-accent), 0 10px 32px -14px ${T(35)}`,
@@ -104,6 +106,7 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-radius": "999px",
       "--header-bg": "color-mix(in srgb, var(--color-surface) 60%, transparent)",
       "--page-backdrop": "radial-gradient(55% 50% at 0% 0%, color-mix(in srgb, var(--color-accent) 26%, transparent), transparent 70%), radial-gradient(45% 45% at 100% 20%, color-mix(in srgb, var(--color-focus) 22%, transparent), transparent 70%), radial-gradient(50% 50% at 60% 100%, color-mix(in srgb, var(--color-success) 18%, transparent), transparent 70%)",
+      "--page-fill": "transparent",
       "--control-bg": "color-mix(in srgb, var(--color-surface) 45%, transparent)",
       "--surface-shadow-overlay": `0 22px 56px -16px ${T(42)}, inset 0 1px 0 ${W(50)}`,
       "--surface-shadow-selected": `0 0 0 1px var(--color-accent), 0 12px 36px -16px ${T(38)}`,

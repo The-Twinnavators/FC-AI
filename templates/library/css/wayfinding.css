@@ -163,7 +163,7 @@
 .fl-way-step-nav { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-3); }
 
 /* ── Tooltips ── */
-.fl-way-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-2); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 24px); }
+.fl-way-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-2); background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--radius-lg), 24px); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-way-toolbar__label { flex: 1 1 10rem; min-width: 0; text-align: center; font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
 .fl-way-tip-wrap { position: relative; display: inline-flex; }
 .fl-way-tip {
@@ -184,7 +184,7 @@
 .fl-way-tip--left { right: calc(100% + var(--fl-way-tip-gap)); top: 50%; translate: 0 -50%; }
 .fl-way-tip--left::after { left: calc(100% - 0.25rem); top: calc(50% - 0.25rem); }
 .fl-way-tip kbd { font: var(--weight-semibold) var(--text-xs) / 1 var(--font-mono); opacity: 0.8; }
-.fl-way-help { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; padding: 0; border-radius: 50%; border: 1px solid var(--color-border-strong); background: var(--color-surface); color: var(--color-text-muted); cursor: help; }
+.fl-way-help { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; padding: 0; border-radius: 50%; border: 1px solid var(--color-border-strong); background: var(--surface-bg, var(--color-surface)); color: var(--color-text-muted); cursor: help; box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-way-help svg { width: 0.875rem; height: 0.875rem; }
 .fl-way-help:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 

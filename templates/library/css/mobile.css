@@ -80,7 +80,7 @@
 .fl-mob-phone__screen:focus-visible { outline: none; box-shadow: inset var(--focus-ring); }
 .fl-mob-phone__title { margin: 0; font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--heading-weight, var(--weight-bold)); }
 .fl-mob-phone__rows { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.fl-mob-phone__rows li { padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); font-size: var(--text-sm); }
+.fl-mob-phone__rows li { padding: var(--space-3); border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--radius-md); background: var(--surface-bg, var(--color-surface)); font-size: var(--text-sm); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-mob-notes { display: grid; gap: var(--space-1); margin: 0; padding-left: var(--space-4); color: var(--color-text-muted); font-size: var(--text-sm); }
 
 @media (prefers-reduced-motion: reduce) {

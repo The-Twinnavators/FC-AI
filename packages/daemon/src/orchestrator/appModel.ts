@@ -54,6 +54,10 @@ export const appModelKey = (runId: string) => `appModel:${runId}`;
 
 export const APP_MODEL_SYSTEM = `You design the data and navigation of a complete, working web app prototype from a PRD, the way an experienced product
 designer and engineer would for an internal tool or SaaS product. Write:
+- shape: "app" when people work in it - they create, track and act on records that move through statuses (bookings,
+  orders, cases, patients' readings, applications, tickets), whatever the industry; "website" when it is mainly pages
+  people read and a contact or sign-up form (a marketing site, a restaurant or clinic site, a portfolio, a landing page).
+  For a website, give only shape and product;
 - product: the product's name;
 - roles: the kinds of user who use it (2 to 4), as the PRD names them;
 - entities: the records the app manages (1 to 4). For each: key (camelCase), label, plural, the fields (key, label, type one of
@@ -76,13 +80,14 @@ placeholder. Use only what the PRD supports; don't invent unrelated features. An
 export const APP_MODEL_SCHEMA = {
   type: "object",
   properties: {
+    shape: { type: "string", enum: ["app", "website"] },
     product: { type: "string" },
     roles: { type: "array", items: { type: "string" } },
     entities: { type: "array", items: { type: "object" } },
     seed: { type: "object" },
     nav: { type: "array", items: { type: "object", properties: { label: { type: "string" }, items: { type: "array", items: { type: "object" } } }, required: ["label", "items"] } },
   },
-  required: ["product", "roles", "entities", "seed", "nav"],
+  required: ["shape", "product"],
 };
 
 export function appModelRequest(objective: string, prd: string, requirements: Requirement[], boundary: string): string {
@@ -102,8 +107,10 @@ const keyOf = (v: unknown) => str(v, 40).replace(/[^A-Za-z0-9_]/g, "");
 const kebab = (v: unknown) => str(v, 50).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 /** The model's answer, checked: fields, statuses, steps and status changes that refer to things that exist. */
-export function parseAppModel(raw: unknown): { model?: AppModel; problems: string[] } {
+export function parseAppModel(raw: unknown): { model?: AppModel; problems: string[]; website?: boolean } {
   const r = (raw ?? {}) as Record<string, unknown>;
+  // A website isn't an app of records: it is built from the page sections, as a sketch build is.
+  if (r.shape === "website") return { problems: [], website: true };
   const problems: string[] = [];
   const roles = arr(r.roles).map((x) => str(x, 40)).filter(Boolean).slice(0, 4);
   const entities: ModelEntity[] = [];

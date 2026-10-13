@@ -1,0 +1,112 @@
+/**
+ * Shader gradient (c.background.shader): an animated WebGL gradient behind content, with a Pause button and a plain
+ * CSS gradient in the same token colors underneath (shown when WebGL isn't available or the context is lost).
+ * A preset with its own base sets --fl-shader-base and --fl-shader-on on the root (worked out from the tokens);
+ * otherwise they fall back to the page and text colors. Prefixed fl-shader-; only the library's tokens.
+ */
+.fl-shader-root {
+  position: relative; isolation: isolate; overflow: hidden; min-width: 0; min-height: 12rem;
+  color: var(--fl-shader-on, var(--color-text));
+  /* The fallback, always underneath: the canvas covers it once it draws. */
+  background-color: var(--fl-shader-base, var(--color-bg));
+  background-image:
+    radial-gradient(60% 70% at 15% 20%, color-mix(in srgb, var(--color-accent) 55%, transparent), transparent 70%),
+    radial-gradient(55% 65% at 85% 30%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 50%, transparent), transparent 70%),
+    radial-gradient(60% 70% at 55% 95%, color-mix(in srgb, var(--color-focus, var(--color-accent)) 45%, transparent), transparent 70%);
+}
+.fl-shader-root--orb, .fl-shader-root--halo {
+  background-image:
+    radial-gradient(circle at 42% 40%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 85%, var(--color-bg)) 0, var(--color-accent) 18%, color-mix(in srgb, var(--color-focus, var(--color-accent)) 70%, transparent) 30%, transparent 46%);
+}
+.fl-shader-canvas { position: absolute; inset: 0; z-index: -1; display: block; width: 100%; height: 100%; pointer-events: none; }
+.fl-shader-static .fl-shader-canvas { display: none; }
+
+/* Content sits above the canvas; the scrim is a soft wash of the base color, strongest behind the middle. */
+.fl-shader-content { position: relative; z-index: 1; display: grid; align-content: center; justify-items: start; gap: var(--space-3); min-height: inherit; padding: var(--space-6); }
+.fl-shader-scrim {
+  background: radial-gradient(75% 80% at 50% 50%, color-mix(in srgb, var(--fl-shader-base, var(--color-bg)) 78%, transparent) 0%, color-mix(in srgb, var(--fl-shader-base, var(--color-bg)) 45%, transparent) 65%, color-mix(in srgb, var(--fl-shader-base, var(--color-bg)) 20%, transparent) 100%);
+}
+.fl-shader-content .fl-lede, .fl-shader-text { color: var(--fl-shader-on, var(--color-text)); }
+.fl-shader-content .fl-eyebrow { color: var(--fl-shader-on, var(--color-secondary, var(--color-accent))); }
+.fl-shader-heading { margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: var(--weight-semibold, 600); line-height: 1.25; color: inherit; }
+.fl-shader-heading--big { font-size: var(--text-2xl, 1.75rem); }
+.fl-shader-text { margin: 0; max-width: 34rem; font-size: var(--text-sm); }
+
+/* Pause / Play: a small round surface button in the corner, above everything. */
+.fl-shader-toggle {
+  position: absolute; right: var(--space-3); bottom: var(--space-3); z-index: 2;
+  display: grid; place-items: center; width: 2.25rem; height: 2.25rem; padding: 0;
+  border: 1px solid var(--overlay-border, var(--color-border)); border-radius: var(--pill-radius, 999px);
+  background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow); cursor: pointer;
+  transition: background var(--duration-fast) var(--easing), transform var(--duration-fast) var(--easing);
+}
+.fl-shader-toggle svg { width: 1rem; height: 1rem; }
+.fl-shader-toggle:hover { background: var(--color-surface-sunken, var(--color-surface)); }
+.fl-shader-toggle:active { transform: scale(var(--press-scale, 0.96)); }
+.fl-shader-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Sizes for common places: a hero, a playground preview, a gallery tile. */
+.fl-shader-hero { min-height: 28rem; border-radius: var(--surface-radius, var(--radius-lg)); }
+.fl-shader-hero .fl-shader-content { justify-items: center; padding: var(--space-8) var(--space-6); }
+.fl-shader-preview { min-height: 22rem; border-radius: var(--surface-radius, var(--radius-lg)); }
+.fl-shader-preview .fl-shader-content { align-content: end; }
+.fl-shader-thumb { min-height: 0; aspect-ratio: 16 / 10; width: 100%; border-radius: var(--radius-md); }
+
+/* Playground controls: plain fields in a wrapping grid under the preview. */
+.fl-shader-play { display: grid; gap: var(--space-4); min-width: 0; }
+.fl-shader-controls { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: var(--space-4); align-items: start; }
+.fl-shader-field { display: grid; gap: var(--space-2); min-width: 0; margin: 0; }
+.fl-shader-field--wide { grid-column: 1 / -1; }
+.fl-shader-label { display: flex; justify-content: space-between; gap: var(--space-2); font-size: var(--text-sm); font-weight: var(--weight-semibold, 600); color: var(--color-text); }
+.fl-shader-label output { font-weight: normal; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.fl-shader-hint { margin: 0; font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-shader-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fl-shader-chip {
+  min-height: 2.25rem; padding: 0 var(--space-3); border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px);
+  background: var(--color-surface); color: var(--color-text); font: inherit; font-size: var(--text-sm); cursor: pointer;
+  transition: background var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
+}
+.fl-shader-chip:hover { background: var(--color-surface-sunken, var(--color-surface)); }
+.fl-shader-chip[aria-pressed="true"] { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
+.fl-shader-chip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Select with a drawn chevron sitting 8px from the right edge. */
+.fl-shader-select { position: relative; display: block; }
+.fl-shader-select select {
+  width: 100%; min-height: 2.5rem; padding: 0 calc(8px + 1rem + var(--space-2)) 0 var(--space-3); appearance: none; -webkit-appearance: none;
+  border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); font: inherit; font-size: var(--text-sm); cursor: pointer;
+}
+.fl-shader-select select:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-shader-select svg { position: absolute; right: 8px; top: 50%; width: 1rem; height: 1rem; transform: translateY(-50%); pointer-events: none; color: var(--color-text-muted); }
+.fl-shader-range { width: 100%; margin: 0; min-height: 2.5rem; accent-color: var(--color-accent); cursor: pointer; }
+.fl-shader-range:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-md); }
+.fl-shader-check, .fl-shader-radio { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 2.25rem; font-size: var(--text-sm); color: var(--color-text); cursor: pointer; }
+.fl-shader-check { align-self: end; }
+.fl-shader-check input, .fl-shader-radio input { width: 1.1rem; height: 1.1rem; margin: 0; accent-color: var(--color-accent); }
+.fl-shader-check input:focus-visible, .fl-shader-radio input:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-shader-swatches { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.fl-shader-swatch { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-shader-swatch input { width: 2.25rem; height: 2.25rem; padding: 2px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); cursor: pointer; }
+.fl-shader-swatch input:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Gallery: every preset as a small live tile; a tile is a button that shows how to use the look. */
+.fl-shader-gallery-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.fl-shader-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.fl-shader-tile {
+  display: grid; gap: var(--space-1); width: 100%; padding: 0; border: 0; background: none; color: var(--color-text); font: inherit; text-align: left; cursor: pointer;
+  border-radius: var(--radius-md);
+}
+.fl-shader-tile .fl-shader-thumb { transition: box-shadow var(--duration-fast) var(--easing); }
+.fl-shader-tile:hover .fl-shader-thumb { box-shadow: var(--surface-shadow); }
+.fl-shader-tile[aria-pressed="true"] .fl-shader-thumb { box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent); }
+.fl-shader-tile:focus-visible { outline: none; }
+.fl-shader-tile:focus-visible .fl-shader-thumb { box-shadow: var(--focus-ring); }
+.fl-shader-tile-name { margin-top: var(--space-1); font-size: var(--text-sm); font-weight: var(--weight-semibold, 600); }
+.fl-shader-tile-what { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+@media (max-width: 40rem) {
+  .fl-shader-hero .fl-shader-content { padding: var(--space-6) var(--space-4); }
+  .fl-shader-content { padding: var(--space-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-shader-toggle, .fl-shader-chip, .fl-shader-tile .fl-shader-thumb { transition: none; }
+}

@@ -1,7 +1,7 @@
 /* Developer pages: a documentation site and a developer-tool homepage. Tokens only; classes start with "fl-dd-". */
 
 /* ── Shared ── */
-.fl-dd-page { background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); overflow-x: clip; }
+.fl-dd-page { background: var(--page-backdrop, none) fixed var(--color-bg); color: var(--color-text); font-family: var(--font-sans); overflow-x: clip; }
 .fl-dd-list { margin: 0; padding: 0; list-style: none; }
 .fl-dd-page :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .fl-dd-error { margin: 0; font-size: var(--text-sm); color: var(--color-danger); }
@@ -91,7 +91,7 @@
 .fl-dd-article p { margin: 0 0 var(--space-4); line-height: var(--leading-relaxed); color: var(--color-text-muted); }
 .fl-dd-article p code, .fl-dd-table code, .fl-dd-callout code { padding: 0 var(--space-1); border-radius: var(--radius-sm); background: var(--color-surface-sunken); border: 1px solid var(--color-border); font: 0.9em var(--font-mono); color: var(--color-text); }
 .fl-dd-article .fl-dd-lede { font-size: var(--text-lg); color: var(--color-text-muted); margin-top: var(--space-3); }
-.fl-dd-endpoint { display: inline-flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-5); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); font: var(--text-sm) / 1.2 var(--font-mono); overflow-wrap: anywhere; }
+.fl-dd-endpoint { display: inline-flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-5); padding: var(--space-2) var(--space-3); border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--radius-md); background: var(--surface-bg, var(--color-surface)); font: var(--text-sm) / 1.2 var(--font-mono); overflow-wrap: anywhere; box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-dd-endpoint b { padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--color-success) 16%, transparent); color: var(--color-success); font-size: var(--text-xs); }
 .fl-dd-version-note { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-5); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-danger-surface); color: var(--color-text); font-size: var(--text-sm); }
 .fl-dd-version-note button { border: 0; background: none; padding: 0; color: var(--color-accent); font: inherit; font-weight: var(--weight-semibold); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; border-radius: var(--radius-sm); }
@@ -191,9 +191,9 @@
 .fl-dd-hero { padding: var(--space-9) var(--space-5) var(--space-8); }
 .fl-dd-hero__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: var(--space-8); align-items: center; }
 .fl-dd-hero__copy { display: grid; gap: var(--space-5); justify-items: start; }
-.fl-dd-release { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--color-surface); font: var(--text-xs) / 1.5 var(--font-mono); color: var(--color-text-muted); text-decoration: none; }
+.fl-dd-release { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); border: var(--surface-border, 1px solid var(--color-border)); background: var(--surface-bg, var(--color-surface)); font: var(--text-xs) / 1.5 var(--font-mono); color: var(--color-text-muted); text-decoration: none; box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-dd-release b { color: var(--color-secondary, var(--color-accent)); }
-.fl-dd-install { display: flex; align-items: center; gap: var(--space-3); width: 100%; max-width: 30rem; padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-surface); }
+.fl-dd-install { display: flex; align-items: center; gap: var(--space-3); width: 100%; max-width: 30rem; padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-dd-install code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; font: var(--text-md) / 1.4 var(--font-mono); }
 .fl-dd-install code span { color: var(--color-text-muted); user-select: none; }
 
@@ -217,11 +217,11 @@
 .fl-dd-sample pre { min-height: 11rem; }
 
 .fl-dd-feats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--color-border); border-left: 1px solid var(--color-border); }
-.fl-dd-feats li { display: grid; gap: var(--space-3); align-content: start; padding: var(--space-6); border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+.fl-dd-feats li { display: grid; gap: var(--space-3); align-content: start; padding: var(--space-6); border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-dd-feats h3 { margin: 0; font: var(--weight-semibold) var(--text-md) / var(--leading-snug) var(--font-display); }
 .fl-dd-feats code { justify-self: start; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); background: var(--color-surface-sunken); font: var(--text-xs) / 1.4 var(--font-mono); color: var(--color-text-muted); }
 
-.fl-dd-diagram { overflow-x: auto; padding: var(--space-5); border: 1px solid var(--color-border); border-radius: min(var(--radius-xl), 24px); background: var(--color-surface); }
+.fl-dd-diagram { overflow-x: auto; padding: var(--space-5); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--radius-xl), 24px); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-dd-diagram svg { display: block; width: 100%; min-width: 34rem; height: auto; }
 .fl-dd-diagram .box { fill: var(--color-surface); stroke: var(--color-border-strong); stroke-width: 1.5; }
 .fl-dd-diagram .box--hub { fill: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 10%, var(--color-surface))); stroke: var(--color-secondary, var(--color-accent)); }

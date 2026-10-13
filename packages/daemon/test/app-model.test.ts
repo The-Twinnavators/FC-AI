@@ -1,7 +1,10 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { appModelNote, parseAppModel } from "../src/orchestrator/appModel.js";
-import { appFiles, completeAppTasks, customPlanOf, namedIndexHtml, screenPlanOf, WRITE_APP } from "../src/orchestrator/appFiles.js";
+import { appFiles, appKept, completeAppTasks, customPlanOf, namedIndexHtml, screenPlanOf, WRITE_APP } from "../src/orchestrator/appFiles.js";
 import { ADD_LAYOUTS } from "../src/orchestrator/layoutRecipes.js";
 import { APP_LAYOUT } from "../src/orchestrator/screenPlan.js";
 import { DESIGN_SCREENS, specRuntimeTasks } from "../src/orchestrator/templates.js";
@@ -138,5 +141,36 @@ describe("the app model", () => {
       visit(src);
       expect(calls, f.path).toBe(0);
     }
+  });
+
+  it("guards the working app: a step that rebuilds a page, drops the frame or copies the data is sent back", () => {
+    const { model } = parseAppModel(raw);
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fc-appguard-"));
+    const write = (rel: string, content: string) => {
+      fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+      fs.writeFileSync(path.join(root, rel), content);
+    };
+    for (const f of appFiles(model!)) write(f.path, f.content);
+    for (const piece of ["AppFrame", "ResourceIndex", "RecordWizard", "RecordDetail", "AppDashboard", "AppData"]) write(`src/sections/${piece}.tsx`, "export {};");
+    expect(appKept(root, model!)).toEqual([]);
+    // Restyled and reworded, with content added around the pattern: still kept.
+    const list = "src/screens/TreatyMasterScreen.tsx";
+    write(list, fs.readFileSync(path.join(root, list), "utf8").replace("return <ResourceIndex", "return <>\n<p>Tip</p>\n<ResourceIndex").replace(" />;\n}", " />\n</>;\n}"));
+    expect(appKept(root, model!)).toEqual([]);
+    // Rebuilt as a plain table with its own data, the frame gone, a piece deleted.
+    write(list, 'import { createStore } from "../sections/AppData";\nconst mine = createStore({ appKey: "x", roles: [], entities: [] }, {});\nexport default function TreatyMasterScreen() { void mine; return <table />; }\n');
+    write("src/App.tsx", "export default function App() { return <main />; }\n");
+    fs.rmSync(path.join(root, "src/sections/RecordDetail.tsx"));
+    const problems = appKept(root, model!);
+    expect(problems.some((x) => x.startsWith("src/App.tsx no longer draws the app frame"))).toBe(true);
+    expect(problems.some((x) => x.startsWith(`${list} (Treaty Master) no longer uses the working ResourceIndex`) && x.includes("<ResourceIndex store={store}"))).toBe(true);
+    expect(problems.some((x) => x.startsWith(`${list} (Treaty Master) makes its own store`))).toBe(true);
+    expect(problems.some((x) => x.startsWith("src/sections/RecordDetail.tsx"))).toBe(true);
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  it("leaves a website to the page sections: no app model for pages people read", () => {
+    expect(parseAppModel({ shape: "website", product: "Harbour Dental" })).toEqual({ problems: [], website: true });
+    expect(parseAppModel({ ...raw, shape: "app" }).model?.product).toBe("Treaty Tables");
   });
 });

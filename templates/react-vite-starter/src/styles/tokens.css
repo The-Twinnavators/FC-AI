@@ -135,6 +135,7 @@
   --control-shadow-hover: none;
   --header-bg: var(--color-surface);
   --page-backdrop: none;
+  --page-fill: var(--color-bg); /* a decorative section background's fill: transparent where the surface paints a backdrop */
   --heading-weight: var(--weight-bold);
   /* More surface-style traits (a style may set any; these defaults are the flat look; "initial" = not set) */
   --control-bg: var(--color-surface);

@@ -11,9 +11,8 @@
 
 .fl-snv-side {
   display: flex; flex-direction: column; gap: var(--space-4); width: 16rem; min-width: 0; padding: var(--space-4) var(--space-3);
-  background: var(--color-surface); border-right: 1px solid var(--color-border);
-  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px) 0 0 min(var(--surface-radius, var(--radius-lg)), 24px);
-}
+  background: var(--surface-bg, var(--color-surface)); border-right: 1px solid var(--color-border);
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px) 0 0 min(var(--surface-radius, var(--radius-lg)), 24px); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-snv-scroll { flex: 1; min-height: 0; overflow-y: auto; display: grid; align-content: start; gap: var(--space-4); margin-inline: calc(var(--space-1) * -1); padding-inline: var(--space-1); }
 
 /* Brand row */
@@ -189,9 +188,8 @@
   .fl-snv-frame { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
   .fl-snv-topbar {
     display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-lg); padding: var(--space-2) var(--space-3);
-    background: var(--color-surface); border-bottom: 1px solid var(--color-border);
-    border-radius: min(var(--surface-radius, var(--radius-lg)), 24px) min(var(--surface-radius, var(--radius-lg)), 24px) 0 0;
-  }
+    background: var(--surface-bg, var(--color-surface)); border-bottom: 1px solid var(--color-border);
+    border-radius: min(var(--surface-radius, var(--radius-lg)), 24px) min(var(--surface-radius, var(--radius-lg)), 24px) 0 0; box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
   .fl-snv-topbar__title { display: grid; min-width: 0; line-height: 1.25; }
   .fl-snv-topbar__title strong { font: var(--weight-bold) var(--text-sm) / 1.25 var(--font-display); }
   .fl-snv-topbar__title span { font-size: var(--text-xs); color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

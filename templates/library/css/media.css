@@ -1,0 +1,156 @@
+/**
+ * Media player (c.media-player): the audio now-playing card (on glass or a plain surface) and the video player with its
+ * controls on liquid glass (glass.css draws the glass). Prefixed fl-media-; only the library's tokens. Hiding the video
+ * controls uses visibility and a slide, never opacity, which would cut the glass off from the picture behind it.
+ */
+
+/* ── Audio ── */
+.fl-media-audio { display: grid; gap: var(--space-2); width: min(100%, 23rem); padding: var(--space-5); outline: none; }
+.fl-media-audio:focus-visible { box-shadow: var(--focus-ring); }
+/* The plain card follows the library's Surface choice through the surface tokens. */
+.fl-media-card {
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--surface-radius, var(--radius-lg));
+  background: var(--surface-bg, var(--color-surface)); color: var(--color-text); box-shadow: var(--surface-shadow, none);
+  -webkit-backdrop-filter: var(--surface-blur, none); backdrop-filter: var(--surface-blur, none);
+}
+.fl-media-audio p { margin: 0; }
+.fl-media-head { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.fl-media-art {
+  flex: none; display: grid; place-items: center; width: 3.5rem; height: 3.5rem; overflow: hidden; border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-secondary, var(--color-accent))); color: var(--color-on-accent);
+}
+.fl-media-art img { width: 100%; height: 100%; object-fit: cover; }
+.fl-media-art svg { width: 1.4rem; height: 1.4rem; }
+.fl-media-meta { display: grid; gap: 2px; min-width: 0; }
+.fl-media-eyebrow { font-size: var(--text-xs); font-weight: var(--weight-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
+.fl-media-title { font-size: var(--text-lg); font-weight: var(--weight-bold); line-height: 1.25; overflow-wrap: anywhere; }
+.fl-media-artist { font-size: var(--text-sm); }
+.fl-media-card .fl-media-eyebrow, .fl-media-card .fl-media-artist, .fl-media-card .fl-media-times { color: var(--color-text-muted); }
+.fl-media-seek { display: block; margin-top: var(--space-2); }
+.fl-media-seek input, .fl-media-vol input { display: block; width: 100%; margin: 0; accent-color: var(--color-accent); }
+:is(.fl-media-seek, .fl-media-vol) input:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--pill-radius, 999px); }
+.fl-media-times { display: flex; justify-content: space-between; font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.fl-media-row { display: flex; align-items: center; justify-content: center; gap: var(--space-3); margin-top: var(--space-1); }
+.fl-media-volume { display: flex; align-items: center; gap: var(--space-2); }
+.fl-media-volume .fl-media-vol { flex: 1; }
+.fl-media-big { --fl-glass-size: 3.25rem; }
+.fl-media-stage { min-height: 22rem; }
+
+/* Plain round buttons, for the player without glass: always circles. */
+.fl-media-btn {
+  flex: none; display: grid; place-items: center; box-sizing: border-box; inline-size: 2.75rem; block-size: 2.75rem; aspect-ratio: 1; padding: 0;
+  border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-text); cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out, ease-out), transform var(--duration-fast) var(--ease-out, ease-out);
+}
+.fl-media-btn--big { inline-size: 3.25rem; block-size: 3.25rem; border-color: transparent; background: var(--color-accent); color: var(--color-on-accent); }
+.fl-media-btn svg { width: 1.2rem; height: 1.2rem; }
+.fl-media-btn:hover { background: var(--color-surface-sunken, var(--color-surface)); }
+.fl-media-btn--big:hover { background: var(--color-accent-hover, var(--color-accent)); }
+.fl-media-btn:active { transform: scale(var(--press-scale, 0.96)); }
+.fl-media-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-media-btn[aria-pressed="true"] { border-color: transparent; background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface)); color: var(--color-accent); }
+
+/* ── Video ── */
+.fl-media-video {
+  position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--surface-radius, var(--radius-lg));
+  background: color-mix(in srgb, var(--color-text) 92%, var(--color-bg)); color: var(--color-text); outline: none;
+}
+.fl-media-video:focus-visible { box-shadow: var(--focus-ring); }
+.fl-media-video--full, .fl-media-video:fullscreen { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; }
+.fl-media-video[data-idle] { cursor: none; }
+.fl-media-picture { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
+.fl-media-picture[hidden] { display: none; }
+.fl-media-hit { position: absolute; inset: 0; cursor: pointer; }
+.fl-media-video[data-idle] .fl-media-hit { cursor: none; }
+.fl-media-chrome { position: absolute; inset: 0; pointer-events: none; }
+.fl-media-chrome > * { pointer-events: auto; }
+.fl-media-fade { transition: translate var(--duration-base) var(--ease-out, ease-out), visibility var(--duration-base); }
+.fl-media-video[data-idle] .fl-media-fade { visibility: hidden; }
+.fl-media-video[data-idle] .fl-media-bar { translate: 0 calc(100% + var(--space-4)); }
+.fl-media-video[data-idle] .fl-media-overlay-title { translate: 0 calc(-100% - var(--space-4)); }
+.fl-media-overlay-title { position: absolute; top: var(--space-3); left: var(--space-3); max-width: calc(100% - 2 * var(--space-3)); padding: var(--space-2) var(--space-4); border-radius: var(--pill-radius, 999px); }
+.fl-media-overlay-title p { margin: 0; font-size: var(--text-sm); font-weight: var(--weight-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fl-media-center { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.fl-media-center > * { pointer-events: auto; }
+.fl-media-huge { --fl-glass-size: 4.5rem; }
+.fl-media-huge .fl-glass-icon svg { width: 1.8rem; height: 1.8rem; }
+
+/* The bottom control bar */
+.fl-media-bar { position: absolute; left: var(--space-3); right: var(--space-3); bottom: var(--space-3); gap: var(--space-1); padding: var(--space-1) var(--space-3) var(--space-2); border-radius: var(--radius-lg); }
+.fl-media-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-3); }
+.fl-media-group { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
+.fl-media-ctl {
+  flex: none; display: grid; place-items: center; box-sizing: border-box; inline-size: 2.25rem; block-size: 2.25rem; aspect-ratio: 1; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; transition: background var(--duration-fast) var(--ease-out, ease-out);
+}
+.fl-media-ctl svg { width: 1.25rem; height: 1.25rem; }
+.fl-media-ctl:hover { background: color-mix(in srgb, var(--fl-glass-ink, var(--color-text)) 12%, transparent); }
+.fl-media-ctl:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-media-ctl[aria-pressed="true"] { background: var(--color-accent); color: var(--color-on-accent); }
+.fl-media-time { padding: 0 var(--space-2); font-size: var(--text-xs); font-weight: var(--weight-medium); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fl-media-vol--bar { width: 5rem; }
+@media (max-width: 34rem) { .fl-media-vol--bar { display: none; } }
+
+/* Speed: a native select with its chevron 8px from the right edge. */
+.fl-media-select { position: relative; display: inline-flex; }
+.fl-media-select select {
+  appearance: none; -webkit-appearance: none; height: 2.25rem; margin: 0; padding: 0 calc(8px + 10px + var(--space-1)) 0 var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--fl-glass-ink, var(--color-text)) 28%, transparent); border-radius: var(--pill-radius, 999px);
+  background: transparent; color: inherit; font: inherit; font-size: var(--text-xs); font-weight: var(--weight-semibold); cursor: pointer;
+}
+.fl-media-select select option { background: var(--color-surface); color: var(--color-text); }
+.fl-media-select select:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-media-select::after {
+  content: ""; position: absolute; right: 8px; top: 50%; width: 10px; height: 6px; translate: 0 -50%; pointer-events: none;
+  background: currentColor; clip-path: polygon(0 0, 18% 0, 50% 62%, 82% 0, 100% 0, 50% 100%);
+}
+
+/* The scrubber: buffered range, played range, hover time. */
+.fl-media-scrub { position: relative; display: flex; align-items: center; height: 1.5rem; }
+.fl-media-rail { position: absolute; left: 0; right: 0; top: 50%; height: 4px; translate: 0 -50%; overflow: hidden; border-radius: var(--pill-radius, 999px); background: color-mix(in srgb, var(--fl-glass-ink, var(--color-text)) 20%, transparent); }
+.fl-media-buffered, .fl-media-played { position: absolute; top: 0; bottom: 0; left: 0; }
+.fl-media-buffered { width: var(--fl-media-buf, 0%); background: color-mix(in srgb, var(--fl-glass-ink, var(--color-text)) 34%, transparent); }
+.fl-media-played { width: var(--fl-media-pos, 0%); background: var(--color-accent); }
+.fl-media-scrub input { position: relative; width: 100%; height: 1.5rem; margin: 0; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; }
+.fl-media-scrub input::-webkit-slider-runnable-track { height: 4px; background: transparent; }
+.fl-media-scrub input::-moz-range-track { height: 4px; background: transparent; }
+.fl-media-scrub input::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border: 0; border-radius: 50%; background: var(--color-accent); box-shadow: 0 0 0 2px var(--color-surface); }
+.fl-media-scrub input::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: var(--color-accent); box-shadow: 0 0 0 2px var(--color-surface); }
+.fl-media-scrub input:focus-visible { outline: none; }
+.fl-media-scrub input:focus-visible::-webkit-slider-thumb { box-shadow: var(--focus-ring); }
+.fl-media-scrub input:focus-visible::-moz-range-thumb { box-shadow: var(--focus-ring); }
+.fl-media-tip {
+  position: absolute; bottom: 100%; left: var(--fl-media-x, 0); translate: -50% -2px; padding: 2px var(--space-2); border-radius: var(--radius-md);
+  background: var(--color-surface); color: var(--color-text); font-size: var(--text-xs); font-variant-numeric: tabular-nums; pointer-events: none; box-shadow: var(--surface-shadow);
+}
+
+/* Captions, loading and error */
+.fl-media-cue {
+  position: absolute; left: 50%; bottom: 6.5rem; translate: -50% 0; max-width: min(90%, 40rem); margin: 0; padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-text) 86%, transparent); color: var(--color-bg);
+  font-size: var(--text-md); line-height: 1.4; text-align: center; white-space: pre-line; pointer-events: none;
+}
+.fl-media-video[data-idle] .fl-media-cue { bottom: var(--space-5); }
+.fl-media-state { position: absolute; inset: 0; display: grid; place-items: center; }
+.fl-media-spinner {
+  width: 3rem; height: 3rem; border-radius: 50%;
+  border: 4px solid color-mix(in srgb, var(--color-bg) 35%, transparent); border-top-color: var(--color-accent); animation: fl-media-spin 0.9s linear infinite;
+}
+@keyframes fl-media-spin { to { rotate: 1turn; } }
+.fl-media-error { max-width: min(90%, 22rem); text-align: center; }
+.fl-media-error p { margin: 0; font-weight: var(--weight-semibold); }
+.fl-media-retry {
+  justify-self: center; min-height: 2.5rem; padding: 0 var(--space-4); border: 0; border-radius: var(--pill-radius, 999px);
+  background: var(--color-accent); color: var(--color-on-accent); font: inherit; font-weight: var(--weight-semibold); cursor: pointer;
+}
+.fl-media-retry:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-media-fade, .fl-media-btn, .fl-media-ctl { transition: none; }
+  .fl-media-video[data-idle] .fl-media-bar, .fl-media-video[data-idle] .fl-media-overlay-title { translate: none; }
+  .fl-media-spinner { animation: none; border-top-color: var(--color-accent); border-right-color: var(--color-accent); }
+}
+@media (forced-colors: active) {
+  .fl-media-played { background: Highlight; }
+  .fl-media-ctl[aria-pressed="true"], .fl-media-btn[aria-pressed="true"] { outline: 2px solid Highlight; }
+}

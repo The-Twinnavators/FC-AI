@@ -27,8 +27,7 @@
 /* ── Product grid ── */
 .fl-crd-basket {
   display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--control-md); padding-inline: var(--space-4);
-  border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-surface); font-weight: var(--weight-semibold);
-}
+  border-radius: 999px; border: var(--surface-border, 1px solid var(--color-border)); background: var(--surface-bg, var(--color-surface)); font-weight: var(--weight-semibold); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-crd-basket svg { width: 1.15rem; height: 1.15rem; }
 .fl-crd-count {
   display: inline-grid; place-items: center; min-width: 1.5rem; height: 1.5rem; padding-inline: var(--space-1); border-radius: 999px;

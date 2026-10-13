@@ -1,7 +1,7 @@
 /* Landing pages: single-purpose pages with one conversion goal (lead, sales, pre-launch, product, subscription, click-through). */
 
 /* ── Shared frame: a slim bar instead of full navigation, and a one-line footer ── */
-.fl-ld-page { background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); min-width: 0; overflow-x: clip; }
+.fl-ld-page { background: var(--page-backdrop, none) fixed var(--color-bg); color: var(--color-text); font-family: var(--font-sans); min-width: 0; overflow-x: clip; }
 .fl-ld-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; max-width: var(--content-max, 72rem); margin-inline: auto; padding: var(--space-4) var(--space-5); }
 .fl-ld-bar--line { max-width: none; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .fl-ld-bar--line > * { min-width: 0; }
@@ -61,7 +61,7 @@
 .fl-ld-compare .fl-card:first-child { background: var(--color-surface-sunken); }
 .fl-ld-compare .fl-card:last-child { border-color: var(--color-accent); }
 .fl-ld-modules { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
-.fl-ld-module { border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 24px); background: var(--color-surface); overflow: hidden; }
+.fl-ld-module { border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--radius-lg), 24px); background: var(--surface-bg, var(--color-surface)); overflow: hidden; box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-ld-module h3 { margin: 0; }
 .fl-ld-module__btn { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; width: 100%; padding: var(--space-4) var(--space-5); border: 0; background: transparent; color: var(--color-text); text-align: left; font: var(--weight-semibold) var(--text-md) / var(--leading-snug) var(--font-sans); cursor: pointer; border-radius: min(var(--radius-lg), 24px); }
 .fl-ld-module__week { font: var(--weight-semibold) var(--text-xs) / 1 var(--font-mono); color: var(--color-secondary, var(--color-accent)); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
@@ -69,7 +69,7 @@
 .fl-ld-module__btn[aria-expanded="true"] .fl-ld-module__chev { transform: rotate(180deg); }
 .fl-ld-module__panel { padding: 0 var(--space-5) var(--space-5); color: var(--color-text-muted); line-height: var(--leading-relaxed); }
 .fl-ld-module__panel ul { margin: var(--space-2) 0 0; padding-left: var(--space-5); display: grid; gap: var(--space-1); }
-.fl-ld-pricecard { display: grid; gap: var(--space-5); justify-items: center; text-align: center; padding: var(--space-8) var(--space-6); border-radius: min(var(--radius-xl), 24px); background: var(--color-surface); color: var(--color-text); border: 2px solid var(--color-accent); box-shadow: var(--surface-shadow-hover, none); }
+.fl-ld-pricecard { display: grid; gap: var(--space-5); justify-items: center; text-align: center; padding: var(--space-8) var(--space-6); border-radius: min(var(--radius-xl), 24px); background: var(--surface-bg, var(--color-surface)); color: var(--color-text); border: 2px solid var(--color-accent); box-shadow: var(--surface-shadow-hover, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-ld-pricecard .fl-checks { text-align: left; justify-self: stretch; max-width: 26rem; margin-inline: auto; }
 .fl-ld-bigprice { display: flex; align-items: baseline; justify-content: center; gap: var(--space-2); flex-wrap: wrap; }
 .fl-ld-bigprice strong { font: var(--weight-bold) var(--text-3xl) / 1 var(--font-display); font-variant-numeric: tabular-nums; }
@@ -252,7 +252,7 @@ input:checked + .fl-ld-option { border-color: var(--color-accent); box-shadow: i
 .fl-ld-fabric dd { margin: 0; }
 /* The size guide: a dialog, because the measurements are a detour from buying and have to be dismissable. */
 .fl-ld-guide-scrim { position: absolute; inset: 0; z-index: 60; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-text) 45%, transparent); }
-.fl-ld-guide { display: grid; gap: var(--space-3); width: min(34rem, 100%); max-height: 100%; overflow: auto; border-radius: min(var(--radius-lg), 24px); background: var(--color-surface); padding: var(--space-5); }
+.fl-ld-guide { display: grid; gap: var(--space-3); width: min(34rem, 100%); max-height: 100%; overflow: auto; border-radius: min(var(--radius-lg), 24px); background: var(--surface-bg, var(--color-surface)); padding: var(--space-5); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-ld-guide-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
 .fl-ld-guide-head .fl-title { margin: 0; font-size: var(--text-lg); }
 .fl-ld-guide-wrap { overflow-x: auto; }

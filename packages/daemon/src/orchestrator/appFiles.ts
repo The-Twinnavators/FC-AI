@@ -170,9 +170,51 @@ export async function appStep({ deps, run, task, jail, onChanged }: RuntimeStepA
     if (named !== html && deps.ops.replaceContent(ctx, "index.html", named).ok) changed.push("index.html");
   }
   onChanged(changed);
+  deps.store.setSetting(appWrittenKey(run.id), true);
   const built = builtViews(model);
   deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Wrote the app from its model: ${model.entities.length} kind${model.entities.length === 1 ? "" : "s"} of record with ${Object.values(model.seed).reduce((n, s) => n + s.length, 0)} sample records, the frame with ${model.nav.flatMap((g) => g.items).length} destinations, and ${built.length} working pages (${built.map((v) => `${v.label} [${v.kind}]`).join(", ")})` });
   return { kind: "complete", summary: `The app's data, store, frame and ${built.length} pages`, changedPaths: changed };
+}
+
+/** Set once the app is written: from then on every step is held to the app guard. */
+export const appWrittenKey = (runId: string) => `appWritten:${runId}`;
+
+const PATTERN: Partial<Record<ModelView["kind"], string>> = { list: "ResourceIndex", queue: "ResourceIndex", create: "RecordWizard", detail: "RecordDetail", dashboard: "AppDashboard" };
+
+/**
+ * The app guard: what makes the app work is still there after a step. The frame in App.tsx, the one store, each working
+ * page on its pattern and on that store, and no page with its own copy of the data. A design or feature step may
+ * restyle, reword and add around them; it may not rebuild them (a feature step rewrote Build test 7's Home down to its
+ * list). Each problem names the file and, for a page, the source FlowCode wrote, so the step can put it back.
+ */
+export function appKept(root: string, m: AppModel): string[] {
+  const read = (rel: string) => {
+    try {
+      return fs.readFileSync(path.join(root, rel), "utf8");
+    } catch {
+      return undefined;
+    }
+  };
+  const problems: string[] = [];
+  const app = read("src/App.tsx");
+  if (!app?.includes("<AppFrame")) problems.push("src/App.tsx no longer draws the app frame (<AppFrame> from ./sections/AppFrame) with the whole navigation: put it back; restyle it through its fl-af-* classes in src/styles/components.css instead.");
+  const store = read("src/app/store.ts");
+  if (!store?.includes("createStore(")) problems.push("src/app/store.ts, the one store every page reads and writes, is missing or no longer creates the store: put it back as FlowCode wrote it.");
+  for (const piece of ["AppFrame", "ResourceIndex", "RecordWizard", "RecordDetail", "AppDashboard", "AppData"]) {
+    if (read(`src/sections/${piece}.tsx`) === undefined) problems.push(`src/sections/${piece}.tsx, a working pattern the app is built on, was deleted: add it back with add_library_piece.`);
+  }
+  for (const v of builtViews(m)) {
+    const file = screenFileOf(v);
+    const src = read(file);
+    const pattern = PATTERN[v.kind];
+    if (src === undefined) {
+      problems.push(`${file} (${v.label}) was deleted. Write it back:\n${screenSource(m, v)}`);
+      continue;
+    }
+    if (pattern && !(src.includes(`<${pattern}`) && /store=\{store\}/.test(src))) problems.push(`${file} (${v.label}) no longer uses the working ${pattern} on the app's store; it was rebuilt. Put the pattern back (you may keep content you added around it, and change its title and description props):\n${screenSource(m, v)}`);
+    if (src.includes("createStore(")) problems.push(`${file} (${v.label}) makes its own store: every page uses the one in src/app/store.ts (import { store } from "../app/store"), so a change on one page shows on all of them.`);
+  }
+  return problems;
 }
 
 /** The step that writes the app from its model, in place of the layout step. */

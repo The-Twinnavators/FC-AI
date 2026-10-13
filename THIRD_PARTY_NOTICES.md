@@ -44,3 +44,20 @@ See `docs/component-library-sources.md` for which sources may be used and on wha
 Some library sections (shop, inputs, display pieces, app screens and the neobrutalism kit) follow the structure of
 HyperUI components (https://github.com/markmead/hyperui), MIT License, Copyright (c) Mark Mead. They were rewritten in
 FlowCode's own React and design-token CSS.
+
+## liquid-glass-js
+
+The liquid glass piece (`templates/library/sections/liquid-glass.tsx`) adapts the WebGL refraction, blur and masking
+approach of liquid-glass-js (https://github.com/dashersw/liquid-glass-js), MIT License, Copyright (c) 2025 Armagan
+Amcalar. It was rewritten in FlowCode's React and design-token CSS and samples a backdrop the piece is given instead of
+capturing the page with html2canvas, so nothing is loaded from the internet.
+
+MIT License: Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to deal in the Software without restriction, including without
+limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above
+copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

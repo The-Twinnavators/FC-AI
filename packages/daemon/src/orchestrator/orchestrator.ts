@@ -59,7 +59,7 @@ import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
-import { APP_STEPS, completeAppTasks, customPlanOf, screenPlanOf } from "./appFiles.js";
+import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf } from "./appFiles.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
@@ -963,6 +963,10 @@ export class Orchestrator {
           signal,
         });
         const got = parseAppModel(JSON.parse(extractJson(res.content)));
+        if (got.website) {
+          this.d.bus.emit({ ...ev, type: "plan.proposed", message: "The PRD describes a website (pages people read), not an app people work in: this build designs its pages from the page sections instead of writing a complete app" });
+          return undefined;
+        }
         problems = got.problems;
         const model = got.model;
         if (model) {
@@ -1872,6 +1876,16 @@ export class Orchestrator {
         };
       }
       this.d.bus.emit({ ...ev, type: "verification.completed", message: `Composition manifest after "${task.title}": ${checked.entries.length - unused.length} of ${checked.entries.length} catalog parts used in the app${unused.length ? ` (not used yet: ${[...new Set(unused.map((e) => e.ref))].slice(0, 6).join(", ")})` : ""}`, level: unused.length ? "warning" : "info", data: { composition: checked } });
+    }
+    // The app guard (complete apps): once FlowCode has written the app, no step may take its frame, store or working
+    // pages apart. Checked on every later step, whatever files it says it changed.
+    const appModel = task.title !== WRITE_APP && this.d.store.getSetting<boolean>(appWrittenKey(run.id), false) ? this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null) : null;
+    if (appModel) {
+      const broken = appKept(jail.root, appModel);
+      if (broken.length) {
+        verdict = { ...verdict, allMet: false, failures: [...verdict.failures, `App guard: this step took apart what makes the app work (${broken.length} problem${broken.length === 1 ? "" : "s"}). Restyle and add around the working pages; don't rebuild them:`, ...broken.slice(0, 6)] };
+        this.d.bus.emit({ ...ev, type: "verification.completed", message: `App guard on "${task.title}": ${broken.length} problem${broken.length === 1 ? "" : "s"} sent back (${broken.map((b) => b.split(/[ (]/)[0]).slice(0, 4).join(", ")})`, level: "warning" });
+      }
     }
     if (verdict.allMet) {
       // Fix memory: a step that passes after failing keeps what went wrong and what fixed it, for later builds.

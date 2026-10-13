@@ -1,0 +1,161 @@
+/**
+ * Liquid glass (c.liquid-glass): glass buttons, floating bars and panels for controls over imagery or gradients, never
+ * for dialogs. liquid-glass.tsx picks the path by feature detection and marks each surface with data-glass:
+ *   webgl   - a canvas (fl-glass-gl) holding the WebGL lens of the backdrop, under the tint and the highlights;
+ *   refract - backdrop-filter: url(#lens) bends what is behind (::before), then a light blur (::after);
+ *   frost   - backdrop-filter: blur() saturate();
+ *   solid   - the surface color: no backdrop-filter, reduced transparency, forced colors.
+ * Layers: ::before (SVG lens), the WebGL canvas, ::after (blur, tint, sheen, rim, pointer highlight), then content.
+ * Nothing on a surface or its ancestors may set opacity or filter: that would cut the glass off from what is behind.
+ * Prefixed fl-glass-; only the library's tokens.
+ */
+@property --fl-glass-lit { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+.fl-glass-surface {
+  --fl-glass-mix: 64%;
+  --fl-glass-tint: var(--color-surface);
+  --fl-glass-ink: var(--color-text);
+  --fl-glass-shine: var(--color-surface);
+  --fl-glass-blur: 14px;
+  --fl-glass-sat: 1.7;
+  --fl-glass-rim: 90%;
+  --fl-glass-sheen: 34%;
+  --fl-glass-band: 0.75rem;
+  --fl-glass-frost: var(--fl-glass-blur);
+  --fl-glass-x: 50%;
+  --fl-glass-y: 0%;
+  position: relative; z-index: 0;
+  border-radius: var(--fl-glass-radius, var(--radius-lg));
+  color: var(--fl-glass-ink);
+  transition: --fl-glass-lit var(--duration-base) var(--ease-out, ease-out);
+}
+/* The rim and sheen are always a light color, and the tones pick a light or a dark glass, whatever the style's scheme. */
+@supports (color: light-dark(currentColor, currentColor)) {
+  .fl-glass-surface { --fl-glass-shine: light-dark(var(--color-surface), var(--color-text)); }
+  .fl-glass-surface[data-tone="light"] { --fl-glass-tint: light-dark(var(--color-surface), var(--color-text)); --fl-glass-ink: light-dark(var(--color-text), var(--color-surface)); }
+  .fl-glass-surface[data-tone="dark"] { --fl-glass-tint: light-dark(var(--color-text), var(--color-surface)); --fl-glass-ink: light-dark(var(--color-surface), var(--color-text)); --fl-glass-shine: light-dark(var(--color-surface), var(--color-text)); }
+}
+.fl-glass-surface[data-strength="subtle"] { --fl-glass-mix: 50%; --fl-glass-blur: 8px; }
+.fl-glass-surface[data-strength="strong"] { --fl-glass-mix: 76%; --fl-glass-blur: 20px; --fl-glass-sat: 1.85; --fl-glass-sheen: 40%; --fl-glass-band: 1rem; }
+.fl-glass-surface[data-strength="stronger"] { --fl-glass-mix: 82%; --fl-glass-blur: 28px; --fl-glass-sat: 2; --fl-glass-rim: 96%; --fl-glass-sheen: 48%; --fl-glass-band: 1.4rem; }
+.fl-glass-surface[data-strength="strongest"] { --fl-glass-mix: 86%; --fl-glass-blur: 38px; --fl-glass-sat: 2.2; --fl-glass-rim: 100%; --fl-glass-sheen: 58%; --fl-glass-band: 1.9rem; }
+/* The subtle glass lets the most through, so its text gets a faint halo of the tint. */
+.fl-glass-surface[data-strength="subtle"]:not([data-glass="solid"]) { text-shadow: 0 0 0.5em color-mix(in srgb, var(--fl-glass-tint) 80%, transparent); }
+.fl-glass-surface[data-glass="refract"] { --fl-glass-frost: calc(var(--fl-glass-blur) / 3); }
+
+.fl-glass-surface::before, .fl-glass-surface::after, .fl-glass-gl {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+}
+.fl-glass-surface[data-glass="refract"]::before { backdrop-filter: var(--fl-glass-lens, none); }
+.fl-glass-surface::after {
+  -webkit-backdrop-filter: blur(var(--fl-glass-frost)) saturate(var(--fl-glass-sat));
+  backdrop-filter: blur(var(--fl-glass-frost)) saturate(var(--fl-glass-sat));
+  background:
+    radial-gradient(circle at var(--fl-glass-x) var(--fl-glass-y), color-mix(in srgb, var(--fl-glass-shine) calc(var(--fl-glass-lit) * 55%), transparent), transparent 4.5rem),
+    linear-gradient(170deg, color-mix(in srgb, var(--fl-glass-shine) var(--fl-glass-sheen), transparent), transparent 46%),
+    color-mix(in srgb, var(--fl-glass-tint) calc(var(--fl-glass-mix) + var(--fl-glass-lift, 0%)), transparent);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in srgb, var(--fl-glass-shine) var(--fl-glass-rim), transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--fl-glass-shine) 38%, transparent),
+    inset 0 -1px 1px 0 color-mix(in srgb, var(--color-text) 14%, transparent),
+    inset 0 calc(var(--fl-glass-band) * -1) calc(var(--fl-glass-band) * 1.6) calc(var(--fl-glass-band) * -1.3) color-mix(in srgb, var(--fl-glass-shine) var(--fl-glass-glow, 70%), transparent),
+    inset 0 0 calc(var(--fl-glass-band) * 0.8) calc(var(--fl-glass-band) * -0.5) color-mix(in srgb, var(--fl-glass-shine) calc(var(--fl-glass-glow, 70%) - 10%), transparent),
+    0 0.75rem 2rem -0.75rem color-mix(in srgb, var(--color-text) 34%, transparent);
+}
+/* WebGL: the canvas already holds the bent, blurred backdrop; the tint and highlights go on top without another blur. */
+.fl-glass-gl { display: none; width: 100%; height: 100%; }
+.fl-glass-surface[data-glass="webgl"] > .fl-glass-gl { display: block; }
+.fl-glass-surface[data-glass="webgl"]::after { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.fl-glass-surface[data-glass="webgl"] { --fl-glass-mix: 54%; --fl-glass-glow: 30%; }
+.fl-glass-surface[data-glass="webgl"][data-strength="subtle"] { --fl-glass-mix: 42%; }
+.fl-glass-surface[data-glass="webgl"][data-strength="strong"] { --fl-glass-mix: 64%; }
+/* The thickest glass shows its bending through a lighter tint; a halo behind text keeps it readable over the warp. */
+.fl-glass-surface[data-glass="webgl"][data-strength="stronger"] { --fl-glass-mix: 56%; }
+.fl-glass-surface[data-glass="webgl"][data-strength="strongest"] { --fl-glass-mix: 50%; }
+.fl-glass-surface[data-glass="webgl"]:is([data-strength="stronger"], [data-strength="strongest"]) { text-shadow: 0 0 0.6em color-mix(in srgb, var(--fl-glass-tint) 90%, transparent); }
+.fl-glass-surface[data-glass="webgl"]:is([data-strength="stronger"], [data-strength="strongest"]) :is(.fl-glass-surface, [aria-pressed="true"]) { text-shadow: none; }
+/* Solid: the surface color, nothing showing through. */
+.fl-glass-surface[data-glass="solid"]::after { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--fl-glass-tint); }
+.fl-glass-surface[data-glass="solid"]::before, .fl-glass-surface[data-glass="solid"] > .fl-glass-gl { display: none; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fl-glass-surface:not([data-glass="webgl"])::after { background: var(--fl-glass-tint); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .fl-glass-surface::after { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--fl-glass-tint); }
+  .fl-glass-surface::before, .fl-glass-gl { display: none; }
+  .fl-glass-surface { text-shadow: none; }
+}
+@media (forced-colors: active) {
+  .fl-glass-surface { border: 1px solid CanvasText; background: Canvas; color: CanvasText; text-shadow: none; }
+  .fl-glass-surface::before, .fl-glass-surface::after, .fl-glass-gl { display: none; }
+}
+
+.fl-glass-filter { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+
+/* ── Button ── */
+.fl-glass-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  min-height: 2.75rem; padding: 0 var(--space-5); border: 0; margin: 0;
+  border-radius: var(--fl-glass-radius, var(--pill-radius, 999px)); background: transparent;
+  font: inherit; font-size: var(--text-sm); font-weight: var(--weight-semibold); line-height: 1.2; color: var(--fl-glass-ink);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform var(--duration-base) var(--ease-spring, var(--ease-out, ease-out)), --fl-glass-lit var(--duration-base) var(--ease-out, ease-out);
+}
+/* Round is always a circle at any strength: fixed inline and block size (set --fl-glass-size to change it), never stretched. */
+.fl-glass-button--round {
+  flex: none; align-self: center; box-sizing: border-box; inline-size: var(--fl-glass-size, 2.75rem); block-size: var(--fl-glass-size, 2.75rem);
+  min-block-size: 0; min-inline-size: 0; aspect-ratio: 1; padding: 0; border-radius: 50%;
+}
+.fl-glass-icon { display: inline-grid; place-items: center; }
+.fl-glass-icon svg { width: 1.2rem; height: 1.2rem; }
+.fl-glass-button:hover:not(:disabled) { --fl-glass-lift: 10%; }
+.fl-glass-button:active:not(:disabled) { transform: scale(calc(var(--press-scale, 0.98) - 0.04)); transition-duration: var(--duration-fast); }
+.fl-glass-button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-glass-button[aria-pressed="true"] { --fl-glass-tint: var(--color-accent); --fl-glass-ink: var(--color-on-accent); --fl-glass-mix: 90%; text-shadow: none; }
+.fl-glass-button:disabled { --fl-glass-ink: color-mix(in srgb, var(--color-text) 50%, var(--color-surface)); cursor: not-allowed; }
+
+/* ── Floating bar ── */
+.fl-glass-bar { display: inline-flex; max-width: 100%; padding: var(--space-1); border-radius: var(--fl-glass-radius, var(--pill-radius, 999px)); }
+.fl-glass-bar-list { position: relative; display: flex; gap: var(--space-1); margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; border-radius: inherit; }
+.fl-glass-bar-list::-webkit-scrollbar { display: none; }
+.fl-glass-bar-list > li { display: flex; }
+.fl-glass-bar-ind {
+  position: absolute; top: 0; bottom: 0; left: 0; width: var(--fl-glass-ind-w, 0); transform: translateX(var(--fl-glass-ind-x, 0));
+  border-radius: var(--pill-radius, 999px); pointer-events: none;
+  background: color-mix(in srgb, var(--fl-glass-ink) 13%, transparent);
+  box-shadow: inset 0 1px 0 0 color-mix(in srgb, var(--fl-glass-shine) 80%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--fl-glass-shine) 30%, transparent);
+}
+.fl-glass-bar-ind[data-ready] { transition: transform var(--duration-slow, var(--duration-base)) var(--ease-spring, var(--ease-out, ease-out)), width var(--duration-slow, var(--duration-base)) var(--ease-out, ease-out); }
+.fl-glass-bar-item {
+  position: relative; z-index: 1; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-width: 4.5rem; min-height: 3.25rem; padding: var(--space-1) var(--space-3); border: 0; border-radius: var(--pill-radius, 999px);
+  background: transparent; color: inherit; font: inherit; font-size: var(--text-xs); font-weight: var(--weight-medium); white-space: nowrap; cursor: pointer;
+}
+.fl-glass-bar-item svg { width: 1.3rem; height: 1.3rem; }
+.fl-glass-bar-item[aria-current="page"] { font-weight: var(--weight-semibold); }
+.fl-glass-bar-item[aria-current="page"] svg { color: var(--color-accent); }
+.fl-glass-bar-item:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* ── Panel ── */
+.fl-glass-panel { display: grid; gap: var(--space-2); padding: var(--space-5); border-radius: var(--fl-glass-radius, var(--surface-radius, var(--radius-xl))); }
+
+/* ── The stage: a token gradient canvas for the glass to look through ── */
+.fl-glass-stage {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4);
+  min-height: 15rem; padding: var(--space-6) var(--space-4); border-radius: var(--surface-radius, var(--radius-lg));
+  background:
+    radial-gradient(40% 50% at 18% 30%, var(--color-accent), transparent 70%),
+    radial-gradient(40% 50% at 82% 22%, var(--color-secondary, var(--color-accent)), transparent 70%),
+    radial-gradient(45% 55% at 62% 90%, var(--color-success), transparent 70%),
+    var(--color-bg);
+}
+.fl-glass-stage-paint { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.fl-glass-stage--bar { justify-content: flex-end; min-height: 17rem; }
+.fl-glass-stage--panel { min-height: 26rem; }
+.fl-glass-row { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); }
+.fl-glass-status { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-glass-surface, .fl-glass-button, .fl-glass-bar-ind[data-ready] { transition: none; }
+  .fl-glass-button:active:not(:disabled) { transform: none; }
+}
