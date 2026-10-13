@@ -325,6 +325,12 @@ describe("design quality in builds", () => {
     // Calculator test 1: "Calculator screen content would go here" was left in App.tsx.
     fs.writeFileSync(path.join(root, "src/screens/Calc.tsx"), `export const Calc = () => <div><p>Calculator screen content would go here</p></div>;`);
     expect(contentProblems(jail, ["src/screens/Calc.tsx"]).map((p) => p.message).join()).toMatch(/placeholder content/);
+    // A library piece's demo sheet (after flowcode:sample) isn't the app's content; its working part above still is.
+    fs.mkdirSync(path.join(root, "src/sections"), { recursive: true });
+    fs.writeFileSync(path.join(root, "src/sections/LookupEntry.tsx"), `export function LookupEntry() { return <p>Where to find it</p>; }\n// flowcode:sample\nexport default function Sheet() { return <button>Reset sample data</button>; }\n`);
+    expect(contentProblems(jail, ["src/sections/LookupEntry.tsx"])).toEqual([]);
+    fs.writeFileSync(path.join(root, "src/sections/Broken.tsx"), `export function Broken() { return <p>Sample data goes here</p>; }\n// flowcode:sample\n`);
+    expect(contentProblems(jail, ["src/sections/Broken.tsx"]).map((p) => p.message).join()).toMatch(/sample content/);
   });
 
   it("plans the app layout and navigation before any feature", async () => {

@@ -67,7 +67,10 @@ export function contentProblems(jail: PathJail, changed: Iterable<string>, owned
     } catch {
       continue;
     }
-    const text = visibleSource(src);
+    // A library piece's demo sheet and sample values (after its flowcode:sample marker) are never shown in the app:
+    // Clean Cart's library step was failed twice for the look-up entry's "Reset sample data" demo button.
+    const shown = /^src\/sections\//.test(rel.replace(/\\/g, "/")) ? src.split(/\/\/\s*flowcode:sample\b/)[0]! : src;
+    const text = visibleSource(shown);
     for (const [re, what] of PLACEHOLDERS) {
       const m = re.exec(text);
       if (m) {
