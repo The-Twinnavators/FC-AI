@@ -30,6 +30,20 @@ describe("importFixes", () => {
     expect(fixes.get("src/screens/AuthScreen.tsx")).toBe("import React from 'react';\nimport { Button, Field } from '../components/ui';\nimport { useScreen } from '../lib/screens';\n");
     expect(fixes.get("src/screens/Other.tsx")).toBe("import { Hero } from '../components/ui/screen-parts';\nimport { Field } from '../components/ui';\n");
   });
+
+  it("moves names imported from a library file that doesn't exist to the piece that exports them (Clean Cart ZipPrompt)", () => {
+    const jail = project({
+      "src/sections/PlaceFinder.tsx": "export function PlaceFinder() { return null; }\nexport function ZipPrompt() { return null; }\n",
+      "src/sections/LookupCatalog.tsx": "export function LookupCatalog() { return null; }\n",
+      "src/screens/HomeScreen.tsx": 'import { LookupCatalog } from "../sections/LookupCatalog";\nimport { ZipPrompt } from "../sections/ZipPrompt";\nexport default function HomeScreen() { return null; }\n',
+    });
+    const fixes = importFixes(jail, [`src/screens/HomeScreen.tsx(2,27): error TS2307: Cannot find module '../sections/ZipPrompt' or its corresponding type declarations.`]);
+    expect(fixes.get("src/screens/HomeScreen.tsx")).toBe('import { LookupCatalog } from "../sections/LookupCatalog";\nimport { ZipPrompt } from "../sections/PlaceFinder";\nexport default function HomeScreen() { return null; }\n');
+    // The same as a default import (the model's next try).
+    fs.writeFileSync(path.join(jail.root, "src/screens/HomeScreen.tsx"), "import ZipPrompt from '../sections/ZipPrompt';\nexport default function HomeScreen() { return null; }\n");
+    const again = importFixes(jail, [`src/screens/HomeScreen.tsx(1,23): error TS2307: Cannot find module '../sections/ZipPrompt' or its corresponding type declarations.`]);
+    expect(again.get("src/screens/HomeScreen.tsx")).toBe("import { ZipPrompt } from '../sections/PlaceFinder';\nexport default function HomeScreen() { return null; }\n");
+  });
 });
 
 describe("type error hints", () => {
@@ -292,5 +306,19 @@ describe("which file an error belongs to", () => {
     expect(errorFile("C:/work/cal/src/components/CalendarMonth.tsx:23:5 error Parsing error")).toBe("src/components/CalendarMonth.tsx");
     expect(errorFile(String.raw`C:\work\cal\src\components\CalendarMonth.tsx:23:5 error Parsing error`)).toBe("src/components/CalendarMonth.tsx");
     expect(errorFile("Found 3 errors in 2 files.")).toBeUndefined();
+  });
+});
+
+describe("look-up layer hints", () => {
+  it("tells a step that useLookup returns state and the actions are the lookup's methods (Clean Cart Home)", () => {
+    const jail = project({ "src/screens/HomeScreen.tsx": "export default function HomeScreen() { return null; }\n" });
+    const hints = typeErrorHints(jail, [
+      "src/screens/HomeScreen.tsx(9,11): error TS2339: Property 'lookup' does not exist on type 'LookupState'.",
+      "src/screens/HomeScreen.tsx(9,19): error TS2339: Property 'setZip' does not exist on type 'LookupState'.",
+    ]);
+    const h = hints.find((x) => x.includes("useLookup(lookup) returns the look-up STATE"));
+    expect(h).toBeTruthy();
+    expect(h).toContain("lookup.setZip(zip)");
+    expect(h).toContain("<ZipPrompt lookup={lookup} />");
   });
 });

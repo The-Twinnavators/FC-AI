@@ -79,7 +79,35 @@ function exporterOf(jail: PathJail, name: string): string | undefined {
  */
 export function importFixes(jail: PathJail, errors: string[], only?: (file: string) => boolean): Map<string, string> {
   const out = new Map<string, string>();
+  // A module that doesn't exist ("../sections/ZipPrompt", when ZipPrompt lives in PlaceFinder.tsx; Clean Cart's Home
+  // step failed three times on it): each name imported from it is moved to the file that exports it, as below.
+  const missing: string[] = [];
   for (const line of errors) {
+    const m = /^(\S+?\.[jt]sx?)\((\d+),\d+\): error TS2307: Cannot find module ['"](\.{1,2}\/[^'"]+)['"]/.exec(line);
+    if (!m) continue;
+    const [, file, , spec] = m;
+    let text = "";
+    try {
+      text = fs.readFileSync(path.join(jail.root, file), "utf8");
+    } catch {
+      continue;
+    }
+    const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const hit = new RegExp(`^import\\s*\\{([^}]*)\\}\\s*from\\s*(['"])${esc(spec)}\\2`, "m").exec(text);
+    for (const name of hit ? hit[1].split(",").map((n) => n.trim().replace(/^type\s+/, "")).filter(Boolean) : []) missing.push(`${file}(1,1): error TS2305: Module '"${spec}"' has no exported member '${name}'.`);
+    // A default import from it ("import ZipPrompt from '../sections/ZipPrompt'"): the named import from its exporter.
+    const def = new RegExp(`^import\\s+(\\w+)\\s+from\\s*(['"])${esc(spec)}\\2;?[ \\t]*$`, "m").exec(text);
+    if (def && !(only && !only(file))) {
+      const owner = exporterOf(jail, def[1]!);
+      if (owner) {
+        let rel = posix(path.relative(path.dirname(file), owner.replace(/\.(tsx?|jsx?|mts|cts)$/, "").replace(/\/index$/, "")));
+        if (!rel.startsWith(".")) rel = `./${rel}`;
+        const named = new RegExp(`export\\s+default\\s+(?:function|class)?\\s*${def[1]}\\b`).test(fs.readFileSync(path.join(jail.root, owner), "utf8"));
+        out.set(file, text.slice(0, def.index) + (named ? `import ${def[1]} from ${def[2]}${rel}${def[2]};` : `import { ${def[1]} } from ${def[2]}${rel}${def[2]};`) + text.slice(def.index + def[0].length));
+      }
+    }
+  }
+  for (const line of [...errors, ...missing]) {
     const m = /^(\S+?\.[jt]sx?)\((\d+),\d+\): error TS(?:2305|2724): .*?['"]{1,2}(\.{1,2}\/[^'"]+)['"]{1,2} has no exported member(?: named)? '(\w+)'/.exec(line);
     if (!m) continue;
     const [, file, , spec, name] = m;
@@ -158,6 +186,14 @@ export function typeErrorHints(jail: PathJail, raw: string[]): string[] {
       const to = lintFile.replace(/\.jsx?$/, ".tsx");
       hints.push(`${lintFile} contains JSX but is a .js file, which the linter can't parse in this TypeScript project. Rename it with move_file from "${lintFile}" to "${to}". Imports without an extension keep working; fix any that end in ".js".`);
     }
+  }
+  // The look-up layer: useLookup(lookup) returns the state; the actions are methods of the lookup itself (Clean Cart:
+  // the Home step wrote `const { lookup, setZip } = useLookup(...)` and failed the type check twice).
+  for (const line of errors) {
+    const m = /^(\S+?\.[jt]sx?)\(\d+,\d+\): error TS2339: Property '(\w+)' does not exist on type 'LookupState'/.exec(line);
+    if (!m || seen.has(`lookup:${m[1]}`)) continue;
+    seen.add(`lookup:${m[1]}`);
+    hints.push(`${m[1]}: useLookup(lookup) returns the look-up STATE only: zip, placeId, signedIn, liked, saved, ratings, lists, zipAsked. Everything else is a method of the lookup object itself, imported with import { lookup } from "../app/lookup": lookup.setZip(zip), lookup.choosePlace(id), lookup.toggleLike(id), lookup.toggleSave(id), lookup.nearby(), lookup.carriers(entryId), lookup.summary(entryId), lookup.createList(name), lookup.addToList(listId, entryId). Write const state = useLookup(lookup); and call lookup.${m[2] === "lookup" ? "setZip" : m[2]}(...) — never destructure methods from useLookup. The ready parts take just lookup: <ZipPrompt lookup={lookup} />, <PlaceBadge lookup={lookup} />, <CatalogSearch lookup={lookup} onSearch={...} onOpen={...} />.`);
   }
   // Syntax errors (TS1xxx, TS17xxx) make every later error in that file unreliable: fix them first.
   const syntaxFiles = [...new Set(errors.map((l) => /^(\S+?)\(\d+,\d+\): error TS(1\d{3}|17\d{3})\b/.exec(l)?.[1]).filter((x): x is string => !!x))];
