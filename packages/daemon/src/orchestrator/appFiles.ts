@@ -7,7 +7,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import type { PlanTask } from "@flowcode/contracts";
+import { LIBRARY_SECTIONS, type PlanTask } from "@flowcode/contracts";
 import type { AgentOutcome } from "./agentLoop.js";
 import type { AppModel, ModelView } from "./appModel.js";
 import { appModelKey, appModelNote } from "./appModel.js";
@@ -22,6 +22,15 @@ import { DESIGN_SCREENS, type RuntimeStepArgs } from "./templates.js";
 export const APP_PIECES = ["app-frame", "resource-index", "record-wizard", "record-detail", "app-dashboard"];
 /** The pieces this app is built from: the look-up pieces for a look-up app, the working app pieces otherwise. */
 export const piecesOf = (m: AppModel) => (m.lookup ? LOOKUP_PIECES : APP_PIECES);
+
+/**
+ * The pieces this app needs that the owner hasn't approved yet (still on the approval shelf). Builds never use a piece
+ * before it is approved, so an app that needs one isn't written this way: the build designs its screens instead.
+ */
+export function unapprovedPieces(m: AppModel, library = LIBRARY_SECTIONS): string[] {
+  const approved = new Set(library.map((s) => s.id));
+  return piecesOf(m).filter((id) => !approved.has(id));
+}
 
 const DEFAULT_ICON: Record<ModelView["kind"], string> = { list: "folder", create: "plus", detail: "file", dashboard: "chart", queue: "check", custom: "layers", placeholder: "layers", landing: "home", catalog: "search", categories: "layers", entry: "file", places: "pin", lists: "check", mylist: "check", saved: "heart" };
 const pascal = (id: string) => id.split(/[^a-zA-Z0-9]+/).filter(Boolean).map((w) => w[0]!.toUpperCase() + w.slice(1)).join("");

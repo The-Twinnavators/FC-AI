@@ -59,8 +59,8 @@ import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
-import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf } from "./appFiles.js";
-import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
+import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
+import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
@@ -951,15 +951,18 @@ export class Orchestrator {
     const ev = { projectId: run.projectId, runId: run.id };
     const prd = prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []));
     let problems: string[] = [];
+    // Sized for the planner's provider: switching a build between cloud and local needs nothing else.
+    const budget = appModelBudget(this.d.router.isHosted(run.modelAssignments.planner));
     for (const temperature of [0.2, 0.4]) {
       try {
         const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
           messages: [
             { role: "system", content: APP_MODEL_SYSTEM },
-            { role: "user", content: untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary)) },
+            { role: "user", content: untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, budget.note)) },
           ],
           format: APP_MODEL_SCHEMA,
-          timeoutMs: 300_000,
+          maxOutputTokens: budget.maxOutputTokens,
+          timeoutMs: budget.timeoutMs,
           signal,
         });
         const got = parseAppModel(JSON.parse(extractJson(res.content)));
@@ -969,6 +972,12 @@ export class Orchestrator {
         }
         problems = got.problems;
         const model = got.model;
+        // Pieces still on the approval shelf are never used by a build.
+        const waiting = model ? unapprovedPieces(model) : [];
+        if (model && waiting.length) {
+          this.d.bus.emit({ ...ev, type: "plan.proposed", message: `This is a ${model.lookup ? "look-up app" : "complete app"}, but the pieces it is built from are waiting for your approval in the Component library (${waiting.join(", ")}). This build designs its main screens instead; approve them to have FlowCode write the whole working app.`, level: "warning" });
+          return undefined;
+        }
         if (model) {
           this.d.store.setSetting(appModelKey(run.id), model);
           const views = model.nav.flatMap((g) => g.items);

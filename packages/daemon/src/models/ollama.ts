@@ -33,6 +33,17 @@ interface OllamaMessage {
   tool_name?: string;
 }
 
+
+/**
+ * The working memory (num_ctx) for a local call: the assignment's, or 8,192; and when the caller asks for a long reply
+ * (an app model), enough for the prompt plus that reply, up to 32,768. A reply bigger than the window is cut off
+ * mid-JSON, which is what a cloud-sized request did on a local model.
+ */
+export function localContext(contextWindow: number | undefined, maxOutputTokens: number | undefined): number {
+  const base = contextWindow ?? 8192;
+  return maxOutputTokens && maxOutputTokens > 4096 ? Math.min(32_768, Math.max(base, maxOutputTokens + 6144)) : base;
+}
+
 export class OllamaProvider implements Provider {
   private capCache = new Map<string, string[]>();
   constructor(readonly config: ProviderConfig) {}
@@ -84,7 +95,7 @@ export class OllamaProvider implements Provider {
       model: req.model,
       messages,
       stream: false,
-      options: { temperature: req.temperature ?? 0.1, ...(req.contextWindow ? { num_ctx: req.contextWindow } : { num_ctx: 8192 }), ...((req.maxOutputTokens ?? (req.format ? 4096 : undefined)) ? { num_predict: req.maxOutputTokens ?? 4096 } : {}) },
+      options: { temperature: req.temperature ?? 0.1, num_ctx: localContext(req.contextWindow, req.maxOutputTokens), ...((req.maxOutputTokens ?? (req.format ? 4096 : undefined)) ? { num_predict: req.maxOutputTokens ?? 4096 } : {}) },
       keep_alive: "15m",
     };
     if (req.tools?.length) body.tools = req.tools.map((t) => ({ type: "function", function: t }));

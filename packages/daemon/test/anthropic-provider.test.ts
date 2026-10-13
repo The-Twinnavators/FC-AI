@@ -122,4 +122,11 @@ describe("output limits", () => {
     await provider.chat({ model: "claude-small", messages: [{ role: "user", content: "again" }], tools, maxOutputTokens: 4096 });
     expect(seen.map((s) => s.body.max_tokens)).toEqual([16000, 8192, 8192]);
   });
+
+  it("gives structured replies room to finish (a planning answer cut off at 4,096 tokens broke the Clean Cart pilot)", async () => {
+    const { provider, seen } = await fake(() => ({ json: { model: "claude-x", content: [{ type: "text", text: "{}" }] } }));
+    await provider.chat({ model: "claude-x", messages: [{ role: "user", content: "plan" }], format: { type: "object" } });
+    await provider.chat({ model: "claude-x", messages: [{ role: "user", content: "model" }], format: { type: "object" }, maxOutputTokens: 32_000 });
+    expect(seen.map((s) => s.body.max_tokens)).toEqual([16000, 32000]);
+  });
 });

@@ -144,9 +144,24 @@ export const APP_MODEL_SCHEMA = {
   required: ["shape", "product"],
 };
 
-export function appModelRequest(objective: string, prd: string, requirements: Requirement[], boundary: string): string {
+/**
+ * The planner call's size: a cloud model writes the full model in one reply; a local model gets a compact one that fits
+ * its working memory (fewer sample records, places and ratings; the same pages and data shape).
+ */
+export function appModelBudget(hosted: boolean): { maxOutputTokens: number; timeoutMs: number; note: string } {
+  return hosted
+    ? { maxOutputTokens: 32_000, timeoutMs: 600_000, note: "" }
+    : {
+        maxOutputTokens: 8_000,
+        timeoutMs: 900_000,
+        note: "Keep it compact, so it fits in one reply: 12 to 16 sample records per entity (16 to 24 entries and 6 to 8 places for a look-up app, in 2 ZIP code areas), 8 to 12 ratings, one list, 6 to 12 destinations, short field help.",
+      };
+}
+
+export function appModelRequest(objective: string, prd: string, requirements: Requirement[], boundary: string, sizeNote = ""): string {
   return [
     `Request: ${objective.slice(0, 800)}`,
+    sizeNote,
     requirements.length ? `Requirements this build makes:\n${requirements.slice(0, 80).map((r) => `${r.id}: ${r.text.slice(0, 180)}`).join("\n")}` : "",
     boundary,
     `PRD:\n${prd.slice(0, 24_000)}`,

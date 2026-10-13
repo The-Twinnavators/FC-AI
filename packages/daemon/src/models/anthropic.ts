@@ -100,7 +100,9 @@ export class AnthropicProvider implements Provider {
       const last = turns[turns.length - 1];
       if (last?.content.length) last.content[last.content.length - 1] = { ...last.content[last.content.length - 1], cache_control: { type: "ephemeral" } };
       const tools = (req.tools ?? []).map((x, i, all) => ({ name: x.name, description: x.description, input_schema: { type: "object", ...x.parameters }, ...(i === all.length - 1 ? { cache_control: { type: "ephemeral" } } : {}) }));
-      const wanted = Math.max(req.tools?.length ? 16_000 : 1024, req.maxOutputTokens ?? (req.format ? 4096 : 8192));
+      // Structured planning replies (an app model, a plan part, the journeys) run long; 4,096 cut them off mid-JSON and
+      // the build fell back to the thinner plan (Clean Cart pilot). Only the tokens written are charged.
+      const wanted = Math.max(req.tools?.length ? 16_000 : 1024, req.maxOutputTokens ?? (req.format ? 16_000 : 8192));
       const maxTokens = () => Math.min(wanted, OUTPUT_LIMIT.get(req.model) ?? wanted);
       const send = (withTemperature: boolean) =>
         fetch(`${this.base()}/v1/messages`, {

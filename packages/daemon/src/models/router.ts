@@ -107,6 +107,15 @@ export class ModelRouter {
     return a;
   }
 
+  /** Whether an assignment runs on a hosted (cloud) provider, so a caller can size what it asks for. */
+  isHosted(a: ModelAssignment): boolean {
+    try {
+      return !!this.provider(a.providerId).config.hosted;
+    } catch {
+      return false;
+    }
+  }
+
   /** Stable hash of the parts of a configuration that affect behavior; capability records are keyed by it. */
   static configHash(a: ModelAssignment): string {
     return sha256(stableStringify({ p: a.providerId, m: a.model, t: a.temperature ?? null, c: a.contextWindow ?? null, r: a.reasoning ?? false })).slice(0, 16);

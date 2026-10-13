@@ -143,3 +143,31 @@ describe("writing a look-up app", () => {
     fs.rmSync(root, { recursive: true, force: true });
   });
 });
+
+describe("pieces waiting for approval", () => {
+  it("names the look-up pieces a look-up app needs that aren't approved yet, and none once they are", async () => {
+    const { unapprovedPieces } = await import("../src/orchestrator/appFiles.js");
+    const { model } = parseAppModel(raw);
+    expect(unapprovedPieces(model!, [])).toEqual(["lookup-frame", "lookup-catalog", "lookup-entry", "place-finder", "list-builder"]);
+    const all = ["lookup-frame", "lookup-catalog", "lookup-entry", "place-finder", "list-builder"].map((id) => ({ id }) as never);
+    expect(unapprovedPieces(model!, all)).toEqual([]);
+  });
+});
+
+describe("sized for the planner's provider", () => {
+  it("asks a cloud planner for the full app model and a local one for a compact model that fits its memory", async () => {
+    const { appModelBudget } = await import("../src/orchestrator/appModel.js");
+    const { localContext } = await import("../src/models/ollama.js");
+    const cloud = appModelBudget(true);
+    const local = appModelBudget(false);
+    expect(cloud.maxOutputTokens).toBe(32_000);
+    expect(cloud.note).toBe("");
+    expect(local.maxOutputTokens).toBeLessThanOrEqual(8_000);
+    expect(local.note).toMatch(/compact/);
+    // A local call asking for a long reply gets the working memory to hold it; ordinary calls keep theirs.
+    expect(localContext(undefined, local.maxOutputTokens)).toBeGreaterThanOrEqual(local.maxOutputTokens + 4096);
+    expect(localContext(undefined, undefined)).toBe(8192);
+    expect(localContext(16_384, 4096)).toBe(16_384);
+    expect(localContext(undefined, 64_000)).toBe(32_768);
+  });
+});
