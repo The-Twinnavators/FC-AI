@@ -74,6 +74,20 @@ describe("the layout lock", () => {
     expect(lockedButMissing(m, "all")).toEqual([]);
   });
 
+  it("counts a part App.tsx renders around every page (the app frame) as on each page", () => {
+    const { app } = makeApp();
+    const { ws } = makeProject(app, {
+      "src/sections/LookupFrame.tsx": "export function LookupFrame() { return null; }\n",
+      "src/screens/HomeScreen.tsx": "export default function HomeScreen() { return <main />; }\n",
+      "src/App.tsx": 'import { LookupFrame } from "./sections/LookupFrame";\nexport default function App() { return <LookupFrame />; }\n',
+    });
+    const entry = entryFor("p.lookup-frame", "Home", "Top bar and navigation", "plan")!;
+    expect(entry).toBeTruthy();
+    const m = verifyManifest(ws, { entries: [entry], gaps: [], changes: [] }, undefined, { Home: "src/screens/HomeScreen.tsx" });
+    expect(m.entries[0]!.verification?.onPage).toBe(true);
+    expect(lockedButMissing(m, ["Home"])).toEqual([]);
+  });
+
   it("the builders' tool records a change with its reason and refuses an invented part", async () => {
     const { app } = makeApp();
     const { project, jail } = makeProject(app);

@@ -188,3 +188,17 @@ describe("a look-up app's landing page", () => {
     expect(checkComposition("Home", "marketing", [{ title: "A list", part: "p.list-builder.list" }]).issues.some((i) => /belongs on app screens/.test(i.reason))).toBe(true);
   });
 });
+
+describe("the step that writes a look-up app", () => {
+  it("checks for the look-up frame and layer, not the staff app's frame", async () => {
+    const { completeAppTasks, WRITE_APP } = await import("../src/orchestrator/appFiles.js");
+    const { APP_LAYOUT } = await import("../src/orchestrator/screenPlan.js");
+    const { model } = parseAppModel(raw);
+    const [t] = completeAppTasks([{ key: "layout", title: APP_LAYOUT, objective: "", dependsOn: [], expectedPaths: [], acceptanceCriteria: [], verification: [], role: "coder" }], model!);
+    expect(t!.title).toBe(WRITE_APP);
+    const texts = t!.acceptanceCriteria.map((c) => ("text" in c.check ? c.check.text : "path" in c.check ? c.check.path : c.check.kind));
+    expect(texts).toContain("<LookupFrame");
+    expect(texts).not.toContain("<AppFrame");
+    expect(texts).toContain("src/app/lookup.ts");
+  });
+});

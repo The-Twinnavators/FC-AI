@@ -1863,7 +1863,9 @@ export class Orchestrator {
     // Any step that changed a planned page's file is held to the page plan too: a feature step rewrote Build test 7's
     // Home down to its list, and only design steps were checked.
     const touchedPages = planScreens.filter((p) => [...changed].some((c) => c.split("\\").join("/") === p.file)).map((p) => p.label);
-    if (composition && (designPass || touchedPages.length)) {
+    // Not on the step that writes the complete app: it writes each page's working start, and the design and feature
+    // steps compose the planned sections (Clean Cart: the lock blocked "Write the complete app" three times on Home).
+    if (composition && task.title !== WRITE_APP && (designPass || touchedPages.length)) {
       const checked = verifyManifest(jail.root, composition, undefined, Object.fromEntries(planScreens.map((p) => [p.label, p.file])));
       this.d.store.setSetting(compositionKey(run.id), checked);
       const unused = checked.entries.filter((e) => !(e.verification?.onPage ?? e.verification?.usedBy.length));

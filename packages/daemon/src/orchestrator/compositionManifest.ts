@@ -158,7 +158,9 @@ export function verifyManifest(root: string, m: CompositionManifest, at = new Da
       const pageFile = pageFiles[e.page];
       const pageText = pageFile ? files.find((f) => f.rel === pageFile)?.text ?? "" : undefined;
       const names = componentNames(e.ref);
-      const onPage = pageText === undefined ? undefined : importsIt(pageText) || names.some((n) => new RegExp(`<${n}[\\s/>.]`).test(pageText));
+      // A part App.tsx renders around every page (the app frame) is on every page (Clean Cart: the look-up frame was
+      // planned as Home's top bar and could never be found in HomeScreen).
+      const onPage = pageText === undefined ? undefined : importsIt(pageText) || names.some((n) => new RegExp(`<${n}[\\s/>.]`).test(pageText)) || usedBy.includes("src/App.tsx");
       return { ...e, verification: { inApp, usedBy, onPage, at } };
     }),
   };

@@ -305,7 +305,8 @@ export function completeAppTasks(tasks: PlanTask[], m: AppModel): PlanTask[] {
           objective: `FlowCode writes the whole app from its app model: the data and sample records, the one store, the frame with the full navigation, and a working page per destination.\n${appModelNote(m)}`,
           expectedPaths: ["src/App.tsx", "src/app/", "src/screens/", "src/sections/", "index.html"],
           acceptanceCriteria: [
-            { id: "l1", description: "The app uses the app frame", check: { type: "file_contains" as const, path: "src/App.tsx", text: "<AppFrame" } },
+            { id: "l1", description: "The app uses the app frame", check: { type: "file_contains" as const, path: "src/App.tsx", text: m.lookup ? "<LookupFrame" : "<AppFrame" } },
+            ...(m.lookup ? [{ id: "l4", description: "The look-up layer is in place", check: { type: "file_exists" as const, path: "src/app/lookup.ts" } }] : []),
             { id: "l2", description: "The pages share one store", check: { type: "file_exists" as const, path: "src/app/store.ts" } },
             { id: "l3", description: "Typecheck passes", check: { type: "verification" as const, kind: "typecheck" } },
           ],
