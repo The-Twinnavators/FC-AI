@@ -57,7 +57,7 @@ export function lookupScreenSource(m: AppModel, v: ModelView): string | undefine
     case "landing": {
       // A working start the design step composes into the product's landing page: the promise, search, the ZIP code,
       // the categories and the most liked entries, all on the same data.
-      return `${head}\nimport { CatalogSearch, CategoryIndex, LookupCatalog } from "../sections/LookupCatalog";\nimport { ZipPrompt } from "../sections/PlaceFinder";\n${imports}\n\nexport default function ${name}() {\n  return (\n    <div className="fl-lkf-stack">\n      {/* 1. Hero: ${commentSafe(m.product)}, its promise and the search (design step: compose this from the PRD's words) */}\n      <section className="fl-lkf-hero" aria-labelledby="landing-title">\n        <h1 id="landing-title">{${q(m.product)}}</h1>\n        ${v.purpose ? `<p>{${q(v.purpose)}}</p>` : ""}\n        <CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${toCatalog('`q=${s}`')}} onOpen={${open}} />\n      </section>\n      {/* 2. Where to find it: the ZIP code */}\n      <ZipPrompt lookup={lookup} />\n      {/* 3. Categories */}\n      <CategoryIndex lookup={lookup} onCategory={(c) => ${toCatalog("c")}} />\n      {/* 4. The most liked */}\n      <LookupCatalog lookup={lookup} title="Most liked" pageSize={8} onOpen={${open}}${catalogProps} />\n    </div>\n  );\n}\n`;
+      return `${head}\nimport { CatalogSearch, CategoryIndex, LookupCatalog } from "../sections/LookupCatalog";\nimport { ZipPrompt } from "../sections/PlaceFinder";\n${imports}\n\nexport default function ${name}() {\n  return (\n    <div className="fl-lkf-stack">\n      {/* 1. Hero: ${commentSafe(m.product)}, its promise and the search (design step: compose this from the PRD's words) */}\n      <section className="fl-lkf-hero" aria-labelledby="landing-title">\n        <h1 id="landing-title">{${q(m.product)}}</h1>\n        ${v.purpose ? `<p>{${q(v.purpose)}}</p>` : ""}\n        <CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${toCatalog('`q=${s}`')}} onOpen={${open}} />\n      </section>\n      {/* 2. Where to find it: the ZIP code */}\n      <ZipPrompt lookup={lookup} />\n      {/* 3. Categories */}\n      <CategoryIndex lookup={lookup} onCategory={(c) => ${toCatalog("c")}} />\n      {/* 4. The most liked */}\n      <LookupCatalog lookup={lookup} title="Most liked" pageSize={8} toolbar={false} onOpen={${open}}${catalogProps} />\n    </div>\n  );\n}\n`;
     }
     default:
       return undefined;
@@ -115,7 +115,8 @@ export function lookupAppSource(m: AppModel, built: ModelView[], defaultIcon: Re
     `      links={LINKS}`,
     `      current={PARENT[screen] ?? screen}`,
     `      onNavigate={(id) => go(id)}${r.saved ? `\n      savedId=${attr(r.saved)}` : ""}`,
-    `      search={<CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${r.catalog ? `go(${q(r.catalog)}, \`q=\${s}\`)` : "void s"}} onOpen={${open}} />}`,
+    // The landing page's hero has the search; a second one in the bar above it is one too many (Clean Cart's look check).
+    `      search={${r.landing ? `screen === ${q(r.landing)} ? undefined : ` : ""}<CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${r.catalog ? `go(${q(r.catalog)}, \`q=\${s}\`)` : "void s"}} onOpen={${open}} />}`,
     `      place={<PlaceBadge lookup={lookup} />}`,
     `      prompt={screen === ${q(r.landing ?? "")} ? undefined : <ZipPrompt lookup={lookup} />}`,
     `    >`,

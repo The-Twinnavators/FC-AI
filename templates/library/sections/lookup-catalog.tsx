@@ -1,7 +1,7 @@
 /** @flowcode-library lookup-catalog · Look-up catalog: search, categories, filters and where to find it (Tables and lists)
  * Catalog ID: p.lookup-catalog (pattern)
  * Function: The look-up catalog (p.lookup-catalog): the browse screen of a "find it and where to get it" app (products and the stores that carry them, books and the libraries that hold them, clinics and their services). A grid of cards with a picture, the category, ratings and a save toggle, and on each card where to get it near the person's ZIP code or at their chosen place; a search with suggestions as people type, category and facet filters, "Available near me" (asks for a ZIP code inline), sorting, removable filter chips, a live count and Show more. Also exports CategoryIndex (every category as a tile with a count) and CatalogSearch (the compact top-bar search). Built on the look-up data layer (createLookup from ./lookup-data beside the app's store).
- * Use it as: import { LookupCatalog, CategoryIndex, CatalogSearch } from "./lookup-catalog"; <LookupCatalog lookup={lookup} title? description? category? query? onOpen?={(id) => go("book", id)} onCategory?={(name) => ...} onSearch?={(q) => ...} pageSize?={12} facets?={["ages"]} badgeField?="award" tagsField?="tags" dateField?="published" imageField?="image" loading? only?={savedIds} empty?={{ title: "Nothing saved yet", text: "Tap the bookmark on anything to keep it here.", action?: { label: "Browse", onClick } }} />; <CategoryIndex lookup={lookup} onCategory={(name) => ...} description? selected? />; <CatalogSearch lookup={lookup} onSearch={(q) => ...} onOpen={(id) => ...} onCategory? placeholder? tagsField? />
+ * Use it as: import { LookupCatalog, CategoryIndex, CatalogSearch } from "./lookup-catalog"; <LookupCatalog lookup={lookup} title? description? category? query? onOpen?={(id) => go("book", id)} onCategory?={(name) => ...} onSearch?={(q) => ...} pageSize?={12} facets?={["ages"]} badgeField?="award" tagsField?="tags" dateField?="published" imageField?="image" loading? only?={savedIds} toolbar?={false} empty?={{ title: "Nothing saved yet", text: "Tap the bookmark on anything to keep it here.", action?: { label: "Browse", onClick } }} />; <CategoryIndex lookup={lookup} onCategory={(name) => ...} description? selected? />; <CatalogSearch lookup={lookup} onSearch={(q) => ...} onOpen={(id) => ...} onCategory? placeholder? tagsField? />
  * Variants: p.lookup-catalog.grid - the full catalog: search with suggestions, filters, near me, sort and a grid of cards that say where each one is; p.lookup-catalog.categories - the way in: every category as a tinted tile with an icon and how many there are; p.lookup-catalog.search - the compact search for an app's top bar, with the same suggestions (entries open, categories filter)
  * Built from: c.button, c.search.bar, c.select, c.chip.input, c.empty-state
  * Look: A toolbar with a rounded search field and its suggestion list, a row of selects and a "Available near me" pill, removable filter chips with Clear all and a count; below, a grid of cards with a tinted picture tile, a small save button on its corner, the category in small caps, the title (matched letters marked), the author, a star rating and a pin line saying which places near the ZIP code have it.
@@ -364,9 +364,14 @@ export type LookupCatalogProps = {
   only?: string[];
   /** The empty state when there is nothing to show at all (before any filter). */
   empty?: { title: string; text: string; action?: { label: string; onClick: () => void } };
+  /**
+   * The search, filter and sort bar (shown when left out). false for a showcase on a page that already has a search,
+   * such as "Most liked" on a landing page under its hero search.
+   */
+  toolbar?: boolean;
 };
 
-export function LookupCatalog({ lookup, title, description, category: catProp, query: qProp, onOpen, onCategory, onSearch, pageSize = 12, facets = [], badgeField, tagsField, dateField, imageField = "image", loading, only, empty }: LookupCatalogProps) {
+export function LookupCatalog({ lookup, title, description, category: catProp, query: qProp, onOpen, onCategory, onSearch, pageSize = 12, facets = [], badgeField, tagsField, dateField, imageField = "image", loading, only, empty, toolbar = true }: LookupCatalogProps) {
   const { state, e, entries: all, categories, placeName, placeWord } = useCatalog(lookup);
   const onlyKey = only ? only.join("|") : null;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -481,6 +486,7 @@ export function LookupCatalog({ lookup, title, description, category: catProp, q
         {description ? <p className="fl-cat-lede">{description}</p> : null}
       </header>
 
+      {toolbar ? (
       <div className="fl-cat-toolbar">
         <SuggestField
           lookup={lookup}
@@ -536,6 +542,7 @@ export function LookupCatalog({ lookup, title, description, category: catProp, q
           </Select>
         </div>
       </div>
+      ) : null}
 
       {askZip ? (
         <ZipAsk
