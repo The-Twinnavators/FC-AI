@@ -150,7 +150,7 @@
   --surface-radius-sm: var(--radius-md);
   --control-radius-sm: var(--radius-sm);
   --pill-radius: 999px;
-  --field-radius: min(var(--control-radius), 24px); /* text boxes: never a pill, never over 24px */
+  --field-radius: min(var(--control-radius), 12px); /* text boxes: never a pill, never over 12px */
   --edge-width: var(--border-width);
   --overlay-border: initial;
   --tag-tilt: 0deg;

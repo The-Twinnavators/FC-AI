@@ -71,7 +71,7 @@
 /* ── The phone frame the reference sheets use ── */
 .fl-mob-phone {
   position: relative; display: grid; grid-template-rows: 1fr auto; width: 100%; max-width: 22rem; height: 22rem; margin-inline: auto; overflow: hidden;
-  border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: var(--radius-xl, 1.5rem); background: var(--color-bg);
+  border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: var(--radius-xl, 12px); background: var(--color-bg);
 }
 .fl-mob-phone--short { height: 15rem; display: flex; flex-direction: column; justify-content: flex-end; }
 .fl-mob-phone > .fl-mob-fab-wrap { position: absolute; right: var(--space-4); bottom: var(--space-4); }

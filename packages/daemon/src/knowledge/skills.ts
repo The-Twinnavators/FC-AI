@@ -33,20 +33,20 @@ export const BUILTIN_SKILLS: SkillSpec[] = [
   },
   {
     id: "skill.interface-design-system",
-    version: "1.0.1",
+    version: "1.0.2",
     roles: ["coder","critic"],
     triggers: ["design system","component library","style guide","ui kit","consistent styles","inconsistent styles","inconsistent design"],
     enabled: true,
     source: "builtin",
     purpose: "Keep every screen consistent by building on one small set of tokens and components",
-    instructions: "When to use: Creating or restyling components, or when screens look inconsistent.\nWhen not to use: Copy-only changes.\nInspect first: src/styles/tokens.css (colours, type, space, radius, motion), src/styles/components.css and src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog), the screens in src/screens/, the icon library already in use (lucide-react by default), and the spec in spec/.\nProcess:\n1. Read the tokens and components that exist before writing any style.\n2. Use tokens for every colour, size, space, radius, shadow and duration; never raw values in components.\n3. Reuse a component when one fits; extend it with a variant rather than a near-copy.\n4. If a pattern repeats on two screens, make it a component in src/components/ui.\n5. Keep one accent colour for primary actions and one style per button role (primary, secondary, ghost, danger).\n6. Change the look in tokens.css, not across many files.\nAccessibility and responsive: Keyboard: every control reachable in order with a visible focus ring; labels on every input and icon-only button; status changes announced (role=status / alert); never colour alone; targets at least 44px; works at 375px with no sideways scrolling; prefers-reduced-motion respected.\nEdge cases: A token missing for a needed value (add it to tokens.css with a clear name); dark mode needing its own values; third-party widgets that ignore tokens.\nDone when: No raw hex colours or pixel sizes in screen files; Buttons, inputs and cards look the same on every screen; New components live in src/components/ui.\nQA: Search the changed files for raw colours (#, rgb) and sizes; compare two screens side by side for matching buttons, spacing and headings.\nColour and shape: about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight. Radius: cards, containers and text boxes never above 24px (no pill text boxes). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.\nReport in plain language: What changed · What the user can do now · What I checked (only what you actually verified) · Notes (assumptions, limits). Put file lists and logs under 'Technical details'.",
+    instructions: "When to use: Creating or restyling components, or when screens look inconsistent.\nWhen not to use: Copy-only changes.\nInspect first: src/styles/tokens.css (colours, type, space, radius, motion), src/styles/components.css and src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog), the screens in src/screens/, the icon library already in use (lucide-react by default), and the spec in spec/.\nProcess:\n1. Read the tokens and components that exist before writing any style.\n2. Use tokens for every colour, size, space, radius, shadow and duration; never raw values in components.\n3. Reuse a component when one fits; extend it with a variant rather than a near-copy.\n4. If a pattern repeats on two screens, make it a component in src/components/ui.\n5. Keep one accent colour for primary actions and one style per button role (primary, secondary, ghost, danger).\n6. Change the look in tokens.css, not across many files.\nAccessibility and responsive: Keyboard: every control reachable in order with a visible focus ring; labels on every input and icon-only button; status changes announced (role=status / alert); never colour alone; targets at least 44px; works at 375px with no sideways scrolling; prefers-reduced-motion respected.\nEdge cases: A token missing for a needed value (add it to tokens.css with a clear name); dark mode needing its own values; third-party widgets that ignore tokens.\nDone when: No raw hex colours or pixel sizes in screen files; Buttons, inputs and cards look the same on every screen; New components live in src/components/ui.\nQA: Search the changed files for raw colours (#, rgb) and sizes; compare two screens side by side for matching buttons, spacing and headings.\nColour and shape: about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight. Radius: cards, containers and text boxes never above 12px (no pill text boxes). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.\nReport in plain language: What changed · What the user can do now · What I checked (only what you actually verified) · Notes (assumptions, limits). Put file lists and logs under 'Technical details'.",
     allowedTools: ["list_files", "read_file", "search_code", "apply_patch", "create_file", "run_script", "task_complete", "report_blocked"],
     inputSchema: "Task",
     outputSchema: "ChangedPaths",
     policies: { network: "denied", filesystem: "governed_write" },
     acceptance: ["No raw hex colours or pixel sizes in screen files","Buttons, inputs and cards look the same on every screen","New components live in src/components/ui"],
     tests: [],
-    changelog: [{ version: "1.0.0", date: "2026-10-03", note: "UX sprint: reusable design skill" }, { version: "1.0.1", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }],
+    changelog: [{ version: "1.0.0", date: "2026-10-03", note: "UX sprint: reusable design skill" }, { version: "1.0.1", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }, { version: "1.0.2", date: "2026-10-13", note: "Cards and text boxes curve at most 12px (was 24px)" }],
   },
   {
     id: "skill.responsive-mobile-ux",
@@ -237,7 +237,7 @@ export const BUILTIN_SKILLS: SkillSpec[] = [
   },
   {
     id: "skill.design-playbook-custom-ux",
-    version: "1.0.1",
+    version: "1.0.2",
     roles: ["planner", "coder", "critic"],
     triggers: ["visual design", "ui design", "custom design", "modern design", "design system", "visual thesis", "rule of 8", "8px", "8-point", "spacing system", "landing page", "redesign", "look professional", "looks generic", "looks unfinished", "polish the design", "page composition", "hero section"],
     enabled: true,
@@ -254,7 +254,7 @@ export const BUILTIN_SKILLS: SkillSpec[] = [
       "Components: buttons from the control heights (--control-sm/md/lg), 8px icon gap, one primary action per decision area, touch targets at least 44px; cards only around a real unit of content, padding --space-4/5/6, content-driven height, no card inside a card; forms with a visible label 8px above each field, 16px between fields, 24px between groups, 32px before actions, errors 8px under their field; dialogs 400-640px wide with 24-32px padding, focus trapped and returned, a full screen on phones when cramped; tables keep readable rows and scroll or become cards on phones instead of shrinking text.\n" +
       "Responsive: start from the phone layout. Breakpoints go where the layout fails, not at device names. Stack, reflow cards with repeat(auto-fit, minmax(min(100%, 280px), 1fr)), collapse navigation, turn sidebars into drawers, scroll comparisons horizontally, and swap hover for visible controls on touch.\n" +
       "Layout patterns. Page compositions (pick by the product's story, not by habit): split narrative (copy and media change together), immersive single idea, editorial sequence (varied grid, paced type), product proof (real UI and scenarios), modular explorer (filters and a card hierarchy), workflow walkthrough (context, action, result). Not by default: centered headline + gradient orb + two buttons + three cards + testimonials. App shell: 48-64px header, 240-320px sidebar that becomes a drawer when the main area gets narrow, fluid main with reading regions capped. Page rhythm: header, 48px to the hero, 64px between sections, 96px before the footer (smaller on phones: 32px sections, 16px gutters). Phone patterns: bottom sheet for filters and short choices, full-screen flow for long forms, sticky action bar for the main action, feed and detail with scroll position kept, compact summary instead of a squeezed dashboard. Overlays: modal for a short focused task, drawer for inspectors and filters, full route for anything that needs its own URL. When a screen in src/screens/ started from a ready-made layout (it has a flowcode:sample marker) or .flowcode/layouts/ keeps other versions (dashboard, home, settings, pricing, about, sign-in), build on that layout and replace its sample content.\n" +
-      "Colour and corners: about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight. Radius: cards, containers and text boxes never above 24px (no pill text boxes). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.\n" +
+      "Colour and corners: about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight. Radius: cards, containers and text boxes never above 12px (no pill text boxes). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.\n" +
       "Motion: 120-220ms for feedback, only to show what changed; respect prefers-reduced-motion.\n" +
       "Avoid by default: purple or blue gradients and glows without a brand reason, floating glass cards and blobs, every section in a rounded box, pill shapes the system doesn't use, tiny low-contrast grey text, icon-only navigation, hover-only actions, fixed-height cards that clip text, fake metrics and startup jargon. Dark surfaces, glass, bento grids and glow are options only when the visual thesis calls for them.\n" +
       "Real content and states: specific copy and action verbs (\"Create event\", not \"Submit\"), empty states that say what's missing and what to do, errors that say what happened and the next step, loading and success states, long and short text tested.\n" +
@@ -265,7 +265,7 @@ export const BUILTIN_SKILLS: SkillSpec[] = [
     policies: { network: "denied", filesystem: "governed_write" },
     acceptance: ["A visual thesis and container choice fit the product", "Spacing on the 8px rhythm from tokens, no arbitrary values", "Components use shared sizes, one primary action per area", "Layout reflows by content from 375px to wide screens", "No generic decoration without a reason in the visual thesis"],
     tests: [],
-    changelog: [{ version: "1.0.0", date: "2026-10-04", note: "Design playbook: six custom UX and rule-of-8 guides turned into one skill" }, { version: "1.0.1", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }],
+    changelog: [{ version: "1.0.0", date: "2026-10-04", note: "Design playbook: six custom UX and rule-of-8 guides turned into one skill" }, { version: "1.0.1", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }, { version: "1.0.2", date: "2026-10-13", note: "Cards and text boxes curve at most 12px (was 24px)" }],
   },
   {
     id: "skill.typography-hierarchy",
@@ -755,7 +755,7 @@ Pre-delivery checklist (fix failures; say what you couldn't verify):
     // The user wants designs a senior designer would put in a portfolio (the level of the best work on Dribbble and
     // Behance), still usable: one strong, considered design, not several mock-ups.
     id: "skill.art-direction",
-    version: "1.0.2",
+    version: "1.0.3",
     roles: ["planner", "coder", "designer", "critic"],
     // Narrow on purpose: screen steps get it from designSkillIds; a one-value colour change or a table fix shouldn't.
     triggers: ["redesign", "landing page", "hero", "art direction", "portfolio", "visual design", "make it beautiful"],
@@ -776,7 +776,7 @@ Craft the details:
 - Compose, don't stack: vary the rhythm (a wide feature area beside a narrow list; full-width bands with dividers), not a column of identical cards.
 - Real, specific content from the PRD and the sample data, written like a good product: short labels, human dates ("Thu 9 Oct"), believable names.
 - Colour theory, not colour fill: neutrals tinted toward the brand hue (never flat grey); roughly 60% calm ground, 30% supporting surfaces and type, 10% brand accent reserved for the focal point and the primary action; one deliberate contrast moment (a deep brand-tinted band, sidebar or hero) so the screen isn't all white; status colours only for status. Check every text colour against its background (4.5:1 body, 3:1 large).
-- 60/30/10 colour: about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight. Radius: cards, containers and text boxes never above 24px (no pill text boxes). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.
+- 60/30/10 colour: about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight. Radius: cards, containers and text boxes never above 12px (no pill text boxes). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.
 - Proportion, not size: controls at the kit's sm/md sizes (a primary button isn't a banner); one display-size element per screen and everything else on the type scale below it, so the hierarchy reads at a glance. Nothing oversized just to fill space.
 - Every element has a reason and a place on the grid: align to shared edges, group related things, and leave space empty on purpose rather than scattering components across the page.
 - Depth with restraint: one elevation level for things that float; subtle surface shifts and hairline dividers for structure.
@@ -807,7 +807,7 @@ Then ask: one clear focal point? Real type contrast? Nothing boxed that doesn't 
       "Still usable: contrast, 44px touch targets, an obvious primary action, a composition rethought for phone width",
     ],
     tests: [],
-    changelog: [{ version: "1.0.0", date: "2026-10-06", note: "Aspirational, portfolio-level design: concept first, then craft (the user asked for designs like the best of Dribbble and Behance)" }, { version: "1.0.1", date: "2026-10-07", note: "Expanded guidance (shipped without a version bump before)" }, { version: "1.0.2", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }],
+    changelog: [{ version: "1.0.0", date: "2026-10-06", note: "Aspirational, portfolio-level design: concept first, then craft (the user asked for designs like the best of Dribbble and Behance)" }, { version: "1.0.1", date: "2026-10-07", note: "Expanded guidance (shipped without a version bump before)" }, { version: "1.0.2", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }, { version: "1.0.3", date: "2026-10-13", note: "Cards and text boxes curve at most 12px (was 24px)" }],
   },
   {
     // The thinking half of page blocking: the rules half is code (pageTypes.ts checks a page plan's parts against its
@@ -844,7 +844,7 @@ The plan is locked once approved: build every region with its part. Visual refin
   {
     // Condensed from docs/design/avoid-ai-slop.md (the full guide); short enough for local models' context.
     id: "skill.avoid-ai-slop",
-    version: "1.1.1",
+    version: "1.1.2",
     roles: ["planner", "coder", "designer", "critic"],
     triggers: ["interface", "layout", "page", "screen", "dashboard", "landing", "empty state", "onboarding", "modal", "dialog", "navigation", "hero", "redesign", "new component", "responsive", "mobile"],
     enabled: true,
@@ -861,7 +861,7 @@ Typography carries the hierarchy. Use the token type scale. Sentence case for la
 
 Color has a job. Build on the neutral scale, one brand color and a few accents. Color marks brand, status, priority, interactivity or data meaning, never decoration alone, and never as the only signal. Red is for destructive or high-risk actions; green is for confirmed success. Text and controls meet WCAG AA contrast.
 
-Color and corners. 60/30/10 colour: about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight. Radius: cards, containers and text boxes never above 24px (no pill text boxes). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.
+Color and corners. 60/30/10 colour: about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight. Radius: cards, containers and text boxes never above 12px (no pill text boxes). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.
 
 Effects stay restrained. No decorative gradients, glow blobs, mesh backgrounds, glassmorphism, heavy blur or floating shapes without a brand reason. Shadows only for elevation: modals, popovers, sticky or floating panels, selectable cards. Use the radius tokens and don't round everything. No thick colored left-border accent bars. No emoji as icons. Keep badges, pills and chips to the few that carry real status.
 
@@ -897,7 +897,7 @@ When unsure, choose clarity over decoration, specifics over slogans, evidence ov
       "New features have empty, loading and error states, and every control has an accessible name and visible focus",
     ],
     tests: [],
-    changelog: [{ version: "1.0.0", date: "2026-10-02", note: "From the Avoid Design AI-Slop Engine guide (docs/design/avoid-ai-slop.md)" }, { version: "1.1.0", date: "2026-10-02", note: "Interface and layout work only; a one-value colour or font change no longer pulls in the full design guide" }, { version: "1.1.1", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }],
+    changelog: [{ version: "1.0.0", date: "2026-10-02", note: "From the Avoid Design AI-Slop Engine guide (docs/design/avoid-ai-slop.md)" }, { version: "1.1.0", date: "2026-10-02", note: "Interface and layout work only; a one-value colour or font change no longer pulls in the full design guide" }, { version: "1.1.1", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }, { version: "1.1.2", date: "2026-10-13", note: "Cards and text boxes curve at most 12px (was 24px)" }],
   },
   {
     id: "skill.prd-intake",

@@ -39,7 +39,7 @@ export interface DesignTemplate {
   /** Which harmony the secondary comes from (hue offset from the accent, OKLCH degrees). */
   secondaryHarmony: { kind: HarmonyKind; offset: number };
   fonts: { sans: string; display: string };
-  /** --radius-sm, --radius-md, --radius-lg, --radius-xl in px. */
+  /** --radius-sm, --radius-md, --radius-lg, --radius-xl in px; never over 12 (cards and text boxes curve at most 12px). */
   radii: [number, number, number, number];
 }
 
@@ -78,7 +78,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "split-complementary", offset: -150 },
     colors: { bg: "#faf8f5", surface: "#ffffff", surfaceSunken: "#f1ede7", text: "#2b2622", textMuted: "#5f5650", border: "#e6dfd6", borderStrong: "#857a70", accent: "#b4532a", accentHover: "#974321", onAccent: "#ffffff", focus: "#b4532a", success: "#3f7a4f", danger: "#b3261e", dangerSurface: "#fbeae7", secondary: "#4f77a3" },
     fonts: { sans: HUMANIST, display: OLDSTYLE },
-    radii: [6, 10, 14, 18],
+    radii: [6, 10, 12, 12],
   },
   {
     id: "nordic-calm",
@@ -89,7 +89,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "analogous", offset: 30 },
     colors: { bg: "#f6f8f9", surface: "#ffffff", surfaceSunken: "#eaeff1", text: "#1c2b33", textMuted: "#4a5b63", border: "#dbe3e7", borderStrong: "#6d7f88", accent: "#0f766e", accentHover: "#0b5d57", onAccent: "#ffffff", focus: "#0f766e", success: "#15803d", danger: "#b42318", dangerSurface: "#fdecea", secondary: "#36707e" },
     fonts: { sans: HUMANIST, display: HUMANIST },
-    radii: [4, 8, 12, 16],
+    radii: [4, 8, 12, 12],
   },
   {
     id: "midnight",
@@ -100,7 +100,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "analogous", offset: -30 },
     colors: { bg: "#0f1420", surface: "#171d2b", surfaceSunken: "#0b0f18", text: "#e8ebf3", textMuted: "#a3acc0", border: "#283044", borderStrong: "#6b7591", accent: "#818cf8", accentHover: "#a5b4fc", onAccent: "#0f1420", focus: "#a5b4fc", success: "#4ade80", danger: "#f87171", dangerSurface: "#3a1d22", secondary: "#569edd" },
     fonts: { sans: NEO, display: NEO },
-    radii: [6, 8, 10, 14],
+    radii: [6, 8, 10, 12],
   },
   {
     id: "playful-pastel",
@@ -111,7 +111,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "triadic", offset: -120 },
     colors: { bg: "#fffaf3", surface: "#ffffff", surfaceSunken: "#f6eee2", text: "#2d2140", textMuted: "#5c4f6e", border: "#ece2f5", borderStrong: "#8b7aa3", accent: "#7c3aed", accentHover: "#6425d0", onAccent: "#ffffff", focus: "#7c3aed", success: "#15803d", danger: "#c2255c", dangerSurface: "#fdeaf1", secondary: "#19816a" },
     fonts: { sans: ROUNDED, display: ROUNDED },
-    radii: [8, 12, 16, 24],
+    radii: [8, 12, 12, 12],
   },
   {
     id: "bold-editorial",
@@ -133,7 +133,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "analogous", offset: -30 },
     colors: { bg: "#f4f7f2", surface: "#ffffff", surfaceSunken: "#e8eee4", text: "#1d2a20", textMuted: "#4b5c4f", border: "#d7e1d2", borderStrong: "#6d806f", accent: "#2f6b4f", accentHover: "#245540", onAccent: "#ffffff", focus: "#2f6b4f", success: "#2f6b4f", danger: "#b3261e", dangerSurface: "#fbeae7", secondary: "#526441" },
     fonts: { sans: HUMANIST, display: TRANSITIONAL },
-    radii: [4, 8, 10, 14],
+    radii: [4, 8, 10, 12],
   },
   {
     id: "sunset-warm",
@@ -144,7 +144,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "split-complementary", offset: 150 },
     colors: { bg: "#fff8f3", surface: "#ffffff", surfaceSunken: "#fbeee4", text: "#2a1a14", textMuted: "#66493d", border: "#f2dccd", borderStrong: "#9b7363", accent: "#c2410c", accentHover: "#9a3412", onAccent: "#ffffff", focus: "#c2410c", success: "#3f7a4f", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#0c847d" },
     fonts: { sans: GEOMETRIC, display: GEOMETRIC },
-    radii: [6, 10, 14, 20],
+    radii: [6, 10, 12, 12],
   },
   {
     id: "corporate-trust",
@@ -166,7 +166,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "split-complementary", offset: 150 },
     colors: { bg: "#0b0b12", surface: "#14141f", surfaceSunken: "#08080d", text: "#f1f1f7", textMuted: "#a6a6bf", border: "#262636", borderStrong: "#6c6c88", accent: "#22d3ee", accentHover: "#67e8f9", onAccent: "#071318", focus: "#f0abfc", success: "#4ade80", danger: "#fb7185", dangerSurface: "#3a1420", secondary: "#c28395" },
     fonts: { sans: GEOMETRIC, display: GEOMETRIC },
-    radii: [4, 6, 10, 14],
+    radii: [4, 6, 10, 12],
   },
   {
     id: "monochrome",
@@ -188,7 +188,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "analogous", offset: -30 },
     colors: { bg: "#f3f9fc", surface: "#ffffff", surfaceSunken: "#e3f0f7", text: "#0c2533", textMuted: "#3e5a69", border: "#cfe3ee", borderStrong: "#5f7f90", accent: "#0369a1", accentHover: "#075985", onAccent: "#ffffff", focus: "#0369a1", success: "#047857", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#186f7e" },
     fonts: { sans: HUMANIST, display: HUMANIST },
-    radii: [6, 10, 14, 18],
+    radii: [6, 10, 12, 12],
   },
   {
     id: "forest-night",
@@ -199,7 +199,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "analogous", offset: -30 },
     colors: { bg: "#0e1a13", surface: "#16261c", surfaceSunken: "#0a130e", text: "#ecf3e6", textMuted: "#a7b9a0", border: "#25392b", borderStrong: "#66826c", accent: "#a3d977", accentHover: "#bfe69a", onAccent: "#14240a", focus: "#bfe69a", success: "#4ade80", danger: "#f87171", dangerSurface: "#3a1d1f", secondary: "#a59b48" },
     fonts: { sans: DMSANS, display: FRAUNCES },
-    radii: [8, 12, 16, 22],
+    radii: [8, 12, 12, 12],
   },
   {
     id: "espresso",
@@ -210,7 +210,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "split-complementary", offset: 150 },
     colors: { bg: "#17110d", surface: "#211913", surfaceSunken: "#100b08", text: "#f3ebe4", textMuted: "#bba99a", border: "#352920", borderStrong: "#7d6858", accent: "#e0a458", accentHover: "#ecbd7f", onAccent: "#241405", focus: "#ecbd7f", success: "#6fcf8f", danger: "#f28b82", dangerSurface: "#3b1e1a", secondary: "#65a3b7" },
     fonts: { sans: WORKSANS, display: FRAUNCES },
-    radii: [4, 8, 12, 16],
+    radii: [4, 8, 12, 12],
   },
   {
     id: "lavender-fields",
@@ -221,7 +221,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "analogous", offset: -30 },
     colors: { bg: "#faf7fd", surface: "#ffffff", surfaceSunken: "#f1ebf8", text: "#261b33", textMuted: "#5b4d6b", border: "#e6dcf0", borderStrong: "#8a7a9c", accent: "#7b3f9e", accentHover: "#642f83", onAccent: "#ffffff", focus: "#7b3f9e", success: "#2f7a4f", danger: "#b3261e", dangerSurface: "#fbeaea", secondary: "#55559f" },
     fonts: { sans: DMSANS, display: DIDONE },
-    radii: [8, 12, 16, 22],
+    radii: [8, 12, 12, 12],
   },
   {
     id: "citrus-fresh",
@@ -232,7 +232,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "analogous", offset: 30 },
     colors: { bg: "#fbfdf5", surface: "#ffffff", surfaceSunken: "#f1f6e3", text: "#1c2410", textMuted: "#4f5b3e", border: "#e0e9cc", borderStrong: "#7a8667", accent: "#4d7c0f", accentHover: "#3f6212", onAccent: "#ffffff", focus: "#4d7c0f", success: "#15803d", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#207f59" },
     fonts: { sans: DMSANS, display: GEOMETRIC },
-    radii: [6, 10, 14, 20],
+    radii: [6, 10, 12, 12],
   },
   {
     id: "terminal",
@@ -254,7 +254,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "split-complementary", offset: 150 },
     colors: { bg: "#fff7f9", surface: "#ffffff", surfaceSunken: "#fbe9ef", text: "#2e1520", textMuted: "#6b4655", border: "#f3dbe3", borderStrong: "#9a7180", accent: "#be185d", accentHover: "#9d174d", onAccent: "#ffffff", focus: "#be185d", success: "#2f7a4f", danger: "#b91c1c", dangerSurface: "#fdecec", secondary: "#1f7e49" },
     fonts: { sans: HUMANIST, display: DIDONE },
-    radii: [6, 10, 16, 22],
+    radii: [6, 10, 12, 12],
   },
   {
     id: "sandstone",
@@ -265,7 +265,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "split-complementary", offset: -150 },
     colors: { bg: "#f8f4ec", surface: "#fffdf9", surfaceSunken: "#efe7d8", text: "#2a2217", textMuted: "#5e5240", border: "#e5dac6", borderStrong: "#8c7b62", accent: "#8a5a00", accentHover: "#6f4800", onAccent: "#ffffff", focus: "#8a5a00", success: "#3f7a4f", danger: "#b3261e", dangerSurface: "#fbeae7", secondary: "#60618a" },
     fonts: { sans: HUMANIST, display: TRANSITIONAL },
-    radii: [4, 6, 10, 14],
+    radii: [4, 6, 10, 12],
   },
   {
     id: "retro-pop",
@@ -287,7 +287,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "split-complementary", offset: 150 },
     colors: { bg: "#150f1c", surface: "#1e1627", surfaceSunken: "#0e0a13", text: "#f1eaf6", textMuted: "#b3a5c0", border: "#30253c", borderStrong: "#786a88", accent: "#e3b85c", accentHover: "#eecb83", onAccent: "#22170a", focus: "#eecb83", success: "#6fcf8f", danger: "#f28b82", dangerSurface: "#3b1c22", secondary: "#6aa0bf" },
     fonts: { sans: HUMANIST, display: DIDONE },
-    radii: [4, 8, 12, 16],
+    radii: [4, 8, 12, 12],
   },
   {
     id: "slate-ember",
@@ -298,7 +298,7 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     secondaryHarmony: { kind: "split-complementary", offset: 150 },
     colors: { bg: "#111418", surface: "#1a1e24", surfaceSunken: "#0b0d10", text: "#eceff3", textMuted: "#a5adb8", border: "#2a3038", borderStrong: "#6c7682", accent: "#fb923c", accentHover: "#fdba74", onAccent: "#1f1206", focus: "#fdba74", success: "#4ade80", danger: "#f87171", dangerSurface: "#3a1b1b", secondary: "#41a9b5" },
     fonts: { sans: WORKSANS, display: GEOMETRIC },
-    radii: [4, 6, 10, 14],
+    radii: [4, 6, 10, 12],
   },
 ];
 

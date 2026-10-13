@@ -285,7 +285,7 @@ describe("visual styles and extras for builds whose PRD sets no look", () => {
     const out = personalizeStarterFile("src/styles/tokens.css", css, id);
     expect(out).toMatch(/--color-bg: #0f1420;/);
     expect(out).toMatch(/--color-accent: #818cf8;/);
-    expect(out).toMatch(/--radius-xl: 14px;/);
+    expect(out).toMatch(/--radius-xl: 12px;/);
     expect(out).toMatch(/color-scheme: dark;/);
     expect(out).not.toMatch(/prefers-color-scheme: dark/);
     expect(out).not.toMatch(/#24423a/);

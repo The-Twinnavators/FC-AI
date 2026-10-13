@@ -34,7 +34,7 @@
 .fl-ctl-legend { display: flex; flex-wrap: wrap; gap: var(--space-3); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
 
 .fl-ctl-list {
-  display: grid; margin: 0; padding: 0; list-style: none; border-radius: min(var(--surface-radius, var(--radius-lg)), 24px);
+  display: grid; margin: 0; padding: 0; list-style: none; border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
   box-shadow: var(--surface-shadow, none); overflow: hidden; backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
@@ -80,7 +80,7 @@
 /* A loading list row (skeleton-loading): avatar, lines, action. Scoped to its list so other cards keep their own layout. */
 .fl-ctl-cards .fl-ctl-card {
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-4); align-items: center;
-  padding: var(--space-4) var(--space-5); border-radius: min(var(--surface-radius, var(--radius-lg)), 24px);
+  padding: var(--space-4) var(--space-5); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
   box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
@@ -233,10 +233,10 @@
 .fl-ctl-btn--icon.fl-ctl-btn--24 svg { width: 1em; height: 1em; }
 .fl-ctl-icon-row { display: inline-flex; align-items: center; gap: var(--space-3); }
 /* The accent-band variants (on-accent, ghost-on-accent) need the accent behind them to be seen. */
-.fl-ctl-accent-band { padding: var(--space-5); border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); }
+.fl-ctl-accent-band { padding: var(--space-5); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); }
 
 /* ── Cards: a surface, and whether it does anything ── */
-.fl-ctl-card { position: relative; display: grid; gap: var(--space-1, 0.25rem); padding: var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius-sm, var(--radius-md)), 24px); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
+.fl-ctl-card { position: relative; display: grid; gap: var(--space-1, 0.25rem); padding: var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius-sm, var(--radius-md)), 12px); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-ctl-card--clickable { cursor: pointer; }
 .fl-ctl-card--clickable svg { position: absolute; right: var(--space-3); top: var(--space-4); width: 1rem; height: 1rem; color: var(--color-text-muted); }
 .fl-ctl-card.is-hover { border-color: var(--color-border-strong); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
@@ -257,7 +257,7 @@
 .fl-ctl-stage-page span:nth-child(3) { width: 45%; }
 .fl-spec-panel { position: absolute; display: flex; flex-direction: column; background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow-overlay, -8px 0 24px rgba(0, 0, 0, 0.18)); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-ctl-stage--side .fl-spec-panel { inset: 0 0 0 62%; }
-.fl-ctl-stage--bottom .fl-spec-panel { inset: auto 0 0 0; max-height: 80%; border-radius: min(var(--surface-radius, var(--radius-lg)), 24px) min(var(--surface-radius, var(--radius-lg)), 24px) 0 0; box-shadow: var(--surface-shadow-overlay, 0 -8px 24px rgba(0, 0, 0, 0.18)); }
+.fl-ctl-stage--bottom .fl-spec-panel { inset: auto 0 0 0; max-height: 80%; border-radius: min(var(--surface-radius, var(--radius-lg)), 12px) min(var(--surface-radius, var(--radius-lg)), 12px) 0 0; box-shadow: var(--surface-shadow-overlay, 0 -8px 24px rgba(0, 0, 0, 0.18)); }
 .fl-ctl-stage--inline .fl-spec-panel { inset: 0 0 0 58%; border-left: 1px solid var(--color-border); box-shadow: none; }
 .fl-spec-panel header { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); }
 .fl-ctl-panel-body { flex: 1 1 auto; min-height: 0; display: grid; gap: var(--space-2); align-content: start; padding: var(--space-4); overflow: auto; }
@@ -291,7 +291,7 @@
 .fl-ctl-tabset--32 .fl-spec-tab { min-height: 32px; font-size: var(--text-sm); }
 .fl-ctl-tabset--40 .fl-spec-tab { min-height: 40px; }
 .fl-ctl-tabset--44 .fl-spec-tab { min-height: 44px; }
-.fl-ctl-tabpanel { padding: var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-top: 0; border-radius: 0 0 min(var(--surface-radius-sm, var(--radius-md)), 24px) min(var(--surface-radius-sm, var(--radius-md)), 24px); box-shadow: var(--surface-shadow, none); }
+.fl-ctl-tabpanel { padding: var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-top: 0; border-radius: 0 0 min(var(--surface-radius-sm, var(--radius-md)), 12px) min(var(--surface-radius-sm, var(--radius-md)), 12px); box-shadow: var(--surface-shadow, none); }
 
 /* ── Breadcrumbs ── */
 .fl-ctl-crumb-list { display: grid; gap: var(--space-5); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
@@ -402,7 +402,7 @@
 .fl-tabs-folder__tab {
   flex: none; min-height: var(--control-lg); padding-inline: var(--control-pad-lg, var(--space-5));
   border: var(--surface-border, 1px solid var(--color-border));
-  border-radius: min(var(--surface-radius-sm, var(--radius-md)), 24px) min(var(--surface-radius-sm, var(--radius-md)), 24px) 0 0;
+  border-radius: min(var(--surface-radius-sm, var(--radius-md)), 12px) min(var(--surface-radius-sm, var(--radius-md)), 12px) 0 0;
   background: var(--color-surface-sunken); color: var(--color-text-muted); font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); cursor: pointer;
   transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing);
 }
@@ -413,7 +413,7 @@
 .fl-tabs-folder__panel {
   display: grid; gap: var(--space-3); padding: var(--space-6);
   border: var(--surface-border, 1px solid var(--color-border));
-  border-radius: 0 min(var(--surface-radius, var(--radius-lg)), 24px) min(var(--surface-radius, var(--radius-lg)), 24px) min(var(--surface-radius, var(--radius-lg)), 24px);
+  border-radius: 0 min(var(--surface-radius, var(--radius-lg)), 12px) min(var(--surface-radius, var(--radius-lg)), 12px) min(var(--surface-radius, var(--radius-lg)), 12px);
   background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none);
   backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
@@ -427,7 +427,7 @@
 .fl-card--sticker {
   position: relative; display: grid; gap: var(--space-4); align-content: start; padding: var(--space-6); color: var(--color-text);
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
-  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); box-shadow: var(--surface-shadow, none);
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
   backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
   transition: transform var(--duration-fast) var(--easing), translate var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
 }
@@ -442,7 +442,7 @@
 .fl-card--sticker.is-off { opacity: var(--disabled-opacity, 0.55); }
 .fl-card-sticker__tile {
   display: inline-grid; place-items: center; width: 3rem; height: 3rem;
-  border: var(--edge-width, 1px) solid var(--control-edge, transparent); border-radius: min(var(--control-radius, var(--radius-md)), 24px);
+  border: var(--edge-width, 1px) solid var(--control-edge, transparent); border-radius: min(var(--control-radius, var(--radius-md)), 12px);
   background: var(--accent-bg, var(--color-accent)); color: var(--color-on-accent); box-shadow: var(--control-shadow, none);
 }
 .fl-card-sticker__tile svg { width: 1.5rem; height: 1.5rem; }
@@ -463,7 +463,7 @@
 }
 .fl-card-sticker__stats {
   display: grid; grid-template-columns: repeat(3, 1fr); margin: 0;
-  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius-sm, var(--radius-md)), 24px);
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius-sm, var(--radius-md)), 12px);
 }
 .fl-card-sticker__stats div { display: grid; gap: var(--space-1); padding: var(--space-3); text-align: center; }
 .fl-card-sticker__stats div + div { border-left: var(--edge-width, 1px) solid var(--surface-edge, var(--color-border)); }

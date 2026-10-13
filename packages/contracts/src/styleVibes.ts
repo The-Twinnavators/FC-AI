@@ -50,9 +50,9 @@ export const SURFACE_DEFAULTS: Record<string, string> = {
   "--surface-radius-sm": "var(--radius-md)", // corners of small surfaces (toasts, banners, menus, wells)
   "--control-radius-sm": "var(--radius-sm)", // corners of small controls (page numbers, menu items)
   "--pill-radius": "999px", // corners of chips, badges and toggles
-  // Corners of text boxes (inputs, textareas, selects, comboboxes): the control radius, but never past 24px, so a
+  // Corners of text boxes (inputs, textareas, selects, comboboxes): the control radius, but never past 12px, so a
   // pill-shaped button style never turns a textarea into a pill.
-  "--field-radius": "min(var(--control-radius), 24px)",
+  "--field-radius": "min(var(--control-radius), 12px)",
   "--edge-width": "var(--border-width)", // thickness of tab, divider and small-control outlines
   "--overlay-border": "initial", // outline of dialogs, drawers and sheets; unset draws none
   "--hover-lift": "-1px", // controls rise this far on hover
@@ -79,7 +79,7 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--surface-border": `1px solid color-mix(in srgb, var(--color-surface) 50%, var(--color-border))`,
       "--surface-shadow": `0 10px 32px -14px ${T(35)}, inset 0 1px 0 ${W(40)}`,
       "--surface-blur": "blur(16px) saturate(140%)",
-      "--surface-radius": "14px",
+      "--surface-radius": "12px",
       "--control-radius": "10px",
       "--header-bg": "color-mix(in srgb, var(--color-surface) 70%, transparent)",
       "--page-backdrop": "radial-gradient(60% 55% at 8% 0%, color-mix(in srgb, var(--color-accent) 24%, transparent), transparent 70%), radial-gradient(50% 50% at 100% 35%, color-mix(in srgb, var(--color-focus) 18%, transparent), transparent 70%)",
@@ -102,7 +102,7 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--surface-border": `1px solid ${W(28)}`,
       "--surface-shadow": `0 12px 36px -16px ${T(38)}, inset 0 1px 0 ${W(50)}`,
       "--surface-blur": "blur(24px) saturate(160%)",
-      "--surface-radius": "22px",
+      "--surface-radius": "12px",
       "--control-radius": "999px",
       "--header-bg": "color-mix(in srgb, var(--color-surface) 60%, transparent)",
       "--page-backdrop": "radial-gradient(55% 50% at 0% 0%, color-mix(in srgb, var(--color-accent) 26%, transparent), transparent 70%), radial-gradient(45% 45% at 100% 20%, color-mix(in srgb, var(--color-focus) 22%, transparent), transparent 70%), radial-gradient(50% 50% at 60% 100%, color-mix(in srgb, var(--color-success) 18%, transparent), transparent 70%)",
@@ -110,9 +110,9 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-bg": "color-mix(in srgb, var(--color-surface) 45%, transparent)",
       "--surface-shadow-overlay": `0 22px 56px -16px ${T(42)}, inset 0 1px 0 ${W(50)}`,
       "--surface-shadow-selected": `0 0 0 1px var(--color-accent), 0 12px 36px -16px ${T(38)}`,
-      "--surface-radius-sm": "16px",
+      "--surface-radius-sm": "12px",
       "--control-radius-sm": "999px",
-      "--field-radius": "14px",
+      "--field-radius": "12px",
       "--overlay-border": `1px solid ${W(28)}`,
     },
     match: /liquid glass|iridescent/i,
@@ -125,7 +125,7 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--surface-bg": "var(--color-bg)",
       "--surface-border": "1px solid transparent",
       "--surface-shadow": `8px 8px 18px ${T(16)}, -6px -6px 16px color-mix(in srgb, #ffffff 70%, var(--color-bg))`,
-      "--surface-radius": "16px",
+      "--surface-radius": "12px",
       "--control-radius": "12px",
       "--control-shadow": `4px 4px 10px ${T(14)}, -3px -3px 8px color-mix(in srgb, #ffffff 70%, var(--color-bg))`,
       "--control-shadow-hover": `2px 2px 6px ${T(14)}, -2px -2px 6px color-mix(in srgb, #ffffff 70%, var(--color-bg))`,
@@ -204,7 +204,7 @@ export const STYLE_VIBES: StyleVibe[] = [
     tokens: {
       "--surface-border": "1px solid transparent",
       "--surface-shadow": `0 12px 26px -10px ${T(24)}, inset 0 -4px 8px ${T(8)}, inset 0 4px 8px ${W(55)}`,
-      "--surface-radius": "24px",
+      "--surface-radius": "12px",
       "--control-radius": "999px",
       "--control-shadow": `0 6px 14px -6px ${T(28)}, inset 0 -2px 4px ${T(10)}, inset 0 2px 4px ${W(45)}`,
       "--control-shadow-hover": `0 8px 18px -6px ${T(30)}, inset 0 -2px 4px ${T(10)}, inset 0 2px 4px ${W(45)}`,
@@ -214,9 +214,9 @@ export const STYLE_VIBES: StyleVibe[] = [
       "--control-shadow-active": `inset 0 3px 6px ${T(18)}`,
       "--surface-shadow-selected": `0 0 0 2px var(--color-accent), 0 12px 26px -10px ${T(24)}`,
       "--surface-shadow-overlay": `0 20px 40px -12px ${T(30)}, inset 0 4px 8px ${W(55)}`,
-      "--surface-radius-sm": "18px",
+      "--surface-radius-sm": "12px",
       "--control-radius-sm": "12px",
-      "--field-radius": "16px",
+      "--field-radius": "12px",
     },
     match: /clay ?morph|\bclay (ui|style|look)\b|puffy/i,
   },

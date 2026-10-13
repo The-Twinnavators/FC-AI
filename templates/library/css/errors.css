@@ -22,7 +22,7 @@
 .fl-err-status--wait { background: var(--color-surface-sunken); color: var(--color-text-muted); }
 
 /* ── Server error: a stacked "broken server" illustration ── */
-.fl-err-rack { position: relative; display: grid; gap: var(--space-2); width: 9rem; padding: var(--space-3); border-radius: min(var(--radius-lg), 24px); background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
+.fl-err-rack { position: relative; display: grid; gap: var(--space-2); width: 9rem; padding: var(--space-3); border-radius: min(var(--radius-lg), 12px); background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-err-rack span { display: flex; align-items: center; gap: var(--space-2); height: 1.75rem; padding-inline: var(--space-3); border-radius: var(--radius-sm); background: var(--color-surface-sunken); }
 .fl-err-rack span::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--color-success); }
 .fl-err-rack span::after { content: ""; flex: 1; height: 2px; border-radius: 999px; background: var(--color-border); }

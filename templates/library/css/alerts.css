@@ -65,7 +65,7 @@
 .fl-alr-toast {
   --fl-alr-tone: var(--color-secondary, var(--color-accent));
   pointer-events: auto; position: relative; overflow: hidden; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-3); align-items: start;
-  padding: var(--space-4); border-radius: min(var(--radius-lg), 24px); background: var(--color-surface); color: var(--color-text);
+  padding: var(--space-4); border-radius: min(var(--radius-lg), 12px); background: var(--color-surface); color: var(--color-text);
   border: 1px solid var(--color-border); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none));
   animation: fl-alr-in var(--duration-base) var(--easing);
 }
@@ -82,10 +82,10 @@
 .fl-alr-log li { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-sunken); font-size: var(--text-sm); }
 
 /* ── Empty state ── */
-.fl-alr-empty { display: grid; justify-items: center; gap: var(--space-4); text-align: center; padding: var(--space-8) var(--space-5); border: 1px dashed var(--color-border-strong); border-radius: min(var(--radius-lg), 24px); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
+.fl-alr-empty { display: grid; justify-items: center; gap: var(--space-4); text-align: center; padding: var(--space-8) var(--space-5); border: 1px dashed var(--color-border-strong); border-radius: min(var(--radius-lg), 12px); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-alr-empty__art { width: 10rem; max-width: 60%; height: auto; }
 .fl-alr-empty .fl-text { max-width: 28rem; }
-.fl-alr-empty__list { display: grid; margin: 0; padding: 0; list-style: none; border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--radius-lg), 24px); background: var(--surface-bg, var(--color-surface)); overflow: hidden; box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
+.fl-alr-empty__list { display: grid; margin: 0; padding: 0; list-style: none; border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--radius-lg), 12px); background: var(--surface-bg, var(--color-surface)); overflow: hidden; box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-alr-empty__list li { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-top: 1px solid var(--color-border); }
 .fl-alr-empty__list li:first-child { border-top: 0; }
 .fl-alr-empty__list li > div { flex: 1; min-width: 0; display: grid; gap: var(--space-1); }

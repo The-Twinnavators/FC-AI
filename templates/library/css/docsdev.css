@@ -12,7 +12,7 @@
 .fl-dd-select { position: relative; display: inline-block; }
 .fl-dd-select select {
   appearance: none; -webkit-appearance: none; height: var(--control-sm); padding: 0 calc(var(--space-5) + 8px) 0 var(--space-3);
-  border: 1px solid var(--color-border); border-radius: var(--field-radius, min(var(--control-radius, var(--radius-sm)), 24px)); background: var(--color-surface);
+  border: 1px solid var(--color-border); border-radius: var(--field-radius, min(var(--control-radius, var(--radius-sm)), 12px)); background: var(--color-surface);
   color: var(--color-text); font: var(--weight-medium) var(--text-sm) / 1 var(--font-mono); cursor: pointer;
 }
 .fl-dd-select svg { position: absolute; right: 8px; top: 50%; width: 0.9rem; height: 0.9rem; transform: translateY(-50%); pointer-events: none; color: var(--color-text-muted); }
@@ -43,7 +43,7 @@
 .fl-dd-search svg { position: absolute; left: var(--space-3); top: 50%; width: 1rem; height: 1rem; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none; }
 .fl-dd-search input {
   width: 100%; height: var(--control-sm); padding: 0 var(--space-8) 0 calc(var(--space-3) + 1.5rem); border: 1px solid var(--color-border);
-  border-radius: var(--field-radius, min(var(--control-radius, var(--radius-sm)), 24px)); background: var(--color-surface-sunken); color: var(--color-text); font: var(--text-sm) / 1 var(--font-sans);
+  border-radius: var(--field-radius, min(var(--control-radius, var(--radius-sm)), 12px)); background: var(--color-surface-sunken); color: var(--color-text); font: var(--text-sm) / 1 var(--font-sans);
 }
 .fl-dd-search kbd { position: absolute; right: var(--space-2); top: 50%; transform: translateY(-50%); padding: 0 var(--space-1); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font: var(--text-xs) / 1.5 var(--font-mono); color: var(--color-text-muted); background: var(--color-surface); }
 .fl-dd-top__end { margin-left: auto; display: flex; align-items: center; gap: var(--space-3); }
@@ -103,7 +103,7 @@
 .fl-dd-callout--warn { border-color: color-mix(in srgb, var(--color-danger) 35%, transparent); background: var(--color-danger-surface); }
 .fl-dd-callout--warn svg { color: var(--color-danger); }
 
-.fl-dd-code { margin: var(--space-4) 0 var(--space-5); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 24px); background: var(--color-surface-sunken); overflow: hidden; }
+.fl-dd-code { margin: var(--space-4) 0 var(--space-5); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 12px); background: var(--color-surface-sunken); overflow: hidden; }
 .fl-dd-code__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); border-bottom: 1px solid var(--color-border); background: var(--color-surface); font: var(--text-xs) / 1 var(--font-mono); color: var(--color-text-muted); }
 .fl-dd-code pre { margin: 0; padding: var(--space-4); overflow-x: auto; font: var(--text-sm) / var(--leading-relaxed) var(--font-mono); color: var(--color-text); tab-size: 2; }
 .fl-dd-tabs { display: flex; gap: var(--space-1); }
@@ -111,7 +111,7 @@
 .fl-dd-tabs button[aria-selected="true"] { background: var(--color-surface-sunken); color: var(--color-text); box-shadow: inset 0 -2px 0 var(--color-accent); }
 .fl-dd-prompt { color: var(--color-text-muted); user-select: none; }
 
-.fl-dd-tablewrap { overflow-x: auto; margin: var(--space-4) 0 var(--space-5); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 24px); }
+.fl-dd-tablewrap { overflow-x: auto; margin: var(--space-4) 0 var(--space-5); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 12px); }
 .fl-dd-table { width: 100%; min-width: 34rem; border-collapse: collapse; font-size: var(--text-sm); }
 .fl-dd-table th, .fl-dd-table td { padding: var(--space-3) var(--space-4); text-align: left; vertical-align: top; border-bottom: 1px solid var(--color-border); }
 .fl-dd-table thead th { background: var(--color-surface-sunken); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-muted); }
@@ -131,7 +131,7 @@
 
 .fl-dd-pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin-top: var(--space-8); }
 .fl-dd-pager button {
-  display: grid; gap: var(--space-1); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 24px);
+  display: grid; gap: var(--space-1); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 12px);
   background: var(--color-surface); color: var(--color-text); text-align: left; font: var(--weight-semibold) var(--text-md) / 1.3 var(--font-sans); cursor: pointer;
   transition: border-color var(--duration-fast) var(--easing), transform var(--duration-fast) var(--easing);
 }
@@ -139,7 +139,7 @@
 .fl-dd-pager button span { font: var(--weight-medium) var(--text-xs) / 1 var(--font-sans); color: var(--color-text-muted); }
 .fl-dd-pager__next { grid-column: 2; text-align: right !important; justify-items: end; }
 
-.fl-dd-helpful { display: grid; gap: var(--space-3); margin-top: var(--space-7); padding: var(--space-5); border-radius: min(var(--radius-lg), 24px); background: var(--color-surface-sunken); }
+.fl-dd-helpful { display: grid; gap: var(--space-3); margin-top: var(--space-7); padding: var(--space-5); border-radius: min(var(--radius-lg), 12px); background: var(--color-surface-sunken); }
 .fl-dd-helpful__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .fl-dd-helpful__row strong { margin-right: auto; }
 .fl-dd-helpful .fl-btn { min-height: var(--control-sm); padding-inline: var(--space-4); font-size: var(--text-sm); }
@@ -198,7 +198,7 @@
 .fl-dd-install code span { color: var(--color-text-muted); user-select: none; }
 
 /* Terminal: drawn inverse to the page, so it reads as a terminal in light and dark themes. */
-.fl-dd-term { margin: 0; border-radius: min(var(--radius-xl), 24px); background: var(--color-text); color: var(--color-bg); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none)); overflow: hidden; }
+.fl-dd-term { margin: 0; border-radius: min(var(--radius-xl), 12px); background: var(--color-text); color: var(--color-bg); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none)); overflow: hidden; }
 .fl-dd-term__bar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid color-mix(in srgb, var(--color-bg) 14%, transparent); font: var(--text-xs) / 1 var(--font-mono); color: color-mix(in srgb, var(--color-bg) 65%, transparent); }
 .fl-dd-term__dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: color-mix(in srgb, var(--color-bg) 30%, transparent); }
 .fl-dd-term__bar span:nth-of-type(4) { margin-inline: auto; }
@@ -221,7 +221,7 @@
 .fl-dd-feats h3 { margin: 0; font: var(--weight-semibold) var(--text-md) / var(--leading-snug) var(--font-display); }
 .fl-dd-feats code { justify-self: start; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); background: var(--color-surface-sunken); font: var(--text-xs) / 1.4 var(--font-mono); color: var(--color-text-muted); }
 
-.fl-dd-diagram { overflow-x: auto; padding: var(--space-5); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--radius-xl), 24px); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
+.fl-dd-diagram { overflow-x: auto; padding: var(--space-5); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--radius-xl), 12px); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-dd-diagram svg { display: block; width: 100%; min-width: 34rem; height: auto; }
 .fl-dd-diagram .box { fill: var(--color-surface); stroke: var(--color-border-strong); stroke-width: 1.5; }
 .fl-dd-diagram .box--hub { fill: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 10%, var(--color-surface))); stroke: var(--color-secondary, var(--color-accent)); }

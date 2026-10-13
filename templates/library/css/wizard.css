@@ -122,7 +122,7 @@
 .fl-wz-backdrop { position: fixed; z-index: 60; inset: 0; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-text) 40%, transparent); }
 .fl-wz-dialog {
   display: grid; gap: var(--space-3); width: min(26rem, 100%); padding: var(--space-5); border: 1px solid var(--overlay-border, var(--color-border));
-  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow-overlay, var(--surface-shadow));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow-overlay, var(--surface-shadow));
   animation: fl-wz-in var(--duration-base) var(--ease-out, var(--easing));
 }
 .fl-wz-dialog-title { margin: 0; font-size: var(--text-lg); line-height: var(--leading-snug); }

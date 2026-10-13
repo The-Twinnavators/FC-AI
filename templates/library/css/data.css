@@ -7,12 +7,12 @@
 .fl-dat-panel {
   display: grid; gap: var(--space-5); padding: var(--space-6); min-width: 0;
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
-  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); box-shadow: var(--surface-shadow, none);
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
 }
 .fl-dat-status { margin: 0; min-height: 1.5em; font-size: var(--text-sm); color: var(--color-text-muted); }
 .fl-dat-empty {
   display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-7) var(--space-5); text-align: center;
-  border: 1px dashed var(--color-border-strong); border-radius: min(var(--radius-lg), 24px); color: var(--color-text-muted);
+  border: 1px dashed var(--color-border-strong); border-radius: min(var(--radius-lg), 12px); color: var(--color-text-muted);
 }
 .fl-dat-empty strong { color: var(--color-text); font-size: var(--text-lg); }
 .fl-dat-empty p { margin: 0; }

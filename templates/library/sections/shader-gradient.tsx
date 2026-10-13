@@ -394,17 +394,14 @@ vec3 liquid(vec2 p, float t) {
 }
 
 // Grid (tide): a perspective grid of light lines laid on calm water. Layered swells roll towards the viewer, fine
-// ripples run over them, the lines bend and brighten with the slope, the sun's glow is broken up in the water, and
-// everything fades into haze at the horizon.
+// ripples run over them, the lines bend and brighten with the slope, the crests sparkle, and everything fades into
+// haze at the horizon.
 vec3 grid(vec2 p, float t) {
   float hz = 0.1;
   vec3 hazeCol = mix(uBg, ramp(0.75), 0.45 * uAmt);
   vec3 col = mix(uBg, hazeCol, exp(-max(p.y - hz, 0.0) * 5.0));
-  vec2 sp = p - vec2(0.0, hz + 0.12);
-  float sr = length(sp);
-  vec3 sunCol = mix(ramp(1.0), vec3(1.0), 0.35);
-  col = mix(col, sunCol, smoothstep(0.1, 0.095, sr) * uAmt * 0.9);
-  col += ramp(0.9) * exp(-sr * 9.0) * 0.3 * uAmt;
+  // A soft band of light along the horizon, for depth.
+  col += ramp(0.9) * exp(-abs(p.y - hz) * 14.0) * 0.18 * uAmt;
   if (p.y < hz) {
     float dy = hz - p.y;
     float z = 0.32 / dy;
@@ -434,10 +431,9 @@ vec3 grid(vec2 p, float t) {
     float lit = sat(0.5 + 0.55 * clamp(-slope.y * 0.8 + h * 0.9, -1.0, 1.0));
     float near = exp(-z * 0.1);
     vec3 water = mix(uBg, ramp(0.12), 0.4 * uAmt) * (0.62 + 0.75 * lit);
-    // The sun's glow, broken into glints by the waves.
-    float glint = exp(-abs(p.x + slope.x * 0.05) * 9.0 / (1.0 + dy * 4.0)) * exp(-dy * 4.0);
-    glint *= 0.35 + 0.65 * pow(0.5 + 0.5 * sin(gz * 9.0 + slope.x * 4.0), 3.0);
-    water += sunCol * glint * 0.55 * uAmt;
+    // Sparkle on the steepest crests only.
+    float crest = pow(sat(h * 1.4 + 0.2), 6.0) * pow(lit, 3.0);
+    water += mix(ramp(0.9), vec3(1.0), 0.4) * crest * 0.35 * near * uAmt;
     vec3 lineCol = mix(ramp(0.25 + 0.55 * lit), vec3(1.0), pow(lit, 4.0) * 0.35);
     float lines = max(lx, lz * 0.9) * (0.25 + 1.1 * lit) * (0.3 + 0.7 * near);
     vec3 sea = mix(water, lineCol, sat(lines * uAmt));

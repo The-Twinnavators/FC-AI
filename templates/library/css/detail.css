@@ -173,7 +173,7 @@ legend.fl-rd-group-title { float: left; width: 100%; }
 }
 .fl-rd-dialog {
   display: grid; gap: var(--space-3); width: min(100%, 30rem); padding: var(--space-5);
-  border: 1px solid var(--overlay-border, var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 16px);
+  border: 1px solid var(--overlay-border, var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
   background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow-overlay, var(--surface-shadow));
   animation: fl-rd-pop var(--duration-base, 180ms) var(--ease-out, var(--easing, ease));
 }

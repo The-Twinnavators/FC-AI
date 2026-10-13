@@ -82,7 +82,7 @@
 /* ── Split layout ── */
 .fl-auth-split {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); min-height: 36rem; overflow: hidden;
-  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-xl)), 24px);
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-xl)), 12px);
   background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none);
 }
 .fl-auth-split__form { display: grid; align-content: center; gap: var(--space-5); padding: var(--space-8) var(--space-7); }
@@ -96,7 +96,7 @@
     linear-gradient(150deg, var(--color-secondary, var(--color-accent)), var(--color-secondary-hover, var(--color-accent-hover)));
 }
 .fl-auth-split__picture::before {
-  content: ""; position: absolute; inset: var(--space-6); border-radius: min(var(--radius-xl), 24px);
+  content: ""; position: absolute; inset: var(--space-6); border-radius: min(var(--radius-xl), 12px);
   border: 1px solid color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 22%, transparent); pointer-events: none;
 }
 .fl-auth-split__quote { position: relative; margin: 0; font: var(--weight-semibold) var(--text-xl) / var(--leading-snug) var(--font-display); text-wrap: balance; }

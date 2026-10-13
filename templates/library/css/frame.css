@@ -6,7 +6,7 @@
 .fl-af-frame {
   container-type: inline-size; container-name: fl-af;
   position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); height: 100%; min-height: 0; overflow: hidden;
-  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 16px);
+  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
   background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); font-size: var(--text-sm);
   --fl-af-rail-bg: color-mix(in srgb, var(--color-text) 5%, var(--color-surface));
   --fl-af-hover: color-mix(in srgb, var(--color-text) 7%, transparent);

@@ -6,7 +6,7 @@
 .fl-crd-bar .fl-field { flex: 1 1 14rem; max-width: 22rem; }
 .fl-crd-empty {
   display: grid; justify-items: center; gap: var(--space-3); padding: var(--space-8) var(--space-5); text-align: center;
-  border: 1px dashed var(--color-border-strong); border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); color: var(--color-text-muted);
+  border: 1px dashed var(--color-border-strong); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); color: var(--color-text-muted);
 }
 .fl-crd-empty strong { color: var(--color-text); font-size: var(--text-lg); }
 .fl-crd-empty p { margin: 0; }

@@ -14,13 +14,16 @@ import { appModelKey, appModelNote } from "./appModel.js";
 import { ADD_LAYOUTS } from "./layoutRecipes.js";
 import { APP_LAYOUT, type ScreenPlan } from "./screenPlan.js";
 import { recordUse } from "./libraryUse.js";
+import { LOOKUP_PIECES, lookupAppSource, lookupFile, lookupScreenSource } from "./lookupFiles.js";
 import { pieceFiles, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
 import { DESIGN_SCREENS, type RuntimeStepArgs } from "./templates.js";
 
 /** The library pieces a complete app is built from. */
 export const APP_PIECES = ["app-frame", "resource-index", "record-wizard", "record-detail", "app-dashboard"];
+/** The pieces this app is built from: the look-up pieces for a look-up app, the working app pieces otherwise. */
+export const piecesOf = (m: AppModel) => (m.lookup ? LOOKUP_PIECES : APP_PIECES);
 
-const DEFAULT_ICON: Record<ModelView["kind"], string> = { list: "folder", create: "plus", detail: "file", dashboard: "chart", queue: "check", custom: "layers", placeholder: "layers" };
+const DEFAULT_ICON: Record<ModelView["kind"], string> = { list: "folder", create: "plus", detail: "file", dashboard: "chart", queue: "check", custom: "layers", placeholder: "layers", landing: "home", catalog: "search", categories: "layers", entry: "file", places: "pin", lists: "check", mylist: "check", saved: "heart" };
 const pascal = (id: string) => id.split(/[^a-zA-Z0-9]+/).filter(Boolean).map((w) => w[0]!.toUpperCase() + w.slice(1)).join("");
 export const screenFileOf = (v: ModelView) => `src/screens/${pascal(v.id)}Screen.tsx`;
 const q = (s: string) => JSON.stringify(s);
@@ -82,7 +85,7 @@ export function appFiles(m: AppModel): Array<{ path: string; content: string }> 
   }
   const schema = { appKey: m.product.toLowerCase().replace(/[^a-z0-9]+/g, "-"), roles: m.roles, entities: m.entities };
   const navForFrame = m.nav.map((g) => ({ label: g.label, items: g.items.filter((v) => v.kind !== "detail").map((v) => ({ id: v.id, label: v.label, icon: v.icon ?? DEFAULT_ICON[v.kind], ...(v.kind === "placeholder" ? { available: false } : {}) })) })).filter((g) => g.items.length);
-  const first = built.find((v) => v.kind === "dashboard") ?? built.find((v) => v.kind === "list") ?? built[0];
+  const first = built.find((v) => v.kind === "landing") ?? built.find((v) => v.kind === "dashboard") ?? built.find((v) => v.kind === "list") ?? built[0];
   const ids = [...(first ? [first.id] : []), ...views.map((v) => v.id).filter((id) => id !== first?.id)];
   return [
     {
@@ -97,7 +100,8 @@ export function appFiles(m: AppModel): Array<{ path: string; content: string }> 
       path: "src/app/routes.ts",
       content: `/** The app's destinations and how to go to one (#/<id> or #/<id>/<record id>). */\nimport { linkTo } from "../lib/screens";\n\nexport const SCREEN_IDS = ${JSON.stringify(ids)};\n\n/** A detail page highlights its list in the navigation. */\nexport const PARENT: Record<string, string> = ${JSON.stringify(parent)};\n\nexport const NAV = ${JSON.stringify(navForFrame, null, 2)};\n\nexport function go(screen: string, id?: string) {\n  window.location.hash = linkTo(screen, id).slice(1);\n}\n`,
     },
-    ...built.map((v) => ({ path: screenFileOf(v), content: screenSource(m, v) })),
+    ...built.map((v) => ({ path: screenFileOf(v), content: (m.lookup ? lookupScreenSource(m, v) : undefined) ?? screenSource(m, v) })),
+    ...(m.lookup ? [lookupFile(m), { path: "src/App.tsx", content: lookupAppSource(m, built, DEFAULT_ICON) }] : []),
     {
       path: "src/App.tsx",
       content: [
@@ -125,7 +129,7 @@ export function appFiles(m: AppModel): Array<{ path: string; content: string }> 
         ``,
       ].join("\n"),
     },
-  ];
+  ].filter((f, i, all) => !(f.path === "src/App.tsx" && all.findIndex((x) => x.path === "src/App.tsx") !== i));
 }
 
 const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -149,11 +153,12 @@ export async function appStep({ deps, run, task, jail, onChanged }: RuntimeStepA
   const changed: string[] = [];
   const lib = path.join(sectionsDir(), "sections");
   const seen = new Set<string>();
-  for (const f of [{ rel: "src/sections/icons.tsx", content: fs.readFileSync(path.join(lib, "icons.tsx"), "utf8") }, ...APP_PIECES.flatMap((id) => pieceFiles(id, seen))]) {
+  const pieces = piecesOf(model);
+  for (const f of [{ rel: "src/sections/icons.tsx", content: fs.readFileSync(path.join(lib, "icons.tsx"), "utf8") }, ...pieces.flatMap((id) => pieceFiles(id, seen))]) {
     if (fs.existsSync(path.join(jail.root, f.rel))) continue;
     if (deps.ops.create_file(ctx, { path: f.rel, content: f.content }).ok) changed.push(f.rel);
   }
-  for (const id of APP_PIECES) recordUse(deps.store, run.id, { id, by: "flowcode", step: task.title, reason: "Complete app: the frame and the working pages" });
+  for (const id of pieces) recordUse(deps.store, run.id, { id, by: "flowcode", step: task.title, reason: "Complete app: the frame and the working pages" });
   const css = syncedLibraryCss(jail.root);
   if (css !== undefined && deps.ops.replaceContent(ctx, "src/styles/library.css", css).ok) changed.push("src/styles/library.css");
   for (const f of appFiles(model)) {
@@ -179,7 +184,7 @@ export async function appStep({ deps, run, task, jail, onChanged }: RuntimeStepA
 /** Set once the app is written: from then on every step is held to the app guard. */
 export const appWrittenKey = (runId: string) => `appWritten:${runId}`;
 
-const PATTERN: Partial<Record<ModelView["kind"], string>> = { list: "ResourceIndex", queue: "ResourceIndex", create: "RecordWizard", detail: "RecordDetail", dashboard: "AppDashboard" };
+const PATTERN: Partial<Record<ModelView["kind"], string>> = { list: "ResourceIndex", queue: "ResourceIndex", create: "RecordWizard", detail: "RecordDetail", dashboard: "AppDashboard", catalog: "LookupCatalog", categories: "CategoryIndex", saved: "LookupCatalog", entry: "LookupEntry", places: "PlaceFinder", lists: "ListIndex", mylist: "ListBuilder" };
 
 /**
  * The app guard: what makes the app work is still there after a step. The frame in App.tsx, the one store, each working
@@ -197,10 +202,13 @@ export function appKept(root: string, m: AppModel): string[] {
   };
   const problems: string[] = [];
   const app = read("src/App.tsx");
-  if (!app?.includes("<AppFrame")) problems.push("src/App.tsx no longer draws the app frame (<AppFrame> from ./sections/AppFrame) with the whole navigation: put it back; restyle it through its fl-af-* classes in src/styles/components.css instead.");
+  const frame = m.lookup ? { tag: "LookupFrame", classes: "fl-lkf-*" } : { tag: "AppFrame", classes: "fl-af-*" };
+  if (!app?.includes(`<${frame.tag}`)) problems.push(`src/App.tsx no longer draws the app frame (<${frame.tag}> from ./sections/${frame.tag}) with the whole navigation: put it back; restyle it through its ${frame.classes} classes in src/styles/components.css instead.`);
+  if (m.lookup && !read("src/app/lookup.ts")?.includes("createLookup(")) problems.push("src/app/lookup.ts, the look-up layer (places, availability, likes, saves, ratings and lists), is missing or no longer creates it: put it back as FlowCode wrote it.");
   const store = read("src/app/store.ts");
   if (!store?.includes("createStore(")) problems.push("src/app/store.ts, the one store every page reads and writes, is missing or no longer creates the store: put it back as FlowCode wrote it.");
-  for (const piece of ["AppFrame", "ResourceIndex", "RecordWizard", "RecordDetail", "AppDashboard", "AppData"]) {
+  const pieceFilesOf = m.lookup ? ["LookupFrame", "LookupCatalog", "LookupEntry", "PlaceFinder", "ListBuilder", "LookupData", "AppData"] : ["AppFrame", "ResourceIndex", "RecordWizard", "RecordDetail", "AppDashboard", "AppData"];
+  for (const piece of pieceFilesOf) {
     if (read(`src/sections/${piece}.tsx`) === undefined) problems.push(`src/sections/${piece}.tsx, a working pattern the app is built on, was deleted: add it back with add_library_piece.`);
   }
   for (const v of builtViews(m)) {
@@ -211,8 +219,9 @@ export function appKept(root: string, m: AppModel): string[] {
       problems.push(`${file} (${v.label}) was deleted. Write it back:\n${screenSource(m, v)}`);
       continue;
     }
-    if (pattern && !(src.includes(`<${pattern}`) && /store=\{store\}/.test(src))) problems.push(`${file} (${v.label}) no longer uses the working ${pattern} on the app's store; it was rebuilt. Put the pattern back (you may keep content you added around it, and change its title and description props):\n${screenSource(m, v)}`);
-    if (src.includes("createStore(")) problems.push(`${file} (${v.label}) makes its own store: every page uses the one in src/app/store.ts (import { store } from "../app/store"), so a change on one page shows on all of them.`);
+    const onData = m.lookup ? /lookup=\{lookup\}/ : /store=\{store\}/;
+    if (pattern && !(src.includes(`<${pattern}`) && onData.test(src))) problems.push(`${file} (${v.label}) no longer uses the working ${pattern} on the app's store; it was rebuilt. Put the pattern back (you may keep content you added around it, and change its title and description props):\n${screenSource(m, v)}`);
+    if (src.includes("createStore(") || src.includes("createLookup(")) problems.push(`${file} (${v.label}) makes its own store: every page uses the one in src/app/store.ts (import { store } from "../app/store"), so a change on one page shows on all of them.`);
   }
   return problems;
 }
@@ -225,26 +234,44 @@ export const APP_STEPS: Record<string, (a: RuntimeStepArgs) => Promise<AgentOutc
 export function screenPlanOf(m: AppModel): ScreenPlan {
   return {
     product: m.product,
-    screens: builtViews(m).map((v) => ({ id: v.id, label: v.label, component: `${pascal(v.id)}Screen`, file: screenFileOf(v), purpose: v.purpose ?? `${v.label}: the ${v.kind === "create" ? "step-by-step form for a new record" : v.kind === "detail" ? "one record, its status and history" : v.kind === "queue" ? "records waiting on a decision" : v.kind === "dashboard" ? "how things stand" : "every record, to find and act on"}` })),
+    screens: builtViews(m).map((v) => ({ id: v.id, label: v.label, component: `${pascal(v.id)}Screen`, file: screenFileOf(v), purpose: v.purpose ?? `${v.label}: the ${LOOKUP_PURPOSE[v.kind] ?? (v.kind === "create" ? "step-by-step form for a new record" : v.kind === "detail" ? "one record, its status and history" : v.kind === "queue" ? "records waiting on a decision" : v.kind === "dashboard" ? "how things stand" : "every record, to find and act on")}` })),
   };
 }
 
+const LOOKUP_PURPOSE: Partial<Record<ModelView["kind"], string>> = {
+  landing: "first page: what it is, search, the ZIP code, categories and the most liked",
+  catalog: "entries to search, filter by category and find near you",
+  categories: "categories to browse",
+  entry: "one entry: why it qualifies, where to find it nearby, likes, saves, sharing, ratings and comments",
+  places: "places near a ZIP code, to choose one",
+  lists: "the person's lists, each for one place",
+  mylist: "one list: its place, what that place carries, quantities and what is done",
+  saved: "what the person saved",
+};
+
 /** The pages the design steps build themselves (the rest are the library's working patterns). */
 export function customPlanOf(m: AppModel): ScreenPlan {
-  const custom = new Set(builtViews(m).filter((v) => v.kind === "custom").map((v) => v.id));
+  const custom = new Set(builtViews(m).filter((v) => v.kind === "custom" || v.kind === "landing").map((v) => v.id));
   const all = screenPlanOf(m);
   return { ...all, screens: all.screens.filter((s) => custom.has(s.id)) };
 }
 
 function completeDesignObjective(m: AppModel): string {
   const built = builtViews(m);
-  const patterns = built.filter((v) => v.kind !== "custom");
-  const custom = built.filter((v) => v.kind === "custom");
+  const designed = (v: ModelView) => v.kind === "custom" || v.kind === "landing";
+  const patterns = built.filter((v) => !designed(v));
+  const custom = built.filter(designed);
+  const working = m.lookup
+    ? "Search and suggestions, categories and filters, where each entry is found near the person's ZIP code, likes, saves, sharing, ratings and comments, and lists tied to a place already work across pages."
+    : "Lists, the create wizard, record pages, status changes by role, notifications and the dashboard already work across pages.";
+  const data = m.lookup
+    ? "on the same data (lookup from src/app/lookup with useLookup from src/sections/LookupData for ZIP code, places, likes, saves, ratings and lists; store from src/app/store and useRecords from src/sections/AppData for the entries; the look-up pieces CatalogSearch, CategoryIndex, LookupCatalog, ZipPrompt and PlaceBadge as parts; go() from src/app/routes to open an entry)"
+    : "on the same records (store from src/app/store, useRecords, useActivity, StatusChip and formatValue from src/sections/AppData, go() from src/app/routes to open a record)";
   return [
-    `Design the complete app like a senior product designer: it is already written and working (step "${WRITE_APP}"): the app frame, one shared store in src/app/, and working pages on the library's patterns: ${patterns.map((v) => `${v.label} [${v.kind}] in ${screenFileOf(v)}`).join(", ")}. Lists, the create wizard, record pages, status changes by role, notifications and the dashboard already work across pages. Start your reply with the concept in 5 lines (idea, composition, type, colour, signature moment) and build to it.`,
-    "- Keep those pages and the frame: never rebuild, replace or wrap them in new markup, and never give a page its own copy of the data. Give them this product's look through the Styles page (src/styles/tokens.css) and the pieces' fl-* classes in src/styles/components.css, and their words through their props (title, description, breakdown).",
+    `Design the complete app like a senior product designer: it is already written and working (step "${WRITE_APP}"): the app frame, one shared store in src/app/, and working pages on the library's patterns: ${patterns.map((v) => `${v.label} [${v.kind}] in ${screenFileOf(v)}`).join(", ")}. ${working} Start your reply with the concept in 5 lines (idea, composition, type, colour, signature moment) and build to it.`,
+    "- Keep those pages and the frame: never rebuild, replace or wrap them in new markup, and never give a page its own copy of the data. Give them this product's look through the Styles page (src/styles/tokens.css) and the pieces' fl-* classes in src/styles/components.css, and their words through their props (title, description and the like).",
     custom.length
-      ? `- Build each custom page as a finished page in its screen file, on the same records (store from src/app/store, useRecords, useActivity, StatusChip and formatValue from src/sections/AppData, go() from src/app/routes to open a record): ${custom.map((v) => `${v.label} (${screenFileOf(v)})${v.purpose ? `: ${v.purpose}` : ""}`).join("; ")}.`
+      ? `- Compose each of these pages as a finished page in its screen file, ${data}: ${custom.map((v) => `${v.label} (${screenFileOf(v)})${v.kind === "landing" ? " [the landing page: FlowCode wrote a working start with the search, the ZIP code, the categories and the most liked; make it the product's own front page, with the PRD's promise and sections, keeping those working parts]" : ""}${v.purpose ? `: ${v.purpose}` : ""}`).join("; ")}.`
       : "- There are no custom pages: every page is a working pattern.",
     "Run the app and look at each page at desktop and phone width before you finish.",
     appModelNote(m),

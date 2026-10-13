@@ -4,7 +4,7 @@
 .fl-as-app {
   container: fl-as / inline-size;
   position: relative; display: flex; flex-direction: column; min-height: 36rem; overflow: hidden;
-  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 24px);
+  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
   background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); font-size: var(--text-md); line-height: var(--leading-normal);
 }
 .fl-as-app :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: none; box-shadow: var(--focus-ring); }
@@ -106,7 +106,7 @@
 .fl-as-panel {
   display: grid; gap: var(--space-4); align-content: start; min-width: 0; padding: var(--space-5);
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
-  border-radius: min(var(--surface-radius, var(--radius-lg)), 24px); box-shadow: var(--surface-shadow, none);
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
 }
 .fl-as-panelhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
 .fl-as-scroll { overflow-x: auto; margin-inline: calc(var(--space-5) * -1); padding-inline: var(--space-5); }
@@ -192,7 +192,7 @@ th[aria-sort="ascending"] .fl-as-sort, th[aria-sort="descending"] .fl-as-sort { 
 .fl-as-pop {
   position: absolute; z-index: 20; top: calc(100% + var(--space-2)); right: 0; width: min(22rem, calc(100cqw - var(--space-6)));
   display: grid; gap: var(--space-4); padding: var(--space-5); background: var(--color-surface); border: 1px solid var(--color-border);
-  border-radius: min(var(--radius-lg), 24px); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none));
+  border-radius: min(var(--radius-lg), 12px); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none));
 }
 .fl-as-pop:focus { outline: none; }
 .fl-as-baglist { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
@@ -205,7 +205,7 @@ th[aria-sort="ascending"] .fl-as-sort, th[aria-sort="descending"] .fl-as-sort { 
 .fl-as-bagtotal { display: flex; justify-content: space-between; font-weight: var(--weight-semibold); }
 .fl-as-shopmain { max-width: 72rem; width: 100%; margin-inline: auto; }
 .fl-as-promo {
-  position: relative; display: flex; align-items: center; padding: var(--space-6); border-radius: min(var(--radius-xl), 24px); overflow: hidden;
+  position: relative; display: flex; align-items: center; padding: var(--space-6); border-radius: min(var(--radius-xl), 12px); overflow: hidden;
   background:
     radial-gradient(60% 120% at 100% 0%, color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 22%, transparent), transparent 70%),
     linear-gradient(120deg, var(--color-secondary, var(--color-accent)), var(--color-secondary-hover, var(--color-accent-hover)));
@@ -229,7 +229,7 @@ th[aria-sort="ascending"] .fl-as-sort, th[aria-sort="descending"] .fl-as-sort { 
 .fl-as-products { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-5); margin: 0; padding: 0; list-style: none; }
 .fl-as-product { position: relative; display: grid; gap: var(--space-3); align-content: start; min-width: 0; }
 .fl-as-art {
-  display: grid; place-items: center; aspect-ratio: 4 / 5; border-radius: min(var(--radius-lg), 24px); border: 1px solid var(--color-border);
+  display: grid; place-items: center; aspect-ratio: 4 / 5; border-radius: min(var(--radius-lg), 12px); border: 1px solid var(--color-border);
   background:
     radial-gradient(90% 70% at 30% 20%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 20%, transparent), transparent 70%),
     linear-gradient(var(--fl-as-tilt, 30deg), var(--color-surface-sunken), var(--color-surface));
@@ -277,7 +277,7 @@ th[aria-sort="ascending"] .fl-as-sort, th[aria-sort="descending"] .fl-as-sort { 
 .fl-as-backbtn { display: none; }
 .fl-as-msgs { flex: 1; overflow-y: auto; margin: 0; padding: var(--space-5); list-style: none; display: grid; align-content: start; gap: var(--space-4); }
 .fl-as-msg { display: grid; gap: var(--space-1); max-width: 34rem; }
-.fl-as-msg p { padding: var(--space-3) var(--space-4); border-radius: min(var(--radius-lg), 24px); line-height: var(--leading-relaxed); }
+.fl-as-msg p { padding: var(--space-3) var(--space-4); border-radius: min(var(--radius-lg), 12px); line-height: var(--leading-relaxed); }
 .fl-as-msg__who { font-size: var(--text-xs); color: var(--color-text-muted); }
 .fl-as-msg--customer p { background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border)); border-top-left-radius: var(--radius-sm); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
 .fl-as-msg--agent { justify-self: end; text-align: right; }
@@ -330,7 +330,7 @@ th[aria-sort="ascending"] .fl-as-sort, th[aria-sort="descending"] .fl-as-sort { 
 .fl-as-switch[aria-checked="true"] { background: var(--color-accent); }
 .fl-as-switch[aria-checked="true"]::after { transform: translateX(1.25rem); }
 .fl-as-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
-.fl-as-plan { position: relative; display: flex; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 24px); cursor: pointer; transition: border-color var(--duration-fast) var(--easing); }
+.fl-as-plan { position: relative; display: flex; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 12px); cursor: pointer; transition: border-color var(--duration-fast) var(--easing); }
 .fl-as-plan:hover { border-color: var(--color-border-strong); }
 .fl-as-plan:has(input:checked) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 6%, transparent); }
 .fl-as-plan:has(input:focus-visible) { box-shadow: var(--focus-ring); }
@@ -358,7 +358,7 @@ th[aria-sort="ascending"] .fl-as-sort, th[aria-sort="descending"] .fl-as-sort { 
 }
 .fl-as-col {
   display: grid; gap: var(--space-3); padding: var(--space-3); scroll-snap-align: start; min-width: 0;
-  background: var(--color-surface-sunken); border: 1px solid transparent; border-radius: min(var(--radius-lg), 24px);
+  background: var(--color-surface-sunken); border: 1px solid transparent; border-radius: min(var(--radius-lg), 12px);
   transition: border-color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing);
 }
 .fl-as-col[data-over] { border-color: color-mix(in srgb, var(--color-danger) 50%, transparent); background: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface-sunken)); }
