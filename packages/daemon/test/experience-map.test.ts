@@ -62,3 +62,27 @@ describe("page plans", () => {
     expect(note).toContain("Must satisfy: R1");
   });
 });
+
+describe("requirement IDs and pages-wide rules", () => {
+  it("reads a PRD's own feature numbers as FlowCode's requirements, and counts pages-wide rules as covered by the page checks", async () => {
+    const { requirementIdMapper, isCrossCutting } = await import("../src/orchestrator/experienceMap.js");
+    const all = [
+      { id: "R1", section: "Title", text: "People need a way to: product requirements document" },
+      { id: "R26", section: "13. Functional requirements", text: "R1 Show a list of trusted brands" },
+      { id: "R24", section: "12. Main screens", text: "Show details about a brand" },
+      { id: "R35", section: "17. Accessibility requirements", text: "Keyboard navigation is supported" },
+    ] as never[];
+    const mapId = requirementIdMapper(all, ["R26", "R24"]);
+    expect(mapId("R1")).toEqual(["R26"]);
+    expect(mapId("r24")).toEqual(["R24"]);
+    expect(mapId("R99")).toEqual([]);
+    expect(isCrossCutting(all[3])).toBe(true);
+    // A journey naming R26 also carries R24 when both are built in one plan item; the accessibility rule needs no journey.
+    const map = parseExperienceMap({ workflows: [{ name: "See brands", role: "Shopper", entry: "Classes", steps: [{ screen: "Classes", action: "Look", result: "Sees brands" }], success: "", requirementIds: ["R1"] }] }, plan, ["R26", "R24"], mapId);
+    expect(map.workflows[0]!.requirementIds).toEqual(["R26"]);
+    const rows = coverageMatrix(all, [item("list", ["R26", "R24"]), item("a11y", ["R35"]), item("title", ["R1"], { executionType: "review" } as Partial<PlanItem>)], map);
+    expect(rows.map((r) => [r.requirement, r.status])).toEqual([["R1", "for a person to check"], ["R26", "planned"], ["R24", "planned"], ["R35", "planned"]]);
+    expect(rows[3]!.verification).toContain("checked on every page");
+    expect(scopeDecisions(rows)).toEqual([]);
+  });
+});

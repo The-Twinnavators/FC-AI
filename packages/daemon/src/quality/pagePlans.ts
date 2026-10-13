@@ -38,7 +38,7 @@ export function projectPages(app: App, projectId: string): { runId?: string; pag
   const plan = app.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null);
   let comp = app.store.getSetting<CompositionManifest | null>(compositionKey(run.id), null) ?? { entries: [], gaps: [], changes: [] };
   try {
-    comp = verifyManifest(app.projects.jail(project).root, comp);
+    comp = verifyManifest(app.projects.jail(project).root, comp, undefined, Object.fromEntries((plan?.screens ?? []).map((s) => [s.label, s.file])));
   } catch {
     /* the workspace is gone: keep the last recorded check */
   }
@@ -57,7 +57,7 @@ export function projectPages(app: App, projectId: string): { runId?: string; pag
       primaryAction: b.primaryAction,
       sections: b.sections.map((x) => {
         const entries = comp.entries.filter((e) => e.page === b.screen && e.section === x.title);
-        const status = changes.some((c) => c.section === x.title) ? "changed" : !x.part ? "no part" : entries.some((e) => e.verification?.usedBy.length) ? "used" : "not used yet";
+        const status = changes.some((c) => c.section === x.title) ? "changed" : !x.part ? "no part" : entries.some((e) => e.verification?.onPage ?? !!e.verification?.usedBy.length) ? "used" : "not used yet";
         return { title: x.title, purpose: x.purpose, part: x.part, status };
       }),
       states: [...new Set([...(rule?.states ?? []), ...Object.entries(b.states ?? {}).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`)])],

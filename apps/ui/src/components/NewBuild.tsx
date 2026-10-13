@@ -124,6 +124,7 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
   const starter = "react" as const;
   // Who writes the code: the local coder model, or the cloud coder set up on the Models page.
   const [coder, setCoder] = useState<"local" | "cloud">("local");
+  const [buildMode, setBuildMode] = useState<"complete" | "sketch">("complete");
   const cloud = useResource<{ ready: boolean; model: string; problem: string; providerLabel?: string }>("/models/cloud-coder");
   // The coder actually configured (Models page), not a fixed name.
   const roles = useResource<{ coder?: { assignment?: { model: string } } }>("/models/roles");
@@ -227,6 +228,7 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
         autonomy,
         starter,
         coder,
+        ...(refs.some((r) => r.role === "prd") ? { buildMode } : {}),
         references: refs.map(({ name: n, role, content }) => ({ name: n, role, content })),
         look: { template: prdSetsLook(refs) ? undefined : template, extras, vibe: vibe ?? suggestedVibe(refs, prdSetsLook(refs) ? undefined : template), styleUrl: styleUrl.trim() || undefined },
       });
@@ -451,6 +453,19 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
           <p className="nb__starter muted" data-guide="newbuild.starter">
             Starts from <b>React + Vite + TypeScript</b>, a ready-made starting point FlowCode has tested, with a live preview.
           </p>
+          {refs.some((r) => r.role === "prd") ? (
+            <fieldset className="nb__coder" data-guide="newbuild.mode">
+              <legend>How much to build</legend>
+              <label className="check">
+                <input type="radio" name="build-mode" checked={buildMode === "complete"} onChange={() => setBuildMode("complete")} /> Complete app{" "}
+                <span className="muted">· the whole working app from the PRD: every page in the navigation, shared data, lists, step-by-step create, record pages, approvals by role. Takes longer</span>
+              </label>
+              <label className="check">
+                <input type="radio" name="build-mode" checked={buildMode === "sketch"} onChange={() => setBuildMode("sketch")} /> Quick sketch{" "}
+                <span className="muted">· the main screens designed, to judge the direction first</span>
+              </label>
+            </fieldset>
+          ) : null}
           <fieldset className="nb__coder" data-guide="newbuild.coder">
             <legend>Who writes the code</legend>
             <label className="check">

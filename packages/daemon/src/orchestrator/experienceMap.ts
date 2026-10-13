@@ -42,7 +42,8 @@ export const EXPERIENCE_SYSTEM = `You map a product's experience before any scre
 - roles: the kinds of people who use it, each with their goals, in the PRD's words;
 - workflows: the journeys the prototype must support end to end. For each: a short name, the role, the entry screen,
   the steps in order (each on one planned screen: what the person does and what they then see), the success result,
-  what can go wrong, and how they recover. List the requirement IDs (R1, R2...) each workflow serves. Use only the
+  what can go wrong, and how they recover. List the requirement IDs each workflow serves, exactly as the Requirements
+  list writes them: the PRD may number its own features (R1, F2, US-3...), and those are not these IDs. Use only the
   planned screens; every planned screen should appear in at least one workflow.
 - data: the records the prototype shows (entity, its fields, the screens that show it);
 - permissions: who may do what, only if the PRD says so (otherwise an empty list).
@@ -75,27 +76,56 @@ export const EXPERIENCE_SCHEMA = {
   required: ["roles", "workflows", "data", "permissions"],
 };
 
-export function experienceRequest(objective: string, prd: string, plan: ScreenPlan, requirements: Requirement[]): string {
+/**
+ * Requirements that hold on every page (accessibility, responsiveness, performance, privacy): no single journey carries
+ * them; the checks every page gets (look check, contrast, keyboard, phone width) do.
+ */
+export const CROSS_CUTTING = /accessib|responsive|phone|tablet|mobile|screen size|performance|speed|load time|privacy|security|non-functional|quality attribute|usability|inclusive|localization|internationali/i;
+export const isCrossCutting = (r: Pick<Requirement, "section" | "text">) => CROSS_CUTTING.test(r.section);
+
+/**
+ * Maps the IDs a planner cites to FlowCode's requirement IDs. A PRD often numbers its own features (its "R1" is FlowCode's
+ * R26 when FlowCode's R1 is the document's title); a cited ID that isn't one of the valid ones is read as the PRD's own
+ * numbering and becomes the requirements whose text starts with it.
+ */
+export function requirementIdMapper(requirements: Requirement[], valid: string[]): (cited: string) => string[] {
+  const ok = new Set(valid);
+  const own = new Map<string, string[]>();
+  for (const r of requirements) {
+    const m = /^\s*([A-Z]{1,3}-?\d{1,3})\b/i.exec(r.text);
+    if (m && ok.has(r.id)) own.set(m[1]!.toUpperCase(), [...(own.get(m[1]!.toUpperCase()) ?? []), r.id]);
+  }
+  return (cited) => {
+    const id = cited.trim().toUpperCase();
+    return ok.has(id) ? [id] : own.get(id) ?? [];
+  };
+}
+
+export function experienceRequest(objective: string, prd: string, plan: ScreenPlan, requirements: Requirement[], boundary = ""): string {
   return [
     `Product: ${plan.product}`,
     `Request: ${objective.slice(0, 800)}`,
     `Planned screens:\n${plan.screens.map((s) => `- ${s.label}: ${s.purpose}`).join("\n")}`,
     `Requirements:\n${requirements.slice(0, 120).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 200)}`).join("\n")}`,
+    boundary,
     `PRD (people, goals, journeys, screens):\n${prd}`,
-  ].join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 const text = (v: unknown, max: number) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
 const list = (v: unknown) => (Array.isArray(v) ? (v as unknown[]) : []);
 
 /** The model's map, kept to the planned screens and the PRD's real requirement IDs. */
-export function parseExperienceMap(raw: unknown, plan: ScreenPlan, requirementIds: string[]): ExperienceMap {
+export function parseExperienceMap(raw: unknown, plan: ScreenPlan, requirementIds: string[], mapId?: (cited: string) => string[]): ExperienceMap {
   const r = (raw ?? {}) as Record<string, unknown>;
   const screenOf = (name: unknown) => {
     const n = text(name, 60).toLowerCase().replace(/\s+(screen|page)$/, "");
     return plan.screens.find((s) => s.label.toLowerCase() === n)?.label ?? plan.screens.find((s) => n && (n.includes(s.label.toLowerCase()) || s.label.toLowerCase().includes(n)))?.label;
   };
   const ids = new Set(requirementIds);
+  const toIds = mapId ?? ((x: string) => (ids.has(x) ? [x] : []));
   const workflows: Workflow[] = [];
   list(r.workflows).forEach((w0, i) => {
     const w = w0 as Record<string, unknown>;
@@ -115,7 +145,7 @@ export function parseExperienceMap(raw: unknown, plan: ScreenPlan, requirementId
       success: text(w.success, 200),
       failure: text(w.failure, 200),
       recovery: text(w.recovery, 200),
-      requirementIds: [...new Set(list(w.requirementIds).map((x) => text(x, 10).toUpperCase()).filter((x) => ids.has(x)))],
+      requirementIds: [...new Set(list(w.requirementIds).flatMap((x) => toIds(text(x, 10).toUpperCase())))],
     });
   });
   return {
@@ -141,20 +171,24 @@ export interface CoverageRow {
 export function coverageMatrix(requirements: Requirement[], items: PlanItem[], map: ExperienceMap | undefined): CoverageRow[] {
   return requirements.map((r) => {
     const its = items.filter((i) => i.covers.includes(r.id));
-    const flows = (map?.workflows ?? []).filter((w) => w.requirementIds.includes(r.id));
+    // A journey carries a requirement it names, and the others built in the same plan item (one feature, several lines
+    // of the PRD saying it).
+    const siblings = new Set(its.flatMap((i) => i.covers));
+    const flows = (map?.workflows ?? []).filter((w) => w.requirementIds.some((id) => id === r.id || siblings.has(id)));
+    const everyPage = isCrossCutting(r);
     const pages = [...new Set(flows.flatMap((w) => [w.entry, ...w.steps.map((s) => s.screen)]))];
     const code = its.find((i) => i.executionType === "code" && !i.later);
     const later = its.find((i) => i.later);
     const review = its.find((i) => i.executionType !== "code" && !i.later);
     const tests = its.flatMap((i) => i.tests ?? []);
-    const status: CoverageStatus = later ? "not in this release" : code ? (flows.length || !map?.workflows.length ? "planned" : "no workflow") : review ? "for a person to check" : "unplaced";
+    const status: CoverageStatus = later ? "not in this release" : code ? (flows.length || everyPage || !map?.workflows.length ? "planned" : "no workflow") : review ? "for a person to check" : "unplaced";
     return {
       requirement: r.id,
       text: r.text.slice(0, 200),
       workflows: flows.map((w) => w.name),
       pages,
       behavior: tests.length ? tests.map((t) => `${t.behaviour} → ${t.expect}`).join("; ").slice(0, 300) : (code?.title ?? review?.title ?? ""),
-      verification: code ? `${tests.length ? `acceptance tests in step "${code.title}"` : `step "${code.title}"`}${flows.length ? `; journey test for ${flows.map((w) => `"${w.name}"`).join(", ")}` : ""}` : review ? "a person checks it at review" : later ? `left out: ${later.later}` : "none",
+      verification: code ? `${tests.length ? `acceptance tests in step "${code.title}"` : `step "${code.title}"`}${flows.length ? `; journey test for ${flows.map((w) => `"${w.name}"`).join(", ")}` : everyPage ? "; checked on every page (look check, contrast, keyboard, phone width)" : ""}` : review ? "a person checks it at review" : later ? `left out: ${later.later}` : "none",
       status,
     };
   });
@@ -178,6 +212,17 @@ export function journeyTestObjective(map: ExperienceMap): string {
     `Then write ${JOURNEY_TESTS}: one test per user journey below, each rendering <App /> (Testing Library, userEvent) from its entry screen and doing its steps in order through the real navigation (menu links, buttons, row links), checking after each step that the screen shows its result. Where a journey opens one record from a list, check the detail screen shows that same record (its name from the list), and that Back returns to the list. Use the app's own sample data; no mocks of the app's screens.`,
     ...map.workflows.map((w) => `- "${w.name}": starts on ${w.entry}; ${w.steps.map((s) => `${s.screen}: ${s.action} → ${s.result}`).join("; ")}${w.success ? `; success: ${w.success}` : ""}`),
   ].join("\n");
+}
+
+/**
+ * The release boundary as the planners read it: what this build leaves out, so no journey, page section or control is
+ * planned for it (Build test 7 planned search, filter and sort sections the PRD put after the first release, and the
+ * build then removed them).
+ */
+export function releaseBoundary(items: PlanItem[]): string {
+  const later = items.filter((i) => i.later);
+  if (!later.length) return "";
+  return ["Not in this release (plan no journey, page section or control for these; the prototype leaves them out):", ...later.slice(0, 25).map((i) => `- ${i.title}`)].join("\n");
 }
 
 /** The map as the design and build steps read it: the journeys they must make work end to end. */

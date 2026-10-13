@@ -319,6 +319,16 @@ export async function captureStyleStep({ deps, run, task, jail, signal, onChange
   const direction = designDirection(`${run.objective}\n${prdText}`);
   deps.store.setSetting(`designDirection:${run.projectId}`, direction);
   const captured = style.brand.length > 0 || !!style.fonts.display || !!style.fonts.body;
+  // Nothing to capture, and the person chose a style in New build (or the PRD gives its own colours): those are already
+  // in the app from the scaffold, and they stay. The industry direction is advice for the design steps, never a
+  // replacement (Build test 7: Soft Neutral was chosen, and this step painted the app food-industry green).
+  const chosen = designTemplate(look?.template);
+  const prdColours = starterIdentity(refs, deps.store.projects.require(run.projectId).name, run.objective).colors.length > 0;
+  if (!captured && (chosen || prdColours)) {
+    deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Kept ${chosen ? `the ${chosen.name} style you chose` : "the PRD's own colours"}: nothing to capture a style from. Design direction (advice only): ${direction.industry} — ${direction.style}. Avoid: ${direction.avoid}.` });
+    deps.store.setSetting(`styleCapture:${run.projectId}`, { at: new Date().toISOString(), sources: [], applied: [], notes: [...notes, chosen ? `Kept the chosen ${chosen.name} style.` : "Kept the PRD's colours."], style });
+    return { kind: "complete", summary: `Kept ${chosen ? `the ${chosen.name} style` : "the PRD's colours"}; the design direction is advice for the design steps.`, changedPaths: [] };
+  }
   if (!captured) {
     style.fonts = { display: direction.fonts.heading, body: direction.fonts.body };
     style.sources = [`the ${direction.industry.toLowerCase()} design direction`];

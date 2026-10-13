@@ -36,6 +36,7 @@
   --color-danger: #a3321f;
   --color-danger-surface: #f8e5df;
   --color-success: #2f6b4f;
+  --color-warning: #8a5300;
   /* Secondary (the 30%): analogous (+30°) to the accent, calmer than it */
   --color-secondary: #3a5c60;
   --color-secondary-hover: #2a4b4f;
@@ -187,6 +188,7 @@
     --color-danger: #f08f7a;
     --color-danger-surface: #3a1f19;
     --color-success: #8fcfae;
+    --color-warning: #f2b75c;
     --color-secondary: #799da1;
     --color-secondary-hover: #8bb0b4;
     --color-on-secondary: #111111;

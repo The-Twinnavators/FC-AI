@@ -256,8 +256,22 @@ export async function lookCheck(session: BrowserSession, url: string, opts: { ac
       screens.push({ name: v.name, png: await page.screenshot({ fullPage: false }) });
     }
     const base = url.replace(/#.*$/, "");
+    // A page the menu doesn't reach is usually a record's detail page: open it through a link to a real record (on the
+    // pages already visited) so its designed view is checked, not the "not found" it shows without a record.
+    const addressOf = new Map<string, string>();
+    for (const r of opts.routes ?? []) {
+      for (const from of (opts.routes ?? []).filter((x) => x.id !== r.id)) {
+        await page.goto(`${base}#/${from.id}`, { waitUntil: "networkidle", timeout: 30_000 }).catch(() => undefined);
+        await settled(page, 200);
+        const href = await page.evaluate((id) => Array.from(document.querySelectorAll("a[href]")).map((a) => a.getAttribute("href") ?? "").find((h) => h.startsWith(`#/${id}/`)), r.id).catch(() => undefined);
+        if (href) {
+          addressOf.set(r.id, href);
+          break;
+        }
+      }
+    }
     for (const r of (opts.routes ?? []).filter((r) => !visits.some((v) => v.name.toLowerCase() === r.name.toLowerCase()))) {
-      await page.goto(`${base}#/${r.id}`, { waitUntil: "networkidle", timeout: 30_000 }).catch(() => undefined);
+      await page.goto(`${base}${addressOf.get(r.id) ?? `#/${r.id}`}`, { waitUntil: "networkidle", timeout: 30_000 }).catch(() => undefined);
       await settled(page);
       for (const f of await page.evaluate(auditScreen)) findings.push({ screen: r.name, ...f });
       screens.push({ name: r.name, png: await page.screenshot({ fullPage: false }) });
@@ -272,7 +286,7 @@ export async function lookCheck(session: BrowserSession, url: string, opts: { ac
     await signInIfAsked(p2, opts.account);
     for (const f of await p2.evaluate(auditPhone)) findings.push({ screen: "First screen (phone)", ...f });
     for (const r of (opts.routes ?? []).slice(1)) {
-      await p2.goto(`${base}#/${r.id}`, { waitUntil: "networkidle", timeout: 30_000 }).catch(() => undefined);
+      await p2.goto(`${base}${addressOf.get(r.id) ?? `#/${r.id}`}`, { waitUntil: "networkidle", timeout: 30_000 }).catch(() => undefined);
       await settled(p2, 300);
       for (const f of await p2.evaluate(auditPhone)) findings.push({ screen: `${r.name} (phone)`, ...f });
     }

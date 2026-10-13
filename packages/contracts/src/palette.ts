@@ -331,6 +331,20 @@ export const textOn = (bg: string) => (contrastRatio("#ffffff", bg) >= contrastR
  * The app's colour tokens (src/styles/tokens.css) for the light (default) or dark theme. Text roles reach 4.5:1, the
  * accent (buttons, links, focus) reaches 3:1 on surfaces with its button text at 4.5:1.
  */
+/**
+ * A warning amber that reads on a surface and the page behind it (4.5:1, so warning text and icons stay legible): an amber hue, darkened on a
+ * light surface or lightened on a dark one until it passes.
+ */
+export function warningOn(surface: string, dark: boolean, bg = surface): string {
+  let l = dark ? 0.78 : 0.56;
+  for (let i = 0; i < 30; i++) {
+    const hex = oklchToHex({ l, c: 0.14, h: 70 });
+    if (Math.min(contrastRatio(hex, surface), contrastRatio(hex, bg)) >= 4.5) return hex;
+    l += dark ? 0.02 : -0.02;
+  }
+  return dark ? "#fcd34d" : "#7c4a03";
+}
+
 export function roleTokens(p: Palette, dark = false): Record<string, string> {
   const n = p.neutral;
   const bg = dark ? n[900] : n[50];
@@ -359,6 +373,7 @@ export function roleTokens(p: Palette, dark = false): Record<string, string> {
     "--color-on-accent": textOn(accent),
     "--color-focus": primary ? pick(primary.ramp, bg, 3, dark ? 300 : 500, accent) : accent,
     "--color-success": status("success"),
+    "--color-warning": status("warning"),
     "--color-danger": status("error"),
     "--color-danger-surface": dark ? p.status.error.ramp[900] : p.status.error.ramp[50],
     ...secondaryTokens(secondary.hex, dark ? "dark" : "light", { surface, text }),

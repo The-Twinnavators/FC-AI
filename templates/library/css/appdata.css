@@ -1,0 +1,23 @@
+/**
+ * The app data layer's own pieces (app-data.tsx): toasts, and the status chip every working pattern shows. Prefixed
+ * fl-data-; only the library's tokens.
+ */
+.fl-data-toasts { position: fixed; z-index: 70; right: var(--space-4); bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px)); display: grid; gap: var(--space-2); max-width: min(24rem, calc(100vw - 2 * var(--space-4))); pointer-events: none; }
+.fl-data-toast {
+  margin: 0; padding: var(--space-3) var(--space-4); border: 1px solid var(--overlay-border, var(--color-border)); border-radius: var(--surface-radius-sm, var(--radius-md));
+  background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow-overlay, var(--surface-shadow)); font-size: var(--text-sm);
+  animation: fl-data-in var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-data-toast--success { border-color: color-mix(in srgb, var(--color-success) 40%, var(--color-border)); }
+.fl-data-toast--danger { border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border)); }
+.fl-data-toast--warning { border-color: color-mix(in srgb, var(--color-warning, #b45309) 45%, var(--color-border)); }
+@keyframes fl-data-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* A record's status, wherever it is shown. */
+.fl-data-status { display: inline-flex; align-items: center; gap: 6px; padding: 2px var(--space-2); border-radius: var(--pill-radius, 999px); font-size: var(--text-xs); font-weight: var(--weight-semibold); white-space: nowrap; background: var(--color-surface-sunken); color: var(--color-text-muted); }
+.fl-data-status::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: currentColor; }
+.fl-data-status--info { color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)); }
+.fl-data-status--success { color: var(--color-success); background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface)); }
+.fl-data-status--warning { color: var(--color-warning, #b45309); background: color-mix(in srgb, var(--color-warning, #b45309) 14%, var(--color-surface)); }
+.fl-data-status--danger { color: var(--color-danger); background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface)); }
+@media (prefers-reduced-motion: reduce) { .fl-data-toast { animation: none; } }

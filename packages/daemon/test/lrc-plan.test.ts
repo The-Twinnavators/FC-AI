@@ -235,7 +235,7 @@ describe("a spec build plans from the checklist", () => {
       describe: async () => undefined,
       health: async () => ({ ok: true, detail: "stub" }),
     });
-    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Build the calendar in the PRD.", kind: "spec_build", references: [{ name: "prd.md", role: "prd", content: PRD }], constraints: [], attachedKnowledgeIds: [] });
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Build the calendar in the PRD.", kind: "spec_build", buildMode: "sketch", references: [{ name: "prd.md", role: "prd", content: PRD }], constraints: [], attachedKnowledgeIds: [] });
     await app.orchestrator.plan(run.id);
     // Goals never reach the planner; each call is one screen's journey, carrying every section that journey needs.
     expect(sections).toEqual(["4. Calendar views", "5. Events"]);
@@ -279,6 +279,69 @@ describe("a spec build plans from the checklist", () => {
     expect(item.status).toBe("not_started");
     expect(item.prompt).not.toBe(views.aiPrompt);
     expect(item.prompt).toMatch(/clickable prototype of this app already exists/);
+  });
+
+  it("plans a complete app by default: the app model first, its pages as the screens, the app written by FlowCode", async () => {
+    const { app } = makeApp();
+    const { project } = makeProject(app);
+    const featureNotes: boolean[] = [];
+    const briefScreens: string[] = [];
+    const model = {
+      product: "Calendar",
+      roles: ["Planner", "Manager"],
+      entities: [
+        {
+          key: "event", label: "Event", plural: "Events", titleField: "title", subtitleField: "", idPrefix: "EVT", statusField: "status",
+          statuses: [{ key: "draft", label: "Draft", tone: "neutral" }, { key: "confirmed", label: "Confirmed", tone: "success" }],
+          fields: [{ key: "title", label: "Title", type: "text", required: true, options: [] }, { key: "date", label: "Date", type: "date", required: true, options: [] }],
+          columns: ["title", "date", "status"], filters: ["status"],
+          steps: [{ key: "basics", label: "Basics", fields: ["title", "date"] }],
+          transitions: [{ key: "confirm", label: "Confirm", from: ["draft"], to: "confirmed", roles: [], needsReason: false, tone: "primary" }],
+        },
+      ],
+      seed: { event: [{ title: "Standup", date: "2026-10-12", status: "confirmed" }] },
+      nav: [{ label: "Plan", items: [
+        { id: "week", label: "Week", kind: "custom", entity: "event", icon: "calendar", purpose: "Planners see this week's events by day." },
+        { id: "events", label: "Events", kind: "list", entity: "event", icon: "folder", purpose: "" },
+        { id: "reports", label: "Reports", kind: "placeholder", entity: "", icon: "", purpose: "" },
+      ] }],
+    };
+    app.router.register({
+      config: { id: "ollama", kind: "ollama", label: "stub", enabled: true, hosted: false },
+      chat: async (req) => {
+        const system = String(req.messages[0]?.content ?? "");
+        const user = String(req.messages.at(-1)?.content ?? "");
+        if (system.startsWith("You design the data and navigation")) return { content: JSON.stringify(model), toolCalls: [], model: "stub", durationMs: 1 };
+        if (system.startsWith("You decide which screens")) throw new Error("a complete app takes its screens from the app model");
+        if (system.startsWith("You map a product's experience")) {
+          return { content: JSON.stringify({ roles: [{ name: "Planners", goals: ["See the week"] }], workflows: [{ name: "Check the week", role: "Planners", entry: "Week", steps: [{ screen: "Week", action: "Open the week", result: "Sees this week's events" }, { screen: "Events", action: "Open an event", result: "Sees it" }], success: "Knows what's on", requirementIds: [] }], data: [], permissions: [] }), toolCalls: [], model: "stub", durationMs: 1 };
+        }
+        if (system.startsWith("You plan the screens")) {
+          briefScreens.push(...[...user.matchAll(/^## (.+)\nPurpose:/gm)].map((m) => m[1]!));
+          return { content: JSON.stringify({ screens: [{ screen: "Week", who: "Planners", goal: "See the week", workflow: ["Open the week"], firstView: "This week", primaryAction: "New event", sections: [{ title: "Week", purpose: "Events by day", part: "" }] }] }), toolCalls: [], model: "stub", durationMs: 1 };
+        }
+        featureNotes.push(user.includes("The app is already written and working"));
+        const lines = [...user.matchAll(/(R\d+) \[([^\]]*)\]/g)].map((m) => ({ id: m[1], section: m[2] }));
+        const content = JSON.stringify({ tasks: [{ title: "Events", goal: "Events work as the PRD says.", files: ["src/screens/WeekScreen.tsx"], steps: ["Build it"], acceptance: ["It works"], covers: lines.map((l) => l.id) }], other: [] });
+        return { content, toolCalls: [], model: "stub", durationMs: 1 };
+      },
+      listModels: async () => [],
+      describe: async () => undefined,
+      health: async () => ({ ok: true, detail: "stub" }),
+    });
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Build the calendar in the PRD.", kind: "spec_build", references: [{ name: "prd.md", role: "prd", content: PRD }], constraints: [], attachedKnowledgeIds: [] });
+    await app.orchestrator.plan(run.id);
+    expect(app.store.runs.require(run.id).strategy?.buildMode).toBe("complete");
+    expect(app.store.getSetting<{ product: string } | null>(`appModel:${run.id}`, null)?.product).toBe("Calendar");
+    // Every working page is a screen (the checks visit them all); the placeholder isn't.
+    expect(app.store.getSetting<{ screens: Array<{ file: string }> } | null>(`screenPlan:${run.id}`, null)?.screens.map((x) => x.file)).toEqual(["src/screens/WeekScreen.tsx", "src/screens/EventsScreen.tsx", "src/screens/NewEventScreen.tsx", "src/screens/EventDetailScreen.tsx"]);
+    // The feature steps know the app is already working; only the custom page is composed from a brief.
+    expect(featureNotes.length).toBeGreaterThan(0);
+    expect(featureNotes.every(Boolean)).toBe(true);
+    expect([...new Set(briefScreens)]).toEqual(["Week"]);
+    const titles = app.orchestrator.graph.tasks(run.id).sort((a, b) => a.ordinal - b.ordinal).map((t) => t.title);
+    expect(titles).toContain("Write the complete app");
+    expect(titles).not.toContain("App layout and navigation");
   });
 });
 

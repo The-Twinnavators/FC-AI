@@ -34,7 +34,11 @@ export interface ManifestEntry {
   appFile: string;
   by: "plan" | "flowcode" | "coder" | "debugger";
   /** Filled in by verifyManifest. */
-  verification?: { inApp: boolean; usedBy: string[]; at: string };
+  /**
+   * Filled in by verifyManifest. usedBy: files that import the part's file. onPage: whether the page's own screen file
+   * uses the part (imports its file or renders one of its components); undefined when the page's file isn't known.
+   */
+  verification?: { inApp: boolean; usedBy: string[]; onPage?: boolean; at: string };
 }
 
 export interface ManifestGap {
@@ -109,6 +113,13 @@ export function manifestFromBriefs(briefs: ScreenBrief[], dropped: Array<{ page:
   return { entries, gaps, changes: [] };
 }
 
+/** The components a part exports, from its usage line (import { Button, ButtonGroup } from "./buttons-variants"). */
+export function componentNames(ref: string): string[] {
+  const r = resolveCatalogId(ref);
+  const usage = [r?.piece.usage ?? "", ...(r?.piece.also ?? []).map((a) => a.usage ?? "")].join(" ");
+  return [...new Set([...usage.matchAll(/import \{([^}]*)\}/g)].flatMap((m) => m[1]!.split(",").map((x) => x.trim().split(/\s+as\s+/)[0]!.trim())).filter((x) => /^[A-Z]\w*$/.test(x)))];
+}
+
 /** Adds an agent's or FlowCode's choice, replacing an earlier entry for the same page, section and ID. */
 export function recordEntry(m: CompositionManifest, e: ManifestEntry): CompositionManifest {
   const same = (x: ManifestEntry) => x.page === e.page && x.section === e.section && x.ref === e.ref;
@@ -119,7 +130,7 @@ export function recordEntry(m: CompositionManifest, e: ManifestEntry): Compositi
  * Selected or used: for each entry, whether its piece is in the app and which source files import it. A part named in
  * the plan that no file uses is visible as such, instead of counting as a success.
  */
-export function verifyManifest(root: string, m: CompositionManifest, at = new Date().toISOString()): CompositionManifest {
+export function verifyManifest(root: string, m: CompositionManifest, at = new Date().toISOString(), pageFiles: Record<string, string> = {}): CompositionManifest {
   const files: Array<{ rel: string; text: string }> = [];
   const walk = (dir: string, rel: string) => {
     let list: fs.Dirent[] = [];
@@ -140,8 +151,15 @@ export function verifyManifest(root: string, m: CompositionManifest, at = new Da
     entries: m.entries.map((e) => {
       const name = path.basename(e.appFile, ".tsx");
       const inApp = fs.existsSync(path.join(root, e.appFile));
-      const usedBy = files.filter((f) => new RegExp(`from ["'][./]*(?:\\.\\./)*sections/${name}["']`).test(f.text)).map((f) => f.rel);
-      return { ...e, verification: { inApp, usedBy, at } };
+      const importsIt = (text: string) => new RegExp(`from ["'][./]*(?:\\.\\./)*sections/${name}["']`).test(text);
+      const usedBy = files.filter((f) => importsIt(f.text)).map((f) => f.rel);
+      // On the page: its screen file imports the part, or renders one of the part's components (the starter kit
+      // re-exports some, so <EmptyState> from "../components/ui" counts; the kit importing it doesn't).
+      const pageFile = pageFiles[e.page];
+      const pageText = pageFile ? files.find((f) => f.rel === pageFile)?.text ?? "" : undefined;
+      const names = componentNames(e.ref);
+      const onPage = pageText === undefined ? undefined : importsIt(pageText) || names.some((n) => new RegExp(`<${n}[\\s/>.]`).test(pageText));
+      return { ...e, verification: { inApp, usedBy, onPage, at } };
     }),
   };
 }
@@ -164,8 +182,9 @@ export function recordChange(m: CompositionManifest, c: LayoutChange): Compositi
 export function lockedButMissing(m: CompositionManifest, pages: string[] | "all"): ManifestEntry[] {
   const changed = (e: ManifestEntry) => (m.changes ?? []).some((c) => c.page === e.page && c.section === e.section);
   // A section whose part the agent replaced has a newer entry by the coder; the plan's own entry then doesn't count.
-  const replaced = (e: ManifestEntry) => m.entries.some((x) => x !== e && x.by !== "plan" && x.page === e.page && x.section === e.section && !!x.verification?.usedBy.length);
-  return m.entries.filter((e) => e.by === "plan" && (pages === "all" || pages.includes(e.page)) && e.verification && !e.verification.usedBy.length && !changed(e) && !replaced(e));
+  const used = (e: ManifestEntry) => (e.verification?.onPage ?? e.verification?.usedBy.length ?? 0) ? true : false;
+  const replaced = (e: ManifestEntry) => m.entries.some((x) => x !== e && x.by !== "plan" && x.page === e.page && x.section === e.section && used(x));
+  return m.entries.filter((e) => e.by === "plan" && (pages === "all" || pages.includes(e.page)) && e.verification && !used(e) && !changed(e) && !replaced(e));
 }
 
 /** The manifest as the design steps read it: what each page is made of, and the gaps. */

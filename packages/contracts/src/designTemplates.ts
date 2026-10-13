@@ -6,7 +6,7 @@
  * Colour follows 60/30/10: neutrals for 60% (bg, surfaces), a secondary traced from the accent by a stated harmony for
  * 30% (supporting areas), and the accent for 10% (the main action, links, focus).
  */
-import { secondaryTokens, type HarmonyKind } from "./palette.js";
+import { secondaryTokens, warningOn, type HarmonyKind } from "./palette.js";
 
 export interface DesignTemplate {
   id: string;
@@ -343,6 +343,8 @@ export function templateTokens(t: DesignTemplate): Record<string, string> {
     "--color-on-accent": c.onAccent,
     "--color-focus": c.focus,
     "--color-success": c.success,
+    // Warning badges, alerts and progress use it; an amber that reads on this theme's surface.
+    "--color-warning": warningOn(c.surface, t.dark, c.bg),
     "--color-danger": c.danger,
     "--color-danger-surface": c.dangerSurface,
     ...secondaryTokens(c.secondary, t.dark ? "dark" : "light", { surface: c.surface, text: c.text }),

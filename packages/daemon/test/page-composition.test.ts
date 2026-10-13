@@ -120,3 +120,28 @@ describe("the Pages view", () => {
     void ws;
   });
 });
+
+describe("used on the page, and the release boundary", () => {
+  it("counts a part as used only when the page's own file uses it, not when the starter kit imports it", () => {
+    const { app } = makeApp();
+    const { ws } = makeProject(app, {
+      "src/sections/EmptyStates.tsx": "export function EmptyState() { return null; }\n",
+      "src/components/ui/index.tsx": 'export { EmptyState } from "../sections/EmptyStates";\n',
+      "src/screens/HomeScreen.tsx": "export default function Home() { return null; }\n",
+      "src/screens/DetailScreen.tsx": 'import { EmptyState } from "../components/ui";\nexport default function D() { return <EmptyState title="x" />; }\n',
+    });
+    const e1 = entryFor("c.empty-state", "Home", "Nothing yet", "plan")!;
+    const e2 = entryFor("c.empty-state", "Detail", "Missing", "plan")!;
+    const m = verifyManifest(ws, { entries: [e1, e2], gaps: [] }, undefined, { Home: "src/screens/HomeScreen.tsx", Detail: "src/screens/DetailScreen.tsx" });
+    expect(m.entries.map((e) => [e.page, e.verification?.usedBy.length, e.verification?.onPage])).toEqual([["Home", 1, false], ["Detail", 1, true]]);
+    expect(lockedButMissing(m, "all").map((e) => e.page)).toEqual(["Home"]);
+  });
+
+  it("tells the planners what this release leaves out", async () => {
+    const { releaseBoundary } = await import("../src/orchestrator/experienceMap.js");
+    const text = releaseBoundary([{ id: "a", title: "Filter by category", later: "Should have later" }, { id: "b", title: "Brand list" }] as never[]);
+    expect(text).toMatch(/^Not in this release/);
+    expect(text).toContain("- Filter by category");
+    expect(text).not.toContain("Brand list");
+  });
+});

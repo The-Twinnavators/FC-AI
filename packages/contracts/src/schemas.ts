@@ -321,11 +321,17 @@ export const Task = z.object({
 });
 export type Task = z.infer<typeof Task>;
 
+/** How much a PRD prototype builds: "complete" is the whole working app (frame, shared data, list, create, detail and
+ * approval pages from the app model); "sketch" is the main screens, designed. */
+export const BuildMode = z.enum(["complete", "sketch"]);
+export type BuildMode = z.infer<typeof BuildMode>;
+
 export const ExecutionStrategy = z.object({
   kind: z.enum(["template_build", "spec_build", "existing_repo_change", "debug", "research", "iterate"]),
   previewStrategy: PreviewStrategy,
   requiredChecks: z.array(VerificationKind),
   templateId: z.string().optional(),
+  buildMode: BuildMode.optional(),
 });
 export type ExecutionStrategy = z.infer<typeof ExecutionStrategy>;
 
@@ -436,6 +442,7 @@ export const CreateRunInput = z.object({
   constraints: z.array(z.string()).default([]),
   kind: ExecutionStrategy.shape.kind.optional(),
   templateId: z.string().optional(),
+  buildMode: BuildMode.optional(),
   parentRunId: z.string().optional(),
   origin: z.enum(["you", "flowcode"]).optional(),
   attachedKnowledgeIds: z.array(z.string()).default([]),

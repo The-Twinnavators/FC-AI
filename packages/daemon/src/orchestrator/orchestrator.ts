@@ -59,11 +59,13 @@ import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
+import { APP_STEPS, completeAppTasks, customPlanOf, screenPlanOf } from "./appFiles.js";
+import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
-import { EXPERIENCE_SCHEMA, EXPERIENCE_SYSTEM, JOURNEY_TESTS, coverageKey, journeyTestObjective, coverageMatrix, experienceKey, experienceNote, experienceRequest, parseExperienceMap, scopeDecisions, scopeKey, type ExperienceMap } from "./experienceMap.js";
+import { EXPERIENCE_SCHEMA, EXPERIENCE_SYSTEM, JOURNEY_TESTS, coverageKey, isCrossCutting, journeyTestObjective, releaseBoundary, requirementIdMapper, coverageMatrix, experienceKey, experienceNote, experienceRequest, parseExperienceMap, scopeDecisions, scopeKey, type ExperienceMap } from "./experienceMap.js";
 import { followUpFinished, needsHumanReview, openReview, type ReviewDeps } from "../quality/humanReview.js";
 import { compositionKey, entryFor, lockedButMissing, manifestFromBriefs, manifestNote, recordChange, recordEntry, verifyManifest, type CompositionManifest } from "./compositionManifest.js";
 import type { CompositionIssue } from "./pageTypes.js";
@@ -220,7 +222,7 @@ export class Orchestrator {
     const pfNow = this.d.projects.latestPreflight(project.id) ?? this.d.projects.preflight(project.id, run.id);
     const emptyWorkspace = pfNow.projectType === "incomplete" || pfNow.projectType === "unknown";
     const kind = input.kind ?? (refs.length && emptyWorkspace ? "spec_build" : undefined);
-    this.d.store.setSetting(`runInput:${run.id}`, { kind, templateId: input.templateId });
+    this.d.store.setSetting(`runInput:${run.id}`, { kind, templateId: input.templateId, ...(input.buildMode ? { buildMode: input.buildMode } : {}) });
     if (refs.length) {
       this.d.store.setSetting(`runRefs:${run.id}`, refs);
       const ids: string[] = [];
@@ -282,11 +284,11 @@ export class Orchestrator {
   }
 
   private chooseStrategy(run: Run, pf: PreflightRecord): ExecutionStrategy {
-    const input = this.d.store.getSetting<{ kind?: ExecutionStrategy["kind"]; templateId?: string }>(`runInput:${run.id}`, {});
+    const input = this.d.store.getSetting<{ kind?: ExecutionStrategy["kind"]; templateId?: string; buildMode?: ExecutionStrategy["buildMode"] }>(`runInput:${run.id}`, {});
     return prototypeChecks(this.strategyFor(run, pf, input));
   }
 
-  private strategyFor(run: Run, pf: PreflightRecord, input: { kind?: ExecutionStrategy["kind"]; templateId?: string }): ExecutionStrategy {
+  private strategyFor(run: Run, pf: PreflightRecord, input: { kind?: ExecutionStrategy["kind"]; templateId?: string; buildMode?: ExecutionStrategy["buildMode"] }): ExecutionStrategy {
     const kind: ExecutionStrategy["kind"] =
       input.kind ?? (input.templateId ? "template_build" : run.parentRunId ? "iterate" : /\b(fix|error|failing|fails|bug|broken|crash|exception)\b/i.test(run.objective) ? "debug" : "existing_repo_change");
     const scriptChecks: VerificationKind[] = [];
@@ -298,7 +300,10 @@ export class Orchestrator {
     if (kind === "spec_build") {
       const refs = this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []);
       const starter = starterOf(input.templateId);
-      return { kind, templateId: starter.id, previewStrategy: starter.starter.framework === "Angular" ? "angular_dev" : "vite_dev", requiredChecks: specRequiredChecks(refs, starter.id) };
+      // A PRD prototype is the complete working app unless a sketch was asked for (React: the app patterns are React).
+      const react = starter.starter.framework === "React";
+      const buildMode = react && refs.some((r) => r.role === "prd") ? (input.buildMode ?? "complete") : "sketch";
+      return { kind, templateId: starter.id, previewStrategy: react ? "vite_dev" : "angular_dev", requiredChecks: specRequiredChecks(refs, starter.id), buildMode };
     }
     if (kind === "template_build") {
       const t = TEMPLATES[input.templateId ?? "react-vite-scheduler"];
@@ -406,7 +411,7 @@ export class Orchestrator {
       // A step that only reads is folded into the step that uses what it read: on its own it could never pass.
       {
         const tpl = this.d.store.runs.require(runId).strategy?.templateId;
-        const f = foldReadOnlySteps(plan.tasks, (t) => !!((tpl && TEMPLATES[tpl]?.runtimeSteps[t.title]) || UPGRADE_STEPS[t.title] || LAYOUT_STEPS[t.title] || SECTION_STEPS[t.title]));
+        const f = foldReadOnlySteps(plan.tasks, (t) => !!((tpl && TEMPLATES[tpl]?.runtimeSteps[t.title]) || UPGRADE_STEPS[t.title] || LAYOUT_STEPS[t.title] || SECTION_STEPS[t.title] || APP_STEPS[t.title]));
         if (f.folded.length) {
           plan.tasks = f.tasks;
           this.d.bus.emit({ type: "plan.proposed", projectId: project.id, runId, message: `Folded ${f.folded.length} reading-only step(s) into the step that uses what they read: ${f.folded.map((x) => `"${x}"`).join(", ")}` });
@@ -769,13 +774,20 @@ export class Orchestrator {
    * the screen as ordered sections built from its matched catalog parts. One planner call; the design steps get the
    * briefs as their target and the visual review judges against them. Without briefs the plan stands as it was.
    */
-  private async withScreenBriefs(run: Run, tasks0: PlanTask[], screens: ScreenPlan | undefined, signal: AbortSignal, scope: { requirements?: Requirement[]; items?: PlanItem[] } = {}): Promise<PlanTask[]> {
+  private async withScreenBriefs(run: Run, tasks0: PlanTask[], screens: ScreenPlan | undefined, signal: AbortSignal, scope: { requirements?: Requirement[]; items?: PlanItem[]; designScreens?: ScreenPlan } = {}): Promise<PlanTask[]> {
     if (!screens?.screens.length || !tasks0.some((t) => t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH)) return tasks0;
     const ev = { projectId: run.projectId, runId: run.id };
     const prdAll = prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []));
     const prd = prdForBrief(prdAll);
     const manifest = this.catalogManifestOf(run);
-    const map = await this.experienceMapFor(run, screens, prd, scope.requirements ?? [], signal);
+    // The journeys are mapped to what the build codes (features, not the pages-wide rules or the notes for people), and
+    // the IDs the planner cites are read as FlowCode's even when the PRD numbers its own features the same way.
+    const all = scope.requirements ?? [];
+    const coded = scope.items ? all.filter((r) => !isCrossCutting(r) && scope.items!.some((i) => i.covers.includes(r.id) && i.executionType === "code" && !i.later)) : all;
+    const mapId = requirementIdMapper(all, coded.map((r) => r.id));
+    // What this release leaves out: no journey or page section is planned for it.
+    const boundary = scope.items ? releaseBoundary(scope.items) : "";
+    const map = await this.experienceMapFor(run, screens, prd, coded, signal, mapId, boundary);
     const journeys = map ? experienceNote(map) : "";
     // The coverage matrix and the scope decisions: only when the checklist placed every requirement (planChecklist).
     if (scope.items && scope.requirements?.length) {
@@ -806,6 +818,9 @@ export class Orchestrator {
               : t,
         )
       : tasks0;
+    // The pages the design steps compose (a complete app's custom pages); with none, the journeys are the whole note.
+    const designed = scope.designScreens ?? screens;
+    if (!designed.screens.length) return tasks;
     let briefs: ReturnType<typeof parseScreenBriefs> = [];
     const dropped: Array<{ page: string; section: string; part: string }> = [];
     const issues: CompositionIssue[] = [];
@@ -813,13 +828,13 @@ export class Orchestrator {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, {
         messages: [
           { role: "system", content: SCREEN_BRIEF_SYSTEM },
-          { role: "user", content: untrusted("screen-brief", briefRequest(run.objective, prd, screens, manifest, journeys)) },
+          { role: "user", content: untrusted("screen-brief", briefRequest(run.objective, prd, designed, manifest, [boundary, journeys].filter(Boolean).join("\n\n"))) },
         ],
         format: SCREEN_BRIEF_SCHEMA,
         timeoutMs: 180_000,
         signal,
       });
-      briefs = parseScreenBriefs(JSON.parse(extractJson(res.content)), screens, manifest, dropped, issues);
+      briefs = parseScreenBriefs(JSON.parse(extractJson(res.content)), designed, manifest, dropped, issues).map((b) => ({ ...b, acceptance: [...new Set((b.acceptance ?? []).flatMap(mapId))] }));
     } catch (err) {
       if (signal.aborted) throw err;
     }
@@ -842,20 +857,20 @@ export class Orchestrator {
    * The experience map (experienceMap.ts): roles, user journeys across the planned screens, data and permissions, from
    * one planner call. Stored per run and announced; a map with no usable journey is reported, not invented.
    */
-  private async experienceMapFor(run: Run, screens: ScreenPlan, prd: string, requirements: Requirement[], signal: AbortSignal): Promise<ExperienceMap | undefined> {
+  private async experienceMapFor(run: Run, screens: ScreenPlan, prd: string, requirements: Requirement[], signal: AbortSignal, mapId?: (cited: string) => string[], boundary = ""): Promise<ExperienceMap | undefined> {
     const ev = { projectId: run.projectId, runId: run.id };
     let map: ExperienceMap | undefined;
     try {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, {
         messages: [
           { role: "system", content: EXPERIENCE_SYSTEM },
-          { role: "user", content: untrusted("experience-map", experienceRequest(run.objective, prd, screens, requirements)) },
+          { role: "user", content: untrusted("experience-map", experienceRequest(run.objective, prd, screens, requirements, boundary)) },
         ],
         format: EXPERIENCE_SCHEMA,
         timeoutMs: 180_000,
         signal,
       });
-      map = parseExperienceMap(JSON.parse(extractJson(res.content)), screens, requirements.map((r) => r.id));
+      map = parseExperienceMap(JSON.parse(extractJson(res.content)), screens, requirements.map((r) => r.id), mapId);
     } catch (err) {
       if (signal.aborted) throw err;
     }
@@ -927,6 +942,44 @@ export class Orchestrator {
    * screen files, and FlowCode writes the layout step itself (NOBIO build: five names for one screen, and a layout step
    * that read for three attempts and stopped). Undefined when the planner names none; the layout step then decides.
    */
+  /**
+   * The app model (appModel.ts): the records, their statuses and status changes by role, sample data and the whole
+   * navigation, from one planner call (a second, warmer one when the first isn't usable). Undefined when neither is:
+   * the build then designs its main screens the usual way, and says so.
+   */
+  private async decideAppModel(run: Run, requirements: Requirement[], boundary: string, signal: AbortSignal): Promise<AppModel | undefined> {
+    const ev = { projectId: run.projectId, runId: run.id };
+    const prd = prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []));
+    let problems: string[] = [];
+    for (const temperature of [0.2, 0.4]) {
+      try {
+        const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
+          messages: [
+            { role: "system", content: APP_MODEL_SYSTEM },
+            { role: "user", content: untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary)) },
+          ],
+          format: APP_MODEL_SCHEMA,
+          timeoutMs: 300_000,
+          signal,
+        });
+        const got = parseAppModel(JSON.parse(extractJson(res.content)));
+        problems = got.problems;
+        const model = got.model;
+        if (model) {
+          this.d.store.setSetting(appModelKey(run.id), model);
+          const views = model.nav.flatMap((g) => g.items);
+          this.d.bus.emit({ ...ev, type: "plan.proposed", message: `The app model: ${model.product}, ${model.entities.map((e) => `${e.plural} (${e.fields.length} fields, ${(model.seed[e.key] ?? []).length} sample records)`).join(", ")}; roles ${model.roles.join(", ")}; ${views.length} destinations, ${views.filter((v) => v.kind !== "placeholder").length} working pages${problems.length ? `. Corrected: ${problems.slice(0, 6).join("; ")}` : ""}`, data: { appModel: model } });
+          return model;
+        }
+      } catch (err) {
+        if (signal.aborted) throw err;
+        problems = [(err as Error).message.slice(0, 200)];
+      }
+    }
+    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `The app model wasn't usable (${problems.slice(0, 3).join("; ")}); this build designs its main screens instead of writing the complete app`, level: "warning" });
+    return undefined;
+  }
+
   private async decideScreens(run: Run, requirements: string, signal: AbortSignal): Promise<ScreenPlan | undefined> {
     const ev = { projectId: run.projectId, runId: run.id };
     let plan: ScreenPlan | undefined;
@@ -968,7 +1021,10 @@ export class Orchestrator {
     const filledIn: string[] = [];
     // Only feature sections go to the planner; goals, user stories, sprint plans, non-goals and open decisions are placed here.
     const bySection = placeBySection(requirements, cfg);
-    const screenPlan = react ? await this.decideScreens(run, requirements.slice(0, 80).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 220)}`).join("\n"), signal) : undefined;
+    // A complete app: its data, roles and navigation first (the app model); its pages are the screens every step uses.
+    const app = react && run.strategy?.buildMode === "complete" ? await this.decideAppModel(run, requirements, releaseBoundary(bySection.items), signal) : undefined;
+    const screenPlan = app ? screenPlanOf(app) : react ? await this.decideScreens(run, requirements.slice(0, 80).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 220)}`).join("\n"), signal) : undefined;
+    if (app && screenPlan) this.d.store.setSetting(screenPlanKey(run.id), screenPlan);
     // A batch becomes a build step, so batching by screen makes each step one finished journey rather than one
     // PRD section - which is how "Ensure Accessibility Compliance" became a step of its own, run after the
     // screens it was meant to apply to.
@@ -976,7 +1032,7 @@ export class Orchestrator {
     // Each part is planned on its own, so every part also sees the PRD's functional requirements: its tests must agree
     // with them (Calculator test 3: the numeric-accuracy part expected "Infinity" for 1 ÷ 0, against F7's message).
     const core = requirements.filter((r) => /functional requirements?|features?$/i.test(r.section) && !/non-functional/i.test(r.section)).slice(0, 30);
-    const product = `Product request (summary):\n${untrusted("request", run.objective.slice(0, 1200))}\nScreens are already designed by an earlier step (one component per main screen in ${react ? "src/screens/" : "src/app/"}, with sample data); each task adds its feature into that design: name the screen file it works on.${screenPlan ? `\n${screenPlanNote(screenPlan)}` : ""}${core.length ? `\nThe PRD's functional requirements, for consistency (other parts may plan them; your tests must agree with them):\n${untrusted("functional-requirements", core.map((r) => `${r.id}: ${r.text}`).join("\n"))}` : ""}`;
+    const product = `Product request (summary):\n${untrusted("request", run.objective.slice(0, 1200))}\n${app ? `The app is already written and working before any feature step: its records, store, frame and pages (lists, the create wizard, record pages with status changes by role, the dashboard). Each task adds its feature into those pages and the same store, and names the screen file it works on; it never rebuilds a working page or keeps its own copy of the data.\n${appModelNote(app)}` : `Screens are already designed by an earlier step (one component per main screen in ${react ? "src/screens/" : "src/app/"}, with sample data); each task adds its feature into that design: name the screen file it works on.`}${screenPlan ? `\n${screenPlanNote(screenPlan)}` : ""}${core.length ? `\nThe PRD's functional requirements, for consistency (other parts may plan them; your tests must agree with them):\n${untrusted("functional-requirements", core.map((r) => `${r.id}: ${r.text}`).join("\n"))}` : ""}`;
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Writing the prototype plan from ${requirements.length} PRD requirements: ${bySection.features.length} describe features (planned in ${batches.length} part${batches.length === 1 ? "" : "s"}, ${screenPlan?.screens.length ? "one screen each" : "one section each"}) and become build steps; ${bySection.items.length} are goals, restated stories, plans, decisions or later ideas, placed for a person to check` });
     const ask = async (part: Requirement[], label: string, temperature: number) => {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
@@ -1044,7 +1100,12 @@ export class Orchestrator {
       riskNotes: ["Dependency installation (npm install) runs package lifecycle scripts and uses the network"],
       validationPlan: specRequiredChecks(refs, templateId),
       rollbackStrategy: "Every file change is snapshotted; restore the 'Plan approved' checkpoint to return to an empty workspace.",
-      tasks: await this.withScreenBriefs(run, this.withScreenPicks(run, [...fixed, ...features, polish, cleanup, assemble], screenPlan), screenPlan, signal, { requirements, items: plan.items }),
+      tasks: await (async () => {
+        // A complete app's working pages are the library's patterns: only its custom pages get catalog picks and briefs.
+        const design = app ? customPlanOf(app) : screenPlan;
+        const steps = [...fixed, ...features, polish, cleanup, assemble];
+        return this.withScreenBriefs(run, this.withScreenPicks(run, app ? completeAppTasks(steps, app) : steps, design), screenPlan, signal, { requirements, items: plan.items, designScreens: design });
+      })(),
     };
   }
 
@@ -1273,7 +1334,7 @@ export class Orchestrator {
    */
   private async splitStep(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>, signal: AbortSignal): Promise<boolean> {
     if (task.role !== "coder" || this.d.store.getSetting(`splitPart:${task.id}`, false)) return false;
-    const runtime = (!!run.strategy?.templateId && task.title in (TEMPLATES[run.strategy.templateId]?.runtimeSteps ?? {})) || task.title in UPGRADE_STEPS || task.title in LAYOUT_STEPS || task.title in SECTION_STEPS;
+    const runtime = (!!run.strategy?.templateId && task.title in (TEMPLATES[run.strategy.templateId]?.runtimeSteps ?? {})) || task.title in UPGRADE_STEPS || task.title in LAYOUT_STEPS || task.title in SECTION_STEPS || task.title in APP_STEPS;
     if (runtime) return false;
     const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
     const files = listTree(jail, "src", 4, 200).children ?? [];
@@ -1570,7 +1631,7 @@ export class Orchestrator {
       const reqs = prd ? extractRequirements(prd.content, 600).slice(0, 80).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 220)}`).join("\n") : "";
       plannedScreens = await this.decideScreens(run, reqs, signal);
     }
-    const runtimeStep = (run.strategy?.templateId && TEMPLATES[run.strategy.templateId]?.runtimeSteps[task.title]) || UPGRADE_STEPS[task.title] || LAYOUT_STEPS[task.title] || SECTION_STEPS[task.title] || (writesLayout(plannedScreens, jail) ? layoutStep(plannedScreens) : undefined);
+    const runtimeStep = (run.strategy?.templateId && TEMPLATES[run.strategy.templateId]?.runtimeSteps[task.title]) || UPGRADE_STEPS[task.title] || LAYOUT_STEPS[task.title] || SECTION_STEPS[task.title] || APP_STEPS[task.title] || (writesLayout(plannedScreens, jail) ? layoutStep(plannedScreens) : undefined);
     let outcome: AgentOutcome;
     const changed = new Set<string>(task.actualPaths);
     if (runtimeStep) {
@@ -1783,15 +1844,21 @@ export class Orchestrator {
       this.d.bus.emit({ ...ev, type: "verification.completed", message: look ? `Look check on "${task.title}": ${look.length ? `${serious.length} serious, ${look.length - serious.length} minor` : "looks right"}` : `Look check skipped for "${task.title}" (preview not available yet)`, level: serious.length ? "warning" : "info" });
     }
     const composition = this.d.store.getSetting<CompositionManifest | undefined>(compositionKey(run.id), undefined);
-    if (composition && [DESIGN_SCREENS, DESIGN_POLISH].some((d) => task.title === d || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === d)) {
-      const checked = verifyManifest(jail.root, composition);
+    const planScreens = this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? [];
+    const parentTitle = this.d.store.getSetting<string>(`splitParent:${task.id}`, "");
+    const designPass = [DESIGN_SCREENS, DESIGN_POLISH].some((d) => task.title === d || parentTitle === d);
+    // Any step that changed a planned page's file is held to the page plan too: a feature step rewrote Build test 7's
+    // Home down to its list, and only design steps were checked.
+    const touchedPages = planScreens.filter((p) => [...changed].some((c) => c.split("\\").join("/") === p.file)).map((p) => p.label);
+    if (composition && (designPass || touchedPages.length)) {
+      const checked = verifyManifest(jail.root, composition, undefined, Object.fromEntries(planScreens.map((p) => [p.label, p.file])));
       this.d.store.setSetting(compositionKey(run.id), checked);
-      const unused = checked.entries.filter((e) => !e.verification?.usedBy.length);
+      const unused = checked.entries.filter((e) => !(e.verification?.onPage ?? e.verification?.usedBy.length));
       // The layout lock: planned sections this step owns must be built with their parts, or changed on the record.
-      const parentTitle = this.d.store.getSetting<string>(`splitParent:${task.id}`, "");
       const whole = task.title === DESIGN_POLISH || parentTitle === DESIGN_POLISH || (task.title === DESIGN_SCREENS && !parentTitle);
-      const planScreens = this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? [];
-      const mine = whole ? ("all" as const) : planScreens.filter((p) => task.expectedPaths.some((x) => x.replace(/\\/g, "/") === p.file)).map((p) => p.label);
+      // A step owns the pages it changed, and a design part also the pages whose files it lists or its title names.
+      const named = designPass ? planScreens.filter((p) => task.expectedPaths.some((x) => x.split("\\").join("/") === p.file) || task.title.toLowerCase().includes(p.label.toLowerCase())).map((p) => p.label) : [];
+      const mine = whole ? ("all" as const) : [...new Set([...named, ...touchedPages])];
       const missing = lockedButMissing(checked, mine);
       if (missing.length) {
         verdict = {

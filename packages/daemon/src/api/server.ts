@@ -811,6 +811,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
         starter: z.enum(["react", "angular"]).default("react"),
         /** Who writes the code: the local coder model (default) or the cloud coder set up on the Models page. */
         coder: z.enum(["local", "cloud"]).default("local"),
+        /** With a PRD: the complete working app (default) or a quick sketch of the main screens. */
+        buildMode: C.BuildMode.optional(),
         /** New build → Look and feel: a visual style (when the PRD sets none) and extras to build. */
         look: z
           .object({
@@ -835,7 +837,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     app.projects.updateSettings(project.id, { autonomy: b.autonomy, ...(cloud ? { allowHostedModels: true } : {}) });
     const pf = app.projects.preflight(project.id);
     const empty = pf.projectType === "incomplete" || pf.projectType === "unknown";
-    const run = app.orchestrator.createRun({ projectId: project.id, objective: b.description, kind: empty ? "spec_build" : undefined, ...(empty && b.starter === "angular" ? { templateId: "angular-starter" } : {}), references: b.references, constraints: [], attachedKnowledgeIds: [], ...(cloud ? { modelAssignments: { planner: { ...cloud.assignment, temperature: 0.2 }, coder: cloud.assignment, debugger: cloud.assignment } } : {}) });
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: b.description, kind: empty ? "spec_build" : undefined, ...(empty && b.starter === "angular" ? { templateId: "angular-starter" } : {}), references: b.references, ...(b.buildMode ? { buildMode: b.buildMode } : {}), constraints: [], attachedKnowledgeIds: [], ...(cloud ? { modelAssignments: { planner: { ...cloud.assignment, temperature: 0.2 }, coder: cloud.assignment, debugger: cloud.assignment } } : {}) });
     if (b.look) app.store.setSetting(`runLook:${run.id}`, b.look);
     void app.orchestrator.plan(run.id).catch(() => undefined);
     return { project, run, quality };

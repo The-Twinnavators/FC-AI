@@ -103,3 +103,20 @@ describe("60/30/10: secondary colours traced from the accent", () => {
     }
   });
 });
+
+describe("the warning colour", () => {
+  it("is a real token in both starters and in every theme, readable on its surface and page", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const { templatesRoot } = await import("../src/orchestrator/templates.js");
+    for (const s of ["react-vite-starter", "angular-starter"]) {
+      const css = fs.readFileSync(path.join(templatesRoot(), s, "src/styles/tokens.css"), "utf8");
+      expect(css.match(/--color-warning:/g)?.length, s).toBe(2);
+    }
+    for (const t of DESIGN_TEMPLATES) {
+      const w = templateTokens(t)["--color-warning"]!;
+      expect(w, t.id).toMatch(/^#[0-9a-f]{6}$/);
+      expect(Math.min(contrastRatio(w, t.colors.surface)!, contrastRatio(w, t.colors.bg)!), t.id).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+});
