@@ -67,7 +67,7 @@ import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } 
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
 import { EXPERIENCE_SCHEMA, EXPERIENCE_SYSTEM, JOURNEY_TESTS, coverageKey, isCrossCutting, journeyTestObjective, releaseBoundary, requirementIdMapper, coverageMatrix, experienceKey, experienceNote, experienceRequest, parseExperienceMap, scopeDecisions, scopeKey, type ExperienceMap } from "./experienceMap.js";
 import { followUpFinished, needsHumanReview, openReview, type ReviewDeps } from "../quality/humanReview.js";
-import { compositionKey, entryFor, lockedButMissing, manifestFromBriefs, manifestNote, recordChange, recordEntry, verifyManifest, type CompositionManifest } from "./compositionManifest.js";
+import { compositionKey, entryFor, lockedButMissing, sectionNamedBy, manifestFromBriefs, manifestNote, recordChange, recordEntry, verifyManifest, type CompositionManifest } from "./compositionManifest.js";
 import type { CompositionIssue } from "./pageTypes.js";
 import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBriefs, prdForBrief, screenBriefKey, screenBriefNote } from "./screenBrief.js";
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
@@ -1874,7 +1874,11 @@ export class Orchestrator {
       // A step owns the pages it changed, and a design part also the pages whose files it lists or its title names.
       const named = designPass ? planScreens.filter((p) => task.expectedPaths.some((x) => x.split("\\").join("/") === p.file) || task.title.toLowerCase().includes(p.label.toLowerCase())).map((p) => p.label) : [];
       const mine = whole ? ("all" as const) : [...new Set([...named, ...touchedPages])];
-      const missing = lockedButMissing(checked, mine);
+      // A step that isn't the whole design pass is held to the sections its title names; a section that was built
+      // before and is now gone is always caught. Clean Cart: "Compose the Home hero" was held to How it works and Why you
+      // can trust it, sections of later steps, and stopped after 30 turns.
+      const builtBefore = new Set(composition.entries.filter((e) => e.verification?.onPage).map((e) => `${e.page}|${e.section}`));
+      const missing = lockedButMissing(checked, mine).filter((e) => whole || builtBefore.has(`${e.page}|${e.section}`) || sectionNamedBy(e.section, task.title));
       if (missing.length) {
         verdict = {
           ...verdict,

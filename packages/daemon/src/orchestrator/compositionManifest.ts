@@ -204,3 +204,20 @@ export function manifestNote(m: CompositionManifest): string {
     ),
   ].join("\n");
 }
+
+const STOP = new Set(["the", "and", "with", "this", "that", "from", "your", "into", "for", "its", "page", "section", "home"]);
+/** A word's simple stem, so "categories" meets "category" and "liked" meets "liked". */
+const stem = (w: string) => w.replace(/ies$/, "y").replace(/s$/, "");
+const words = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ").filter((w) => w.length > 2 && !STOP.has(w)).map(stem);
+
+/**
+ * Whether a step's title names a planned section ("Add How it works and Why you can trust it to Home" names "How it
+ * works"): at least half of the section's own words appear in it. A design step split into parts all touch the same
+ * page file; each part is held only to the sections it names, and the whole page is checked by Design polish.
+ */
+export function sectionNamedBy(section: string, title: string): boolean {
+  const own = words(section);
+  if (!own.length) return false;
+  const have = new Set(words(title));
+  return own.filter((w) => have.has(w)).length * 2 >= own.length;
+}
