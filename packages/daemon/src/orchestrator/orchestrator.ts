@@ -2352,6 +2352,24 @@ export class Orchestrator {
     return this.start(runId);
   }
 
+  /**
+   * The build's models were switched while a step was running: the attempt in progress stops and the build continues
+   * at once on the new models (Clean Cart: switched to the cloud while a local model took three minutes a reply, and
+   * nothing changed until that attempt ended). Like a daemon restart for this one build; nothing is lost but the
+   * attempt in progress, whose changes stay and are checked again.
+   */
+  async restartWithNewModels(runId: string): Promise<boolean> {
+    const ctrl = this.active.get(runId);
+    if (!ctrl) return false;
+    const run = this.d.store.runs.require(runId);
+    this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: "Stopping the attempt in progress so the new models take over now" });
+    ctrl.abort(new Error("The build's models were switched"));
+    for (let i = 0; i < 120 && this.active.has(runId); i++) await new Promise((r) => setTimeout(r, 500));
+    if (this.active.has(runId)) return false;
+    this.resume(runId);
+    return true;
+  }
+
   retryTask(runId: string, taskId: string, guidance?: string): Run {
     const run = this.d.store.runs.require(runId);
     if (TERMINAL_RUN_STATUSES.includes(run.status) && run.status !== "failed") throw new Error(`Run is ${run.status}`);

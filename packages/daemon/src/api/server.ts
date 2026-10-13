@@ -870,7 +870,9 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       next = { ...run.modelAssignments, planner: local.planner, coder: local.coder, debugger: local.debugger };
     }
     const updated = app.store.runs.upsert({ ...run, modelAssignments: next });
-    app.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: `The rest of this build is planned and coded by ${next.coder?.model} (${coder === "cloud" ? "cloud model" : "local models"}), as you chose` });
+    app.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: `This build is now planned and coded by ${next.coder?.model} (${coder === "cloud" ? "cloud model" : "local models"}), as you chose` });
+    // A step in progress switches now, not at its next attempt.
+    void app.orchestrator.restartWithNewModels(run.id).catch(() => undefined);
     return updated;
   });
   add("POST /runs/:id/pause", ({ params }) => app.orchestrator.pauseRun(params.id, true));

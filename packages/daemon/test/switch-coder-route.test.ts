@@ -27,3 +27,23 @@ describe("switching a build to local models", () => {
     }
   });
 });
+
+describe("switching models while a step runs", () => {
+  it("stops the attempt in progress and resumes the build at once on the new models", async () => {
+    const { app } = makeApp();
+    const { project } = makeProject(app);
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Clean Cart", constraints: [], attachedKnowledgeIds: [] });
+    const orch = app.orchestrator as unknown as { active: Map<string, AbortController>; resume: (id: string) => unknown };
+    const ctrl = new AbortController();
+    // The work loop ends when its attempt is aborted (as execute() does).
+    ctrl.signal.addEventListener("abort", () => setTimeout(() => orch.active.delete(run.id), 20));
+    orch.active.set(run.id, ctrl);
+    const resumed: string[] = [];
+    orch.resume = (id: string) => (resumed.push(id), undefined);
+    expect(await app.orchestrator.restartWithNewModels(run.id)).toBe(true);
+    expect(ctrl.signal.aborted).toBe(true);
+    expect(resumed).toEqual([run.id]);
+    // Nothing running: nothing to restart.
+    expect(await app.orchestrator.restartWithNewModels(run.id)).toBe(false);
+  });
+});
