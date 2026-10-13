@@ -19,6 +19,7 @@ interface Item {
   route?: string;
   steps?: string[];
   files: string[];
+  changes?: string[];
   decision: Decision;
   note: string;
   draft: string;
@@ -174,6 +175,14 @@ export function SignOff({ runId, projectId, checks, onChanged }: { runId: string
                         </li>
                       ))}
                     </ul>
+                  </dd>
+                </>
+              ) : null}
+              {item.changes?.length ? (
+                <>
+                  <dt>Changed from the plan</dt>
+                  <dd>
+                    <ul className="signoff__checks">{item.changes.map((c) => <li key={c}>{c}</li>)}</ul>
                   </dd>
                 </>
               ) : null}

@@ -6,7 +6,7 @@
  * could add a part, never look one up (the planner, designer and critic had no way in at all).
  */
 import path from "node:path";
-import { LIBRARY_SECTIONS, levelOf, usedBy, versionsOf, type LibraryLevel, type LibrarySection } from "@flowcode/contracts";
+import { LIBRARY_SECTIONS, levelOf, relationsOf, usedBy, versionsOf, type LibraryLevel, type LibrarySection, type PieceRelations } from "@flowcode/contracts";
 import { fit, intent } from "./screenPicks.js";
 import { pieceImport, sectionFile } from "./sectionRecipes.js";
 
@@ -74,6 +74,8 @@ export interface CatalogContract {
   jobs: string[];
   /** A reference sheet showing every state: browse it, never place it as a screen. */
   referenceSheet: boolean;
+  /** Where it may appear, what it gives a page, what it needs and when to avoid it (contracts catalogRelations.ts). */
+  relations: PieceRelations;
   /** What the catalog does not record for this part yet (states, required content, composition rules): say so, don't invent it. */
   notRecorded: string[];
 }
@@ -104,7 +106,8 @@ export function catalogContract(id: string): CatalogContract | undefined {
     useCases: p.useCases ?? [],
     jobs: p.jobs ?? [],
     referenceSheet: !!p.specimen,
-    notRecorded: ["typed props beyond the usage line", "states (see look)", "required content", "composition rules beyond builtFrom"],
+    relations: relationsOf(r.ref),
+    notRecorded: ["typed props beyond the usage line", "states (see look)"],
   };
 }
 
@@ -125,6 +128,10 @@ export function contractText(c: CatalogContract): string {
     c.tokens.length ? `Styled by tokens: ${c.tokens.join(" ")} (change the look through these, never by restyling the part)` : "",
     c.useCases.length ? `Use cases: ${c.useCases.join("; ")}` : "",
     c.jobs.length ? `Jobs: ${c.jobs.join("; ")}` : "",
+    `Belongs on: ${c.relations.contexts.map((x) => (x === "app" ? "app screens" : "marketing pages")).join(" and ")}`,
+    c.relations.provides.length ? `Gives a page: ${c.relations.provides.join(", ")}` : "",
+    c.relations.requires.length ? `Needs: ${c.relations.requires.join("; ")}` : "",
+    c.relations.avoidWhen.length ? `Avoid when: ${c.relations.avoidWhen.join("; ")}` : "",
     c.referenceSheet ? "This entry's file is a reference sheet of every state: use the component it exports (see Use it as), never the sheet itself as a screen." : "",
     `Not recorded in the catalog: ${c.notRecorded.join("; ")}.`,
   ]

@@ -15,6 +15,7 @@ import type { App } from "../app.js";
 
 /** What the review needs: the store, the projects (for the files) and the orchestrator (for a follow-up build). */
 export type ReviewDeps = Pick<App, "store" | "projects" | "orchestrator">;
+import { compositionKey, type CompositionManifest } from "../orchestrator/compositionManifest.js";
 import { experienceKey, type ExperienceMap } from "../orchestrator/experienceMap.js";
 import { screenBriefKey, type ScreenBrief } from "../orchestrator/screenBrief.js";
 import { screenPlanKey, type ScreenPlan } from "../orchestrator/screenPlan.js";
@@ -33,6 +34,8 @@ export interface ReviewItem {
   /** For a journey: its steps, as the person reads them. */
   steps?: string[];
   files: string[];
+  /** Changes the build made to this page's planned structure, with their reasons (the layout lock). */
+  changes?: string[];
   decision: ReviewDecision;
   /** The note sent with the decision. */
   note: string;
@@ -117,9 +120,11 @@ export function openReview(app: ReviewDeps, run: Run): RunReview | undefined {
   const root = app.projects.jail(app.store.projects.require(run.projectId)).root;
   const briefs = app.store.getSetting<ScreenBrief[]>(screenBriefKey(run.id), []);
   const map = app.store.getSetting<ExperienceMap | null>(experienceKey(run.id), null);
+  const comp = app.store.getSetting<CompositionManifest | null>(compositionKey(run.id), null);
+  const changesOf = (page: string) => (comp?.changes ?? []).filter((c) => c.page === page).map((c) => `${c.change === "remove" ? "Left out" : c.change === "replace" ? "Swapped" : "Added"} "${c.section}"${c.ref ? ` (${c.ref})` : ""}: ${c.why}`);
   const pages: ReviewItem[] = plan.screens.map((s) => {
     const b = briefs.find((x) => x.screen === s.label);
-    return { id: `page:${s.id}`, kind: "page", name: s.label, purpose: b?.goal ? `${b.who ? `${b.who}: ` : ""}${b.goal}` : s.purpose, route: `#/${s.id}`, files: pageFiles(root, s.file), decision: "pending", note: "", draft: "", history: [] };
+    return { id: `page:${s.id}`, kind: "page", name: s.label, purpose: b?.goal ? `${b.who ? `${b.who}: ` : ""}${b.goal}` : s.purpose, route: `#/${s.id}`, files: pageFiles(root, s.file), changes: changesOf(s.label), decision: "pending", note: "", draft: "", history: [] };
   });
   const flows: ReviewItem[] = (map?.workflows ?? []).map((w) => {
     const screens = [...new Set([w.entry, ...w.steps.map((x) => x.screen)])];

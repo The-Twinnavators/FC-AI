@@ -65,7 +65,8 @@ import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } 
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
 import { EXPERIENCE_SCHEMA, EXPERIENCE_SYSTEM, JOURNEY_TESTS, coverageKey, journeyTestObjective, coverageMatrix, experienceKey, experienceNote, experienceRequest, parseExperienceMap, scopeDecisions, scopeKey, type ExperienceMap } from "./experienceMap.js";
 import { followUpFinished, needsHumanReview, openReview, type ReviewDeps } from "../quality/humanReview.js";
-import { compositionKey, entryFor, manifestFromBriefs, manifestNote, recordEntry, verifyManifest, type CompositionManifest } from "./compositionManifest.js";
+import { compositionKey, entryFor, lockedButMissing, manifestFromBriefs, manifestNote, recordChange, recordEntry, verifyManifest, type CompositionManifest } from "./compositionManifest.js";
+import type { CompositionIssue } from "./pageTypes.js";
 import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBriefs, prdForBrief, screenBriefKey, screenBriefNote } from "./screenBrief.js";
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
@@ -807,6 +808,7 @@ export class Orchestrator {
       : tasks0;
     let briefs: ReturnType<typeof parseScreenBriefs> = [];
     const dropped: Array<{ page: string; section: string; part: string }> = [];
+    const issues: CompositionIssue[] = [];
     try {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, {
         messages: [
@@ -817,7 +819,7 @@ export class Orchestrator {
         timeoutMs: 180_000,
         signal,
       });
-      briefs = parseScreenBriefs(JSON.parse(extractJson(res.content)), screens, manifest, dropped);
+      briefs = parseScreenBriefs(JSON.parse(extractJson(res.content)), screens, manifest, dropped, issues);
     } catch (err) {
       if (signal.aborted) throw err;
     }
@@ -828,7 +830,8 @@ export class Orchestrator {
     this.d.store.setSetting(screenBriefKey(run.id), briefs);
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Screen briefs: ${briefs.map((b) => `${b.screen}: first view "${b.firstView.slice(0, 90)}", ${b.sections.length} sections (${b.sections.map((x) => x.part || x.title).join(", ")})`).join("; ")}`, data: { briefs } });
     // The composition manifest: what each page is built from, by catalog ID, and the sections no catalog part fits.
-    const composition = manifestFromBriefs(briefs, dropped);
+    const composition = manifestFromBriefs(briefs, dropped, issues);
+    if (issues.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Page plans checked against their page types: ${issues.map((i) => `${i.page}: ${i.reason}`).join("; ")}`.slice(0, 1500), level: "warning", data: { issues } });
     this.d.store.setSetting(compositionKey(run.id), composition);
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Composition manifest: ${composition.entries.length} catalog part${composition.entries.length === 1 ? "" : "s"} across ${briefs.length} page${briefs.length === 1 ? "" : "s"}${composition.gaps.length ? `; ${composition.gaps.length} catalog gap${composition.gaps.length === 1 ? "" : "s"} (${composition.gaps.map((g) => `${g.page}: ${g.section}`).join(", ")})` : ""}`, data: { composition } });
     const note = [screenBriefNote(briefs), composition.gaps.length ? manifestNote({ entries: [], gaps: composition.gaps }) : ""].filter(Boolean).join("\n\n");
@@ -1784,6 +1787,23 @@ export class Orchestrator {
       const checked = verifyManifest(jail.root, composition);
       this.d.store.setSetting(compositionKey(run.id), checked);
       const unused = checked.entries.filter((e) => !e.verification?.usedBy.length);
+      // The layout lock: planned sections this step owns must be built with their parts, or changed on the record.
+      const parentTitle = this.d.store.getSetting<string>(`splitParent:${task.id}`, "");
+      const whole = task.title === DESIGN_POLISH || parentTitle === DESIGN_POLISH || (task.title === DESIGN_SCREENS && !parentTitle);
+      const planScreens = this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? [];
+      const mine = whole ? ("all" as const) : planScreens.filter((p) => task.expectedPaths.some((x) => x.replace(/\\/g, "/") === p.file)).map((p) => p.label);
+      const missing = lockedButMissing(checked, mine);
+      if (missing.length) {
+        verdict = {
+          ...verdict,
+          allMet: false,
+          failures: [
+            ...verdict.failures,
+            `Layout lock: ${missing.length} planned section${missing.length === 1 ? " isn't" : "s aren't"} built with ${missing.length === 1 ? "its" : "their"} planned part. For each, import the part into the page (add_library_piece first if it isn't in src/sections/), or if it truly doesn't fit, call propose_layout_change with the reason:`,
+            ...missing.slice(0, 6).map((e) => `- ${e.page}, "${e.section}": ${e.ref} (${e.appFile})`),
+          ],
+        };
+      }
       this.d.bus.emit({ ...ev, type: "verification.completed", message: `Composition manifest after "${task.title}": ${checked.entries.length - unused.length} of ${checked.entries.length} catalog parts used in the app${unused.length ? ` (not used yet: ${[...new Set(unused.map((e) => e.ref))].slice(0, 6).join(", ")})` : ""}`, level: unused.length ? "warning" : "info", data: { composition: checked } });
     }
     if (verdict.allMet) {
@@ -2098,6 +2118,15 @@ export class Orchestrator {
       createdInRun: (rel) => this.d.store.snapshots.where("run_id = ?", run.id).some((s) => s.relativePath === rel && s.contentHash === "absent"),
       typeErrorsAfterEdit: (paths) => this.d.verifier.newTypeErrors(this.d.store.runs.require(run.id), signal, paths),
       onNoProgress: () => this.d.store.setSetting(`taskCycled:${task.id}`, true),
+      // The layout lock: a change to the planned structure, recorded with its reason for the person to see at review.
+      onLayoutChange: (c) => {
+        const now = this.d.store.getSetting<CompositionManifest>(compositionKey(run.id), { entries: [], gaps: [] });
+        const pages = [...new Set(now.entries.map((e) => e.page))];
+        if (pages.length && !pages.includes(c.page)) return `Recorded, but "${c.page}" isn't a planned page (${pages.join(", ")}); name the page as the plan does.`;
+        this.d.store.setSetting(compositionKey(run.id), recordChange(now, { ...c, by: task.title, at: nowIso() }));
+        this.d.bus.emit({ type: "plan.proposed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Layout change on ${c.page}, "${c.section}": ${c.change}${c.ref ? ` with ${c.ref}` : ""}. Why: ${c.why}`, level: "warning" });
+        return `Recorded: ${c.change} "${c.section}" on ${c.page}${c.ref ? ` (now ${c.ref}; put it in with add_library_piece)` : ""}. The person sees this change and its reason at review.`;
+      },
       // A part the agent put in: recorded in the composition manifest against the page and section it named.
       onCatalogUse: (use) => {
         const by = task.attempts > 1 ? "debugger" : task.role === "debugger" ? "debugger" : "coder";

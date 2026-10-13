@@ -10,6 +10,7 @@ import { LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { resolveCatalogId } from "./catalogContract.js";
 import type { CatalogManifest } from "./catalogMatch.js";
 import type { ScreenPlan } from "./screenPlan.js";
+import { PAGE_TYPE_IDS, PAGE_TYPES, checkComposition, pageTypeGuide, pageTypeOf, type CompositionIssue, type PageType } from "./pageTypes.js";
 
 export interface ScreenBriefSection {
   title: string;
@@ -19,6 +20,8 @@ export interface ScreenBriefSection {
 }
 export interface ScreenBrief {
   screen: string;
+  /** The kind of job the page does (pageTypes.ts): decides what it must contain and what it must not. */
+  pageType?: PageType;
   who: string;
   goal: string;
   workflow: string[];
@@ -37,8 +40,10 @@ export interface ScreenBrief {
 
 export const screenBriefKey = (runId: string) => `screenBrief:${runId}`;
 
-export const SCREEN_BRIEF_SYSTEM = `You plan the screens of a clickable prototype the way a product designer does, from the person's side.
+export const SCREEN_BRIEF_SYSTEM: string = `You plan the screens of a clickable prototype the way a product designer does, from the person's side.
 For each screen you are given, decide:
+- its page type, from the person's job on it:
+${pageTypeGuide().replace(/^/gm, "  ")}
 - who arrives there, in the PRD's words, and the goal they came with;
 - their workflow on the screen: 2 to 5 short steps, in order;
 - what they must see first, before scrolling, to know they are in the right place and can get going (this is what the
@@ -64,6 +69,7 @@ export const SCREEN_BRIEF_SCHEMA = {
         type: "object",
         properties: {
           screen: { type: "string" },
+          pageType: { type: "string", enum: PAGE_TYPE_IDS },
           who: { type: "string" },
           goal: { type: "string" },
           workflow: { type: "array", items: { type: "string" } },
@@ -119,7 +125,7 @@ const text = (v: unknown, max: number) => String(v ?? "").replace(/\s+/g, " ").t
  * catalog gaps for the composition manifest, not silent omissions. A real part from outside the screen's list is
  * simply not used.
  */
-export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: CatalogManifest | undefined, dropped?: Array<{ page: string; section: string; part: string }>): ScreenBrief[] {
+export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: CatalogManifest | undefined, dropped?: Array<{ page: string; section: string; part: string }>, issues?: CompositionIssue[]): ScreenBrief[] {
   const list = Array.isArray((raw as { screens?: unknown })?.screens) ? ((raw as { screens: unknown[] }).screens as Array<Record<string, unknown>>) : [];
   const out: ScreenBrief[] = [];
   for (const s of plan.screens) {
@@ -135,6 +141,10 @@ export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: Cata
       })
       .filter((x) => x.title);
     if (!sections.length) continue;
+    // The page's type, then its parts checked against it: what doesn't belong comes out, a missing job is recorded.
+    const pageType = pageTypeOf(r.pageType, s.label, s.purpose, plan.screens.indexOf(s) > 0 && /\bdetails?\b/i.test(s.label));
+    const checked = checkComposition(s.label, pageType, sections);
+    issues?.push(...checked.issues);
     const screensOnly = (v: unknown) =>
       (Array.isArray(v) ? v : [])
         .map((n) => text(n, 60).toLowerCase().replace(/\s+(screen|page)$/, ""))
@@ -143,12 +153,13 @@ export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: Cata
     const st = (r.states ?? {}) as Record<string, unknown>;
     out.push({
       screen: s.label,
+      pageType,
       who: text(r.who, 160),
       goal: text(r.goal, 200),
       workflow: (Array.isArray(r.workflow) ? (r.workflow as unknown[]) : []).map((w) => text(w, 140)).filter(Boolean).slice(0, 5),
       firstView: text(r.firstView, 240),
       primaryAction: text(r.primaryAction, 100),
-      sections,
+      sections: checked.sections,
       navIn: [...new Set(screensOnly(r.navIn))],
       navOut: [...new Set(screensOnly(r.navOut))],
       states: { loading: text(st.loading, 160), empty: text(st.empty, 160), error: text(st.error, 160), success: text(st.success, 160) },
@@ -164,10 +175,11 @@ export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: Cata
 export function screenBriefNote(briefs: ScreenBrief[]): string {
   if (!briefs.length) return "";
   return [
-    "Screen briefs: design each screen to its brief, from the person's side. The top of the screen shows what they must see first (not a generic title over a list); the sections come in this order, each built from its catalog part (add_library_piece with the ID when it isn't in the app yet), filled with the spec's real content.",
+    "Screen briefs (locked: build every section with its part; if one truly doesn't fit, record the change with propose_layout_change and its reason, never leave it out quietly): design each screen to its brief, from the person's side. The top of the screen shows what they must see first (not a generic title over a list); the sections come in this order, each built from its catalog part (add_library_piece with the ID when it isn't in the app yet), filled with the spec's real content.",
     ...briefs.map((b) =>
       [
         `## ${b.screen}`,
+        b.pageType ? `Page type: ${PAGE_TYPES[b.pageType].label} (${PAGE_TYPES[b.pageType].job}). Not on this page: ${PAGE_TYPES[b.pageType].avoid.join("; ")}.` : "",
         `For: ${b.who}. Goal: ${b.goal}`,
         b.workflow.length ? `Workflow: ${b.workflow.map((w, i) => `${i + 1}. ${w}`).join(" ")}` : "",
         `First view (without scrolling): ${b.firstView}`,
@@ -176,7 +188,7 @@ export function screenBriefNote(briefs: ScreenBrief[]): string {
         ...b.sections.map((x, i) => `${i + 1}. ${x.title}: ${x.purpose}${x.part ? ` [${x.part}]` : ""}`),
         b.navIn?.length || b.navOut?.length ? `Navigation: from ${b.navIn?.join(", ") || "the menu"}; links on to ${b.navOut?.join(", ") || "nothing else"}` : "",
         b.states && Object.values(b.states).some(Boolean) ? `States: ${(["loading", "empty", "error", "success"] as const).filter((k) => b.states![k]).map((k) => `${k}: ${b.states![k]}`).join("; ")}` : "",
-        b.responsive ? `On a phone: ${b.responsive}` : "",
+        b.responsive || b.pageType ? `On a phone: ${[b.responsive, b.pageType ? PAGE_TYPES[b.pageType].phone : ""].filter(Boolean).join("; ")}` : "",
         b.accessibility ? `Accessibility: ${b.accessibility}` : "",
         b.acceptance?.length ? `Must satisfy: ${b.acceptance.join(", ")}` : "",
       ]

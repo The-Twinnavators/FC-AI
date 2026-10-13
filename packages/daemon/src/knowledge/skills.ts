@@ -10,6 +10,7 @@ import type { PathJail } from "../security/pathJail.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { detectPreflight } from "../workspace/preflight.js";
 import { RECIPE_SKILLS } from "./componentRecipes.js";
+import { pageTypeGuide } from "../orchestrator/pageTypes.js";
 import { LIBRARY_SKILLS } from "./skillLibrary.js";
 
 export const BUILTIN_SKILLS: SkillSpec[] = [
@@ -809,6 +810,38 @@ Then ask: one clear focal point? Real type contrast? Nothing boxed that doesn't 
     changelog: [{ version: "1.0.0", date: "2026-10-06", note: "Aspirational, portfolio-level design: concept first, then craft (the user asked for designs like the best of Dribbble and Behance)" }, { version: "1.0.1", date: "2026-10-07", note: "Expanded guidance (shipped without a version bump before)" }, { version: "1.0.2", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }],
   },
   {
+    // The thinking half of page blocking: the rules half is code (pageTypes.ts checks a page plan's parts against its
+    // type; the layout lock sends back a design step that drops a planned section without propose_layout_change).
+    id: "skill.page-composition",
+    version: "1.0.0",
+    roles: ["planner", "designer", "coder"],
+    triggers: ["page plan", "page structure", "screen brief", "page type", "page composition", "wireframe"],
+    enabled: true,
+    source: "builtin",
+    purpose: "Plan a page from the person's job: pick its type, its regions and their catalog parts before any visual design",
+    instructions: `Start from the job, never from a template that looks close.
+
+1. Job: what the person came to this page to do, in one sentence, and the one main action.
+2. Type:
+${pageTypeGuide().replace(/^/gm, "   ")}
+3. Regions, in order: what they must see first, then second, and what only on demand. Each region names its catalog part (search_catalog by what it must do, get_catalog_contract to check it: "Belongs on", "Gives a page", "Needs", "Avoid when").
+4. States: design the type's states (loading, empty, no matches, error, success), not just the full happy page.
+5. Check before handing over: every region's part belongs on this type of page and has the data it needs; something on the page does the type's job (a list page shows the results); nothing on it is there to fill space.
+
+The plan is locked once approved: build every region with its part. Visual refinement inside a region is yours (variant, spacing, imagery, phone rearrangement). Leaving a region out, swapping its part or adding one is a structure change: call propose_layout_change with why, so the person sees it at review.`,
+    allowedTools: ["list_files", "read_file", "search_code", "search_catalog", "get_catalog_contract", "propose_layout_change"],
+    inputSchema: "DesignRequest",
+    outputSchema: "ChangedPaths",
+    policies: { network: "denied", filesystem: "governed_write" },
+    acceptance: [
+      "Each page plan names its type and the person's job on it",
+      "Every region has a catalog part that belongs on that type of page, or is a recorded gap",
+      "A structure change during the build is recorded with propose_layout_change and shown at review",
+    ],
+    tests: [],
+    changelog: [{ version: "1.0.0", date: "2026-10-12", note: "Page blocking as a composition contract: page types, regions from the catalog, a locked plan with recorded changes" }],
+  },
+  {
     // Condensed from docs/design/avoid-ai-slop.md (the full guide); short enough for local models' context.
     id: "skill.avoid-ai-slop",
     version: "1.1.1",
@@ -1122,6 +1155,8 @@ export function workflowSkillIds(role: string, taskText: string): string[] {
   if (/\bacceptance tests?\b|\btest[- ]first\b/.test(t)) return ["skill.test-driven-development"];
   if (/\bclean(?:[- ])?up\b/.test(t)) return ["skill.code-simplification"];
   if (/^assemble the app\b/.test(t)) return ["skill.verification-before-completion"];
+  // A step that builds pages from locked screen briefs gets the page-composition rules (regions, parts, recorded changes).
+  if (/\bscreen briefs\b/.test(t)) return ["skill.page-composition"];
   return [];
 }
 

@@ -72,6 +72,7 @@ import { buildAnalysisMarkdown, buildAnalysisPdf, latestBuildAnalysis, markResol
 import { deleteProject, editRequest, isManagedWorkspace, renameProject } from "../workspace/projectAdmin.js";
 import { PromptLintError, previewPrompt, setLaunchNotes, addLaunchTask, editLaunchItem, launchMarkdown, launchReadiness, launchSummaries, LRC_STATUSES, removeLaunchItem, restoreLaunchItems, setLaunchFlag, setLaunchOverride, type LrcStatus } from "../quality/launchReadiness.js";
 import { prototypePlan } from "../quality/prototypePlan.js";
+import { projectPages } from "../quality/pagePlans.js";
 import { timeseries, type Range } from "./metrics.js";
 import { registerFlowReportRoutes } from "../flowReport/routes.js";
 /** The hosted provider the cloud coder uses (Models page → Cloud coder). */
@@ -355,6 +356,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   add("GET /projects/:id/launch/markdown", async ({ params }) => launchMarkdown(await launchReadiness(app, params.id)));
   // The prototype plan a spec build follows: its steps with live status, requirements and acceptance tests.
   add("GET /projects/:id/plan", ({ params }) => prototypePlan(app, params.id));
+  // The page plans (type, sections and their parts, states, checks, layout changes) of the latest build that planned pages.
+  add("GET /projects/:id/pages", ({ params }) => projectPages(app, params.id));
   const Severity = z.enum(["critical", "high"]);
   const Priority = z.enum(["low", "medium", "high", "critical"]);
   const Kind = z.enum(["code", "manual", "review", "task"]);

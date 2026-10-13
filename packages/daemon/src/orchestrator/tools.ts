@@ -52,6 +52,8 @@ export interface DispatchContext {
   /** The project as it is now (settings change mid-step: "allow external research" turned on during a design step). */
   currentProject?: () => Project;
   /** A catalog part the agent put in with add_library_piece: recorded in the build's composition manifest. */
+  /** A change to the planned page structure, with its reason (the layout lock). Returns what was recorded, or an error. */
+  onLayoutChange?: (change: { page: string; section: string; change: "remove" | "replace" | "add"; ref?: string; why: string }) => string;
   onCatalogUse?: (use: { ref: string; page?: string; section?: string; mode?: "whole" | "adapt" | "compose"; why?: string }) => void;
   /** Checks a candidate photo shows what was searched for (a vision model); find_image skips the ones that don't. */
   imageCheck?: (image: Buffer, query: string) => Promise<{ ok: boolean; reason: string }>;
@@ -498,6 +500,23 @@ export function createDispatcher(ctx: DispatchContext) {
             return { ok: false, content: `"${a.id}" isn't in the FlowCode catalog.${near.length ? ` IDs that are: ${near.join(", ")}.` : ""} Use search_catalog to find a part by what it should do.` };
           }
           return { ok: true, content: contractText(c) };
+        }
+        case "propose_layout_change": {
+          const change = String(a.change ?? "") as "remove" | "replace" | "add";
+          const why = String(a.why ?? "").trim();
+          if (!["remove", "replace", "add"].includes(change)) return { ok: false, content: "change must be remove, replace or add." };
+          if (why.length < 12) return { ok: false, content: "Say why the planned structure doesn't work here (a sentence the person can read at review)." };
+          let ref: string | undefined;
+          if (change !== "remove") {
+            const r = resolveCatalogId(String(a.replacement ?? ""));
+            if (!r) {
+              const near = nearIds(String(a.replacement ?? ""));
+              return { ok: false, content: `${change === "add" ? "add" : "replace"} needs a catalog ID in replacement; "${a.replacement ?? ""}" isn't one.${near.length ? ` IDs that are: ${near.join(", ")}.` : ""}` };
+            }
+            ref = r.ref;
+          }
+          if (!ctx.onLayoutChange) return { ok: false, content: "This build has no page plans to change." };
+          return { ok: true, content: ctx.onLayoutChange({ page: String(a.page ?? ""), section: String(a.section ?? ""), change, ref, why }) };
         }
         case "add_library_piece": {
           // Exactly the ID asked for: an unknown variant ("c.button.huge") is an error, not its base component, so a

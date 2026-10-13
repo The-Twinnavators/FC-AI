@@ -51,6 +51,11 @@ const OLDSTYLE = `"Source Serif 4", "Iowan Old Style", "Palatino Linotype", "URW
 const TRANSITIONAL = `Literata, Charter, "Bitstream Charter", "Sitka Text", Cambria, serif`;
 const DIDONE = `"Playfair Display", Didot, "Bodoni MT", "Noto Serif Display", "URW Palladio L", P052, Sylfaen, serif`;
 const ROBOTO = `Roboto, "Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif`;
+const DMSANS = `"DM Sans", Inter, "Helvetica Neue", Arial, sans-serif`;
+const WORKSANS = `"Work Sans", "Helvetica Neue", Arial, sans-serif`;
+const FRAUNCES = `Fraunces, "Iowan Old Style", Georgia, serif`;
+const OSWALD = `Oswald, "Arial Narrow", "Roboto Condensed", sans-serif-condensed, Impact, sans-serif`;
+const MONO = `"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
 
 export const DESIGN_TEMPLATES: DesignTemplate[] = [
   {
@@ -184,6 +189,116 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     colors: { bg: "#f3f9fc", surface: "#ffffff", surfaceSunken: "#e3f0f7", text: "#0c2533", textMuted: "#3e5a69", border: "#cfe3ee", borderStrong: "#5f7f90", accent: "#0369a1", accentHover: "#075985", onAccent: "#ffffff", focus: "#0369a1", success: "#047857", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#186f7e" },
     fonts: { sans: HUMANIST, display: HUMANIST },
     radii: [6, 10, 14, 18],
+  },
+  {
+    id: "forest-night",
+    name: "Forest Night",
+    description: "A deep pine night with fern green, lantern gold and a soft serif.",
+    dark: true,
+    // Analogous (−30°): an olive gold beside the fern, like lantern light under the trees.
+    secondaryHarmony: { kind: "analogous", offset: -30 },
+    colors: { bg: "#0e1a13", surface: "#16261c", surfaceSunken: "#0a130e", text: "#ecf3e6", textMuted: "#a7b9a0", border: "#25392b", borderStrong: "#66826c", accent: "#a3d977", accentHover: "#bfe69a", onAccent: "#14240a", focus: "#bfe69a", success: "#4ade80", danger: "#f87171", dangerSurface: "#3a1d1f", secondary: "#a59b48" },
+    fonts: { sans: DMSANS, display: FRAUNCES },
+    radii: [8, 12, 16, 22],
+  },
+  {
+    id: "espresso",
+    name: "Espresso",
+    description: "Dark coffee browns with a warm caramel accent.",
+    dark: true,
+    // Split-complementary (+150°): a dusty blue across from the caramel, cool relief on the browns.
+    secondaryHarmony: { kind: "split-complementary", offset: 150 },
+    colors: { bg: "#17110d", surface: "#211913", surfaceSunken: "#100b08", text: "#f3ebe4", textMuted: "#bba99a", border: "#352920", borderStrong: "#7d6858", accent: "#e0a458", accentHover: "#ecbd7f", onAccent: "#241405", focus: "#ecbd7f", success: "#6fcf8f", danger: "#f28b82", dangerSurface: "#3b1e1a", secondary: "#65a3b7" },
+    fonts: { sans: WORKSANS, display: FRAUNCES },
+    radii: [4, 8, 12, 16],
+  },
+  {
+    id: "lavender-fields",
+    name: "Lavender Fields",
+    description: "Lilac whites, a deep plum accent and an elegant serif.",
+    dark: false,
+    // Analogous (−30°): a rosy mauve beside the plum, soft and cohesive.
+    secondaryHarmony: { kind: "analogous", offset: -30 },
+    colors: { bg: "#faf7fd", surface: "#ffffff", surfaceSunken: "#f1ebf8", text: "#261b33", textMuted: "#5b4d6b", border: "#e6dcf0", borderStrong: "#8a7a9c", accent: "#7b3f9e", accentHover: "#642f83", onAccent: "#ffffff", focus: "#7b3f9e", success: "#2f7a4f", danger: "#b3261e", dangerSurface: "#fbeaea", secondary: "#55559f" },
+    fonts: { sans: DMSANS, display: DIDONE },
+    radii: [8, 12, 16, 22],
+  },
+  {
+    id: "citrus-fresh",
+    name: "Citrus Fresh",
+    description: "Bright off-white with a zesty olive-lime and clean geometric type.",
+    dark: false,
+    // Analogous (+30°): a leafy green-teal next to the lime, fresh without a second shout.
+    secondaryHarmony: { kind: "analogous", offset: 30 },
+    colors: { bg: "#fbfdf5", surface: "#ffffff", surfaceSunken: "#f1f6e3", text: "#1c2410", textMuted: "#4f5b3e", border: "#e0e9cc", borderStrong: "#7a8667", accent: "#4d7c0f", accentHover: "#3f6212", onAccent: "#ffffff", focus: "#4d7c0f", success: "#15803d", danger: "#b91c1c", dangerSurface: "#fef2f2", secondary: "#207f59" },
+    fonts: { sans: DMSANS, display: GEOMETRIC },
+    radii: [6, 10, 14, 20],
+  },
+  {
+    id: "terminal",
+    name: "Terminal",
+    description: "Near-black with signal teal and monospace headings, for developer tools.",
+    dark: true,
+    // Split-complementary (+150°): an orchid magenta across from the teal, the classic terminal pairing on near-black.
+    secondaryHarmony: { kind: "split-complementary", offset: 150 },
+    colors: { bg: "#091010", surface: "#101818", surfaceSunken: "#060b0b", text: "#e0f4f2", textMuted: "#94b0ad", border: "#1d2b2a", borderStrong: "#577572", accent: "#2dd4bf", accentHover: "#5eead4", onAccent: "#042f2a", focus: "#5eead4", success: "#4ade80", danger: "#f87171", dangerSurface: "#3a1717", secondary: "#b686ae" },
+    fonts: { sans: NEO, display: MONO },
+    radii: [2, 4, 6, 8],
+  },
+  {
+    id: "rose-blush",
+    name: "Rose Blush",
+    description: "Blush pinks, a rich rose accent and a high-contrast serif.",
+    dark: false,
+    // Split-complementary (+150°): a sea teal across from the rose, balanced and fresh.
+    secondaryHarmony: { kind: "split-complementary", offset: 150 },
+    colors: { bg: "#fff7f9", surface: "#ffffff", surfaceSunken: "#fbe9ef", text: "#2e1520", textMuted: "#6b4655", border: "#f3dbe3", borderStrong: "#9a7180", accent: "#be185d", accentHover: "#9d174d", onAccent: "#ffffff", focus: "#be185d", success: "#2f7a4f", danger: "#b91c1c", dangerSurface: "#fdecec", secondary: "#1f7e49" },
+    fonts: { sans: HUMANIST, display: DIDONE },
+    radii: [6, 10, 16, 22],
+  },
+  {
+    id: "sandstone",
+    name: "Sandstone",
+    description: "Sand and parchment with an ochre accent and a bookish serif.",
+    dark: false,
+    // Split-complementary (−150°): a slate blue across from the ochre, like stone and sky.
+    secondaryHarmony: { kind: "split-complementary", offset: -150 },
+    colors: { bg: "#f8f4ec", surface: "#fffdf9", surfaceSunken: "#efe7d8", text: "#2a2217", textMuted: "#5e5240", border: "#e5dac6", borderStrong: "#8c7b62", accent: "#8a5a00", accentHover: "#6f4800", onAccent: "#ffffff", focus: "#8a5a00", success: "#3f7a4f", danger: "#b3261e", dangerSurface: "#fbeae7", secondary: "#60618a" },
+    fonts: { sans: HUMANIST, display: TRANSITIONAL },
+    radii: [4, 6, 10, 14],
+  },
+  {
+    id: "retro-pop",
+    name: "Retro Pop",
+    description: "Cream paper, deep teal and tall condensed headlines.",
+    dark: false,
+    // Triadic (+120°): a plum a third of the wheel from the teal, a retro two-ink print.
+    secondaryHarmony: { kind: "triadic", offset: 120 },
+    colors: { bg: "#fdf6e3", surface: "#fffbf0", surfaceSunken: "#f5ead0", text: "#1f1a14", textMuted: "#5a4f40", border: "#eadfc4", borderStrong: "#8a7b60", accent: "#0f6b74", accentHover: "#0b545b", onAccent: "#ffffff", focus: "#0f6b74", success: "#2f7a4f", danger: "#b3261e", dangerSurface: "#fbeae7", secondary: "#6d556d" },
+    fonts: { sans: WORKSANS, display: OSWALD },
+    radii: [0, 4, 6, 10],
+  },
+  {
+    id: "royal-plum",
+    name: "Royal Plum",
+    description: "Deep plum night with gold highlights and a classic serif.",
+    dark: true,
+    // Split-complementary (+150°): a muted blue across from the gold, regal and calm.
+    secondaryHarmony: { kind: "split-complementary", offset: 150 },
+    colors: { bg: "#150f1c", surface: "#1e1627", surfaceSunken: "#0e0a13", text: "#f1eaf6", textMuted: "#b3a5c0", border: "#30253c", borderStrong: "#786a88", accent: "#e3b85c", accentHover: "#eecb83", onAccent: "#22170a", focus: "#eecb83", success: "#6fcf8f", danger: "#f28b82", dangerSurface: "#3b1c22", secondary: "#6aa0bf" },
+    fonts: { sans: HUMANIST, display: DIDONE },
+    radii: [4, 8, 12, 16],
+  },
+  {
+    id: "slate-ember",
+    name: "Slate Ember",
+    description: "Charcoal slate with a glowing ember orange, for focused tools.",
+    dark: true,
+    // Split-complementary (+150°): a steel blue across from the ember, cool against the warm accent.
+    secondaryHarmony: { kind: "split-complementary", offset: 150 },
+    colors: { bg: "#111418", surface: "#1a1e24", surfaceSunken: "#0b0d10", text: "#eceff3", textMuted: "#a5adb8", border: "#2a3038", borderStrong: "#6c7682", accent: "#fb923c", accentHover: "#fdba74", onAccent: "#1f1206", focus: "#fdba74", success: "#4ade80", danger: "#f87171", dangerSurface: "#3a1b1b", secondary: "#41a9b5" },
+    fonts: { sans: WORKSANS, display: GEOMETRIC },
+    radii: [4, 6, 10, 14],
   },
 ];
 

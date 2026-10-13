@@ -12,7 +12,7 @@
   background-color: var(--color-bg);
   background-image:
     radial-gradient(40% 50% at 12% 18%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 28%, transparent), transparent 70%),
-    radial-gradient(35% 45% at 88% 12%, color-mix(in srgb, var(--color-success) 22%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 88% 12%, color-mix(in srgb, var(--color-accent) 20%, transparent), transparent 70%),
     radial-gradient(45% 55% at 70% 92%, color-mix(in srgb, var(--color-focus) 18%, transparent), transparent 70%),
     radial-gradient(40% 50% at 20% 88%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 14%, transparent), transparent 70%);
 }
@@ -22,7 +22,7 @@
 .fl-bg-aurora { background-color: var(--color-bg); overflow: hidden; }
 .fl-bg-aurora::before {
   inset: -30%;
-  background: conic-gradient(from 200deg at 50% 50%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 30%, transparent), color-mix(in srgb, var(--color-success) 24%, transparent), color-mix(in srgb, var(--color-focus) 22%, transparent), color-mix(in srgb, var(--color-secondary, var(--color-accent)) 30%, transparent));
+  background: conic-gradient(from 200deg at 50% 50%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 30%, transparent), color-mix(in srgb, var(--color-accent) 22%, transparent), color-mix(in srgb, var(--color-focus) 22%, transparent), color-mix(in srgb, var(--color-secondary, var(--color-accent)) 30%, transparent));
   filter: blur(60px);
   opacity: 0.7;
   animation: fl-bg-drift 24s linear infinite;

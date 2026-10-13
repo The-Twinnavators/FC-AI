@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { levelOf } from "@flowcode/contracts";
 import { resolveCatalogId } from "./catalogContract.js";
+import type { CompositionIssue } from "./pageTypes.js";
 import type { ScreenBrief } from "./screenBrief.js";
 import { sectionFile } from "./sectionRecipes.js";
 
@@ -42,9 +43,26 @@ export interface ManifestGap {
   reason: string;
 }
 
+/**
+ * A change to the planned page structure, proposed by the agent building it (propose_layout_change) with its reason.
+ * The layout lock lets a step leave a planned section out or swap its part only with one of these; each is shown to
+ * the person at review.
+ */
+export interface LayoutChange {
+  page: string;
+  section: string;
+  change: "remove" | "replace" | "add";
+  /** The part it uses instead (replace, add). */
+  ref?: string;
+  why: string;
+  by: string;
+  at: string;
+}
+
 export interface CompositionManifest {
   entries: ManifestEntry[];
   gaps: ManifestGap[];
+  changes?: LayoutChange[];
 }
 
 export const compositionKey = (runId: string) => `composition:${runId}`;
@@ -75,7 +93,7 @@ export function entryFor(ref: string, page: string, section: string, by: Manifes
  * The plan's manifest from the screen briefs: each section with a part is an entry (why = the section's purpose); a
  * section the brief's writer named a part for that isn't in the catalog is a gap.
  */
-export function manifestFromBriefs(briefs: ScreenBrief[], dropped: Array<{ page: string; section: string; part: string }> = []): CompositionManifest {
+export function manifestFromBriefs(briefs: ScreenBrief[], dropped: Array<{ page: string; section: string; part: string }> = [], issues: CompositionIssue[] = []): CompositionManifest {
   const entries: ManifestEntry[] = [];
   for (const b of briefs)
     for (const x of b.sections) {
@@ -83,8 +101,12 @@ export function manifestFromBriefs(briefs: ScreenBrief[], dropped: Array<{ page:
       const e = entryFor(x.part, b.screen, x.title, "plan", { why: x.purpose });
       if (e) entries.push(e);
     }
-  const gaps = dropped.map((d) => ({ page: d.page, section: d.section, reason: `No catalog part fits: "${d.part}" isn't in the catalog. Composed from core components until the catalog has one.` }));
-  return { entries, gaps };
+  const gaps = [
+    ...dropped.map((d) => ({ page: d.page, section: d.section, reason: `No catalog part fits: "${d.part}" isn't in the catalog. Composed from core components until the catalog has one.` })),
+    // The page type's checks (pageTypes.ts): parts that don't belong on the page, and jobs nothing on it does.
+    ...issues.map((i) => ({ page: i.page, section: i.section, reason: i.reason })),
+  ];
+  return { entries, gaps, changes: [] };
 }
 
 /** Adds an agent's or FlowCode's choice, replacing an earlier entry for the same page, section and ID. */
@@ -122,6 +144,28 @@ export function verifyManifest(root: string, m: CompositionManifest, at = new Da
       return { ...e, verification: { inApp, usedBy, at } };
     }),
   };
+}
+
+/** Records a layout change; a replacement part also becomes the section's entry (by the agent). */
+export function recordChange(m: CompositionManifest, c: LayoutChange): CompositionManifest {
+  const changes = [...(m.changes ?? []).filter((x) => !(x.page === c.page && x.section === c.section)), c];
+  let next: CompositionManifest = { ...m, changes };
+  if (c.ref) {
+    const e = entryFor(c.ref, c.page, c.section, "coder", { why: c.why });
+    if (e) next = recordEntry(next, e);
+  }
+  return next;
+}
+
+/**
+ * The layout lock: the planned parts (by the plan) on the given pages that no screen uses and no recorded change
+ * explains. A design step that leaves one of these is sent back: put the part in, or propose the change with a reason.
+ */
+export function lockedButMissing(m: CompositionManifest, pages: string[] | "all"): ManifestEntry[] {
+  const changed = (e: ManifestEntry) => (m.changes ?? []).some((c) => c.page === e.page && c.section === e.section);
+  // A section whose part the agent replaced has a newer entry by the coder; the plan's own entry then doesn't count.
+  const replaced = (e: ManifestEntry) => m.entries.some((x) => x !== e && x.by !== "plan" && x.page === e.page && x.section === e.section && !!x.verification?.usedBy.length);
+  return m.entries.filter((e) => e.by === "plan" && (pages === "all" || pages.includes(e.page)) && e.verification && !e.verification.usedBy.length && !changed(e) && !replaced(e));
 }
 
 /** The manifest as the design steps read it: what each page is made of, and the gaps. */

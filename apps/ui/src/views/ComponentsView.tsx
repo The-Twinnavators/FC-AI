@@ -4,7 +4,7 @@
  * the section's styles never mix with FlowCode's. Read-only: builds copy the sections they need.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, STYLE_VIBES, TEMPLATE_VIBES, levelOf, usedBy, versionsOf, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
+import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, STYLE_VIBES, TEMPLATE_VIBES, levelOf, relationsOf, usedBy, versionsOf, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
 import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
 import { Search } from "lucide-react";
@@ -380,7 +380,8 @@ function RefChip({ id, base }: { id: string; base?: string }) {
 }
 
 /** A piece's catalog ID to copy, its variants' IDs, what it's built from and what uses it, one labelled row each, with
- * a key to the level colours used on this sheet. */
+ * a key to the level colours used on this sheet; then the composition rules the builders follow (where it belongs,
+ * what it gives a page, what it needs and when to avoid it). */
 function PieceRefs({ piece }: { piece: Item }) {
   if (!piece.ref) return null;
   const ref = piece.ref;
@@ -399,6 +400,13 @@ function PieceRefs({ piece }: { piece: Item }) {
   const shown = rows.filter(([, ids]) => ids.length);
   const level = levelOf(ref) ?? "component";
   const levels = [...new Set([ref, ...shown.flatMap(([, ids]) => ids)].map((r) => levelOf(r) ?? "component"))];
+  const rel = relationsOf(ref);
+  const rules: [string, string][] = [
+    ["Belongs on", rel.contexts.map((c) => (c === "app" ? "App screens" : "Marketing pages")).join(" and ")],
+    ["Gives a page", rel.provides.join(", ")],
+    ["Needs", rel.requires.join("; ")],
+    ["Avoid when", rel.avoidWhen.join("; ")],
+  ];
   return (
     <dl className="cl-refs">
       <div className="cl-refs__row">
@@ -431,6 +439,14 @@ function PieceRefs({ piece }: { piece: Item }) {
           </dd>
         </div>
       ))}
+      {rules
+        .filter(([, text]) => text)
+        .map(([label, text]) => (
+          <div key={label} className="cl-refs__row cl-refs__row--rule">
+            <dt>{label}</dt>
+            <dd>{text}</dd>
+          </div>
+        ))}
     </dl>
   );
 }

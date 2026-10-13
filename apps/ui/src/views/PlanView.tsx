@@ -122,6 +122,134 @@ function ScreenStatesSection({ projectId }: { projectId: string }) {
   );
 }
 
+type PagePlan = {
+  page: string;
+  route: string;
+  file: string;
+  type?: { id: string; label: string; job: string };
+  who: string;
+  goal: string;
+  firstView: string;
+  primaryAction: string;
+  sections: Array<{ title: string; purpose: string; part: string; status: "used" | "not used yet" | "changed" | "no part" }>;
+  states: string[];
+  phone: string;
+  avoid: string[];
+  navIn: string[];
+  navOut: string[];
+  acceptance: string[];
+  findings: string[];
+  changes: Array<{ section: string; change: string; ref?: string; why: string; by: string }>;
+};
+
+const SECTION_STATUS: Record<PagePlan["sections"][number]["status"], string> = { used: "Built with its part", "not used yet": "Part not used yet", changed: "Changed during the build", "no part": "Built from core parts" };
+
+/**
+ * The page plans the build follows: each page's type and job, its sections in order with the catalog part that builds
+ * each (and whether the app uses it yet), the states it must design, its phone rule, what doesn't belong on it, the
+ * page-type checks' findings and any layout change made during the build, with its reason.
+ */
+function PagesSection({ projectId }: { projectId: string }) {
+  const { data } = useResource<{ runId?: string; pages: PagePlan[] }>(`/projects/${projectId}/pages`, [projectId], 10000);
+  if (!data?.pages.length) return null;
+  return (
+    <section className="pp-pages" data-reveal aria-labelledby="pp-pages-h">
+      <div className="pp-pages__head">
+        <h3 id="pp-pages-h">Pages</h3>
+        <span className="muted">Each page's plan: built in this order from these parts. A section left out or swapped during the build is listed with its reason.</span>
+      </div>
+      <ol className="pp-pages__list">
+        {data.pages.map((p) => (
+          <li key={p.page} className="pp-page">
+            <header className="pp-page__head">
+              <h4 className="pp-page__name">{p.page}</h4>
+              {p.type ? <span className="pp-page__type">{p.type.label}</span> : null}
+              {p.route ? <span className="mono muted pp-page__route">{p.route}</span> : null}
+            </header>
+            <p className="pp-page__job">
+              {p.who ? <strong>{p.who}: </strong> : null}
+              {p.goal || p.type?.job}
+            </p>
+            <dl className="pp-page__facts">
+              <dt>First view</dt>
+              <dd>{p.firstView}</dd>
+              <dt>Main action</dt>
+              <dd>{p.primaryAction}</dd>
+            </dl>
+            <p className="label">Sections, top to bottom</p>
+            <ol className="pp-page__sections">
+              {p.sections.map((x) => (
+                <li key={x.title} className={`pp-sec pp-sec--${x.status.replace(/ /g, "-")}`}>
+                  <span className="pp-sec__title">{x.title}</span>
+                  <span className="pp-sec__purpose muted">{x.purpose}</span>
+                  <span className="pp-sec__part">{x.part ? <code>{x.part}</code> : null}</span>
+                  <span className="pp-sec__status">{SECTION_STATUS[x.status]}</span>
+                </li>
+              ))}
+            </ol>
+            {p.changes.length ? (
+              <>
+                <p className="label">Changed from the plan</p>
+                <ul className="pp-page__list">
+                  {p.changes.map((c) => (
+                    <li key={c.section}>
+                      {c.change === "remove" ? "Left out" : c.change === "replace" ? "Swapped" : "Added"} "{c.section}"{c.ref ? <> (<code>{c.ref}</code>)</> : null}: {c.why} <span className="muted">· {c.by}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+            {p.findings.length ? (
+              <>
+                <p className="label">Checked against its page type</p>
+                <ul className="pp-page__list">
+                  {p.findings.map((x) => (
+                    <li key={x}>{x}</li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+            <dl className="pp-page__facts pp-page__facts--small">
+              {p.states.length ? (
+                <>
+                  <dt>States to design</dt>
+                  <dd>{p.states.join(" · ")}</dd>
+                </>
+              ) : null}
+              {p.phone ? (
+                <>
+                  <dt>On a phone</dt>
+                  <dd>{p.phone}</dd>
+                </>
+              ) : null}
+              {p.avoid.length ? (
+                <>
+                  <dt>Not on this page</dt>
+                  <dd>{p.avoid.join("; ")}</dd>
+                </>
+              ) : null}
+              {p.navIn.length || p.navOut.length ? (
+                <>
+                  <dt>Navigation</dt>
+                  <dd>
+                    from {p.navIn.join(", ") || "the menu"} · on to {p.navOut.join(", ") || "nothing else"}
+                  </dd>
+                </>
+              ) : null}
+              {p.acceptance.length ? (
+                <>
+                  <dt>Requirements</dt>
+                  <dd className="mono">{p.acceptance.join(", ")}</dd>
+                </>
+              ) : null}
+            </dl>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 export function PlanView({ projectId }: { projectId: string }) {
   const { data, error } = useResource<Plan>(`/projects/${projectId}/plan`, [projectId], 5000);
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -245,6 +373,8 @@ export function PlanView({ projectId }: { projectId: string }) {
           );
         })}
       </ol>
+
+      <PagesSection projectId={projectId} />
 
       <ScreenStatesSection projectId={projectId} />
 
