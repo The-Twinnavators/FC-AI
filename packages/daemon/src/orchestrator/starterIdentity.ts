@@ -313,6 +313,10 @@ function personalizeFile(rel: string, content: string, id: StarterIdentity): str
     if (!id.wantsDark) css = css.replace(/\n*@media \(prefers-color-scheme: dark\) \{[\s\S]*?\n\}\n?/, "\n");
     return css;
   }
+  // No style or colours yet (they come later, from Capture the style): the starter's dark palette still goes unless
+  // the PRD asks for a dark mode, so the app shows its CSSVibes style whatever the computer's light or dark setting
+  // (Clean Cart's preview turned dark with the system, with a dark block a later step filled with Ocean Breeze).
+  if (/(^|\/)tokens\.css$/.test(rel) && !id.wantsDark) return content.replace(/\n*@media \(prefers-color-scheme: dark\) \{[\s\S]*?\n\}\n?/, "\n");
   return content;
 }
 

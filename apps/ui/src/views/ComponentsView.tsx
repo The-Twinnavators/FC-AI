@@ -4,10 +4,10 @@
  * the section's styles never mix with FlowCode's. Read-only: builds copy the sections they need.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, SECTION_CATEGORIES, STYLE_VIBES, TEMPLATE_VIBES, levelOf, relationsOf, usedBy, versionsOf, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
+import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, isNewPiece, SECTION_CATEGORIES, STYLE_VIBES, TEMPLATE_VIBES, levelOf, relationsOf, usedBy, versionsOf, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
 import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 
 
 const sources = import.meta.glob<string>("../../../../templates/library/sections/*.tsx", { query: "?raw", import: "default" });
@@ -126,9 +126,10 @@ const variantItems = (s: LibrarySection): Item[] =>
 
 /** Components get one shelf each (the component and its versions); everything else shelves by category. */
 const shelfOf = (s: LibrarySection) => (levelGroup(s) === "component" ? `component:${componentOf(s)}` : `${levelGroup(s)}:${s.category}`);
-const NAMES: Record<string, string> = { "c.ai-indicator": "AI indicators", "c.kpi": "KPI cards", "c.area-chart": "Area charts", "c.chat-bubble": "Chat bubbles", "c.media-frame": "Media frames", "c.list-row": "List rows", "c.empty-state": "Empty states", "c.text-field": "Text fields", "c.button-group": "Button groups", "c.animated-number": "Animated numbers", "c.avatar-stack": "Avatar stacks", "c.toast-stack": "Toast stacks", "c.accordion": "Accordions", "c.breadcrumbs": "Breadcrumbs", "c.progress": "Progress", "c.quantity": "Quantity steppers", "c.segmented": "Segmented controls", "c.skeleton": "Skeletons", "c.switch": "Switches", "c.tabs": "Tabs", "c.pagination": "Pagination", "c.background": "Backgrounds", "c.combobox": "Combo boxes", "c.checkbox": "Checkboxes and radios", "c.select": "Selects and combo boxes", "c.avatar": "Avatars", "tokens.focus-ring": "Focus rings (tokens)", "tokens.motion": "Motion (tokens)" };
+const NAMES: Record<string, string> = { "c.liquid-glass": "Liquid glass", "c.search": "Search fields", "c.fab": "Floating action buttons", "c.ai-indicator": "AI indicators", "c.kpi": "KPI cards", "c.area-chart": "Area charts", "c.chat-bubble": "Chat bubbles", "c.media-frame": "Media frames", "c.list-row": "List rows", "c.empty-state": "Empty states", "c.text-field": "Text fields", "c.button-group": "Button groups", "c.animated-number": "Animated numbers", "c.avatar-stack": "Avatar stacks", "c.toast-stack": "Toast stacks", "c.accordion": "Accordions", "c.breadcrumbs": "Breadcrumbs", "c.progress": "Progress", "c.quantity": "Quantity steppers", "c.segmented": "Segmented controls", "c.skeleton": "Skeletons", "c.switch": "Switches", "c.tabs": "Tabs", "c.pagination": "Pagination", "c.background": "Backgrounds", "c.combobox": "Combo boxes", "c.checkbox": "Checkboxes and radios", "c.select": "Selects and combo boxes", "c.avatar": "Avatars", "tokens.focus-ring": "Focus rings (tokens)", "tokens.motion": "Motion (tokens)" };
 /** A component shelf's name: "c.badge" → "Badges". */
-const componentName = (ref: string) => NAMES[ref] ?? ((w) => w.charAt(0).toUpperCase() + w.slice(1) + "s")(ref.replace(/^c./, "").replace(/-/g, " "));
+const plural = (w: string) => (/[^aeiou]y$/i.test(w) ? `${w.slice(0, -1)}ies` : /(s|x|z|ch|sh)$/i.test(w) ? `${w}es` : `${w}s`);
+const componentName = (ref: string) => NAMES[ref] ?? ((w) => w.charAt(0).toUpperCase() + w.slice(1))(plural(ref.replace(/^c./, "").replace(/-/g, " ")));
 /** Every entry on the shelves: each piece followed by its variants. */
 const ALL_ITEMS: Item[] = LIBRARY_SECTIONS.flatMap((p) => [p, ...variantItems(p)]);
 
@@ -175,6 +176,21 @@ export function ComponentsView() {
     for (const s of ALL_ITEMS) m.set(shelfOf(s), (m.get(shelfOf(s)) ?? 0) + 1);
     return m;
   }, []);
+  // Shelves holding pieces that joined the library in the last two weeks, and how many.
+  const newCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of ALL_ITEMS) if (isNewPiece(s.id)) m.set(shelfOf(s), (m.get(shelfOf(s)) ?? 0) + 1);
+    return m;
+  }, []);
+  const newTotal = useMemo(() => ALL_ITEMS.filter((s) => isNewPiece(s.id)).length, []);
+  // A small sparkle beside the shelf's name (inside the label, so the shelf's name/count layout is unchanged).
+  const NewBadge = ({ n }: { n?: number }) =>
+    n ? (
+      <span className="cl-new" title={`${n} new in the last two weeks`}>
+        <Sparkles size={10} strokeWidth={2.5} aria-hidden="true" />
+        <span className="sr-only">, {n} new</span>
+      </span>
+    ) : null;
   const catOrder = useMemo(() => new Map(SECTION_CATEGORIES.map((c, i) => [c.id, i])), []);
   // Search: every word must appear in the piece's name, description, tags or shelf (within the shelf you're on).
   const [q, setQ] = useState("");
@@ -268,7 +284,10 @@ export function ComponentsView() {
             </button>
           ) : null}
           <button type="button" className="lib-shelf" aria-current={cat === "all"} onClick={() => pick("all")}>
-            <span className="lib-shelf__label">All sections</span>
+            <span className="lib-shelf__label">
+              All sections
+              <NewBadge n={newTotal} />
+            </span>
             <span className="lib-shelf__count">{ALL_ITEMS.length}</span>
           </button>
           {LEVELS.map(([l, heading]) => {
@@ -278,7 +297,10 @@ export function ComponentsView() {
                 <p className="lib-shelves__heading">{heading}</p>
                 {shelves.map((k) => (
                   <button key={k} type="button" className="lib-shelf" aria-current={cat === k} onClick={() => pick(k)}>
-                    <span className="lib-shelf__label">{label(k)}</span>
+                    <span className="lib-shelf__label">
+                      {label(k)}
+                      <NewBadge n={newCounts.get(k)} />
+                    </span>
                     <span className="lib-shelf__count">{counts.get(k)}</span>
                   </button>
                 ))}
@@ -311,8 +333,13 @@ export function ComponentsView() {
           ) : null}
           {shown.map((s) => (
             <li key={uid(s)}>
-              <button type="button" className="cl-tile" onClick={() => (setShowCode(false), setOpen(s))} aria-label={`${s.name}: open details`}>
+              <button type="button" className="cl-tile" onClick={() => (setShowCode(false), setOpen(s))} aria-label={`${s.name}${isNewPiece(s.id) ? " (new)" : ""}: open details`}>
                 <SectionThumb id={s.id} look={look} title={s.name} focus={s.focus} />
+                {isNewPiece(s.id) ? (
+                  <span className="cl-new cl-new--tile" title="New in the last two weeks" aria-hidden="true">
+                    <Sparkles size={14} strokeWidth={2.25} />
+                  </span>
+                ) : null}
                 <span className="cl-tile__text">
                   <strong>{s.name}</strong>
                   <span className="muted">{s.description}</span>

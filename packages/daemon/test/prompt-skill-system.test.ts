@@ -252,6 +252,16 @@ describe("a scaffolded starter becomes the product in the PRD", () => {
     expect(personalizeStarterFile("src/styles/tokens.css", ":root {\n  --color-accent: #24423a;\n}\n", id)).toBe(":root {\n  --color-accent: #24423a;\n}\n");
     expect(JSON.parse(personalizeStarterFile(".flowcode/design-brief.json", "{}", id)).subject).toBe("Garden Planner");
   });
+
+  it("drops the starter's automatic dark mode unless the PRD asks for one, so the app shows its style whatever the system setting", async () => {
+    const { starterIdentity, personalizeStarterFile } = await import("../src/orchestrator/starterIdentity.js");
+    const tokens = ":root {\n  --color-bg: #ffffff;\n}\n\n@media (prefers-color-scheme: dark) {\n  :root {\n    --color-bg: #141816;\n  }\n}\n";
+    const plain = starterIdentity([], "Clean Cart", "Find food without GMOs");
+    expect(personalizeStarterFile("src/styles/tokens.css", tokens, plain)).not.toMatch(/prefers-color-scheme/);
+    const dark = starterIdentity([{ name: "prd.md", role: "prd", content: "# App\nIt has a dark mode for night use." }], "Night Owl", "A reading app");
+    expect(dark.wantsDark).toBe(true);
+    expect(personalizeStarterFile("src/styles/tokens.css", tokens, dark)).toMatch(/prefers-color-scheme: dark/);
+  });
 });
 
 describe("visual styles and extras for builds whose PRD sets no look", () => {

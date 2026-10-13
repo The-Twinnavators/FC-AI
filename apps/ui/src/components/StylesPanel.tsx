@@ -7,6 +7,7 @@
  *    the app's own stylesheets, and its React components). Coding agents get the same list so they reuse these.
  */
 import { useMemo, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { Boxes, Layers, Palette, RefreshCw, Sparkles, Undo2, Wand2 } from "lucide-react";
 import { ExtrasPanel } from "./ExtrasPanel";
 import { DESIGN_TEMPLATES } from "@flowcode/contracts";
@@ -57,9 +58,11 @@ const HEX = /^#([0-9a-f]{6})$/i;
 function DesignChoice({ projectId }: { projectId: string }) {
   const choice = useResource<{ id: string; by?: "you" | "flowcode"; at?: string }>(`/projects/${projectId}/design/choice`, [projectId]);
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<string>();
   const [msg, setMsg] = useState<string>();
   const pick = async (id: string) => {
     setBusy(true);
+    setPending(id);
     setMsg(undefined);
     try {
       await post(`/projects/${projectId}/design/choice`, { id });
@@ -70,8 +73,10 @@ function DesignChoice({ projectId }: { projectId: string }) {
       setMsg((e as Error).message);
     } finally {
       setBusy(false);
+      setPending(undefined);
     }
   };
+  const pendingName = pending === "custom" ? "Custom" : DESIGN_TEMPLATES.find((t) => t.id === pending)?.name;
   const by = choice.data?.by === "flowcode" ? "Set by FlowCode" : choice.data?.by === "you" ? "Set by you" : "";
   return (
     <label className="design-choice" title={by || "The design option this app uses"}>
@@ -85,6 +90,19 @@ function DesignChoice({ projectId }: { projectId: string }) {
         ))}
       </select>
       {msg ? <span className="design-choice__msg" role="status">{msg}</span> : by ? <span className="design-choice__by">{by}</span> : null}
+      {/* Applying a style takes a few seconds: a loading card in the middle of the page says so, and holds clicks until it lands. */}
+      {busy && pending
+        ? createPortal(
+            <div className="style-applying" role="status" aria-live="polite">
+              <div className="style-applying__card">
+                <span className="style-applying__wheel" aria-hidden="true" />
+                <p className="style-applying__title">{pending === "custom" ? "Recording Custom…" : `Applying ${pendingName ?? "the style"}…`}</p>
+                {pending === "custom" ? null : <p className="style-applying__what">Writing its colours, fonts and corners into the app</p>}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </label>
   );
 }

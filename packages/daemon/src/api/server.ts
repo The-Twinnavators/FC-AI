@@ -861,14 +861,16 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     if (coder === "cloud") {
       const cloud = cloudCoder();
       if (!cloud.ready) throw new HttpError(409, `The cloud model isn't ready: ${cloud.problem}. Set it up on the Models page.`);
-      next = { ...run.modelAssignments, coder: cloud.assignment, debugger: cloud.assignment };
+      // The planner moves with them: a build's mid-run planning (splitting a step, re-planning a screen) otherwise
+      // stayed on the other side (Clean Cart: switched to local after the cloud limit, the planner kept calling it).
+      next = { ...run.modelAssignments, planner: { ...cloud.assignment, temperature: 0.2 }, coder: cloud.assignment, debugger: cloud.assignment };
       app.projects.updateSettings(run.projectId, { allowHostedModels: true });
     } else {
       const local = app.router.roleAssignments(run.projectId);
-      next = { ...run.modelAssignments, coder: local.coder, debugger: local.debugger };
+      next = { ...run.modelAssignments, planner: local.planner, coder: local.coder, debugger: local.debugger };
     }
     const updated = app.store.runs.upsert({ ...run, modelAssignments: next });
-    app.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: `The rest of this build is coded by ${next.coder?.model} (${coder === "cloud" ? "cloud model" : "local coder"}), as you chose` });
+    app.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: `The rest of this build is planned and coded by ${next.coder?.model} (${coder === "cloud" ? "cloud model" : "local models"}), as you chose` });
     return updated;
   });
   add("POST /runs/:id/pause", ({ params }) => app.orchestrator.pauseRun(params.id, true));

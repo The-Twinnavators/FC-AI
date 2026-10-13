@@ -16122,3 +16122,76 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .pp-page__list { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--text-1); }
 /* The composition rules under a piece's IDs: plain text, as the builders read them. */
 .cl-refs__row--rule dd { display: block; font-size: 13px; line-height: 24px; color: var(--text-1); }
+
+/* The Design tab's top row: the view switch, the style picker and Capture a style all stand 40px tall. */
+#panel-right-styles .styles-top .styles-views { box-sizing: border-box; height: 40px; min-height: 40px; align-items: stretch; }
+#panel-right-styles .styles-top .styles-views__btn { height: auto; min-height: 0; }
+#panel-right-styles .styles-top .design-choice .select { box-sizing: border-box; height: 40px; min-height: 40px; }
+#panel-right-styles .styles-top .styles-top__actions .btn { box-sizing: border-box; height: 40px; min-height: 40px; }
+
+/*
+ * Light · Grey: the frame around the work a step darker, and the tabbed working panel (Preview, Design, Review,
+ * Activity, Terminal) as light as before, so the part being worked on stands out.
+ */
+:root[data-theme="light"][data-tone="grey"] {
+  --bg-0: #d3d9e2;
+  --bg-1: #e2e6ed;
+  --bg-2: #dbe0e8;
+  --bg-3: #ccd3de;
+  --line: #c2c9d5;
+  --line-strong: #adb6c4;
+  --bg-gradient: radial-gradient(1200px 520px at 50% -22%, rgba(58, 96, 196, 0.12), transparent 62%), linear-gradient(180deg, #d9dee7 0%, #d3d9e2 40%, #d3d9e2 100%);
+}
+:root[data-theme="light"][data-tone="grey"] .ws__col[data-panel="right"] {
+  --bg-0: #e4e8ef;
+  --bg-1: #f3f5f9;
+  --bg-2: #edf0f5;
+  --bg-3: #dbe0e9;
+  --line: #cfd5df;
+  --line-strong: #bac2cf;
+  background: #f3f5f9;
+}
+
+/* Applying a design style: a loading card in the middle of the page until the change lands (solid, not glass). */
+.style-applying {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--bg-0) 55%, transparent);
+  cursor: progress;
+}
+.style-applying__card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-width: 260px;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 24px 28px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--solid-1, var(--bg-1));
+  box-shadow: 0 18px 48px -18px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+.style-applying__wheel {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--line);
+  border-top-color: var(--brand-1);
+  border-radius: 50%;
+  animation: style-applying-spin 0.8s linear infinite;
+}
+.style-applying__title { margin: 4px 0 0; font-size: 15px; font-weight: 650; color: var(--text-0); }
+.style-applying__what { margin: 0; font-size: 13px; color: var(--text-2); }
+@keyframes style-applying-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .style-applying__wheel { animation: none; border-top-color: var(--line); border-color: var(--brand-1); opacity: 0.6; }
+}
+
+/* "New": pieces that joined the library in the last two weeks, as a sparkle on their cards and beside the shelves that hold them. */
+.cl-new { display: inline-flex; align-items: center; justify-content: center; color: var(--brand-1); vertical-align: -1px; }
+.lib-shelf__label .cl-new { width: 16px; height: 16px; line-height: 0; margin-left: 6px; border-radius: 999px; background: var(--brand-1); color: #fff; vertical-align: -2px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-1) 25%, transparent); }
+.cl-tile { position: relative; }
+.cl-new--tile { position: absolute; top: 10px; left: 10px; z-index: 1; width: 26px; height: 26px; border-radius: 999px; background: var(--brand-1); color: #fff; box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.35); }

@@ -355,3 +355,39 @@ export function sectionsFor(text: string, max = 6): LibrarySection[] {
     .slice(0, max)
     .map((x) => x.s);
 }
+
+/**
+ * When recent pieces joined the library (approved from the shelf), by piece id. A piece is "new" on the Component
+ * library page for two weeks after, so the badge goes away on its own; older pieces have no date and are never new.
+ */
+export const ADDED_ON: Record<string, string> = {
+  "date-picker": "2026-10-12",
+  "booking-calendar": "2026-10-12",
+  "time-picker": "2026-10-12",
+  "bottom-nav": "2026-10-12",
+  fab: "2026-10-12",
+  "search-field": "2026-10-12",
+  carousel: "2026-10-12",
+  slideshow: "2026-10-12",
+  "app-frame": "2026-10-12",
+  "resource-index": "2026-10-12",
+  "record-wizard": "2026-10-12",
+  "record-detail": "2026-10-12",
+  "app-dashboard": "2026-10-12",
+  "shader-gradient": "2026-10-13",
+  "liquid-glass": "2026-10-13",
+  "media-player": "2026-10-13",
+  "lookup-frame": "2026-10-13",
+  "lookup-catalog": "2026-10-13",
+  "lookup-entry": "2026-10-13",
+  "place-finder": "2026-10-13",
+  "list-builder": "2026-10-13",
+};
+
+/** Whether a piece joined the library in the last `days` days (14 by default). */
+export function isNewPiece(id: string, now: number = Date.now(), days = 14): boolean {
+  const on = ADDED_ON[id];
+  if (!on) return false;
+  const age = now - new Date(`${on}T00:00:00`).getTime();
+  return age >= 0 && age < days * 86_400_000;
+}
