@@ -16366,9 +16366,33 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .ws--strip-top > .strip {
   margin: -10px -10px 0;
 }
-.ws > .strip .strip__status,
-.ws > .strip .strip__controls,
 .ws > .strip .signal {
   border-left: 0;
   border-right: 0;
+}
+/* The checks keep a line on each edge, so they read as their own section between the status and the controls. */
+.ws > .strip .strip__status {
+  border-right: 1px solid var(--ws-band-edge);
+}
+.ws > .strip .strip__controls {
+  border-left: 1px solid var(--ws-band-edge);
+}
+/* More checks than fit scroll sideways: a visible track and thumb under them say so. */
+.ws > .strip .strip__matrix {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-0) 45%, transparent) color-mix(in srgb, var(--text-0) 10%, transparent);
+}
+.ws > .strip .strip__matrix::-webkit-scrollbar {
+  height: 8px;
+}
+.ws > .strip .strip__matrix::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--text-0) 10%, transparent);
+  border-radius: 999px;
+}
+.ws > .strip .strip__matrix::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-0) 45%, transparent);
+  border-radius: 999px;
+}
+.ws > .strip .strip__matrix::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--text-0) 65%, transparent);
 }
