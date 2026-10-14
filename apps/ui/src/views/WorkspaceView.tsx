@@ -244,6 +244,8 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
             Coder
             <small className="coder-switch__note">{onCloud ? "Cloud · billed" : "Stays on this PC"}</small>
           </span>
+          {/* The two choices share a track, so it reads as a switch. */}
+          <span className="coder-switch__track">
           <button type="button" role="radio" aria-checked={!onCloud} className={`seg__btn${onCloud ? "" : " is-on"}`} onClick={() => onCloud && switchCoder("local")} title="The local model on this computer writes the code: nothing leaves this computer">
             Local
           </button>
@@ -262,6 +264,7 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
           >
             Cloud
           </button>
+          </span>
         </div>
       ) : null}
       {view.run.status === "running" && !view.active && view.run.planApproved && !view.resumable && !view.probing ? (

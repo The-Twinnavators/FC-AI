@@ -16344,11 +16344,21 @@ body.cp-driving #copilot-panel { z-index: 80; }
 :root[data-theme="light"][data-tone="grey"] body:has(.ws) {
   background: linear-gradient(180deg, #d2d8e1 0%, #e2e6ec 45%, #fbfcfd 100%) fixed;
 }
-/* The Coder switch sits on the status bar without its own box: no fill, no outline (the chosen side still shows). */
+/* The Coder switch: its label sits on the bar; Local and Cloud share a track, the chosen one raised, so it reads as
+   a switch without a box around the label too. */
 .strip .seg.coder-switch {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
+  gap: 10px;
+}
+.coder-switch__track {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--ws-band-edge, rgba(190, 200, 222, 0.16));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-0) 70%, transparent);
 }
 /* The status bar runs full width, from the side navigation to the window's edge, with no inner dividers: one clean
    band of status, checks and controls. */
