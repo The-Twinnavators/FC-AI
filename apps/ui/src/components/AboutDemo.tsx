@@ -53,6 +53,8 @@ export function AboutDemo() {
 
   return (
     <div className="ab2__collage ab2__demo" ref={ref} aria-hidden="true">
+      {/* A played-out example, not your builds: its buttons look real, so it says so. */}
+      <span className="ab2__demo-tag">Example build · plays on its own</span>
       <div className="ab2__c ab2__c--1">
         <div className="abf abf--overview">
           <div className="abf__row">

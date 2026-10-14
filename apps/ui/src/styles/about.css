@@ -479,3 +479,7 @@
 .ab2__setup-table tbody tr:nth-child(odd) .is-pick { background: color-mix(in srgb, var(--sig-ok) 11%, transparent); }
 .ab2__setup-table .ab2__setup-note { color: var(--text-1); font-size: 13.5px; }
 .ab2__setup-table tbody td:not(.ab2__setup-note) { font-weight: 550; }
+
+/* The demo says it is an example, so its Approve and Deny are not taken for a real decision. */
+.ab2__demo { position: relative; }
+.ab2__demo-tag { position: absolute; z-index: 6; top: -30px; right: 0; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-2); font-size: 11px; letter-spacing: 0.02em; pointer-events: none; }

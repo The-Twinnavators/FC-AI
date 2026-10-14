@@ -71,7 +71,7 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
               const ready = !!l && l.gateOpen === 0 && l.percent === 100;
               return (
                 <div key={p.id} role="listitem" className="qa-card-wrap">
-                <button type="button" className={`lrc-card qa-card${ready ? " is-ready" : ""}`} data-reveal style={{ ["--i" as string]: Math.min(i, 8) }} onClick={() => navigate(`/quality/${p.id}`)} data-ctx-project={p.id} data-ctx-label={p.name} data-guide="nav.quality">
+                <button type="button" className={`lrc-card qa-card${ready ? " is-ready" : ""}`} data-reveal style={{ ["--i" as string]: Math.min(i, 8) }} onClick={() => navigate(`/quality/${p.id}`)} title={`Open ${p.name}: its Prototype plan and Launch readiness`} data-ctx-project={p.id} data-ctx-label={p.name} data-guide="nav.quality">
                   <ProjectShot projectId={p.id} name={p.name} version={p.updatedAt} variant="banner" />
                   {/* Where the build stands, first (as on the Dashboard). */}
                   <div className="qa-card__status">

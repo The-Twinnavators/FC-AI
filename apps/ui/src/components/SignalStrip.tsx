@@ -127,7 +127,7 @@ export function SignalStrip({ loading, run, checks, active, resumable, paused, c
                   aria-haspopup="dialog"
                   aria-expanded={openKind === k}
                   aria-label={`${NAME[k] ?? k}: ${checkStatusShort(c?.status, c?.summary)}. Details and re-run`}
-                  title={`${NAME[k] ?? k} (${k}): ${CHECKS[k]?.explain ?? ""} ${checkStatusShort(c?.status, c?.summary)}${required.has(k) ? " · required" : ""}`}
+                  title={`${NAME[k] ?? k} (${k}): ${CHECKS[k]?.explain ?? ""} ${checkStatusShort(c?.status, c?.summary)}${required.has(k) ? " · required" : ""}${c?.evidenceRefs.length ? ` · ${c.evidenceRefs.length} piece${c.evidenceRefs.length === 1 ? "" : "s"} of evidence (the ·${c.evidenceRefs.length})` : ""}. Click for details and Re-run.`}
                   onClick={(e) => {
                     setAnchor((e.currentTarget as HTMLElement).getBoundingClientRect());
                     setOpenKind(openKind === k ? undefined : k);
@@ -136,6 +136,8 @@ export function SignalStrip({ loading, run, checks, active, resumable, paused, c
                 <span className="signal__name">
                   {SHORT[k] ?? k}
                   {required.has(k) ? " *" : ""}
+                  {/* Each check opens its details and Re-run: the chevron says it is a menu, not a label. */}
+                  <svg className="signal__more" viewBox="0 0 24 24" width="10" height="10" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </span>
                 <span className="signal__row">
                   <Led status={c?.status} />

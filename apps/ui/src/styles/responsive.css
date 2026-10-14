@@ -3982,7 +3982,21 @@ form .section__body,
   border-radius: 4px;
 }
 .signal__btn:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--text-0) 7%, transparent);
+}
+.signal__more {
+  margin-left: 4px;
+  vertical-align: -1px;
+  opacity: 0.55;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.signal:hover .signal__more,
+.signal:focus-within .signal__more {
+  opacity: 1;
+}
+.signal:has(.signal__btn[aria-expanded="true"]) .signal__more {
+  opacity: 1;
+  transform: rotate(180deg);
 }
 .signal__btn:focus-visible {
   outline: 2px solid var(--brand-2);
@@ -9452,14 +9466,15 @@ button.web-card__title:focus-visible {
   left: 50%;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 14px;
+  width: 44px;
+  height: 16px;
   padding: 0;
   border: 0;
   border-radius: 0 0 6px 6px;
   background: transparent;
   color: var(--text-2);
-  opacity: 0.45;
+  /* Visible enough to be found (panels move by these), still quiet next to the content. */
+  opacity: 0.6;
   transform: translateX(-50%);
   touch-action: none;
   transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
@@ -15874,6 +15889,20 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .task--folded .task__rail { padding-top: 0; }
 .task--folded .task__fold { display: flex; align-items: baseline; gap: 10px; }
 .task--folded .task__fold .label { flex: none; }
+.task__chev { flex: none; align-self: center; color: var(--text-2); transition: transform 0.15s ease, color 0.15s ease; }
+.task__fold:hover .task__chev { color: var(--text-0); }
+.task__fold[aria-expanded="true"] .task__chev { transform: rotate(90deg); }
+/* Open, the step's label and title stack; the chevron sits beside them. */
+.task__fold { grid-template-columns: minmax(0, 1fr) auto; }
+.task__fold > .label, .task__fold > .task__title { grid-column: 1; }
+.task__fold > .task__chev { grid-column: 2; grid-row: 1 / span 2; }
+/* Pause, Continue and Cancel say what they do where there is room; narrower, the icon and its tooltip. */
+.coder-switch__label { display: inline-grid; line-height: 1.15; }
+.coder-switch__note { font-size: 10px; font-weight: 400; color: var(--text-2); letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.ctl-label { margin-left: 6px; }
+@media (min-width: 1361px) { .strip__controls .btn.btn--icon:has(.ctl-label) { width: auto; min-width: 34px; padding-inline: 10px !important; } }
+@media (max-width: 1360px) { .ctl-label { display: none; } }
+@media (prefers-reduced-motion: reduce) { .task__chev, .signal__more { transition: none; } }
 /* On a narrow panel a folded step keeps its whole title (it was cut to "Scaffol…"). */
 @media (max-width: 560px) { .task--folded .task__fold .task__title { white-space: normal; overflow: visible; } }
 .task--folded .task__title { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -16234,3 +16263,7 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .lib-shelf__label .cl-new { width: 16px; height: 16px; line-height: 0; margin-left: 6px; border-radius: 999px; background: var(--brand-1); color: #fff; vertical-align: -2px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-1) 25%, transparent); }
 .cl-tile { position: relative; }
 .cl-new--tile { position: absolute; top: 10px; left: 10px; z-index: 1; width: 26px; height: 26px; border-radius: 999px; background: var(--brand-1); color: #fff; box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.35); }
+
+/* The builder never scrolls sideways: an invisible overflow let the page slide 116px when a control took focus
+   (Cancel's question), hiding the Files panel. Its panels already fit; popovers are fixed and not clipped. */
+.ws { overflow-x: clip; }

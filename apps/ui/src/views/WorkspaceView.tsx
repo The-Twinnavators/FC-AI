@@ -239,7 +239,11 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
     <>
       {!["done", "done_with_warnings", "done_unverified", "cancelled"].includes(view.run.status) ? (
         <div className="seg coder-switch" role="radiogroup" aria-label="Who writes the code">
-          <span className="coder-switch__label">Coder</span>
+          {/* What the choice means, in view: the cloud gets the code and bills for it (it was only in a hover tooltip). */}
+          <span className="coder-switch__label">
+            Coder
+            <small className="coder-switch__note">{onCloud ? "Cloud · billed" : "Stays on this PC"}</small>
+          </span>
           <button type="button" role="radio" aria-checked={!onCloud} className={`seg__btn${onCloud ? "" : " is-on"}`} onClick={() => onCloud && switchCoder("local")} title="The local model on this computer writes the code: nothing leaves this computer">
             Local
           </button>
@@ -275,17 +279,20 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
         view.paused ? (
           <button className="btn btn--primary btn--icon" onClick={() => control("unpause")} aria-label="Continue" data-tip="Continue">
             <Icon name="play" size={14} />
+            <span className="ctl-label" aria-hidden="true">Continue</span>
           </button>
         ) : (
           <button className="btn btn--icon" onClick={() => control("pause")} aria-label="Pause" data-tip="Pause after this step">
             <Icon name="pause" size={14} />
+            <span className="ctl-label" aria-hidden="true">Pause</span>
           </button>
         )
       ) : null}
       {view.active || ["running", "awaiting_approval", "verifying", "recovering"].includes(view.run.status) ? (
         // Asks first: a cancelled build can't be picked up again, and this sat one click from Pause.
-        <ConfirmButton className="btn btn--danger btn--icon" label="Cancel the build" question="Cancel this build? It stops for good; finished steps are kept." confirmLabel="Cancel the build" cancelLabel="Keep building" onConfirm={() => control("cancel")}>
+        <ConfirmButton className="btn btn--danger btn--icon" label="Cancel the build" question="Stop this build for good?" confirmLabel="Cancel build" cancelLabel="Keep building" onConfirm={() => control("cancel")}>
           <Icon name="stop" size={14} />
+          <span className="ctl-label" aria-hidden="true">Cancel</span>
         </ConfirmButton>
       ) : null}
       {/* New requests go through Chat. */}
@@ -1043,6 +1050,8 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
                 <button type="button" className="task__fold" aria-expanded={!folded} data-cp={t.id === lastChanged ? "step-fold-changed" : undefined} onClick={() => toggleDone(t.id)}>
                   <span className="label">Step {i + 1}</span>
                   <h3 className="task__title">{t.title}</h3>
+                  {/* Says the step opens (its checks and files); it turns when open. */}
+                  <svg className="task__chev" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
               ) : (
                 <div>
