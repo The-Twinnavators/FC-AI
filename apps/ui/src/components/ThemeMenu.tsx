@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 import { Monitor, Moon, Sun } from "lucide-react";
 import type { DarkTone, LightTone, ThemeName } from "../appearance";
 
@@ -19,6 +20,9 @@ const CHOICES: Array<{ key: string; label: string; choice: ThemeChoice }> = [
  */
 export function ThemeMenu({ theme, current, perPage, onPick }: { theme: ThemeName; current: string; perPage: boolean; onPick: (c: ThemeChoice) => void }) {
   const [open, setOpen] = useState(false);
+  // Where the menu opens: under the button, right-aligned. It renders on the page itself, not inside the top bar,
+  // because the top bar is blurred and a blur inside it can't see the page behind.
+  const [at, setAt] = useState<{ top: number; right: number }>();
   const btn = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
 
@@ -51,7 +55,11 @@ export function ThemeMenu({ theme, current, perPage, onPick }: { theme: ThemeNam
       <button
         ref={btn}
         className="theme-toggle"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          const r = btn.current?.getBoundingClientRect();
+          if (r) setAt({ top: r.bottom + 6, right: window.innerWidth - r.right });
+          setOpen((o) => !o);
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Theme: ${label}${perPage ? " (this page)" : ""}`}
@@ -59,8 +67,8 @@ export function ThemeMenu({ theme, current, perPage, onPick }: { theme: ThemeNam
       >
         {current === "system" ? <Monitor size={16} aria-hidden="true" /> : theme === "light" ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
       </button>
-      {open ? (
-        <div ref={menu} className="ctx-menu theme-menu__list" role="menu" aria-label="Theme" onKeyDown={keys}>
+      {open && at ? createPortal(
+        <div ref={menu} className="ctx-menu theme-menu__list" role="menu" aria-label="Theme" onKeyDown={keys} style={{ top: at.top, right: at.right }}>
           {CHOICES.map((c) => (
             <button
               key={c.key}
@@ -76,7 +84,8 @@ export function ThemeMenu({ theme, current, perPage, onPick }: { theme: ThemeNam
             </button>
           ))}
           {perPage ? <p className="theme-menu__note">Pages have their own themes (Settings → Appearance); a choice here sets this page.</p> : null}
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </div>
   );
