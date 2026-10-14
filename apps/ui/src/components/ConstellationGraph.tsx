@@ -29,6 +29,8 @@ export interface CCluster {
   r: number;
   count: number;
   color: string;
+  /** A subcategory inside a group (Run, Task, File...): a smaller glow and a smaller label. */
+  sub?: boolean;
 }
 
 interface Props {
@@ -569,8 +571,9 @@ export function ConstellationGraph(props: Props) {
       for (const { c, p, rad } of clusterProj) {
         const rgb = rgbOf(c.color);
         const g = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, rad);
-        g.addColorStop(0, rgba(rgb, 0.1 * GLOW));
-        g.addColorStop(0.7, rgba(rgb, 0.035 * GLOW));
+        const k = c.sub ? 1.6 : 1;
+        g.addColorStop(0, rgba(rgb, 0.1 * GLOW * k));
+        g.addColorStop(0.7, rgba(rgb, 0.035 * GLOW * k));
         g.addColorStop(1, rgba(rgb, 0));
         ctx.fillStyle = g;
         ctx.beginPath();
@@ -768,6 +771,16 @@ export function ConstellationGraph(props: Props) {
 
       // Cluster names with counts, above each cluster.
       for (const { c, p: cp, depth, rad } of clusterProj) {
+        if (c.sub) {
+          // A subcategory: its name and count in its own colour, just under its glow.
+          const fadeS = Math.max(0.35, Math.min(1, (1.6 - depth) / 2.2));
+          ctx.textAlign = "center";
+          ctx.font = `600 ${9.5 * dpr}px ${FONT}`;
+          const rgbS = rgbOf(c.color);
+          ctx.fillStyle = rgba(rgbS, 0.85 * fadeS);
+          ctx.fillText(`${c.label.toUpperCase()} ${c.count}`, cp.sx, cp.sy + rad / 1.35 + 12 * dpr);
+          continue;
+        }
         // Just above the cluster on screen, whatever the tilt.
         const lp = { sx: cp.sx, sy: cp.sy - rad / 1.35 - 22 * dpr };
         const fade = Math.max(0.45, Math.min(1, (1.6 - depth) / 2.2));

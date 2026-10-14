@@ -89,14 +89,28 @@ export function layoutConstellation(nodes: GNode[], edges: GEdge[]) {
     const cx = Math.cos(angle) * ORBIT;
     const cz = Math.sin(angle) * ORBIT;
     const cy = gi % 2 ? -0.06 : 0.06;
-    const r = 0.1 + Math.sqrt(members.length) * 0.022;
+    // Each subcategory (Run, Task, File, Requirement...) is its own small sphere, set in a ring around the group's
+    // centre and sized by how much it holds, so the types read as separate clusters rather than one mixed ball.
+    const subs = g.types.map((t) => ({ type: t, items: members.filter((n) => n.type === t) })).filter((s) => s.items.length);
+    const subR = subs.map((s) => 0.03 + Math.sqrt(s.items.length) * 0.0135);
+    const biggest = Math.max(0.04, ...subR);
+    const ring = subs.length > 1 ? biggest * 1.4 + subs.length * 0.02 : 0;
+    const r = ring + biggest + 0.02;
     clusters.push({ label: g.label, x: cx, y: cy, z: cz, r, count: members.length, color: GROUP_COLOR[g.label] ?? "#a0aac0" });
-    members.forEach((n, i) => {
-      const y = 1 - ((i + 0.5) / Math.max(1, members.length)) * 2;
-      const rad = Math.sqrt(1 - y * y);
-      const th = GOLDEN * i;
-      const j = 0.9 + seeded(n.id) * 0.2;
-      placed.push({ id: n.id, type: n.type, label: n.label, group: g.label, hub: HUBS.has(n.type), bx: cx + Math.cos(th) * rad * r * j, by: cy + y * r * j, bz: cz + Math.sin(th) * rad * r * j, phase: seeded(n.id) * 6.28 });
+    subs.forEach((s, si) => {
+      const a = (si / subs.length) * Math.PI * 2 + gi * 0.7;
+      const sx = cx + Math.cos(a) * ring;
+      const sy = cy + Math.sin(a) * ring * 0.85;
+      const sz = cz + Math.sin(a * 2) * ring * 0.25;
+      const rs = subR[si]!;
+      if (subs.length > 1) clusters.push({ label: s.type, x: sx, y: sy, z: sz, r: rs, count: s.items.length, color: COLORS[s.type] ?? "#a0aac0", sub: true });
+      s.items.forEach((n, i) => {
+        const y = 1 - ((i + 0.5) / Math.max(1, s.items.length)) * 2;
+        const rad = Math.sqrt(1 - y * y);
+        const th = GOLDEN * i;
+        const j = 0.88 + seeded(n.id) * 0.24;
+        placed.push({ id: n.id, type: n.type, label: n.label, group: g.label, hub: HUBS.has(n.type), bx: sx + Math.cos(th) * rad * rs * j, by: sy + y * rs * j, bz: sz + Math.sin(th) * rad * rs * j, phase: seeded(n.id) * 6.28 });
+      });
     });
   });
   return { nodes: placed, edges: edges.map((e) => ({ from: idOf(e.source), to: idOf(e.target) })), clusters };
