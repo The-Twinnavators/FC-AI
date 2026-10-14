@@ -82,35 +82,66 @@ function StartResearch() {
       setBusy(false);
     }
   };
+  // What happens after Start, step by step and credited to the agent that does it. The research step lights up
+  // only when "Research this thoroughly" is on.
+  const next: Array<{ who: "you" | "planner" | "researcher" | "critic"; title: string; text: string; off?: boolean }> = [
+    { who: "you", title: "You describe the problem", text: "Who has it and what makes it hard. A sentence or two is enough." },
+    { who: "planner", title: "The Planner asks a few questions", text: "To pin down who it's for and what matters most." },
+    { who: "researcher", title: "The Researcher looks at people and evidence", text: "Users, alternatives, interviews, risks and tests.", off: !thorough },
+    { who: "planner", title: "The Planner drafts a focused PRD", text: "The Critic reviews it before you see it." },
+    { who: "you", title: "You approve it and build a prototype", text: "Edit anything first; nothing is built until you say so." },
+  ];
   return (
-    <div className="page disc-page">
+    <div className="page disc-page disc-new">
+      <a className="disc-new__back" href="#/discover">
+        <Icon name="chevron" size={12} /> All PRDs
+      </a>
       <header className="disc-hero">
         <span className="label">Create PRD</span>
         <h1 className="page__title">What problem do you want to solve?</h1>
         <p className="disc-lede">Describe the difficulty, not the app. FlowCode asks a few questions, then drafts a focused PRD you can build a prototype from.</p>
       </header>
       {error ? <ErrorNotice error={error} doing="start your research" /> : null}
-      <form className="disc-start" onSubmit={(e) => (e.preventDefault(), void start())}>
-        <label className="disc-field">
-          <span className="disc-field__label">The problem</span>
-          <span className="disc-field__hint" id="start-hint">
-            Who has it, and what makes it hard? For example: &ldquo;Busy parents can&apos;t tell which brands are non-GMO while shopping.&rdquo;
-          </span>
-          <textarea className="textarea" data-cp="prd-problem" rows={4} value={problem} aria-describedby="start-hint" autoFocus onChange={(e) => setProblem(e.target.value)} />
-        </label>
-        <label className="disc-start__thorough">
-          <input type="checkbox" checked={thorough} onChange={(e) => setThorough(e.target.checked)} />
-          <span>
-            <strong>Research this thoroughly</strong>
-            <span>Adds users and evidence, alternatives, interviews, risks and testing from the start. Leave it off to begin with a focused plan; you can add any of these later.</span>
-          </span>
-        </label>
-        <div className="disc-actions">
-          <button type="submit" className="btn btn--primary" data-cp="prd-start" disabled={busy || !problem.trim()}>
-            {busy ? "Starting…" : "Start"}
-          </button>
-        </div>
-      </form>
+      <div className="disc-new__grid">
+        <form className="disc-start" onSubmit={(e) => (e.preventDefault(), void start())}>
+          <label className="disc-field">
+            <span className="disc-field__label">The problem</span>
+            <span className="disc-field__hint" id="start-hint">
+              Who has it, and what makes it hard? For example: &ldquo;Busy parents can&apos;t tell which brands are non-GMO while shopping.&rdquo;
+            </span>
+            <textarea className="textarea" data-cp="prd-problem" rows={6} value={problem} aria-describedby="start-hint" autoFocus onChange={(e) => setProblem(e.target.value)} />
+          </label>
+          <label className={`disc-start__thorough${thorough ? " is-on" : ""}`}>
+            <input type="checkbox" checked={thorough} onChange={(e) => setThorough(e.target.checked)} />
+            <span>
+              <strong>Research this thoroughly</strong>
+              <span>Adds users and evidence, alternatives, interviews, risks and testing from the start. Leave it off to begin with a focused plan; you can add any of these later.</span>
+            </span>
+          </label>
+          <div className="disc-actions disc-new__actions">
+            <button type="submit" className="btn btn--primary" data-cp="prd-start" disabled={busy || !problem.trim()}>
+              {busy ? "Starting…" : "Start"} <Icon name="chevron" size={12} />
+            </button>
+            {!problem.trim() ? <span className="muted disc-new__why">Describe the problem to start.</span> : <span className="muted disc-new__why">Saved on this computer.</span>}
+          </div>
+        </form>
+        <aside className="disc-new__next" aria-labelledby="disc-next-title">
+          <h2 id="disc-next-title" className="disc-new__next-title">What happens next</h2>
+          <ol className="disc-new__steps">
+            {next.map((s, i) => (
+              <li key={i} className={s.off ? "is-off" : undefined}>
+                <span className="disc-new__who" aria-hidden="true">
+                  {s.who === "you" ? <span className="disc-new__you">You</span> : <RobotHead color={ROLE_COLOR[s.who] ?? "#9a9fd6"} id={`disc-next-${i}`} size={24} />}
+                </span>
+                <span>
+                  <strong>{s.title}</strong>
+                  <span className="muted">{s.off ? "Only with Research this thoroughly." : s.text}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      </div>
     </div>
   );
 }

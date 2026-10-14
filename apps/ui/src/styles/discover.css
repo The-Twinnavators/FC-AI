@@ -1553,3 +1553,123 @@
 .disc-projects--cards .disc-project__meta {
   margin-top: 2px;
 }
+
+/* Create PRD, new: the form on the left, what happens next on the right (it was one narrow column beside empty
+   space). The research option reads as a choice, and Start says why it is waiting. */
+.disc-new__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: var(--text-1);
+  font-size: 13px;
+  text-decoration: none;
+}
+.disc-new__back svg {
+  transform: rotate(180deg);
+}
+.disc-new__back:hover {
+  color: var(--text-0);
+}
+.disc-new__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  gap: 40px;
+  align-items: start;
+  margin-top: 8px;
+}
+.disc-new .disc-start {
+  max-width: none;
+}
+.disc-new .disc-start__thorough {
+  max-width: none;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.disc-new .disc-start__thorough:hover {
+  border-color: var(--line-strong, var(--line));
+}
+.disc-new .disc-start__thorough.is-on {
+  border-color: color-mix(in srgb, var(--brand-ink, #a2b6e6) 60%, transparent);
+  background: color-mix(in srgb, var(--brand-ink, #a2b6e6) 7%, transparent);
+}
+.disc-new .disc-start__thorough input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand-ink, #a2b6e6);
+}
+.disc-new__actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.disc-new__why {
+  font-size: 13px;
+}
+.disc-new__next {
+  padding: 22px 22px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-1);
+}
+.disc-new__next-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+}
+.disc-new__steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.disc-new__steps li {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  transition: opacity 0.2s ease;
+}
+.disc-new__steps li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.disc-new__steps li > span:last-child {
+  display: grid;
+  gap: 2px;
+  font-size: 13.5px;
+}
+.disc-new__steps li.is-off {
+  opacity: 0.45;
+}
+.disc-new__who {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 30px;
+}
+.disc-new__you {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--bg-3, rgba(255, 255, 255, 0.08));
+  color: var(--text-1);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+@media (max-width: 900px) {
+  .disc-new__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .disc-new .disc-start__thorough,
+  .disc-new__steps li {
+    transition: none;
+  }
+}
