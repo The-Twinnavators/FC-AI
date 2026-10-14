@@ -16344,3 +16344,9 @@ body.cp-driving #copilot-panel { z-index: 80; }
 :root[data-theme="light"][data-tone="grey"] body:has(.ws) {
   background: linear-gradient(180deg, #d2d8e1 0%, #e2e6ec 45%, #fbfcfd 100%) fixed;
 }
+/* The Coder switch sits on the status bar without its own box: no fill, no outline (the chosen side still shows). */
+.strip .seg.coder-switch {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
