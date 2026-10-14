@@ -72,7 +72,7 @@ import type { CompositionIssue } from "./pageTypes.js";
 import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBriefs, prdForBrief, screenBriefKey, screenBriefNote } from "./screenBrief.js";
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
-import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
+import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, dropDoneParts, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
@@ -1369,6 +1369,12 @@ export class Orchestrator {
     } catch {
       titles = [];
     }
+    // What other steps did or will do, so the parts don't repeat it (Clean Cart: a split "Landing page" re-added How
+    // it works, done two steps before, and took on the category and product pages that later steps build).
+    const others = this.graph.tasks(run.id).filter((t) => t.id !== task.id && t.status !== "skipped" && t.status !== "invalidated");
+    const doneTitles = others.filter((t) => t.status === "verified").map((t) => t.title);
+    const laterTitles = others.filter((t) => t.ordinal > task.ordinal && t.status === "pending").map((t) => t.title);
+    const context = [doneTitles.length ? `\n\nAlready done by earlier steps (leave this work out):\n${untrusted("done", doneTitles.map((t) => `- ${t}`).join("\n"))}` : "", laterTitles.length ? `\n\nDone by later steps (leave this work out too):\n${untrusted("later", laterTitles.map((t) => `- ${t}`).join("\n"))}` : ""].join("");
     let parts: ReturnType<typeof sentenceSplit>;
     try {
       const assignment = run.modelAssignments.planner ?? run.modelAssignments.coder;
@@ -1377,9 +1383,9 @@ export class Orchestrator {
           {
             role: "system",
             content:
-              "A coding agent ran out of actions twice on one step: it is too big to do in one go. Split it into 2 to 4 smaller steps, in the order they should be done. Each step changes one or two files from the project (or adds one new file under src/), and together they do exactly what the original step asks: nothing more, nothing less. Each objective names its files and says what to change in them. The building blocks in src/components/ui are the kit: they already use the design tokens and are not changed by steps, so never make a step about them. When the step has acceptance tests, give each step the exact titles of the tests it makes pass (\"tests\"), copied from the list; every test belongs to exactly one step, and a step is done only when its tests pass. Return JSON {\"steps\":[{\"title\": string, \"objective\": string, \"files\": string[], \"tests\": string[]}]}.",
+              "A coding agent ran out of actions twice on one step: it is too big to do in one go. Split it into 2 to 4 smaller steps, in the order they should be done. Each step changes one or two files from the project (or adds one new file under src/), and together they do exactly what the original step asks: nothing more, nothing less. Each objective names its files and says what to change in them. Leave out work that earlier steps already did or later steps will do. The building blocks in src/components/ui are the kit: they already use the design tokens and are not changed by steps, so never make a step about them. When the step has acceptance tests, give each step the exact titles of the tests it makes pass (\"tests\"), copied from the list; every test belongs to exactly one step, and a step is done only when its tests pass. Return JSON {\"steps\":[{\"title\": string, \"objective\": string, \"files\": string[], \"tests\": string[]}]}.",
           },
-          { role: "user", content: `Step: ${task.title}\n\nWhat it asks:\n${untrusted("step", task.objective)}\n\nProject files:\n${untrusted("files", flat.join("\n"))}${titles.length ? `\n\nThe step's acceptance tests (${testFile}):\n${untrusted("tests", titles.map((t) => `- ${t}`).join("\n"))}` : ""}` },
+          { role: "user", content: `Step: ${task.title}\n\nWhat it asks:\n${untrusted("step", task.objective)}\n\nProject files:\n${untrusted("files", flat.join("\n"))}${titles.length ? `\n\nThe step's acceptance tests (${testFile}):\n${untrusted("tests", titles.map((t) => `- ${t}`).join("\n"))}` : ""}${context}` },
         ],
         format: { type: "object", properties: { steps: { type: "array", items: { type: "object", properties: { title: { type: "string" }, objective: { type: "string" }, files: { type: "array", items: { type: "string" } }, tests: { type: "array", items: { type: "string" } } }, required: ["title", "objective", "files"] } } }, required: ["steps"] },
         timeoutMs: 240_000,
@@ -1391,6 +1397,7 @@ export class Orchestrator {
     }
     parts ??= sentenceSplit(task);
     if (!parts || signal.aborted) return false;
+    parts = dropDoneParts(parts, doneTitles);
     const pieces = buildSplit(task, parts, () => newId("task"));
     // Make room in the order, swap the step for its parts, and point anything that waited on it at the last part.
     const all = this.graph.tasks(run.id);

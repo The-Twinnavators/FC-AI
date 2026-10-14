@@ -369,3 +369,21 @@ export function stateRepairTask(
     attempts: 0,
   } as Task;
 }
+
+const SKIP_WORDS = new Set(["the", "and", "with", "this", "that", "from", "your", "into", "for", "its", "page", "section", "step", "home"]);
+const titleWords = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ").filter((w) => w.length > 2 && !SKIP_WORDS.has(w)).map((w) => w.replace(/ies$/, "y").replace(/s$/, ""));
+
+/**
+ * Leaves out parts a finished step already did: every word of the part's title is in that step's title (Clean Cart:
+ * "Landing page" was split and one part was "Add How it works to Home", after "Add How it works and Why you can trust
+ * it to Home" had passed). A part that owns acceptance tests stays, and at least one part always does.
+ */
+export function dropDoneParts(parts: SplitPart[], doneTitles: string[]): SplitPart[] {
+  const done = doneTitles.map((t) => new Set(titleWords(t)));
+  const repeats = (p: SplitPart) => {
+    const w = titleWords(p.title);
+    return !p.tests?.length && w.length >= 2 && done.some((d) => w.every((x) => d.has(x)));
+  };
+  const kept = parts.filter((p) => !repeats(p));
+  return kept.length ? kept : parts.slice(-1);
+}
