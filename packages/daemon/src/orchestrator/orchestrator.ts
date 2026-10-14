@@ -1979,7 +1979,7 @@ export class Orchestrator {
 
   /** A FlowCode limit (not the app) stopped a step twice: tell the person and keep a record they can report. */
   private noteFlowCodeLimit(run: Run, task: Task, guard: string) {
-    const message = `A FlowCode limit stopped "${task.title}" twice, not a problem in the app: ${guard || "no progress"}. The next attempt runs with that limit relaxed. If it stops again, it's a FlowCode problem worth reporting (System Health → Stuck steps).`;
+    const message = `A FlowCode limit stopped "${task.title}" twice, not a problem in the app: ${guard || "no progress"}. The next attempt runs with that limit relaxed. If it stops again, it's a FlowCode problem worth reporting (System → Stuck steps).`;
     this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: task.id, type: "run.status_changed", level: "warning", message });
     const list = this.d.store.getSetting<FlowCodeLimitHit[]>(FLOWCODE_LIMITS_KEY, []);
     this.d.store.setSetting(FLOWCODE_LIMITS_KEY, [{ at: nowIso(), runId: run.id, projectId: run.projectId, taskId: task.id, step: task.title, guard: guard || "no progress", model: run.modelAssignments.debugger?.model ?? run.modelAssignments.coder?.model }, ...list].slice(0, 50));
@@ -2016,8 +2016,8 @@ export class Orchestrator {
       if (reason)
         return {
           kind: "blocked",
-          reason: `Coder model unavailable: ${assignment.model} — ${reason}. No files were changed. This needs your decision: retry, free up memory, or choose another coder in System Health → Models & capability lab (gpt-oss:20b, or qwen2.5-coder:7b for less memory). FlowCode doesn't switch models on its own.`,
-          nextAction: "Choose the coder model in System Health → Models & capability lab, then retry the step",
+          reason: `Coder model unavailable: ${assignment.model} — ${reason}. No files were changed. This needs your decision: retry, free up memory, or choose another coder in System → Models & capability lab (gpt-oss:20b, or qwen2.5-coder:7b for less memory). FlowCode doesn't switch models on its own.`,
+          nextAction: "Choose the coder model in System → Models & capability lab, then retry the step",
         };
       // A local model runs with a 16k window unless one is chosen, and a step's instructions alone can fill most of it:
       // every file the model read then pushed the last one out, and it read the same files for three attempts without

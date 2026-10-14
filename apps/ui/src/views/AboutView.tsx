@@ -74,7 +74,7 @@ const SETUP_TIPS = [
   "Windows 11, Node.js 22.13 or later, and Ollama for the models.",
   "Plugged in, with nothing else heavy using the graphics card while a build runs.",
   "Optional: nomic-embed-text (0.3 GB) so search understands meaning, not just matching words.",
-  "Whichever Coder you pick, check it once: System Health → Models & capability lab → Run capability test. Only a model that passes can act as Coder.",
+  "Whichever Coder you pick, check it once: System → Models & capability lab → Run capability test. Only a model that passes can act as Coder.",
 ];
 
 const WHO = [

@@ -41,7 +41,7 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
       { path: "/guide", icon: "guide", label: "Feature guide" },
       { path: "/settings", icon: "settings", label: "Settings" },
       { path: "/primitives", icon: "palette", label: "Branding" },
-      { path: "/system", icon: "gauge", label: "System Health" },
+      { path: "/system", icon: "gauge", label: "System" },
     ],
   },
 ];

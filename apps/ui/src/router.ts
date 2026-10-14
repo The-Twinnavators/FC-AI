@@ -65,7 +65,7 @@ const PAGE_NAMES: Record<string, string> = {
   agents: "Agents",
   network: "Network Graph",
   settings: "Settings",
-  system: "System Health",
+  system: "System",
   primitives: "Branding",
   guide: "About FlowCode",
   discover: "Create PRD",

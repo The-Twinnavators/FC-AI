@@ -1,7 +1,7 @@
 /**
  * Prompts & Skills → Tools: every action FlowCode's agents can take (read, write, run, control), its execution policy and
  * which agents may use it, with example requests. A reference for what agents are allowed to do (moved here from
- * System Health, where it wasn't a health check).
+ * System, where it wasn't a health check).
  */
 import { useState } from "react";
 import { useResource } from "../api";

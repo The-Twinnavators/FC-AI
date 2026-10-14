@@ -1,7 +1,7 @@
 /**
  * Prompts & Skills → Proposed by FlowCode: failures that keep happening in FlowCode's own runs, the skill it drafted
  * for each (switched off until you turn it on), and, once on, whether the failure actually happens less often.
- * Failures a prompt can't fix (model crashes, time-outs) are on System Health → Model problems.
+ * Failures a prompt can't fix (model crashes, time-outs) are on System → Model problems.
  */
 import { useState } from "react";
 import { RefreshCw, RotateCcw, Sparkles, X } from "lucide-react";
@@ -145,10 +145,10 @@ export function SkillProposals({ onOpenSkill, waitingOnly = false }: { onOpenSki
         </p>
       ) : null}
 
-      {/* Failures a skill can't fix (the models or the machine) are on System Health → Model problems. */}
+      {/* Failures a skill can't fix (the models or the machine) are on System → Model problems. */}
       {data.codeFix.length ? (
         <p className="muted sprop__elsewhere">
-          {data.codeFix.length} other repeated failure{data.codeFix.length === 1 ? " comes" : "s come"} from the AI models or this computer, not from what the agents are told, so a skill can&apos;t fix {data.codeFix.length === 1 ? "it" : "them"}. See <a href="#/system/problems">System Health → Model problems</a>.
+          {data.codeFix.length} other repeated failure{data.codeFix.length === 1 ? " comes" : "s come"} from the AI models or this computer, not from what the agents are told, so a skill can&apos;t fix {data.codeFix.length === 1 ? "it" : "them"}. See <a href="#/system/problems">System → Model problems</a>.
         </p>
       ) : null}
 

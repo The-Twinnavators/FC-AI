@@ -102,7 +102,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   const token = opts.token ?? randomBytes(24).toString("hex");
   // After runs finish, look for repeated failures and draft skills for them (switched off until reviewed).
   watchForPatterns(app);
-  // One model problem a day: the Researcher looks into one and suggests a fix (System Health → Model problems).
+  // One model problem a day: the Researcher looks into one and suggests a fix (System → Model problems).
   watchProblems(app);
   // Notes the workspace whenever a build stops, so a retry can say which files were edited outside FlowCode.
   watchStops(app);

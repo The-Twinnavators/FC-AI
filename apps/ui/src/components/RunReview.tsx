@@ -78,7 +78,7 @@ export function RunReview({ runId }: { runId: string }) {
           </div>
         ) : null}
         <div>
-          <h4 className="run-review__h">Fixes to FlowCode <a href="#/system/problems" className="run-review__more-link">see all in System Health</a></h4>
+          <h4 className="run-review__h">Fixes to FlowCode <a href="#/system/problems" className="run-review__more-link">see all in System</a></h4>
           {proposals.length ? (
             <ul className="run-review__list">
               {proposals.map((p) => (

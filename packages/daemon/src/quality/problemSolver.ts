@@ -1,6 +1,6 @@
 /**
  * One model problem a day. Once a day, while no build is running, the Researcher agent looks into one of the repeated
- * model problems (System Health → Model problems), most frequent first: what the errors say, which roles and models
+ * model problems (System → Model problems), most frequent first: what the errors say, which roles and models
  * they hit, which models are installed. It writes a short diagnosis and one suggestion. Some suggestions come with a
  * change FlowCode can make for you (give a role a different installed model); nothing changes until you click Apply.
  * Local model only; no downloads, no settings changed on its own.

@@ -160,7 +160,7 @@ export function App() {
   const projectSettings = section === "projects" && route.parts[2] === "settings";
   useEffect(() => {
     if (section === "diagnostics") location.replace("#/system");
-    // Improvements now lives on System Health → Model problems.
+    // Improvements now lives on System → Model problems.
     if (section === "improvements") location.replace("#/system/problems");
     // Models & capability lab is a System tab now.
     if (section === "models") location.replace("#/system/models");
@@ -212,7 +212,7 @@ export function App() {
   }, [projectId]);
 
   useEffect(() => {
-    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Topic Search", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System Health", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
+    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Topic Search", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
     document.title = `${project ? project.name : titles[section] ?? "FlowCode"} · FlowCode`;
   }, [section, project]);
 

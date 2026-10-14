@@ -1,5 +1,5 @@
 /**
- * System Health → Model problems: failures that keep happening in FlowCode's runs but come from the AI models or this
+ * System → Model problems: failures that keep happening in FlowCode's runs but come from the AI models or this
  * computer (time-outs, Ollama dropping connections, malformed tool calls…), so a skill can't fix them. Each says, in
  * plain words, what it means and what you can do, with the raw errors behind "Technical details".
  */

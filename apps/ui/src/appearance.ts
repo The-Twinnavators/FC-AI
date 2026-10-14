@@ -46,7 +46,7 @@ export const THEMED_PAGES: Array<{ section: string; label: string }> = [
   { section: "about", label: "About FlowCode" },
   { section: "guide", label: "Feature guide" },
   { section: "primitives", label: "Branding" },
-  { section: "system", label: "System Health" },
+  { section: "system", label: "System" },
   // Reached from inside other pages.
   { section: "projects", label: "Project workspace (builder)" },
   { section: "journal", label: "Project journal" },

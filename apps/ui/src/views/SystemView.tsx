@@ -1,5 +1,6 @@
 /** System: daemon health & controls, environment & connections, AI engine, governed tool catalog. */
 import { useEffect, useRef, useState, lazy, Suspense } from "react";
+import { McpServers } from "../components/McpServers";
 import { get, post, useResource } from "../api";
 import { Icon, Led, Tabs, time } from "../components/ui";
 import { navigate } from "../router";
@@ -36,8 +37,8 @@ interface Engine {
 }
 
 
-type Tab = "health" | "environment" | "engine" | "models" | "stuck" | "problems";
-const TAB_IDS: Tab[] = ["health", "environment", "models", "engine", "stuck", "problems"];
+type Tab = "health" | "environment" | "engine" | "models" | "stuck" | "problems" | "servers";
+const TAB_IDS: Tab[] = ["health", "environment", "models", "engine", "stuck", "problems", "servers"];
 const ModelsView = lazy(() => import("./ModelsView").then((x) => ({ default: x.ModelsView })));
 
 /** What a system log line is about, for its color and label (errors and warnings first, then by subject). */
@@ -80,7 +81,7 @@ export function SystemView({ tab: initial }: { tab?: Tab }) {
       <header className="page__head">
         <div>
           <span className="label">System</span>
-          <h1 className="page__title">System Health</h1>
+          <h1 className="page__title">System</h1>
           <p className="lrc__meta">Is everything running: FlowCode's engine, its connections on this computer, the AI models and how they perform.</p>
         </div>
       </header>
@@ -96,6 +97,8 @@ export function SystemView({ tab: initial }: { tab?: Tab }) {
             { id: "engine", label: "AI engine" },
             { id: "stuck", label: "Stuck steps", ...(stuckCount ? { count: stuckCount } : {}) },
             { id: "problems", label: "Model problems", ...(problemCount ? { count: problemCount } : {}) },
+            // Moved from Prompts & Skills: the MCP servers the agents can call, and which roles may.
+            { id: "servers", label: "Connected servers" },
           ]}
         />
         <div role="tabpanel" className="sys-tabs__panel" id={`panel-system-${tab}`} aria-labelledby={`tab-system-${tab}`}>
@@ -104,6 +107,7 @@ export function SystemView({ tab: initial }: { tab?: Tab }) {
           {tab === "stuck" && <StuckSteps hits={stuck.data?.hits} reload={stuck.reload} />}
           {tab === "environment" && <EnvironmentPanel />}
           {tab === "engine" && <EnginePanel />}
+          {tab === "servers" && <McpServers />}
           {tab === "models" ? (
             <div className="system-embed">
               <Suspense fallback={<p className="muted">Checking the AI models on this computer…</p>}>

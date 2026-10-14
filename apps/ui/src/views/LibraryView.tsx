@@ -8,7 +8,6 @@ import { SKILL_CATEGORIES, categoryOf, skillMatches, type SkillCategory } from "
 import { Tabs } from "../components/ui";
 import { navigate } from "../router";
 import { AgentTools } from "../components/AgentTools";
-import { McpServers } from "../components/McpServers";
 import { SkillProposals } from "../components/SkillProposals";
 import { AgentHeads, CardSwitch, LibModal, VersionHistory } from "../components/LibModal";
 import { PromptForm, PromptImportButton, blankPrompt } from "../components/PromptEditor";
@@ -150,7 +149,6 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
   // Every list tab shows how many it holds (proposals waiting for you are flagged by the sidebar and Approvals badges).
   const proposalCount = useResource<{ items: Array<{ status: string }> }>("/skill-proposals", [], 30_000).data?.items.filter((i) => i.status !== "dismissed").length;
   const toolCount = useResource<unknown[]>("/system/tools", [], 0).data?.length;
-  const serverCount = useResource<{ servers: unknown[] }>("/mcp/servers", [], 30_000).data?.servers.length;
   const prompts = useResource<Array<PromptSpec & { builtin?: boolean }>>("/prompts");
   // Polled so skills added elsewhere (API, another window) appear without a reload.
   const skills = useResource<SkillSpec[]>("/skills", [], 15_000);
@@ -162,7 +160,8 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
   const linkTab = query?.get("tab");
   const linkOpen = query?.get("open");
   useEffect(() => {
-    if (linkTab === "skills" || linkTab === "tools" || linkTab === "servers" || linkTab === "prompts" || linkTab === "proposals") setTab(linkTab);
+    if (linkTab === "servers") navigate("/system/servers");
+    else if (linkTab === "skills" || linkTab === "tools" || linkTab === "prompts" || linkTab === "proposals") setTab(linkTab);
     // The skill pipeline moved to Data process → Skill pipeline; old links go there.
     if (linkTab === "pipeline") navigate("/pipeline");
     if (linkOpen) (setDraft(undefined), setPromptDraft(undefined), setSelected(linkOpen));
@@ -187,14 +186,10 @@ export function LibraryView({ query }: { query?: URLSearchParams } = {}) {
         </div>
       </header>
       <div className="page-tabs">
-        <Tabs label="library" value={tab} onChange={(t) => (setTab(t), setSelected(undefined), setDraft(undefined), setPromptDraft(undefined))} tabs={[{ id: "prompts", label: "Prompts", count: prompts.data ? prompts.data.length + REQUEST_TEMPLATES.length : undefined }, { id: "skills", label: "Skills", count: skills.data?.length }, { id: "proposals", label: "Proposed by FlowCode", count: proposalCount }, { id: "tools", label: "Built-in tools", count: toolCount }, { id: "servers", label: "Connected servers", count: serverCount }]} />
+        <Tabs label="library" value={tab} onChange={(t) => (setTab(t), setSelected(undefined), setDraft(undefined), setPromptDraft(undefined))} tabs={[{ id: "prompts", label: "Prompts", count: prompts.data ? prompts.data.length + REQUEST_TEMPLATES.length : undefined }, { id: "skills", label: "Skills", count: skills.data?.length }, { id: "proposals", label: "Proposed by FlowCode", count: proposalCount }, { id: "tools", label: "Built-in tools", count: toolCount }]} />
         {tab === "tools" ? (
           <div role="tabpanel" id="panel-library-tools" aria-labelledby="tab-library-tools" className="library-tools">
             <AgentTools />
-          </div>
-        ) : tab === "servers" ? (
-          <div role="tabpanel" id="panel-library-servers" aria-labelledby="tab-library-servers" className="library-tools">
-            <McpServers />
           </div>
         ) : tab === "proposals" ? (
           <div role="tabpanel" id="panel-library-proposals" aria-labelledby="tab-library-proposals" className="library-grid">

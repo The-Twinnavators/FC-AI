@@ -282,7 +282,7 @@ export function sameFailureTwice(signatures: string[]): boolean {
   const last = signatures[n - 1];
   return !!last && last === signatures[n - 2];
 }
-/** Where FlowCode keeps the times its own limits stopped a step (System Health → Stuck steps). */
+/** Where FlowCode keeps the times its own limits stopped a step (System → Stuck steps). */
 export const FLOWCODE_LIMITS_KEY = "flowcodeLimits";
 export interface FlowCodeLimitHit {
   at: string;
