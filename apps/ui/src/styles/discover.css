@@ -1710,3 +1710,33 @@
 .disc-new__steps li:not(.is-off) .disc-new__num {
   background-image: linear-gradient(180deg, color-mix(in srgb, var(--brand-ink, #a2b6e6) 72%, transparent) 0%, color-mix(in srgb, var(--brand-ink, #a2b6e6) 22%, transparent) 55%, transparent 100%);
 }
+/* Follow-up questions: suggested answers are multiple choice, each with a check box. */
+.disc-fu__hint {
+  margin: 4px 0 0;
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+.disc-fu__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.disc-fu__box {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--line-strong, rgba(190, 200, 222, 0.35));
+  border-radius: 4px;
+  color: #fff;
+}
+.disc-fu__chip.is-on {
+  border-color: color-mix(in srgb, var(--brand-ink, #a2b6e6) 70%, transparent);
+  background: color-mix(in srgb, var(--brand-ink, #a2b6e6) 12%, transparent);
+  color: var(--text-0);
+}
+.disc-fu__chip.is-on .disc-fu__box {
+  border-color: transparent;
+  background: var(--brand, #3a60c4);
+}

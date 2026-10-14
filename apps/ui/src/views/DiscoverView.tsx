@@ -938,6 +938,10 @@ function FollowUps({ view, step, onView, flushProblem }: { view: View; step: Dis
     if (flag === p.id && problem && !list.length) void ask();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Multiple choice: pick any of the suggested answers (and add your own), then Answer sends them together.
+  const [picked, setPicked] = useState<string[]>([]);
+  const toggle = (sug: string) => setPicked((cur) => (cur.includes(sug) ? cur.filter((x) => x !== sug) : [...cur, sug]));
+  const combined = () => [...picked, own.trim()].filter(Boolean).join("; ").slice(0, 1000);
   const answer = async (index: number, value: string | null) => {
     setBusy(index);
     setError(undefined);
@@ -945,6 +949,7 @@ function FollowUps({ view, step, onView, flushProblem }: { view: View; step: Dis
       const v = await post<View>(`/discovery/${p.id}/followup/answer`, { stepId: step.id, index, answer: value });
       onView(v);
       setOwn("");
+      setPicked([]);
       // Keep the conversation going until the last question.
       const asked = v.project.followups?.[step.id]?.length ?? 0;
       if (asked < FOLLOW_UP_MAX && index === asked - 1) {
@@ -971,20 +976,27 @@ function FollowUps({ view, step, onView, flushProblem }: { view: View; step: Dis
           {q.why ? <p className="disc-fu__why">Why I&apos;m asking: {q.why}</p> : null}
           {i === open ? (
             <>
-              <div className="disc-fu__chips" role="group" aria-label="Suggested answers">
-                {q.suggestions.map((sug) => (
-                  <button key={sug} type="button" className="disc-fu__chip" disabled={busy !== undefined} onClick={() => void answer(i, sug)}>
-                    {sug}
-                  </button>
-                ))}
+              <p className="disc-fu__hint">Pick all that apply, and add your own if you like.</p>
+              <div className="disc-fu__chips" role="group" aria-label="Suggested answers (pick all that apply)">
+                {q.suggestions.map((sug) => {
+                  const on = picked.includes(sug);
+                  return (
+                    <button key={sug} type="button" className={`disc-fu__chip${on ? " is-on" : ""}`} aria-pressed={on} disabled={busy !== undefined} onClick={() => toggle(sug)}>
+                      <span className="disc-fu__box" aria-hidden="true">
+                        {on ? <Icon name="check" size={11} /> : null}
+                      </span>
+                      {sug}
+                    </button>
+                  );
+                })}
               </div>
-              <form className="disc-fu__own" onSubmit={(e) => (e.preventDefault(), own.trim() && void answer(i, own))}>
+              <form className="disc-fu__own" onSubmit={(e) => (e.preventDefault(), combined() && void answer(i, combined()))}>
                 <label className="sr-only" htmlFor={`fu-${step.id}-${i}`}>
                   Your own answer
                 </label>
-                <input id={`fu-${step.id}-${i}`} className="input" placeholder="Or type your own answer" value={own} onChange={(e) => setOwn(e.target.value)} />
-                <button type="submit" className="btn btn--sm" disabled={!own.trim() || busy !== undefined}>
-                  Answer
+                <input id={`fu-${step.id}-${i}`} className="input" placeholder={picked.length ? "Add anything else (optional)" : "Or type your own answer"} value={own} onChange={(e) => setOwn(e.target.value)} />
+                <button type="submit" className={`btn btn--sm${picked.length || own.trim() ? " btn--primary" : ""}`} disabled={!combined() || busy !== undefined}>
+                  {picked.length > 1 ? `Answer (${picked.length})` : "Answer"}
                 </button>
                 <button type="button" className="btn btn--sm btn--ghost" disabled={busy !== undefined} onClick={() => void answer(i, null)}>
                   Skip
