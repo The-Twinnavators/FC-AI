@@ -16310,8 +16310,14 @@ body.cp-driving #copilot-panel { z-index: 80; }
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-.ws > .ws__col > .tabs {
+/* Every panel header alike: the tab rows and the Chat/Overview header. */
+.ws > .ws__col > .tabs,
+.ws > .ws__col > .ws__colhead {
   background: var(--ws-head);
+  box-shadow: inset 0 -1px 0 rgba(190, 200, 222, 0.11);
+}
+:root[data-theme="light"] .ws > .ws__col > .ws__colhead {
+  box-shadow: inset 0 -1px 0 rgba(18, 23, 34, 0.1);
 }
 /* The content area had a 50% black wash of its own, which pulled every panel back to the page colour. */
 :root .ws > .ws__col[class] > .ws__scroll,
