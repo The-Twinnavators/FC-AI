@@ -1500,7 +1500,7 @@ select option {
 
 .rail__item[aria-current="page"] {
   background: linear-gradient(180deg, rgba(58, 96, 196, 0.22), rgba(95, 127, 208, 0.1));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 16px -8px rgba(58, 96, 196, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .term,
