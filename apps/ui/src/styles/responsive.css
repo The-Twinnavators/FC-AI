@@ -16399,18 +16399,90 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .ws > .strip .strip__matrix::-webkit-scrollbar-track {
   margin-inline: 12px 52px;
   border-radius: 999px;
-  background: rgba(162, 182, 230, 0.1);
+  background: rgba(162, 182, 230, 0.07);
 }
 .ws > .strip .strip__matrix::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(79, 124, 240, 0.85), rgba(162, 182, 230, 0.85));
+  background: rgba(162, 182, 230, 0.32);
 }
 .ws > .strip .strip__matrix::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, #4f7cf0, #a2b6e6);
+  background: rgba(162, 182, 230, 0.55);
 }
 :root[data-theme="light"] .ws > .strip .strip__matrix::-webkit-scrollbar-track {
   background: rgba(18, 23, 34, 0.08);
 }
 :root[data-theme="light"] .ws > .strip .strip__matrix::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, rgba(58, 96, 196, 0.8), rgba(95, 127, 208, 0.8));
+  background: rgba(58, 96, 196, 0.35);
+}
+
+/* === Chat composer ===
+   Options for the message (Attach, Styling only, Cloud) on the left, sending (Queue change, Ask or Send) on the right,
+   the keyboard hint on its own line. Checkboxes at the size of their text. The conversation always keeps room above
+   it, and the suggestion chips fade at the edge when there are more to scroll to. */
+.pchat__list {
+  min-height: 80px;
+}
+/* The composer is always whole, so Ask and Send never scroll out of view; its text box starts two lines tall and
+   grows by dragging. */
+.pchat__composer {
+  flex: none;
+}
+.pchat__composer .pchat__input {
+  min-height: 48px;
+  height: 60px;
+}
+/* In a short panel the conversation and the box both stay usable: the suggestion chips and the hint step aside. */
+.pchat {
+  container: pchat / size;
+}
+@container pchat (max-height: 420px) {
+  .pchat__chips,
+  .pchat__bar > .pchat__hint {
+    display: none;
+  }
+}
+.pchat__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+.pchat__opts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  min-width: 0;
+}
+.pchat__opts > .check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.pchat__opts > .check input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--brand-ink, #a2b6e6);
+}
+.pchat__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.pchat__bar > .pchat__hint {
+  flex: 1 1 100%;
+  order: 10;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.pchat__chips {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  padding-right: 32px;
 }

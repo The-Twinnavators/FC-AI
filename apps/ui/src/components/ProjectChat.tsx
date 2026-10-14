@@ -504,6 +504,8 @@ export function ProjectChat({ projectId, runs, view, events, onSent, onShow, onD
         ) : null}
         <div className="pchat__bar">
           <input ref={fileInput} type="file" accept={ACCEPT} multiple hidden onChange={(e) => (e.target.files && void addFiles(e.target.files), (e.target.value = ""))} />
+          {/* Options for this message on the left, sending on the right, the keyboard hint on its own line. */}
+          <div className="pchat__opts">
           <button type="button" className="btn btn--sm btn--ghost" onClick={() => fileInput.current?.click()} disabled={sending} title="Attach .md, .css, .json, .html or .txt files for FlowCode to read and apply">
             <Icon name="clip" size={14} /> Attach
           </button>
@@ -515,7 +517,8 @@ export function ProjectChat({ projectId, runs, view, events, onSent, onShow, onD
               <input type="checkbox" checked={useCloud} onChange={(e) => setUseCloud(e.target.checked)} /> Use the cloud for this change
             </label>
           ) : null}
-          <span className="pchat__hint">{busy ? "Enter asks about the current change · Queue sends a new change when it finishes" : "Enter to send · Shift+Enter for a new line"}</span>
+          </div>
+          <div className="pchat__actions">
           {busy ? (
             <>
               <button type="button" className="btn btn--sm" disabled={!text.trim() && !files.length} onClick={queue} title="Send this change when the ones before it finish">
@@ -530,6 +533,8 @@ export function ProjectChat({ projectId, runs, view, events, onSent, onShow, onD
               {sending ? "Sending…" : "Send"} <Icon name="chevron" size={12} />
             </button>
           )}
+          </div>
+          <span className="pchat__hint">{busy ? "Enter asks about the current change · Queue sends a new change when it finishes" : "Enter to send · Shift+Enter for a new line"}</span>
         </div>
       </form>
     </div>
