@@ -342,7 +342,7 @@ export function App() {
         {section === "about" && <AboutView />}
         {section === "system" && <SystemView key={route.parts[1] ?? "health"} tab={route.parts[1] as never} />}
         {section === "agents" && <AgentsView />}
-        {section === "approvals" && <ApprovalsView projects={projects.data ?? []} />}
+        {section === "approvals" && <ApprovalsView projects={projects.data ?? []} projectsLoaded={!!projects.data} />}
 
         {section === "journal" && <JournalView key={route.parts[1] ?? "first"} projectId={route.parts[1]} runId={route.parts[2]} projects={projects.data ?? []} />}
         {section === "network" && <NetworkView projects={projects.data ?? []} query={route.query} />}

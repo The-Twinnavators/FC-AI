@@ -1522,7 +1522,7 @@ function FeedWorking({ role, last, doing, model, items }: { role: string; last?:
   const usual = waitingOnModel ? replyTimes(items, model) : undefined;
   const pct = usual ? Math.min(96, Math.round((sinceMs / usual.high) * 100)) : 0;
   const late = !!usual && sinceMs > usual.high;
-  const range = usual ? (Math.round(usual.low / 60_000) === Math.round(usual.high / 60_000) ? `about ${minsText(usual.high)}` : `${minsText(usual.low)}–${minsText(usual.high)}`) : "";
+  const range = usual ? (Math.round(usual.low / 60_000) === Math.round(usual.high / 60_000) ? `about ${minsText(usual.high)}` : `${Math.max(1, Math.round(usual.low / 60_000))}–${minsText(usual.high)}`) : "";
   const note = usual ? (late ? `Taking longer than usual (replies usually take ${range}). Still working.` : `Replies usually take ${range}`) : "";
   return (
     <div className="feed__live" role="status" title={`Last update ${Math.floor(sinceMs / 60_000)} min ${Math.floor((sinceMs % 60_000) / 1000)} s ago`}>

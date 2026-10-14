@@ -9,6 +9,7 @@ import type { Approval, Project } from "@flowcode/contracts";
 import { useResource } from "../api";
 import { ApprovalCard } from "../components/ApprovalCard";
 import { Tabs, ago } from "../components/ui";
+import { SkeletonBlock } from "../components/motion";
 import { navigate } from "../router";
 import { DecisionCalendar, type LogEntry } from "../components/DecisionCalendar";
 import { SkillProposals } from "../components/SkillProposals";
@@ -37,7 +38,91 @@ const WHAT: Record<string, string> = {
   tool: "Use an outside tool",
 };
 
-export function ApprovalsView({ projects }: { projects: Project[] }) {
+const RUNNING = ["draft", "running", "verifying", "recovering"];
+const STATUS_WORDS: Record<string, string> = { draft: "planning", running: "building", verifying: "checking its work", recovering: "fixing a problem" };
+
+/**
+ * Nothing waiting: say what is going on instead of a blank page. Which builds are running (they stop here if they need
+ * you), your last decision, other things worth a look, and what usually lands here.
+ */
+function WaitingEmpty({ projects, last, ideas, proposed, onTab }: { projects: Project[]; last?: LogEntry; ideas: number; proposed: number; onTab: (t: "ideas" | "proposed" | "log") => void }) {
+  const running = projects
+    .map((p) => ({ p, run: (p as Project & { latestRun?: { id: string; status: string } }).latestRun }))
+    .filter((x) => x.run && RUNNING.includes(x.run.status));
+  return (
+    <section className="apv-calm" aria-labelledby="apv-calm-title">
+      <div className="apv-calm__head">
+        <span className="apv-calm__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </span>
+        <div>
+          <h2 id="apv-calm-title" className="apv-calm__title">Nothing needs your OK right now</h2>
+          <p className="apv-calm__lede">When a build needs a decision it stops, and the request shows up here and in the builder.</p>
+        </div>
+      </div>
+
+      <div className="apv-calm__row">
+        <span className="apv-calm__label">Running now</span>
+        {running.length ? (
+          <ul className="apv-calm__list">
+            {running.map(({ p, run }) => (
+              <li key={p.id}>
+                <span className="apv-calm__live" aria-hidden="true" />
+                <strong>{p.name.replace(/\s+/g, " ")}</strong>
+                <span className="muted">is {STATUS_WORDS[run!.status] ?? run!.status.replace(/_/g, " ")}</span>
+                <button type="button" className="btn btn--sm" onClick={() => navigate(`/projects/${p.id}/runs/${run!.id}`)}>
+                  Open the build
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="muted">No builds are running.</p>
+        )}
+      </div>
+
+      {last ? (
+        <div className="apv-calm__row">
+          <span className="apv-calm__label">Your last decision</span>
+          <p>
+            <span className="chip">{last.chip}</span> {last.summary} <span className="muted">· {ago(last.at)}</span>{" "}
+            <button type="button" className="link-btn" onClick={() => onTab("log")}>
+              Decision log
+            </button>
+          </p>
+        </div>
+      ) : null}
+
+      {ideas || proposed ? (
+        <div className="apv-calm__row">
+          <span className="apv-calm__label">Worth a look</span>
+          <p className="apv-calm__links">
+            {ideas ? (
+              <button type="button" className="link-btn" onClick={() => onTab("ideas")}>
+                {ideas} suggestion{ideas === 1 ? "" : "s"} for your projects
+              </button>
+            ) : null}
+            {proposed ? (
+              <button type="button" className="link-btn" onClick={() => onTab("proposed")}>
+                {proposed} skill{proposed === 1 ? "" : "s"} proposed by FlowCode
+              </button>
+            ) : null}
+          </p>
+        </div>
+      ) : null}
+
+      <div className="apv-calm__row">
+        <span className="apv-calm__label">What lands here</span>
+        <p className="muted">
+          Starting to build from a plan, installing packages, running a command on your computer, and changing files outside a step&apos;s plan. Away from your desk?{" "}
+          <a href="#/settings/phone">Decide from your phone</a>.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+export function ApprovalsView({ projects, projectsLoaded = true }: { projects: Project[]; projectsLoaded?: boolean }) {
   const pending = useResource<Approval[]>("/approvals", [], 10_000);
   const history = useResource<Approval[]>("/approvals/history?limit=500", [], 0);
   const decisions = useResource<Decision[]>("/decisions?limit=5000", [], 0);
@@ -109,7 +194,12 @@ export function ApprovalsView({ projects }: { projects: Project[] }) {
             ))}
           </ul>
         ) : (
-          <p className="apv-empty">Nothing is waiting on you. Builds that need a decision show up here.</p>
+          // Until the approvals and the projects are in, say so: "No builds are running" was shown for a running build.
+          !pending.data || !projectsLoaded ? (
+            <SkeletonBlock rows={3} label="Loading what is waiting on you" />
+          ) : (
+          <WaitingEmpty projects={projects} last={[...entries].sort((a, b) => b.at.localeCompare(a.at))[0]} ideas={ideas.length} proposed={proposed} onTab={(t) => setTab(t)} />
+          )
         )
       ) : null}
       {tab === "ideas" ? (

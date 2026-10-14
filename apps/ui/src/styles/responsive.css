@@ -16436,6 +16436,102 @@ body.cp-driving #copilot-panel { z-index: 80; }
   }
 }
 
+/* Approvals: what is going on when nothing is waiting. One panel, rows split by lines (no cards inside). */
+.apv-calm {
+  display: grid;
+  max-width: 760px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-1);
+}
+.apv-calm__head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 20px 22px;
+}
+.apv-calm__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sig-ok, #2dd4bf) 16%, transparent);
+  color: var(--sig-ok, #2dd4bf);
+}
+.apv-calm__title {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+.apv-calm__lede {
+  margin: 0;
+  color: var(--text-1);
+}
+.apv-calm__row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding: 14px 22px;
+  border-top: 1px solid var(--line);
+}
+.apv-calm__row p {
+  margin: 0;
+}
+.apv-calm__label {
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.apv-calm__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.apv-calm__list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.apv-calm__list .btn {
+  margin-left: auto;
+}
+.apv-calm__live {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--brand-2, #5d98d0);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand-2, #5d98d0) 60%, transparent);
+  animation: apv-live 2s ease-out infinite;
+}
+@keyframes apv-live {
+  to {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apv-calm__live {
+    animation: none;
+  }
+}
+.apv-calm__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+@media (max-width: 640px) {
+  .apv-calm__row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
 /* === Chat composer ===
    Options for the message (Attach, Styling only, Cloud) on the left, sending (Queue change, Ask or Send) on the right,
    the keyboard hint on its own line. Checkboxes at the size of their text. The conversation always keeps room above
