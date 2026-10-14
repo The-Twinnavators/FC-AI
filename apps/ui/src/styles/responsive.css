@@ -16740,3 +16740,12 @@ body.cp-driving #copilot-panel { z-index: 80; }
   border-radius: 999px;
   background: var(--warn, #f5b04c);
 }
+.apv-empty-state__last {
+  margin: 14px 0 0;
+  color: var(--text-1);
+  font-size: 13px;
+}
+.apv-empty-state__last strong {
+  color: var(--text-0);
+  font-weight: 600;
+}

@@ -57,7 +57,6 @@ function WaitingEmpty({ projects, last, ideas, proposed, onTab }: { projects: Pr
     // Recent ones only: builds left stopped days ago are on My Projects, and listing them all buried the one that matters.
     .filter((x) => x.run && (x.run.status === "blocked" || x.run.status === "failed") && Date.now() - Date.parse(x.p.updatedAt) < 3 * 86_400_000)
     .sort((a, b) => b.p.updatedAt.localeCompare(a.p.updatedAt));
-  const shown = stopped.slice(0, 3);
   const first = stopped[0] ?? running[0];
   const nameOf = (x: { p: Project }) => x.p.name.replace(/\s+/g, " ");
   return (
@@ -69,8 +68,8 @@ function WaitingEmpty({ projects, last, ideas, proposed, onTab }: { projects: Pr
       <h2 id="apv-calm-title" className="apv-empty-state__title">{stopped.length ? `No approvals waiting, but ${stopped.length === 1 ? "a build" : `${stopped.length} builds`} stopped` : "Nothing needs your OK right now"}</h2>
       <p className="apv-empty-state__lede">
         {stopped.length
-          ? `${stopped.length === 1 ? nameOf(stopped[0]!) : `${nameOf(stopped[0]!)} and ${stopped.length - 1} other build${stopped.length === 2 ? "" : "s"}`} stopped on a step and need${stopped.length === 1 ? "s" : ""} you to decide how to go on. Open the build to see why and what you can do.`
-          : "When a build needs a decision it stops, and the request shows up here and in the builder."}
+          ? "Open the build to see why and decide how to go on."
+          : "When a build needs a decision, it shows up here."}
       </p>
       <div className="apv-empty-state__actions">
         {first ? (
@@ -86,53 +85,13 @@ function WaitingEmpty({ projects, last, ideas, proposed, onTab }: { projects: Pr
           See the decision log
         </button>
       </div>
-      <ul className="apv-empty-state__context" aria-label="What is going on">
-        {shown.map((x) => (
-          <li key={`s-${x.p.id}`} className="is-stopped">
-            <span className="apv-empty-state__dot" aria-hidden="true" />
-            <strong>{nameOf(x)}</strong> stopped, needs a decision
-          </li>
-        ))}
-        {stopped.length > shown.length ? (
-          <li>
-            <button type="button" className="link-btn" onClick={() => navigate("/quality")}>
-              +{stopped.length - shown.length} more stopped
-            </button>
-          </li>
-        ) : null}
-        {running.length ? (
-          running.map(({ p, run }) => (
-            <li key={p.id}>
-              <span className="apv-calm__live" aria-hidden="true" />
-              <strong>{p.name.replace(/\s+/g, " ")}</strong> is {STATUS_WORDS[run!.status] ?? run!.status.replace(/_/g, " ")}
-            </li>
-          ))
-        ) : stopped.length ? null : (
-          <li>No builds are running</li>
-        )}
-        {last ? (
-          <li title={last.summary}>
-            Last decision: <strong>{last.summary.length > 48 ? `${last.summary.slice(0, 47)}…` : last.summary}</strong> · {ago(last.at)}
-          </li>
-        ) : null}
-        {ideas ? (
-          <li>
-            <button type="button" className="link-btn" onClick={() => onTab("ideas")}>
-              {ideas} suggestion{ideas === 1 ? "" : "s"} to look at
-            </button>
-          </li>
-        ) : null}
-        {proposed ? (
-          <li>
-            <button type="button" className="link-btn" onClick={() => onTab("proposed")}>
-              {proposed} skill{proposed === 1 ? "" : "s"} proposed by FlowCode
-            </button>
-          </li>
-        ) : null}
-      </ul>
+      {last ? (
+        <p className="apv-empty-state__last" title={last.summary}>
+          Last decision: <strong>{last.summary.length > 48 ? `${last.summary.slice(0, 47)}…` : last.summary}</strong> · {ago(last.at)}
+        </p>
+      ) : null}
       <p className="apv-empty-state__foot">
-        Lands here: starting a build from a plan, installing packages, running a command on your computer, and changing files outside a step&apos;s plan. Away from your desk?{" "}
-        <a href="#/settings/phone">Decide from your phone</a>.
+        Away from your desk? <a href="#/settings/phone">Decide from your phone</a>.
       </p>
     </section>
   );
