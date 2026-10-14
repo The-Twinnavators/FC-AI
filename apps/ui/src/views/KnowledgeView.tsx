@@ -365,7 +365,7 @@ const isFix = (k: KnowledgeItem) => k.tags.includes("fix-memory");
 /** Shelves are computed from what is stored: kinds, tags and research jobs. Each item has one home shelf. */
 function buildShelves(items: KnowledgeItem[], jobs: ResearchJob[]): Shelf[] {
   const base: Array<Omit<Shelf, "count">> = [
-    { id: "all", label: "All items", description: "Everything this project has in the Knowledge Hub, newest first.", color: "var(--text-2)", match: (k) => !k.excluded },
+    { id: "all", label: "All items", description: "Everything on these shelves, newest first.", color: "var(--text-2)", match: (k) => !k.excluded },
     { id: "pinned", label: "Pinned", description: "Always given to agents when they look something up.", color: "#f2b33d", match: (k) => k.pinned && !k.excluded },
     { id: "fixes", label: "Fixes that worked", description: "How FlowCode fixed a step that failed: what went wrong and the change that made it pass. Retries in later builds get the closest ones.", color: "#7fb069", match: (k) => !k.excluded && isFix(k) },
     { id: "notes", label: "Decisions & notes", description: "What you decided and why, plus notes, snippets and glossary terms.", color: "#2fc4b2", match: (k) => !k.excluded && ["decision", "note", "snippet", "glossary"].includes(k.kind) && !isResearch(k) && !isFix(k) },

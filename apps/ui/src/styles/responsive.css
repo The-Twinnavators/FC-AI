@@ -16749,3 +16749,16 @@ body.cp-driving #copilot-panel { z-index: 80; }
   color: var(--text-0);
   font-weight: 600;
 }
+
+/* The catalog toolbar (filter, sort, layout) stays one compact row: a later .lib-tools rule meant for the Built-in
+   tools list made it a vertical grid, stacking the controls and stretching the toggle. */
+.lib-catalogue__head .lib-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lib-catalogue__head > div:first-child {
+  flex: 1 1 260px;
+  min-width: 0;
+}
