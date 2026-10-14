@@ -1740,3 +1740,17 @@
   border-color: transparent;
   background: var(--brand, #3a60c4);
 }
+
+/* Cards with even side margins: the content no longer keeps 28px clear on the right for the corner menu (it sits
+   beside the badge, above the title), so the title, stages line and progress bar end where they start. More room
+   between cards and between the sections of the page. */
+.disc-projects--cards .disc-project__open {
+  padding-right: 0;
+}
+.disc-projects--cards {
+  gap: 20px;
+}
+/* The app-wide section gap is set with !important; this page raises its variable instead. */
+.page.disc-page:has(> .disc-projects) {
+  --space-gap: 32px;
+}
