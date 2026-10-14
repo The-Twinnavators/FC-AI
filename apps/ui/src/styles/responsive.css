@@ -53,6 +53,11 @@
 .strip__matrix {
   min-width: 0;
   scrollbar-width: auto;
+  /* More checks than fit scroll sideways: the right edge fades so it is clear the row goes on (twelve checks sat
+     hidden past "Style"), and the padding lets the last one scroll clear of the fade. */
+  padding-right: 40px;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
 }
 
 /* ≤ 1280px: two columns; files become a compact full-width row underneath. */
@@ -140,6 +145,19 @@
   .topbar__search {
     display: none;
   }
+  /* Its scope picker goes with the search box: alone it was a stray "FlowCode" menu the project name ran into. */
+  .topbar .gsearch {
+    display: none;
+  }
+  /* The project switcher takes the room left and shortens its name instead of spilling over its neighbours. */
+  .topbar__crumbs {
+    flex: 1 1 auto;
+  }
+  .topbar__crumbs select.select {
+    min-width: 0;
+    max-width: 100%;
+    text-overflow: ellipsis;
+  }
 }
 
 @media (max-width: 560px) {
@@ -149,6 +167,25 @@
   .copilot-trigger span,
   .copilot-trigger kbd {
     display: none;
+  }
+  /* On a phone the models pill is its status light (the words stay for screen readers and in its tooltip), so the
+     project name keeps room in the top bar. */
+  .topbar .provider-pill {
+    font-size: 0;
+    gap: 0;
+    min-width: 32px;
+    min-height: 32px;
+    justify-content: center;
+    padding-inline: 10px;
+  }
+  /* The rail already shows the logo; the project is what this bar names on a phone. */
+  .topbar .topbar__brand,
+  .topbar .topbar__brand + .topbar__sep {
+    display: none;
+  }
+  .topbar__crumbs select.select {
+    flex: 1 1 auto;
+    width: 100%;
   }
 }
 
@@ -15837,6 +15874,8 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .task--folded .task__rail { padding-top: 0; }
 .task--folded .task__fold { display: flex; align-items: baseline; gap: 10px; }
 .task--folded .task__fold .label { flex: none; }
+/* On a narrow panel a folded step keeps its whole title (it was cut to "Scaffol…"). */
+@media (max-width: 560px) { .task--folded .task__fold .task__title { white-space: normal; overflow: visible; } }
 .task--folded .task__title { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .task__fold:hover .task__title { color: var(--text-0); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong, var(--line)); }
 

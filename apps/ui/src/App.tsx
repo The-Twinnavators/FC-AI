@@ -253,7 +253,8 @@ export function App() {
               </span>
             ) : null}
             {g.items.map((n) => {
-              const active = n.path === "/" ? section === "" || section === "projects" : `/${section}` === n.path || (n.path === "/system" && section === "models");
+              // A project and its builds live under My Projects, so the rail shows where you are (it lit Dashboard).
+              const active = n.path === "/" ? section === "" : `/${section}` === n.path || (n.path === "/quality" && section === "projects") || (n.path === "/system" && section === "models");
               return (
                 <button key={n.path} data-guide={`nav.${n.path === "/" ? "projects" : n.path.slice(1)}`} className="rail__item" aria-label={n.label} title={n.path === "/approvals" && pending ? `${n.label}: ${pending} waiting on you, the oldest for ${oldestWaitMin} min${ideasPending ? `, plus ${ideasPending} optional suggestion${ideasPending === 1 ? "" : "s"}` : ""}` : n.label} aria-current={active ? "page" : undefined} onClick={() => navigate(n.path)}>
                   <Icon name={n.icon} size={18} />

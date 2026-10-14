@@ -42,6 +42,9 @@ interface Launch {
 export function ProjectCards({ projects, reload, compact }: { projects: Project[]; reload: () => void; compact?: boolean }) {
   const launch = useResource<Launch[]>("/launch/summary", [], 15000);
   const [reports, setReports] = useState<Record<string, Analysis | null>>();
+  // Keyed on the projects' ids, not the array: callers pass a new array on every render, and restarting here threw
+  // the answers away before they landed, so My Projects stayed on its skeleton while requests piled up by the hundred.
+  const ids = projects.map((p) => p.id).join(",");
   useEffect(() => {
     let alive = true;
     void Promise.all(
@@ -54,16 +57,16 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
     return () => {
       alive = false;
     };
-  }, [projects]);
+  }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
   const byId = new Map((launch.data ?? []).map((s) => [s.projectId, s]));
   const gauge = compact ? 44 : 56;
   return (
     <>
-      {projects.length && (!reports || !launch.data) ? <SkeletonBlock rows={compact ? 2 : 3} label="Loading projects" /> : null}
+      {projects.length && !launch.data ? <SkeletonBlock rows={compact ? 2 : 3} label="Loading projects" /> : null}
       <div className={`lrc-cards${compact ? " lrc-cards--compact" : ""}`} role="list">
-        {reports && launch.data
+        {launch.data
           ? projects.map((p, i) => {
-              const r = reports[p.id];
+              const r = reports?.[p.id];
               const l = byId.get(p.id);
               const ready = !!l && l.gateOpen === 0 && l.percent === 100;
               return (
@@ -138,6 +141,7 @@ export function QualityOverview({ projects, reload, loaded = true }: { projects:
           <p className="lrc__meta">Every prototype you've built, each with its Prototype plan and its Launch readiness checklist for the real app. Open one in the builder to keep iterating on the design.</p>
         </div>
       </header>
+      {!loaded ? <SkeletonBlock rows={3} label="Loading projects" /> : null}
       {loaded && !projects.length ? (
         <Empty title="No projects yet" action={<button className="btn btn--primary" onClick={() => navigate("/")}>Start a prototype</button>}>
           Each prototype gets its own Prototype plan and a Launch readiness checklist for the real app.

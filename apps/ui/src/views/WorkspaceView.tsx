@@ -17,6 +17,7 @@ import { PreviewSizes, PreviewThemeToggle, deviceWidth, storePreviewTheme, store
 import type { Approval, Checkpoint, CommandRecord, FlowEvent, KnowledgeItem, PreflightRecord, Project, Run, Snapshot, Task, VerificationCheck } from "@flowcode/contracts";
 import { artifactUrl, get, post, useEventStream, useResource } from "../api";
 import { ApprovalCard } from "../components/ApprovalCard";
+import { SkeletonBlock } from "../components/motion";
 import { ResizeHandle, usePersistedWidth } from "../components/ResizeHandle";
 import { ProjectChat } from "../components/ProjectChat";
 import { SignalStrip } from "../components/SignalStrip";
@@ -164,13 +165,16 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
     // Which build, what happened, and where to look.
     const who = projectRes.data?.project.name.replace(/\s+/g, " ") ?? "This project";
     const here = { href: `#/projects/${projectId}/runs/${currentRunId}`, overview: true };
-    if (e.type === "approval.requested") announce(`${who} needs your OK: ${e.message.replace(/^Approval needed \([a-z]+ risk\): /, "")}`, { ...here, linkLabel: "Review it" });
+    // An approval opens in a modal here (blockingApproval), so a toast would be a third notice that lingers after
+    // you decide; only an improvement idea, which has no modal, is announced.
+    if (e.type === "approval.requested" && (e.data as { kind?: string } | undefined)?.kind === "enhancement_idea") announce(`${who} needs your OK: ${e.message.replace(/^Approval needed \([a-z]+ risk\): /, "")}`, { ...here, linkLabel: "Review it" });
     if (e.type === "run.status_changed") {
       const to = (e.data as { to?: string } | undefined)?.to;
-      const needs = to === "blocked" || to === "awaiting_approval" || to === "done_unverified" || to === "done_with_warnings";
+      if (to === "awaiting_approval") return;
+      const needs = to === "blocked" || to === "done_unverified" || to === "done_with_warnings";
       if (to && needs) {
-        const say2: Record<string, string> = { blocked: "stopped and needs a decision", awaiting_approval: "needs your OK to continue", done_unverified: "is ready, but not fully checked", done_with_warnings: "is ready, with notes" };
-        announce(`${who} ${say2[to]}.`, { ...here, linkLabel: to === "blocked" || to === "awaiting_approval" ? "Decide" : "See the review" });
+        const say2: Record<string, string> = { blocked: "stopped and needs a decision", done_unverified: "is ready, but not fully checked", done_with_warnings: "is ready, with notes" };
+        announce(`${who} ${say2[to]}.`, { ...here, linkLabel: to === "blocked" ? "Decide" : "See the review" });
         return;
       }
       const say: Record<string, string> = { running: "Building…", recovering: "Fixing a problem…", verifying: "Checking that your app works…", done: "Your changes are ready", done_with_warnings: "Your changes are ready, with a few notes", done_unverified: "Your changes are ready, but not fully checked", blocked: "FlowCode needs your help to continue", awaiting_approval: "Needs your OK to continue", cancelled: "Stopped. Nothing else will change." };
@@ -279,9 +283,10 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
         )
       ) : null}
       {view.active || ["running", "awaiting_approval", "verifying", "recovering"].includes(view.run.status) ? (
-        <button className="btn btn--danger btn--icon" onClick={() => control("cancel")} aria-label="Cancel the build" data-tip="Cancel the build">
+        // Asks first: a cancelled build can't be picked up again, and this sat one click from Pause.
+        <ConfirmButton className="btn btn--danger btn--icon" label="Cancel the build" question="Cancel this build? It stops for good; finished steps are kept." confirmLabel="Cancel the build" cancelLabel="Keep building" onConfirm={() => control("cancel")}>
           <Icon name="stop" size={14} />
-        </button>
+        </ConfirmButton>
       ) : null}
       {/* New requests go through Chat. */}
       <button className="btn" onClick={() => navigate(`/quality/${projectId}/plan`)} data-tip="What this build follows: its steps, requirements and acceptance tests">
@@ -428,7 +433,7 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
         )}
         {right === "activity" && (
           <TabPanel label="right" id="activity">
-            <ActivityFeed events={events} working={view?.active ? workingAgent?.role ?? "planner" : undefined} />
+            <ActivityFeed loading={!!currentRunId && !view} events={events} working={view?.active ? workingAgent?.role ?? "planner" : undefined} />
           </TabPanel>
         )}
         {right === "terminal" && (
@@ -469,7 +474,7 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
           </div>
         </Modal>
       ) : null}
-      <SignalStrip run={view?.run} checks={view?.checks ?? []} active={!!view?.active} resumable={!!view?.resumable} paused={!!view?.paused} controls={controls} onRerun={() => setRunTick((t) => t + 1)} agent={workingAgent?.role} doing={doingNow(events, workingAgent?.role)} grip={<StripGrip strip={wsLayout.layout.strip} onChange={wsLayout.setStrip} />} style={{ order: wsLayout.layout.strip === "top" ? -1 : 10 }} />
+      <SignalStrip loading={!!currentRunId && !view} run={view?.run} checks={view?.checks ?? []} active={!!view?.active} resumable={!!view?.resumable} paused={!!view?.paused} controls={controls} onRerun={() => setRunTick((t) => t + 1)} agent={workingAgent?.role} doing={doingNow(events, workingAgent?.role)} grip={<StripGrip strip={wsLayout.layout.strip} onChange={wsLayout.setStrip} />} style={{ order: wsLayout.layout.strip === "top" ? -1 : 10 }} />
     </div>
   );
 }
@@ -720,7 +725,7 @@ const STEP_GROUPS: Array<{ id: string; label: string; statuses: string[] }> = [
   { id: "working", label: "Working", statuses: ["running", "attempted", "awaiting_approval"] },
   { id: "done", label: "Done", statuses: ["verified"] },
   { id: "todo", label: "Not started", statuses: ["pending", "invalidated"] },
-  { id: "skipped", label: "Skipped (replaced by smaller steps)", statuses: ["skipped"] },
+  { id: "skipped", label: "Skipped (not counted)", statuses: ["skipped"] },
 ];
 const STEP_LABEL: Record<string, string> = {
   verified: "Done, checked",
@@ -731,8 +736,10 @@ const STEP_LABEL: Record<string, string> = {
   invalidated: "Waiting on an earlier step",
   blocked: "Stopped, needs you",
   failed: "Failed",
-  skipped: "Split into smaller steps",
+  skipped: "Skipped",
 };
+/** A skipped step was either split into smaller steps or left out; its note says which. */
+const stepLabel = (t: Task) => (t.status === "skipped" && /^Split into/.test(t.blocker?.reason ?? "") ? "Split into smaller steps" : STEP_LABEL[t.status]);
 
 function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; events: FlowEvent[]; onChanged: () => void; onFollowUp: (text: string) => void }) {
   const [troubleTask, setTroubleTask] = useState<string>();
@@ -1044,7 +1051,7 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
                 </div>
               )}
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <StatusChip status={t.status} label={STEP_LABEL[t.status]} />
+                <StatusChip status={t.status} label={stepLabel(t)} />
                 {folded ? null : <>
                 {t.status === "blocked" || t.status === "failed" ? (
                   <button className="btn btn--sm btn--primary" onClick={() => setTroubleTask(troubleTask === t.id ? undefined : t.id)} aria-expanded={troubleTask === t.id}>
@@ -1090,7 +1097,10 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
                   </details>
                 ) : null}
                 {t.actualPaths.length ? <span className="mono muted">{t.actualPaths.slice(0, 8).join("  ")}{t.actualPaths.length > 8 ? ` +${t.actualPaths.length - 8}` : ""}</span> : null}
-                {t.blocker ? (
+                {t.blocker && t.status === "skipped" ? (
+                  // Not a stop: the step was split or left out on purpose, and its note says so in plain words.
+                  <p className="muted task__skipnote">{t.blocker.reason.replace(/^Skipped: /, "").replace(/^./, (c) => c.toUpperCase()).replace(/\.$/, "")}. {t.blocker.nextAction}</p>
+                ) : t.blocker ? (
                   <div className="blocker">
                     {/* Plain words first: what happened and what you decide. The agent's own note stays under Technical details. */}
                     <p className="blocker__plain">{plainStop.get(t.id)?.explanation ?? "This step stopped."}</p>
@@ -1492,8 +1502,10 @@ function FeedWorking({ role, last, doing, model }: { role: string; last?: FlowEv
   );
 }
 
-function ActivityFeed({ events, working }: { events: FlowEvent[]; working?: string }) {
+function ActivityFeed({ loading, events, working }: { loading?: boolean; events: FlowEvent[]; working?: string }) {
   const items = events.filter((e) => e.type !== "command.output").slice(-400);
+  // While the build loads, "Nothing has happened yet" would be untrue for a build that has run for hours.
+  if (!items.length && loading) return <div style={{ padding: 12 }}><SkeletonBlock rows={4} label="Loading activity" /></div>;
   if (!items.length) return <div style={{ padding: 12 }}><Empty title="Nothing has happened yet">Each thing FlowCode and its agents do for this request is listed here as it happens.</Empty></div>;
   // Oldest first, events without a role belong to whoever is working; a task start or a new role opens a block.
   const blocks: Array<{ agent?: string; events: FlowEvent[] }> = [];

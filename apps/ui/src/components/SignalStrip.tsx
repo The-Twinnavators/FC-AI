@@ -42,7 +42,7 @@ const groupNote = (k: VerificationKind) =>
   BROWSER.includes(k) ? "Re-runs the browser checks together (dev server, preview, screenshots, accessibility, design, critique). About a minute." : STATIC.includes(k) ? "Re-runs the static scans together." : k === "project_preflight" || k === "manifest_validation" ? "Re-reads the project setup." : "";
 const CAN_RERUN = (k: VerificationKind) => k !== "install";
 
-export function SignalStrip({ run, checks, active, resumable, paused, controls, onRerun, agent, doing, grip, style }: { /** Paused from the builder: the step in progress finishes, then it waits. */ paused?: boolean; /** Move grip (the builder layout). */ grip?: React.ReactNode; style?: React.CSSProperties; run?: Run; checks: VerificationCheck[]; active: boolean; resumable: boolean; controls: React.ReactNode; onRerun?: () => void; /** Role of the agent working right now. */ agent?: string; /** What it is doing, in the same words as the Activity feed. */ doing?: string }) {
+export function SignalStrip({ loading, run, checks, active, resumable, paused, controls, onRerun, agent, doing, grip, style }: { /** The build is still loading: say so, not "Not started". */ loading?: boolean; /** Paused from the builder: the step in progress finishes, then it waits. */ paused?: boolean; /** Move grip (the builder layout). */ grip?: React.ReactNode; style?: React.CSSProperties; run?: Run; checks: VerificationCheck[]; active: boolean; resumable: boolean; controls: React.ReactNode; onRerun?: () => void; /** Role of the agent working right now. */ agent?: string; /** What it is doing, in the same words as the Activity feed. */ doing?: string }) {
   const [openKind, setOpenKind] = useState<VerificationKind>();
   const [anchor, setAnchor] = useState<DOMRect>();
   const [busy, setBusy] = useState<Set<string>>(new Set());
@@ -69,7 +69,7 @@ export function SignalStrip({ run, checks, active, resumable, paused, controls, 
   for (const c of checks) if (!c.taskId) latest.set(c.kind, c);
   const required = new Set(run?.strategy?.requiredChecks ?? []);
   const kinds = ORDER.filter((k) => required.has(k) || latest.has(k));
-  const label = !run ? "Not started" : resumable ? "Paused" : paused ? (agent ? "Pausing" : "Paused") : runStatusLabel(run);
+  const label = !run ? (loading ? "Loading…" : "Not started") : resumable ? "Paused" : paused ? (agent ? "Pausing" : "Paused") : runStatusLabel(run);
   return (
     <footer className="strip" data-guide="ws.strip" aria-label="Build status and checks" style={style}>
       {grip}

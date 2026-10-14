@@ -942,7 +942,10 @@ export function prototypeProgress(app: App, projectId: string): { runId: string;
   const run = runs.find((r) => r.strategy?.kind === "spec_build") ?? runs.find(withSteps);
   if (!run) return undefined;
   const tasks = app.store.tasks.where("run_id = ?", run.id);
-  return { runId: run.id, done: tasks.filter((t) => t.status === "verified" || t.status === "skipped").length, total: tasks.length, status: run.status, review: run.review };
+  // Counted as the top bar and the build page count: a skipped step was replaced or left out, so it is neither
+  // done nor to do (Clean Cart showed "16 of 24 steps" here and "11 of 19" in the top bar).
+  const counted = tasks.filter((t) => t.status !== "skipped");
+  return { runId: run.id, done: counted.filter((t) => t.status === "verified").length, total: counted.length, status: run.status, review: run.review };
 }
 
 export async function launchSummaries(app: App) {

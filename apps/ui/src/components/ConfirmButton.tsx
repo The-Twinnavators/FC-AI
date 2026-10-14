@@ -13,8 +13,11 @@ export function ConfirmButton({
   onConfirm,
   className = "btn btn--sm btn--danger-ghost",
   disabled,
+  label,
   "data-cp": cp,
 }: {
+  /** The button's name when it shows only an icon (also its tooltip). */
+  label?: string;
   /** An anchor for the Copilot's journeys. */
   "data-cp"?: string;
   children: ReactNode;
@@ -28,7 +31,7 @@ export function ConfirmButton({
   const [asking, setAsking] = useState(false);
   if (!asking) {
     return (
-      <button type="button" className={className} data-cp={cp} disabled={disabled} onClick={() => setAsking(true)}>
+      <button type="button" className={className} data-cp={cp} disabled={disabled} aria-label={label} data-tip={label} onClick={() => setAsking(true)}>
         {children}
       </button>
     );

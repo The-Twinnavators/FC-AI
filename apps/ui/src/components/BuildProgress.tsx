@@ -52,7 +52,7 @@ export function BuildProgress() {
   const done = tasks.filter((t) => t.status === "verified").length;
   const planning = status === "draft" && !tasks.length;
   const pct = tasks.length ? Math.round((done / tasks.length) * 100) : isFinishedRun(status) ? 100 : 0;
-  const label = !run ? "No builds yet" : planning ? "Planning" : tasks.length ? `${done} of ${tasks.length} tasks` : (status ?? "").replace(/_/g, " ");
+  const label = !run ? "No builds yet" : planning ? "Planning" : tasks.length ? `${done} of ${tasks.length} steps` : (status ?? "").replace(/_/g, " ");
 
   return (
     <div className="tb-build" data-guide="topbar.build">
