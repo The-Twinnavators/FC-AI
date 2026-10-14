@@ -39,6 +39,21 @@ const WHAT: Record<string, string> = {
   tool: "Use an outside tool",
 };
 
+/** The page's empty states: picture, headline, one line, the next action, and one small line of context. */
+function CalmEmpty({ art, title, lede, actions, note }: { art: string; title: string; lede: string; actions?: React.ReactNode; note?: React.ReactNode }) {
+  return (
+    <section className="apv-empty-state" aria-label={title}>
+      <div className="apv-empty-state__art" aria-hidden="true">
+        <Illustration slug={art} label="" maxWidth={180} />
+      </div>
+      <h2 className="apv-empty-state__title">{title}</h2>
+      <p className="apv-empty-state__lede">{lede}</p>
+      {actions ? <div className="apv-empty-state__actions">{actions}</div> : null}
+      {note ? <p className="apv-empty-state__last">{note}</p> : null}
+    </section>
+  );
+}
+
 const RUNNING = ["draft", "running", "verifying", "recovering"];
 const STATUS_WORDS: Record<string, string> = { draft: "planning", running: "building", verifying: "checking its work", recovering: "fixing a problem" };
 
@@ -102,7 +117,7 @@ export function ApprovalsView({ projects, projectsLoaded = true }: { projects: P
   const history = useResource<Approval[]>("/approvals/history?limit=500", [], 0);
   const decisions = useResource<Decision[]>("/decisions?limit=5000", [], 0);
   const [tab, setTab] = useState<"waiting" | "ideas" | "proposed" | "log">("waiting");
-  const proposals = useResource<{ items: Array<{ status: string }> }>("/skill-proposals", [], 30_000);
+  const proposals = useResource<{ items: Array<{ status: string }>; codeFix?: unknown[] }>("/skill-proposals", [], 30_000);
   const proposed = (proposals.data?.items ?? []).filter((i) => i.status === "proposed").length;
   const [kind, setKind] = useState("");
   const name = useMemo(() => new Map(projects.map((p) => [p.id, p.name.replace(/\s+/g, " ")])), [projects]);
@@ -178,7 +193,35 @@ export function ApprovalsView({ projects, projectsLoaded = true }: { projects: P
         )
       ) : null}
       {tab === "ideas" ? (
-        allIdeas.length ? (
+        !ideas.length ? (
+          <CalmEmpty
+            art="empty"
+            title="No new suggestions"
+            lede="FlowCode suggests improvements while it builds. They never hold up a build."
+            actions={
+              savedByProject.length ? (
+                <button type="button" className="btn btn--primary" onClick={() => navigate(`/quality/${[...savedByProject].sort((a, b) => b[1] - a[1])[0]![0]}/ideas`)}>
+                  Open saved suggestions
+                </button>
+              ) : null
+            }
+            note={
+              savedByProject.length ? (
+                <>
+                  Saved for later:{" "}
+                  {savedByProject.map(([pid, n], i) => (
+                    <span key={pid}>
+                      {i ? " · " : ""}
+                      <a href={`#/quality/${pid}/ideas`}>
+                        {name.get(pid) ?? "A project"} ({n})
+                      </a>
+                    </span>
+                  ))}
+                </>
+              ) : null
+            }
+          />
+        ) : allIdeas.length ? (
           <>
             <p className="muted apv-note">New ideas FlowCode found while building. They never hold up a build. Build one now, save it for later (it moves to its project's Suggestions tab), or dismiss it.</p>
             {!ideas.length ? <p className="apv-empty">No new ideas right now.</p> : null}
@@ -214,10 +257,31 @@ export function ApprovalsView({ projects, projectsLoaded = true }: { projects: P
         )
       ) : null}
       {tab === "proposed" ? (
+        proposals.data && !proposed ? (
+          <CalmEmpty
+            art="success"
+            title="No skills waiting for review"
+            lede="When the same failure keeps happening in builds, FlowCode drafts a skill to fix it and shows it here."
+            actions={
+              <button type="button" className="btn" onClick={() => navigate("/library?tab=proposals")}>
+                See the skills already on
+              </button>
+            }
+            note={
+              proposals.data.codeFix?.length ? (
+                <>
+                  {proposals.data.codeFix.length} repeated failure{proposals.data.codeFix.length === 1 ? " needs" : "s need"} a code or settings fix, not a skill.{" "}
+                  <a href="#/system/problems">Model problems</a>
+                </>
+              ) : null
+            }
+          />
+        ) : (
         <>
           <p className="muted apv-note">Skills FlowCode drafted after the same failure kept happening in its own builds, waiting for you to turn them on or dismiss them. The ones already on are under Prompts &amp; Skills → Proposed by FlowCode.</p>
           <SkillProposals waitingOnly onOpenSkill={(id) => navigate(`/library?tab=skills&open=${encodeURIComponent(id)}`)} />
         </>
+        )
       ) : null}
       {tab === "log" ? (
         <section className="apv-log" aria-label="Decision log">
