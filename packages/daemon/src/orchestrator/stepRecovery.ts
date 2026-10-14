@@ -387,3 +387,16 @@ export function dropDoneParts(parts: SplitPart[], doneTitles: string[]): SplitPa
   const kept = parts.filter((p) => !repeats(p));
   return kept.length ? kept : parts.slice(-1);
 }
+
+/**
+ * How many turns a step's agent gets. A step that writes an acceptance-test file reads the sample data and screens,
+ * then writes many tests at once: 30 turns ran out four times on Clean Cart's 24 Home tests (twice on a cloud model)
+ * before the file was written. Every other step keeps 30.
+ */
+export function turnBudget(task: Pick<Task, "acceptanceCriteria">): number {
+  const writesTests = task.acceptanceCriteria.some((c) => {
+    const check = c.check as { type?: string; kind?: string; path?: string };
+    return (check.kind ?? "").startsWith("tests:") || (check.type === "file_exists" && /(^|\/)(acceptance|__tests__|tests?)\/.*\.(test|spec)\.[jt]sx?$/.test(check.path ?? ""));
+  });
+  return writesTests ? 50 : 30;
+}

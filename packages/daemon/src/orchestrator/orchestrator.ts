@@ -72,7 +72,7 @@ import type { CompositionIssue } from "./pageTypes.js";
 import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBriefs, prdForBrief, screenBriefKey, screenBriefNote } from "./screenBrief.js";
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
-import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, dropDoneParts, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
+import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
@@ -2291,7 +2291,7 @@ export class Orchestrator {
       executor: dispatcher,
       // Photos need "allow external research": without it find_image always says no, and a step asked 10 times.
       allowedTools: project.settings.allowExternalResearch ? undefined : ((ROLE_TOOLS[role] ?? []) as ToolName[]).filter((t) => t !== "find_image"),
-      maxTurns: 30,
+      maxTurns: turnBudget(task),
       signal,
       projectId: project.id,
       runId: run.id,
