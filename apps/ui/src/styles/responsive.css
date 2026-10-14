@@ -16387,22 +16387,30 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .ws > .strip .strip__controls {
   border-left: 1px solid var(--ws-band-edge);
 }
-/* More checks than fit scroll sideways: a visible track and thumb under them say so. */
+/* More checks than fit scroll sideways: a slim brand-blue thumb on a faint track says so. The standard scrollbar
+   properties are reset to auto, since Chromium ignores the styled scrollbar when they are set. */
 .ws > .strip .strip__matrix {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--text-0) 45%, transparent) color-mix(in srgb, var(--text-0) 10%, transparent);
+  scrollbar-width: auto;
+  scrollbar-color: auto;
 }
 .ws > .strip .strip__matrix::-webkit-scrollbar {
   height: 8px;
 }
 .ws > .strip .strip__matrix::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--text-0) 10%, transparent);
+  margin-inline: 12px 52px;
   border-radius: 999px;
+  background: rgba(162, 182, 230, 0.1);
 }
 .ws > .strip .strip__matrix::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--text-0) 45%, transparent);
   border-radius: 999px;
+  background: linear-gradient(90deg, rgba(79, 124, 240, 0.85), rgba(162, 182, 230, 0.85));
 }
 .ws > .strip .strip__matrix::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--text-0) 65%, transparent);
+  background: linear-gradient(90deg, #4f7cf0, #a2b6e6);
+}
+:root[data-theme="light"] .ws > .strip .strip__matrix::-webkit-scrollbar-track {
+  background: rgba(18, 23, 34, 0.08);
+}
+:root[data-theme="light"] .ws > .strip .strip__matrix::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, rgba(58, 96, 196, 0.8), rgba(95, 127, 208, 0.8));
 }
