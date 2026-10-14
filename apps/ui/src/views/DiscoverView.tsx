@@ -14,6 +14,8 @@ import { Markdown } from "../components/Markdown";
 import { NEW_BUILD_PRD_KEY } from "../components/PrdTemplates";
 import { Block, Disclosure, FieldInput } from "../components/discovery/Blocks";
 import { RobotHead, ROLE_COLOR } from "../components/RobotHead";
+import { startJourney } from "../components/CopilotDriver";
+import { createPrdJourney } from "../components/copilotJourneys";
 import { VirtualInterviewsPanel, VirtualTestsPanel } from "../components/discovery/VirtualResearch";
 import { Sparkles } from "lucide-react";
 import { ViewLayoutToggle, useViewLayout } from "../components/ViewLayoutToggle";
@@ -100,6 +102,13 @@ function StartResearch() {
         <span className="label">Create PRD</span>
         <h1 className="page__title">What problem do you want to solve?</h1>
         <p className="disc-lede">Describe the difficulty, not the app. FlowCode asks a few questions, then drafts a focused PRD you can build a prototype from.</p>
+        {/* The Copilot walks it through: it writes in what you have typed (or waits for you to), then points at Start. */}
+        <div className="disc-new__doit">
+          <button type="button" className="btn btn--sm" data-cp="prd-do-it" onClick={() => startJourney(createPrdJourney(problem.trim() || undefined), "do")}>
+            <Sparkles size={14} aria-hidden="true" /> Do it for me
+          </button>
+          <span className="muted">The Copilot walks you through it. You press Start yourself.</span>
+        </div>
       </header>
       {error ? <ErrorNotice error={error} doing="start your research" /> : null}
       <div className="disc-new__grid">

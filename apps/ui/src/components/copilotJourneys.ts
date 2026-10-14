@@ -92,7 +92,8 @@ export function createPrdJourney(problem?: string): Journey {
       { do: "go", path: "/discover/new", say: "Create PRD starts from the problem, not the solution." },
       problem
         ? { do: "type", target: "prd-problem", text: problem, say: "I've written the problem in." }
-        : { do: "point", target: "prd-problem", say: "Describe the problem: who has it and what goes wrong for them." },
+        : // Your turn: only you know the problem, so even Do it for me waits here for Next.
+          { do: "point", target: "prd-problem", say: "Describe the problem: who has it and what goes wrong for them. Press Next when it's written.", pause: true },
       { do: "confirm", target: "prd-start", say: "Press Start. FlowCode researches it with you and drafts the PRD section by section, and you approve each part." },
     ],
   };

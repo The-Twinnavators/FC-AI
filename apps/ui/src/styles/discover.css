@@ -1673,3 +1673,11 @@
     transition: none;
   }
 }
+.disc-new__doit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 14px;
+  font-size: 13px;
+}
