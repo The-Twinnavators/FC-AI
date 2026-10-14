@@ -27,6 +27,12 @@ export interface RunEta {
   /** Remaining active time, as a range in ms; absent when there isn't enough comparable history. */
   lowMs?: number;
   highMs?: number;
+  /** The typical remaining time (the median step times the steps left): the one number to read first. */
+  typicalMs?: number;
+  /** How long one step like these usually takes: typical, and the range most fall in. */
+  stepTypicalMs?: number;
+  stepLowMs?: number;
+  stepHighMs?: number;
   /** Plain explanation of what the range is based on, or why there is none. */
   basis: string;
   samples: number;
@@ -131,7 +137,18 @@ export function estimate(app: App, run: Run, durations = stepDurations(app, { ex
   const low = pct(s, 0.25) * remaining;
   const high = pct(s, 0.85) * remaining;
   const basis = `${remaining} step${remaining === 1 ? "" : "s"} left. Based on ${s.length} earlier steps${pick.c === "same_model" ? ` with ${model}` : " with any coder model (fewer than 5 with this one, so less comparable)"}: most took ${Math.round(pct(s, 0.25) / MIN)}–${Math.round(pct(s, 0.85) / MIN)} min each. A rough range: on past builds about 6 in 10 finished inside it. Retries and final checks can add more; time waiting for you isn't included.`;
-  return { lowMs: Math.round(low), highMs: Math.round(high), basis, samples: s.length, comparable: pick.c, remainingSteps: remaining };
+  return {
+    lowMs: Math.round(low),
+    highMs: Math.round(high),
+    typicalMs: Math.round(pct(s, 0.5) * remaining),
+    stepTypicalMs: Math.round(pct(s, 0.5)),
+    stepLowMs: Math.round(pct(s, 0.25)),
+    stepHighMs: Math.round(pct(s, 0.85)),
+    basis,
+    samples: s.length,
+    comparable: pick.c,
+    remainingSteps: remaining,
+  };
 }
 
 /** Typical gap between a run's activity events, to judge silence against (at least 10 minutes). */

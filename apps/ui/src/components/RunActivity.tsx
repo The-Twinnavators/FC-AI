@@ -14,7 +14,7 @@ interface Activity {
   since?: string;
   detail?: string;
   waitingMs: number;
-  eta?: { lowMs?: number; highMs?: number; basis: string; remainingSteps: number; comparable: string };
+  eta?: { lowMs?: number; highMs?: number; typicalMs?: number; stepTypicalMs?: number; stepLowMs?: number; stepHighMs?: number; basis: string; remainingSteps: number; comparable: string };
   stall?: { signals: Array<{ signal: string; since: string }>; actions: Array<{ kind: string; label: string }>; needsYou?: { verdict: "yes" | "not_yet" | "unsure"; why: string } };
 }
 
@@ -63,11 +63,26 @@ export function RunActivity({ runId, taskId, onChanged }: { runId: string; taskI
       <div className="run-activity__now">
         <strong>{a.label}</strong>
         {a.detail ? <span className="run-activity__detail">{a.detail}</span> : null}
-        {a.since ? <span className="muted run-activity__since">for {ago(a.since)}</span> : null}
+        {/* This step: how long it has run, and how long steps like it usually take, so a long wait reads as normal or not. */}
+        {a.since ? (
+          <span className="muted run-activity__since">
+            for {ago(a.since)}
+            {eta?.stepTypicalMs ? ` · steps like this usually take ${mins(eta.stepLowMs ?? eta.stepTypicalMs)}–${mins(eta.stepHighMs ?? eta.stepTypicalMs)}` : ""}
+          </span>
+        ) : null}
         {/* Time left on the same line; its basis opens under it. */}
         {eta && a.state !== "waiting_approval" && a.state !== "needs_decision" && a.state !== "paused" ? (
           <details className="run-activity__eta" open={technical}>
-            <summary>{eta.lowMs !== undefined && eta.highMs !== undefined ? (eta.remainingSteps ? `about ${mins(eta.lowMs)}–${mins(eta.highMs)} left` : "no steps left; final checks next") : "time left: not enough data yet"}</summary>
+            <summary>
+              {/* One number first (the typical time left and when that lands), the range after it. */}
+              {eta.lowMs !== undefined && eta.highMs !== undefined
+                ? eta.remainingSteps
+                  ? eta.typicalMs
+                    ? `About ${mins(eta.typicalMs)} left · done around ${new Date(Date.now() + eta.typicalMs).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} · could be ${mins(eta.lowMs)}–${mins(eta.highMs)}`
+                    : `about ${mins(eta.lowMs)}–${mins(eta.highMs)} left`
+                  : "no steps left; final checks next"
+                : "time left: not enough data yet"}
+            </summary>
             <p>{eta.basis}</p>
             {a.waitingMs > 60_000 ? <p>Waiting for you so far: {mins(a.waitingMs)} (not part of the estimate).</p> : null}
           </details>
