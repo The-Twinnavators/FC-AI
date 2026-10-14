@@ -198,7 +198,7 @@ export function ApprovalsView({ projects, projectsLoaded = true }: { projects: P
           !pending.data || !projectsLoaded ? (
             <SkeletonBlock rows={3} label="Loading what is waiting on you" />
           ) : (
-          <WaitingEmpty projects={projects} last={[...entries].sort((a, b) => b.at.localeCompare(a.at))[0]} ideas={ideas.length} proposed={proposed} onTab={(t) => setTab(t)} />
+          <WaitingEmpty projects={projects} last={[...entries].filter((e) => !e.who.startsWith("FlowCode")).sort((a, b) => b.at.localeCompare(a.at))[0]} ideas={ideas.length} proposed={proposed} onTab={(t) => setTab(t)} />
           )
         )
       ) : null}

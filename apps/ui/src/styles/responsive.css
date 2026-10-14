@@ -16603,3 +16603,16 @@ body.cp-driving #copilot-panel { z-index: 80; }
   mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
   padding-right: 32px;
 }
+
+/* Top bar at laptop widths: pills and the Copilot shortcut stay on one line (they wrapped to two at 1280px with the
+   side navigation open); the shortcut hint steps aside first. */
+.topbar .provider-pill,
+.topbar .copilot-trigger,
+.topbar .copilot-trigger kbd {
+  white-space: nowrap;
+}
+@media (max-width: 1440px) {
+  .app[data-nav="expanded"] .topbar .copilot-trigger kbd {
+    display: none;
+  }
+}

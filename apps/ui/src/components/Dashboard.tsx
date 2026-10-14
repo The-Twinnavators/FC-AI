@@ -21,6 +21,10 @@ export function Dashboard() {
   const [range, setRange] = useState<(typeof RANGES)[number]>("7d");
   const { data } = useResource<TS>(`/metrics/timeseries?range=${range}`, [range], 20_000);
   const t = data?.totals;
+  // Waiting on you counts decisions only: suggestions never hold up a build (it showed 19 when nothing was waiting).
+  const pending = useResource<Array<{ kind: string; savedForLater?: boolean }>>("/approvals", [], 20_000);
+  const waiting = pending.data?.filter((a) => a.kind !== "enhancement_idea").length;
+  const newIdeas = pending.data?.filter((a) => a.kind === "enhancement_idea" && !a.savedForLater).length ?? 0;
   return (
     <section className="dash" aria-label="Overview">
       <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 0.8fr) minmax(0, 1.7fr)", gap: 20 }}>
@@ -87,14 +91,15 @@ export function Dashboard() {
       <div className="stat-cards">
         <Stat i={0} label="Steps checked" value={t?.tasksVerified} gauge={t && t.tasks ? t.tasksVerified / t.tasks : 0} gaugeLabel="Share of steps whose checks passed" />
         <Stat i={1} label="Checks run" value={t?.checksDecided} gauge={t?.checksPassRate ?? 0} gaugeLabel="Checks passed" />
-        <Stat i={2} label="Agent tool calls" value={t?.toolCalls} gauge={t && t.runs ? t.runsDone / t.runs : 0} gaugeLabel="Builds finished" />
-        <Stat i={3} label="Waiting on you" value={t?.pendingApprovals} gauge={t?.coderReady ? 1 : 0} gaugeLabel={t?.coderReady ? `Coder ready (${t.coderModel})` : "Coder not ready"} />
+        {/* Each number with the gauge that measures it (tool calls sat beside "builds finished", waiting beside "coder ready"). */}
+        <Stat i={2} label="Builds finished" value={t?.runsDone} gauge={t && t.runs ? t.runsDone / t.runs : 0} gaugeLabel={t ? `of ${t.runs.toLocaleString()} builds · ${t.toolCalls.toLocaleString()} agent tool calls` : ""} />
+        <Stat i={3} label="Waiting on you" value={waiting} gaugeLabel={`${waiting ? "decisions to make" : "nothing to decide"}${newIdeas ? ` · ${newIdeas} new suggestion${newIdeas === 1 ? "" : "s"}` : ""}${t ? ` · coder ${t.coderReady ? `ready (${t.coderModel})` : "not ready"}` : ""}`} />
       </div>
     </section>
   );
 }
 
-function Stat({ i, label, value, suffix = "", gauge, gaugeLabel }: { i: number; label: string; value?: number; suffix?: string; gauge: number; gaugeLabel: string }) {
+function Stat({ i, label, value, suffix = "", gauge, gaugeLabel }: { i: number; label: string; value?: number; suffix?: string; gauge?: number; gaugeLabel: string }) {
   return (
     <div className="section stat-card lift" data-reveal style={{ ["--i" as string]: i }}>
       <div>
@@ -104,7 +109,7 @@ function Stat({ i, label, value, suffix = "", gauge, gaugeLabel }: { i: number; 
           {gaugeLabel}
         </span>
       </div>
-      <RadialGauge value={gauge} label={gaugeLabel} />
+      {gauge === undefined ? null : <RadialGauge value={gauge} label={gaugeLabel} />}
     </div>
   );
 }
