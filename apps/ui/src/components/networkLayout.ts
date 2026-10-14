@@ -89,28 +89,47 @@ export function layoutConstellation(nodes: GNode[], edges: GEdge[]) {
     const cx = Math.cos(angle) * ORBIT;
     const cz = Math.sin(angle) * ORBIT;
     const cy = gi % 2 ? -0.06 : 0.06;
-    // Each subcategory (Run, Task, File, Requirement...) is its own small sphere, set in a ring around the group's
-    // centre and sized by how much it holds, so the types read as separate clusters rather than one mixed ball.
-    const subs = g.types.map((t) => ({ type: t, items: members.filter((n) => n.type === t) })).filter((s) => s.items.length);
-    const subR = subs.map((s) => 0.03 + Math.sqrt(s.items.length) * 0.0135);
-    const biggest = Math.max(0.04, ...subR);
-    const ring = subs.length > 1 ? biggest * 1.4 + subs.length * 0.02 : 0;
-    const r = ring + biggest + 0.02;
+    // One sphere per category, split like an orange: each subcategory (Run, Task, File, Requirement...) is a slice
+    // sized by its share, set a little apart from the others, so the four categories stay whole and their types read
+    // as separate parts of them.
+    const r = 0.1 + Math.sqrt(members.length) * 0.022;
     clusters.push({ label: g.label, x: cx, y: cy, z: cz, r, count: members.length, color: GROUP_COLOR[g.label] ?? "#a0aac0" });
-    subs.forEach((s, si) => {
-      const a = (si / subs.length) * Math.PI * 2 + gi * 0.7;
-      const sx = cx + Math.cos(a) * ring;
-      const sy = cy + Math.sin(a) * ring * 0.85;
-      const sz = cz + Math.sin(a * 2) * ring * 0.25;
-      const rs = subR[si]!;
-      if (subs.length > 1) clusters.push({ label: s.type, x: sx, y: sy, z: sz, r: rs, count: s.items.length, color: COLORS[s.type] ?? "#a0aac0", sub: true });
-      s.items.forEach((n, i) => {
-        const y = 1 - ((i + 0.5) / Math.max(1, s.items.length)) * 2;
+    const subs = g.types.map((t) => ({ type: t, items: members.filter((n) => n.type === t) })).filter((sub) => sub.items.length);
+    const total = Math.max(1, members.length);
+    // Every slice gets at least a sliver of the sphere, so one item still reads as its own part.
+    const minShare = 0.06;
+    const raw = subs.map((sub) => Math.max(minShare, sub.items.length / total));
+    const sum = raw.reduce((x, y) => x + y, 0);
+    const gap = subs.length > 1 ? 0.34 : 0;
+    const apart = subs.length > 1 ? 0.05 + r * 0.26 : 0;
+    let start = gi * 0.9;
+    subs.forEach((sub, si) => {
+      const span = (raw[si]! / sum) * Math.PI * 2;
+      const mid = start + span / 2;
+      const ox = Math.cos(mid) * apart;
+      const oz = Math.sin(mid) * apart;
+      if (subs.length > 1)
+        clusters.push({
+          label: sub.type,
+          x: cx + ox + Math.cos(mid) * r * 0.55,
+          y: cy,
+          z: cz + oz + Math.sin(mid) * r * 0.55,
+          r: 0.02 + r * 0.42 * Math.sqrt(sub.items.length / total),
+          count: sub.items.length,
+          color: COLORS[sub.type] ?? "#a0aac0",
+          sub: true,
+        });
+      const n = sub.items.length;
+      sub.items.forEach((node, i) => {
+        const y = 1 - ((i + 0.5) / Math.max(1, n)) * 2;
         const rad = Math.sqrt(1 - y * y);
-        const th = GOLDEN * i;
-        const j = 0.88 + seeded(n.id) * 0.24;
-        placed.push({ id: n.id, type: n.type, label: n.label, group: g.label, hub: HUBS.has(n.type), bx: sx + Math.cos(th) * rad * rs * j, by: sy + y * rs * j, bz: sz + Math.sin(th) * rad * rs * j, phase: seeded(n.id) * 6.28 });
+        // Spread across the slice's width with the golden ratio, so a slice fills evenly however many it holds.
+        const u = (i * 0.6180339887) % 1;
+        const th = start + gap / 2 + u * Math.max(0.05, span - gap);
+        const j = 0.9 + seeded(node.id) * 0.2;
+        placed.push({ id: node.id, type: node.type, label: node.label, group: g.label, hub: HUBS.has(node.type), bx: cx + ox + Math.cos(th) * rad * r * j, by: cy + y * r * j, bz: cz + oz + Math.sin(th) * rad * r * j, phase: seeded(node.id) * 6.28 });
       });
+      start += span;
     });
   });
   return { nodes: placed, edges: edges.map((e) => ({ from: idOf(e.source), to: idOf(e.target) })), clusters };
