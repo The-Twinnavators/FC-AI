@@ -1705,3 +1705,8 @@
 .disc-new__next {
   border-color: transparent;
 }
+/* The steps that will happen carry a slight colour in their fade; a step that is off (3, without thorough research)
+   stays grey. */
+.disc-new__steps li:not(.is-off) .disc-new__num {
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--brand-ink, #a2b6e6) 72%, transparent) 0%, color-mix(in srgb, var(--brand-ink, #a2b6e6) 22%, transparent) 55%, transparent 100%);
+}
