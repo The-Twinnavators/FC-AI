@@ -17,8 +17,9 @@ const KINDS: Record<DraftKind, { brief: string; fields: Record<string, string> }
     fields: { description: "the description" },
   },
   prd: {
-    brief: "State the problem to research and write a PRD for: who has it, what goes wrong today, why it matters. 2–4 sentences. Describe the problem, not a solution.",
-    fields: { problem: "the problem statement" },
+    brief:
+      "Elaborate the user's idea into the problem a PRD will solve. First a problem statement of 2–3 sentences: who has the problem, what goes wrong for them today, and why it matters. Then a blank line, the line 'Pain points:', and 3–5 lines that each start with '- ', one concrete frustration each, in the words of the people who have it. Describe the problem, not a solution or an app, even if the idea names one.",
+    fields: { problem: "the problem statement, then 'Pain points:' and its '- ' lines" },
   },
   about: {
     brief: "Write one short note, in the first person, that tells an assistant about the user so its answers fit them (who they are, what they work on, or how they like answers). One idea, 1–2 sentences. Use only what the user said; don't invent details.",

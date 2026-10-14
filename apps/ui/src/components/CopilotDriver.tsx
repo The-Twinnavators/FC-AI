@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { navigate } from "../router";
+import { post } from "../api";
 
 /** `auto`: a travel step (going to a page, opening a tab) that moves on by itself even in Show me. */
 export type Step = { auto?: boolean; /** Said when the control isn't there (e.g. nothing waiting). */ missing?: string; /** Your turn on this page: waits for Next even in Do it for me. */ pause?: boolean } & (
@@ -24,6 +25,8 @@ export type Step = { auto?: boolean; /** Said when the control isn't there (e.g.
   | { do: "type"; target: string; text: string; say: string }
   /** The Copilot asks you something in its bubble; your answer is kept under `key` for later steps. */
   | { do: "ask"; key: string; say: string; placeholder?: string }
+  /** The Copilot writes a first draft from an earlier answer (a local model) and keeps it under `key`. */
+  | { do: "draft"; kind: string; from: string; key: string; say: string; /** The idea itself, when it was written before the journey began. */ text?: string }
   /** Builds the rest of the journey from what is on screen now (a new project's real stages). */
   | { do: "chain"; say: string; build: () => Step[] | undefined }
   /**
@@ -266,6 +269,20 @@ export function CopilotDriver() {
         setYourTurn(true);
         setAsking({ key: step.key, placeholder: step.placeholder });
         return;
+      } else if (step.do === "draft") {
+        const idea = (step.text ?? answers.current[step.from] ?? "").trim();
+        setDoing("Writing it up from your idea…");
+        try {
+          const res = idea.length >= 3 ? await post<{ fields: Record<string, string> }>("/copilot/draft", { kind: step.kind, idea }) : undefined;
+          const text = res ? Object.values(res.fields)[0]?.trim() : "";
+          answers.current[step.key] = text || idea;
+          if (!text) setNote("I couldn't write it up, so I've used your words as they are.");
+        } catch {
+          answers.current[step.key] = idea;
+          setNote("The model didn't answer, so I've used your words as they are.");
+        }
+        setDoing(undefined);
+        if (!alive || stopped.current) return;
       } else if (step.do === "chain") {
         const more = step.build();
         if (!alive || stopped.current) return;

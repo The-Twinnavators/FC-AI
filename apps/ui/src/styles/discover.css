@@ -1702,3 +1702,6 @@
   background-clip: text;
   color: transparent;
 }
+.disc-new__next {
+  border-color: transparent;
+}
