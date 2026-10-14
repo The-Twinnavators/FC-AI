@@ -72,6 +72,7 @@ import type { CompositionIssue } from "./pageTypes.js";
 import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBriefs, prdForBrief, screenBriefKey, screenBriefNote } from "./screenBrief.js";
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
+import { testingGuide } from "./testingGuide.js";
 import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
@@ -2172,7 +2173,9 @@ export class Orchestrator {
     // An app with FlowCode's library gets the catalog too: the parts to assemble screens from, one line each, so the
     // agent adds a catalog piece instead of writing the markup (a build used the starter kit and nothing from it).
     const catalog = uiWork && (role === "coder" || role === "debugger") ? this.catalogFor(run, task, jail.root) : "";
-    const system = rolePrompt + renderSkills(skills) + (reuse ? `\n\n${reuse}` : "") + (catalog ? `\n\n${catalog}` : "");
+    // A step that writes acceptance tests gets how to work and a map of what the screens show (testingGuide.ts).
+    const tests = turnBudget(task) > 30 ? testingGuide(jail.root) : "";
+    const system = rolePrompt + renderSkills(skills) + (reuse ? `\n\n${reuse}` : "") + (catalog ? `\n\n${catalog}` : "") + (tests ? `\n\n${tests}` : "");
     // Skills are guidance in the system prompt only. Their checklists used to be added to the step as "manual"
     // criteria that always counted as met: a dozen per step, none checked (Calculator test 1). A step's criteria are its
     // own checks and acceptance tests.
