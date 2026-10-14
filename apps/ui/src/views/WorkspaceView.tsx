@@ -1532,7 +1532,8 @@ function FeedWorking({ role, last, doing, model, items }: { role: string; last?:
       {model ? <span className="feed__live-model">{model}</span> : null}
       {note ? <span className={`feed__live-note${late ? " is-late" : ""}`}>{note}</span> : null}
       <span className="feed__live-bar sug-progress__bar" aria-hidden="true">
-        {usual && !late ? <span className="feed__live-fill" style={{ width: `${pct}%` }} /> : <span className="is-indeterminate" />}
+        {/* Keyed on the request it measures: a new reply starts a fresh, empty bar instead of the old one sliding back. */}
+        {usual && !late ? <span key={last?.id ?? last?.createdAt} className="feed__live-fill" style={{ width: `${pct}%` }} /> : <span className="is-indeterminate" />}
       </span>
     </div>
   );
