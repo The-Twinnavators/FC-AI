@@ -1634,7 +1634,7 @@
 }
 .disc-new__steps li {
   display: grid;
-  grid-template-columns: 30px 34px minmax(0, 1fr);
+  grid-template-columns: 44px 34px minmax(0, 1fr);
   align-items: start;
   gap: 12px;
   padding: 12px 0;
@@ -1690,12 +1690,15 @@
   margin-top: 14px;
   font-size: 13px;
 }
-/* Each step's number, large and faint, on its left. */
+/* Each step's number, large, fading away towards its bottom. */
 .disc-new__num {
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--text-0);
-  opacity: 0.16;
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--text-0) 42%, transparent) 0%, color-mix(in srgb, var(--text-0) 12%, transparent) 55%, transparent 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
