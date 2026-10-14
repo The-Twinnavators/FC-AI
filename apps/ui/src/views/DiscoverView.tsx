@@ -8,7 +8,7 @@ import { FOLLOW_UP_MAX, OPTIONAL_STEPS, discoveryStep, projectStages, stageOf, s
 import { get, post, useResource } from "../api";
 import { navigate } from "../router";
 import { Empty, ErrorNotice, Icon, ago } from "../components/ui";
-import { SkeletonBlock } from "../components/motion";
+import { RadialGauge, SkeletonBlock } from "../components/motion";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Markdown } from "../components/Markdown";
 import { NEW_BUILD_PRD_KEY } from "../components/PrdTemplates";
@@ -307,12 +307,16 @@ function DiscoveryList() {
               <button type="button" className="disc-project__open" onClick={() => navigate(`/discover/${d.id}`)}>
                 <span className={`disc-status-badge disc-status-badge--${d.status}`}>{STATUS_LABEL[d.status]}</span>
                 <span className="disc-project__title">{d.title}</span>
-                <span className="disc-project__meta">
-                  {d.mode === "light" ? <span className="disc-mode-tag disc-mode-tag--light">Light Research</span> : null}
-                  {d.stepsDone} of {d.stepsTotal} stages · updated {ago(d.updatedAt)}
-                </span>
-                <span className="disc-progress" aria-hidden="true">
-                  <span style={{ width: `${Math.round((d.stepsDone / Math.max(1, d.stepsTotal)) * 100)}%` }} />
+                {/* Progress as the same gauge as My Projects, with the stages and the last update beside it. */}
+                <span className="disc-project__progress">
+                  <RadialGauge value={d.stepsDone / Math.max(1, d.stepsTotal)} size={48} stroke={5} label={`${d.title} research progress`} />
+                  <span className="disc-project__meta">
+                    {d.mode === "light" ? <span className="disc-mode-tag disc-mode-tag--light">Light Research</span> : null}
+                    <strong>
+                      {d.stepsDone} of {d.stepsTotal} stages
+                    </strong>
+                    <span>Updated {ago(d.updatedAt)}</span>
+                  </span>
                 </span>
               </button>
               <DiscMenu
