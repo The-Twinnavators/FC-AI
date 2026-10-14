@@ -64,7 +64,8 @@
 @media (max-width: 1280px) {
   .ws {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) minmax(0, 260px) auto;
+    /* Files take a share of the height that suits the screen (a fixed 260px left the work panels 350px at 800px tall). */
+    grid-template-rows: minmax(0, 1fr) clamp(140px, 22vh, 260px) auto;
   }
   .ws > .ws__col[data-guide="ws.files"] {
     grid-column: 1 / -1;
