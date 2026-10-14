@@ -89,8 +89,8 @@ export function AgentsView() {
     const sorted = [...allTools.entries()].sort((a, b) => a[1].xSum / a[1].n - b[1].xSum / b[1].n);
     const m = Math.max(1, sorted.length);
     sorted.forEach(([name, t], i) => {
-      // Labels alternate between two lines so long tool names never collide.
-      tools.set(name, { x: 50 + ((W - 100) * (i + 0.5)) / m, y: TOOL_Y + (i % 2) * 34, agents: t.agents, n: t.n });
+      // Labels step across three lines so long tool names don't collide (two lines still overlapped with ~30 tools).
+      tools.set(name, { x: 50 + ((W - 100) * (i + 0.5)) / m, y: TOOL_Y + (i % 3) * 26, agents: t.agents, n: t.n });
     });
     return { pos, tools };
   }, [data]);
@@ -191,8 +191,9 @@ export function AgentsView() {
             {[...layout.tools.entries()].map(([name, t]) => (
               <g key={name}>
                 <circle cx={t.x} cy={t.y} r={3 + (6 * t.n) / maxTool} fill="#7fb0c4" fillOpacity={0.75} filter="url(#glow)" />
-                <text x={t.x} y={t.y + 18 + (6 * t.n) / maxTool} textAnchor="middle" fontSize="11" fill="currentColor" style={{ fill: "var(--text-1)" }}>
-                  {name}
+                <text x={t.x} y={t.y + 16 + (6 * t.n) / maxTool} textAnchor="middle" fontSize="10" fill="currentColor" style={{ fill: "var(--text-1)" }}>
+                  <title>{name}</title>
+                  {name.length > 15 ? `${name.slice(0, 14)}…` : name}
                 </text>
               </g>
             ))}

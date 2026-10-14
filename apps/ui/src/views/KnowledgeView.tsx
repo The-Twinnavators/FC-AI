@@ -133,14 +133,18 @@ export function KnowledgeView({ query, projects }: { query: URLSearchParams; pro
         </div>
         <div className="kh-actions" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
         <KnowledgeUpload projectId={projectId} onDone={() => items.reload()} />
-        <select className="select" data-cp="knowledge-project" style={{ width: 240 }} aria-label="Project" value={projectId} onChange={(e) => ((chosen.current = true), setProjectId(e.target.value))}>
-          <option value="">Global only</option>
+        {/* Says what it chooses: the shelves shown are Global ones or one project's (it read only "Global only"). */}
+        <label className="kh-scope">
+          <span className="kh-scope__label">Showing</span>
+        <select className="select" data-cp="knowledge-project" style={{ width: 240 }} aria-label="Whose knowledge to show" value={projectId} onChange={(e) => ((chosen.current = true), setProjectId(e.target.value))}>
+          <option value="">Global (every project)</option>
           {projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
           ))}
         </select>
+        </label>
         </div>
       </header>
 

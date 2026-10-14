@@ -16616,3 +16616,14 @@ body.cp-driving #copilot-panel { z-index: 80; }
     display: none;
   }
 }
+
+/* Knowledge Hub: the scope picker says what it chooses. */
+.kh-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.kh-scope__label {
+  color: var(--text-2);
+  font-size: 13px;
+}

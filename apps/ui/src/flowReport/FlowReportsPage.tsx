@@ -15,6 +15,9 @@ import { BROWSE_ROUTES, createProject, deleteProject, listProjects, listRuns, sc
 /** A project and its latest run: undefined while loading (so "no runs yet" is never shown before it's known). */
 type Row = { project: FlowReportProject; latest: FlowReportRun | null | undefined };
 
+/** Short names under the severity counts on each card. */
+const SEVERITY_SHORT: Record<string, string> = { critical: "Crit", high: "High", medium: "Med", low: "Low", info: "Info", informational: "Info" };
+
 export function FlowReportsPage() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -185,13 +188,15 @@ function ProjectCard({ project, latest, busy, confirming, onOpen, onRun, onAskDe
                 <p className={`fr-card__word fr-tone--${band.tone}`}>{band.word}</p>
               </div>
               {/* Every severity, the zeros too: dropping them would let "absent" read as "none found". */}
-              <div className="fr-minisevs">
+              {/* Each count says its severity under it (they were bare coloured numbers, named only on hover). */}
+              <div className="fr-minisevs" role="list" aria-label="Findings by severity">
                 {SEVERITY_ORDER.map((s) => {
                   const n = latest.summary?.severityCounts?.[s] ?? 0;
                   return (
-                    <div key={s} className={`fr-minisev ${n > 0 ? sevClass(s) : "is-zero"}`} title={SEVERITY_LABEL[s]}>
+                    <div key={s} role="listitem" className={`fr-minisev ${n > 0 ? sevClass(s) : "is-zero"}`} title={SEVERITY_LABEL[s]} aria-label={`${n} ${SEVERITY_LABEL[s]}`}>
                       <b>{n}</b>
                       <i />
+                      <small aria-hidden="true">{SEVERITY_SHORT[s] ?? SEVERITY_LABEL[s]}</small>
                     </div>
                   );
                 })}

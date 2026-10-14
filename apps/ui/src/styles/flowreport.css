@@ -1697,3 +1697,10 @@
     animation: none;
   }
 }
+
+.fr-minisev small {
+  margin-top: 3px;
+  color: var(--text-2);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
