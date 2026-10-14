@@ -1120,7 +1120,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       // Backpressure: drop terminal output chunks for slow clients rather than buffering unboundedly.
       if (!res.write(`id: ${e.seq}\nevent: flow\ndata: ${JSON.stringify(e)}\n\n`) && e.type === "command.output") return;
     };
-    for (const e of app.bus.list({ ...filter, afterSeq: after, limit: 5000 })) send(e);
+    // A fresh page gets the newest 5000 (a long build's latest work, not its first hours); a reconnect resumes in order.
+    for (const e of app.bus.list({ ...filter, afterSeq: after, limit: 5000, newest: !after })) send(e);
     const unsub = app.bus.subscribe(send);
     const ping = setInterval(() => res.write(`: ping\n\n`), 15_000);
     req.on("close", () => {

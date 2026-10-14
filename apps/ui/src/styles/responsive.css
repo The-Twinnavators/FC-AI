@@ -16415,6 +16415,27 @@ body.cp-driving #copilot-panel { z-index: 80; }
   background: rgba(58, 96, 196, 0.35);
 }
 
+/* The live line in Activity: a note on how long replies usually take, and a bar that fills toward it. */
+.feed__live-note {
+  margin-left: auto;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.feed__live-note.is-late {
+  color: var(--warn, #f5b04c);
+}
+.feed__live-bar:has(.feed__live-fill) {
+  height: 2px;
+}
+.sug-progress__bar > .feed__live-fill {
+  transition: width 1s linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .feed__live-fill {
+    transition: none;
+  }
+}
+
 /* === Chat composer ===
    Options for the message (Attach, Styling only, Cloud) on the left, sending (Queue change, Ask or Send) on the right,
    the keyboard hint on its own line. Checkboxes at the size of their text. The conversation always keeps room above

@@ -76,7 +76,7 @@ export function SignalStrip({ loading, run, checks, active, resumable, paused, c
       <div className="strip__status">
         {/* The build timer sits above the bot (or the light), as h:mm:ss. */}
         <span className="strip__botcol">
-        {run ? <BuildTimer run={run} clock /> : null}
+        {run ? <BuildTimer run={run} compact /> : null}
         {/* While agents are working, the building blocks stack up instead of a static light. */}
         {active && agent ? (
           <span className="strip__bot" title={`${ROLE_LABEL[agent] ?? agent} is working`}>

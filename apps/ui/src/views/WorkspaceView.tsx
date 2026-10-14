@@ -1492,23 +1492,47 @@ export function doingNow(events: FlowEvent[], role?: string, full = false): stri
  * While a run is working: the agent's head moves, the row says what it is waiting on, and a clock counts the seconds
  * since the last event, so a long model call never looks frozen.
  */
-function FeedWorking({ role, last, doing, model }: { role: string; last?: FlowEvent; doing: string; model?: string }) {
+/** How long this model's replies took in this build (from model.completed), as minutes for people. */
+function replyTimes(items: FlowEvent[], model?: string): { low: number; high: number } | undefined {
+  const ms = items
+    .filter((e) => e.type === "model.completed" && (!model || (e.data as { model?: string } | undefined)?.model === model.replace(/\s*\(.*$/, "")))
+    .map((e) => (e.data as { durationMs?: number } | undefined)?.durationMs ?? 0)
+    .filter((d) => d > 0)
+    .slice(-20)
+    .sort((a, b) => a - b);
+  if (ms.length < 3) return undefined;
+  const at = (p: number) => ms[Math.min(ms.length - 1, Math.round((ms.length - 1) * p))]!;
+  return { low: at(0.25), high: at(0.85) };
+}
+const minsText = (ms: number) => (ms < 90_000 ? `${Math.max(1, Math.round(ms / 60_000))} min` : `${Math.round(ms / 60_000)} min`);
+
+/**
+ * The agent at work right now. Not a stopwatch: a clock counting up while nothing else changes reads as stuck. While it
+ * waits on its model, the bar fills toward how long that model's replies usually take in this build and says so; past
+ * that, it says the reply is taking longer than usual. The time since the last update stays in the tooltip.
+ */
+function FeedWorking({ role, last, doing, model, items }: { role: string; last?: FlowEvent; doing: string; model?: string; items: FlowEvent[] }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const since = last ? Math.max(0, Math.floor((now - new Date(last.createdAt).getTime()) / 1000)) : 0;
-  const clock = `${Math.floor(since / 60)}:${String(since % 60).padStart(2, "0")}`;
+  const sinceMs = last ? Math.max(0, now - new Date(last.createdAt).getTime()) : 0;
+  const waitingOnModel = last?.type === "model.requested";
+  const usual = waitingOnModel ? replyTimes(items, model) : undefined;
+  const pct = usual ? Math.min(96, Math.round((sinceMs / usual.high) * 100)) : 0;
+  const late = !!usual && sinceMs > usual.high;
+  const range = usual ? (Math.round(usual.low / 60_000) === Math.round(usual.high / 60_000) ? `about ${minsText(usual.high)}` : `${minsText(usual.low)}–${minsText(usual.high)}`) : "";
+  const note = usual ? (late ? `Taking longer than usual (replies usually take ${range}). Still working.` : `Replies usually take ${range}`) : "";
   return (
-    <div className="feed__live" role="status">
+    <div className="feed__live" role="status" title={`Last update ${Math.floor(sinceMs / 60_000)} min ${Math.floor((sinceMs % 60_000) / 1000)} s ago`}>
       <RobotHead color={ROLE_COLOR[role] ?? "#9a9fd6"} id="feed-live" size={26} className="robot-head--working" />
       <span className="feed__agent-name">{ROLE_LABEL[role] ?? role}</span>
       <span className="feed__live-doing">is {doing}</span>
       {model ? <span className="feed__live-model">{model}</span> : null}
-      <span className="feed__live-clock" aria-label={`${since} seconds since the last update`}>{clock}</span>
+      {note ? <span className={`feed__live-note${late ? " is-late" : ""}`}>{note}</span> : null}
       <span className="feed__live-bar sug-progress__bar" aria-hidden="true">
-        <span className="is-indeterminate" />
+        {usual && !late ? <span className="feed__live-fill" style={{ width: `${pct}%` }} /> : <span className="is-indeterminate" />}
       </span>
     </div>
   );
@@ -1531,7 +1555,7 @@ function ActivityFeed({ loading, events, working }: { loading?: boolean; events:
   }
   return (
     <>
-    {working ? <FeedWorking role={working} last={items[items.length - 1]} doing={doingNow(items, working, true)} model={modelNow(items)} /> : null}
+    {working ? <FeedWorking role={working} last={items[items.length - 1]} doing={doingNow(items, working, true)} model={modelNow(items)} items={items} /> : null}
     <ol className="feed feed--agents" aria-live="off">
       {blocks.reverse().map((blk, bi) => {
         const first = blk.events[0];

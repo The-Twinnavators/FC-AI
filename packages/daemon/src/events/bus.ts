@@ -60,7 +60,11 @@ export class EventBus {
     return () => this.emitter.off("event", fn);
   }
 
-  list(opts: { runId?: string; projectId?: string; afterSeq?: number; limit?: number; types?: string[] } = {}): FlowEvent[] {
+  /**
+   * Events after `afterSeq`, oldest first. With `newest`, the last `limit` of them (still oldest first), for a page
+   * opening on a long run: the first 5000 of a 6000-event build left out everything recent.
+   */
+  list(opts: { runId?: string; projectId?: string; afterSeq?: number; limit?: number; types?: string[]; newest?: boolean } = {}): FlowEvent[] {
     const where: string[] = ["seq > ?"];
     const params: unknown[] = [opts.afterSeq ?? 0];
     if (opts.runId) {
@@ -76,8 +80,8 @@ export class EventBus {
       params.push(...opts.types);
     }
     params.push(opts.limit ?? 5000);
-    return this.db
-      .all<{ seq: number; data: string }>(`SELECT seq, data FROM events WHERE ${where.join(" AND ")} ORDER BY seq ASC LIMIT ?`, ...params)
-      .map((r) => ({ ...(JSON.parse(r.data) as FlowEvent), seq: Number(r.seq) }));
+    const rows = this.db.all<{ seq: number; data: string }>(`SELECT seq, data FROM events WHERE ${where.join(" AND ")} ORDER BY seq ${opts.newest ? "DESC" : "ASC"} LIMIT ?`, ...params);
+    if (opts.newest) rows.reverse();
+    return rows.map((r) => ({ ...(JSON.parse(r.data) as FlowEvent), seq: Number(r.seq) }));
   }
 }
