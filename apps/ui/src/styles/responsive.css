@@ -16669,3 +16669,74 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .cpd-say__ask .btn {
   justify-self: end;
 }
+
+/* Approvals empty state: centred picture, headline, one line and the next action, with what is going on below. */
+.apv-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 640px;
+  margin: 24px auto 0;
+  padding: 32px 24px;
+  text-align: center;
+}
+.apv-empty-state__art {
+  width: 180px;
+  margin-bottom: 6px;
+  color: var(--brand-ink, #a2b6e6);
+}
+.apv-empty-state__title {
+  margin: 0;
+  font-size: 22px;
+  text-wrap: balance;
+}
+.apv-empty-state__lede {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--text-1);
+}
+.apv-empty-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.apv-empty-state__context {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.apv-empty-state__context li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-1);
+  font-size: 13px;
+}
+.apv-empty-state__context strong {
+  color: var(--text-0);
+  font-weight: 600;
+}
+.apv-empty-state__foot {
+  max-width: 56ch;
+  margin: 14px 0 0;
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+.apv-empty-state__context li.is-stopped {
+  border-color: color-mix(in srgb, var(--warn, #f5b04c) 45%, transparent);
+}
+.apv-empty-state__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--warn, #f5b04c);
+}

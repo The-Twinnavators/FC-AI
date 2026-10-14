@@ -9,6 +9,7 @@ import type { Approval, Project } from "@flowcode/contracts";
 import { useResource } from "../api";
 import { ApprovalCard } from "../components/ApprovalCard";
 import { Tabs, ago } from "../components/ui";
+import { Illustration } from "../components/Illustration";
 import { SkeletonBlock } from "../components/motion";
 import { navigate } from "../router";
 import { DecisionCalendar, type LogEntry } from "../components/DecisionCalendar";
@@ -49,75 +50,90 @@ function WaitingEmpty({ projects, last, ideas, proposed, onTab }: { projects: Pr
   const running = projects
     .map((p) => ({ p, run: (p as Project & { latestRun?: { id: string; status: string } }).latestRun }))
     .filter((x) => x.run && RUNNING.includes(x.run.status));
+  // A build that stopped needs you too, even with no approval waiting (Clean Cart stopped on a step while this said
+  // nothing needed you).
+  const stopped = projects
+    .map((p) => ({ p, run: (p as Project & { latestRun?: { id: string; status: string } }).latestRun }))
+    // Recent ones only: builds left stopped days ago are on My Projects, and listing them all buried the one that matters.
+    .filter((x) => x.run && (x.run.status === "blocked" || x.run.status === "failed") && Date.now() - Date.parse(x.p.updatedAt) < 3 * 86_400_000)
+    .sort((a, b) => b.p.updatedAt.localeCompare(a.p.updatedAt));
+  const shown = stopped.slice(0, 3);
+  const first = stopped[0] ?? running[0];
+  const nameOf = (x: { p: Project }) => x.p.name.replace(/\s+/g, " ");
   return (
-    <section className="apv-calm" aria-labelledby="apv-calm-title">
-      <div className="apv-calm__head">
-        <span className="apv-calm__mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        </span>
-        <div>
-          <h2 id="apv-calm-title" className="apv-calm__title">Nothing needs your OK right now</h2>
-          <p className="apv-calm__lede">When a build needs a decision it stops, and the request shows up here and in the builder.</p>
-        </div>
+    // A familiar empty state (picture, headline, one line, the next action) with what is going on underneath it.
+    <section className="apv-empty-state" aria-labelledby="apv-calm-title">
+      <div className="apv-empty-state__art" aria-hidden="true">
+        <Illustration slug="success" label="" maxWidth={180} />
       </div>
-
-      <div className="apv-calm__row">
-        <span className="apv-calm__label">Running now</span>
-        {running.length ? (
-          <ul className="apv-calm__list">
-            {running.map(({ p, run }) => (
-              <li key={p.id}>
-                <span className="apv-calm__live" aria-hidden="true" />
-                <strong>{p.name.replace(/\s+/g, " ")}</strong>
-                <span className="muted">is {STATUS_WORDS[run!.status] ?? run!.status.replace(/_/g, " ")}</span>
-                <button type="button" className="btn btn--sm" onClick={() => navigate(`/projects/${p.id}/runs/${run!.id}`)}>
-                  Open the build
-                </button>
-              </li>
-            ))}
-          </ul>
+      <h2 id="apv-calm-title" className="apv-empty-state__title">{stopped.length ? `No approvals waiting, but ${stopped.length === 1 ? "a build" : `${stopped.length} builds`} stopped` : "Nothing needs your OK right now"}</h2>
+      <p className="apv-empty-state__lede">
+        {stopped.length
+          ? `${stopped.length === 1 ? nameOf(stopped[0]!) : `${nameOf(stopped[0]!)} and ${stopped.length - 1} other build${stopped.length === 2 ? "" : "s"}`} stopped on a step and need${stopped.length === 1 ? "s" : ""} you to decide how to go on. Open the build to see why and what you can do.`
+          : "When a build needs a decision it stops, and the request shows up here and in the builder."}
+      </p>
+      <div className="apv-empty-state__actions">
+        {first ? (
+          <button type="button" className="btn btn--primary" onClick={() => navigate(`/projects/${first.p.id}/runs/${first.run!.id}`)}>
+            Open {first.p.name.replace(/\s+/g, " ")}&apos;s build
+          </button>
         ) : (
-          <p className="muted">No builds are running.</p>
+          <button type="button" className="btn btn--primary" onClick={() => navigate("/quality")}>
+            Go to My Projects
+          </button>
         )}
+        <button type="button" className="btn" onClick={() => onTab("log")}>
+          See the decision log
+        </button>
       </div>
-
-      {last ? (
-        <div className="apv-calm__row">
-          <span className="apv-calm__label">Your last decision</span>
-          <p>
-            <span className="chip">{last.chip}</span> {last.summary} <span className="muted">· {ago(last.at)}</span>{" "}
-            <button type="button" className="link-btn" onClick={() => onTab("log")}>
-              Decision log
+      <ul className="apv-empty-state__context" aria-label="What is going on">
+        {shown.map((x) => (
+          <li key={`s-${x.p.id}`} className="is-stopped">
+            <span className="apv-empty-state__dot" aria-hidden="true" />
+            <strong>{nameOf(x)}</strong> stopped, needs a decision
+          </li>
+        ))}
+        {stopped.length > shown.length ? (
+          <li>
+            <button type="button" className="link-btn" onClick={() => navigate("/quality")}>
+              +{stopped.length - shown.length} more stopped
             </button>
-          </p>
-        </div>
-      ) : null}
-
-      {ideas || proposed ? (
-        <div className="apv-calm__row">
-          <span className="apv-calm__label">Worth a look</span>
-          <p className="apv-calm__links">
-            {ideas ? (
-              <button type="button" className="link-btn" onClick={() => onTab("ideas")}>
-                {ideas} suggestion{ideas === 1 ? "" : "s"} for your projects
-              </button>
-            ) : null}
-            {proposed ? (
-              <button type="button" className="link-btn" onClick={() => onTab("proposed")}>
-                {proposed} skill{proposed === 1 ? "" : "s"} proposed by FlowCode
-              </button>
-            ) : null}
-          </p>
-        </div>
-      ) : null}
-
-      <div className="apv-calm__row">
-        <span className="apv-calm__label">What lands here</span>
-        <p className="muted">
-          Starting to build from a plan, installing packages, running a command on your computer, and changing files outside a step&apos;s plan. Away from your desk?{" "}
-          <a href="#/settings/phone">Decide from your phone</a>.
-        </p>
-      </div>
+          </li>
+        ) : null}
+        {running.length ? (
+          running.map(({ p, run }) => (
+            <li key={p.id}>
+              <span className="apv-calm__live" aria-hidden="true" />
+              <strong>{p.name.replace(/\s+/g, " ")}</strong> is {STATUS_WORDS[run!.status] ?? run!.status.replace(/_/g, " ")}
+            </li>
+          ))
+        ) : stopped.length ? null : (
+          <li>No builds are running</li>
+        )}
+        {last ? (
+          <li title={last.summary}>
+            Last decision: <strong>{last.summary.length > 48 ? `${last.summary.slice(0, 47)}…` : last.summary}</strong> · {ago(last.at)}
+          </li>
+        ) : null}
+        {ideas ? (
+          <li>
+            <button type="button" className="link-btn" onClick={() => onTab("ideas")}>
+              {ideas} suggestion{ideas === 1 ? "" : "s"} to look at
+            </button>
+          </li>
+        ) : null}
+        {proposed ? (
+          <li>
+            <button type="button" className="link-btn" onClick={() => onTab("proposed")}>
+              {proposed} skill{proposed === 1 ? "" : "s"} proposed by FlowCode
+            </button>
+          </li>
+        ) : null}
+      </ul>
+      <p className="apv-empty-state__foot">
+        Lands here: starting a build from a plan, installing packages, running a command on your computer, and changing files outside a step&apos;s plan. Away from your desk?{" "}
+        <a href="#/settings/phone">Decide from your phone</a>.
+      </p>
     </section>
   );
 }
