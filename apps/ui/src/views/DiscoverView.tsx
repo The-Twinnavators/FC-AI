@@ -15,7 +15,7 @@ import { NEW_BUILD_PRD_KEY } from "../components/PrdTemplates";
 import { Block, Disclosure, FieldInput } from "../components/discovery/Blocks";
 import { RobotHead, ROLE_COLOR } from "../components/RobotHead";
 import { startJourney } from "../components/CopilotDriver";
-import { createPrdJourney } from "../components/copilotJourneys";
+import { createPrdDoJourney } from "../components/copilotJourneys";
 import { VirtualInterviewsPanel, VirtualTestsPanel } from "../components/discovery/VirtualResearch";
 import { Sparkles } from "lucide-react";
 import { ViewLayoutToggle, useViewLayout } from "../components/ViewLayoutToggle";
@@ -95,6 +95,9 @@ function StartResearch() {
   ];
   return (
     <div className="page disc-page disc-new">
+      {/* The page and its form on the left; what happens next beside them from the top (it sat below the heading). */}
+      <div className="disc-new__grid">
+      <div className="disc-new__main">
       <a className="disc-new__back" href="#/discover">
         <Icon name="chevron" size={12} /> All PRDs
       </a>
@@ -104,14 +107,13 @@ function StartResearch() {
         <p className="disc-lede">Describe the difficulty, not the app. FlowCode asks a few questions, then drafts a focused PRD you can build a prototype from.</p>
         {/* The Copilot walks it through: it writes in what you have typed (or waits for you to), then points at Start. */}
         <div className="disc-new__doit">
-          <button type="button" className="btn btn--sm" data-cp="prd-do-it" onClick={() => startJourney(createPrdJourney(problem.trim() || undefined), "do")}>
+          <button type="button" className="btn btn--sm" data-cp="prd-do-it" onClick={() => startJourney(createPrdDoJourney(problem.trim() || undefined), "do")}>
             <Sparkles size={14} aria-hidden="true" /> Do it for me
           </button>
-          <span className="muted">The Copilot walks you through it. You press Start yourself.</span>
+          <span className="muted">The Copilot asks for your problem and takes you through to the finished PRD. You press the final buttons.</span>
         </div>
       </header>
       {error ? <ErrorNotice error={error} doing="start your research" /> : null}
-      <div className="disc-new__grid">
         <form className="disc-start" onSubmit={(e) => (e.preventDefault(), void start())}>
           <label className="disc-field">
             <span className="disc-field__label">The problem</span>
@@ -134,11 +136,13 @@ function StartResearch() {
             {!problem.trim() ? <span className="muted disc-new__why">Describe the problem to start.</span> : <span className="muted disc-new__why">Saved on this computer.</span>}
           </div>
         </form>
+      </div>
         <aside className="disc-new__next" aria-labelledby="disc-next-title">
           <h2 id="disc-next-title" className="disc-new__next-title">What happens next</h2>
           <ol className="disc-new__steps">
             {next.map((s, i) => (
               <li key={i} className={s.off ? "is-off" : undefined}>
+                <span className="disc-new__num" aria-hidden="true">{i + 1}</span>
                 <span className="disc-new__who" aria-hidden="true">
                   {s.who === "you" ? <span className="disc-new__you">You</span> : <RobotHead color={ROLE_COLOR[s.who] ?? "#9a9fd6"} id={`disc-next-${i}`} size={24} />}
                 </span>

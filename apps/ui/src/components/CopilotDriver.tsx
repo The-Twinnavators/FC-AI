@@ -20,9 +20,17 @@ export type Step = { auto?: boolean; /** Said when the control isn't there (e.g.
   | { do: "wait"; target: string; until: string; say: string }
   | { do: "point"; target: string; say: string }
   | { do: "click"; target: string; say: string }
+  /** Types into a field; {key} in the text is replaced with an answer from an earlier ask step. */
   | { do: "type"; target: string; text: string; say: string }
-  /** The final button: pointed at, never clicked. */
-  | { do: "confirm"; target: string; say: string });
+  /** The Copilot asks you something in its bubble; your answer is kept under `key` for later steps. */
+  | { do: "ask"; key: string; say: string; placeholder?: string }
+  /** Builds the rest of the journey from what is on screen now (a new project's real stages). */
+  | { do: "chain"; say: string; build: () => Step[] | undefined }
+  /**
+   * The final button: pointed at, never clicked. With `until`, you press it and the Copilot carries on once that
+   * appears (Do it for me runs end to end); without it, the journey ends here.
+   */
+  | { do: "confirm"; target: string; say: string; until?: string });
 
 export interface Journey {
   /** The catalog id, when it came from the catalog (so the follow-up suggestions know what was just done). */
@@ -56,6 +64,15 @@ async function waitFor(get: () => HTMLElement | null, ms = 6000): Promise<HTMLEl
   return null;
 }
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** Waits until the control appears or the session is stopped: Do it for me never gives up on its own. */
+async function waitForever(get: () => HTMLElement | null, stopped: { current: boolean }): Promise<HTMLElement | null> {
+  while (!stopped.current) {
+    const el = get();
+    if (el && el.getClientRects().length) return el;
+    await sleep(400);
+  }
+  return null;
+}
 /** How fast the Copilot moves: about the pace of a person, so you can follow each move. */
 const PACE = { glide: 1100, rest: 500, afterClick: 1100, key: 55, betweenSteps: 1200 };
 
@@ -83,6 +100,10 @@ export function CopilotDriver() {
   /** Your turn in the middle of a journey (e.g. describing the app): your mouse and keyboard don't stop the Copilot. */
   const [yourTurn, setYourTurn] = useState(false);
   const stopped = useRef(false);
+  /** Answers to ask steps, by key. */
+  const answers = useRef<Record<string, string>>({});
+  const [asking, setAsking] = useState<{ key: string; placeholder?: string }>();
+  const [answer, setAnswer] = useState("");
   const next = useRef<() => void>(() => {});
   const lastCursor = useRef({ x: window.innerWidth - 120, y: 80 });
 
@@ -95,12 +116,15 @@ export function CopilotDriver() {
     setCursor(null);
     setNote(undefined);
     setWaiting(false);
+    setAsking(undefined);
   }, []);
 
   useEffect(() => {
     const onStart = (e: Event) => {
       const d = (e as CustomEvent<{ journey: Journey; mode: DriveMode }>).detail;
       stopped.current = false;
+      answers.current = {};
+      setAsking(undefined);
       setNote(undefined);
       const from = (document.activeElement as HTMLElement | null)?.getBoundingClientRect();
       if (from && from.width) lastCursor.current = { x: from.left + from.width / 2, y: from.top + from.height / 2 };
@@ -116,7 +140,8 @@ export function CopilotDriver() {
     if (!run) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && stop();
     const onDown = (e: PointerEvent) => {
-      if (!e.isTrusted || yourTurn) return;
+      // Do it for me runs until the job is done or you press Esc or Stop: clicking around doesn't end it.
+      if (!e.isTrusted || yourTurn || runRef.current?.mode === "do") return;
       const t = e.target as HTMLElement | null;
       // Clicks on the Copilot's own controls (Next, Stop, the chat) aren't a take-over.
       if (t?.closest(".cpd-say, .cpd-bar, #copilot-panel")) return;
@@ -215,6 +240,7 @@ export function CopilotDriver() {
     const step = run.journey.steps[run.i];
     if (!step) return;
     let alive = true;
+    const isLast = () => run.i >= run.journey.steps.length - 1;
     void (async () => {
       setNote(undefined);
       setCursor((c) => c ?? { ...lastCursor.current, click: 0 });
@@ -225,7 +251,7 @@ export function CopilotDriver() {
         if (here) await moveTo(here);
         setWaiting(false);
         setYourTurn(true);
-        const next = await waitFor(() => (stopped.current ? document.body : find(step.until)), 5 * 60_000);
+        const next = run.mode === "do" ? await waitForever(() => find(step.until), stopped) : await waitFor(() => (stopped.current ? document.body : find(step.until)), 5 * 60_000);
         setYourTurn(false);
         if (!alive || stopped.current) return;
         if (!next) setNote("I waited a few minutes; carry on yourself, or ask me again.");
@@ -234,6 +260,21 @@ export function CopilotDriver() {
           setRun((r) => (r ? { ...r, i: r.i + 1 } : r));
           return;
         }
+      } else if (step.do === "ask") {
+        // Your turn: the answer box is in the bubble; the step moves on when you answer.
+        setAnswer("");
+        setYourTurn(true);
+        setAsking({ key: step.key, placeholder: step.placeholder });
+        return;
+      } else if (step.do === "chain") {
+        const more = step.build();
+        if (!alive || stopped.current) return;
+        if (more?.length) {
+          narrate({ id: run.journey.id, title: run.journey.title, i: run.i, n: run.journey.steps.length, say: step.say });
+          setRun((r) => (r ? { ...r, i: r.i + 1, journey: { ...r.journey, steps: [...r.journey.steps.slice(0, r.i + 1), ...more] } } : r));
+          return;
+        }
+        setNote("I couldn't read the next part of this page. Carry on yourself, or press Stop.");
       } else if (step.do === "event") {
         window.dispatchEvent(new CustomEvent(step.name, { detail: step.detail }));
         await sleep(600);
@@ -243,7 +284,13 @@ export function CopilotDriver() {
         if (!ok) setNote("That tab isn't on this screen.");
       } else {
         // A click right after a page or panel opens waits longer: the builder's step list can take a few seconds to draw.
-        const el = await waitFor(() => find(step.target), step.do === "click" ? 15_000 : 6000);
+        let el = await waitFor(() => find(step.target), step.do === "click" ? 15_000 : 6000);
+        if (!el && run.mode === "do" && alive && !stopped.current) {
+          // Not there yet (a model still drafting, a page still loading): keep watching, and say so.
+          setDoing(step.missing ? `Waiting: ${step.missing}` : "Waiting for the next part to appear…");
+          el = await waitForever(() => find(step.target), stopped);
+          setDoing(undefined);
+        }
         if (!alive || stopped.current) return;
         if (!el) setNote(step.missing ?? "That part isn't on this screen right now, so I've stopped here.");
         else {
@@ -262,15 +309,25 @@ export function CopilotDriver() {
             const field = (el.matches("input, textarea") ? el : el.querySelector("input, textarea")) as HTMLInputElement | HTMLTextAreaElement | null;
             if (field) {
               field.focus();
-              for (let k = 1; k <= step.text.length && alive && !stopped.current; k++) {
-                setValue(field, step.text.slice(0, k));
-                await sleep(step.text.length > 80 ? 18 : PACE.key);
+              const text = step.text.replace(/\{(\w+)\}/g, (_m, k: string) => answers.current[k] ?? "");
+              for (let k = 1; k <= text.length && alive && !stopped.current; k++) {
+                setValue(field, text.slice(0, k));
+                await sleep(text.length > 80 ? 18 : PACE.key);
               }
             }
           }
         }
       }
       if (!alive || stopped.current) return;
+      if (step.do === "confirm" && step.until && !isLast()) {
+        narrate({ id: run.journey.id, title: run.journey.title, i: run.i, n: run.journey.steps.length, say: step.say, final: true });
+        setYourTurn(true);
+        const after = await waitForever(() => find(step.until!), stopped);
+        setYourTurn(false);
+        if (!alive || stopped.current || !after) return;
+        setRun((r) => (r ? { ...r, i: r.i + 1 } : r));
+        return;
+      }
       const last = run.i >= run.journey.steps.length - 1;
       narrate({ id: run.journey.id, title: run.journey.title, i: run.i, n: run.journey.steps.length, say: step.say, final: step.do === "confirm", ...(noteRef.current ? { note: noteRef.current } : {}) });
       if (step.do === "confirm" || last) stopped.current = true; // finished: closing it isn't "stopped"
@@ -311,7 +368,8 @@ export function CopilotDriver() {
       <div className="cpd-bar" role="status">
         <span className="cpd-bar__dot" aria-hidden="true" />
         <span className="cpd-bar__title">
-          Copilot is showing you how to {run.journey.title.charAt(0).toLowerCase() + run.journey.title.slice(1)}
+          {run.mode === "do" ? "Copilot is doing it with you: " : "Copilot is showing you how to "}
+          {run.journey.title.charAt(0).toLowerCase() + run.journey.title.slice(1)}
         </span>
         <span className="cpd-bar__step">
           Step {run.i + 1} of {run.journey.steps.length}
@@ -339,8 +397,27 @@ export function CopilotDriver() {
         {doing ? <p className="cpd-say__doing">{doing}</p> : null}
         <p>{step.say}</p>
         {note ? <p className="cpd-say__note">{note}</p> : null}
-        {yourTurn ? <p className="cpd-say__turn">Your turn. I&apos;ll carry on when you&apos;re done.</p> : null}
-        {final && !note ? <p className="cpd-say__final">Check it, then click the button yourself. I don&apos;t press final buttons.</p> : null}
+        {asking ? (
+          <form
+            className="cpd-say__ask"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!answer.trim()) return;
+              answers.current[asking.key] = answer.trim();
+              narrate({ id: run.journey.id, title: run.journey.title, i: run.i, n: run.journey.steps.length, say: `${step.say} ${answer.trim()}` });
+              setAsking(undefined);
+              setYourTurn(false);
+              setRun((r) => (r ? { ...r, i: r.i + 1 } : r));
+            }}
+          >
+            <textarea className="textarea" rows={3} autoFocus value={answer} placeholder={asking.placeholder} aria-label={step.say} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); (e.currentTarget.form as HTMLFormElement | null)?.requestSubmit(); } }} />
+            <button type="submit" className="btn btn--sm btn--primary" disabled={!answer.trim()}>
+              Continue
+            </button>
+          </form>
+        ) : null}
+        {yourTurn && !asking ? <p className="cpd-say__turn">Your turn. I&apos;ll carry on when you&apos;re done.</p> : null}
+        {final && !note ? <p className="cpd-say__final">Check it, then click the button yourself. I don&apos;t press final buttons.{step.do === "confirm" && step.until ? " I'll carry on from there." : ""}</p> : null}
         {waiting ? (
           <div className="cpd-say__actions">
             {final || run.i >= run.journey.steps.length - 1 ? (

@@ -16655,3 +16655,17 @@ body.cp-driving #copilot-panel { z-index: 80; }
     line-height: 1.1;
   }
 }
+
+/* The Copilot asking you something in its bubble (Do it for me). */
+.cpd-say__ask {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+.cpd-say__ask .textarea {
+  min-height: 72px;
+  font-size: 13.5px;
+}
+.cpd-say__ask .btn {
+  justify-self: end;
+}

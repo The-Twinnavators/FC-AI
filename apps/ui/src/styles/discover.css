@@ -1576,7 +1576,15 @@
   grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
   gap: 40px;
   align-items: start;
-  margin-top: 8px;
+}
+.disc-new__main {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.disc-new__main > .disc-new__back,
+.disc-new__main > .disc-hero {
+  margin-bottom: 0;
 }
 .disc-new .disc-start {
   max-width: none;
@@ -1626,7 +1634,8 @@
 }
 .disc-new__steps li {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 30px 34px minmax(0, 1fr);
+  align-items: start;
   gap: 12px;
   padding: 12px 0;
   border-top: 1px solid var(--line);
@@ -1680,4 +1689,13 @@
   gap: 6px 12px;
   margin-top: 14px;
   font-size: 13px;
+}
+/* Each step's number, large and faint, on its left. */
+.disc-new__num {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-0);
+  opacity: 0.16;
+  font-variant-numeric: tabular-nums;
 }

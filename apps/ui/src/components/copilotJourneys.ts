@@ -132,6 +132,34 @@ export function prdStagesJourney(id: string, stages: Array<{ id: string; name: s
   return { id: "prd-stages", title: "Walk through the research stages", steps };
 }
 
+/**
+ * Create PRD, done with you from end to end: the Copilot asks for the problem (unless it is already written), writes it
+ * in, points at Start and waits for you to press it, then walks every research stage on the new project to the
+ * finished PRD. It ends when the PRD is done, or when you press Esc or Stop.
+ */
+export function createPrdDoJourney(problem?: string): Journey {
+  return {
+    id: "create-prd",
+    title: "Create a PRD",
+    steps: [
+      { do: "go", path: "/discover/new", say: "Let's make your PRD together. I'll take you through it from start to finish.", auto: true },
+      ...(problem ? [] : [{ do: "ask" as const, key: "problem", say: "Tell me, what problem would you like to solve?", placeholder: "Who has it, and what makes it hard? For example: busy parents can't tell which brands are non-GMO while shopping." }]),
+      { do: "type", target: "prd-problem", text: problem ?? "{problem}", say: "I've written your problem in." },
+      { do: "confirm", target: "prd-start", until: "prd-stages", say: "Press Start. FlowCode then researches it with you and drafts the PRD stage by stage." },
+      {
+        do: "chain",
+        say: "Your research project is open. Now the stages, one at a time.",
+        // The new project's id and its real stages, read once its workspace is on screen.
+        build: () => {
+          const id = /#\/discover\/([^/?]+)/.exec(location.hash)?.[1];
+          const stages = stagesOnPage();
+          return id && id !== "new" && stages.length ? prdStagesJourney(id, stages).steps.slice(1) : undefined;
+        },
+      },
+    ],
+  };
+}
+
 /** The research project's stages, read from the workspace on screen: its real ones, not a guessed six. */
 export function stagesOnPage(): Array<{ id: string; name: string; optional?: boolean }> {
   return [...document.querySelectorAll<HTMLElement>('[data-cp="prd-stages"] [data-stage]')].map((el) => ({
