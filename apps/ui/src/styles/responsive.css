@@ -16638,3 +16638,20 @@ body.cp-driving #copilot-panel { z-index: 80; }
   flex: 1 1 320px;
   min-width: min(100%, 280px);
 }
+
+/* Short screens: the whole side navigation fits without scrolling (at 800px tall Settings and System Health sat below
+   the window). Rows, headings and group spacing tighten; nothing is hidden. */
+@media (max-height: 1000px) {
+  .rail .rail__item,
+  .app[data-nav="expanded"] .rail__item {
+    height: 31px;
+    min-height: 31px;
+  }
+  .rail .rail__group + .rail__group {
+    margin-top: 4px;
+  }
+  .rail .rail__heading {
+    padding-block: 4px 2px;
+    line-height: 1.1;
+  }
+}
