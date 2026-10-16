@@ -213,7 +213,8 @@ export async function designResearch(
   }
   if (!shots.length) return undefined;
   const brief = input.direction ? `Industry: ${input.direction.industry}. Pattern: ${input.direction.pattern}. Style: ${input.direction.style}. Colour mood: ${input.direction.colorMood}. Avoid: ${input.direction.avoid}.` : "";
-  const res = await deps.router.chat({ role: "critic", projectId: input.projectId, runId: input.runId }, { ...pick, temperature: 0.2 }, {
+  // Credited to the researcher: it reads the reference designs with the vision model, but it isn't a critique of the app.
+  const res = await deps.router.chat({ role: "researcher", projectId: input.projectId, runId: input.runId }, { ...pick, temperature: 0.2 }, {
     messages: [
       {
         role: "system",
