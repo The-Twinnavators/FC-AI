@@ -27,9 +27,15 @@ export interface RuntimeOptions {
    * send a step back or block a build.
    */
   visualCritic: "off" | "advisory";
+  /**
+   * Thinking on a step's routine coding turns (its first attempt). Off by default: on six routine coding and tool-choice
+   * turns qwen3:8b passed 12 of 12 either way and wrote 7.7 times the tokens with thinking on (docs/reliability). Retries
+   * run as the debugger and keep the model's own reasoning setting.
+   */
+  routineThinking: boolean;
 }
 
-export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true, investigationBudget: 0, visualCritic: "off" };
+export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true, investigationBudget: 0, visualCritic: "off", routineThinking: false };
 const KEY = "runtimeOptions";
 
 export function runtimeOptions(store: Store): RuntimeOptions {

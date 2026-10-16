@@ -1,0 +1,462 @@
+{
+  "at": "2026-10-16T11:53:33.260Z",
+  "summary": {
+    "model": "qwen3:8b",
+    "numCtx": 24576,
+    "repeats": 2,
+    "thinkingOff": {
+      "runs": 12,
+      "passed": 12,
+      "validCalls": 12,
+      "outTokens": 736,
+      "genS": 20.3,
+      "promptS": 0.7,
+      "wallS": 21.9,
+      "truncated": 0
+    },
+    "thinkingOn": {
+      "runs": 12,
+      "passed": 12,
+      "validCalls": 12,
+      "outTokens": 5636,
+      "genS": 159.9,
+      "promptS": 0.6,
+      "wallS": 160.9,
+      "truncated": 0
+    }
+  },
+  "rows": [
+    {
+      "think": false,
+      "case": "pick-read",
+      "pass": true,
+      "validCall": true,
+      "tool": "read_file",
+      "outTokens": 23,
+      "thinkingChars": 0,
+      "genS": 0.7,
+      "promptS": 0.2,
+      "wallS": 1.5,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "pick-read",
+      "pass": true,
+      "validCall": true,
+      "tool": "read_file",
+      "outTokens": 23,
+      "thinkingChars": 0,
+      "genS": 0.6,
+      "promptS": 0,
+      "wallS": 0.7,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "pick-search",
+      "pass": true,
+      "validCall": true,
+      "tool": "search_code",
+      "outTokens": 21,
+      "thinkingChars": 0,
+      "genS": 0.6,
+      "promptS": 0.1,
+      "wallS": 0.7,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "pick-search",
+      "pass": true,
+      "validCall": true,
+      "tool": "search_code",
+      "outTokens": 21,
+      "thinkingChars": 0,
+      "genS": 0.6,
+      "promptS": 0,
+      "wallS": 0.6,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "small-edit",
+      "pass": true,
+      "validCall": true,
+      "tool": "apply_patch",
+      "outTokens": 47,
+      "thinkingChars": 0,
+      "genS": 1.3,
+      "promptS": 0.1,
+      "wallS": 1.4,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "small-edit",
+      "pass": true,
+      "validCall": true,
+      "tool": "apply_patch",
+      "outTokens": 47,
+      "thinkingChars": 0,
+      "genS": 1.4,
+      "promptS": 0,
+      "wallS": 1.4,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "css-rule",
+      "pass": true,
+      "validCall": true,
+      "tool": "apply_patch",
+      "outTokens": 139,
+      "thinkingChars": 0,
+      "genS": 3.8,
+      "promptS": 0.1,
+      "wallS": 3.9,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "css-rule",
+      "pass": true,
+      "validCall": true,
+      "tool": "apply_patch",
+      "outTokens": 139,
+      "thinkingChars": 0,
+      "genS": 3.8,
+      "promptS": 0,
+      "wallS": 3.8,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "new-file",
+      "pass": true,
+      "validCall": true,
+      "tool": "create_file",
+      "outTokens": 93,
+      "thinkingChars": 0,
+      "genS": 2.6,
+      "promptS": 0.1,
+      "wallS": 2.7,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "new-file",
+      "pass": true,
+      "validCall": true,
+      "tool": "create_file",
+      "outTokens": 93,
+      "thinkingChars": 0,
+      "genS": 2.5,
+      "promptS": 0,
+      "wallS": 2.6,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "finish",
+      "pass": true,
+      "validCall": true,
+      "tool": "task_complete",
+      "outTokens": 44,
+      "thinkingChars": 0,
+      "genS": 1.2,
+      "promptS": 0.1,
+      "wallS": 1.3,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": false,
+      "case": "finish",
+      "pass": true,
+      "validCall": true,
+      "tool": "task_complete",
+      "outTokens": 46,
+      "thinkingChars": 0,
+      "genS": 1.2,
+      "promptS": 0,
+      "wallS": 1.3,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "pick-read",
+      "pass": true,
+      "validCall": true,
+      "tool": "read_file",
+      "outTokens": 221,
+      "thinkingChars": 895,
+      "genS": 6.1,
+      "promptS": 0.1,
+      "wallS": 6.2,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "pick-read",
+      "pass": true,
+      "validCall": true,
+      "tool": "read_file",
+      "outTokens": 187,
+      "thinkingChars": 747,
+      "genS": 5.1,
+      "promptS": 0,
+      "wallS": 5.1,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "pick-search",
+      "pass": true,
+      "validCall": true,
+      "tool": "search_code",
+      "outTokens": 246,
+      "thinkingChars": 1050,
+      "genS": 6.8,
+      "promptS": 0.1,
+      "wallS": 6.9,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "pick-search",
+      "pass": true,
+      "validCall": true,
+      "tool": "search_code",
+      "outTokens": 246,
+      "thinkingChars": 1050,
+      "genS": 6.8,
+      "promptS": 0,
+      "wallS": 6.9,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "small-edit",
+      "pass": true,
+      "validCall": true,
+      "tool": "apply_patch",
+      "outTokens": 334,
+      "thinkingChars": 1228,
+      "genS": 9.2,
+      "promptS": 0.1,
+      "wallS": 9.3,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "small-edit",
+      "pass": true,
+      "validCall": true,
+      "tool": "apply_patch",
+      "outTokens": 334,
+      "thinkingChars": 1228,
+      "genS": 9.3,
+      "promptS": 0,
+      "wallS": 9.3,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "css-rule",
+      "pass": true,
+      "validCall": true,
+      "tool": "apply_patch",
+      "outTokens": 1318,
+      "thinkingChars": 5164,
+      "genS": 38.3,
+      "promptS": 0.1,
+      "wallS": 38.5,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "css-rule",
+      "pass": true,
+      "validCall": true,
+      "tool": "apply_patch",
+      "outTokens": 1020,
+      "thinkingChars": 3630,
+      "genS": 29.3,
+      "promptS": 0,
+      "wallS": 29.4,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "new-file",
+      "pass": true,
+      "validCall": true,
+      "tool": "create_file",
+      "outTokens": 679,
+      "thinkingChars": 2415,
+      "genS": 19.4,
+      "promptS": 0.1,
+      "wallS": 19.5,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "new-file",
+      "pass": true,
+      "validCall": true,
+      "tool": "create_file",
+      "outTokens": 596,
+      "thinkingChars": 2016,
+      "genS": 16.8,
+      "promptS": 0,
+      "wallS": 16.9,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "finish",
+      "pass": true,
+      "validCall": true,
+      "tool": "task_complete",
+      "outTokens": 227,
+      "thinkingChars": 834,
+      "genS": 6.3,
+      "promptS": 0.1,
+      "wallS": 6.4,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    },
+    {
+      "think": true,
+      "case": "finish",
+      "pass": true,
+      "validCall": true,
+      "tool": "task_complete",
+      "outTokens": 228,
+      "thinkingChars": 834,
+      "genS": 6.5,
+      "promptS": 0,
+      "wallS": 6.5,
+      "doneReason": "stop",
+      "placement": {
+        "onGpu": 83,
+        "ctx": 24576,
+        "sizeGB": 6.93
+      }
+    }
+  ]
+}

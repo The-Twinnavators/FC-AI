@@ -2250,7 +2250,11 @@ export class Orchestrator {
       // prompt whole - Ollama cuts a prompt that does not fit the window without saying so.
       const window = !assignment.providerId.startsWith("hosted") && !base.contextWindow && (info?.maxContext ?? 0) >= 32_768 ? await contextForCoding(info?.sizeBytes) : undefined;
       if (window) assignment = { ...assignment, contextWindow: window };
-      this.d.bus.emit({ ...ev, type: "model.tier", message: `${role === "coder" ? "Coder" : "Debugger"} model for "${task.title}": ${assignment.model}${modelOverride ? " (the fast model you turned on in Speed & recovery)" : ""}${window ? `, with a ${Math.round(window / 1024)}k context` : ""}` });
+      // Routine coding turns (a step's first attempt) run without thinking unless it's turned on in Speed & recovery;
+      // retries run as the debugger and keep the model's reasoning.
+      const quiet = role === "coder" && !!assignment.reasoning && !runtimeOptions(this.d.store).routineThinking;
+      if (quiet) assignment = { ...assignment, reasoning: false };
+      this.d.bus.emit({ ...ev, type: "model.tier", message: `${role === "coder" ? "Coder" : "Debugger"} model for "${task.title}": ${assignment.model}${modelOverride ? " (the fast model you turned on in Speed & recovery)" : ""}${window ? `, with a ${Math.round(window / 1024)}k context` : ""}${quiet ? ", thinking off for this routine attempt" : ""}` });
     }
     const open = this.d.store.getSetting<string>(`openErrors:${task.id}`, "");
     const kit = kitFacts(jail, `${task.title}\n${task.objective}\n${task.acceptanceCriteria.map((c) => c.description).join("\n")}`);

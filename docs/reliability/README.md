@@ -186,6 +186,51 @@ Phase 3 targets the repeats; the controlled build measures the effect.
    a prompt-size change across FlowCode, so a separate piece of work.
 3. A support model that fits the card (for example qwen3:8b instead of qwen3:14b for support roles): a model change.
 
+## Round 2: false passes, request budgeting, truncated edits (controlled build, run_73d6f4dd)
+
+**What the trace showed.** Two design parts ("Design App Frame and Navigation", "Implement Real Imagery") and then
+"Seed Sample Data" passed on attempt 2 as "already done" with only a type check: the frame step had changed two
+background lines, the imagery step saved 15 photos and put none on a screen, and Home still showed the Neobrutal
+landing's pottery-studio demo. Their opening requests were about 18.2k tokens of a 24k window (33.1k-character system
+prompt with 24.8k of skills, 12.6k of tool definitions, a 27.9k brief); fitting dropped the two files the step edits and
+the PRD while keeping an 11.2k list of every file every earlier step touched. One reply carried 55 edits, hit the
+4,096-token output limit, applied 2 and failed 5.
+
+**Changed.**
+- Verification integrity: a step whose checks are all generic (type check, lint, build, whole suite) gets checks for its
+  own deliverable, added openly (event and record): it changed its own files; its screens show the photos in
+  public/images; sample data is seeded (8+ records); the app frame is restyled or replaced; the library pieces its
+  screens render don't still show their demo. "Already done" needs a check about the step itself. On resume, steps
+  that passed on generic checks are revalidated: ones whose deliverable holds stay passed, the rest reopen (only them).
+  Planning keeps checks the starter's scripts provide and records every dropped check with its reason.
+- Whole-request budget (`requestBudget.ts`): window minus reply minus a working reserve, at the model's measured
+  characters per token (4.1–4.2 for qwen3:8b), counting system, skills, tool definitions and brief. Fitting by
+  priority: knowledge, design guidance, tree, other files, finished-work lists, then the step's own files are shortened
+  (never dropped); task, checks and cited requirements are never cut; what still doesn't fit splits the step.
+- Packet: spec builds record their PRD; steps get the requirement text for the IDs they name; split parts carry a
+  one-sentence summary of their step plus its sections about their own screens; finished work is only what the step
+  builds on; skills come from metadata (test-first only for steps whose checks run tests) within a budget by model;
+  catalog contracts of the step's files go in upfront; binary files are never attached as source.
+- Edits: at most 8 per reply, the last edit of a cut-off reply isn't run, later edits to a file wait once one to it
+  fails, and each reply reports applied / failed / not run / malformed; an attempt that ends records its applied edits
+  so the next one continues instead of resending them.
+
+**Before and after, same step (Implement Real Imagery, rebuilt in an isolated copy):**
+
+| | Before | After |
+| --- | --- | --- |
+| Opening request | ~18.2k tokens | ~14.3k tokens (budget 14.3k) |
+| Skills | 5, 24.8k characters (incl. test-first) | 2, 8.4k (3 named as left out) |
+| Step's own files | dropped | both included |
+| Requirement text | none | 16 requirements quoted |
+| Component contract | none | ShopProductCards |
+| Finished-work list | 11.2k characters | 0.3k |
+
+**Thinking on vs off** (`scripts/think-bench.mjs`, 6 routine cases × 2, qwen3:8b, 24k window, placement read from
+`/api/ps`: 83% on GPU): both 12/12 passed with valid calls, none truncated; thinking on wrote 5,636 tokens in 160 s,
+off 736 tokens in 20 s. Reasoning stays as configured: routine turns don't need it, but the sample says nothing about
+hard steps.
+
 ## Backlog (not in scope; only with a separately approved narrow fix)
 
 - Artifact-level dependency tracking (which step produced which file and what depends on it).

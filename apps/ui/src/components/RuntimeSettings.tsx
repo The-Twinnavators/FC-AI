@@ -10,6 +10,7 @@ interface Options {
   autoRetry: boolean;
   investigationBudget?: number;
   visualCritic?: "off" | "advisory";
+  routineThinking?: boolean;
 }
 
 export function RuntimeSettings() {
@@ -78,6 +79,13 @@ export function RuntimeSettings() {
           <span>
             <strong>Retry once with a clearer request</strong>
             <span className="muted">FlowCode rewrites the request more precisely (files, names, what not to change) and tries once more. Never in Supervised projects.</span>
+          </span>
+        </label>
+        <label className="rt__row">
+          <input type="checkbox" checked={!!o.routineThinking} onChange={(e) => void update({ routineThinking: e.target.checked })} />
+          <span>
+            <strong>Thinking on routine coding turns</strong>
+            <span className="muted">Off: a step's first attempt writes code without the model's thinking, which on a local model is several times faster with the same results on routine edits. Retries always keep the model's thinking.</span>
           </span>
         </label>
         <label className="rt__row">

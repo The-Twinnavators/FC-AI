@@ -204,3 +204,39 @@ describe("a spec build's steps get the PRD's requirement text", () => {
     expect(brief).not.toContain("save a product to a grocery list");
   });
 });
+
+describe("thinking on routine coding turns", () => {
+  it("is off on a step's first attempt unless turned on, and stays the model's setting otherwise", async () => {
+    const { ScriptedProvider, call } = await import("../src/models/scripted.js");
+    const { ModelRouter } = await import("../src/models/router.js");
+    const { idealProbeSolver } = await import("./scripted-agents.js");
+    const { waitFor } = await import("./helpers.js");
+    const { setRuntimeOptions } = await import("../src/orchestrator/runtimeOptions.js");
+    const thinkOf = async (routineThinking: boolean) => {
+      const { app } = makeApp();
+      setRuntimeOptions(app.store, { routineThinking });
+      const plan = { goal: "g", assumptions: [], relevantFiles: ["README.md"], expectedChanges: ["src/a.ts"], risk: "low", riskNotes: [], validationPlan: ["final_report"], rollbackStrategy: "r", tasks: [{ key: "t1", title: "Build a", objective: "Build a", dependsOn: [], expectedPaths: ["src/a.ts"], acceptanceCriteria: [{ id: "a", description: "exists", check: { type: "file_exists", path: "src/a.ts" } }], verification: [], role: "coder" }] };
+      let think: boolean | undefined;
+      app.router.register(
+        new ScriptedProvider({ id: "scripted", kind: "scripted", label: "s", enabled: true, hosted: false }, async (req, h) => {
+          if ((h[0]?.content ?? "").includes("You are the Planner")) return { content: JSON.stringify(plan) };
+          think ??= req.think;
+          return { toolCalls: [call("report_blocked", { reason: "stop here", nextAction: "-" })] };
+        }),
+      );
+      app.router.register(idealProbeSolver("scripted-ideal"));
+      const asg = { providerId: "scripted", model: "agent", reasoning: true };
+      const lab = await app.lab.probe({ providerId: "scripted-ideal", model: "agent" });
+      app.store.capabilities.upsert({ ...lab, id: "cap_copy", providerId: "scripted", model: "agent", configHash: ModelRouter.configHash(asg) });
+      for (const role of ["planner", "coder", "debugger"] as const) app.router.setRoleAssignment(role, asg as never);
+      const { project } = makeProject(app, { "README.md": "# demo\n" });
+      const run = app.orchestrator.createRun({ projectId: project.id, objective: "g", constraints: [], attachedKnowledgeIds: [] });
+      await app.orchestrator.plan(run.id);
+      app.orchestrator.start(run.id);
+      await waitFor(() => (think !== undefined && !app.orchestrator.isActive(run.id) ? true : undefined), 30_000);
+      return think;
+    };
+    expect(await thinkOf(false)).toBe(false);
+    expect(await thinkOf(true)).toBe(true);
+  });
+});
