@@ -94,7 +94,7 @@ import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchIte
 import { promptConfigFor } from "../quality/taskPrompt.js";
 import { isInterfaceStep, playbookFor } from "../knowledge/designPlaybook.js";
 import { protectedPolicyFor } from "../workspace/protectedFiles.js";
-import { capSkills, designSkillIds, isCopyEdit, renderSkills, selectSkills, stackSkillIds, workflowSkillIds } from "../knowledge/skills.js";
+import { capSkills, COPY_EDIT_SKILLS, designSkillIds, isCopyEdit, renderSkills, selectSkills, stackSkillIds, workflowSkillIds } from "../knowledge/skills.js";
 import { scanComponentLibrary } from "../workspace/componentLibrary.js";
 import { scanStyles } from "../workspace/styleTokens.js";
 import { alignCheckNames, foldReadOnlySteps, isTsReact, jsxInJsFiles, kitFacts, withoutBadChecks, planTooBig, snippetToName, tsTask, typesFirst, undefinedTokens, workspaceTokenUsage } from "./guards.js";
@@ -2040,7 +2040,11 @@ export class Orchestrator {
     if (verdict.allMet && !runtimeStep && (task.title === DESIGN_SCREENS || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_SCREENS || touchesPlaced)) {
       const releasedKey = `placedReleased:${run.id}`;
       const released = this.d.store.getSetting<string[]>(releasedKey, []);
-      const placed = placedNow.filter((p) => !released.includes(p.component));
+      // The design step answers for every screen's pieces; any other step only for the screens it changed (a reword
+      // of the Search screen was sent back for pieces missing from the Home screen, which it never opened).
+      const designStep = task.title === DESIGN_SCREENS || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_SCREENS;
+      const changedFiles = new Set([...changed].map((p) => p.replace(/\\/g, "/")));
+      const placed = placedNow.filter((p) => !released.includes(p.component) && (designStep || (!!p.screenFile && changedFiles.has(p.screenFile))));
       const summary = outcome.kind === "complete" ? outcome.summary : "";
       const imported = importedSections(jail);
       const named = placed.filter((p) => !imported.has(p.component) && summary.toLowerCase().includes(p.component.toLowerCase()));
@@ -2514,10 +2518,13 @@ export class Orchestrator {
     const writesTests = writesTestsStep(task);
     const pinned = [...workflowSkillIds(role, ownText, { writesTests }), ...(role === "coder" ? designSkillIds(ownText) : [])];
     const design = pinned.map((id) => library.find((x) => x.id === id)).filter((s): s is NonNullable<typeof s> => !!s && s.enabled !== false);
-    const skills = capSkills(selected, stack, undefined, { design, retry: task.attempts > 1 || role === "debugger" });
+    // A wording-only step keeps no design skill matched by its words (a reword got avoid-ai-slop, 5,000 characters).
+    const copyEdit = isCopyEdit(ownText);
+    const fitting = copyEdit ? selected.filter((s) => COPY_EDIT_SKILLS.has(s.id) || s.id.startsWith("skill.proposed-")) : selected;
+    const skills = capSkills(fitting, stack, undefined, { design, retry: task.attempts > 1 || role === "debugger" });
     // Interface work gets the project's reusable parts (cached until its source changes), so agents reuse them.
     // A wording-only change needs neither (isCopyEdit).
-    const uiWork = !isCopyEdit(ownText) && (skills.some((x) => x.id === "skill.avoid-ai-slop") || /\b(component|page|screen|layout|style|css|button|dialog|modal|form|card|ui)\b/i.test(`${task.title} ${task.objective}`));
+    const uiWork = !copyEdit && (skills.some((x) => x.id === "skill.avoid-ai-slop") || /\b(component|page|screen|layout|style|css|button|dialog|modal|form|card|ui)\b/i.test(`${task.title} ${task.objective}`));
     const reuse = uiWork ? scanComponentLibrary(jail).brief : "";
     // An app with FlowCode's library gets the catalog too: the parts to assemble screens from, one line each, so the
     // agent adds a catalog piece instead of writing the markup (a build used the starter kit and nothing from it).

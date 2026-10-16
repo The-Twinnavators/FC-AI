@@ -1138,6 +1138,9 @@ export function isCopyEdit(taskText: string): boolean {
   return !/\b(design|redesign|layout|restyle|style|styles|styling|css|colou?rs?|theme|build|create|add (a|an|the) (section|component|screen|page|card|list|form)|new (section|component|screen|page)|image|images|icon|icons)\b/.test(t);
 }
 
+/** The only skills a wording-only step keeps (with the project's stack skills and repair skills learned from failures). */
+export const COPY_EDIT_SKILLS = new Set(["skill.plain-language-communication", "skill.exact-patch", "skill.project-rules", "skill.fix-typescript-error"]);
+
 export function designSkillIds(taskText: string): string[] {
   const t = taskText.toLowerCase();
   if (isCopyEdit(t)) return [];
