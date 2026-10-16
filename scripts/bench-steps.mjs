@@ -39,6 +39,7 @@ const TASKS = {
 const opts = {
   "think-on-24k": { gpuProfile: "standard", routineThinking: true },
   "think-off-24k": { gpuProfile: "standard", routineThinking: false },
+  "gpu8-24k": { gpuProfile: "8gb", profileContext: 24576, routineThinking: false },
   "gpu8-16k": { gpuProfile: "8gb", profileContext: 16384, routineThinking: false },
   "gpu8-12k": { gpuProfile: "8gb", profileContext: 12288, routineThinking: false },
 }[config];

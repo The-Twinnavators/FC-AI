@@ -65,54 +65,71 @@ describe("support roles and the context ceiling in the profile", () => {
   });
 });
 
+async function modelInParts(dropAreas = false) {
+  const { app } = makeApp();
+  setRuntimeOptions(app.store, { gpuProfile: "8gb" });
+  const asked: Array<{ part: string; max?: number; think?: boolean }> = [];
+  const structure = {
+    shape: "lookup",
+    product: "Clean Cart",
+    roles: ["Shopper"],
+    entities: [
+      { key: "product", label: "Product", plural: "Products", idPrefix: "PRD", titleField: "name", fields: [{ key: "name", label: "Name", type: "text" }, { key: "category", label: "Category", type: "select", options: ["Produce", "Dairy"] }] },
+      { key: "store", label: "Store", plural: "Stores", idPrefix: "STR", titleField: "name", fields: [{ key: "name", label: "Name", type: "text" }, { key: "zip", label: "ZIP", type: "text" }] },
+    ],
+    nav: [{ label: "Clean Cart", items: [{ id: "home", label: "Home", kind: "landing" }] }],
+    lookup: { entries: "product", places: "store", categoryField: "category", placesField: "carriedBy", areas: [{ zip: "94110", label: "San Francisco, CA", lat: 37.75, lng: -122.41 }], placeWord: "store", carryWord: "carries", detailFields: ["category"], facets: ["category"] },
+  };
+  app.router.register({
+    config: { id: "ollama", kind: "ollama", label: "stub", enabled: true, hosted: false },
+    chat: async (req: ChatRequest) => {
+      const sys = String(req.messages[0]?.content ?? "");
+      const user = String(req.messages[1]?.content ?? "");
+      const part = sys.includes("Write it in parts") ? "structure" : sys.includes("ZIP code areas a look-up app") ? "areas" : sys.startsWith("You write realistic sample records") ? (user.includes("Stores") ? "places" : "entries") : "social";
+      asked.push({ part, max: req.maxOutputTokens, think: req.think });
+      const body =
+        part === "structure"
+          ? dropAreas
+            ? { ...structure, lookup: { ...structure.lookup, areas: [] } }
+            : structure
+          : part === "areas"
+            ? { areas: structure.lookup.areas }
+          : part === "places"
+            ? { records: Array.from({ length: 8 }, (_, i) => ({ name: `Store ${i}`, zip: "94110" })) }
+            : part === "entries"
+              ? { records: Array.from({ length: 20 }, (_, i) => ({ name: `Apples ${i}`, category: "Produce", carriedBy: user.includes("STR-1001") ? ["STR-1001", "STR-1002"] : [] })) }
+              : { ratings: [{ entry: "PRD-1001", who: "Ana R.", stars: 5, text: "Crisp", at: "2026-03-01", helpful: 2 }], lists: [{ name: "Weekly", place: "STR-1001", items: [{ entry: "PRD-1002", qty: 2, done: false }] }], likes: { "PRD-1001": 12 }, saves: {} };
+      return { content: JSON.stringify(body), toolCalls: [], model: req.model, durationMs: 1, doneReason: "stop" };
+    },
+    listModels: async () => [],
+    describe: async () => undefined,
+    health: async () => ({ ok: true, detail: "" }),
+  });
+  for (const role of ["planner", "coder", "debugger"] as const) app.router.setRoleAssignment(role, { providerId: "ollama", model: "qwen3:8b" });
+  const { makeProject } = await import("./helpers.js");
+  const { project } = makeProject(app, { "README.md": "# demo\n" });
+  const run = app.orchestrator.createRun({ projectId: project.id, objective: "Clean Cart", constraints: [], attachedKnowledgeIds: [] });
+  const got = await (app.orchestrator as unknown as { appModelInParts: (...a: unknown[]) => Promise<{ model?: { seed: Record<string, Array<Record<string, unknown>>>; lookup?: { ratings: unknown[]; lists: unknown[] } }; problems: string[] }> }).appModelInParts(app.store.runs.require(run.id), "PRD", [], "", "", new AbortController().signal);
+  return { asked, got };
+}
+
 describe("the app model in parts", () => {
   it("asks for the structure, then the places, then the entries naming them, then ratings, each reply capped; and assembles a valid model", async () => {
-    const { app } = makeApp();
-    setRuntimeOptions(app.store, { gpuProfile: "8gb" });
-    const asked: Array<{ part: string; max?: number; think?: boolean }> = [];
-    const structure = {
-      shape: "lookup",
-      product: "Clean Cart",
-      roles: ["Shopper"],
-      entities: [
-        { key: "product", label: "Product", plural: "Products", idPrefix: "PRD", titleField: "name", fields: [{ key: "name", label: "Name", type: "text" }, { key: "category", label: "Category", type: "select", options: ["Produce", "Dairy"] }] },
-        { key: "store", label: "Store", plural: "Stores", idPrefix: "STR", titleField: "name", fields: [{ key: "name", label: "Name", type: "text" }, { key: "zip", label: "ZIP", type: "text" }] },
-      ],
-      nav: [{ label: "Clean Cart", items: [{ id: "home", label: "Home", kind: "landing" }] }],
-      lookup: { entries: "product", places: "store", categoryField: "category", placesField: "carriedBy", areas: [{ zip: "94110", label: "San Francisco, CA", lat: 37.75, lng: -122.41 }], placeWord: "store", carryWord: "carries", detailFields: ["category"], facets: ["category"] },
-    };
-    app.router.register({
-      config: { id: "ollama", kind: "ollama", label: "stub", enabled: true, hosted: false },
-      chat: async (req: ChatRequest) => {
-        const sys = String(req.messages[0]?.content ?? "");
-        const user = String(req.messages[1]?.content ?? "");
-        const part = sys.includes("Write it in parts") ? "structure" : sys.startsWith("You write realistic sample records") ? (user.includes("Stores") ? "places" : "entries") : "social";
-        asked.push({ part, max: req.maxOutputTokens, think: req.think });
-        const body =
-          part === "structure"
-            ? structure
-            : part === "places"
-              ? { records: Array.from({ length: 8 }, (_, i) => ({ name: `Store ${i}`, zip: "94110" })) }
-              : part === "entries"
-                ? { records: Array.from({ length: 20 }, (_, i) => ({ name: `Apples ${i}`, category: "Produce", carriedBy: user.includes("STR-1001") ? ["STR-1001", "STR-1002"] : [] })) }
-                : { ratings: [{ entry: "PRD-1001", who: "Ana R.", stars: 5, text: "Crisp", at: "2026-03-01", helpful: 2 }], lists: [{ name: "Weekly", place: "STR-1001", items: [{ entry: "PRD-1002", qty: 2, done: false }] }], likes: { "PRD-1001": 12 }, saves: {} };
-        return { content: JSON.stringify(body), toolCalls: [], model: req.model, durationMs: 1, doneReason: "stop" };
-      },
-      listModels: async () => [],
-      describe: async () => undefined,
-      health: async () => ({ ok: true, detail: "" }),
-    });
-    for (const role of ["planner", "coder", "debugger"] as const) app.router.setRoleAssignment(role, { providerId: "ollama", model: "qwen3:8b" });
-    const { makeProject } = await import("./helpers.js");
-    const { project } = makeProject(app, { "README.md": "# demo\n" });
-    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Clean Cart", constraints: [], attachedKnowledgeIds: [] });
-    const got = await (app.orchestrator as unknown as { appModelInParts: (...a: unknown[]) => Promise<{ model?: { seed: Record<string, Array<Record<string, unknown>>>; lookup?: { ratings: unknown[]; lists: unknown[] } }; problems: string[] }> }).appModelInParts(app.store.runs.require(run.id), "PRD", [], "", "", new AbortController().signal);
+    const { asked, got } = await modelInParts();
     expect(asked.map((a) => a.part)).toEqual(["structure", "places", "entries", "social"]);
     expect(asked.every((a) => (a.max ?? 0) <= 3500 && a.think === false)).toBe(true);
     expect(got.model!.seed.product!.length).toBe(20);
     expect(got.model!.seed.product![0]!.carriedBy).toEqual(["STR-1001", "STR-1002"]);
     expect(got.model!.lookup!.ratings.length).toBe(1);
     expect(got.problems.filter((p) => /carry|ZIP|sample/.test(p))).toEqual([]);
+  });
+
+  it("asks for a look-up app's ZIP code areas on their own when the structure leaves them out", async () => {
+    const { asked, got } = await modelInParts(true);
+    expect(asked.map((a) => a.part)).toEqual(["structure", "areas", "places", "entries", "social"]);
+    expect(asked.every((a) => (a.max ?? 0) <= 3500 && a.think === false)).toBe(true);
+    expect(got.model!.seed.product!.length).toBe(20);
+    expect(got.problems.filter((p) => /ZIP/.test(p))).toEqual([]);
   });
 });
 

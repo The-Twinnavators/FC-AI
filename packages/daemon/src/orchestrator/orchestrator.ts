@@ -63,7 +63,7 @@ import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } fr
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
 import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
-import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
+import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
@@ -1069,6 +1069,11 @@ export class Orchestrator {
       throw last;
     };
     const structure = await ask(`${APP_MODEL_SYSTEM}\n\n${APP_PARTS_NOTE}`, untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, sizeNote)), APP_STRUCTURE_SCHEMA, 3500);
+    // A look-up app without its ZIP code areas isn't usable at all: they're asked for on their own (one short reply).
+    if (structure.shape === "lookup" && !usableAreas((structure.lookup as Record<string, unknown> | undefined)?.areas)) {
+      const got = await ask(AREAS_SYSTEM, untrusted("app-model", areasRequest(String(structure.product ?? run.objective.slice(0, 80)), prd)), AREAS_SCHEMA, 800).catch(() => ({}) as Record<string, unknown>);
+      if (usableAreas(got.areas)) structure.lookup = { ...((structure.lookup as Record<string, unknown> | undefined) ?? {}), areas: got.areas };
+    }
     const base = parseAppModel({ ...structure, seed: {} });
     if (base.website || !base.model) return base;
     const lookupShape = structure.shape === "lookup";

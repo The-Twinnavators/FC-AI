@@ -435,7 +435,29 @@ export const APP_STRUCTURE_SCHEMA = {
   required: ["shape", "product"],
 };
 
-export const SEED_SYSTEM = "You write realistic sample records for one kind of record in a web app prototype, in the product's own domain: real-sounding names, plausible amounts and dates in 2025-2027. Use exactly the field keys given. Answer with JSON only: {\"records\": [ ... ]}.";
+/** ZIP code areas with coordinates, as parseLookup accepts them. */
+export function usableAreas(raw: unknown): boolean {
+  return arr(raw).some((a0) => {
+    const a = (a0 ?? {}) as Record<string, unknown>;
+    return /^\d{5}$/.test(str(a.zip, 5)) && Number.isFinite(Number(a.lat)) && Number.isFinite(Number(a.lng));
+  });
+}
+
+// A look-up app's structure reply sometimes leaves out its areas (qwen3:8b at 16k did), which made the whole app model
+// unusable before any records were written: the areas are asked for on their own.
+export const AREAS_SYSTEM = "You pick the ZIP code areas a look-up app's sample places are spread over: 3 to 6 real US ZIP codes in one region that fits the product, each with a short neighbourhood label and its approximate latitude and longitude. Answer with JSON only: {\"areas\": [{\"zip\": \"12345\", \"label\": \"...\", \"lat\": 0, \"lng\": 0}]}.";
+export const AREAS_SCHEMA = {
+  type: "object",
+  properties: { areas: { type: "array", items: { type: "object", properties: { zip: { type: "string" }, label: { type: "string" }, lat: { type: "number" }, lng: { type: "number" } }, required: ["zip", "label", "lat", "lng"] } } },
+  required: ["areas"],
+};
+export function areasRequest(product: string, prd: string): string {
+  // The PRD's own mentions of places (a city, a region, ZIP codes) when it has them.
+  const hints = prd.split("\n").filter((l) => /\b(zip|postcode|city|town|region|neighbo(u)?rhood|\d{5})\b/i.test(l)).slice(0, 8).join("\n");
+  return `Product: ${product}${hints ? `\nWhat the PRD says about where:\n${hints.slice(0, 1200)}` : ""}`;
+}
+
+export const SEED_SYSTEM ="You write realistic sample records for one kind of record in a web app prototype, in the product's own domain: real-sounding names, plausible amounts and dates in 2025-2027. Use exactly the field keys given. Answer with JSON only: {\"records\": [ ... ]}.";
 export const SEED_SCHEMA = { type: "object", properties: { records: { type: "array", items: { type: "object" } } }, required: ["records"] };
 
 export function seedRequest(product: string, e: ModelEntity, count: number, extra = ""): string {
