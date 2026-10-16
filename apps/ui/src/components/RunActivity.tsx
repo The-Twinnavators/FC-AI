@@ -6,7 +6,7 @@ import { useDisplayMode } from "../displayMode";
 import { useState } from "react";
 import { post, useResource } from "../api";
 import { RunTimeBar } from "./RunTimeBar";
-import { StopDetails, type StopInfo } from "./RunStopNotice";
+import type { StopInfo } from "./RunStopNotice";
 
 interface Activity {
   firstLookAt?: string;
@@ -68,7 +68,8 @@ export function RunActivity({ runId, taskId, onChanged }: { runId: string; taskI
         <div className="run-activity__now">
           <strong>{a.label}</strong>
         </div>
-        <StopDetails runId={runId} a={a} taskId={taskId} onChanged={() => (res.reload(), onChanged?.())} />
+        {/* The details and actions are in the notice above the work column; here, the one line that matters. */}
+        <p className="run-activity__note">{a.stop.needsYou ? "Needs you. " : "No action needed: FlowCode handles it. "}Resumes when {a.stop.resumeWhen}.</p>
         <RunTimeBar runId={runId} live={false} />
       </section>
     );

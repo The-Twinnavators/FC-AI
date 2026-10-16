@@ -351,7 +351,6 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
               <ListChecks size={14} strokeWidth={2} aria-hidden="true" /> Overview
             </button>
           </div>
-        {view ? <RunStopNotice runId={view.run.id} taskId={view.tasks.find((t) => t.status === "running")?.id} refreshKey={`${runTick}-${events.length}`} onChanged={() => setRunTick((t) => t + 1)} /> : null}
           {/* Plain or technical explanations: set once in System Settings → Explanations (not a toggle in the builder). */}
           {workMode === "details" && runs.length > 1 ? (
             <select className="select ws__run-select" style={{ width: "auto", marginLeft: "auto" }} aria-label="Select run" value={currentRunId} onChange={(e) => navigate(`/projects/${projectId}/runs/${e.target.value}`)}>
@@ -363,6 +362,8 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
             </select>
           ) : null}
         </div>
+        {/* Why the build isn't working, above Chat and Overview alike, until it's resolved. */}
+        {view ? <RunStopNotice runId={view.run.id} taskId={view.tasks.find((t) => t.status === "running")?.id} refreshKey={`${runTick}-${events.length}`} onChanged={() => setRunTick((t) => t + 1)} /> : null}
         {workMode === "chat" && projectRes.data ? (
           <ProjectChat
             projectId={projectId}
