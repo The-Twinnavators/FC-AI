@@ -41,6 +41,7 @@ import type { PreflightRecord } from "@flowcode/contracts";
 import { previewArgv, runsWithoutNode, scriptArgv } from "../workspace/preflight.js";
 import { squash, testFailureDigest } from "../orchestrator/guards.js";
 import { parsePartTests } from "../orchestrator/stepRecovery.js";
+import { runtimeOptions } from "../orchestrator/runtimeOptions.js";
 import { assertionlessTests, runnableVerdict } from "../orchestrator/taskContract.js";
 
 const SCRIPT_FOR: Partial<Record<VerificationKind, string>> = { typecheck: "typecheck", lint: "lint", tests: "test", build: "build" };
@@ -716,6 +717,12 @@ export class Verifier {
       const localCritic = run.modelAssignments.critic?.providerId.startsWith("hosted") ? this.router.roleAssignments(project.id).critic : run.modelAssignments.critic;
       const critic = cloudCritic?.ready ? cloudCritic.assignment : cloudBuild ? run.modelAssignments.critic : localCritic;
       // If the cloud critic is out of credit, over quota or unreachable, the local vision model reviews instead.
+      // The optional visual critic (runtime option visualCritic): off, the screenshots go to the person's review, not
+      // to a vision model.
+      if (runtimeOptions(this.store).visualCritic !== "advisory") {
+        this.record(run.id, "visual_critique", "skipped", "The AI visual critic is off (optional): the screenshots are for your design review", []);
+        return;
+      }
       const { crit, ran, fellBack } = await critiqueWithFallback(this.router, critic, cloudCritic?.ready ? localCritic : undefined, shots.map((s) => ({ name: s.name, png: s.png })), run.objective, {
         projectId: project.id,
         runId: run.id,
@@ -806,15 +813,18 @@ export class Verifier {
           f.message = `${f.message} (for the step that owns this screen)`;
         }
       }
-      const review = opts.structureOnly ? { findings: [], model: undefined, limitation: undefined } : await lookReview(this.router, [run.modelAssignments.coder, run.modelAssignments.coder?.providerId.startsWith("hosted") ? run.modelAssignments.critic : run.modelAssignments.critic?.providerId.startsWith("hosted") ? this.router.roleAssignments(project.id).critic : run.modelAssignments.critic], result.screens, `${run.objective}\nThis step: ${task.title}${this.briefFor(run.id)}`, { projectId: project.id, runId: run.id, signal });
+      // The AI look review and design crit are optional and advisory (runtime option visualCritic): off, no vision model
+      // is asked; on, what they say is recorded for the person and never sends a step back (reliability phase 4).
+      const critic = runtimeOptions(this.store).visualCritic === "advisory";
+      const review = opts.structureOnly || !critic ? { findings: [], model: undefined, limitation: undefined } : await lookReview(this.router, [run.modelAssignments.coder, run.modelAssignments.coder?.providerId.startsWith("hosted") ? run.modelAssignments.critic : run.modelAssignments.critic?.providerId.startsWith("hosted") ? this.router.roleAssignments(project.id).critic : run.modelAssignments.critic], result.screens, `${run.objective}\nThis step: ${task.title}${this.briefFor(run.id)}`, { projectId: project.id, runId: run.id, signal });
       // The look review's taste ("reads like a landing page") is the design steps' to act on. On a feature step it's advice:
       // with a cloud reviewer it blocked Sort Controls and Responsive three times each on a design they couldn't change.
-      result.findings.push(...review.findings.map((f) => ({ ...f, serious: opts.designStep ? f.serious : false, message: `${f.message} (look review, ${review.model})` })));
+      result.findings.push(...review.findings.map((f) => ({ ...f, serious: false, message: `${f.message} (look review, ${review.model}; advisory)` })));
       if (review.limitation) this.bus.emit({ type: "verification.completed", projectId: project.id, runId: run.id, taskId: task.id, message: review.limitation, level: "warning" });
       const refs = result.screens.map((s) => `artifact:${this.artifacts.save({ runId: run.id, kind: "screenshot", label: `Look check: ${s.name} (after "${task.title}")`, mime: "image/png", content: s.png, meta: { taskId: task.id, lookCheck: true } }).id}`);
       // Design crit (the design steps, once each): a design lead's review against the art-direction bar. Only a cloud
       // model judges this; a small local vision model's taste isn't worth a revision pass.
-      if (opts.crit && !result.findings.some((f) => f.serious)) {
+      if (opts.crit && critic && !result.findings.some((f) => f.serious)) {
         const cloud = project.settings.allowHostedModels ? cloudCoder(this.router, this.store) : undefined;
         const hosted = [...(cloud?.ready ? [cloud.assignment] : []), run.modelAssignments.coder, run.modelAssignments.planner, run.modelAssignments.critic].filter((a) => a?.providerId.startsWith("hosted"));
         // Judged against the product's design direction too (its industry's anti-patterns are part of the bar).
@@ -824,7 +834,7 @@ export class Verifier {
         const crit = await designCrit(this.router, hosted, result.screens, `${run.objective.slice(0, 800)}\nThis step: ${task.title}${this.briefFor(run.id)}${direction ? `\n${directionBrief(direction)}` : ""}${research ? `\nThe bar, from design research on the best products in this category:\n${designResearchBrief(research)}` : ""}`, { projectId: project.id, runId: run.id, signal }).catch(() => undefined);
         if (crit) {
           this.bus.emit({ type: "verification.completed", projectId: project.id, runId: run.id, taskId: task.id, message: `Design crit on "${task.title}" (${crit.model}): ${crit.level}${crit.improvements.length ? `. To raise it: ${crit.improvements.join(" · ")}` : ""}`.slice(0, 1200), level: crit.level === "portfolio" ? "info" : "warning" });
-          for (const imp of crit.improvements) result.findings.push({ screen: "Design crit", rule: "design-crit", serious: true, message: imp });
+          for (const imp of crit.improvements) result.findings.push({ screen: "Design crit", rule: "design-crit", serious: false, message: `${imp} (advisory)` });
         } else if (!hosted.length) this.bus.emit({ type: "verification.completed", projectId: project.id, runId: run.id, taskId: task.id, message: `Design crit skipped for "${task.title}": it needs the cloud model, and this build uses local models only`, level: "info" });
       }
       const serious = result.findings.filter((f) => f.serious);

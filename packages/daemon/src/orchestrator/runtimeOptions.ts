@@ -20,9 +20,16 @@ export interface RuntimeOptions {
    * investigation check, investigation.ts). 0: automatic (40 for a local model, 120 for a cloud one).
    */
   investigationBudget: number;
+  /**
+   * The AI visual critic (reliability phase 4). "off" (default): no vision-model review; screenshots, functional checks
+   * and the measured checks (contrast, overflow, placeholders…) still run, and the person reviews the design.
+   * "advisory": the look review and design crit run and their observations are recorded for the person, but never
+   * send a step back or block a build.
+   */
+  visualCritic: "off" | "advisory";
 }
 
-export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true, investigationBudget: 0 };
+export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true, investigationBudget: 0, visualCritic: "off" };
 const KEY = "runtimeOptions";
 
 export function runtimeOptions(store: Store): RuntimeOptions {

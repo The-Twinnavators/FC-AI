@@ -8,6 +8,8 @@ interface Options {
   fastModel: { enabled: boolean; model: string; tries?: number };
   rollbackBlocked: boolean;
   autoRetry: boolean;
+  investigationBudget?: number;
+  visualCritic?: "off" | "advisory";
 }
 
 export function RuntimeSettings() {
@@ -78,6 +80,25 @@ export function RuntimeSettings() {
             <span className="muted">FlowCode rewrites the request more precisely (files, names, what not to change) and tries once more. Never in Supervised projects.</span>
           </span>
         </label>
+        <label className="rt__row">
+          <input type="checkbox" checked={o.visualCritic === "advisory"} onChange={(e) => void update({ visualCritic: e.target.checked ? "advisory" : "off" })} />
+          <span>
+            <strong>AI design notes (optional)</strong>
+            <span className="muted">A vision model looks at the screenshots and leaves notes for your review. They never send a step back: you decide the design. Measured checks (contrast, overflow, placeholder text) always run.</span>
+          </span>
+        </label>
+        <div className="rt__sub">
+          <label className="label" htmlFor="rt-investigate">
+            Reading before a step is asked where it stands
+          </label>
+          <select id="rt-investigate" className="select" value={o.investigationBudget ?? 0} onChange={(e) => void update({ investigationBudget: Number(e.target.value) })}>
+            <option value={0}>Automatic</option>
+            <option value={20}>20 files</option>
+            <option value={60}>60 files</option>
+            <option value={120}>120 files</option>
+          </select>
+          <span className="muted" style={{ fontSize: 12.5 }}>Automatic: 40 files on a local model, 120 on a cloud one. Then the step says where it stands instead of stopping.</span>
+        </div>
         <p className="muted" style={{ margin: 0, fontSize: 12.5 }}>
           Always on: rewrites that look cut off are refused, and checks no file could ever pass are swapped for the type check.
         </p>

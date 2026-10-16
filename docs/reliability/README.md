@@ -122,6 +122,35 @@ the new behaviour (pause, then end with no answer).
 **Limits.** Whether a local model answers the check well is only known from a real build; an unparseable answer counts
 as no answer.
 
+## Phase 4: human design authority; optional visual critic
+
+**Root cause.** AI taste was on the blocking path: on design steps the vision "look review" findings were serious,
+and the cloud "design crit" always sent a step back once; the run's final verification always asked a vision model for
+a critique. Measured contrast silently skipped text over images or gradients, so those read as passing.
+
+**Changed.**
+- Runtime option `visualCritic` (`off` by default, or `advisory`), in Settings → Speed & recovery as "AI design notes
+  (optional)". Off: no look review, no design crit, no run-level critique (recorded as skipped: "the screenshots are
+  for your design review"). Advisory: they run and their notes are recorded, never serious, never a repair loop.
+- Measured checks keep their severity (placeholder text, repeated sections, unstyled defaults, low contrast, overflow,
+  broken images, axe rules). Contrast that can't be measured from colours (an image or gradient behind the text, a
+  see-through layer, a blend mode) is reported as `contrast-uncertain`, non-blocking, "check it by eye".
+- Human review was already in place and is now the design gate: a passing prototype opens a review
+  (`ready_for_review`: technically verified, ready for design review) with one item per planned page and user
+  journey; `changes_requested` turns the notes into one follow-up build scoped to those pages' files, whose checks run
+  again; `signed_off` only by the person, only when every page and journey is approved on the current version.
+- Settings also exposes the phase 3 investigation budget.
+
+**Evidence.** `test/design-authority.test.ts`: the critic defaults to off and can be set to advisory; in a real
+browser, measured low contrast stays blocking while text over a gradient is reported as uncertain. `test/human-review.
+test.ts` (6 tests) covers the review states, sign-off rules and change requests becoming a scoped follow-up build that
+comes back for another look. Settings verified in the app: the toggle saves (`visualCritic: "advisory"`) and was set
+back to `off`.
+
+**Limits.** Two vision calls remain because they check content, not taste: a stock photo `find_image` chose must show
+what was searched for, and style capture reads a reference image when one is given. A build with neither makes no
+vision call before human review.
+
 ## Backlog (not in scope; only with a separately approved narrow fix)
 
 - Artifact-level dependency tracking (which step produced which file and what depends on it).

@@ -68,31 +68,39 @@ function auditScreen(): Array<{ rule: string; serious: boolean; message: string 
     return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
   };
   const over = (t: number[], u: number[]) => [0, 1, 2].map((i) => t[i] * t[3] + u[i] * (1 - t[3])).concat(1);
-  const behind = (el: Element) => {
+  // The colour behind a text, or "unsure" when it can't be measured from colours alone (an image or gradient behind it,
+  // a see-through layer, a blend mode): those are reported as uncertain, never as passing or failing.
+  const behind = (el: Element): number[] | "unsure" => {
     const chain: Element[] = [];
     for (let n: Element | null = el; n; n = n.parentElement) chain.push(n);
     let c = [255, 255, 255, 1];
     for (const n of chain.reverse()) {
       const cs = getComputedStyle(n);
-      if (cs.backgroundImage !== "none") return null;
+      if (cs.backgroundImage !== "none" || Number(cs.opacity) < 1 || (cs.mixBlendMode && cs.mixBlendMode !== "normal")) return "unsure";
       const b = parse(cs.backgroundColor);
       if (b && b[3] > 0) c = over(b, c);
     }
     return c;
   };
   const low: string[] = [];
+  const unsure: string[] = [];
   for (const el of Array.from(document.querySelectorAll("body *"))) {
     if (low.length >= 3 || !visible(el) || el.closest("[disabled], [aria-disabled=true], svg")) continue;
     if (!Array.from(el.childNodes).some((n) => n.nodeType === 3 && (n.textContent ?? "").trim().length > 1)) continue;
     const bg = behind(el);
     const fg = parse(getComputedStyle(el).color);
-    if (!bg || !fg) continue;
+    if (bg === "unsure") {
+      if (unsure.length < 3) unsure.push(`"${(el as HTMLElement).innerText.trim().slice(0, 30)}"`);
+      continue;
+    }
+    if (!fg) continue;
     const a = lum(over(fg, bg));
     const b = lum(bg);
     const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     const size = parseFloat(getComputedStyle(el).fontSize);
     if (ratio < (size >= 24 ? 3 : 4.5)) low.push(`"${(el as HTMLElement).innerText.trim().slice(0, 30)}" ${ratio.toFixed(2)}:1`);
   }
+  if (unsure.length) out.push({ rule: "contrast-uncertain", serious: false, message: `Contrast couldn't be measured for ${unsure.join(", ")} (text over an image or gradient, or a see-through layer): uncertain, check it by eye.` });
   if (low.length) out.push({ rule: "low-contrast", serious: true, message: `Text below contrast minimum: ${low.join(", ")}. Use --color-text or --color-text-muted on the surface colours.` });
 
   // Images that didn't load (a wrong path, or a hotlink that broke) look like an unfinished product.
