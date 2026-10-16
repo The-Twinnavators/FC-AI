@@ -57,6 +57,40 @@ model call), missing model at planning and mid-build, and a passing timeout (ret
 **Limits.** Credit can't be checked ahead of time without a paid call, so it's caught on the first failing call. The
 check can't tell which Ollama process holds the port; it records version, address and digests instead.
 
+## Phase 2: task construction and testing packets
+
+**Root cause.** Step 14 was a split part that bundled two deliverables (all 24 acceptance tests and two stylesheet
+rules), said the tests mostly wouldn't pass, and was checked only by words appearing in the test file plus the type
+check. The coder had no reliable facts about the test setup: it imported `react-router-dom` (not installed) and spent
+its turns reading to discover routing, data and helpers.
+
+**Changed.**
+- `orchestrator/taskContract.ts` (new): before a coder step's first model call, `contractProblems` finds a step made
+  only of test and stylesheet files (separated into "write the tests" then "add the stylesheet rules", every check owned
+  by exactly one, the type check by both, later steps wait on the second) and a step whose checks require all tests to
+  pass while its brief says most won't (stops as `task_contract`, no attempt used). A feature step that builds screens
+  and proves them with its own tests stays one step.
+- New check `tests-run:<file>` for test-writing steps: the file loads and its tests run (failing assertions are
+  expected until later steps build what they check), no parked, self-comparing or expect-less tests. Reasons name the
+  cause (e.g. `Failed to resolve import "react-router-dom"`).
+- The separated stylesheet step gets the stylesheet tests from the written file as its own passing check, so it isn't
+  verified by the type check alone.
+- `orchestrator/testingGuide.ts`: a testing packet read from the project (installed and not-installed libraries, setup
+  file, render without providers, hash routing with the real screen ids, the reset, real fixture names, one working
+  test from the project, the targeted command), and a scaffold FlowCode writes before the first attempt (imports,
+  reset, `openAt(hash)`, one passing test). No scaffold when providers wrap the app.
+- `orchestrator.ts`: `replaceWithParts` shared by splitting and separation; `isRuntimeStep`.
+
+**Evidence.** `test/task-contract.test.ts` (9 tests) on step 14's real shape, plus an orchestration run where the
+mixed step is separated with no model call and no attempt. On a copy of the Clean Cart workspace at its last
+checkpoint (real vitest, no FlowCode data changed): step 14 separates into two tasks with every check owned; the
+scaffold passes and type-checks; a file importing `react-router-dom` is reported as not running; tests written on the
+scaffold run (2 pass, the not-yet-built stylesheet rule fails as expected); renaming "How it works" on Home makes the
+Home test fail (the tests detect wrong behaviour); no dependency added; navigation is by URL hash.
+
+**Limits.** A model still writes the tests; the packet and scaffold make that cheaper but don't guarantee it. Steps
+already split before this change are checked when they next run, not rewritten in the database.
+
 ## Backlog (not in scope; only with a separately approved narrow fix)
 
 - Artifact-level dependency tracking (which step produced which file and what depends on it).

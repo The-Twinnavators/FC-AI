@@ -41,6 +41,7 @@ import type { PreflightRecord } from "@flowcode/contracts";
 import { previewArgv, runsWithoutNode, scriptArgv } from "../workspace/preflight.js";
 import { squash, testFailureDigest } from "../orchestrator/guards.js";
 import { parsePartTests } from "../orchestrator/stepRecovery.js";
+import { assertionlessTests, runnableVerdict } from "../orchestrator/taskContract.js";
 
 const SCRIPT_FOR: Partial<Record<VerificationKind, string>> = { typecheck: "typecheck", lint: "lint", tests: "test", build: "build" };
 
@@ -311,6 +312,33 @@ export class Verifier {
           break;
         }
         case "verification": {
+          // "tests-run:<file>": a test-writing step's tests load and run, and each one checks the app (orchestrator/
+          // taskContract.ts). Failing assertions are expected until later steps build what they check; a test that
+          // can't load, is parked, compares a value with itself or checks nothing is not.
+          if (c.check.kind.startsWith("tests-run:")) {
+            const own = c.check.kind.slice("tests-run:".length);
+            const abs = path.join(jail.root, own);
+            const src = fs.existsSync(abs) ? fs.readFileSync(abs, "utf8") : "";
+            const parked = parkedTests(abs);
+            const fake = selfComparingTests(abs);
+            const empty = assertionlessTests(src);
+            if (!src) failures.push(`${c.description}: ${own} doesn't exist yet`);
+            else if (parked.length) failures.push(`${c.description}: these tests are parked (it.todo or .skip), so they check nothing; write each one out:\n${parked.slice(0, 8).map((t) => `- ${t}`).join("\n")}`);
+            else if (fake.length) failures.push(`${c.description}: these tests compare a value with itself and prove nothing; make each one check the app:\n${fake.slice(0, 5).join("\n")}`);
+            else if (empty.length) failures.push(`${c.description}: these tests have no expect(…), so they pass whatever the app does:\n${empty.slice(0, 8).map((t) => `- ${t}`).join("\n")}`);
+            if (failures.length) {
+              met = false;
+              break;
+            }
+            const chk = await this.runTestFileCheck(run, own, opts.signal, task.id);
+            refs.push(...chk.evidenceRefs);
+            const cmd = chk.evidenceRefs[0] ? this.store.commands.get(chk.evidenceRefs[0].replace("command:", "")) : undefined;
+            const v = runnableVerdict(cmd?.outputPreview ?? chk.summary);
+            met = v.runs;
+            if (met) refs.push(`note:${v.passed + v.failed} tests run; ${v.failed} fail until later steps build what they check`);
+            else failures.push(`${c.description}: the file doesn't run (${v.why}). Fix the test file so it loads: import only what the testing packet lists, and use only names you define.${cmd?.outputPreview ? `\n--- test output ---\n${testReport(cmd.outputPreview)}` : ""}`);
+            break;
+          }
           // "tests:<file>": a step's own acceptance tests, written from the PRD, run on their own.
           if (c.check.kind.startsWith("tests:")) {
             // A test that compares a value with itself proves nothing (Calculator app: expect("standalone display")

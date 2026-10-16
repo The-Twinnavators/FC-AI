@@ -75,8 +75,9 @@ import type { CompositionIssue } from "./pageTypes.js";
 import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBriefs, prdForBrief, screenBriefKey, screenBriefNote } from "./screenBrief.js";
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
-import { testingGuide } from "./testingGuide.js";
-import { FLOWCODE_LIMITS_KEY, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
+import { testingGuide, testScaffold } from "./testingGuide.js";
+import { STYLE_FILE, contractProblems, separateMixed, testFileOf } from "./taskContract.js";
+import { FLOWCODE_LIMITS_KEY, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
@@ -1419,14 +1420,33 @@ export class Orchestrator {
     if (!parts || signal.aborted) return false;
     parts = dropDoneParts(parts, doneTitles);
     const pieces = buildSplit(task, parts, () => newId("task"));
-    // Make room in the order, swap the step for its parts, and point anything that waited on it at the last part.
+    this.replaceWithParts(run, task, pieces, `"${task.title}" was too big to finish in one go, so it was split into ${pieces.length} smaller steps`, `Split into ${pieces.length} smaller steps`);
+    return true;
+  }
+
+  /** A step's title names one FlowCode runs itself (no model): those aren't split or contract-checked. */
+  private isRuntimeStep(run: Run, task: Task): boolean {
+    return (!!run.strategy?.templateId && task.title in (TEMPLATES[run.strategy.templateId]?.runtimeSteps ?? {})) || task.title in UPGRADE_STEPS || task.title in LAYOUT_STEPS || task.title in SECTION_STEPS || task.title in APP_STEPS;
+  }
+
+  /**
+   * Swaps a step for the steps that replace it (a split, or a separation by its contract): makes room in the order,
+   * points anything that waited on it at the last one, moves its checklist items there, and skips it.
+   */
+  private replaceWithParts(run: Run, task: Task, pieces: Task[], message: string, skipReason: string) {
+    const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
     const all = this.graph.tasks(run.id);
     for (const t of all) if (t.ordinal > task.ordinal) this.graph.save({ ...t, ordinal: t.ordinal + pieces.length });
+    // A part of a split step stays one (it isn't split again); its parent's rules follow it.
+    const parent = this.d.store.getSetting<string>(`splitParent:${task.id}`, "") || task.title;
+    const wasPart = this.d.store.getSetting(`splitPart:${task.id}`, false);
+    const separation = skipReason.startsWith("Separated");
     pieces.forEach((p) => {
       this.graph.save(p);
-      this.d.store.setSetting(`splitPart:${p.id}`, true);
+      if (!separation || wasPart) this.d.store.setSetting(`splitPart:${p.id}`, true);
       // The step a part came from: rules about that step (App layout leaves sample content to Design the main screens) follow its parts.
-      this.d.store.setSetting(`splitParent:${p.id}`, task.title);
+      this.d.store.setSetting(`splitParent:${p.id}`, separation ? parent : task.title);
+      this.d.store.setSetting(`splitFrom:${p.id}`, task.id);
     });
     const last = pieces[pieces.length - 1].id;
     for (const t of this.graph.tasks(run.id)) if (t.dependsOn.includes(task.id)) this.graph.save({ ...t, dependsOn: t.dependsOn.map((d) => (d === task.id ? last : d)) });
@@ -1434,10 +1454,9 @@ export class Orchestrator {
     // are ticked off when the parts are done (Calculator app: they stayed "needs review" under the skipped step).
     const lrc = this.d.store.getSetting<LrcPlan | null>(planKey(run.projectId), null);
     if (lrc?.items.some((i) => i.taskId === task.id)) this.d.store.setSetting(planKey(run.projectId), { ...lrc, items: lrc.items.map((i) => (i.taskId === task.id ? { ...i, taskId: last } : i)) });
-    this.updateTask(task, { status: "skipped", blocker: { reason: `Split into ${pieces.length} smaller steps`, category: "prerequisite", evidenceRefs: pieces.map((p) => p.id), nextAction: "The smaller steps continue the work." } });
+    this.updateTask(task, { status: "skipped", attempts: Math.max(0, task.attempts - (separation ? 1 : 0)), blocker: { reason: skipReason, category: "prerequisite", evidenceRefs: pieces.map((p) => p.id), nextAction: "The smaller steps continue the work." } });
     this.graph.validate(this.graph.tasks(run.id));
-    this.d.bus.emit({ ...ev, type: "recovery.action", message: `"${task.title}" was too big to finish in one go, so it was split into ${pieces.length} smaller steps: ${pieces.map((p) => `"${p.title}"`).join(", ")}` });
-    return true;
+    this.d.bus.emit({ ...ev, type: "recovery.action", message: `${message}: ${pieces.map((p) => `"${p.title}"`).join(", ")}` });
   }
 
   /** Asks the planner model to restate a stuck request so a coding agent can't misread it. Returns undefined if unchanged. */
@@ -1522,6 +1541,48 @@ export class Orchestrator {
       task = this.updateTask(task, { ...(ts ?? {}), acceptanceCriteria: withoutBadChecks(ts?.acceptanceCriteria ?? task.acceptanceCriteria), status: "running", checkpointId: cp.id, attempts: task.attempts + 1 });
     }
     this.d.bus.emit({ ...ev, type: "task.started", message: `Task started: ${task.title} (attempt ${task.attempts})`, data: { role: task.role } });
+    // The step's contract, before any model work (taskContract.ts): tests and stylesheet work become two steps; a step
+    // whose checks contradict its brief stops as a task_contract problem without using an attempt.
+    if (task.role === "coder" && !this.isRuntimeStep(run, task)) {
+      const problems = contractProblems(task);
+      const mixed = problems.find((x) => x.kind === "mixed_work");
+      if (mixed) {
+        this.replaceWithParts(run, task, separateMixed(task, () => newId("task")), `"${task.title}": ${mixed.detail} It runs as two steps`, "Separated: tests and stylesheet are two deliverables");
+        const styled = this.graph.tasks(run.id).find((t) => t.dependsOn.length === 1 && this.d.store.getSetting(`splitFrom:${t.id}`, "") === task.id && t.expectedPaths.every((x) => STYLE_FILE.test(x)));
+        if (styled) this.d.store.setSetting(`styleTestsFrom:${styled.id}`, testFileOf(task) ?? "");
+        return;
+      }
+      const contra = problems.find((x) => x.kind === "contradiction");
+      if (contra) {
+        this.updateTask(task, { status: "blocked", attempts: Math.max(0, task.attempts - 1), blocker: { reason: `The step's brief and its checks disagree: ${contra.detail}`, category: "verification", failureClass: "task_contract", evidenceRefs: [], nextAction: "Edit the step so its brief and its checks ask for the same thing (or split it), then retry. No attempt was used." } });
+        this.d.bus.emit({ ...ev, type: "task.blocked", message: `Task stopped before it ran, its brief and checks disagree: ${task.title}`, level: "warning", data: { failureClass: "task_contract" } });
+        return;
+      }
+      // A stylesheet step separated from a test-writing step is done when the tests about styles pass, not on the type
+      // check alone: those tests exist now, so they're named here.
+      const styleFile = this.d.store.getSetting<string>(`styleTestsFrom:${task.id}`, "");
+      if (styleFile && !task.acceptanceCriteria.some((c) => ((c.check as { kind?: string }).kind ?? "").startsWith("tests:"))) {
+        let titles: string[] = [];
+        try {
+          titles = testTitles(fs.readFileSync(path.join(jail.root, styleFile), "utf8")).filter((t) => /css|stylesheet|style|columns?|grid|layout|stack|wide|narrow|\d{3}px|media/i.test(t));
+        } catch {
+          titles = [];
+        }
+        if (titles.length) task = this.updateTask(task, { acceptanceCriteria: [...task.acceptanceCriteria, { id: `${task.id}-styletests`, description: `The stylesheet tests pass (${titles.length} of ${styleFile})`, check: { type: "verification", kind: partTestsKind(styleFile, titles) }, evidenceRefs: [] }] });
+      }
+      // A test-writing step starts from a working file: imports, the reset between tests, openAt and one passing test.
+      const testFile = task.attempts === 1 && turnBudget(task) > 30 ? testFileOf(task) : undefined;
+      if (testFile && !fs.existsSync(path.join(jail.root, testFile))) {
+        const content = testScaffold(jail.root, task.title);
+        if (content) {
+          const res = this.d.ops.create_file({ jail, projectId: project.id, runId: run.id, taskId: task.id, toolCallId: `fc_testscaffold_${task.id}`, approved: true }, { path: testFile, content } as never);
+          if (res.ok) {
+            task = this.updateTask(task, { actualPaths: [...new Set([...task.actualPaths, testFile])] });
+            this.d.bus.emit({ ...ev, type: "recovery.action", message: `Started ${testFile} for "${task.title}": imports, the reset between tests, openAt(hash) and one passing test` });
+          }
+        }
+      }
+    }
 
     // Already done? On a repeat attempt, earlier work may already satisfy every check (e.g. after a check was corrected
     // or the daemon restarted mid-step). Verify first instead of asking the model to redo finished work.
@@ -2263,7 +2324,7 @@ export class Orchestrator {
     // agent adds a catalog piece instead of writing the markup (a build used the starter kit and nothing from it).
     const catalog = uiWork && (role === "coder" || role === "debugger") ? this.catalogFor(run, task, jail.root) : "";
     // A step that writes acceptance tests gets how to work and a map of what the screens show (testingGuide.ts).
-    const tests = turnBudget(task) > 30 ? testingGuide(jail.root) : "";
+    const tests = turnBudget(task) > 30 ? testingGuide(jail.root, 7000, testFileOf(task)) : "";
     const system = rolePrompt + renderSkills(skills) + (reuse ? `\n\n${reuse}` : "") + (catalog ? `\n\n${catalog}` : "") + (tests ? `\n\n${tests}` : "");
     // Skills are guidance in the system prompt only. Their checklists used to be added to the step as "manual"
     // criteria that always counted as met: a dozen per step, none checked (Calculator test 1). A step's criteria are its
