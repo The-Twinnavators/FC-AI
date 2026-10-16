@@ -53,9 +53,10 @@ export function RobotHead({ color, id, size = 26, className }: { color: string; 
  * The agent working right now: the current step's role (the debugger on a retry), the planner while a draft has no
  * steps yet, otherwise whoever made the latest model call (when known).
  */
-export function workingRole(run: { status: string; currentTaskId?: string } | undefined, tasks: Array<{ id: string; role: string; attempts: number }> = [], lastCaller?: string): string | undefined {
+export function workingRole(run: { status: string; currentTaskId?: string } | undefined, tasks: Array<{ id: string; role: string; attempts: number; attemptRole?: string }> = [], lastCaller?: string): string | undefined {
   const current = run ? tasks.find((t) => t.id === run.currentTaskId) : undefined;
-  if (current) return current.attempts > 1 ? "debugger" : current.role;
+  // After a failed attempt the daemon says who has the step (a coder correcting, or the debugger); older daemons don't.
+  if (current) return current.attempts > 1 ? (current.attemptRole ?? "debugger") : current.role;
   if (run?.status === "draft" && !tasks.length) return "planner";
   return lastCaller;
 }

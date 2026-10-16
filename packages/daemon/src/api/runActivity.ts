@@ -7,6 +7,7 @@ import { firstLookAt } from "./firstLook.js";
 import { isFinishedRun, TERMINAL_RUN_STATUSES, type Run } from "@flowcode/contracts";
 import type { App } from "../app.js";
 import { getInterruption, type Interruption } from "../orchestrator/interruptions.js";
+import { getRecovery } from "../orchestrator/recoveryRouting.js";
 
 export type ActivityState =
   | "generating"
@@ -253,7 +254,9 @@ function runActivityInner(app: App, runId: string, now: number): RunActivity {
   } else if (running && running.attempts > 1 && state === "generating") {
     state = "retrying";
   }
-  const detail = running ? `${running.title}${running.attempts > 1 ? ` (try ${running.attempts})` : ""}` : undefined;
+  // A retry says who is on it and why (recoveryRouting.ts): "Coder correcting a type error" or "Debugger investigating".
+  const routedNow = running && running.attempts > 1 && running.role === "coder" ? getRecovery(app.store, running.id).next : undefined;
+  const detail = running ? `${running.title}${running.attempts > 1 ? ` (try ${running.attempts}${routedNow ? `: ${routedNow.label}, ${routedNow.reason.slice(0, 140)}` : ""})` : ""}` : undefined;
 
   // Advisory stall signals: several facts together, never a single one.
   const signals: StallSignal[] = [];

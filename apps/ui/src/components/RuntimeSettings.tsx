@@ -13,6 +13,7 @@ interface Options {
   routineThinking?: boolean;
   gpuProfile?: "standard" | "8gb";
   profileContext?: number;
+  coderCorrections?: number;
 }
 
 export function RuntimeSettings() {
@@ -108,9 +109,21 @@ export function RuntimeSettings() {
           <input type="checkbox" checked={!!o.routineThinking} onChange={(e) => void update({ routineThinking: e.target.checked })} />
           <span>
             <strong>Thinking on routine coding turns</strong>
-            <span className="muted">Off: a step's first attempt writes code without the model's thinking, which on a local model is several times faster with the same results on routine edits. Retries always keep the model's thinking.</span>
+            <span className="muted">Off: a step's first attempt and the coder's focused corrections write code without the model's thinking, which on a local model is several times faster with the same results on routine edits. The debugger keeps the model's thinking.</span>
           </span>
         </label>
+        <div className="rt__sub">
+          <label className="label" htmlFor="rt-corrections">
+            Coder corrections before the debugger
+          </label>
+          <select id="rt-corrections" className="select" value={o.coderCorrections ?? 2} onChange={(e) => void update({ coderCorrections: Number(e.target.value) })}>
+            <option value={0}>None (every retry goes to the debugger)</option>
+            <option value={1}>1</option>
+            <option value={2}>2</option>
+            <option value={3}>3</option>
+          </select>
+          <span className="muted" style={{ fontSize: 12.5 }}>A located error (a type error at a line, a failing test) goes back to the coder with the exact error, the lines around it and the types it names. A correction that makes no progress, or a failure with nothing located, goes to the debugger with what was tried.</span>
+        </div>
         <label className="rt__row">
           <input type="checkbox" checked={o.visualCritic === "advisory"} onChange={(e) => void update({ visualCritic: e.target.checked ? "advisory" : "off" })} />
           <span>

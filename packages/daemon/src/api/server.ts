@@ -54,6 +54,7 @@ import { ACTIVITY_WINDOWS, agentActivity, buildGraph, type ActivityWindow } from
 import { askCopilot } from "./copilot.js";
 import { openExternal } from "./openExternal.js";
 import { runtimeOptions, setRuntimeOptions } from "../orchestrator/runtimeOptions.js";
+import { getRecovery } from "../orchestrator/recoveryRouting.js";
 import { getInterruption } from "../orchestrator/interruptions.js";
 import { addContext, CONTEXT_CATEGORIES, deleteContext, getCopilotProfile, setAddress, updateContext, setAvatar, AVATAR_MAX } from "./copilotProfile.js";
 import { libraryStats } from "./libraryStats.js";
@@ -218,7 +219,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   add("POST /system/flowcode-limits/clear", () => (app.store.setSetting(FLOWCODE_LIMITS_KEY, []), { hits: [] }));
   add("POST /open-external", ({ body }) => openExternal(parse(z.object({ url: z.string().url().max(4000) }), body).url));
   add("GET /settings/runtime", () => runtimeOptions(app.store));
-  add("POST /settings/runtime", ({ body }) => setRuntimeOptions(app.store, parse(z.object({ fastModel: z.object({ enabled: z.boolean().optional(), model: z.string().max(120).optional(), tries: z.number().int().min(1).max(3).optional() }).optional(), rollbackBlocked: z.boolean().optional(), autoRetry: z.boolean().optional(), investigationBudget: z.number().int().min(0).max(400).optional(), visualCritic: z.enum(["off", "advisory"]).optional(), routineThinking: z.boolean().optional(), gpuProfile: z.enum(["standard", "8gb"]).optional(), profileContext: z.number().int().min(8192).max(32768).optional(), profileSupportModel: z.string().max(120).optional() }), body) as never));
+  add("POST /settings/runtime", ({ body }) => setRuntimeOptions(app.store, parse(z.object({ fastModel: z.object({ enabled: z.boolean().optional(), model: z.string().max(120).optional(), tries: z.number().int().min(1).max(3).optional() }).optional(), rollbackBlocked: z.boolean().optional(), autoRetry: z.boolean().optional(), investigationBudget: z.number().int().min(0).max(400).optional(), visualCritic: z.enum(["off", "advisory"]).optional(), routineThinking: z.boolean().optional(), gpuProfile: z.enum(["standard", "8gb"]).optional(), profileContext: z.number().int().min(8192).max(32768).optional(), profileSupportModel: z.string().max(120).optional(), coderCorrections: z.number().int().min(0).max(3).optional() }), body) as never));
   add("GET /copilot/profile", () => getCopilotProfile(app));
   add("POST /copilot/profile", ({ body }) => setAddress(app, parse(z.object({ address: z.string().max(40) }), body).address));
   add("POST /copilot/avatar", ({ body }) => {
@@ -1666,6 +1667,9 @@ const SENT = Symbol("sent");
 function runView(app: App, id: string) {
   const run = app.store.runs.require(id);
   const tasks = app.orchestrator.graph.tasks(id);
+  // Who works on each step now: after a failed attempt, the coder for a focused correction or the debugger
+  // (recoveryRouting.ts); the screen shows that instead of assuming every retry is the debugger.
+  const attemptRoleOf = (t: (typeof tasks)[number]) => (t.attempts <= 1 ? t.role : t.role === "coder" ? (getRecovery(app.store, t.id).next?.role ?? "debugger") : "debugger");
   return {
     run,
     active: app.orchestrator.isActive(id),
@@ -1675,7 +1679,7 @@ function runView(app: App, id: string) {
     interruption: getInterruption(app.store, id),
     resumable: !app.orchestrator.isActive(id) && !app.orchestrator.isProbing(id) && !C.TERMINAL_RUN_STATUSES.includes(run.status) && (run.planApproved || (run.status === "blocked" && !tasks.length)),
     coder: app.orchestrator.coderCheck(run),
-    tasks,
+    tasks: tasks.map((t) => ({ ...t, attemptRole: attemptRoleOf(t) })),
     checks: app.store.checks.where("run_id = ? ORDER BY updated_at ASC", id),
     commands: app.store.commands.where("run_id = ? ORDER BY created_at ASC", id),
     approvals: app.store.approvals.where("run_id = ? ORDER BY created_at ASC", id),

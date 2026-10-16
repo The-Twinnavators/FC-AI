@@ -94,6 +94,7 @@ import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchIte
 import { promptConfigFor } from "../quality/taskPrompt.js";
 import { isInterfaceStep, playbookFor } from "../knowledge/designPlaybook.js";
 import { protectedPolicyFor } from "../workspace/protectedFiles.js";
+import { correctionBrief, escalationBrief, getRecovery, installedPackages, recoveryKey, routeAfterFailure, sourceNear, typeDefinitions, typeNamesIn, type FailureVerdict } from "./recoveryRouting.js";
 import { capSkills, COPY_EDIT_SKILLS, designSkillIds, isCopyEdit, renderSkills, selectSkills, stackSkillIds, workflowSkillIds } from "../knowledge/skills.js";
 import { scanComponentLibrary } from "../workspace/componentLibrary.js";
 import { scanStyles } from "../workspace/styleTokens.js";
@@ -1692,7 +1693,11 @@ export class Orchestrator {
       const ts = isTsReact(jail) ? tsTask(task) : undefined;
       task = this.updateTask(task, { ...(ts ?? {}), acceptanceCriteria: withoutBadChecks(ts?.acceptanceCriteria ?? task.acceptanceCriteria), status: "running", checkpointId: cp.id, attempts: task.attempts + 1 });
     }
-    this.d.bus.emit({ ...ev, type: "task.started", message: `Task started: ${task.title} (attempt ${task.attempts})`, data: { role: task.role } });
+    // A first attempt starts its routing afresh (a retry you asked for, a reopened step).
+    if (task.attempts === 1) this.d.store.setSetting(recoveryKey(task.id), { corrections: 0, history: [] });
+    this.d.store.setSetting(`claimFailures:${task.id}`, []);
+    const routedNext = task.attempts > 1 && task.role === "coder" ? getRecovery(this.d.store, task.id).next : undefined;
+    this.d.bus.emit({ ...ev, type: "task.started", message: `Task started: ${task.title} (attempt ${task.attempts}${routedNext ? `, ${routedNext.label.charAt(0).toLowerCase()}${routedNext.label.slice(1)}` : ""})`, data: { role: task.role, attemptRole: this.attemptRole(task), ...(routedNext ? { correction: routedNext.correction } : {}) } });
     // The step's contract, before any model work (taskContract.ts): tests and stylesheet work become two steps; a step
     // whose checks contradict its brief stops as a task_contract problem without using an attempt.
     if (task.role === "coder" && !this.isRuntimeStep(run, task)) {
@@ -1914,7 +1919,7 @@ export class Orchestrator {
       run = this.d.store.runs.get(run.id) ?? run;
       // The model service and the model this attempt uses, before it starts (rechecked after a model switch, a daemon
       // restart or a provider failure). A problem pauses the step without using an attempt.
-      const attemptRole: AgentRole = task.attempts > 1 ? "debugger" : (task.role as AgentRole);
+      const attemptRole: AgentRole = this.attemptRole(task);
       const ready = await this.providerReady(run, [attemptRole]);
       if (!ready.ok) {
         this.pauseForProvider(run, task, ready.failure ?? "connection_refused", ready.problems[0] ?? "The model service isn't ready");
@@ -1936,7 +1941,7 @@ export class Orchestrator {
       } else if (task.attempts === fastTries + 1 && this.d.store.getSetting(`taskFast:${task.id}`, false)) {
         this.d.bus.emit({ ...ev, type: "model.tier", message: `Handing "${task.title}" to ${run.modelAssignments.debugger?.model ?? base?.model} after the fast model's attempt` });
       }
-      outcome = await this.agentAttempt(run, task, jail, signal, changed, task.attempts > 1 ? "debugger" : (task.role as AgentRole), useFast ? opts.fastModel.model : undefined);
+      outcome = await this.agentAttempt(run, task, jail, signal, changed, attemptRole, useFast ? opts.fastModel.model : undefined);
       // The fast model's service failing (not installed, not answering) isn't the step's failure: the attempt is given
       // back and the build's own coder takes it from here.
       if (useFast && outcome.kind === "model_error" && isProviderFailure(outcome.error.kind)) {
@@ -2001,7 +2006,7 @@ export class Orchestrator {
     if (outcome.kind === "model_error" && isProviderFailure(outcome.error.kind)) {
       // A provider failure says nothing about the work. Check the service again: if it answers now, the step tries
       // again without using an attempt (twice at most); if not, it pauses with its work kept until the service is back.
-      const role: AgentRole = task.attempts > 1 ? "debugger" : (task.role as AgentRole);
+      const role: AgentRole = this.attemptRole(task);
       const now = await this.providerReady(this.d.store.runs.require(run.id), [role], true);
       const retries = this.d.store.getSetting<number>(`providerRetries:${task.id}`, 0);
       if (now.ok && outcome.error.retryable && retries < 2) {
@@ -2231,8 +2236,23 @@ export class Orchestrator {
     const findingsNow = this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []);
     const guardHits = guardStops(findingsNow);
     if (guardHits === 2 && outcome.kind === "no_action") this.noteFlowCodeLimit(run, task, guardOf(findingsNow));
-    // With the fast model, a step gets one extra attempt in total (e.g. 2 fast + 2 main), not one per fast try.
-    const attemptBudget = MAX_TASK_ATTEMPTS + (this.d.store.getSetting(`taskFast:${task.id}`, false) ? 1 : 0) + (guardHits === 2 ? 1 : 0);
+    // Who takes the next attempt (recoveryRouting.ts): a located error goes back to the coder as a focused correction (at
+    // most coderCorrections, and only while each makes progress); a persistent failure goes to the debugger with what
+    // was tried and what it gets that the coder didn't. A coding step only: runtime steps and other roles keep theirs.
+    const routedBefore = getRecovery(this.d.store, task.id);
+    const routing = task.role === "coder" && !runtimeStep;
+    const roleNow = this.attemptRole(task) === "debugger" ? "debugger" : "coder";
+    // An attempt that stopped after its completion checks failed is judged by what those checks said.
+    const seen = outcome.kind !== "complete" ? [...why, ...this.d.store.getSetting<string[]>(`claimFailures:${task.id}`, [])] : why;
+    const routed = routing
+      ? routeAfterFailure(routedBefore, { attempt: task.attempts, role: roleNow, outcomeKind: outcome.kind, why: seen, signature: failureSignature(seen) }, { coderCorrections: runtimeOptions(this.d.store).coderCorrections }, (v) => this.debuggerDifferences(run, task, v))
+      : undefined;
+    if (routed) this.d.store.setSetting(recoveryKey(task.id), routed);
+    const escalatedNow = !!routed?.escalation && !routedBefore.escalation;
+    // With the fast model, a step gets one extra attempt in total (e.g. 2 fast + 2 main), not one per fast try. Each
+    // focused correction used adds one (bounded by coderCorrections), so the debugger keeps its attempts for what the
+    // corrections couldn't fix.
+    const attemptBudget = MAX_TASK_ATTEMPTS + (this.d.store.getSetting(`taskFast:${task.id}`, false) ? 1 : 0) + (guardHits === 2 ? 1 : 0) + (routed?.corrections ?? 0);
     // Out of actions twice: the step is too big for one go. Split it into smaller steps instead of retrying it whole.
     // Only when it can be split: a part of a split step is never split again, and undoing it first threw its work away
     // for nothing (Calendar prototype: a part at 2 failing tests of 58 was undone back to 26, attempt after attempt).
@@ -2244,7 +2264,9 @@ export class Orchestrator {
     // build, so spending the rest of the budget on a wall it has already hit twice buys nothing but latency.
     const signatures = [...this.d.store.getSetting<string[]>(`taskSignatures:${task.id}`, []), failureSignature(why)].slice(-4);
     this.d.store.setSetting(`taskSignatures:${task.id}`, signatures);
-    const sameWall = stopAtSameWall(task.attempts, signatures, guardHits);
+    // A wall the coder hit twice is escalated once instead of stopping: the debugger gets a different packet (what was
+    // tried, the diff, the full diagnostic). The same wall after the debugger stops the step as before.
+    const sameWall = stopAtSameWall(task.attempts, signatures, guardHits) && !escalatedNow;
     if (task.attempts >= attemptBudget || verdict.noProgress || sameWall) {
       this.updateTask(task, {
         status: "blocked",
@@ -2270,8 +2292,33 @@ export class Orchestrator {
       return;
     }
     this.updateTask(task, { status: "attempted" });
-    this.setStatus(run.id, "recovering", `Recovering "${task.title}": ${why[0] ?? "criteria unmet"}`);
+    // Said as what happens next and why: "Coder correcting a type error" or "Debugger investigating a persistent failure".
+    const next = routed?.next;
+    if (next) {
+      const last = routed!.history.at(-1)!;
+      this.d.bus.emit({
+        ...ev,
+        type: "recovery.action",
+        message: `"${task.title}": ${next.label} (attempt ${task.attempts + 1}): ${next.reason}`,
+        data: { routing: { attempt: task.attempts + 1, role: next.role, correction: next.correction, failureClass: last.cls, what: last.what, corrections: routed!.corrections, regression: why.some((w) => /earlier steps' acceptance tests/.test(w)), ...(escalatedNow ? { escalation: routed!.escalation } : {}) } },
+      });
+    }
+    this.setStatus(run.id, "recovering", `Recovering "${task.title}": ${next ? `${next.label}: ${next.reason}` : (why[0] ?? "criteria unmet")}`);
     this.setStatus(run.id, "running");
+  }
+
+  /** What the debugger gets that the coder didn't, for the escalation record (it must differ by more than its name). */
+  private debuggerDifferences(run: Run, task: Task, verdict: FailureVerdict): string[] {
+    const models = this.d.store.runs.get(run.id)?.modelAssignments ?? run.modelAssignments;
+    const coder = models.coder;
+    const dbg = models.debugger ?? coder;
+    const out: string[] = [];
+    if (dbg && coder && dbg.model !== coder.model) out.push(`a different model (${dbg.model} instead of ${coder.model})`);
+    if (dbg?.reasoning && !runtimeOptions(this.d.store).routineThinking) out.push("the model's reasoning on (the coder's corrections ran without it)");
+    out.push("the diff of what the earlier attempts changed, so it doesn't repeat them");
+    if (verdict.diagnostics.length) out.push(`the located diagnostics with their source lines${verdict.diagnostics.some((d) => d.kind === "type") ? " and the type definitions they name" : ""}`);
+    out.push("the root-cause debugging workflow (reproduce, find the cause, then edit)");
+    return out;
   }
 
   /**
@@ -2292,6 +2339,17 @@ export class Orchestrator {
       if (result.ok) this.d.bus.emit({ type: "provider.checked", projectId: run.projectId, runId: run.id, message: preflightSummary(result), data: { check: result } });
     }
     return result;
+  }
+
+  /**
+   * The role for a step's current attempt (recoveryRouting.ts): its own role on the first attempt; after a failure, the
+   * one its routing chose (the coder for a focused correction, the debugger for a persistent failure). A step with no
+   * routing on record (other roles, or a retry from before routing) keeps the old rule: retries are the debugger's.
+   */
+  private attemptRole(task: Task): AgentRole {
+    if (task.attempts <= 1) return task.role as AgentRole;
+    const next = task.role === "coder" ? getRecovery(this.d.store, task.id).next : undefined;
+    return next ? next.role : "debugger";
   }
 
   /** The model service can't be used: the step waits with its work kept and the attempt given back. */
@@ -2429,7 +2487,26 @@ export class Orchestrator {
         else this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: task.id, type: "recovery.action", level: "warning", message: `This build links ${frames.length} Figma design${frames.length === 1 ? "" : "s"}, but Figma isn't connected (${server ? (st?.error ?? "not ready") : "not added in Prompts & Skills → Connected servers"}), so "${task.title}" builds from the PRD instead.` });
       }
     }
-    const findings = [...scan, ...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), ...(open ? [open] : []), ...(kit.length ? [`What the kit already provides for this step (checked in this app's CSS):\n${kit.map((k) => `- ${k}`).join("\n")}`] : [])];
+    // Recovery routing (recoveryRouting.ts): a focused correction gets the exact diagnostics, the source around them and
+    // the type definitions they name, ahead of everything else and with only the latest findings (no rediscovery). An
+    // escalated debugger gets the escalation record, the diff of what was tried, and the same located evidence.
+    const recovery = task.attempts > 1 && task.role === "coder" ? getRecovery(this.d.store, task.id) : undefined;
+    const focus: string[] = [];
+    const located = recovery?.next?.diagnostics ?? [];
+    const typeDefs = () => typeDefinitions(jail.root, typeNamesIn(located), flattenFiles(jail, 3000).filter((f) => /^src\/.*\.(tsx?|d\.ts)$/.test(f)));
+    if (recovery?.next?.correction && located.length) focus.push(correctionBrief({ what: recovery.next.what ?? "the error", diagnostics: located }, (f, l) => sourceNear(jail.root, f, l), typeDefs()));
+    if (role === "debugger" && recovery?.escalation) {
+      focus.push(escalationBrief(recovery.escalation));
+      if (located.length) focus.push(correctionBrief({ what: recovery.next?.what ?? "the failure", diagnostics: located }, (f, l) => sourceNear(jail.root, f, l), typeDefs()).replace(/^Focused correction: fix (.*?) and nothing else\. The step's other work is done and stays as it is\./, "The located evidence ($1):"));
+      try {
+        const { diff } = fixDiff({ store: this.d.store, snapshots: this.d.snapshots }, jail, task.id);
+        if (diff) focus.push(`What the earlier attempts changed (diff):\n${diff.slice(0, 4000)}${diff.length > 4000 ? "\n[diff shortened]" : ""}`);
+      } catch {
+        /* no diff to show */
+      }
+    }
+    const allFindings = this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []);
+    const findings = [...focus, ...scan, ...(recovery?.next?.correction && focus.length ? allFindings.slice(-3) : allFindings), ...(open ? [open] : []), ...(kit.length ? [`What the kit already provides for this step (checked in this app's CSS):\n${kit.map((k) => `- ${k}`).join("\n")}`] : [])];
     // Relevant artifacts (FR-A3): declared files, files this task already changed, and files named in the
     // failing evidence — with line numbers so repairs can quote exact, unique context.
     const mentioned = [...findings.join("\n").matchAll(/((?:src|app|lib|test|tests)\/[\w./-]+\.\w+)/g)].map((m) => m[1]);
@@ -2509,6 +2586,10 @@ export class Orchestrator {
         const c = catalogContract(x.ref ?? x.id);
         return c ? [{ name: `${x.name} (${x.ref}, ${sectionFile(x.id)})`, text: contractText(c).slice(0, 2500) }] : [];
       });
+    // What's installed, so a step doesn't import a package the project doesn't have (a test step imported
+    // react-router-dom, not installed, and spent its next turns on the type errors).
+    const installed = installedPackages(jail.root);
+    if (installed.length) contracts.push({ name: "Installed packages", text: `Import only these packages or the project's own files; anything else isn't installed and fails the type check: ${installed.join(", ")}` });
     const packet = buildHandoff({ run: runForPacket, task, allTasks: this.graph.tasks(run.id), files, findings, guidance, requirements, contracts, knowledge: [
       ...playbook.map((p) => ({ ...this.d.store.knowledge.require(p.id), title: p.title, content: p.content })),
       ...this.d.knowledge
@@ -2603,7 +2684,11 @@ export class Orchestrator {
       verifyClaim: async () => {
         const t = this.d.store.tasks.require(task.id);
         if (!t.acceptanceCriteria.some((c) => c.check.type !== "manual")) return { allMet: true, failures: [] };
-        return this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), t, { signal });
+        const v = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), t, { signal });
+        // Kept for recovery routing: an attempt that ends after its completion checks failed is classified by what
+        // they said (a type error at a line), not by the loop's "the identical call failed 3 times".
+        this.d.store.setSetting(`claimFailures:${task.id}`, v.allMet ? [] : v.failures.slice(0, 8));
+        return v;
       },
       createdInRun: (rel) => this.d.store.snapshots.where("run_id = ?", run.id).some((s) => s.relativePath === rel && s.contentHash === "absent"),
       typeErrorsAfterEdit: (paths) => this.d.verifier.newTypeErrors(this.d.store.runs.require(run.id), signal, paths),
@@ -2619,7 +2704,7 @@ export class Orchestrator {
       },
       // A part the agent put in: recorded in the composition manifest against the page and section it named.
       onCatalogUse: (use) => {
-        const by = task.attempts > 1 ? "debugger" : task.role === "debugger" ? "debugger" : "coder";
+        const by = this.attemptRole(task) === "debugger" ? "debugger" : "coder";
         const e = entryFor(use.ref, use.page ?? "(no page named)", use.section ?? "(no section named)", by, { mode: use.mode, why: use.why });
         if (!e) return;
         const now = this.d.store.getSetting<CompositionManifest>(compositionKey(run.id), { entries: [], gaps: [] });
@@ -2628,7 +2713,7 @@ export class Orchestrator {
       // An agent copying a library piece into src/sections/: recorded, so the Performance tab shows who used what.
       onSectionWritten: (rel, text) => {
         const piece = pieceOf(rel, text);
-        const role = task.attempts > 1 ? "debugger" : task.role;
+        const role = this.attemptRole(task);
         if (piece && !this.d.store.getSetting<LibraryUse[]>(libraryUseKey(run.id), []).some((u) => u.id === piece.id)) {
           recordUse(this.d.store, run.id, { id: piece.id, by: role, step: task.title });
           this.d.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `${role === "debugger" ? "Debugger" : "Coder"} used the library piece "${piece.name}" (${rel})`, data: { libraryPiece: piece.id } });

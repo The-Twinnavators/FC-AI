@@ -44,9 +44,14 @@ export interface RuntimeOptions {
   profileContext: number;
   /** The model text support roles use in the 8GB profile. */
   profileSupportModel: string;
+  /**
+   * Focused coder corrections a step gets for a located error (a type error, a failing test) before the debugger takes
+   * it (recoveryRouting.ts). 0 sends every retry to the debugger, as before.
+   */
+  coderCorrections: number;
 }
 
-export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true, investigationBudget: 0, visualCritic: "off", routineThinking: false, gpuProfile: "standard", profileContext: 16384, profileSupportModel: "qwen3:8b" };
+export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true, investigationBudget: 0, visualCritic: "off", routineThinking: false, gpuProfile: "standard", profileContext: 16384, profileSupportModel: "qwen3:8b", coderCorrections: 2 };
 const KEY = "runtimeOptions";
 
 export function runtimeOptions(store: Store): RuntimeOptions {

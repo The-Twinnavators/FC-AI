@@ -28,6 +28,8 @@ export interface RunPerformance {
    * pause, restart and status events. Time with none of these stays unclassified (it is never guessed into a cause).
    */
   stoppedMs: { paused: number; maintenance: number; queued: number; recovering: number; blocked: number; orphaned: number };
+  /** How failed attempts were recovered (recoveryRouting.ts): corrections, escalations and what they achieved. */
+  recovery: RecoveryStats;
   phases: Array<{ phase: string; ms: number }>;
   /** Busy time by kind of work. Model and tool time run one after the other inside a step, so these add up. */
   busy: { modelMs: number; commandMs: number; toolMs: number; checkMs: number };
@@ -236,6 +238,7 @@ export function runPerformance(app: App, runId: string): RunPerformance {
     elapsedMs: ms(startedAt, endedAt),
     waitingMs,
     stoppedMs,
+    recovery: recoveryStats(events, tasks),
     phases,
     busy,
     model: { ...model, tokensPerSec },
@@ -307,5 +310,61 @@ export function stoppedTime(events: FlowEvent[], finished: boolean): RunPerforma
     } else if ((e.type === "task.started" || e.type === "model.requested" || e.type === "command.started") && ["orphaned", "blocked", "recovering", "queued"].includes(now())) go("active", e.createdAt);
   }
   if (!finished && since) go(state, new Date().toISOString());
+  return out;
+}
+
+export interface RecoveryStats {
+  /** Steps that ran at least once. */
+  steps: number;
+  verified: number;
+  /** Verified on the first attempt. */
+  firstPass: number;
+  /** Focused coder corrections started, and the steps verified on one. */
+  corrections: { attempts: number; resolved: number };
+  /** Hand-offs to the debugger, by why the corrections didn't resolve it (or that there was nothing to correct). */
+  escalations: { total: number; byCause: Record<string, number> };
+  /** Attempts that ran as the debugger (with or without an escalation record: older runs sent every retry there). */
+  debuggerAttempts: number;
+  /** Time from a step's first failed attempt to it being verified or blocked, summed over steps. */
+  recoveryMs: number;
+  /** Failed attempts that broke an earlier step's acceptance tests. */
+  regressions: number;
+}
+
+/** Recovery outcomes from the run's events (task.started, recovery.action routing records, task.verified/blocked). */
+export function recoveryStats(events: FlowEvent[], tasks: Array<{ id: string; status: string; attempts: number }>): RecoveryStats {
+  const out: RecoveryStats = { steps: 0, verified: 0, firstPass: 0, corrections: { attempts: 0, resolved: 0 }, escalations: { total: 0, byCause: {} }, debuggerAttempts: 0, recoveryMs: 0, regressions: 0 };
+  const ran = tasks.filter((t) => t.attempts > 0);
+  out.steps = ran.length;
+  out.verified = ran.filter((t) => t.status === "verified").length;
+  out.firstPass = ran.filter((t) => t.status === "verified" && t.attempts === 1).length;
+  const onCorrection = new Map<string, boolean>();
+  const firstFail = new Map<string, string>();
+  for (const e of events) {
+    const t = e.taskId;
+    if (!t) continue;
+    const d = (e.data ?? {}) as { attemptRole?: string; correction?: boolean; routing?: { escalation?: { cause?: string }; regression?: boolean } };
+    if (e.type === "task.started") {
+      const attempt = Number(/attempt (\d+)/.exec(e.message)?.[1] ?? 1);
+      if (d.attemptRole === "debugger" || (!d.attemptRole && attempt > 1)) out.debuggerAttempts++;
+      if (d.correction) out.corrections.attempts++;
+      onCorrection.set(t, !!d.correction);
+      if (attempt > 1 && !firstFail.has(t)) firstFail.set(t, e.createdAt);
+    } else if (e.type === "recovery.action" && d.routing) {
+      if (!firstFail.has(t)) firstFail.set(t, e.createdAt);
+      if (d.routing.escalation) {
+        out.escalations.total++;
+        const c = d.routing.escalation.cause ?? "unknown";
+        out.escalations.byCause[c] = (out.escalations.byCause[c] ?? 0) + 1;
+      }
+      if (d.routing.regression) out.regressions++;
+    } else if (e.type === "task.verified" || e.type === "task.blocked") {
+      if (e.type === "task.verified" && onCorrection.get(t)) out.corrections.resolved++;
+      const from = firstFail.get(t);
+      if (from) out.recoveryMs += ms(from, e.createdAt);
+      firstFail.delete(t);
+      onCorrection.delete(t);
+    }
+  }
   return out;
 }

@@ -13,7 +13,10 @@ type Perf = {
   model: { calls: number; failed: number };
   commands: { count: number; failed: number };
   tasks: Array<{ title: string; attempts: number }>;
+  recovery?: { steps: number; verified: number; firstPass: number; corrections: { attempts: number; resolved: number }; escalations: { total: number; byCause: Record<string, number> }; debuggerAttempts: number; recoveryMs: number; regressions: number };
 };
+
+const CAUSE: Record<string, string> = { no_progress: "a correction made no progress", not_located: "nothing located to correct", corrections_exhausted: "corrections used up", corrections_off: "corrections off" };
 
 const mins = (ms: number) => (ms < 60_000 ? `${Math.max(1, Math.round(ms / 1000))} s` : ms < 3_600_000 ? `${Math.round(ms / 60_000)} min` : `${(ms / 3_600_000).toFixed(1)} h`);
 
@@ -41,10 +44,17 @@ export function RunTimeBar({ runId, live }: { runId: string; live: boolean }) {
   // What's left has no recorded cause: between steps while it works, or before stops were recorded.
   const all = [...parts, { id: "rest", label: live ? "Between steps" : "Not attributed", ms: rest }].filter((x) => x.ms >= 1000);
   const retried = p.tasks.filter((t) => t.attempts > 1);
+  const r = p.recovery;
   const facts = [
     p.commands.failed ? `${p.commands.failed} of ${p.commands.count} commands failed` : "",
     retried.length ? `${retried.length} step${retried.length === 1 ? "" : "s"} needed another try` : "",
     p.model.failed ? `${p.model.failed} model call${p.model.failed === 1 ? "" : "s"} failed` : "",
+    // How failures were recovered: the coder's focused corrections and the debugger's escalations, by why.
+    r && r.steps ? `${r.firstPass} of ${r.steps} step${r.steps === 1 ? "" : "s"} passed first time, ${r.verified} verified` : "",
+    r?.corrections.attempts ? `${r.corrections.attempts} coder correction${r.corrections.attempts === 1 ? "" : "s"}, ${r.corrections.resolved} resolved the step` : "",
+    r?.escalations.total ? `${r.escalations.total} sent to the debugger (${Object.entries(r.escalations.byCause).map(([c, n]) => `${n} ${CAUSE[c] ?? c}`).join(", ")})` : "",
+    r && r.recoveryMs >= 60_000 ? `${mins(r.recoveryMs)} recovering failed steps` : "",
+    r?.regressions ? `${r.regressions} attempt${r.regressions === 1 ? "" : "s"} broke earlier steps' tests` : "",
   ].filter(Boolean);
   return (
     <div className="rtime" data-cp="time-bar" aria-label="Where the time went">
