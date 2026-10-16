@@ -89,7 +89,7 @@ describe("a screen state no step planned", () => {
 });
 
 describe("a brief bigger than the model's room to work", () => {
-  it("leaves out knowledge, then stylesheets, names what it left out, and keeps the screen", async () => {
+  it("leaves out knowledge first, shortens the step's own files instead of leaving them out, and keeps the screen and the requirements", async () => {
     const { fitHandoff, renderHandoff } = await import("../src/orchestrator/handoff.js");
     const css = (n: number) => `.a { color: red; }\n`.repeat(n);
     const packet = {
@@ -99,9 +99,9 @@ describe("a brief bigger than the model's room to work", () => {
       constraints: ["Requirements for this step: " + "R1: show brands. ".repeat(200)],
       completedTasks: [],
       relevantFiles: [
-        { path: "src/styles/components.css (line-numbered; line prefixes are not part of the file)", excerpt: css(400) },
-        { path: "src/styles/tokens.css (line-numbered; line prefixes are not part of the file)", excerpt: css(300) },
-        { path: "src/screens/BrandsListScreen.tsx (line-numbered; line prefixes are not part of the file)", excerpt: "export default function BrandsListScreen() { return null; }" },
+        { path: "src/styles/components.css (line-numbered; line prefixes are not part of the file)", excerpt: css(400), own: true },
+        { path: "src/styles/tokens.css (line-numbered; line prefixes are not part of the file)", excerpt: css(300), own: true },
+        { path: "src/screens/BrandsListScreen.tsx (line-numbered; line prefixes are not part of the file)", excerpt: "export default function BrandsListScreen() { return null; }", own: true },
       ],
       findings: [],
       openBlockers: [],
@@ -111,11 +111,16 @@ describe("a brief bigger than the model's room to work", () => {
     expect(full.length).toBeGreaterThan(25_000);
     const fitted = fitHandoff(packet, "src/\n".repeat(140), [], 12_000);
     expect(fitted.text.length).toBeLessThan(full.length / 2);
-    expect(fitted.dropped.slice(0, 4)).toEqual(['knowledge "Playbook 3"', 'knowledge "Playbook 2"', "src/styles/components.css", "src/styles/tokens.css"]);
-    expect(fitted.text).toContain("Not attached, to leave room to work (read one with read_file only if you need it): src/styles/components.css, src/styles/tokens.css");
+    expect(fitted.dropped.slice(0, 3)).toEqual(['knowledge "Playbook 3"', 'knowledge "Playbook 2"', 'knowledge "Playbook 1"']);
+    // The step's own stylesheets are shortened, never left out; the screen and the requirements stay whole.
+    expect(fitted.dropped).toContain("src/styles/components.css shortened to 200 lines");
+    expect(fitted.text).not.toContain("Not attached");
+    expect(fitted.text).toContain("read_file with from=");
     expect(fitted.text).toContain("export default function BrandsListScreen()");
+    expect(fitted.text).toContain("R1: show brands. ".repeat(50));
+    expect(fitted.overflow).toBe(0);
     // A brief that fits is left as it is.
-    expect(fitHandoff(packet, "src/", [], 100_000)).toEqual({ text: renderHandoff(packet, "src/", []), dropped: [] });
+    expect(fitHandoff(packet, "src/", [], 100_000)).toEqual({ text: renderHandoff(packet, "src/", []), dropped: [], overflow: 0 });
   });
 });
 

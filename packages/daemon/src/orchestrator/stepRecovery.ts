@@ -9,6 +9,7 @@
  *     them) no longer waits on it and runs anyway.
  */
 import type { Task } from "@flowcode/contracts";
+import { deliverableChecks, genericOnly } from "./taskContract.js";
 
 /** How many attempts of a step ended with the coder out of actions (from the step's recorded findings). */
 export function budgetOuts(findings: string[]): number {
@@ -152,21 +153,31 @@ export function buildSplit(task: Task, parts: SplitPart[], newId: () => string):
     // An earlier part is done when its own share of the step's acceptance tests passes.
     const testFile = wholeStep.map((c) => (c.check as { kind: string }).kind).find((k) => k.startsWith("tests:"))?.slice("tests:".length);
     if (!last && testFile && p.tests?.length) mine.push({ id: `${task.id}-tests`, description: `This part's acceptance tests pass (${p.tests.length} of the step's tests)`, check: { type: "verification", kind: partTestsKind(testFile, p.tests) } } as (typeof mine)[number]);
+    const criteria = [
+      ...mine.map((c) => ({ ...c, id: `${c.id}-p${i + 1}`, evidenceRefs: [] })),
+      { id: `${task.id}-p${i + 1}-tc`, description: "The project still type-checks after this part", check: { type: "verification" as const, kind: "typecheck" }, evidenceRefs: [] },
+    ] as Task["acceptanceCriteria"];
+    // A part with only the type check would pass whether or not it did its work: it gets its own deliverable's checks.
+    const own = { id: ids[i]!, title: p.title, objective: p.objective, expectedPaths: p.files };
+    if (genericOnly({ acceptanceCriteria: criteria })) criteria.push(...deliverableChecks(own));
     return {
       id: ids[i],
       runId: task.runId,
       title: p.title,
-      objective: `${p.objective}\n\nThis is part ${i + 1} of ${parts.length} of the step "${task.title}". Work on ${p.files.join(" and ")} in this part; the other parts handle the rest of: ${task.objective}
-
-If this part's checks can't pass because of the step's acceptance test file or a file an earlier part made (a test that can't load, a token that is missing), fix that file too: it is part of this step. Don't weaken what a test checks.`,
+      // The part's own work, then a short summary of the step it belongs to and what the other parts do: the full step
+      // text (6,000 characters in Clean Cart) crowded out the part's files and requirements.
+      objective: [
+        p.objective,
+        `This is part ${i + 1} of ${parts.length} of the step "${task.title}" (${parentSummary(task.objective)}). Work on ${p.files.join(" and ")} in this part; the other parts: ${parts.filter((q) => q !== p).map((q) => `"${q.title}"`).join(", ")}.`,
+        testFile
+          ? "If this part's checks can't pass because of the step's test file or a file an earlier part made (a test that can't load, a token that is missing), fix that file too: it is part of this step. Don't weaken what a test checks."
+          : "If this part's checks can't pass because of a file an earlier part made (a token that is missing), fix that file too: it is part of this step.",
+      ].join("\n\n"),
       status: "pending" as const,
       dependsOn: i === 0 ? task.dependsOn : [ids[i - 1]],
       expectedPaths: p.files,
       actualPaths: [],
-      acceptanceCriteria: [
-        ...mine.map((c) => ({ ...c, id: `${c.id}-p${i + 1}`, evidenceRefs: [] })),
-        { id: `${task.id}-p${i + 1}-tc`, description: "The project still type-checks after this part", check: { type: "verification" as const, kind: "typecheck" }, evidenceRefs: [] },
-      ],
+      acceptanceCriteria: criteria,
       validationPlan: task.validationPlan,
       role: task.role,
       specSections: task.specSections,
@@ -399,4 +410,25 @@ export function turnBudget(task: Pick<Task, "acceptanceCriteria">): number {
     return (check.kind ?? "").startsWith("tests:") || (check.type === "file_exists" && /(^|\/)(acceptance|__tests__|tests?)\/.*\.(test|spec)\.[jt]sx?$/.test(check.path ?? ""));
   });
   return writesTests ? 50 : 30;
+}
+
+/** A step's objective in one short sentence (its first), for the parts it was split into. */
+export function parentSummary(objective: string, max = 240): string {
+  const first = objective.split(/\n/)[0]!.split(/(?<=[.!?])\s+/)[0]!.trim();
+  return first.length > max ? `${first.slice(0, max - 1)}…` : first;
+}
+
+/**
+ * A part written before parts carried a short summary: "…the other parts handle the rest of: <the whole step>" becomes
+ * the part's own work plus one sentence of the step. Other objectives are returned as they are.
+ */
+export function compactPartObjective(objective: string, files: string[] = []): string {
+  const m = /^([\s\S]*?This is part \d+ of \d+ of the step "[^"]+")\. (Work on [^;]+); the other parts handle the rest of: ([\s\S]*)$/.exec(objective);
+  if (!m) return objective;
+  const tail = m[3]!.split(/\n\nIf this part's checks can't pass/)[0]!;
+  const rule = /\n\n(If this part's checks can't pass[\s\S]*)$/.exec(m[3]!)?.[1];
+  // The step's sections about this part's own screens stay (its brief: "## Home (landing page)", sections top to bottom).
+  const stems = files.filter((f) => /src\/screens\//.test(f)).map((f) => f.replace(/^.*\//, "").replace(/(Screen|Page)?\.\w+$/, "").replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase().split(" ")[0]!).filter((s) => s.length > 2);
+  const blocks = stems.length ? [...tail.matchAll(/^## (.+)\n[\s\S]*?(?=^## |(?![\s\S]))/gm)].filter((b) => stems.some((s) => b[1]!.toLowerCase().startsWith(s))).map((b) => b[0].trim().slice(0, 1500)) : [];
+  return `${m[1]} (${parentSummary(tail)}). ${m[2]}.${blocks.length ? `\n\nFrom that step, about this part's screen${blocks.length === 1 ? "" : "s"}:\n${blocks.join("\n\n")}` : ""}${rule ? `\n\n${rule}` : ""}`;
 }

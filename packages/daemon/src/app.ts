@@ -56,6 +56,7 @@ export function createApp(opts: AppOptions = {}) {
   const verifier = new Verifier(store, bus, artifacts, runner, processes, projects, router);
   // MCP servers you connect (Prompts & Skills → Tools): extra tools for the roles you choose.
   const mcp = new McpManager(store);
+  verifier.priorOf = (snap) => snapshots.priorContent(snap);
   const orchestratorDeps: OrchestratorDeps = { store, bus, router, lab, projects, snapshots, ops, runner, processes, approvals, verifier, knowledge, mcp };
   const orchestrator = new Orchestrator(orchestratorDeps);
 

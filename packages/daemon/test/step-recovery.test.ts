@@ -120,7 +120,8 @@ describe("splitting a step that is too big", () => {
       { title: "Build it", objective: "Build the screen.", files: ["src/screens/Calc.tsx"] },
     ], () => `p${++n}`);
     const kinds = (i: number) => pieces[i].acceptanceCriteria.filter((c) => c.check.type === "verification").map((c) => (c.check as { kind: string }).kind);
-    expect(kinds(0)).toEqual(["typecheck"]);
+    // A part left with only the type check gets a check that it changed its own file.
+    expect(kinds(0)).toEqual(["typecheck", "changed:src/acceptance/calc.test.tsx"]);
     expect(kinds(1)).toEqual(["tests:src/acceptance/calc.test.tsx", "typecheck"]);
   });
 });

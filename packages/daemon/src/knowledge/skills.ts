@@ -1147,12 +1147,14 @@ export function designSkillIds(taskText: string): string[] {
  * before code, tests first, debug from the root cause, simplify, verify before done). Picked by the step, not by
  * matching words, so the right one is there every time. Design skills come from designSkillIds.
  */
-export function workflowSkillIds(role: string, taskText: string): string[] {
+export function workflowSkillIds(role: string, taskText: string, meta?: { writesTests?: boolean }): string[] {
   const t = taskText.toLowerCase();
   if (role === "planner") return ["skill.planning-task-breakdown"];
   if (role === "debugger") return ["skill.systematic-debugging"];
   if (role !== "coder") return [];
-  if (/\bacceptance tests?\b|\btest[- ]first\b/.test(t)) return ["skill.test-driven-development"];
+  // Tests first only for a step that writes tests, read from its checks when the caller knows them: a split part's
+  // sentence about "the step's acceptance test file" gave an imagery step the test-first skill (Clean Cart).
+  if (meta ? meta.writesTests : /\bacceptance tests?\b|\btest[- ]first\b/.test(t)) return ["skill.test-driven-development"];
   if (/\bclean(?:[- ])?up\b/.test(t)) return ["skill.code-simplification"];
   if (/^assemble the app\b/.test(t)) return ["skill.verification-before-completion"];
   // A step that builds pages from locked screen briefs gets the page-composition rules (regions, parts, recorded changes).

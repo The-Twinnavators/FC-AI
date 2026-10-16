@@ -92,7 +92,16 @@ export interface AgentLoopResult {
   /** Tool calls the model wrote as text that were read and run. */
   textToolCalls: number;
   transcript: ChatMessage[];
+  /** Files edits were applied to in this attempt, in order (one entry per applied edit). */
+  appliedEdits: string[];
 }
+
+/**
+ * Edits run from one reply: each is checked before the next batch, so a long reply can't half-apply and leave the rest
+ * unaccounted for (Clean Cart controlled build: one reply carried 55 apply_patch calls, hit the 4,096-token output
+ * limit, 2 applied, 5 failed on text the earlier ones had changed, and the attempt ended on "the same call failed 3 times").
+ */
+export const MAX_EDITS_PER_REPLY = 8;
 
 const toolSchemaCache = new Map<string, ToolDef>();
 const EDIT_TOOLS = new Set<string>(["apply_patch", "replace_file", "create_file", "edit_json", "edit_yaml", "edit_toml"]);
@@ -303,12 +312,13 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
   let readyGrace = 0;
   const stuck = (after: string) => `No progress: ${investigation.newSinceEdit + investigation.repeatsSinceEdit} reads in a row and no change made (${investigation.repeatsSinceEdit} of them of unchanged files), ${after}. Either the step is already done (call task_complete) or it needs an edit.`;
   let turnRead = false;
+  const appliedEdits: string[] = [];
   /** This turn read something new (investigation, not looping). */
   let turnNew = false;
   let turnEdited = false;
   const result =(outcome: AgentOutcome): AgentLoopResult => {
     input.onTranscript?.(messages);
-    return { outcome, turns, toolCalls, invalidToolCalls: invalid, nativeToolCalls: native, pseudoToolText: pseudo, textToolCalls: textCalls, transcript: messages };
+    return { outcome, turns, toolCalls, invalidToolCalls: invalid, nativeToolCalls: native, pseudoToolText: pseudo, textToolCalls: textCalls, transcript: messages, appliedEdits };
   };
 
   // The prompt must fit the model's context window with room left for the reply. Characters per token starts
@@ -455,6 +465,11 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
     if (readyGrace > 0 && turnRead && !turnEdited && --readyGrace === 0) return result({ kind: "no_action", reason: stuck("after saying it was ready to implement") });
     turnRead = false;
     turnEdited = false;
+    // What happened to this reply's edits: applied, failed, not run (and why), or malformed.
+    const truncated = /^(max_tokens|length)$/.test(res.doneReason ?? "");
+    const tally = { applied: [] as string[], failed: [] as string[], notRun: [] as string[], malformed: 0 };
+    const failedFiles = new Set<string>();
+    let editsRun = 0;
     for (const call of calls) {
       toolCalls++;
       const name = call.name as ToolName;
@@ -476,6 +491,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
 
       const reject = (msg: string) => {
         invalid++;
+        tally.malformed++;
         input.store.toolCalls.upsert({ ...rec, status: "rejected", resultSummaryRedacted: redact(msg), completedAt: nowIso() });
         input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "tool.rejected", message: `Rejected ${call.name}: ${msg}`, data: { toolCallId: recordId }, level: "warning" });
         messages.push({ role: "tool", content: `ERROR: ${msg}`, toolCallId: call.id, toolName: String(call.name) });
@@ -537,6 +553,24 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
         continue;
       }
       if (input.signal?.aborted) return result({ kind: "cancelled" });
+      const editFile = EDIT_TOOLS.has(name) ? String((parsed.data as { path?: unknown }).path ?? "") : "";
+      if (EDIT_TOOLS.has(name)) {
+        const notRun =
+          truncated && call === calls[calls.length - 1]
+            ? "this reply was cut off at the output limit, so its last edit may be incomplete"
+            : editsRun >= MAX_EDITS_PER_REPLY
+              ? `only ${MAX_EDITS_PER_REPLY} edits run per reply, so each batch can be checked`
+              : failedFiles.has(editFile)
+                ? `an earlier edit to ${editFile} in this reply failed, and this one may depend on it`
+                : "";
+        if (notRun) {
+          tally.notRun.push(editFile);
+          input.store.toolCalls.upsert({ ...rec, status: "rejected", resultSummaryRedacted: `Not run: ${notRun}`, completedAt: nowIso() });
+          messages.push({ role: "tool", content: `Not run: ${notRun}. Nothing was written for this call; send it again (after reading ${editFile || "the file"} if an edit before it failed).`, toolCallId: call.id, toolName: name });
+          continue;
+        }
+        editsRun++;
+      }
       let exec: ToolExecution;
       try {
         exec = await input.executor(name, parsed.data, call, recordId);
@@ -558,6 +592,15 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
         data: { toolCallId: recordId, ok: exec.ok },
         level: exec.ok ? "info" : "warning",
       });
+      if (EDIT_TOOLS.has(name)) {
+        if (exec.ok) {
+          tally.applied.push(editFile);
+          appliedEdits.push(editFile);
+        } else {
+          tally.failed.push(editFile);
+          failedFiles.add(editFile);
+        }
+      }
       // A long run of edits with no "done" claim usually means the agent is circling. Ask it to check its work.
       if (name === "task_complete") editsSinceCheck = 0;
       else if (exec.ok && EDIT_TOOLS.has(name)) editsSinceCheck++;
@@ -616,6 +659,14 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
             content: `Runtime notice: you repeated the exact same ${name} call and it failed the same way. Do not repeat it. Change approach: re-read the file, use a larger unique find text (include the surrounding lines), or call report_blocked.`,
           });
       }
+    }
+    // A reply with several edits, or one cut off: say exactly what was written and what wasn't, so the next reply
+    // continues from there and doesn't send applied edits again.
+    if (truncated || tally.notRun.length || tally.applied.length + tally.failed.length > 1) {
+      const count = (files: string[]) => [...new Set(files)].map((f) => `${f || "?"} (${files.filter((x) => x === f).length})`).join(", ");
+      const summary = `${tally.applied.length} edit${tally.applied.length === 1 ? "" : "s"} applied${tally.applied.length ? ` (${count(tally.applied)})` : ""}, ${tally.failed.length} failed${tally.failed.length ? ` (${count(tally.failed)})` : ""}, ${tally.notRun.length} not run${tally.notRun.length ? ` (${count(tally.notRun)})` : ""}${tally.malformed ? `, ${tally.malformed} malformed` : ""}`;
+      input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", message: `Reply with ${calls.length} tool call${calls.length === 1 ? "" : "s"}${truncated ? ", cut off at the output limit" : ""}: ${summary}`, data: { role: input.role, truncated, applied: tally.applied.length, failed: tally.failed.length, notRun: tally.notRun.length, malformed: tally.malformed } });
+      if (tally.notRun.length) messages.push({ role: "user", content: `Runtime notice: from your last reply, ${summary}. The applied edits are in the files now; don't send them again. Send the ones not run in your next reply (at most ${MAX_EDITS_PER_REPLY} edits a reply), against what the files say now.` });
     }
     if (check && check.asks === 0) {
       check.asks = 1;

@@ -137,3 +137,76 @@ export function runnableVerdict(output: string): { runs: boolean; failed: number
   if (failed + passed === 0) return { runs: false, failed, passed, why: "no tests ran" };
   return { runs: true, failed, passed };
 }
+
+/**
+ * Checks that say nothing about a step's own deliverable: the project type-checks, lints, builds, or its whole test
+ * suite passes. A step judged only by these passes whether or not it did its work (Clean Cart controlled build: "Implement
+ * Real Imagery" saved 15 photos, put none on a screen, and passed on the type check; "Design App Frame and Navigation"
+ * changed two background lines and passed the same way).
+ */
+const GENERIC_KINDS = new Set(["typecheck", "lint", "build", "tests"]);
+
+export function isTaskSpecific(c: Criterion): boolean {
+  if (c.check.type === "manual") return false;
+  if (c.check.type !== "verification") return true;
+  return !GENERIC_KINDS.has(kindOf(c));
+}
+
+/** A coder step whose machine checks are all generic. */
+export function genericOnly(task: Pick<Task, "acceptanceCriteria">): boolean {
+  return !task.acceptanceCriteria.some(isTaskSpecific);
+}
+
+// The starter kit's building blocks aren't edited by steps, so they never count as a step's own file.
+const KIT = /^src\/components\/ui\//;
+
+/**
+ * Checks tied to a step's own deliverable, for a step that has only generic ones. Always: the step changed at least
+ * one of its own files. From what the step is for: its screens show the photos it saved; its sample data is seeded;
+ * its app frame is restyled or replaced. Added openly (the caller records and announces them), never silently.
+ */
+export function deliverableChecks(task: Pick<Task, "id" | "title" | "objective" | "expectedPaths">): Criterion[] {
+  const own = task.expectedPaths.map((p) => p.replace(/\\/g, "/")).filter((p) => /\.[a-z0-9]+$/i.test(p) && !KIT.test(p));
+  const text = `${task.title}\n${task.objective.split(/\n\n/)[0]}`;
+  const out: Criterion[] = [];
+  const add = (key: string, description: string, kind: string) => out.push({ id: `${task.id}-d-${key}`, description, check: { type: "verification", kind }, evidenceRefs: [] } as unknown as Criterion);
+  if (own.length) add("changed", `This step changes its own files (${own.join(" or ")})`, `changed:${own.join("|")}`);
+  if (/\b(imagery|images?|photos?|pictures?)\b/i.test(text)) add("images", "The step's screens show the photos in public/images (an image or background pointing at them)", `images-used:${(own.filter((p) => /\.(tsx|jsx|css)$/.test(p)).join("|")) || "src"}`);
+  if (/\b(seed|sample data|sample records|collections?)\b/i.test(text) && /\b(createCollection|sim|records?)\b/i.test(text)) add("data", "Sample data is seeded: a collection created with createCollection holds at least 8 records", "data-seeded:8");
+  // Screens the step owns don't still show a library piece's demo content (a pottery studio on a grocery app's Home).
+  const screens = own.filter((p) => /^src\/screens\/[\w-]+\.(tsx|jsx)$/.test(p));
+  if (screens.length) add("pieces", "The library pieces these screens render show this product's content, not their demo", `piece-content:${screens.join("|")}`);
+  if (/\b(app )?frame\b|\bnavigation\b|\bAppShell\b/i.test(text)) add("frame", "The app frame is designed: the ui-shell__* rules are restyled or the frame is replaced by the app's own component", "frame-designed");
+  return out;
+}
+
+/**
+ * The most records any createCollection(…) call is seeded with, in the given sources: an array written in the call, or
+ * a named array (const PRODUCTS = [ … ]) defined in any of them.
+ */
+export function seededRecords(source: string): number {
+  const count = (from: number) => {
+    let depth = 0;
+    let records = 0;
+    for (let i = from; i < source.length; i++) {
+      const ch = source[i];
+      if (ch === "[" || ch === "{") {
+        if (ch === "{" && depth === 1) records++;
+        depth++;
+      } else if (ch === "]" || ch === "}") {
+        depth--;
+        if (depth === 0) break;
+      }
+    }
+    return records;
+  };
+  let best = 0;
+  for (const m of source.matchAll(/createCollection(?:<[^>]*>)?\(\s*["'`][^"'`]+["'`]\s*,\s*(\[|[A-Za-z_$][\w$]*)/g)) {
+    if (m[1] === "[") best = Math.max(best, count(m.index! + m[0].length - 1));
+    else {
+      const def = new RegExp(`\\b${m[1].replace(/\$/g, "\\$")}\\s*(?::[^=;]+)?=\\s*\\[`).exec(source);
+      if (def) best = Math.max(best, count(def.index + def[0].length - 1));
+    }
+  }
+  return best;
+}

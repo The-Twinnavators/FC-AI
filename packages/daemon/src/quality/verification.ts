@@ -7,6 +7,8 @@ import { screenBriefKey, screenBriefNote, type ScreenBrief } from "../orchestrat
 import fs from "node:fs";
 import path from "node:path";
 import type { Finding, Run, Task, VerificationCheck, VerificationKind, VerificationStatus } from "@flowcode/contracts";
+import { LIBRARY_SECTIONS } from "@flowcode/contracts";
+import { pieceFiles, sectionFile } from "../orchestrator/sectionRecipes.js";
 import type { Store } from "../db/store.js";
 import { renderSkills, selectSkills } from "../knowledge/skills.js";
 import type { EventBus } from "../events/bus.js";
@@ -42,7 +44,8 @@ import { previewArgv, runsWithoutNode, scriptArgv } from "../workspace/preflight
 import { squash, testFailureDigest } from "../orchestrator/guards.js";
 import { parsePartTests } from "../orchestrator/stepRecovery.js";
 import { runtimeOptions } from "../orchestrator/runtimeOptions.js";
-import { assertionlessTests, runnableVerdict } from "../orchestrator/taskContract.js";
+import { assertionlessTests, runnableVerdict, seededRecords } from "../orchestrator/taskContract.js";
+import type { SnapshotRow } from "../workspace/snapshots.js";
 
 const SCRIPT_FOR: Partial<Record<VerificationKind, string>> = { typecheck: "typecheck", lint: "lint", tests: "test", build: "build" };
 
@@ -86,6 +89,87 @@ export class Verifier {
     private router: ModelRouter,
   ) {
     this.reports = new ReportService(store, artifacts, projects, processes);
+  }
+
+  /** The prior content of a snapshot (set by the app), for checks that compare a step's files with how it found them. */
+  priorOf?: (snap: SnapshotRow) => string | undefined;
+
+  /**
+   * Why a step's own deliverable isn't there (undefined when it is). Kinds from orchestrator/taskContract.ts:
+   * changed:<a|b> (the step changed one of its files), images-used:<a|b|src> (they point at a photo in public/images),
+   * data-seeded:<n> (a createCollection seeded with n records), frame-designed (ui-shell__ rules restyled, or a frame
+   * component of the app's own).
+   */
+  deliverableProblem(kind: string, task: Task, root: string): string | undefined {
+    const snaps = this.store.snapshots.where("task_id = ? ORDER BY seq ASC", task.id).filter((s) => !s.restoredAt);
+    const read = (rel: string) => {
+      try {
+        return fs.readFileSync(path.join(root, rel), "utf8");
+      } catch {
+        return "";
+      }
+    };
+    const srcFiles = (dir = "src", out: string[] = []): string[] => {
+      let entries: fs.Dirent[] = [];
+      try {
+        entries = fs.readdirSync(path.join(root, dir), { withFileTypes: true });
+      } catch {
+        return out;
+      }
+      for (const e of entries) {
+        const rel = `${dir}/${e.name}`;
+        if (e.isDirectory()) srcFiles(rel, out);
+        else if (/\.(tsx?|jsx?|css)$/.test(e.name) && !/\.(test|spec)\./.test(e.name)) out.push(rel);
+      }
+      return out;
+    };
+    if (kind.startsWith("changed:")) {
+      const files = kind.slice("changed:".length).split("|");
+      return snaps.some((s) => files.includes(s.relativePath.replace(/\\/g, "/"))) ? undefined : `this step hasn't changed ${files.join(" or ")}`;
+    }
+    if (kind.startsWith("images-used:")) {
+      const list = kind.slice("images-used:".length);
+      const files = list === "src" ? srcFiles() : list.split("|");
+      const refs = files.flatMap((f) => [...read(f).matchAll(/["'(`]\/?(?:public\/)?(images\/[\w./-]+\.(?:jpe?g|png|webp|avif|svg))/gi)].map((m) => m[1]!));
+      const real = refs.filter((r) => fs.existsSync(path.join(root, "public", r)));
+      return real.length ? undefined : refs.length ? `${files.join(", ")} point at images that don't exist (${refs.slice(0, 3).join(", ")})` : `none of ${files.join(", ")} shows a photo from public/images`;
+    }
+    if (kind.startsWith("data-seeded:")) {
+      const min = Number(kind.slice("data-seeded:".length)) || 8;
+      const n = seededRecords(srcFiles().map(read).join("\n"));
+      return n >= min ? undefined : `the largest createCollection holds ${n} record${n === 1 ? "" : "s"}, fewer than ${min}`;
+    }
+    if (kind.startsWith("piece-content:")) {
+      // A library piece a screen renders still shows its demo (its SAMPLE block exactly as the library ships it):
+      // Clean Cart's Home showed the Neobrutal landing's pottery studio ("Make something lumpy and love it anyway.").
+      const sampleOf = (src: string) => /\/\/ flowcode:sample\n(const SAMPLE[\s\S]*?\n\};)/.exec(src)?.[1];
+      const demos: string[] = [];
+      for (const screen of kind.slice("piece-content:".length).split("|")) {
+        for (const m of read(screen).matchAll(/from ["']\.\.\/sections\/(\w+)["']/g)) {
+          const rel = `src/sections/${m[1]}.tsx`;
+          const piece = LIBRARY_SECTIONS.find((x) => sectionFile(x.id) === rel);
+          const mine = sampleOf(read(rel));
+          const lib = piece ? sampleOf(pieceFiles(piece.id)[0]?.content ?? "") : undefined;
+          if (mine && lib && mine === lib) demos.push(`${rel} (${piece!.name}: "${/title: "([^"]+)"/.exec(mine)?.[1] ?? "its demo"}")`);
+        }
+      }
+      return demos.length ? `these library pieces still show their demo content: ${demos.join(", ")}. Replace each SAMPLE with this product's real content` : undefined;
+    }
+    if (kind === "frame-designed") {
+      const own = snaps.find((s) => /^src\/components\/(?!ui\/)[\w/-]+\.(tsx|jsx)$/.test(s.relativePath.replace(/\\/g, "/")) && s.contentHash === "absent");
+      if (own && fs.existsSync(path.join(root, own.relativePath))) return undefined;
+      // ui-shell__ rules this step changed: lines in the current stylesheet that weren't there before its first edit.
+      const css = snaps.find((s) => /\.css$/.test(s.relativePath));
+      if (css) {
+        const before = new Set((this.priorOf?.(css) ?? "").split("\n").map((l) => l.trim()));
+        const changed = read(css.relativePath).split("\n").filter((l) => l.trim() && !before.has(l.trim()));
+        const shell = changed.filter((l) => /ui-shell|--header|--nav|\bnav\b|sidebar|tabbar|topbar/i.test(l)).length;
+        if (shell >= 6) return undefined;
+        return `only ${shell} changed line${shell === 1 ? "" : "s"} touch the app frame (ui-shell__ rules or navigation); restyle the frame or replace it with the app's own component`;
+      }
+      return "no ui-shell__ rules were restyled and no frame component was added in src/components/";
+    }
+    return `unknown check ${kind}`;
   }
 
   /** Upserts the run-level check of a kind (or task-level when taskId is given). */
@@ -313,6 +397,14 @@ export class Verifier {
           break;
         }
         case "verification": {
+          // A step's own deliverable (orchestrator/taskContract.ts deliverableChecks): what it changed, the photos its
+          // screens show, its seeded sample data, its app frame. Read from the workspace and the step's own snapshots.
+          if (/^(changed:|images-used:|data-seeded:|piece-content:|frame-designed$)/.test(c.check.kind)) {
+            const why = this.deliverableProblem(c.check.kind, task, jail.root);
+            met = !why;
+            if (why) failures.push(`${c.description}: ${why}`);
+            break;
+          }
           // "tests-run:<file>": a test-writing step's tests load and run, and each one checks the app (orchestrator/
           // taskContract.ts). Failing assertions are expected until later steps build what they check; a test that
           // can't load, is parked, compares a value with itself or checks nothing is not.
