@@ -91,6 +91,37 @@ Home test fail (the tests detect wrong behaviour); no dependency added; navigati
 **Limits.** A model still writes the tests; the packet and scaffold make that cheaper but don't guarantee it. Steps
 already split before this change are checked when they next run, not rewritten in the database.
 
+## Phase 3: structured recovery for unproductive investigation
+
+**Root cause.** The agent loop ended an attempt at fixed counts (the same file 4 times, 8 read-only turns, 60 reads
+without an edit) without asking why, and counted a re-read of an unchanged file the same as reading something new.
+The retry started over with nothing learned. (The "force a write after 12 reads" idea was only ever proposed, never
+built, so there was nothing to remove.)
+
+**Changed.**
+- `orchestrator/investigation.ts` (new): counts new investigation (a file or search read for the first time, or after
+  its content changed, by hash) apart from repeats of unchanged content, and turns that only re-read. Budget is a
+  runtime option (`investigationBudget`; automatic: 40 new reads for a local model, 120 for a cloud one; repeats and
+  re-read turns scale with it; three times the room when FlowCode's guards already stopped the step twice).
+- `agentLoop.ts`: over budget, the attempt pauses once for one JSON answer (no tool runs until it's given):
+  `ready_to_implement` (fresh budget; three re-read turns at most before the attempt ends), `missing_information`
+  (FlowCode supplies the named files or where a name appears, bounded to 12,000 characters, once),
+  `ambiguous_task`, `broken_baseline` (recorded for the next attempt) or `split_required`. No answer after two asks, or
+  a second overrun, ends the attempt. It never asks for an edit to show progress. The "same failing call 3 times"
+  guard, approvals and `report_blocked` are unchanged.
+- `orchestrator.ts`: an ambiguous step or information only a person has stops as `task_contract` without using an
+  attempt; `split_required` splits the step now (the attempt is given back) instead of after two more attempts.
+
+**Evidence.** `test/investigation.test.ts` (10 tests): repeat vs new counting; budgets; answer parsing; a repetitive-
+read scenario that pauses once, answers "ready" and makes its own change; "ready" then more re-reading ends the attempt;
+ambiguous and split routes; 30 different files over 30 turns with no interruption; a past-budget investigation that
+gets the file it needs and then writes; bounded supply that stays in the project; and an orchestration run where an
+ambiguous answer blocks for the person with 0 attempts used. Two older tests were updated from "stop at N reads" to
+the new behaviour (pause, then end with no answer).
+
+**Limits.** Whether a local model answers the check well is only known from a real build; an unparseable answer counts
+as no answer.
+
 ## Backlog (not in scope; only with a separately approved narrow fix)
 
 - Artifact-level dependency tracking (which step produced which file and what depends on it).

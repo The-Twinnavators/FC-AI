@@ -31,12 +31,16 @@ export interface ExtraTool {
   run: (args: Record<string, unknown>, signal?: AbortSignal) => Promise<ToolExecution>;
 }
 
+import { InvestigationTracker, investigationLimits, investigationPrompt, parseInvestigationAnswer, type Overrun } from "./investigation.js";
+
 export type AgentOutcome =
   | { kind: "complete"; summary: string; changedPaths: string[] }
   | { kind: "blocked"; reason: string; nextAction: string }
   | { kind: "approval_needed"; action: string; reason: string; risk: "low" | "medium" | "high" }
   | { kind: "no_action"; reason: string }
   | { kind: "budget_exhausted"; reason: string }
+  /** The agent's answer to the investigation check: the step is too big for one go (investigation.ts). */
+  | { kind: "split_required"; reason: string }
   | { kind: "cancelled" }
   | { kind: "model_error"; error: ProviderError };
 
@@ -72,6 +76,10 @@ export interface AgentLoopInput {
    * this attempt (stepRecovery.ts guardStops). The "same failing call" guard stays as it is.
    */
   relaxGuards?: boolean;
+  /** Reads of new content before the investigation check (runtime option; 0 or unset: 40 local, 120 cloud). */
+  investigationBudget?: number;
+  /** Answers "missing information" from the project (bounded), once per attempt. Undefined: nothing found. */
+  supplyInfo?: (needs: string[]) => Promise<string | undefined>;
 }
 
 export interface AgentLoopResult {
@@ -285,11 +293,18 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
   let textMode = false;
   let nudges = 0;
   const failedCalls = new Map<string, number>();
-  const readCounts = new Map<string, number>();
-  let readsSinceEdit = 0;
-  /** Model turns in a row that only read (counted when the next turn starts). */
-  let readTurnsSinceEdit = 0;
+  // Reading: new content and repeats of unchanged content are counted apart; over budget, one structured check
+  // (investigation.ts) instead of ending the attempt.
+  const investigation = new InvestigationTracker(investigationLimits(input.assignment.providerId.startsWith("hosted"), input.relaxGuards, input.investigationBudget));
+  let check: { why: Overrun; asks: number } | undefined;
+  let checksUsed = 0;
+  let infoSupplied = false;
+  /** Read-only turns left after "ready to implement" (0: not counting). */
+  let readyGrace = 0;
+  const stuck = (after: string) => `No progress: ${investigation.newSinceEdit + investigation.repeatsSinceEdit} reads in a row and no change made (${investigation.repeatsSinceEdit} of them of unchanged files), ${after}. Either the step is already done (call task_complete) or it needs an edit.`;
   let turnRead = false;
+  /** This turn read something new (investigation, not looping). */
+  let turnNew = false;
   let turnEdited = false;
   const result =(outcome: AgentOutcome): AgentLoopResult => {
     input.onTranscript?.(messages);
@@ -359,6 +374,39 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
     }
     const used = res.usage?.promptTokens;
     if (used && used > 500) charsPerToken = Math.min(4.5, Math.max(2.2, (sent / used) * 0.95));
+    // The investigation check is open: only its answer counts; tool calls in this reply don't run.
+    if (check) {
+      const answer = parseInvestigationAnswer(res.content);
+      messages.push({ role: "assistant", content: res.content || "(tool calls instead of the answer)" });
+      if (!answer) {
+        if (check.asks >= 2) return result({ kind: "no_action", reason: stuck("and no answer to the investigation check") });
+        check.asks++;
+        messages.push({ role: "user", content: "Runtime check: nothing ran. Answer the check first, with only the JSON object." });
+        continue;
+      }
+      check = undefined;
+      input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", message: `Investigation check: ${answer.status.replace(/_/g, " ")}${answer.detail ? ` (${answer.detail.slice(0, 200)})` : ""}`, data: { role: input.role, investigation: answer } });
+      if (answer.status === "ready_to_implement") {
+        investigation.fresh();
+        readyGrace = 3;
+        messages.push({ role: "user", content: "Runtime: go ahead and make the change you described now. Files you've already read haven't changed." });
+        continue;
+      }
+      if (answer.status === "missing_information") {
+        const info = !infoSupplied && answer.needs.length && input.supplyInfo ? await input.supplyInfo(answer.needs).catch(() => undefined) : undefined;
+        infoSupplied = true;
+        if (info) {
+          investigation.fresh();
+          readyGrace = 3;
+          messages.push({ role: "user", content: `Runtime: what FlowCode found for what you need:\n${info}\n\nNow make the change.` });
+          continue;
+        }
+        return result({ kind: "blocked", reason: `Missing information: ${answer.detail || answer.needs.join("; ")}`, nextAction: "Add the missing information to the step's guidance, then retry it." });
+      }
+      if (answer.status === "ambiguous_task") return result({ kind: "blocked", reason: `Ambiguous task: ${answer.detail}`, nextAction: "Say which reading is meant in the step's guidance, then retry it." });
+      if (answer.status === "broken_baseline") return result({ kind: "no_action", reason: `Broken baseline: ${answer.detail}` });
+      return result({ kind: "split_required", reason: answer.detail || "the step is too big for one go" });
+    }
     // Tool calls written as text are read and run like native ones (same validation, permissions and approvals).
     let calls = res.toolCalls;
     if (!calls.length && res.content.trim()) {
@@ -402,7 +450,9 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
     native += res.toolCalls.length;
     messages.push({ role: "assistant", content: res.content, toolCalls: calls });
     // The last turn only read (and changed nothing): one more turn of reading without doing.
-    if (turnRead && !turnEdited) readTurnsSinceEdit++;
+    investigation.turn(turnRead, turnEdited, turnNew);
+    turnNew = false;
+    if (readyGrace > 0 && turnRead && !turnEdited && --readyGrace === 0) return result({ kind: "no_action", reason: stuck("after saying it was ready to implement") });
     turnRead = false;
     turnEdited = false;
     for (const call of calls) {
@@ -512,19 +562,18 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
       if (name === "task_complete") editsSinceCheck = 0;
       else if (exec.ok && EDIT_TOOLS.has(name)) editsSinceCheck++;
       let nudge = editsSinceCheck >= 8 && editsSinceCheck % 4 === 0 ? `\n\nRuntime notice: that's ${editsSinceCheck} edits without checking. Read the file you changed to confirm it's right (no repeated lines), then call task_complete; it runs this step's checks.` : "";
-      // Reading without doing (Calendar test 8: the same five files read 90 times, no edit): nudge on the third read of
-      // an unchanged file, and end the attempt after a long run of reads with nothing changed.
-      let maxReads = 0;
-      // A failed edit sends the model back to read the file again; those reads re-sync it, they aren't looping
-      // (Calculator app: missed patches on the screen, then re-reads, ended the attempt before it could rewrite it).
-      if (!exec.ok && EDIT_TOOLS.has(name)) readCounts.delete(String((parsed.data as { path?: unknown }).path ?? ""));
+      // Reading without doing (Calendar test 8: the same five files read 90 times, no edit): a nudge on the third read
+      // of unchanged content; over budget, the investigation check (once per attempt), then the attempt ends.
+      if (!exec.ok && EDIT_TOOLS.has(name)) {
+        // A failed edit sends the model back to read the file again; those reads re-sync it, they aren't looping
+        // (Calculator app: missed patches on the screen, then re-reads, ended the attempt before it could rewrite it).
+        investigation.forget(String((parsed.data as { path?: unknown }).path ?? ""));
+      }
       if (exec.ok && EDIT_TOOLS.has(name)) {
-        readsSinceEdit = 0;
-        readTurnsSinceEdit = 0;
+        investigation.edited();
         turnEdited = true;
-        readCounts.clear();
+        readyGrace = 0;
       } else if (READ_TOOLS.has(name)) {
-        readsSinceEdit++;
         turnRead = true;
         // Only reads of files that exist count: asking for a file the step is meant to create is not looping (the
         // "identical failing call" guard below handles a model that keeps asking for it).
@@ -536,21 +585,22 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
           // Different parts of one long file (read_file from/to) are different reads, not rereading it.
           const range = args.from !== undefined || args.to !== undefined ? `#${String(args.from ?? "")}-${String(args.to ?? "")}` : "";
           const p = args.path !== undefined && args.path !== null && String(args.path) !== "" ? `${String(args.path)}${range}` : `${name}:${String(args.query ?? args.pattern ?? args.id ?? "")}`;
-          const n = (readCounts.get(p) ?? 0) + 1;
-          readCounts.set(p, n);
-          maxReads = n;
-          if (n >= 3) nudge += `\n\nRuntime notice: you have read ${p || "this"} ${n} times and nothing has changed since. Don't read it again: make the change this step asks for, or call task_complete if it's already done.`;
+          const r = investigation.read(p, exec.content);
+          if (r.kind === "new") turnNew = true;
+          if (r.kind === "repeat" && r.times >= 3) nudge += `\n\nRuntime notice: you have read ${p || "this"} ${r.times} times and it hasn't changed since. Don't read it again: make the change this step asks for, or call task_complete if it's already done.`;
         }
       }
-      // Looping is turns that only read, or the same unchanged file read again and again; not reading many files at
-      // once (Calculator app: gpt-5.6-sol reads eight files per turn and was stopped seconds into each attempt).
-      // A cloud coder re-reads files around its test runs as part of normal work; the tight limits are for local models
-      // that loop (Calculator app: gpt-5.6-sol's visual-style step was stopped three times while working).
-      const cloud = input.assignment.providerId.startsWith("hosted");
-      const room = input.relaxGuards ? 3 : 1;
-      if (maxReads >= (cloud ? 8 : 4) * room || readTurnsSinceEdit >= (cloud ? 15 : 8) * room || readsSinceEdit >= (cloud ? 120 : 60) * room) {
+      // Many files read in one turn is investigating, not looping (Calculator app: gpt-5.6-sol reads eight files per
+      // turn). A cloud coder re-reads files around its test runs as part of normal work, so its budget is larger.
+      const over: Overrun | undefined = check ? undefined : investigation.over();
+      if (over && checksUsed >= 1) {
         messages.push({ role: "tool", content: content + nudge, toolCallId: call.id, toolName: name });
-        return result({ kind: "no_action", reason: `No progress: ${readsSinceEdit} reads in a row and no change made. Either the step is already done (call task_complete) or it needs an edit.` });
+        return result({ kind: "no_action", reason: stuck("after the investigation check") });
+      }
+      if (over) {
+        check = { why: over, asks: 0 };
+        checksUsed++;
+        input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", message: `Investigation budget reached (${over.replace(/_/g, " ")}: ${investigation.newSinceEdit} new reads, ${investigation.repeatsSinceEdit} repeats, ${investigation.readTurns} read-only turns); asked where the step stands`, data: { role: input.role, newReads: investigation.newSinceEdit, repeats: investigation.repeatsSinceEdit, readTurns: investigation.readTurns } });
       }
       messages.push({ role: "tool", content: content + nudge, toolCallId: call.id, toolName: name });
       if (exec.terminal) return result(exec.terminal);
@@ -566,6 +616,10 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
             content: `Runtime notice: you repeated the exact same ${name} call and it failed the same way. Do not repeat it. Change approach: re-read the file, use a larger unique find text (include the surrounding lines), or call report_blocked.`,
           });
       }
+    }
+    if (check && check.asks === 0) {
+      check.asks = 1;
+      messages.push({ role: "user", content: investigationPrompt(check.why, investigation) });
     }
     // The reply hit the output limit, so its last tool call lost its arguments (a whole file cut off mid-way).
     if (/^(max_tokens|length)$/.test(res.doneReason ?? ""))

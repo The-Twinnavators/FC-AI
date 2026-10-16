@@ -1796,6 +1796,19 @@ export class Orchestrator {
     }
     task = this.updateTask(task, { actualPaths: [...changed] });
 
+    // The investigation check (investigation.ts): an ambiguous step or information only a person has stops for them
+    // without using an attempt; a step too big for one go is split now instead of after two more attempts.
+    if (outcome.kind === "blocked" && /^(Ambiguous task|Missing information):/.test(outcome.reason)) {
+      this.updateTask(task, { status: "blocked", attempts: Math.max(0, task.attempts - 1), blocker: { reason: outcome.reason, category: "user", failureClass: "task_contract", evidenceRefs: [], nextAction: outcome.nextAction } });
+      this.d.bus.emit({ ...ev, type: "task.blocked", message: `Task needs you: ${task.title} — ${outcome.reason.slice(0, 160)}`, level: "warning", data: { failureClass: "task_contract" } });
+      return;
+    }
+    if (outcome.kind === "split_required") {
+      this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), `The coder said the step needs splitting: ${outcome.reason}`].slice(-12));
+      const fresh = this.updateTask(task, { attempts: Math.max(0, task.attempts - 1) });
+      if (await this.splitStep(run, fresh, jail, signal)) return;
+      outcome = { kind: "no_action", reason: `Split required but the step can't be split further: ${outcome.reason}` };
+    }
     // A coder that gives up on its own work (a file it should create, checks it should fix) gets another attempt
     // with that said plainly, instead of the step being marked as needing the user.
     if (outcome.kind === "blocked" && task.role === "coder" && !runtimeStep && task.attempts < MAX_TASK_ATTEMPTS) {
@@ -2438,6 +2451,8 @@ export class Orchestrator {
       extraTools,
       // The design steps read widely before their first edit (the kit, the placed pieces, the styles, the brief's parts):
       // a cloud coder reading four files a turn hit the read limit just before writing (Build test 5).
+      investigationBudget: runtimeOptions(this.d.store).investigationBudget,
+      supplyInfo: async (needs) => supplyFromProject(jail.root, needs),
       relaxGuards: guardStops(this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, [])) >= 2 || [DESIGN_SCREENS, DESIGN_POLISH].some((d) => task.title === d || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === d),
       system,
       user: brief.text,
@@ -2818,6 +2833,67 @@ function prdTextOf(refs: ReferenceFile[]): string {
     .slice(0, 60_000);
 }
 
+
+/**
+ * "Missing information" answered from the project, bounded (investigation.ts): a named file's text, or the lines that
+ * mention a name. At most 4,000 characters per item and 12,000 in all; undefined when nothing is found.
+ */
+export function supplyFromProject(root: string, needs: string[]): string | undefined {
+  const out: string[] = [];
+  let total = 0;
+  const files: string[] = [];
+  const walk = (dir: string, depth = 0) => {
+    if (depth > 6 || files.length > 600) return;
+    let entries: fs.Dirent[] = [];
+    try {
+      entries = fs.readdirSync(path.join(root, dir), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const rel = dir ? `${dir}/${e.name}` : e.name;
+      if (e.isDirectory()) {
+        if (!/^(node_modules|\.git|dist|build|\.flowcode)$/.test(e.name)) walk(rel, depth + 1);
+      } else if (/\.(tsx?|jsx?|css|json|md)$/.test(e.name)) files.push(rel);
+    }
+  };
+  walk("src");
+  for (const need of needs.slice(0, 6)) {
+    if (total >= 12_000) break;
+    const asPath = need.replace(/\\/g, "/").replace(/^\.\//, "").trim();
+    let piece = "";
+    if (/^[\w./-]+\.\w+$/.test(asPath) && !asPath.includes("..")) {
+      try {
+        piece = `${asPath}:\n${fs.readFileSync(path.join(root, asPath), "utf8").slice(0, 4000)}`;
+      } catch {
+        piece = "";
+      }
+    }
+    if (!piece) {
+      const word = need.replace(/[^\w$.-]+/g, " ").trim().split(" ").sort((a, b) => b.length - a.length)[0] ?? "";
+      if (word.length >= 3) {
+        const hits: string[] = [];
+        for (const f of files) {
+          if (hits.length >= 12) break;
+          try {
+            fs.readFileSync(path.join(root, f), "utf8").split("\n").forEach((line, i) => {
+              if (hits.length < 12 && line.includes(word)) hits.push(`${f}:${i + 1}: ${line.trim().slice(0, 160)}`);
+            });
+          } catch {
+            /* unreadable */
+          }
+        }
+        if (hits.length) piece = `Where "${word}" appears:\n${hits.join("\n")}`;
+      }
+    }
+    if (piece) {
+      const cut = piece.slice(0, Math.min(4000, 12_000 - total));
+      out.push(cut);
+      total += cut.length;
+    }
+  }
+  return out.length ? out.join("\n\n") : undefined;
+}
 
 /** The model a step's coder used, for messages ("gpt-5.6-sol"). */
 function assignmentLabel(run: Run, _task: Task): string {

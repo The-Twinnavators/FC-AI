@@ -22,11 +22,12 @@ describe("FlowCode limits", () => {
       const { app } = makeApp();
       let n = 0;
       app.router.register(new ScriptedProvider({ id: "reader", kind: "scripted", label: "reader", enabled: true, hosted: false }, () => ({ toolCalls: [call("read_file", { path: `src/f${n++}.ts` })] })));
-      return runAgentLoop({ router: app.router, store: app.store, bus: app.bus, role: "coder", assignment: { providerId: "reader", model: "m" }, system: "s", user: "u", runId: "run_relax", maxTurns: 60, relaxGuards, executor: async () => ({ ok: true, content: "x" }) });
+      return runAgentLoop({ router: app.router, store: app.store, bus: app.bus, role: "coder", assignment: { providerId: "reader", model: "m" }, system: "s", user: "u", runId: "run_relax", maxTurns: 200, relaxGuards, executor: async () => ({ ok: true, content: "x" }) });
     };
-    // A local model reading a different file each turn: 8 read-only turns end it (on turn 9), or 24 when relaxed.
-    expect((await run(false)).turns).toBe(9);
-    expect((await run(true)).turns).toBe(25);
+    // A local model reading a different file each turn is investigating: its 40th new read brings the investigation
+    // check, and two replies with no answer end the attempt (turn 42); relaxed, the budget is 120 (turn 122).
+    expect((await run(false)).turns).toBe(42);
+    expect((await run(true)).turns).toBe(122);
   });
 });
 

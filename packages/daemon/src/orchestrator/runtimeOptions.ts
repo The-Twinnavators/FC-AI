@@ -15,9 +15,14 @@ export interface RuntimeOptions {
   rollbackBlocked: boolean;
   /** When a run gets stuck, rewrite the request more clearly and try once more (not in Supervised projects). */
   autoRetry: boolean;
+  /**
+   * Reads of new content a step may make without changing anything before it's asked where it stands (the
+   * investigation check, investigation.ts). 0: automatic (40 for a local model, 120 for a cloud one).
+   */
+  investigationBudget: number;
 }
 
-export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true };
+export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true, investigationBudget: 0 };
 const KEY = "runtimeOptions";
 
 export function runtimeOptions(store: Store): RuntimeOptions {

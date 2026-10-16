@@ -152,7 +152,7 @@ describe("reading without doing", () => {
   });
 
 
-  it("nudges on the third read of an unchanged file and ends the attempt after 15 reads with no change", async () => {
+  it("nudges on the third read of an unchanged file, asks where the step stands, and ends the attempt when it gets no answer", async () => {
     const { runAgentLoop } = await import("../src/orchestrator/agentLoop.js");
     const { ScriptedProvider, call } = await import("../src/models/scripted.js");
     const { app } = makeApp();
@@ -171,9 +171,11 @@ describe("reading without doing", () => {
       maxTurns: 40,
       executor: async () => ({ ok: true, content: "file contents" }),
     });
-    // Three files over and over: the sixth re-read of an unchanged file ends it (read 9).
-    expect(res.outcome).toMatchObject({ kind: "no_action", reason: expect.stringMatching(/9 reads in a row/) });
-    expect(res.turns).toBe(9);
+    // Three files over and over: the 7th re-read of unchanged content (read 10) brings the investigation check; two
+    // replies with no answer end it (turn 12).
+    expect(res.outcome).toMatchObject({ kind: "no_action", reason: expect.stringMatching(/10 reads in a row and no change made \(7 of them of unchanged files\), and no answer to the investigation check/) });
+    expect(res.turns).toBe(12);
+    expect(res.transcript.filter((m) => /^Runtime check: 7 reads of files you had already read/.test(m.content)).length).toBe(1);
     expect(res.transcript.some((m) => /read src\/styles\/tokens\.css 3 times/.test(m.content))).toBe(true);
   });
 
