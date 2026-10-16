@@ -210,3 +210,12 @@ export function seededRecords(source: string): number {
   }
   return best;
 }
+
+/**
+ * A step that writes tests (its own files include a test file, or a check needs one to exist), as opposed to a step
+ * whose check runs tests someone else wrote. Only the first gets the testing guide, the test scaffold and the
+ * test-first skill (bench: a one-line change checked by an existing test got all three, 7,000 characters of guide).
+ */
+export function writesTestsStep(task: Pick<Task, "expectedPaths" | "acceptanceCriteria">): boolean {
+  return task.expectedPaths.some((p) => TEST_FILE.test(p.replace(/\\/g, "/"))) || task.acceptanceCriteria.some((c) => c.check.type === "file_exists" && TEST_FILE.test(pathOf(c) ?? ""));
+}

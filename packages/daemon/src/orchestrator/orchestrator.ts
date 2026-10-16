@@ -80,7 +80,7 @@ import { budgetSkills, charsPerToken, requestBudget } from "./requestBudget.js";
 import { stepTools } from "./toolSelection.js";
 import { toolDef } from "./agentLoop.js";
 import { catalogContract, contractText } from "./catalogContract.js";
-import { STYLE_FILE, contractProblems, deliverableChecks, genericOnly, isTaskSpecific, separateMixed, testFileOf } from "./taskContract.js";
+import { STYLE_FILE, contractProblems, deliverableChecks, genericOnly, isTaskSpecific, separateMixed, testFileOf, writesTestsStep } from "./taskContract.js";
 import { FLOWCODE_LIMITS_KEY, compactPartObjective, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
@@ -1690,7 +1690,7 @@ export class Orchestrator {
         if (titles.length) task = this.updateTask(task, { acceptanceCriteria: [...task.acceptanceCriteria, { id: `${task.id}-styletests`, description: `The stylesheet tests pass (${titles.length} of ${styleFile})`, check: { type: "verification", kind: partTestsKind(styleFile, titles) }, evidenceRefs: [] }] });
       }
       // A test-writing step starts from a working file: imports, the reset between tests, openAt and one passing test.
-      const testFile = task.attempts === 1 && turnBudget(task) > 30 ? testFileOf(task) : undefined;
+      const testFile = task.attempts === 1 && writesTestsStep(task) ? testFileOf(task) : undefined;
       if (testFile && !fs.existsSync(path.join(jail.root, testFile))) {
         const content = testScaffold(jail.root, task.title);
         if (content) {
@@ -1929,6 +1929,15 @@ export class Orchestrator {
       this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), `The coder said the step needs splitting: ${outcome.reason}`].slice(-12));
       const fresh = this.updateTask(task, { attempts: Math.max(0, task.attempts - 1) });
       if (await this.splitStep(run, fresh, jail, signal)) return;
+      // Not split: the attempt counts again (a refunded attempt that splits nothing would loop for ever).
+      task = this.updateTask(this.d.store.tasks.require(task.id), { attempts: fresh.attempts + 1 });
+      // Its own material doesn't fit the profile's context and it can't be split: the person chooses; FlowCode doesn't
+      // widen the context on its own.
+      if (/more tokens than/.test(outcome.reason)) {
+        this.updateTask(task, { status: "blocked", attempts: Math.max(0, task.attempts - 1), blocker: { reason: `"${task.title}" doesn't fit the coding context: ${outcome.reason}`, category: "user", failureClass: "task_contract", evidenceRefs: [], nextAction: "Choose one: run it with the 16k coding context (Settings → Speed & recovery), split it into smaller steps, or shorten what it asks for. Then retry it." } });
+        this.d.bus.emit({ ...ev, type: "task.blocked", level: "warning", message: `"${task.title}" is bigger than the 8GB profile's coding context and can't be split: it waits for your choice`, data: { failureClass: "task_contract" } });
+        return;
+      }
       outcome = { kind: "no_action", reason: `Split required but the step can't be split further: ${outcome.reason}` };
     }
     // A coder that gives up on its own work (a file it should create, checks it should fix) gets another attempt
@@ -2484,7 +2493,7 @@ export class Orchestrator {
     // Picked from what the step is (its title, its own work, whether its checks run tests), not from the whole parent
     // step a split part quotes.
     const ownText = `${task.title}\n${compactPartObjective(task.objective, task.expectedPaths)}`;
-    const writesTests = task.acceptanceCriteria.some((c) => /^tests(-run)?:/.test((c.check as { kind?: string }).kind ?? "")) || turnBudget(task) > 30;
+    const writesTests = writesTestsStep(task);
     const pinned = [...workflowSkillIds(role, ownText, { writesTests }), ...(role === "coder" ? designSkillIds(ownText) : [])];
     const design = pinned.map((id) => library.find((x) => x.id === id)).filter((s): s is NonNullable<typeof s> => !!s && s.enabled !== false);
     const skills = capSkills(selected, stack, undefined, { design, retry: task.attempts > 1 || role === "debugger" });
@@ -2495,7 +2504,7 @@ export class Orchestrator {
     // agent adds a catalog piece instead of writing the markup (a build used the starter kit and nothing from it).
     const catalog = uiWork && (role === "coder" || role === "debugger") ? this.catalogFor(run, task, jail.root) : "";
     // A step that writes acceptance tests gets how to work and a map of what the screens show (testingGuide.ts).
-    const tests = turnBudget(task) > 30 ? testingGuide(jail.root, 7000, testFileOf(task)) : "";
+    const tests = writesTestsStep(task) ? testingGuide(jail.root, 7000, testFileOf(task)) : "";
     // The whole first request is budgeted in tokens (requestBudget.ts): system, skills, tool definitions, brief, room to
     // work and the reply. Skills get their share in the order picked (workflow skill first, then design by fit).
     const windowTokens = assignment.contextWindow ?? (assignment.providerId.startsWith("hosted") ? 128_000 : 16_384);
