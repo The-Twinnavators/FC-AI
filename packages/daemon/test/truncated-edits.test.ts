@@ -70,3 +70,16 @@ describe("a reply with many edits", () => {
     expect(events.some((e) => /2 edits applied \(src\/b\.tsx \(2\)\), 1 failed \(src\/a\.css \(1\)\), 1 not run \(src\/a\.css \(1\)\)/.test(e))).toBe(true);
   });
 });
+
+describe("the patch and rewrite guards don't contradict each other", () => {
+  it("allows a rewrite of a large file after three missed patches, even for a one-line change; refuses a rewrite that changes nothing", async () => {
+    const { editGuard } = await import("../src/orchestrator/guards.js");
+    const before = Array.from({ length: 272 }, (_, i) => `.rule-${i} { color: red; }`).join("\n");
+    const oneLine = before.replace(".rule-50 { color: red; }", ".rule-50 { color: var(--color-accent); }");
+    // Before any miss: patch it instead.
+    expect(editGuard("replace_file", "src/styles/components.css", before, { content: oneLine }, { patchMisses: 0 })).toMatch(/Use apply_patch/);
+    // After the third miss, which is when apply_patch is refused for this file, the rewrite goes through.
+    expect(editGuard("replace_file", "src/styles/components.css", before, { content: oneLine }, { patchMisses: 3 })).toBeUndefined();
+    expect(editGuard("replace_file", "src/styles/components.css", before, { content: before }, { patchMisses: 3 })).toMatch(/nothing would change/);
+  });
+});

@@ -2844,6 +2844,11 @@ export class Orchestrator {
     for (const run of this.d.store.runs.where("status IN ('running','recovering','verifying')")) {
       for (const t of this.graph.tasks(run.id)) if (t.status === "running" || t.status === "awaiting_approval") this.updateTask(t, { status: "attempted", attempts: Math.max(0, t.attempts - 1) });
       const level = this.d.store.projects.get(run.projectId)?.settings.autonomy ?? "supervised";
+      // Paused by the person before the restart: it stays paused (it waits for Continue), with its place kept.
+      if (this.d.store.getSetting(`runPaused:${run.id}`, false)) {
+        this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: "Daemon restarted: this build stays paused, as you left it; Continue resumes it from its current step" });
+        continue;
+      }
       if (level !== "supervised" && run.planApproved && !this.paused) {
         this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: `Daemon restarted: resuming automatically (${level} policy)` });
         try {
@@ -2869,6 +2874,14 @@ export class Orchestrator {
     const run = this.d.store.runs.require(runId);
     if (paused) this.pausedRuns.add(runId);
     else this.pausedRuns.delete(runId);
+    // Kept across a daemon restart: a build the person paused stays paused when the daemon comes back.
+    this.d.store.setSetting(`runPaused:${runId}`, paused);
+    // Continue on a build that isn't running (paused through a restart) resumes it from its checkpoint.
+    if (!paused && !this.active.has(runId) && !TERMINAL_RUN_STATUSES.includes(run.status)) {
+      this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: "Continuing the build" });
+      this.resume(runId);
+      return { paused };
+    }
     this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: paused ? "Pausing: the step in progress finishes, then the build waits until you continue" : "Continuing the build" });
     return { paused };
   }

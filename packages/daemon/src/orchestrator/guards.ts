@@ -91,7 +91,12 @@ export function editGuard(tool: "apply_patch" | "replace_file", path: string, be
     // A large file rewritten to change a handful of lines: slow to write and easy to damage. Patch those lines instead.
     // Not after two missed patches on the file: then a rewrite is the way out (Calendar test 6: a 140-line file whose
     // patches kept missing and whose rewrite was refused).
-    if (!(opts.patchMisses >= 2 && changed > 3) && oldLines.length > 120 && changed <= Math.max(12, oldLines.length * 0.15)) {
+    // A rewrite that changes nothing is refused as that, never sent back to apply_patch.
+    if (changed === 0 && after.trim() === before.trim()) return `Not applied: this rewrite of ${path} is the file as it already is; nothing would change. The change you meant isn't in it: put the corrected lines in the content.`;
+    // After three missed patches apply_patch is refused for the file and a rewrite is the way out, however small the
+    // change: the two guards used to send the agent back and forth (Clean Cart controlled build: seven refused rewrites,
+    // about 51 minutes, until the attempt stopped).
+    if (opts.patchMisses < 3 && !(opts.patchMisses >= 2 && changed > 3) && oldLines.length > 120 && changed <= Math.max(12, oldLines.length * 0.15)) {
       const sample = newLines.filter((l) => !oldSet.has(l.trim())).slice(0, 3).map((l) => l.trim()).filter(Boolean);
       return `Not applied: this rewrites all ${oldLines.length} lines of ${path} to change about ${changed}. Use apply_patch with just the lines that change${opts.patchMisses ? ": read_file first and copy the find text exactly from it (including spaces), with one or two neighbouring lines so it is unique" : ""}.${sample.length ? ` The lines you want: ${sample.map((l) => `\`${l.slice(0, 80)}\``).join(", ")}.` : ""}`;
     }

@@ -115,3 +115,24 @@ describe("the app model in parts", () => {
     expect(got.problems.filter((p) => /carry|ZIP|sample/.test(p))).toEqual([]);
   });
 });
+
+describe("a paused build across a daemon restart", () => {
+  it("stays paused and idle after the restart, and Continue resumes it", async () => {
+    const { app } = makeApp();
+    const { makeProject } = await import("./helpers.js");
+    const { project } = makeProject(app, { "README.md": "# demo\n" });
+    app.projects.updateSettings(project.id, { autonomy: "assisted" });
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "g", constraints: [], attachedKnowledgeIds: [] });
+    app.store.runs.upsert({ ...app.store.runs.require(run.id), status: "running", planApproved: true });
+    app.orchestrator.pauseRun(run.id, true);
+    // A fresh orchestrator over the same data is what a restart is.
+    const resumed: string[] = [];
+    const orch = app.orchestrator as unknown as { resume: (id: string) => unknown; reconcileOnStartup: () => Promise<void> };
+    orch.resume = (id: string) => (resumed.push(id), undefined);
+    await orch.reconcileOnStartup();
+    expect(resumed).toEqual([]);
+    expect(app.bus.list({ runId: run.id, types: ["run.status_changed"] }).some((e) => /stays paused, as you left it/.test(e.message))).toBe(true);
+    app.orchestrator.pauseRun(run.id, false);
+    expect(resumed).toEqual([run.id]);
+  });
+});
