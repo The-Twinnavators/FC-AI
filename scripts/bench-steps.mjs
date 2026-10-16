@@ -59,6 +59,17 @@ const poll = setInterval(async () => {
   } catch {}
 }, 2000);
 
+// The copied database still names the original workspace (settings "workspaceRefs" maps the project's ref to an
+// absolute path): point it at the copy, or the run edits the live build's files (it did, before this fix).
+{
+  const { DatabaseSync } = await import("node:sqlite");
+  const db = new DatabaseSync(path.join(work, "flowcode.sqlite"));
+  const row = db.prepare("SELECT value FROM settings WHERE key = 'workspaceRefs'").get();
+  const refs = JSON.parse(row?.value ?? "{}");
+  for (const [ref, abs] of Object.entries(refs)) if (/clean-cart-controlled-build-d804f3/.test(String(abs))) refs[ref] = path.join(work, WS);
+  db.prepare("UPDATE settings SET value = ? WHERE key = 'workspaceRefs'").run(JSON.stringify(refs));
+  db.close();
+}
 const { createApp } = await import(`file:///${FC}/packages/daemon/dist/app.js`);
 const { setRuntimeOptions } = await import(`file:///${FC}/packages/daemon/dist/orchestrator/runtimeOptions.js`);
 const app = createApp({ dataDir: work });
@@ -67,6 +78,24 @@ setRuntimeOptions(app.store, opts);
 const run = app.store.runs.require(RUN);
 const project = app.store.projects.require(run.projectId);
 const jail = app.projects.jail(project);
+// Never run against anything but this run's own copy.
+if (path.resolve(jail.root).toLowerCase() !== path.resolve(work, WS).toLowerCase()) {
+  console.error(`refusing to run: the project resolves to ${jail.root}, not this run's copy ${path.join(work, WS)}`);
+  process.exit(2);
+}
+// Failures already in the copy (the live build's half-done work) are recorded first, as a build records them when it
+// starts: each step is judged on new errors only.
+const known = await app.verifier.captureBaseline(run).catch(() => []);
+// An approval request ends the run as a policy outcome (nobody answers it here; it never waits for the timeout).
+const ctrl = new AbortController();
+let approvalAsked = "";
+const watchApprovals = setInterval(() => {
+  const pending = app.approvals.pending().find((a) => a.runId === RUN && a.kind !== "enhancement_idea");
+  if (pending && !approvalAsked) {
+    approvalAsked = pending.action;
+    ctrl.abort(new Error("approval requested"));
+  }
+}, 1000);
 const t0 = Date.now();
 const startSeq = app.store.db.get("SELECT max(seq) m FROM events")?.m ?? 0;
 let outcome = "";
@@ -91,7 +120,8 @@ if (taskId === "plan") {
     const tid = queue.shift();
     ids.push(tid);
     for (let i = 0; i < 4; i++) {
-      await app.orchestrator.runTask(app.store.runs.require(RUN), app.store.tasks.require(tid), jail, new AbortController().signal);
+      await app.orchestrator.runTask(app.store.runs.require(RUN), app.store.tasks.require(tid), jail, ctrl.signal).catch(() => undefined);
+      if (ctrl.signal.aborted) break;
       const st = app.store.tasks.require(tid).status;
       if (st === "verified" || st === "blocked") break;
       if (st === "skipped") {
@@ -104,6 +134,8 @@ if (taskId === "plan") {
   outcome = st.map((t) => `${t.status}${t.status === "blocked" ? ` (${(t.blocker?.reason ?? "").slice(0, 120)})` : ""}`).join(" → ");
 }
 clearInterval(poll);
+clearInterval(watchApprovals);
+if (approvalAsked) outcome = `policy: an approval was requested (${approvalAsked.slice(0, 120)})`;
 await app.processes.cleanupAll("benchmark run finished").catch(() => undefined);
 const evs = app.store.db.all("SELECT type, data FROM events WHERE seq > ? AND run_id = ?", startSeq, RUN).map((e) => ({ type: e.type, d: JSON.parse(e.data) }));
 const mc = evs.filter((e) => e.type === "model.completed").map((e) => e.d.data ?? {});
@@ -119,6 +151,7 @@ console.log(JSON.stringify({
   verified: taskId === "plan" ? /^model:/.test(outcome) : ids.every((x) => app.store.tasks.require(x).status === "verified") || app.store.tasks.require(ids[0]).status === "skipped" && final?.status === "verified",
   checksAtEnd: final ? final.acceptanceCriteria.map((c) => (c.check.kind ?? c.check.type)) : undefined,
   wallS: Math.round((Date.now() - t0) / 1000),
+  baselineFailures: known,
   attempts: taskId === "plan" ? undefined : ids.map((x) => app.store.tasks.require(x).attempts),
   modelCalls: mc.length,
   genTokens: mc.reduce((n, d) => n + (d.usage?.completionTokens ?? 0), 0),
