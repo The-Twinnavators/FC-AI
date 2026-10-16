@@ -6,7 +6,7 @@
  *  - Components: a visual style sheet of the reusable parts the app already has (CSS class families rendered with
  *    the app's own stylesheets, and its React components). Coding agents get the same list so they reuse these.
  */
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Boxes, Layers, Palette, RefreshCw, Sparkles, Undo2, Wand2 } from "lucide-react";
 import { ExtrasPanel } from "./ExtrasPanel";
@@ -249,12 +249,132 @@ function TokensView({ projectId }: { projectId: string }) {
             <h3 id={`sg-${g.id}`} className="styles-group__title">
               {g.label} <span className="muted">{list.length}</span>
             </h3>
-            <div className="styles-list">
-              {list.map((t) => (
-                <TokenRow key={keyOf(t) + t.value} t={t} lookup={lookup} busy={saving === keyOf(t)} onSave={(v) => void save(t, v)} />
-              ))}
-            </div>
+            {g.id === "color" ? (
+              <ColorFamilies list={list} lookup={lookup} open={!!q.trim()} render={(t) => <TokenRow key={keyOf(t) + t.value} t={t} lookup={lookup} busy={saving === keyOf(t)} onSave={(v) => void save(t, v)} />} />
+            ) : (
+              <div className="styles-list">
+                {list.map((t) => (
+                  <TokenRow key={keyOf(t) + t.value} t={t} lookup={lookup} busy={saving === keyOf(t)} onSave={(v) => void save(t, v)} />
+                ))}
+              </div>
+            )}
           </section>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Hue families, in colour-wheel order; low-saturation colours go to Neutrals. */
+const FAMILIES: Array<{ id: string; label: string; from: number; to: number }> = [
+  { id: "red", label: "Reds", from: 345, to: 15 },
+  { id: "orange", label: "Oranges & browns", from: 15, to: 45 },
+  { id: "yellow", label: "Yellows", from: 45, to: 70 },
+  { id: "green", label: "Greens", from: 70, to: 165 },
+  { id: "teal", label: "Teals & cyans", from: 165, to: 200 },
+  { id: "blue", label: "Blues", from: 200, to: 255 },
+  { id: "purple", label: "Purples", from: 255, to: 290 },
+  { id: "pink", label: "Pinks", from: 290, to: 345 },
+  { id: "neutral", label: "Neutrals", from: 0, to: 0 },
+];
+
+let probe: { el: HTMLSpanElement; ctx: CanvasRenderingContext2D | null } | undefined;
+/** A CSS colour (hex, var() already resolved, color-mix, oklab…) as sRGB, measured the way the browser draws it. */
+function rgbOf(css: string): [number, number, number] | undefined {
+  if (typeof document === "undefined" || !css) return undefined;
+  if (!probe) {
+    const el = document.createElement("span");
+    el.style.display = "none";
+    document.body.appendChild(el);
+    probe = { el, ctx: document.createElement("canvas").getContext("2d", { willReadFrequently: true }) };
+  }
+  probe.el.style.color = "";
+  probe.el.style.color = css;
+  if (!probe.el.style.color || !probe.ctx) return undefined;
+  const computed = getComputedStyle(probe.el).color;
+  probe.ctx.clearRect(0, 0, 1, 1);
+  probe.ctx.fillStyle = "#000";
+  probe.ctx.fillStyle = computed;
+  probe.ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b, a] = probe.ctx.getImageData(0, 0, 1, 1).data;
+  return a === 0 ? undefined : [r!, g!, b!];
+}
+
+function familyOf([r, g, b]: [number, number, number]): string {
+  const max = Math.max(r, g, b) / 255;
+  const min = Math.min(r, g, b) / 255;
+  const l = (max + min) / 2;
+  const d = max - min;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  // Greys, near-blacks and near-whites with a faint tint read as neutral, not as a hue.
+  if (s < 0.14 || d < 0.08 || l < 0.07 || l > 0.96) return "neutral";
+  const rn = r / 255, gn = g / 255, bn = b / 255;
+  let h = max === rn ? ((gn - bn) / d) % 6 : max === gn ? (bn - rn) / d + 2 : (rn - gn) / d + 4;
+  h = (h * 60 + 360) % 360;
+  return FAMILIES.find((f) => (f.from > f.to ? h >= f.from || h < f.to : h >= f.from && h < f.to))?.id ?? "neutral";
+}
+
+/**
+ * Colours grouped by hue family in cards that open and close, three tokens a row. Colours that look the same (within a
+ * few steps of each other in every channel, same theme) are shown once; the rest stay a click away, since each is
+ * still a token the app uses.
+ */
+function ColorFamilies({ list, lookup, open, render }: { list: Token[]; lookup: Map<string, string>; open: boolean; render: (t: Token) => ReactNode }) {
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
+  const [showSame, setShowSame] = useState<Record<string, boolean>>({});
+  const families = useMemo(() => {
+    const by = new Map<string, Array<{ t: Token; rgb?: [number, number, number]; same?: string }>>();
+    for (const t of list) {
+      const rgb = rgbOf(resolveVars(t.resolved ?? t.value, lookup));
+      const id = rgb ? familyOf(rgb) : "neutral";
+      by.set(id, [...(by.get(id) ?? []), { t, rgb }]);
+    }
+    for (const items of by.values()) {
+      items.sort((a, b) => (a.rgb ? a.rgb[0] * 0.3 + a.rgb[1] * 0.59 + a.rgb[2] * 0.11 : 0) - (b.rgb ? b.rgb[0] * 0.3 + b.rgb[1] * 0.59 + b.rgb[2] * 0.11 : 0));
+      const kept: typeof items = [];
+      for (const it of items) {
+        const twin = it.rgb && kept.find((k) => k.rgb && k.t.theme === it.t.theme && Math.hypot(k.rgb[0] - it.rgb![0], k.rgb[1] - it.rgb![1], k.rgb[2] - it.rgb![2]) < 8);
+        if (twin) it.same = twin.t.name;
+        else kept.push(it);
+      }
+    }
+    return FAMILIES.map((f) => ({ ...f, items: by.get(f.id) ?? [] })).filter((f) => f.items.length);
+  }, [list, lookup]);
+  return (
+    <div className="color-families">
+      {families.map((f) => {
+        const isOpen = open || !!opened[f.id];
+        const same = f.items.filter((i) => i.same);
+        const shown = f.items.filter((i) => !i.same || showSame[f.id]);
+        return (
+          <div key={f.id} className={`color-family${isOpen ? " is-open" : ""}`}>
+            <button type="button" className="color-family__head" aria-expanded={isOpen} aria-controls={`cf-${f.id}`} onClick={() => setOpened((o) => ({ ...o, [f.id]: !isOpen }))}>
+              <span className="color-family__name">{f.label}</span>
+              <span className="muted color-family__count">
+                {f.items.length - same.length}
+                {same.length ? ` · ${same.length} look the same` : ""}
+              </span>
+              <span className="color-family__strip" aria-hidden="true">
+                {f.items
+                  .filter((i) => !i.same)
+                  .slice(0, 16)
+                  .map((i) => (
+                    <span key={keyOf(i.t)} style={{ background: i.rgb ? `rgb(${i.rgb.join(" ")})` : "transparent" }} />
+                  ))}
+              </span>
+              <span className="color-family__chevron" aria-hidden="true" />
+            </button>
+            {isOpen ? (
+              <div id={`cf-${f.id}`} className="color-family__body">
+                <div className="styles-list">{shown.map((i) => render(i.t))}</div>
+                {same.length ? (
+                  <button type="button" className="btn btn--sm btn--ghost color-family__same" aria-pressed={!!showSame[f.id]} onClick={() => setShowSame((s) => ({ ...s, [f.id]: !s[f.id] }))}>
+                    {showSame[f.id] ? `Hide ${same.length} that look the same` : `Show ${same.length} that look the same (${same.slice(0, 3).map((i) => i.t.name).join(", ")}${same.length > 3 ? "…" : ""})`}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         );
       })}
     </div>

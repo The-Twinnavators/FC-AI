@@ -16762,3 +16762,116 @@ body.cp-driving #copilot-panel { z-index: 80; }
   flex: 1 1 260px;
   min-width: 0;
 }
+
+/*
+ * Styles tab → Tokens: three token cards a row, two on a mid-size pane, one when narrow (the pane's own width, not the
+ * window's). Inside a card the name, value and file stack, so nothing is squeezed.
+ */
+.styles-panel {
+  container-type: inline-size;
+}
+.styles-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+@container (max-width: 1100px) {
+  .styles-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (max-width: 640px) {
+  .styles-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.styles-list .styles-token__main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+.styles-list .styles-token__meta {
+  justify-self: start;
+  text-align: left;
+}
+
+/* Colours by hue family: a row that opens and closes (not a card around cards), a strip of its colours when closed. */
+.color-families {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+.color-family {
+  border-bottom: 1px solid var(--line);
+}
+.color-family__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--text-0);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.color-family__head:hover .color-family__name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.color-family__head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.color-family__name {
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.color-family__count {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.color-family__strip {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+  overflow: hidden;
+  justify-content: flex-end;
+}
+.color-family__strip > span {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.35);
+}
+.color-family__chevron {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin: 0 4px 0 8px;
+  border-right: 2px solid var(--text-2, var(--text-1));
+  border-bottom: 2px solid var(--text-2, var(--text-1));
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.18s ease;
+}
+.color-family.is-open .color-family__chevron {
+  transform: rotate(225deg) translate(-2px, -1px);
+}
+.color-family__body {
+  display: grid;
+  gap: 10px;
+  padding: 4px 0 16px;
+}
+.color-family__same {
+  justify-self: start;
+}
+@media (prefers-reduced-motion: reduce) {
+  .color-family__chevron {
+    transition: none;
+  }
+}
