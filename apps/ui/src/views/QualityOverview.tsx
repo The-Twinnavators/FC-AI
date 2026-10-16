@@ -30,6 +30,7 @@ interface Launch {
   blocked: number;
   needsReview: number;
   latestRunStatus?: string;
+  latestRunStop?: { label: string; needsYou: boolean };
   updatedAt: string;
   /** The prototype build: its steps done out of all its steps, and where its review stands. */
   build?: { runId: string; done: number; total: number; status: string; review?: string };
@@ -77,7 +78,7 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                   <div className="qa-card__status">
                       {l?.latestRunStatus ? (
                         <span className="lrc-card__status">
-                          {["running", "recovering", "verifying"].includes(l.latestRunStatus) ? (
+                          {["running", "recovering", "verifying"].includes(l.latestRunStatus) && !l.latestRunStop ? (
                             <span className="stack-anim strip__blocks" aria-hidden="true">
                               <i />
                               <i />
@@ -87,7 +88,7 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                               <i />
                             </span>
                           ) : null}
-                          <StatusChip status={l.latestRunStatus} dot />
+                          {l.latestRunStop ? <span className={`chip ${l.latestRunStop.needsYou ? "chip--warn" : "chip--muted"}`} title="Why this build isn't working right now">{l.latestRunStop.label}</span> : <StatusChip status={l.latestRunStatus} dot />}
                         </span>
                       ) : (
                         <span className="muted">No builds yet</span>

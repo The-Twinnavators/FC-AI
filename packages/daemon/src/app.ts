@@ -12,6 +12,7 @@ import { ProjectService } from "./workspace/projects.js";
 import { SnapshotService } from "./workspace/snapshots.js";
 import { runtimeOptions } from "./orchestrator/runtimeOptions.js";
 import { setGpuGatePolicy } from "./models/gpuGate.js";
+import { getInterruption, recordInterruption, resolveInterruption } from "./orchestrator/interruptions.js";
 import { FileOperations } from "./workspace/operations.js";
 import { ModelRouter } from "./models/router.js";
 import { CapabilityLab } from "./models/capabilityLab.js";
@@ -62,7 +63,16 @@ export function createApp(opts: AppOptions = {}) {
   // The 8GB GPU profile: one local model request at a time across the app; the ones that wait say so in their build.
   setGpuGatePolicy(
     () => runtimeOptions(store).gpuProfile === "8gb",
-    (label, behind, position, meta) => bus.emit({ type: "model.queued", projectId: meta.projectId, runId: meta.runId, taskId: meta.taskId, message: `Waiting for the GPU: ${label} is ${position === 1 ? "next" : `number ${position} in line`}, behind ${behind}`, data: { behind, position } }),
+    (label, behind, position, meta) => {
+      bus.emit({ type: "model.queued", projectId: meta.projectId, runId: meta.runId, taskId: meta.taskId, message: `Waiting for the GPU: ${label} is ${position === 1 ? "next" : `number ${position} in line`}, behind ${behind}`, data: { behind, position } });
+      // The build shows "Queued" until its request starts (only when nothing else already explains a stop).
+      const cur = meta.runId ? getInterruption(store, meta.runId) : undefined;
+      if (meta.runId && meta.projectId && (!cur || cur.state === "resolved")) recordInterruption(store, bus, meta.projectId, { runId: meta.runId, cause: "gpu_queue", by: "system", detail: `${label} waits behind ${behind}.` });
+    },
+    (_label, meta, waitedMs) => {
+      const cur = meta.runId ? getInterruption(store, meta.runId) : undefined;
+      if (meta.runId && meta.projectId && cur?.cause === "gpu_queue" && cur.state !== "resolved") resolveInterruption(store, bus, meta.projectId, meta.runId, `Started: the GPU is free (waited ${Math.round(waitedMs / 1000)} s)`);
+    },
   );
   const orchestratorDeps: OrchestratorDeps = { store, bus, router, lab, projects, snapshots, ops, runner, processes, approvals, verifier, knowledge, mcp };
   const orchestrator = new Orchestrator(orchestratorDeps);

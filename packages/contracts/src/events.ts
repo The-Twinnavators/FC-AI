@@ -50,6 +50,9 @@ export const EVENT_TYPES = [
   "provider.checked",
   // A local model request waiting for the GPU behind another (the 8GB GPU profile runs one at a time).
   "model.queued",
+  // A build stopped (why, whether it recovers on its own, what resumes it), and went again.
+  "run.interrupted",
+  "run.resumed",
   "recovery.action",
   // Design research: inspiration from Dribbble, Behance and real products, studied before the screens are designed.
   "research.started",

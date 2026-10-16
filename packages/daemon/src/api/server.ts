@@ -54,6 +54,7 @@ import { ACTIVITY_WINDOWS, agentActivity, buildGraph, type ActivityWindow } from
 import { askCopilot } from "./copilot.js";
 import { openExternal } from "./openExternal.js";
 import { runtimeOptions, setRuntimeOptions } from "../orchestrator/runtimeOptions.js";
+import { getInterruption } from "../orchestrator/interruptions.js";
 import { addContext, CONTEXT_CATEGORIES, deleteContext, getCopilotProfile, setAddress, updateContext, setAvatar, AVATAR_MAX } from "./copilotProfile.js";
 import { libraryStats } from "./libraryStats.js";
 import { troubleshoot } from "../quality/troubleshoot.js";
@@ -876,6 +877,14 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     return updated;
   });
   add("POST /runs/:id/pause", ({ params }) => app.orchestrator.pauseRun(params.id, true));
+  // Retry recovery: the person asks FlowCode to try now (also after its automatic attempts ran out).
+  add("POST /runs/:id/recover", async ({ params }) => app.orchestrator.recoverNow(params.id, true));
+  // Maintenance: FlowCode's own work pauses a build with a continuation registered first; finishing it resumes them.
+  add("POST /runs/:id/maintenance", ({ params, body }) => {
+    const b = parse(z.object({ reason: z.string().min(3).max(500), authorizedBy: z.string().max(200).optional() }), body);
+    return app.orchestrator.pauseForMaintenance(params.id, b.reason, b.authorizedBy);
+  });
+  add("POST /system/maintenance-done", () => ({ resuming: app.orchestrator.finishMaintenance() }));
   add("POST /runs/:id/unpause", ({ params }) => app.orchestrator.pauseRun(params.id, false));
   // Re-run one check from the signal strip (not while the run is working).
   const rerunning = new Set<string>();
@@ -1662,6 +1671,8 @@ function runView(app: App, id: string) {
     active: app.orchestrator.isActive(id),
     probing: app.orchestrator.isProbing(id),
     paused: app.orchestrator.isRunPaused(id),
+    // Why it isn't working right now, and what resumes it (orchestrator/interruptions.ts).
+    interruption: getInterruption(app.store, id),
     resumable: !app.orchestrator.isActive(id) && !app.orchestrator.isProbing(id) && !C.TERMINAL_RUN_STATUSES.includes(run.status) && (run.planApproved || (run.status === "blocked" && !tasks.length)),
     coder: app.orchestrator.coderCheck(run),
     tasks,

@@ -12,13 +12,15 @@ export interface GateWaiter {
 let enabled: () => boolean = () => false;
 export type GateMeta = { runId?: string; projectId?: string; taskId?: string };
 let onQueued: (label: string, behind: string, position: number, meta: GateMeta) => void = () => {};
+let onAcquired: (label: string, meta: GateMeta, waitedMs: number) => void = () => {};
 let holder: string | undefined;
 const queue: GateWaiter[] = [];
 
 /** Whether the gate applies (read on every request, so a settings change takes effect on the next one). */
-export function setGpuGatePolicy(policy: () => boolean, announce?: (label: string, behind: string, position: number, meta: GateMeta) => void) {
+export function setGpuGatePolicy(policy: () => boolean, announce?: (label: string, behind: string, position: number, meta: GateMeta) => void, started?: (label: string, meta: GateMeta, waitedMs: number) => void) {
   enabled = policy;
   if (announce) onQueued = announce;
+  if (started) onAcquired = started;
 }
 
 /** The request now on the GPU, and how many wait (for the activity view and tests). */
@@ -33,6 +35,7 @@ export async function acquireGpu(label: string, signal?: AbortSignal, meta: Gate
     holder = label;
     return release(label);
   }
+  const waitedFrom = Date.now();
   await new Promise<void>((resolve, reject) => {
     const w: GateWaiter = { label, resolve };
     queue.push(w);
@@ -48,6 +51,7 @@ export async function acquireGpu(label: string, signal?: AbortSignal, meta: Gate
     );
   });
   holder = label;
+  onAcquired(label, meta, Date.now() - waitedFrom);
   return release(label);
 }
 

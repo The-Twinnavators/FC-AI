@@ -11,6 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { ReferenceFile, Run, Task, VerificationCheck, VerificationKind } from "@flowcode/contracts";
 import type { App } from "../app.js";
+import { getInterruption } from "../orchestrator/interruptions.js";
 import { gitStatus } from "../workspace/fileService.js";
 import { extractRequirements, type Requirement } from "./spec.js";
 import { planKey, sectionRole, stepOrder, type LrcPlan } from "./lrcPlan.js";
@@ -969,6 +970,8 @@ export async function launchSummaries(app: App) {
         flagged: r.totals.flagged,
         categories: r.categories.length,
         latestRunStatus: latest?.status,
+        // Why it isn't working, in the builder's words (the run's stop record), so the list and the builder agree.
+        ...(latest ? { latestRunStop: stopLabel(app, latest) } : {}),
         updatedAt: p.updatedAt,
       });
     } catch {
@@ -991,4 +994,12 @@ export function previewPrompt(app: App, projectId: string, f: { title: string; d
   const stack = latest?.strategy?.templateId ? starterOf(latest.strategy.templateId).starter.stack : project.projectType && project.projectType !== "unknown" ? project.projectType : undefined;
   const categoryId = f.categoryId ?? "custom";
   return taskPromptFor(undefined, { title: f.title, detail: f.detail ?? "", kind: f.kind, gate: f.gate, categoryId, categoryTitle: categoryId }, promptConfigFor({ stack, scripts })).prompt;
+}
+
+/** A build's stop in a few words for the project list, or undefined when it is working or finished. */
+function stopLabel(app: App, run: { id: string; status: string }): { label: string; needsYou: boolean } | undefined {
+  const it = getInterruption(app.store, run.id);
+  if (it && it.state !== "resolved") return { label: it.cause === "user_pause" ? "Paused by you" : it.cause === "maintenance" ? "Paused for maintenance" : it.action.split(":")[0]!, needsYou: it.needsUser };
+  if (["running", "recovering", "verifying"].includes(run.status) && !app.orchestrator.isActive(run.id) && !app.orchestrator.isRunPaused(run.id)) return { label: "No worker is running it", needsYou: false };
+  return undefined;
 }

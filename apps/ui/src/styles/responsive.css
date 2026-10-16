@@ -16875,3 +16875,86 @@ body.cp-driving #copilot-panel { z-index: 80; }
     transition: none;
   }
 }
+
+/*
+ * Why a build isn't working (RunStopNotice): one bordered notice under the work column's header, kept until the stop is
+ * resolved. Tinted by what it needs: the person (amber), FlowCode recovering (blue), or a wait with nothing to do.
+ */
+.stop-notice {
+  margin: 12px 16px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent, #6d6bd6) 7%, var(--bg-1));
+  display: grid;
+  gap: 10px;
+}
+.stop-notice--needs {
+  border-color: color-mix(in srgb, #d99a2b 55%, var(--line));
+  background: color-mix(in srgb, #d99a2b 10%, var(--bg-1));
+}
+.stop-notice--recovering {
+  border-color: color-mix(in srgb, #4b8fe0 45%, var(--line));
+  background: color-mix(in srgb, #4b8fe0 9%, var(--bg-1));
+}
+.stop-notice--resumed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-color: color-mix(in srgb, #2f9e6b 45%, var(--line));
+  background: color-mix(in srgb, #2f9e6b 9%, var(--bg-1));
+  font-size: 13px;
+}
+.stop-notice__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.stop-notice__head strong {
+  flex: 1;
+  min-width: 0;
+}
+.stop-notice__bell {
+  flex: none;
+}
+.stop-details {
+  display: grid;
+  gap: 10px;
+}
+.stop-details__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 8px 16px;
+  margin: 0;
+}
+.stop-details__facts > div {
+  min-width: 0;
+}
+.stop-details__facts dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-2, var(--text-1));
+}
+.stop-details__facts dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-0);
+  overflow-wrap: anywhere;
+}
+.stop-details__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stop-details__msg {
+  margin: 0;
+  font-size: 12.5px;
+}
+.rtime__seg--stopped { background: #d99a2b; }
+.rtime__seg--paused { background: #8a8fa3; }
+.rtime__seg--maint { background: #6d6bd6; }
+.rtime__seg--queued { background: #4bb3c7; }
+.rtime__seg--recover { background: #4b8fe0; }
+.rtime__seg--orphan { background: #c75b5b; }

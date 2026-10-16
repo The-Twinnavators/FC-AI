@@ -8,6 +8,7 @@ import { useResource } from "../api";
 type Perf = {
   elapsedMs: number;
   waitingMs: number;
+  stoppedMs?: { paused: number; maintenance: number; queued: number; recovering: number; blocked: number; orphaned: number };
   busy: { modelMs: number; commandMs: number; toolMs: number; checkMs: number };
   model: { calls: number; failed: number };
   commands: { count: number; failed: number };
@@ -24,13 +25,21 @@ export function RunTimeBar({ runId, live }: { runId: string; live: boolean }) {
     { id: "model", label: "Model thinking", ms: p.busy.modelMs },
     { id: "cmd", label: "Commands", ms: p.busy.commandMs + p.busy.toolMs },
     { id: "check", label: "Checks", ms: p.busy.checkMs },
-    { id: "wait", label: "Waiting for you", ms: p.waitingMs },
+    // Only an approval request counts as waiting for you: the rest is said as what it was.
+    { id: "wait", label: "Waiting for your approval", ms: p.waitingMs },
+    { id: "stopped", label: "Stopped, needed you", ms: p.stoppedMs?.blocked ?? 0 },
+    { id: "paused", label: "Paused", ms: p.stoppedMs?.paused ?? 0 },
+    { id: "maint", label: "Maintenance", ms: p.stoppedMs?.maintenance ?? 0 },
+    { id: "queued", label: "Queued for the GPU", ms: p.stoppedMs?.queued ?? 0 },
+    { id: "recover", label: "Recovering", ms: p.stoppedMs?.recovering ?? 0 },
+    { id: "orphan", label: "No worker running it", ms: p.stoppedMs?.orphaned ?? 0 },
   ];
   const known = parts.reduce((n, x) => n + x.ms, 0);
   // Time with no recorded work: while running, starting up or waiting on the model service; once stopped, mostly the
   // time it sat stopped or paused.
   const rest = Math.max(0, p.elapsedMs - known);
-  const all = [...parts, { id: "rest", label: live ? "Idle between steps" : "Idle, paused or stopped", ms: rest }].filter((x) => x.ms >= 1000);
+  // What's left has no recorded cause: between steps while it works, or before stops were recorded.
+  const all = [...parts, { id: "rest", label: live ? "Between steps" : "Not attributed", ms: rest }].filter((x) => x.ms >= 1000);
   const retried = p.tasks.filter((t) => t.attempts > 1);
   const facts = [
     p.commands.failed ? `${p.commands.failed} of ${p.commands.count} commands failed` : "",

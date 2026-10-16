@@ -6,6 +6,7 @@
 import { firstLookAt } from "./firstLook.js";
 import { isFinishedRun, TERMINAL_RUN_STATUSES, type Run } from "@flowcode/contracts";
 import type { App } from "../app.js";
+import { getInterruption, type Interruption } from "../orchestrator/interruptions.js";
 
 export type ActivityState =
   | "generating"
@@ -14,6 +15,10 @@ export type ActivityState =
   | "waiting_service"
   | "retrying"
   | "possibly_stalled"
+  | "recovering"
+  | "queued"
+  | "maintenance"
+  | "orphaned"
   | "paused"
   | "planning"
   | "checking"
@@ -63,6 +68,19 @@ export interface RunActivity {
   };
   /** Time spent waiting for the person so far (not counted in the estimate). */
   waitingMs: number;
+  /**
+   * Why it isn't working, when it isn't (interruptions.ts): what stopped and why, when, whether work still runs, whether
+   * the person must act, and what resumes it. The same record drives every surface (builder, footer, task card, list).
+   */
+  stop?: {
+    interruption?: Interruption;
+    workerRunning: boolean;
+    needsYou: boolean;
+    resumeWhen: string;
+    nextAttemptAt?: string;
+    lastProgressAt?: string;
+    actions: Array<{ kind: "retry_recovery" | "continue" | "retry_step" | "cancel_run"; label: string }>;
+  };
   /** When the main screens were designed (D8): a first look is ready in Preview. */
   firstLookAt?: string;
 }
@@ -74,6 +92,10 @@ const LABEL: Record<ActivityState, string> = {
   waiting_service: "Waiting for the model service",
   retrying: "Retrying",
   possibly_stalled: "Possibly stalled",
+  recovering: "Recovering",
+  queued: "Queued: another build is using the GPU",
+  maintenance: "Paused for maintenance",
+  orphaned: "No worker is running this build",
   paused: "Paused",
   planning: "Planning",
   checking: "Running final checks",
@@ -175,8 +197,43 @@ function runActivityInner(app: App, runId: string, now: number): RunActivity {
     const state: ActivityState = run.status === "done_unverified" ? "finished_unverified" : isFinishedRun(run.status) ? "finished" : run.status === "cancelled" ? "cancelled" : "failed";
     return { ...base, state, label: LABEL[state], ...(run.completedAt ? { since: run.completedAt } : {}) };
   }
+  // A stop on record says what it is; the countdown is left out while nothing can move the build forward.
+  const worker = app.orchestrator.isActive(runId) || !!app.orchestrator.isProbing?.(runId);
+  const lastProgressAt = app.db.get<{ created_at: string }>("SELECT created_at FROM events WHERE run_id = ? AND type IN ('model.completed','tool.completed','command.completed','task.verified','task.started') ORDER BY seq DESC LIMIT 1", runId)?.created_at;
+  const it = getInterruption(app.store, runId);
+  if (it && it.state !== "resolved") {
+    const recoverable = it.recoverable && !it.needsUser;
+    const state: ActivityState = it.cause === "user_pause" ? "paused" : it.cause === "approval" ? "waiting_approval" : it.cause === "gpu_queue" ? "queued" : it.cause === "maintenance" ? "maintenance" : recoverable ? "recovering" : "needs_decision";
+    const label = it.cause === "user_pause" ? (worker ? "Pausing: finishing the step in progress" : "Paused by you") : it.cause === "maintenance" ? (it.continuation?.authorized ? "Paused for maintenance: will resume automatically after verification" : "Paused for maintenance: waits for you") : it.action;
+    const actions: NonNullable<RunActivity["stop"]>["actions"] = [];
+    if (it.cause === "user_pause") actions.push({ kind: "continue", label: "Continue" });
+    else if (["provider_unavailable", "provider_busy", "orphaned", "internal_error", "maintenance", "model_missing", "provider_account"].includes(it.cause) && !worker) actions.push({ kind: "retry_recovery", label: recoverable ? "Retry recovery now" : "Retry recovery" });
+    if (["attempts_exhausted", "task_contract"].includes(it.cause) && it.taskId) actions.push({ kind: "retry_step", label: "Retry the step" });
+    if (it.cause !== "cancelled") actions.push({ kind: "cancel_run", label: "Cancel the build" });
+    return {
+      ...base,
+      state,
+      label,
+      since: it.at,
+      detail: it.detail,
+      stop: { interruption: it, workerRunning: worker, needsYou: it.needsUser, resumeWhen: it.resumeWhen, ...(it.nextAttemptAt && recoverable ? { nextAttemptAt: it.nextAttemptAt } : {}), ...(lastProgressAt ? { lastProgressAt } : {}), actions },
+    };
+  }
   if (run.status === "blocked") return { ...base, state: "needs_decision", label: LABEL.needs_decision, ...(last ? { since: last.created_at } : {}) };
   if (app.orchestrator.isRunPaused?.(runId)) return { ...base, state: "paused", label: LABEL.paused };
+  // Marked as working with no worker and no stop on record: said as it is (the watchdog records it and recovers it).
+  // A pending approval explains a stop first.
+  const awaiting = app.approvals.pending().some((x) => x.runId === runId && x.kind !== "enhancement_idea");
+  if (!worker && !awaiting && ["running", "recovering", "verifying"].includes(run.status)) {
+    return {
+      ...base,
+      state: "orphaned",
+      label: LABEL.orphaned,
+      ...(lastProgressAt ? { since: lastProgressAt } : {}),
+      detail: "It's marked as working, but no FlowCode worker is running it. FlowCode checks for this every minute and resumes it from its last checkpoint when it may continue on its own.",
+      stop: { workerRunning: false, needsYou: false, resumeWhen: "FlowCode's watchdog resumes it within a minute, or you press Retry recovery", ...(lastProgressAt ? { lastProgressAt } : {}), actions: [{ kind: "retry_recovery", label: "Retry recovery now" }, { kind: "cancel_run", label: "Cancel the build" }] },
+    };
+  }
   const pendingApproval = app.approvals.pending().filter((a) => a.runId === runId && a.kind !== "enhancement_idea");
   if (run.status === "awaiting_approval" || pendingApproval.length) {
     const since = pendingApproval.map((a) => a.createdAt).sort()[0];
@@ -202,16 +259,14 @@ function runActivityInner(app: App, runId: string, now: number): RunActivity {
   const signals: StallSignal[] = [];
   const silentFor = last ? now - Date.parse(last.created_at) : 0;
   const limit = silenceLimit(evs);
-  const worker = app.orchestrator.isActive(runId) || app.orchestrator.isProbing?.(runId);
   if (last && silentFor > limit) signals.push({ signal: `No model, tool or command activity for ${Math.round(silentFor / MIN)} min (this run's usual gaps are under ${Math.round(limit / MIN)} min).`, since: last.created_at });
-  if (!worker && ["running", "recovering", "verifying"].includes(run.status)) signals.push({ signal: "The run says it's working, but no FlowCode worker is running it.", since: last?.created_at ?? run.createdAt });
   if (running) {
     const fails = evs.filter((e) => e.task_id === running.id && e.type === "verification.completed" && /failed/.test(e.data)).map((e) => (JSON.parse(e.data) as { message?: string }).message?.replace(/\d+/g, "#").slice(0, 120) ?? "");
     const lastThree = fails.slice(-3);
     if (lastThree.length === 3 && new Set(lastThree).size === 1) signals.push({ signal: `The same check failed the same way 3 times in a row on "${running.title}".`, since: evs.filter((e) => e.task_id === running.id).at(-1)?.created_at ?? now.toString() });
   }
   // Silence alone during a long model call isn't a stall; it needs the silence and a missing worker, or repeated failures.
-  const stalled = signals.length >= 2 || signals.some((s) => /no FlowCode worker|same check failed/.test(s.signal));
+  const stalled = signals.length >= 2 || signals.some((s) => /same check failed/.test(s.signal));
   if (stalled) state = "possibly_stalled";
   // "Does this need me?": only from what FlowCode knows. No worker = it can't carry on by itself. A step still within its
   // tries stops itself and asks when they run out (MAX_TASK_ATTEMPTS in the orchestrator is 3).

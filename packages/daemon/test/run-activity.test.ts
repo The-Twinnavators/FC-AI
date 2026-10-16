@@ -74,17 +74,30 @@ describe("run activity", () => {
     expect(eta.basis).toMatch(/waiting for you isn't included/);
   });
 
-  it("suggests a stall only from several signals, and offers actions without taking them", () => {
+  it("says plainly when no worker is running a build marked as working, with Retry recovery (not a guess at a stall)", () => {
     const { app } = makeApp();
     const run = setup(app, "running");
     task(app, run.id, "t1", "running");
     app.bus.emit({ type: "model.completed", projectId: run.projectId, runId: run.id, message: "done" });
-    // No worker is running this run (nothing started it in the test), and it has been silent for an hour.
+    // No worker is running this run (nothing started it in the test).
+    const a = runActivity(app, run.id, Date.now() + 60 * 60_000);
+    expect(a.state).toBe("orphaned");
+    expect(a.label).toBe("No worker is running this build");
+    expect(a.stall).toBeUndefined();
+    expect(a.stop?.actions.map((x) => x.kind)).toEqual(["retry_recovery", "cancel_run"]);
+    expect(app.store.runs.require(run.id).status).toBe("running"); // nothing was changed by looking
+  });
+
+  it("suggests a stall only from several signals while a worker runs, and offers actions without taking them", () => {
+    const { app } = makeApp();
+    const run = setup(app, "running");
+    task(app, run.id, "t1", "running");
+    (app.orchestrator as unknown as { isActive: (id: string) => boolean }).isActive = () => true;
+    for (let i = 0; i < 3; i++) app.bus.emit({ type: "verification.completed", projectId: run.projectId, runId: run.id, taskId: "t1", message: "typecheck: failed - 3 errors" });
     const a = runActivity(app, run.id, Date.now() + 60 * 60_000);
     expect(a.state).toBe("possibly_stalled");
     expect(a.stall?.signals.length).toBeGreaterThanOrEqual(2);
     expect(a.stall?.actions.map((x) => x.kind)).toEqual(["open_details", "pause", "retry_step", "cancel_run"]);
-    expect(app.store.runs.require(run.id).status).toBe("running"); // nothing was changed
   });
 
   it("doesn't call a recent quiet moment a stall", () => {

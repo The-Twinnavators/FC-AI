@@ -23,6 +23,11 @@ export interface RunPerformance {
   elapsedMs: number;
   /** Time the run sat waiting for a person (plan or action approval). */
   waitingMs: number;
+  /**
+   * Time it wasn't working, by cause, from recorded evidence only: stop records (run.interrupted / run.resumed) and the
+   * pause, restart and status events. Time with none of these stays unclassified (it is never guessed into a cause).
+   */
+  stoppedMs: { paused: number; maintenance: number; queued: number; recovering: number; blocked: number; orphaned: number };
   phases: Array<{ phase: string; ms: number }>;
   /** Busy time by kind of work. Model and tool time run one after the other inside a step, so these add up. */
   busy: { modelMs: number; commandMs: number; toolMs: number; checkMs: number };
@@ -86,6 +91,8 @@ export function runPerformance(app: App, runId: string): RunPerformance {
     since = e.createdAt;
   }
   if (WAITING.has(status) && !finished) waitingMs += ms(since, new Date().toISOString());
+
+  const stoppedMs = stoppedTime(events, finished);
 
   // Phases.
   const phases: RunPerformance["phases"] = [];
@@ -228,6 +235,7 @@ export function runPerformance(app: App, runId: string): RunPerformance {
     endedAt,
     elapsedMs: ms(startedAt, endedAt),
     waitingMs,
+    stoppedMs,
     phases,
     busy,
     model: { ...model, tokensPerSec },
@@ -262,4 +270,42 @@ function observations(busy: RunPerformance["busy"], model: RunPerformance["model
   if (commands.failed) out.push({ weight: 1, text: `${commands.failed} of ${commands.count} commands failed.` });
   if (waitingMs > 60_000) out.push({ weight: 0, text: `The run waited ${secs(waitingMs)} for your approval; that time isn't counted as work above.` });
   return out.sort((a, b) => b.weight - a.weight).map((x) => x.text);
+}
+
+type StopBucket = keyof RunPerformance["stoppedMs"];
+
+/** Splits the run's stopped time by cause, from what the events say (see RunPerformance.stoppedMs). */
+export function stoppedTime(events: FlowEvent[], finished: boolean): RunPerformance["stoppedMs"] {
+  const out: RunPerformance["stoppedMs"] = { paused: 0, maintenance: 0, queued: 0, recovering: 0, blocked: 0, orphaned: 0 };
+  let state: StopBucket | "active" | "approval" = "active";
+  // Read through a function: the state changes inside go(), which the type checker doesn't follow.
+  const now = (): StopBucket | "active" | "approval" => state;
+  let since = events[0]?.createdAt;
+  const go = (next: StopBucket | "active" | "approval", at: string) => {
+    if (state !== "active" && state !== "approval" && since) out[state] += ms(since, at);
+    if (next !== state) {
+      state = next;
+      since = at;
+    } else if (state === "active") since = at;
+  };
+  for (const e of events) {
+    const m = e.message ?? "";
+    if (e.type === "run.interrupted") {
+      const it = (e.data as { interruption?: { cause?: string; needsUser?: boolean; recoverable?: boolean } })?.interruption;
+      const c = it?.cause ?? "";
+      go(c === "user_pause" ? "paused" : c === "maintenance" ? "maintenance" : c === "gpu_queue" ? "queued" : c === "approval" ? "approval" : it?.recoverable && !it.needsUser ? "recovering" : c === "orphaned" ? "orphaned" : "blocked", e.createdAt);
+    } else if (e.type === "run.resumed") go("active", e.createdAt);
+    else if (e.type === "run.status_changed") {
+      const to = (e.data as { to?: string })?.to;
+      if (/^Paused: the step in progress finished|^Daemon restarted: this build stays paused/.test(m)) go("paused", e.createdAt);
+      else if (/^Daemon stopping/.test(m)) go("maintenance", e.createdAt);
+      else if (/^No agent is working on this build now \((running|recovering|verifying)\)/.test(m)) go("orphaned", e.createdAt);
+      else if (/^Continuing the build|^Resuming at task|^Daemon restarted: resuming automatically/.test(m)) go("active", e.createdAt);
+      else if (to === "blocked") go("blocked", e.createdAt);
+      else if (to === "awaiting_approval") go("approval", e.createdAt);
+      else if (to === "running" && now() !== "paused") go("active", e.createdAt);
+    } else if ((e.type === "task.started" || e.type === "model.requested" || e.type === "command.started") && ["orphaned", "blocked", "recovering", "queued"].includes(now())) go("active", e.createdAt);
+  }
+  if (!finished && since) go(state, new Date().toISOString());
+  return out;
 }

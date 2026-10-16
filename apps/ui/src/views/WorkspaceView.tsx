@@ -34,6 +34,7 @@ import { ConfirmButton } from "../components/ConfirmButton";
 import { StopReport } from "../components/StopReport";
 import { RunReview } from "../components/RunReview";
 import { RunActivity } from "../components/RunActivity";
+import { RunStopNotice } from "../components/RunStopNotice";
 import { ScreenCoverage } from "../components/ScreenCoverage";
 import { ReviewPanel } from "../components/ReviewPanel";
 import { SignOff } from "../components/SignOff";
@@ -350,6 +351,7 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
               <ListChecks size={14} strokeWidth={2} aria-hidden="true" /> Overview
             </button>
           </div>
+        {view ? <RunStopNotice runId={view.run.id} taskId={view.tasks.find((t) => t.status === "running")?.id} refreshKey={`${runTick}-${events.length}`} onChanged={() => setRunTick((t) => t + 1)} /> : null}
           {/* Plain or technical explanations: set once in System Settings → Explanations (not a toggle in the builder). */}
           {workMode === "details" && runs.length > 1 ? (
             <select className="select ws__run-select" style={{ width: "auto", marginLeft: "auto" }} aria-label="Select run" value={currentRunId} onChange={(e) => navigate(`/projects/${projectId}/runs/${e.target.value}`)}>
@@ -484,7 +486,7 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
           </div>
         </Modal>
       ) : null}
-      <SignalStrip loading={!!currentRunId && !view} run={view?.run} checks={view?.checks ?? []} active={!!view?.active} resumable={!!view?.resumable} paused={!!view?.paused} controls={controls} onRerun={() => setRunTick((t) => t + 1)} agent={workingAgent?.role} doing={doingNow(events, workingAgent?.role)} grip={<StripGrip strip={wsLayout.layout.strip} onChange={wsLayout.setStrip} />} style={{ order: wsLayout.layout.strip === "top" ? -1 : 10 }} />
+      <SignalStrip loading={!!currentRunId && !view} run={view?.run} checks={view?.checks ?? []} active={!!view?.active} resumable={!!view?.resumable} paused={!!view?.paused} stop={stopOf(view)} controls={controls} onRerun={() => setRunTick((t) => t + 1)} agent={workingAgent?.role} doing={doingNow(events, workingAgent?.role)} grip={<StripGrip strip={wsLayout.layout.strip} onChange={wsLayout.setStrip} />} style={{ order: wsLayout.layout.strip === "top" ? -1 : 10 }} />
     </div>
   );
 }
@@ -1786,4 +1788,16 @@ function CopyUrl({ url }: { url: string }) {
       {done ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
     </button>
   );
+}
+
+/** The footer's words for a build that isn't working: its stop record, or no worker on a build marked as working. */
+function stopOf(view?: { run: { status: string }; active?: boolean; paused?: boolean; interruption?: { state: string; cause: string; action: string; at: string; needsUser: boolean; resumeWhen: string; continuation?: { authorized: boolean } } }): { label: string; at?: string; needsYou: boolean; resumeWhen: string } | undefined {
+  if (!view) return undefined;
+  const it = view.interruption;
+  if (it && it.state !== "resolved") {
+    const label = it.cause === "user_pause" ? (view.active ? "Pausing" : "Paused by you") : it.cause === "maintenance" ? (it.continuation?.authorized ? "Paused for maintenance" : "Paused for maintenance: waits for you") : it.action.split(":")[0]!;
+    return { label, at: it.at, needsYou: it.needsUser, resumeWhen: it.resumeWhen };
+  }
+  if (!view.active && !view.paused && ["running", "recovering", "verifying"].includes(view.run.status)) return { label: "No worker is running this build", needsYou: false, resumeWhen: "FlowCode's watchdog resumes it within a minute" };
+  return undefined;
 }

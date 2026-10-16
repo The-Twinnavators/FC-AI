@@ -78,6 +78,8 @@ import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenP
 import { testingGuide, testScaffold } from "./testingGuide.js";
 import { budgetSkills, charsPerToken, requestBudget } from "./requestBudget.js";
 import { stepTools } from "./toolSelection.js";
+import { RECOVERY_BACKOFF_MS, causeOfBlocker, getInterruption, recordInterruption, resolveInterruption, updateInterruption, type Interruption, type InterruptionCause } from "./interruptions.js";
+import { createHash } from "node:crypto";
 import { toolDef } from "./agentLoop.js";
 import { catalogContract, contractText } from "./catalogContract.js";
 import { STYLE_FILE, contractProblems, deliverableChecks, genericOnly, isTaskSpecific, separateMixed, testFileOf, writesTestsStep } from "./taskContract.js";
@@ -127,6 +129,10 @@ const MAX_TASK_ATTEMPTS = 3;
 
 export class Orchestrator {
   private active = new Map<string, AbortController>();
+  /** Recovery timers per run (unattended runs, interruptions.ts), and the runs a recovery is working on right now. */
+  private recoveryTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private recovering = new Set<string>();
+  private watchdog?: ReturnType<typeof setInterval>;
   /** The last provider and model check per run (in memory, so a daemon restart checks again). */
   private providerChecks = new Map<string, { sig: string; at: number; result: PreflightResult }>();
   private probing = new Set<string>();
@@ -176,6 +182,17 @@ export class Orchestrator {
   // ───────────────────────────── State ─────────────────────────────
 
   private setStatus(runId: string, status: RunStatus, message?: string): Run {
+    const updated = this.setStatusInner(runId, status, message);
+    // What stopped it, kept truthful on every status change (interruptions.ts).
+    const it = getInterruption(this.d.store, runId);
+    if (status === "awaiting_approval" && !(it?.state === "active" && it.cause === "approval")) recordInterruption(this.d.store, this.d.bus, updated.projectId, { runId, cause: "approval", by: "system", detail: message ?? "An approval is waiting." });
+    else if (status === "running" && it?.state !== "resolved" && it?.cause !== "gpu_queue" && it?.cause !== "user_pause" && it?.cause !== "maintenance") resolveInterruption(this.d.store, this.d.bus, updated.projectId, runId, "Running again");
+    else if (status === "cancelled") recordInterruption(this.d.store, this.d.bus, updated.projectId, { runId, cause: "cancelled", by: "user", detail: message ?? "Cancelled." });
+    else if (TERMINAL_RUN_STATUSES.includes(status) && it?.state !== "resolved") resolveInterruption(this.d.store, this.d.bus, updated.projectId, runId, "The build finished");
+    return updated;
+  }
+
+  private setStatusInner(runId: string, status: RunStatus, message?: string): Run {
     const run = this.d.store.runs.require(runId);
     if (TERMINAL_RUN_STATUSES.includes(run.status) && run.status !== status) {
       // Never overwrite a terminal run state (§7.3).
@@ -1280,6 +1297,7 @@ export class Orchestrator {
         // as a question about work in progress (Kids cash app).
         const now = this.d.store.runs.get(runId);
         if (now && !this.active.has(runId)) this.d.bus.emit({ type: "run.status_changed", projectId: now.projectId, runId, message: `No agent is working on this build now (${now.status.replace(/_/g, " ")})`, data: { idle: true } });
+        if (now && !this.active.has(runId)) this.noteStop(runId);
       });
     return this.setStatus(runId, "running");
   }
@@ -2845,8 +2863,17 @@ export class Orchestrator {
       for (const t of this.graph.tasks(run.id)) if (t.status === "running" || t.status === "awaiting_approval") this.updateTask(t, { status: "attempted", attempts: Math.max(0, t.attempts - 1) });
       const level = this.d.store.projects.get(run.projectId)?.settings.autonomy ?? "supervised";
       // Paused by the person before the restart: it stays paused (it waits for Continue), with its place kept.
-      if (this.d.store.getSetting(`runPaused:${run.id}`, false)) {
-        this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: "Daemon restarted: this build stays paused, as you left it; Continue resumes it from its current step" });
+      const pausedBy = this.d.store.getSetting<string | boolean>(`runPaused:${run.id}`, false);
+      if (pausedBy) {
+        this.pausedRuns.add(run.id);
+        const it = getInterruption(this.d.store, run.id);
+        if (it?.state !== "resolved" && it?.cause === "maintenance" && it.continuation?.authorized && !it.continuation.consumedAt) {
+          this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: "Daemon restarted: paused for maintenance; it resumes automatically once the model service and workspace check out" });
+          this.scheduleRecovery(run.id, 5_000);
+        } else {
+          if (it?.state !== "active") recordInterruption(this.d.store, this.d.bus, run.projectId, { runId: run.id, cause: "user_pause", by: "user", detail: "Paused before the daemon restarted; kept paused." });
+          this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: "Daemon restarted: this build stays paused, as you left it; Continue resumes it from its current step" });
+        }
         continue;
       }
       if (level !== "supervised" && run.planApproved && !this.paused) {
@@ -2858,8 +2885,202 @@ export class Orchestrator {
         }
       } else {
         this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: "Daemon restarted: run paused and resumable from its current task", level: "warning" });
+        const sup = recordInterruption(this.d.store, this.d.bus, run.projectId, { runId: run.id, cause: "orphaned", by: "system", detail: "The daemon restarted. This project is supervised, so it resumes only when you say so." });
+        updateInterruption(this.d.store, run.id, { recoverable: false, needsUser: true, action: "Waiting for you: supervised builds resume only when you say so", resumeWhen: `you press Retry recovery or Resume (stopped ${sup.at})` });
       }
     }
+    // Recoveries that were under way when the daemon stopped carry on.
+    for (const run of this.d.store.runs.where("status = 'blocked'")) {
+      const it = getInterruption(this.d.store, run.id);
+      if (it && it.state !== "resolved" && it.recoverable) this.scheduleRecovery(run.id);
+    }
+    this.startWatchdog();
+  }
+
+  // ───────────────────────────── Unattended runs (interruptions.ts) ─────────────────────────────
+
+  /** A paused build FlowCode stopped for its own work, with a continuation registered first (resumes on its own). */
+  pauseForMaintenance(runId: string, reason: string, authorizedBy?: string): Interruption {
+    const run = this.d.store.runs.require(runId);
+    this.pausedRuns.add(runId);
+    this.d.store.setSetting(`runPaused:${runId}`, "system");
+    return recordInterruption(this.d.store, this.d.bus, run.projectId, { runId, cause: "maintenance", by: "system", detail: reason, ...(authorizedBy ? { continuation: { authorized: true, by: authorizedBy, at: nowIso() } } : {}) });
+  }
+
+  /** The maintenance is done: paused builds with an authorized continuation resume (after their checks). */
+  finishMaintenance(): string[] {
+    const due: string[] = [];
+    for (const run of this.d.store.runs.where("status IN ('running','recovering','verifying','blocked')")) {
+      const it = getInterruption(this.d.store, run.id);
+      if (it?.state !== "resolved" && it?.cause === "maintenance" && it.continuation?.authorized && !it.continuation.consumedAt) {
+        due.push(run.id);
+        this.scheduleRecovery(run.id, 0);
+      }
+    }
+    return due;
+  }
+
+  /** The work loop ended: why it isn't working, and the recovery when there is one. */
+  private noteStop(runId: string) {
+    const run = this.d.store.runs.get(runId);
+    if (!run) return;
+    if (TERMINAL_RUN_STATUSES.includes(run.status) || this.pausedRuns.has(runId)) return;
+    const prior = getInterruption(this.d.store, runId);
+    if (run.status === "awaiting_approval") return; // recorded by setStatus
+    if (run.status !== "blocked") return;
+    const blocked = this.graph.tasks(runId).filter((t) => t.status === "blocked").sort((a, b) => a.ordinal - b.ordinal)[0];
+    let cause: InterruptionCause = blocked ? causeOfBlocker(blocked.blocker) : /Unexpected orchestrator error/.test(run.statusReason ?? "") ? "internal_error" : /isn't installed/.test(run.statusReason ?? "") ? "model_missing" : /isn't answering|connection/i.test(run.statusReason ?? "") ? "provider_unavailable" : "attempts_exhausted";
+    if (!blocked && /^Planning blocked/.test(run.statusReason ?? "") && cause === "attempts_exhausted") cause = "task_contract";
+    const detail = blocked ? `"${blocked.title}": ${blocked.blocker?.reason ?? "stopped"}` : (run.statusReason ?? "Stopped.");
+    // The same stop again after a recovery attempt: the count carries on (bounded), it doesn't start over.
+    const again = prior && prior.state !== "resolved" && prior.cause === cause && prior.recoverable;
+    const rec = recordInterruption(this.d.store, this.d.bus, run.projectId, { runId, cause, by: "system", detail: detail.slice(0, 600), ...(blocked ? { taskId: blocked.id } : {}), ...(again ? { attempt: prior!.attempt } : {}) });
+    if (rec.recoverable) {
+      if (again && prior!.attempt >= rec.maxAttempts) this.exhausted(runId, rec);
+      else this.scheduleRecovery(runId);
+    }
+  }
+
+  private exhausted(runId: string, rec: Interruption) {
+    const run = this.d.store.runs.require(runId);
+    const next = updateInterruption(this.d.store, runId, { state: "active", recoverable: false, needsUser: true, nextAttemptAt: undefined, action: "Blocked: automatic recovery attempts exhausted", resumeWhen: "you press Retry recovery once the cause is fixed" });
+    this.d.bus.emit({ type: "run.interrupted", projectId: run.projectId, runId, level: "warning", message: `Blocked: automatic recovery attempts exhausted (${rec.attempt} of ${rec.maxAttempts}). ${rec.detail}`, data: { interruption: next } });
+  }
+
+  private clearRecovery(runId: string) {
+    const t = this.recoveryTimers.get(runId);
+    if (t) clearTimeout(t);
+    this.recoveryTimers.delete(runId);
+  }
+
+  /** The next recovery attempt, at its backoff (or after `delayMs`). Persisted, so a restart keeps the schedule. */
+  private scheduleRecovery(runId: string, delayMs?: number) {
+    const it = getInterruption(this.d.store, runId);
+    if (!it || it.state === "resolved" || !it.recoverable) return;
+    this.clearRecovery(runId);
+    const wait = delayMs ?? (it.nextAttemptAt ? Math.max(0, Date.parse(it.nextAttemptAt) - Date.now()) : (RECOVERY_BACKOFF_MS[Math.min(it.attempt, RECOVERY_BACKOFF_MS.length - 1)] ?? 60_000));
+    updateInterruption(this.d.store, runId, { nextAttemptAt: new Date(Date.now() + wait).toISOString() });
+    const t = setTimeout(() => void this.recoverNow(runId).catch(() => undefined), wait);
+    (t as { unref?: () => void }).unref?.();
+    this.recoveryTimers.set(runId, t);
+  }
+
+  /**
+   * One recovery attempt: check what the stop needs (the model service, the workspace), reconcile writes an
+   * interruption may have cut short, then resume from the checkpoint with one worker and confirm it started. `manual`:
+   * the person pressed Retry recovery (allowed after the automatic attempts ran out; never past a user pause).
+   */
+  async recoverNow(runId: string, manual = false): Promise<{ resumed: boolean; why?: string }> {
+    const it = getInterruption(this.d.store, runId);
+    const run = this.d.store.runs.require(runId);
+    if (!it || it.state === "resolved") return { resumed: false, why: "nothing to recover" };
+    if (this.recovering.has(runId)) return { resumed: false, why: "a recovery is already running" };
+    if (this.active.has(runId)) {
+      resolveInterruption(this.d.store, this.d.bus, run.projectId, runId, "Already running: a worker has the build");
+      return { resumed: true };
+    }
+    if (it.cause === "user_pause" || it.cause === "cancelled" || it.cause === "approval") return { resumed: false, why: "waits for you" };
+    if (!manual && !it.recoverable) return { resumed: false, why: "needs you" };
+    this.recovering.add(runId);
+    try {
+      const attempt = it.attempt + 1;
+      updateInterruption(this.d.store, runId, { attempt, state: "resuming" });
+      this.d.bus.emit({ type: "recovery.action", projectId: run.projectId, runId, message: `${it.action} (attempt ${attempt}${manual ? ", started by you" : ` of ${it.maxAttempts}`})` });
+      const project = this.d.store.projects.require(run.projectId);
+      const jail = this.d.projects.jail(project);
+      let why = "";
+      if (!fs.existsSync(jail.root)) why = "the project's folder isn't there";
+      if (!why) {
+        const ready = await Promise.race([this.providerReady(run, ["coder", "debugger"], true), new Promise<undefined>((r) => setTimeout(() => r(undefined), it.timeoutMs || 15_000))]);
+        if (!ready) why = "the model service check timed out";
+        else if (!ready.ok) why = ready.problems[0] ?? "the model service isn't ready";
+      }
+      if (why) {
+        const fresh = getInterruption(this.d.store, runId)!;
+        if (!manual && attempt >= fresh.maxAttempts) this.exhausted(runId, { ...fresh, attempt });
+        else {
+          updateInterruption(this.d.store, runId, { state: "active", detail: `${fresh.detail.split(" Last check: ")[0]} Last check: ${why}.` });
+          this.scheduleRecovery(runId);
+        }
+        return { resumed: false, why };
+      }
+      // Exactly once: the continuation is spent before the worker starts.
+      if (it.continuation) updateInterruption(this.d.store, runId, { continuation: { ...it.continuation, consumedAt: nowIso() } });
+      this.reconcileUncertainWrites(run, jail);
+      this.pausedRuns.delete(runId);
+      this.d.store.setSetting(`runPaused:${runId}`, false);
+      const task = it.taskId ? this.d.store.tasks.get(it.taskId) : undefined;
+      if (task?.status === "blocked") this.retryTask(runId, task.id);
+      else this.resume(runId);
+      const started = this.active.has(runId);
+      if (started) resolveInterruption(this.d.store, this.d.bus, run.projectId, runId, `Resumed automatically: ${it.cause === "maintenance" ? "maintenance finished and the checks passed" : it.cause === "orphaned" ? "a worker runs the build again" : "the model service answers again"}; continuing from the last checkpoint`);
+      else {
+        updateInterruption(this.d.store, runId, { state: "active" });
+        this.scheduleRecovery(runId);
+      }
+      return { resumed: started };
+    } finally {
+      this.recovering.delete(runId);
+    }
+  }
+
+  /**
+   * Writes an interruption may have cut short: a snapshot taken before an edit with no record of the result. The file
+   * says what happened: changed means the edit landed (its result is recorded now), unchanged means it didn't. Edits
+   * that landed are never sent again; the step's next attempt sees the file as it is.
+   */
+  private reconcileUncertainWrites(run: Run, jail: ReturnType<ProjectService["jail"]>) {
+    const open = this.d.store.snapshots.where("run_id = ?", run.id).filter((x) => !x.postContentHash && !x.restoredAt);
+    let landed = 0;
+    let not = 0;
+    for (const snap of open) {
+      let now = "absent";
+      try {
+        now = createHash("sha256").update(fs.readFileSync(jail.resolve(snap.relativePath).abs)).digest("hex");
+      } catch {
+        now = "absent";
+      }
+      const before = snap.contentHash === "absent" ? "absent" : snap.contentHash.replace(/^sha256:/, "");
+      if (now !== before && !before.endsWith(now) && !now.endsWith(before)) {
+        this.d.snapshots.recordPost(snap, jail);
+        landed++;
+      } else not++;
+    }
+    for (const tc of this.d.store.toolCalls.where("run_id = ?", run.id).filter((x) => x.status === "requested")) this.d.store.toolCalls.upsert({ ...tc, status: "failed", resultSummaryRedacted: "Interrupted before it finished; its effect was reconciled from the files", completedAt: nowIso() });
+    if (landed || not) this.d.bus.emit({ type: "recovery.action", projectId: run.projectId, runId: run.id, message: `Reconciled ${landed + not} write${landed + not === 1 ? "" : "s"} an interruption cut short: ${landed} landed and kept, ${not} didn't happen` });
+  }
+
+  /**
+   * Builds marked as working with no worker: found every minute (and at startup) and recovered from their checkpoint,
+   * at most twice, when they may continue on their own; otherwise they wait for the person with that said.
+   */
+  startWatchdog() {
+    if (this.watchdog) return;
+    this.watchdog = setInterval(() => this.findOrphans(), 60_000);
+    (this.watchdog as { unref?: () => void }).unref?.();
+  }
+
+  stopWatchdog() {
+    if (this.watchdog) clearInterval(this.watchdog);
+    this.watchdog = undefined;
+    for (const id of [...this.recoveryTimers.keys()]) this.clearRecovery(id);
+  }
+
+  findOrphans(): string[] {
+    const found: string[] = [];
+    for (const run of this.d.store.runs.where("status IN ('running','recovering','verifying')")) {
+      if (this.active.has(run.id) || this.pausedRuns.has(run.id) || this.recovering.has(run.id) || this.probing?.has?.(run.id)) continue;
+      const it = getInterruption(this.d.store, run.id);
+      if (it && it.state !== "resolved") continue;
+      found.push(run.id);
+      const level = this.d.store.projects.get(run.projectId)?.settings.autonomy ?? "supervised";
+      const last = this.d.store.db.get<{ created_at: string }>("SELECT created_at FROM events WHERE run_id = ? AND type IN ('model.completed','tool.completed','command.completed','task.verified','task.started') ORDER BY seq DESC LIMIT 1", run.id)?.created_at;
+      const rec = recordInterruption(this.d.store, this.d.bus, run.projectId, { runId: run.id, cause: "orphaned", by: "system", detail: `Marked as working, but no FlowCode worker was running it${last ? ` (last confirmed progress ${last})` : ""}.` });
+      if (level === "supervised" || !run.planApproved) updateInterruption(this.d.store, run.id, { recoverable: false, needsUser: true, action: "Waiting for you: no worker is running this build, and it resumes only when you say so", resumeWhen: "you press Retry recovery" });
+      else this.scheduleRecovery(run.id, 0);
+      void rec;
+    }
+    return found;
   }
 
   // ───────────────────────────── Scheduler control (System page) ─────────────────────────────
@@ -2870,12 +3091,17 @@ export class Orchestrator {
   /** Builds paused from their workspace: the step in progress finishes, the next one waits for Continue. */
   private pausedRuns = new Set<string>();
 
-  pauseRun(runId: string, paused: boolean): { paused: boolean } {
+  pauseRun(runId: string, paused: boolean, by: "user" | "system" = "user"): { paused: boolean } {
     const run = this.d.store.runs.require(runId);
     if (paused) this.pausedRuns.add(runId);
     else this.pausedRuns.delete(runId);
+    if (paused && by === "user") recordInterruption(this.d.store, this.d.bus, run.projectId, { runId, cause: "user_pause", by: "user", detail: this.active.has(runId) ? "You paused it: the step in progress finishes first, then it waits." : "You paused it." });
+    if (!paused) {
+      this.clearRecovery(runId);
+      resolveInterruption(this.d.store, this.d.bus, run.projectId, runId, "Continuing: you pressed Continue");
+    }
     // Kept across a daemon restart: a build the person paused stays paused when the daemon comes back.
-    this.d.store.setSetting(`runPaused:${runId}`, paused);
+    this.d.store.setSetting(`runPaused:${runId}`, paused ? by : false);
     // Continue on a build that isn't running (paused through a restart) resumes it from its checkpoint.
     if (!paused && !this.active.has(runId) && !TERMINAL_RUN_STATUSES.includes(run.status)) {
       this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: "Continuing the build" });

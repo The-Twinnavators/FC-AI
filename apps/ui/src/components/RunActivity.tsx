@@ -6,6 +6,7 @@ import { useDisplayMode } from "../displayMode";
 import { useState } from "react";
 import { post, useResource } from "../api";
 import { RunTimeBar } from "./RunTimeBar";
+import { StopDetails, type StopInfo } from "./RunStopNotice";
 
 interface Activity {
   firstLookAt?: string;
@@ -16,6 +17,8 @@ interface Activity {
   waitingMs: number;
   eta?: { lowMs?: number; highMs?: number; typicalMs?: number; stepTypicalMs?: number; stepLowMs?: number; stepHighMs?: number; basis: string; remainingSteps: number; comparable: string };
   stall?: { signals: Array<{ signal: string; since: string }>; actions: Array<{ kind: string; label: string }>; needsYou?: { verdict: "yes" | "not_yet" | "unsure"; why: string } };
+  /** Why it isn't working (the run's stop record): replaces the estimate and the stall note while it lasts. */
+  stop?: StopInfo;
 }
 
 const DONE = ["finished", "finished_unverified", "failed", "cancelled"];
@@ -58,6 +61,18 @@ export function RunActivity({ runId, taskId, onChanged }: { runId: string; taskI
     }
   };
   const eta = a.eta;
+  // Stopped: what stopped it and what resumes it, instead of a countdown nothing is moving towards.
+  if (a.stop) {
+    return (
+      <section className={`run-activity run-activity--stopped${a.stop.needsYou ? " run-activity--needs" : ""}`} aria-label="Why the build isn't working" aria-live="polite">
+        <div className="run-activity__now">
+          <strong>{a.label}</strong>
+        </div>
+        <StopDetails runId={runId} a={a} taskId={taskId} onChanged={() => (res.reload(), onChanged?.())} />
+        <RunTimeBar runId={runId} live={false} />
+      </section>
+    );
+  }
   return (
     <section className={`run-activity${a.stall ? " run-activity--stall" : ""}`} aria-label="What the build is doing" aria-live="polite">
       <div className="run-activity__now">

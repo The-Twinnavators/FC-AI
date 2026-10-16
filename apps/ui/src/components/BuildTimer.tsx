@@ -26,8 +26,8 @@ export function formatClock(ms: number): string {
   return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
-export function BuildTimer({ run, compact = false, clock = false }: { run?: Pick<Run, "status" | "createdAt" | "completedAt"> | null; compact?: boolean; clock?: boolean }) {
-  const working = !!run && WORKING.includes(run.status);
+export function BuildTimer({ run, compact = false, clock = false, stoppedAt }: { run?: Pick<Run, "status" | "createdAt" | "completedAt"> | null; compact?: boolean; clock?: boolean; /** Not working since then (paused, waiting, no worker): the clock holds instead of counting up. */ stoppedAt?: string }) {
+  const working = !!run && WORKING.includes(run.status) && !stoppedAt;
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!working) return;
@@ -36,7 +36,7 @@ export function BuildTimer({ run, compact = false, clock = false }: { run?: Pick
   }, [working]);
   if (!run) return null;
   const start = Date.parse(run.createdAt);
-  const end = working ? now : Date.parse(run.completedAt ?? "") || NaN;
+  const end = working ? now : stoppedAt ? Date.parse(stoppedAt) : Date.parse(run.completedAt ?? "") || NaN;
   if (Number.isNaN(start) || Number.isNaN(end)) return null;
   const took = formatDuration(end - start);
   const text = clock ? formatClock(end - start) : working ? (compact ? took : `Building for ${took}`) : compact ? took : `Took ${took}`;
