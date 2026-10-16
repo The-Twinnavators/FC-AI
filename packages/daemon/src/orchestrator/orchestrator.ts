@@ -1091,8 +1091,22 @@ export class Orchestrator {
           : e === entries
             ? `Each record also has "${placesField}": the ids of the places that carry it, from ${placeIds.join(", ")} (most places carry most entries, so availability differs).`
             : "";
-      const got = await ask(SEED_SYSTEM, seedRequest(base.model.product, e, e === places ? 8 : e === entries ? 20 : 14, extra), SEED_SCHEMA, 3500);
-      seed[e.key] = Array.isArray(got.records) ? (got.records as unknown[]) : [];
+      // In batches of at most ten records: twenty products in one reply ran past the 3,500-token cap twice and the whole
+      // model was lost. A later batch that fails keeps the records already written (fewer samples is a noted problem).
+      const want = e === places ? 8 : e === entries ? 20 : 14;
+      const rows: unknown[] = [];
+      for (let from = 0; from < want; from += 10) {
+        const count = Math.min(10, want - from);
+        const more = from ? ` These are records ${from + 1} to ${from + count}: different from the first ${from} (${rows.slice(0, 12).map((r) => String((r as Record<string, unknown>)[e.titleField] ?? "")).filter(Boolean).join(", ")}).` : "";
+        try {
+          const got = await ask(SEED_SYSTEM, seedRequest(base.model.product, e, count, `${extra}${more}`.trim()), SEED_SCHEMA, 3500);
+          rows.push(...(Array.isArray(got.records) ? (got.records as unknown[]).slice(0, count) : []));
+        } catch (err) {
+          if (signal.aborted || !rows.length) throw err;
+          break;
+        }
+      }
+      seed[e.key] = rows;
       if (e === places) placeIds = seed[e.key]!.map((_, i) => `${e.idPrefix}-${1001 + i}`);
     }
     let social: Record<string, unknown> = {};

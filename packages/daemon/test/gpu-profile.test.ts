@@ -65,7 +65,7 @@ describe("support roles and the context ceiling in the profile", () => {
   });
 });
 
-async function modelInParts(dropAreas = false) {
+async function modelInParts(dropAreas = false, failSecondEntries = false) {
   const { app } = makeApp();
   setRuntimeOptions(app.store, { gpuProfile: "8gb" });
   const asked: Array<{ part: string; max?: number; think?: boolean }> = [];
@@ -87,6 +87,7 @@ async function modelInParts(dropAreas = false) {
       const user = String(req.messages[1]?.content ?? "");
       const part = sys.includes("Write it in parts") ? "structure" : sys.includes("ZIP code areas a look-up app") ? "areas" : sys.startsWith("You write realistic sample records") ? (user.includes("Stores") ? "places" : "entries") : "social";
       asked.push({ part, max: req.maxOutputTokens, think: req.think });
+      if (failSecondEntries && part === "entries" && user.includes("records 11 to 20")) return { content: '{"records": [', toolCalls: [], model: req.model, durationMs: 1, doneReason: "length" };
       const body =
         part === "structure"
           ? dropAreas
@@ -116,7 +117,7 @@ async function modelInParts(dropAreas = false) {
 describe("the app model in parts", () => {
   it("asks for the structure, then the places, then the entries naming them, then ratings, each reply capped; and assembles a valid model", async () => {
     const { asked, got } = await modelInParts();
-    expect(asked.map((a) => a.part)).toEqual(["structure", "places", "entries", "social"]);
+    expect(asked.map((a) => a.part)).toEqual(["structure", "places", "entries", "entries", "social"]);
     expect(asked.every((a) => (a.max ?? 0) <= 3500 && a.think === false)).toBe(true);
     expect(got.model!.seed.product!.length).toBe(20);
     expect(got.model!.seed.product![0]!.carriedBy).toEqual(["STR-1001", "STR-1002"]);
@@ -126,10 +127,18 @@ describe("the app model in parts", () => {
 
   it("asks for a look-up app's ZIP code areas on their own when the structure leaves them out", async () => {
     const { asked, got } = await modelInParts(true);
-    expect(asked.map((a) => a.part)).toEqual(["structure", "areas", "places", "entries", "social"]);
+    expect(asked.map((a) => a.part)).toEqual(["structure", "areas", "places", "entries", "entries", "social"]);
     expect(asked.every((a) => (a.max ?? 0) <= 3500 && a.think === false)).toBe(true);
     expect(got.model!.seed.product!.length).toBe(20);
     expect(got.problems.filter((p) => /ZIP/.test(p))).toEqual([]);
+  });
+
+  it("writes records in batches of ten, and keeps the first batch when a later one is cut off", async () => {
+    const { asked, got } = await modelInParts(false, true);
+    // The cut-off batch is tried twice, then the model goes on with ten products (a noted problem, not a lost model).
+    expect(asked.map((a) => a.part)).toEqual(["structure", "places", "entries", "entries", "entries", "social"]);
+    expect(got.model!.seed.product!.length).toBe(10);
+    expect(got.problems.some((p) => /Only 10 sample products/.test(p))).toBe(true);
   });
 });
 
