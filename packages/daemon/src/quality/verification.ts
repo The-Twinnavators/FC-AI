@@ -518,7 +518,9 @@ export class Verifier {
           // like a failure. Calendar test 6: the week view step's own file was clean, but the repeat guard's "blocked"
           // skipped the scoped check below, so the step blocked itself and invalidated five later steps.
           const ran = chk.evidenceRefs[0]?.startsWith("command:") ? this.store.commands.get(chk.evidenceRefs[0].replace("command:", "")) : undefined;
-          const failedLike = chk.status === "failed" || (chk.status === "blocked" && /No progress/i.test(ran?.outputPreview ?? ""));
+          // The repeat guard's record carries the failure's fingerprint and no output of its own (a policy block has
+          // neither): matching only "No progress" in its output never matched, so known errors failed a clean step.
+          const failedLike = chk.status === "failed" || (chk.status === "blocked" && (!!ran?.errorFingerprint || /No progress/i.test(ran?.outputPreview ?? "")));
           if (!met && failedLike && start && !start.passed) {
             const output = this.lastOutput.get(`${run.id}:${kind}`) ?? "";
             const known = new Set(start.errors);
