@@ -11,14 +11,16 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 const FC = "C:/Users/JenoU/Desktop/FlowCode";
-const [baseline, work, config, taskId] = process.argv.slice(2);
+const [baseline, workRoot, config, taskId] = process.argv.slice(2);
+// Each run in its own folder (a folder still held by an earlier run's process can't be reused).
+const work = path.join(workRoot, `${config}-${taskId}-${Date.now()}`);
 const cold = process.argv.includes("--cold");
 const RUN = "run_73d6f4dd581f4b0d80dc";
 const WS = "workspaces/clean-cart-controlled-build-d804f3";
 const OLLAMA = "http://127.0.0.1:11434";
 
-// A fresh copy of the baseline (node_modules is a junction to the real one, read-only use).
-fs.rmSync(work, { recursive: true, force: true });
+// A fresh copy of the baseline (node_modules is a junction to the real one, read-only use; it is removed with rmdir,
+// which drops the link only, never with a recursive delete).
 fs.mkdirSync(path.join(work, WS), { recursive: true });
 fs.copyFileSync(path.join(baseline, "flowcode.sqlite"), path.join(work, "flowcode.sqlite"));
 fs.cpSync(path.join(baseline, WS), path.join(work, WS), { recursive: true, filter: (src) => !/node_modules/.test(src) });
@@ -102,6 +104,7 @@ if (taskId === "plan") {
   outcome = st.map((t) => `${t.status}${t.status === "blocked" ? ` (${(t.blocker?.reason ?? "").slice(0, 120)})` : ""}`).join(" → ");
 }
 clearInterval(poll);
+await app.processes.cleanupAll("benchmark run finished").catch(() => undefined);
 const evs = app.store.db.all("SELECT type, data FROM events WHERE seq > ? AND run_id = ?", startSeq, RUN).map((e) => ({ type: e.type, d: JSON.parse(e.data) }));
 const mc = evs.filter((e) => e.type === "model.completed").map((e) => e.d.data ?? {});
 const tools = evs.filter((e) => e.type === "tool.completed").map((e) => e.d.message);
@@ -132,4 +135,7 @@ console.log(JSON.stringify({
   ctx: [...new Set(samples.map((s) => s.ctx).filter(Boolean))],
   peakVramMiB: Math.max(0, ...samples.map((s) => s.vramMiB || 0)),
 }));
+try {
+  execFileSync("cmd", ["/c", "rmdir", path.join(work, WS, "node_modules").split("/").join("\\")], { stdio: "ignore" });
+} catch {}
 process.exit(0);
