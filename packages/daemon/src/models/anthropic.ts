@@ -170,7 +170,7 @@ export class AnthropicProvider implements Provider {
       throw new ProviderError(e.kind, `Couldn't reach api.anthropic.com: ${e.causes.join(" ← ")}`, e.causes);
     }
     const body = await res.text();
-    if (!res.ok) throw new ProviderError(res.status === 401 ? "unknown" : "invalid_response", `Anthropic answered ${res.status}: ${anthropicError(body)}`, [], res.status);
+    if (!res.ok) throw new ProviderError(res.status === 401 || res.status === 403 ? "auth_failed" : "invalid_response", `Anthropic answered ${res.status}: ${anthropicError(body)}`, [], res.status);
     const json = JSON.parse(body) as { data?: Array<{ id: string }> };
     return (json.data ?? []).map((m) => ({ name: m.id, capabilities: ["vision", "tools"] }));
   }

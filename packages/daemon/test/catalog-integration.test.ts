@@ -52,7 +52,8 @@ describe("the catalog reaches the build's agents", () => {
         const ids = [...user.matchAll(/(R\d+) \[/g)].map((m) => m[1]);
         return { content: JSON.stringify({ tasks: [{ title: "Plans", goal: "Compare plans.", files: ["src/screens/PlansScreen.tsx"], steps: ["Build it"], acceptance: ["It works"], covers: ids }], other: [] }), toolCalls: [], model: "stub", durationMs: 1 };
       },
-      listModels: async () => [],
+      // The models it serves (the check before planning asks Ollama for its list).
+      listModels: async () => Object.values(app.router.roleAssignments()).map((a) => ({ name: a.model })),
       describe: async () => undefined,
       health: async () => ({ ok: true, detail: "stub" }),
     });

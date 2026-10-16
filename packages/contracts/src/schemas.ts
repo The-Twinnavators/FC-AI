@@ -198,6 +198,8 @@ export const ProviderErrorKind = z.enum([
   "dns_failure",
   "rate_limited",
   "quota_exhausted",
+  "model_missing",
+  "auth_failed",
   "invalid_response",
   "context_limit",
   "tool_call_invalid",
@@ -291,11 +293,18 @@ export const VerificationPlan = z.object({
 });
 export type VerificationPlan = z.infer<typeof VerificationPlan>;
 
+/** Kinds of failure (reliability phase 1). Provider: the model service (missing model, unreachable, credits, sign-in).
+ * Environment: the machine (disk, ports, tools). The rest are about the work and its contract. */
+export const FailureClass = z.enum(["provider", "environment", "task_contract", "code", "test_harness", "product_behavior", "design", "policy", "unknown"]);
+export type FailureClass = z.infer<typeof FailureClass>;
+
 export const Blocker = z.object({
   reason: z.string(),
   category: z.enum(["prerequisite", "policy", "approval_denied", "no_progress", "model", "verification", "user", "unknown"]),
   evidenceRefs: z.array(z.string()).default([]),
   nextAction: z.string(),
+  /** What kind of failure stopped the step: provider and environment failures never use up repair attempts. */
+  failureClass: FailureClass.optional(),
 });
 export type Blocker = z.infer<typeof Blocker>;
 

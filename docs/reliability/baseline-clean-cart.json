@@ -1,0 +1,317 @@
+{
+  "runId": "run_b08ca51250e34b4a91b6",
+  "events": 10449,
+  "wallHours": 36.4,
+  "modelCalls": 1234,
+  "modelHours": 7.6,
+  "failedModelCalls": 28,
+  "failKinds": {
+    "other": 14,
+    "timeout": 13,
+    "credits": 1
+  },
+  "toolCalls": 2319,
+  "toolCounts": {
+    "read_file": 1348,
+    "list_files": 46,
+    "search_code": 734,
+    "find_image": 10,
+    "propose_layout_change": 1,
+    "apply_patch": 94,
+    "replace_file": 32,
+    "task_complete": 7,
+    "edit_json": 6,
+    "run_script": 21,
+    "report_blocked": 1,
+    "run_command": 9,
+    "add_library_piece": 2,
+    "bash_placeholder": 1,
+    "create_file": 7
+  },
+  "repeatedReads": 1147,
+  "stepsVerified": 11,
+  "stepsTotal": 19,
+  "attemptsTotal": 22,
+  "minToFirstVerifiedModelStep": 74,
+  "models": {
+    "claude-sonnet-5-5": {
+      "calls": 1062,
+      "totalMin": 100.6,
+      "medianReplyS": 3.4,
+      "loadShare": 0,
+      "promptShare": 0,
+      "genShare": 0,
+      "genTokPerS": null,
+      "promptTokPerS": null,
+      "avgPromptTok": 65960,
+      "avgOutTok": 592
+    },
+    "qwen3:8b": {
+      "calls": 133,
+      "totalMin": 258.4,
+      "medianReplyS": 90.7,
+      "loadShare": 0.01,
+      "promptShare": 0.03,
+      "genShare": 0.95,
+      "genTokPerS": 8.3,
+      "promptTokPerS": 5253,
+      "avgPromptTok": 16226,
+      "avgOutTok": 916
+    },
+    "qwen2.5vl:3b": {
+      "calls": 15,
+      "totalMin": 0.8,
+      "medianReplyS": 1.3,
+      "loadShare": 0.42,
+      "promptShare": 0.23,
+      "genShare": 0.02,
+      "genTokPerS": 117.5,
+      "promptTokPerS": 2786,
+      "avgPromptTok": 2075,
+      "avgOutTok": 8
+    },
+    "qwen3:14b": {
+      "calls": 24,
+      "totalMin": 93.5,
+      "medianReplyS": 226.3,
+      "loadShare": 0.01,
+      "promptShare": 0.03,
+      "genShare": 0.95,
+      "genTokPerS": 3,
+      "promptTokPerS": 2597,
+      "avgPromptTok": 18662,
+      "avgOutTok": 674
+    }
+  },
+  "steps": [
+    {
+      "n": 1,
+      "title": "Scaffold from verified starter template",
+      "status": "verified",
+      "attempts": 1,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": 0
+    },
+    {
+      "n": 2,
+      "title": "Install dependencies (approved)",
+      "status": "verified",
+      "attempts": 1,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": 0.3
+    },
+    {
+      "n": 3,
+      "title": "Import spec references",
+      "status": "verified",
+      "attempts": 1,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": 0
+    },
+    {
+      "n": 4,
+      "title": "Capture the style",
+      "status": "verified",
+      "attempts": 1,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": 0
+    },
+    {
+      "n": 5,
+      "title": "Review the prototype plan and the design",
+      "status": "verified",
+      "attempts": 1,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": 3.3
+    },
+    {
+      "n": 6,
+      "title": "Add library sections",
+      "status": "verified",
+      "attempts": 1,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": 6.3
+    },
+    {
+      "n": 7,
+      "title": "Write the complete app",
+      "status": "verified",
+      "attempts": 1,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": 4.1
+    },
+    {
+      "n": 8,
+      "title": "Design the main screens",
+      "status": "skipped",
+      "attempts": 1,
+      "modelCalls": 48,
+      "modelMin": 4.5,
+      "wallMin": null,
+      "blocker": "Split into 4 smaller steps"
+    },
+    {
+      "n": 9,
+      "title": "Set Clean Cart's look in the tokens and fl-* classes",
+      "status": "verified",
+      "attempts": 2,
+      "modelCalls": 7,
+      "modelMin": 12.2,
+      "wallMin": 47.3
+    },
+    {
+      "n": 10,
+      "title": "Compose the Home hero from core parts",
+      "status": "verified",
+      "attempts": 3,
+      "modelCalls": 241,
+      "modelMin": 275.8,
+      "wallMin": 393.9
+    },
+    {
+      "n": 11,
+      "title": "Fill the Home category and most-liked pieces with real conte",
+      "status": "verified",
+      "attempts": 2,
+      "modelCalls": 90,
+      "modelMin": 18.4,
+      "wallMin": 29.5
+    },
+    {
+      "n": 12,
+      "title": "Add How it works and Why you can trust it to Home",
+      "status": "verified",
+      "attempts": 2,
+      "modelCalls": 21,
+      "modelMin": 2.2,
+      "wallMin": 4.4
+    },
+    {
+      "n": 13,
+      "title": "Landing page: Home landing with How it works and 5 more",
+      "status": "skipped",
+      "attempts": 3,
+      "modelCalls": 62,
+      "modelMin": 5.3,
+      "wallMin": null,
+      "blocker": "Split into 4 smaller steps"
+    },
+    {
+      "n": 14,
+      "title": "Write the acceptance tests and add the stylesheet rules",
+      "status": "blocked",
+      "attempts": 2,
+      "modelCalls": 692,
+      "modelMin": 119.7,
+      "wallMin": 1677.1,
+      "blocker": "The cloud model's account has run out of credits (claude-sonnet-5-5). Nothing is wrong with the step's work."
+    },
+    {
+      "n": 15,
+      "title": "Add How it works to Home",
+      "status": "skipped",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Skipped: repeats work another step did or will do (duplicate from the Landing page split)"
+    },
+    {
+      "n": 16,
+      "title": "Category grid, filters, sort and search results",
+      "status": "skipped",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Skipped: repeats work another step did or will do (duplicate from the Landing page split)"
+    },
+    {
+      "n": 17,
+      "title": "Product page: details, stores, likes, ratings and comments",
+      "status": "skipped",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Skipped: repeats work another step did or will do (duplicate from the Landing page split)"
+    },
+    {
+      "n": 18,
+      "title": "Main screens: Choose a store near a ZIP code and 3 more",
+      "status": "invalidated",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Prerequisite \"Write the acceptance tests and add the stylesheet rules\" is blocked"
+    },
+    {
+      "n": 19,
+      "title": "Categories and products: Categories overview and 6 more",
+      "status": "invalidated",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Prerequisite \"Main screens: Choose a store near a ZIP code and 3 more\" is invalidated"
+    },
+    {
+      "n": 20,
+      "title": "Main screens: Product details and nearby stores and 3 more",
+      "status": "invalidated",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Prerequisite \"Categories and products: Categories overview and 6 more\" is invalidated"
+    },
+    {
+      "n": 21,
+      "title": "Grocery lists and stores: Create a grocery list and see samp",
+      "status": "invalidated",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Prerequisite \"Main screens: Product details and nearby stores and 3 more\" is invalidated"
+    },
+    {
+      "n": 22,
+      "title": "Design polish",
+      "status": "invalidated",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Prerequisite \"Grocery lists and stores: Create a grocery list and see sample lists and 6 more\" is invalidated"
+    },
+    {
+      "n": 23,
+      "title": "Clean up the code",
+      "status": "invalidated",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Prerequisite \"Design polish\" is invalidated"
+    },
+    {
+      "n": 24,
+      "title": "Assemble the app: wire every page and component into App.tsx",
+      "status": "invalidated",
+      "attempts": 0,
+      "modelCalls": 0,
+      "modelMin": 0,
+      "wallMin": null,
+      "blocker": "Prerequisite \"Clean up the code\" is invalidated"
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import {
   ImplementationPlan,
   TERMINAL_RUN_STATUSES,
   type AgentRole,
+  type ProviderErrorKind,
   type ModelAssignment,
   type CreateRunInput,
   type ExecutionStrategy,
@@ -45,6 +46,8 @@ import { autoApprovalReason, ROLE_TOOLS, type ToolName } from "@flowcode/contrac
 import { listTree, readFile } from "../workspace/fileService.js";
 import { newId, nowIso } from "../util/ids.js";
 import { ProviderError } from "../models/types.js";
+import { isProviderFailure } from "../models/errors.js";
+import { checkProviders, preflightSummary, type PreflightResult } from "../models/preflight.js";
 import { duplicateScreens } from "../quality/appWiring.js";
 import { CAPTURE_STYLE, TEMPLATES, templatePlan, specRuntimeTasks, specFallbackTasks, specRequiredChecks, assembleTask, polishTask, cleanupTask, CLEAN_UP, FEATURES_AFTER, DESIGN_SCREENS, DESIGN_POLISH, starterOf } from "./templates.js";
 import { buildGuidance, classifyRequest } from "./classify.js";
@@ -119,6 +122,8 @@ const MAX_TASK_ATTEMPTS = 3;
 
 export class Orchestrator {
   private active = new Map<string, AbortController>();
+  /** The last provider and model check per run (in memory, so a daemon restart checks again). */
+  private providerChecks = new Map<string, { sig: string; at: number; result: PreflightResult }>();
   private probing = new Set<string>();
   readonly graph: TaskGraph;
 
@@ -340,6 +345,14 @@ export class Orchestrator {
     const strategy = this.chooseStrategy(run, pf);
     run = this.d.store.runs.upsert({ ...run, strategy });
     this.d.verifier.record(runId, "project_preflight", pf.projectType === "incomplete" && strategy.kind !== "template_build" && strategy.kind !== "spec_build" ? "blocked" : "passed", `${pf.projectType}; ${pf.scripts.length} scripts; preview ${pf.previewStrategy}`, [`preflight:${pf.id}`]);
+    // The model services the build needs, before any model work: a missing model or an unreachable service stops here
+    // with what to do, not halfway through a step. Support roles only warn (the build can go on without them).
+    {
+      const needed = await this.providerReady(run, ["planner", "coder", "debugger"], true);
+      if (!needed.ok) throw new Error(preflightSummary(needed));
+      const support = await this.providerReady(run, (Object.keys(run.modelAssignments) as AgentRole[]).filter((r) => !["planner", "coder", "debugger"].includes(r)), true, false);
+      if (!support.ok) this.d.bus.emit({ type: "provider.checked", projectId: project.id, runId, level: "warning", message: `A support model can't be used yet: ${support.problems[0]}`, data: { check: support } });
+    }
 
     let plan: ImplementationPlan;
     if (strategy.kind === "template_build") {
@@ -1284,6 +1297,12 @@ export class Orchestrator {
       const skipped: string[] = [];
       for (const t of tasks) {
         if (passed(t) || !t.actualPaths.length) continue;
+        // A step paused for the model service (no credit, missing model, service down) did nothing wrong: its work waits for
+        // the service to come back.
+        if (t.blocker?.failureClass === "provider") {
+          skipped.push(t.title);
+          continue;
+        }
         // Never undo files a passing step also changed; that would throw away good work.
         if (t.actualPaths.some((p) => kept.has(p))) {
           skipped.push(t.title);
@@ -1296,7 +1315,7 @@ export class Orchestrator {
         }
       }
       if (undone.length) this.d.bus.emit({ ...ev, type: "recovery.action", message: `Undid the half-finished changes from ${undone.join(", ")}. Steps that passed are kept.` });
-      if (skipped.length) this.d.bus.emit({ ...ev, type: "recovery.action", message: `Kept the changes from ${skipped.map((s) => `"${s}"`).join(", ")} because a passing step changed the same files.`, level: "warning" });
+      if (skipped.length) this.d.bus.emit({ ...ev, type: "recovery.action", message: `Kept the changes from ${skipped.map((s) => `"${s}"`).join(", ")}: a passing step changed the same files, or the step is only waiting for the model service.`, level: "warning" });
     }
 
     // A stopped build waits for the user: it never starts another build on its own. FlowCode only suggests a clearer
@@ -1673,13 +1692,21 @@ export class Orchestrator {
       const opts = runtimeOptions(this.d.store);
       // The coder as it is now: switching a build to the cloud (or back) mid-build takes effect from the next attempt.
       run = this.d.store.runs.get(run.id) ?? run;
+      // The model service and the model this attempt uses, before it starts (rechecked after a model switch, a daemon
+      // restart or a provider failure). A problem pauses the step without using an attempt.
+      const attemptRole: AgentRole = task.attempts > 1 ? "debugger" : (task.role as AgentRole);
+      const ready = await this.providerReady(run, [attemptRole]);
+      if (!ready.ok) {
+        this.pauseForProvider(run, task, ready.failure ?? "connection_refused", ready.problems[0] ?? "The model service isn't ready");
+        return;
+      }
       const base = run.modelAssignments.coder;
       const fastTries = Math.max(1, Math.min(3, opts.fastModel.tries || 1));
       // Edits that went round in a circle skip the rest of the fast model's tries.
       const cycled = this.d.store.getSetting(`taskCycled:${task.id}`, false);
       // A build switched to a cloud coder skips the fast local model: the person chose the cloud model to write it.
       const chosenCloud = !!base?.providerId.startsWith("hosted");
-      const useFast = !cycled && !chosenCloud && task.attempts <= fastTries && task.role === "coder" && opts.fastModel.enabled && !!opts.fastModel.model && !!base && opts.fastModel.model !== base.model;
+      const useFast = !cycled && !chosenCloud && !this.d.store.getSetting(`fastUnavailable:${run.id}`, false) && task.attempts <= fastTries && task.role === "coder" && opts.fastModel.enabled && !!opts.fastModel.model && !!base && opts.fastModel.model !== base.model;
       if (useFast) {
         this.d.store.setSetting(`taskFast:${task.id}`, true);
         if (task.attempts === 1) this.d.bus.emit({ ...ev, type: "model.tier", message: `Trying the fast model (${opts.fastModel.model}) first; ${base!.model} takes over if ${fastTries === 1 ? "this attempt doesn't" : `${fastTries} attempts don't`} pass` });
@@ -1690,6 +1717,14 @@ export class Orchestrator {
         this.d.bus.emit({ ...ev, type: "model.tier", message: `Handing "${task.title}" to ${run.modelAssignments.debugger?.model ?? base?.model} after the fast model's attempt` });
       }
       outcome = await this.agentAttempt(run, task, jail, signal, changed, task.attempts > 1 ? "debugger" : (task.role as AgentRole), useFast ? opts.fastModel.model : undefined);
+      // The fast model's service failing (not installed, not answering) isn't the step's failure: the attempt is given
+      // back and the build's own coder takes it from here.
+      if (useFast && outcome.kind === "model_error" && isProviderFailure(outcome.error.kind)) {
+        this.d.store.setSetting(`fastUnavailable:${run.id}`, true);
+        this.updateTask(task, { status: "attempted", actualPaths: [...changed], attempts: Math.max(0, task.attempts - 1) });
+        this.d.bus.emit({ ...ev, type: "recovery.action", message: `The fast model (${opts.fastModel.model}) can't be used (${outcome.error.kind}); ${base?.model ?? "the coder"} takes the step without using an attempt`, data: { failureClass: "provider", kind: outcome.error.kind } });
+        return;
+      }
       // A fast-model error is just a failed first attempt, never a reason to block the step.
       if (useFast && outcome.kind === "model_error") outcome = { kind: "no_action", reason: `fast model unavailable (${outcome.error.kind}): ${outcome.error.message.slice(0, 160)}` };
     }
@@ -1719,6 +1754,21 @@ export class Orchestrator {
       if (tally && nearlyPassing(tally)) this.d.bus.emit({ ...ev, type: "run.status_changed", message: `Kept "${task.title}"'s changes: ${tally.passed} of ${tally.passed + tally.failed} of its tests pass, so a retry continues from here.` });
       else this.undoBlockedStep(run, task.id, jail);
       this.d.bus.emit({ ...ev, type: "task.blocked", message: `Task blocked: ${task.title} — ${reason}`, level: "warning" });
+      return;
+    }
+    if (outcome.kind === "model_error" && isProviderFailure(outcome.error.kind)) {
+      // A provider failure says nothing about the work. Check the service again: if it answers now, the step tries
+      // again without using an attempt (twice at most); if not, it pauses with its work kept until the service is back.
+      const role: AgentRole = task.attempts > 1 ? "debugger" : (task.role as AgentRole);
+      const now = await this.providerReady(this.d.store.runs.require(run.id), [role], true);
+      const retries = this.d.store.getSetting<number>(`providerRetries:${task.id}`, 0);
+      if (now.ok && outcome.error.retryable && retries < 2) {
+        this.d.store.setSetting(`providerRetries:${task.id}`, retries + 1);
+        this.updateTask(task, { status: "attempted", attempts: Math.max(0, task.attempts - 1) });
+        this.d.bus.emit({ ...ev, type: "recovery.action", message: `"${task.title}": the model service failed (${outcome.error.kind}) but answers again, so the step tries again without using an attempt`, data: { failureClass: "provider", kind: outcome.error.kind } });
+        return;
+      }
+      this.pauseForProvider(run, task, now.ok ? outcome.error.kind : (now.failure ?? outcome.error.kind), now.ok ? outcome.error.message : (now.problems[0] ?? outcome.error.message));
       return;
     }
     if (outcome.kind === "model_error" && !outcome.error.retryable) {
@@ -1976,6 +2026,45 @@ export class Orchestrator {
     this.updateTask(task, { status: "attempted" });
     this.setStatus(run.id, "recovering", `Recovering "${task.title}": ${why[0] ?? "criteria unmet"}`);
     this.setStatus(run.id, "running");
+  }
+
+  /**
+   * Checks the services and models for these roles (reliability phase 1). Reuses the last check for up to five minutes
+   * unless the run's models changed or `fresh` is set; a daemon restart starts with no checks. Records what answered
+   * as a provider.checked event when it checks.
+   */
+  private async providerReady(run: Run, roles: AgentRole[], fresh = false, record = true): Promise<PreflightResult> {
+    const wanted = Object.fromEntries(roles.map((r) => [r, run.modelAssignments[r]]).filter(([, a]) => !!a));
+    const sig = JSON.stringify(wanted);
+    const key = `${run.id}|${roles.join(",")}`;
+    const last = this.providerChecks.get(key);
+    if (!fresh && last && last.sig === sig && last.result.ok && Date.now() - last.at < 5 * 60_000) return last.result;
+    const result = await checkProviders((id) => this.d.router.provider(id), wanted);
+    this.providerChecks.set(key, { sig, at: Date.now(), result });
+    if (record) {
+      this.d.store.setSetting(`providerCheck:${run.id}`, result);
+      if (result.ok) this.d.bus.emit({ type: "provider.checked", projectId: run.projectId, runId: run.id, message: preflightSummary(result), data: { check: result } });
+    }
+    return result;
+  }
+
+  /** The model service can't be used: the step waits with its work kept and the attempt given back. */
+  private pauseForProvider(run: Run, task: Task, kind: ProviderErrorKind, detail: string) {
+    const label = assignmentLabel(run, task);
+    const nextAction =
+      kind === "quota_exhausted"
+        ? creditAdvice(label)
+        : kind === "model_missing"
+          ? "Install the model yourself or pick an installed one on System → Models, then retry the step. Its work is kept and no attempt was used."
+          : kind === "auth_failed"
+            ? "Check the service's key on System → Models, then retry the step. Its work is kept and no attempt was used."
+            : kind === "rate_limited" || kind === "out_of_memory"
+              ? "Wait a few minutes (or close other programs using the GPU), then retry the step. Its work is kept and no attempt was used."
+              : "Start or restart the model service, then retry the step. Its work is kept and no attempt was used.";
+    const reason = kind === "quota_exhausted" ? `The cloud model's account has run out of credits (${label}). Nothing is wrong with the step's work.` : `The model service can't be used (${kind}): ${detail}`;
+    this.d.store.setSetting(`providerRetries:${task.id}`, 0);
+    this.updateTask(this.d.store.tasks.require(task.id), { status: "blocked", attempts: Math.max(0, task.attempts - 1), blocker: { reason, category: "model", failureClass: "provider", evidenceRefs: [], nextAction } });
+    this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: task.id, type: "task.blocked", message: `Task paused, model service problem: ${kind}`, level: "error", data: { failureClass: "provider", kind } });
   }
 
   /** A FlowCode limit (not the app) stopped a step twice: tell the person and keep a record they can report. */
@@ -2402,8 +2491,10 @@ export class Orchestrator {
       this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, taskId, message: guidance ? `"${current.title}" is already running again; your guidance goes to its next try.` : `"${current.title}" is already running again, so it wasn't restarted.` });
       return run;
     }
+    // A step paused for the model service resumes where it was: nothing about its approach was wrong.
+    const providerPause = current?.blocker?.failureClass === "provider";
     const reopened = this.graph.reopen(runId, taskId);
-    this.d.store.setSetting(`taskFindings:${taskId}`, [...this.d.store.getSetting<string[]>(`taskFindings:${taskId}`, []), guidance ? `Guidance from the user (follow this): ${guidance}` : "User requested retry; use a revised approach."]);
+    this.d.store.setSetting(`taskFindings:${taskId}`, [...this.d.store.getSetting<string[]>(`taskFindings:${taskId}`, []), guidance ? `Guidance from the user (follow this): ${guidance}` : providerPause ? "The model service is back. Carry on from the work already in the files." : "User requested retry; use a revised approach."]);
     this.d.bus.emit({ type: "task.started", projectId: run.projectId, runId, taskId, message: `Retry requested; reopened ${reopened.length} task(s)`, data: { retry: true, guided: !!guidance } });
     if (run.status === "failed" || run.status === "blocked") this.d.store.runs.upsert({ ...run, status: "running" });
     return this.start(runId);

@@ -231,7 +231,8 @@ describe("a spec build plans from the checklist", () => {
         const content = JSON.stringify({ tasks: [{ title, goal: `${title} work as the PRD says.`, files: [`src/screens/${title.replace(/\W/g, "")}.tsx`], steps: ["Build it"], acceptance: ["It works"], covers: lines.slice(0, -1).map((l) => l.id) }], other: [] });
         return { content, toolCalls: [], model: "stub", durationMs: 1 };
       },
-      listModels: async () => [],
+      // The models it serves (the check before planning asks Ollama for its list).
+      listModels: async () => Object.values(app.router.roleAssignments()).map((a) => ({ name: a.model })),
       describe: async () => undefined,
       health: async () => ({ ok: true, detail: "stub" }),
     });
@@ -325,7 +326,8 @@ describe("a spec build plans from the checklist", () => {
         const content = JSON.stringify({ tasks: [{ title: "Events", goal: "Events work as the PRD says.", files: ["src/screens/WeekScreen.tsx"], steps: ["Build it"], acceptance: ["It works"], covers: lines.map((l) => l.id) }], other: [] });
         return { content, toolCalls: [], model: "stub", durationMs: 1 };
       },
-      listModels: async () => [],
+      // The models it serves (the check before planning asks Ollama for its list).
+      listModels: async () => Object.values(app.router.roleAssignments()).map((a) => ({ name: a.model })),
       describe: async () => undefined,
       health: async () => ({ ok: true, detail: "stub" }),
     });

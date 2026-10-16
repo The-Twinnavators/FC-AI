@@ -46,6 +46,8 @@ export const EVENT_TYPES = [
   "agent.message",
   "model.tier",
   "model.switched",
+  // The provider and model check before model work: which service answered and which models it has.
+  "provider.checked",
   "recovery.action",
   // Design research: inspiration from Dribbble, Behance and real products, studied before the screens are designed.
   "research.started",

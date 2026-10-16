@@ -73,7 +73,7 @@ export class OllamaProvider implements Provider {
         // A model that isn't installed, said plainly with the fix (the raw "HTTP 404 {error: model not found}" left
         // people guessing; it happened when another Ollama, in Docker, took the port with a different set of models).
         const missing = status === 404 ? /model '([^']+)' not found/.exec(text)?.[1] : undefined;
-        if (missing) throw new Error(`The model ${missing} isn't installed in the Ollama FlowCode is connected to (${new URL(this.base).host}). Install it with "ollama pull ${missing}", or pick an installed model on System → Models. If you run more than one Ollama (for example one in Docker), make sure the one with your models is the one on this port.`);
+        if (missing) throw new ProviderError("model_missing", `The model ${missing} isn't installed in the Ollama FlowCode is connected to (${new URL(this.base).host}). Install it with "ollama pull ${missing}", or pick an installed model on System → Models. If you run more than one Ollama (for example one in Docker), make sure the one with your models is the one on this port.`, [], 404);
         throw new Error(`Ollama ${pathName} HTTP ${status}: ${text.slice(0, 400)}`);
       }
       try {

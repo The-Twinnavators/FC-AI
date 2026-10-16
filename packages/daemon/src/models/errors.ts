@@ -34,6 +34,10 @@ export function classifyError(err: unknown, signal?: AbortSignal, status?: numbe
   else if (/insufficient_quota|credit_balance_exhausted|no credits remaining|exceeded your current quota|billing|credit balance is too low/.test(text)) kind = "quota_exhausted";
   // Anthropic answers 529 "overloaded_error" when busy: it passes with a pause, like a rate limit.
   else if (status === 429 || status === 529 || /rate limit|too many requests|overloaded_error/.test(text)) kind = "rate_limited";
+  // The model isn't installed where FlowCode looks (Clean Cart: a Docker Ollama on the port without qwen3:14b), or the
+  // account can't sign in. Neither passes by waiting or by changing the code.
+  else if ((status === 404 && /model|not[_ ]found/.test(text)) || /model '[^']+' not found|isn't installed in the ollama|model_not_found|no such model|pull model manifest/.test(text)) kind = "model_missing";
+  else if (status === 401 || status === 403 || /invalid x-api-key|authentication_error|invalid api key|incorrect api key|permission_error|the api key isn't set/.test(text)) kind = "auth_failed";
   else if (/context (length|window)|too many tokens|maximum context|prompt is too long|exceeds.*context/.test(text)) kind = "context_limit";
   // The GPU ran out of memory (Calculator test 1: "CUDA error: out of memory" as an Ollama 500). Usually passes once
   // the runner frees memory, so it's retried after a pause instead of blocking the step.
@@ -52,6 +56,17 @@ function collectCodes(err: unknown, out = new Set<string>(), depth = 0): Set<str
   if (Array.isArray(e.errors)) e.errors.forEach((x) => collectCodes(x, out, depth + 1));
   collectCodes(e.cause, out, depth + 1);
   return out;
+}
+
+/**
+ * Failures of the model service itself, not of the work: an unreachable endpoint, a missing model, no credits, a
+ * failed sign-in, a busy or out-of-memory runner, a request that timed out. They never use up a step's repair attempts
+ * and never go to the debugger; the step waits for the service and resumes with its work kept.
+ */
+export const PROVIDER_FAILURES: ReadonlySet<ProviderErrorKind> = new Set(["timeout", "connection_refused", "connection_reset", "dns_failure", "rate_limited", "quota_exhausted", "model_missing", "auth_failed", "out_of_memory"]);
+
+export function isProviderFailure(kind: ProviderErrorKind): boolean {
+  return PROVIDER_FAILURES.has(kind);
 }
 
 /** Abort reason used for request timeouts so they are not confused with user cancellation. */
