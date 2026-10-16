@@ -151,6 +151,41 @@ back to `off`.
 what was searched for, and style capture reads a reference image when one is given. A build with neither makes no
 vision call before human review.
 
+## Performance: why qwen3:8b wrote about 8–11 tokens a second
+
+Measured on this machine (RTX 5070 Laptop, 8 GB VRAM; Core Ultra 9 275HX; 31 GB RAM; Ollama 0.40.3, no runtime
+tuning set) with `scripts/ollama-speed.mjs` and the build's own telemetry. Full rows: [speed-qwen3-8b.json](speed-qwen3-8b.json).
+
+| Window | On GPU | Short prompt | 17k-token prompt |
+| --- | --- | --- | --- |
+| 8k | 100% | 54 tok/s | — |
+| 16k | 78% | 30 tok/s | 19 tok/s (10k prompt) |
+| 24k | 69% | 26 tok/s | — |
+| 32k | 59% | 22 tok/s | **7.9 tok/s** (the build saw 8.3) |
+| 24k, flash attention + q8_0 KV (temporary test server) | 83% | 41 tok/s | 13.5 tok/s |
+| 16k, flash attention + q8_0 KV | 92% | 43 tok/s | — |
+| 12k, flash attention + q8_0 KV | 100% | 51 tok/s | — |
+
+**Model speed.** The slowdown is placement, not the model: Ollama keeps about 1 GB of the card free, so roughly
+5.8 GB is usable. qwen3:8b's weights take about 4.6 GB, and the key/value cache for the window FlowCode needs does
+not fit beside them, so 30–40% of the model runs on the CPU, and it gets slower still as a long prompt fills the
+window. FlowCode's coder prompts were 11.7k (p10), 16.7k (median), 21.6k (p90) and up to 24.5k tokens, which is why
+`gpuMemory.ts` keeps a 24k floor (a smaller window silently cuts the prompt). Generation is 95% of local model time;
+prompt processing is 3% and loading 1%.
+
+**Orchestration waste.** It multiplies the slow calls: 1,147 of 1,348 reads were repeats of unchanged files, each one a
+model turn that re-sent ~16k tokens; one step (10) took 241 calls and 276 model minutes; step 14 took 692 calls.
+qwen3:14b (support roles) can't fit on an 8 GB card at any useful window and ran at 3 tok/s: 24 calls, 94 minutes.
+Phase 3 targets the repeats; the controlled build measures the effect.
+
+**Not changed (each needs your decision).**
+1. Ollama settings `OLLAMA_FLASH_ATTENTION=1` and `OLLAMA_KV_CACHE_TYPE=q8_0` (environment variables for Ollama; free,
+   no download): 24k window with a long prompt from 7.9 to 13.5 tok/s in the test above. q8_0 KV has a small quality
+   cost.
+2. Smaller coder prompts (system prompt, catalog, skills, history) so a 12–16k window holds them: up to ~50 tok/s, but
+   a prompt-size change across FlowCode, so a separate piece of work.
+3. A support model that fits the card (for example qwen3:8b instead of qwen3:14b for support roles): a model change.
+
 ## Backlog (not in scope; only with a separately approved narrow fix)
 
 - Artifact-level dependency tracking (which step produced which file and what depends on it).

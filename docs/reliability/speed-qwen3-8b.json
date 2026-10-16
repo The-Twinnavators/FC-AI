@@ -1,0 +1,54 @@
+{
+  "model": "qwen3:8b",
+  "at": "2026-10-16T01:52:39.791Z",
+  "rows": [
+    {
+      "num_ctx": 8192,
+      "wallS": 8,
+      "loadS": 4.6,
+      "genTokens": 169,
+      "genTokPerS": 54,
+      "promptTokPerS": 219,
+      "sizeGB": 5.76,
+      "vramGB": 5.76,
+      "onGpu": "100%",
+      "contextLength": 8192
+    },
+    {
+      "num_ctx": 16384,
+      "wallS": 11.6,
+      "loadS": 5.6,
+      "genTokens": 169,
+      "genTokPerS": 29.6,
+      "promptTokPerS": 172,
+      "sizeGB": 7.28,
+      "vramGB": 5.67,
+      "onGpu": "78%",
+      "contextLength": 16384
+    },
+    {
+      "num_ctx": 24576,
+      "wallS": 13.2,
+      "loadS": 6.3,
+      "genTokens": 169,
+      "genTokPerS": 25.5,
+      "promptTokPerS": 159,
+      "sizeGB": 8.46,
+      "vramGB": 5.82,
+      "onGpu": "69%",
+      "contextLength": 24576
+    },
+    {
+      "num_ctx": 32768,
+      "wallS": 15.2,
+      "loadS": 6.8,
+      "genTokens": 174,
+      "genTokPerS": 21.6,
+      "promptTokPerS": 138,
+      "sizeGB": 9.65,
+      "vramGB": 5.72,
+      "onGpu": "59%",
+      "contextLength": 32768
+    }
+  ]
+}
