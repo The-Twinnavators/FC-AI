@@ -1127,8 +1127,20 @@ export function isRepairSkill(s: SkillSpec): boolean {
  * system (one set of tokens and building blocks), the custom-design playbook for screens, adding tokens when the step
  * styles things, and the anti-generic rules.
  */
+/**
+ * A wording-only change (reword a description, fix a label or a typo): no layout, styling or new parts. It needs the
+ * file and the words, not the design playbooks or the parts catalog (a one-line reword got the art-direction skill and
+ * the catalog because its file was a "screen", and didn't fit a 16k window).
+ */
+export function isCopyEdit(taskText: string): boolean {
+  const t = taskText.toLowerCase();
+  if (!/\b(reword|rephrase|rewrite the (text|copy|wording)|copy ?edit|wording|typos?|spelling|rename the (label|button|title|heading)|change the (text|label|title|heading|wording|description))\b/.test(t)) return false;
+  return !/\b(design|redesign|layout|restyle|style|styles|styling|css|colou?rs?|theme|build|create|add (a|an|the) (section|component|screen|page|card|list|form)|new (section|component|screen|page)|image|images|icon|icons)\b/.test(t);
+}
+
 export function designSkillIds(taskText: string): string[] {
   const t = taskText.toLowerCase();
+  if (isCopyEdit(t)) return [];
   const styling = /\b(styles?|styling|css|tokens?|colou?rs?|theme|themes|palette|visual|look|dark mode|light mode)\b/.test(t);
   const screen = /\b(screens?|pages?|layout|views?|keypad|display|dashboard|component|components)\b/.test(t);
   if (!styling && !screen) return [];

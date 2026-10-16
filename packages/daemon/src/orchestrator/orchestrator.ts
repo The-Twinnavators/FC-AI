@@ -94,7 +94,7 @@ import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchIte
 import { promptConfigFor } from "../quality/taskPrompt.js";
 import { isInterfaceStep, playbookFor } from "../knowledge/designPlaybook.js";
 import { protectedPolicyFor } from "../workspace/protectedFiles.js";
-import { capSkills, designSkillIds, renderSkills, selectSkills, stackSkillIds, workflowSkillIds } from "../knowledge/skills.js";
+import { capSkills, designSkillIds, isCopyEdit, renderSkills, selectSkills, stackSkillIds, workflowSkillIds } from "../knowledge/skills.js";
 import { scanComponentLibrary } from "../workspace/componentLibrary.js";
 import { scanStyles } from "../workspace/styleTokens.js";
 import { alignCheckNames, foldReadOnlySteps, isTsReact, jsxInJsFiles, kitFacts, withoutBadChecks, planTooBig, snippetToName, tsTask, typesFirst, undefinedTokens, workspaceTokenUsage } from "./guards.js";
@@ -2516,7 +2516,8 @@ export class Orchestrator {
     const design = pinned.map((id) => library.find((x) => x.id === id)).filter((s): s is NonNullable<typeof s> => !!s && s.enabled !== false);
     const skills = capSkills(selected, stack, undefined, { design, retry: task.attempts > 1 || role === "debugger" });
     // Interface work gets the project's reusable parts (cached until its source changes), so agents reuse them.
-    const uiWork = skills.some((x) => x.id === "skill.avoid-ai-slop") || /\b(component|page|screen|layout|style|css|button|dialog|modal|form|card|ui)\b/i.test(`${task.title} ${task.objective}`);
+    // A wording-only change needs neither (isCopyEdit).
+    const uiWork = !isCopyEdit(ownText) && (skills.some((x) => x.id === "skill.avoid-ai-slop") || /\b(component|page|screen|layout|style|css|button|dialog|modal|form|card|ui)\b/i.test(`${task.title} ${task.objective}`));
     const reuse = uiWork ? scanComponentLibrary(jail).brief : "";
     // An app with FlowCode's library gets the catalog too: the parts to assemble screens from, one line each, so the
     // agent adds a catalog piece instead of writing the markup (a build used the starter kit and nothing from it).

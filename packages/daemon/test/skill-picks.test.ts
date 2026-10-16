@@ -8,7 +8,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { SkillSpec } from "@flowcode/contracts";
-import { BUILTIN_SKILLS, capSkills, designSkillIds, selectSkills } from "../src/knowledge/skills.js";
+import { BUILTIN_SKILLS, capSkills, designSkillIds, isCopyEdit, selectSkills } from "../src/knowledge/skills.js";
 import { designQa } from "../src/quality/designQa.js";
 import { staleBlocks } from "../src/orchestrator/upgradeSteps.js";
 
@@ -76,5 +76,18 @@ describe("building-block refresh", () => {
     expect(staleBlocks(app({ "src/components/ui/index.tsx": old }))).toEqual(expect.arrayContaining(["src/components/ui/index.tsx", "src/sim/index.ts"]));
     expect(staleBlocks(app({ "src/components/ui/index.tsx": current }))).not.toContain("src/components/ui/index.tsx");
     expect(staleBlocks(app({ "src/components/ui/index.tsx": `${old}\nexport function KeypadGrid() { return null; }\n` }))).not.toContain("src/components/ui/index.tsx");
+  });
+});
+
+describe("wording-only steps", () => {
+  it("a reword gets no design skills; a screen that is designed or extended still does", () => {
+    const reword = "Reword the Search screen's description\nIn src/screens/SearchScreen.tsx, change the PageHeader description to exactly \"Find products by name.\" Nothing else changes.";
+    expect(isCopyEdit(reword)).toBe(true);
+    expect(designSkillIds(reword)).toEqual([]);
+    expect(isCopyEdit("Fix the typo in the Home screen's heading")).toBe(true);
+    for (const t of ["Reword and restyle the Search screen's header", "Add a section to the Categories screen", "Design the Home screen", "Change the text colour of the Search screen's title"]) {
+      expect(isCopyEdit(t)).toBe(false);
+      expect(designSkillIds(t).length).toBeGreaterThan(0);
+    }
   });
 });

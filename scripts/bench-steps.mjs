@@ -68,6 +68,9 @@ const poll = setInterval(async () => {
   const refs = JSON.parse(row?.value ?? "{}");
   for (const [ref, abs] of Object.entries(refs)) if (/clean-cart-controlled-build-d804f3/.test(String(abs))) refs[ref] = path.join(work, WS);
   db.prepare("UPDATE settings SET value = ? WHERE key = 'workspaceRefs'").run(JSON.stringify(refs));
+  // The run's stored baseline is from its start, before the half-done work in the snapshot: the snapshot's own
+  // failures are recorded fresh instead (captureBaseline skips when one is stored).
+  db.prepare("DELETE FROM settings WHERE key LIKE 'runBaseline:%'").run();
   db.close();
 }
 const { createApp } = await import(`file:///${FC}/packages/daemon/dist/app.js`);
