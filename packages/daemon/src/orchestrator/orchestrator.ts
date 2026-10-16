@@ -63,7 +63,7 @@ import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } fr
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
 import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
-import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
+import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
@@ -77,6 +77,7 @@ import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, ma
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
 import { testingGuide, testScaffold } from "./testingGuide.js";
 import { budgetSkills, charsPerToken, requestBudget } from "./requestBudget.js";
+import { stepTools } from "./toolSelection.js";
 import { toolDef } from "./agentLoop.js";
 import { catalogContract, contractText } from "./catalogContract.js";
 import { STYLE_FILE, contractProblems, deliverableChecks, genericOnly, isTaskSpecific, separateMixed, testFileOf } from "./taskContract.js";
@@ -977,19 +978,30 @@ export class Orchestrator {
     let problems: string[] = [];
     // Sized for the planner's provider: switching a build between cloud and local needs nothing else.
     const budget = appModelBudget(this.d.router.isHosted(run.modelAssignments.planner));
-    for (const temperature of [0.2, 0.4]) {
+    // The 8GB GPU profile writes it in bounded parts (each with its own retry), so it isn't tried whole twice.
+    const inParts = runtimeOptions(this.d.store).gpuProfile === "8gb" && !this.d.router.isHosted(run.modelAssignments.planner);
+    for (const temperature of inParts ? [0.2] : [0.2, 0.4]) {
       try {
-        const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
-          messages: [
-            { role: "system", content: APP_MODEL_SYSTEM },
-            { role: "user", content: untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, budget.note)) },
-          ],
-          format: APP_MODEL_SCHEMA,
-          maxOutputTokens: budget.maxOutputTokens,
-          timeoutMs: budget.timeoutMs,
-          signal,
-        });
-        const got = parseAppModel(JSON.parse(extractJson(res.content)));
+        const got = inParts
+          ? await this.appModelInParts(run, prd, requirements, boundary, budget.note, signal)
+          : parseAppModel(
+              JSON.parse(
+                extractJson(
+                  (
+                    await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
+                      messages: [
+                        { role: "system", content: APP_MODEL_SYSTEM },
+                        { role: "user", content: untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, budget.note)) },
+                      ],
+                      format: APP_MODEL_SCHEMA,
+                      maxOutputTokens: budget.maxOutputTokens,
+                      timeoutMs: budget.timeoutMs,
+                      signal,
+                    })
+                  ).content,
+                ),
+              ),
+            );
         if (got.website) {
           this.d.bus.emit({ ...ev, type: "plan.proposed", message: "The PRD describes a website (pages people read), not an app people work in: this build designs its pages from the page sections instead of writing a complete app" });
           return undefined;
@@ -1015,6 +1027,59 @@ export class Orchestrator {
     }
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `The app model wasn't usable (${problems.slice(0, 3).join("; ")}); this build designs its main screens instead of writing the complete app`, level: "warning" });
     return undefined;
+  }
+
+  /**
+   * The app model in bounded parts (appModel.ts APP_PARTS_NOTE): structure, then each entity's records (places first,
+   * so entries can name them), then a look-up app's ratings and lists. At most two tries a part; every reply capped.
+   */
+  private async appModelInParts(run: Run, prd: string, requirements: Requirement[], boundary: string, sizeNote: string, signal: AbortSignal): Promise<ReturnType<typeof parseAppModel>> {
+    const ev = { projectId: run.projectId, runId: run.id };
+    let calls = 0;
+    const ask = async (system: string, user: string, format: Record<string, unknown>, maxOutputTokens: number): Promise<Record<string, unknown>> => {
+      let last: unknown;
+      for (let i = 0; i < 2; i++) {
+        try {
+          calls++;
+          const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, { messages: [{ role: "system", content: system }, { role: "user", content: user }], format, maxOutputTokens, timeoutMs: 600_000, think: false, signal });
+          if (res.doneReason === "length") throw new Error("the reply was cut off at its size limit");
+          return JSON.parse(extractJson(res.content)) as Record<string, unknown>;
+        } catch (err) {
+          if (signal.aborted) throw err;
+          last = err;
+        }
+      }
+      throw last;
+    };
+    const structure = await ask(`${APP_MODEL_SYSTEM}\n\n${APP_PARTS_NOTE}`, untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, sizeNote)), APP_STRUCTURE_SCHEMA, 3500);
+    const base = parseAppModel({ ...structure, seed: {} });
+    if (base.website || !base.model) return base;
+    const lookupShape = structure.shape === "lookup";
+    const l = (structure.lookup ?? {}) as Record<string, unknown>;
+    const entities = base.model.entities;
+    const entries = lookupShape ? (entities.find((e) => e.key === String(l.entries ?? "")) ?? entities[0]) : undefined;
+    const places = lookupShape ? (entities.find((e) => e.key === String(l.places ?? "") && e !== entries) ?? entities.find((e) => e !== entries)) : undefined;
+    const placesField = String(l.placesField ?? "") || "carriedBy";
+    const seed: Record<string, unknown[]> = {};
+    let placeIds: string[] = [];
+    for (const e of [...(places ? [places] : []), ...entities.filter((x) => x !== places)]) {
+      const extra =
+        e === places
+          ? `Spread them over these ZIP code areas, with zip, lat and lng for each: ${JSON.stringify(l.areas ?? [])}.`
+          : e === entries
+            ? `Each record also has "${placesField}": the ids of the places that carry it, from ${placeIds.join(", ")} (most places carry most entries, so availability differs).`
+            : "";
+      const got = await ask(SEED_SYSTEM, seedRequest(base.model.product, e, e === places ? 8 : e === entries ? 20 : 14, extra), SEED_SCHEMA, 3500);
+      seed[e.key] = Array.isArray(got.records) ? (got.records as unknown[]) : [];
+      if (e === places) placeIds = seed[e.key]!.map((_, i) => `${e.idPrefix}-${1001 + i}`);
+    }
+    let social: Record<string, unknown> = {};
+    if (lookupShape && entries) {
+      const list = (seed[entries.key] ?? []).slice(0, 24).map((row, i) => ({ id: `${entries.idPrefix}-${1001 + i}`, title: String((row as Record<string, unknown>)[entries.titleField] ?? "") }));
+      social = await ask(SOCIAL_SYSTEM, socialRequest(base.model.product, list, placeIds), SOCIAL_SCHEMA, 2500).catch(() => ({}));
+    }
+    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `The app model in ${calls} bounded planner replies: the structure, ${Object.keys(seed).length} sets of sample records${lookupShape ? ", ratings and lists" : ""}` });
+    return parseAppModel({ ...structure, seed, ...(lookupShape ? { lookup: { ...l, ...social } } : {}) });
   }
 
   private async decideScreens(run: Run, requirements: string, signal: AbortSignal): Promise<ScreenPlan | undefined> {
@@ -2248,7 +2313,10 @@ export class Orchestrator {
       // machine with an 8 GB card it gave qwen3:14b a 32k window that left 9 of its 15 GB running on the CPU at
       // 7.5 tokens a second. The size now follows the card, and never drops below the floor that keeps the step's
       // prompt whole - Ollama cuts a prompt that does not fit the window without saying so.
-      const window = !assignment.providerId.startsWith("hosted") && !base.contextWindow && (info?.maxContext ?? 0) >= 32_768 ? await contextForCoding(info?.sizeBytes) : undefined;
+      // The 8GB GPU profile codes in its fixed context (measured to fit the card); a step whose own material doesn't fit
+      // is split, never sent to a larger window that spills onto the CPU.
+      const gpu8 = runtimeOptions(this.d.store).gpuProfile === "8gb" && !assignment.providerId.startsWith("hosted");
+      const window = gpu8 ? runtimeOptions(this.d.store).profileContext : !assignment.providerId.startsWith("hosted") && !base.contextWindow && (info?.maxContext ?? 0) >= 32_768 ? await contextForCoding(info?.sizeBytes) : undefined;
       if (window) assignment = { ...assignment, contextWindow: window };
       // Routine coding turns (a step's first attempt) run without thinking unless it's turned on in Speed & recovery;
       // retries run as the debugger and keep the model's reasoning.
@@ -2435,7 +2503,9 @@ export class Orchestrator {
     const replyTokens = hostedModel ? Math.max(16_000, Math.floor(windowTokens / 4)) : Math.min(4096, Math.floor(windowTokens / 4));
     const reqBudget = requestBudget({ windowTokens, replyTokens, charsPerToken: charsPerToken(this.d.store, assignment.model, hostedModel ? 3.8 : 3.6), hosted: hostedModel });
     const skillFit = budgetSkills(skills, reqBudget.skillChars, renderSkills);
-    const system = rolePrompt + skillFit.text + (reuse ? `\n\n${reuse}` : "") + (catalog ? `\n\n${catalog}` : "") + (tests ? `\n\n${tests}` : "");
+    // A local model's reply is capped (a quarter of its window): edits come in pieces that fit, so none is cut off.
+    const replyNote = hostedModel ? "" : `\n\nYour replies are capped at about ${replyTokens} tokens. Change existing files with apply_patch, a few places per reply; rewrite a whole file only to create it or when it is under 120 lines. Anything cut off at the cap isn't applied.`;
+    const system = rolePrompt + skillFit.text + (reuse ? `\n\n${reuse}` : "") + (catalog ? `\n\n${catalog}` : "") + (tests ? `\n\n${tests}` : "") + replyNote;
     // Skills are guidance in the system prompt only. Their checklists used to be added to the step as "manual"
     // criteria that always counted as met: a dozen per step, none checked (Calculator test 1). A step's criteria are its
     // own checks and acceptance tests.
@@ -2534,7 +2604,11 @@ export class Orchestrator {
       : [];
     // What's left for the brief once the system prompt and the tool definitions are counted.
     const allowedTools = (project.settings.allowExternalResearch ? (ROLE_TOOLS[role] ?? []) : ((ROLE_TOOLS[role] ?? []) as ToolName[]).filter((t) => t !== "find_image")) as ToolName[];
-    const toolsChars = JSON.stringify([...allowedTools.map(toolDef), ...extraTools.map((t) => t.def)]).length;
+    // The 8GB GPU profile shows a first attempt only the tools its work needs (toolSelection.ts); a retry sees them all.
+    const profile8 = runtimeOptions(this.d.store).gpuProfile === "8gb" && !assignment.providerId.startsWith("hosted");
+    const shownTools = profile8 && role === "coder" ? stepTools(allowedTools, task, { catalog: !!catalog, designStep: !!designStep }) : allowedTools;
+    const shownExtras = profile8 && role === "coder" && !/\b(docs?|documentation|library api|sdk|framework api)\b/i.test(`${task.title} ${task.objective}`) ? [] : extraTools;
+    const toolsChars = JSON.stringify([...shownTools.map(toolDef), ...shownExtras.map((t) => t.def)]).length;
     const room = reqBudget.inputChars - system.length - toolsChars;
     const brief = fitHandoff(packet, renderTree(listTree(jail, ".", 2, lean ? 80 : 140)), (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name), Math.max(0, room));
     const total = system.length + toolsChars + brief.text.length;
@@ -2559,7 +2633,8 @@ export class Orchestrator {
       bus: this.d.bus,
       role,
       assignment,
-      extraTools,
+      extraTools: shownExtras,
+      ...(shownTools !== allowedTools ? { advertisedTools: shownTools } : {}),
       // The design steps read widely before their first edit (the kit, the placed pieces, the styles, the brief's parts):
       // a cloud coder reading four files a turn hit the read limit just before writing (Build test 5).
       investigationBudget: runtimeOptions(this.d.store).investigationBudget,

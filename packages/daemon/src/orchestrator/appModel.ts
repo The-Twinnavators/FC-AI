@@ -411,3 +411,53 @@ function parseLookup(raw: unknown, entities: ModelEntity[], seed: AppModel["seed
     saves: counts(l.saves),
   };
 }
+
+/**
+ * The app model in bounded parts (8GB GPU profile): one 7,600-token reply took 12 minutes on qwen3:8b with its context
+ * spilling onto the CPU, and came back with no sample data (Clean Cart controlled build). The parts: the structure
+ * (entities, navigation, the look-up settings), the sample records one entity at a time (places before the entries that
+ * name them), then a look-up app's ratings and lists. Each reply stays under a few thousand tokens; the assembled model
+ * goes through parseAppModel's checks (references, counts, areas) like the one-reply model.
+ */
+export const APP_PARTS_NOTE =
+  "Write it in parts, so each reply stays short. This part: shape, product, roles, entities (fields, statuses, steps, status changes; no records), nav, and for a look-up app the lookup's settings (entries, places, categoryField, placesField, areas, placeWord, carryWord, badgeField, detailFields, facets, tagsField) without ratings, lists, likes or saves. Don't write seed: the sample records come in the next parts, one entity at a time.";
+
+export const APP_STRUCTURE_SCHEMA = {
+  type: "object",
+  properties: {
+    shape: { type: "string", enum: ["app", "lookup", "website"] },
+    lookup: { type: "object" },
+    product: { type: "string" },
+    roles: { type: "array", items: { type: "string" } },
+    entities: { type: "array", items: { type: "object" } },
+    nav: { type: "array", items: { type: "object", properties: { label: { type: "string" }, items: { type: "array", items: { type: "object" } } }, required: ["label", "items"] } },
+  },
+  required: ["shape", "product"],
+};
+
+export const SEED_SYSTEM = "You write realistic sample records for one kind of record in a web app prototype, in the product's own domain: real-sounding names, plausible amounts and dates in 2025-2027. Use exactly the field keys given. Answer with JSON only: {\"records\": [ ... ]}.";
+export const SEED_SCHEMA = { type: "object", properties: { records: { type: "array", items: { type: "object" } } }, required: ["records"] };
+
+export function seedRequest(product: string, e: ModelEntity, count: number, extra = ""): string {
+  const fields = e.fields.map((f) => `${f.key} (${f.type}${f.options?.length ? `: ${f.options.join(" | ")}` : ""}${f.required ? ", required" : ""})`).join("; ");
+  const statuses = e.statuses?.length ? `\n${e.statusField}: one of ${e.statuses.map((s) => s.key).join(", ")} (a spread of them)` : "";
+  return `Product: ${product}\nRecords: ${count} ${e.plural} (${e.label}).\nFields: ${fields}${statuses}${extra ? `\n${extra}` : ""}`;
+}
+
+export const SOCIAL_SYSTEM = "You write a look-up app's sample activity: ratings with short comments people would write, one or two shopping lists, and like and save counts for the popular entries. Use only the entry and place ids given. Answer with JSON only.";
+export const SOCIAL_SCHEMA = {
+  type: "object",
+  properties: { ratings: { type: "array", items: { type: "object" } }, lists: { type: "array", items: { type: "object" } }, likes: { type: "object" }, saves: { type: "object" } },
+  required: ["ratings", "lists"],
+};
+
+export function socialRequest(product: string, entries: Array<{ id: string; title: string }>, places: string[]): string {
+  return [
+    `Product: ${product}`,
+    `Entries (id: name):\n${entries.map((e) => `${e.id}: ${e.title}`).join("\n")}`,
+    `Places (ids): ${places.join(", ")}`,
+    "Write: ratings, 10 to 16 of { entry (an entry id), who (first name and initial), stars 1-5, text, at (ISO date in 2026), helpful };",
+    "lists, 1 or 2 of { name, place (a place id), items: [{ entry, qty, done }] };",
+    "likes and saves: { <entry id>: count } for 6 to 10 popular entries.",
+  ].join("\n");
+}

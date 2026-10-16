@@ -76,6 +76,11 @@ export interface AgentLoopInput {
    * this attempt (stepRecovery.ts guardStops). The "same failing call" guard stays as it is.
    */
   relaxGuards?: boolean;
+  /**
+   * The tools the model is shown (8GB GPU profile: the step's own set, toolSelection.ts). Tools the role allows but the
+   * step isn't shown still run if called. Default: every allowed tool.
+   */
+  advertisedTools?: ToolName[];
   /** Reads of new content before the investigation check (runtime option; 0 or unset: 40 local, 120 cloud). */
   investigationBudget?: number;
   /** Answers "missing information" from the project (bounded), once per attempt. Undefined: nothing found. */
@@ -283,7 +288,8 @@ function balancedObjects(text: string): string[] {
 export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResult> {
   const allowed = new Set<ToolName>(input.allowedTools ?? (ROLE_TOOLS[input.role] as ToolName[]) ?? []);
   const extras = new Map((input.extraTools ?? []).map((t) => [t.def.name, t]));
-  const tools = [...[...allowed].map(toolDef), ...[...extras.values()].map((t) => t.def)];
+  const shown = input.advertisedTools ? input.advertisedTools.filter((t) => allowed.has(t)) : [...allowed];
+  const tools = [...shown.map(toolDef), ...[...extras.values()].map((t) => t.def)];
   const callable = new Set<string>([...allowed, ...extras.keys()]);
   const messages: ChatMessage[] = [
     { role: "system", content: input.system },

@@ -4,6 +4,7 @@ import path from "node:path";
 import type { ProviderConfig } from "@flowcode/contracts";
 import { ProviderError, type ChatRequest, type ChatResponse, type ModelInfo, type Provider, type ToolCall } from "./types.js";
 import { classifyError, withTimeout } from "./errors.js";
+import { acquireGpu } from "./gpuGate.js";
 import { newId } from "../util/ids.js";
 import http from "node:http";
 
@@ -123,8 +124,12 @@ export class OllamaProvider implements Provider {
         /* measuring must never break a build */
       }
     }
+    // One request on the GPU at a time in the 8GB GPU profile (gpuGate.ts), whichever build or role asks.
+    const release = await acquireGpu(req.gate?.label ?? `${req.model} request`, req.signal, req.gate ?? {});
+    let res;
+    try {
     await this.makeRoomFor(req.model, (body.options as { num_ctx: number }).num_ctx);
-    const res = await this.post<{
+    res = await this.post<{
       model: string;
       message?: OllamaMessage;
       done_reason?: string;
@@ -135,6 +140,9 @@ export class OllamaProvider implements Provider {
       prompt_eval_duration?: number;
       eval_duration?: number;
     }>("/api/chat", body, req.signal, req.timeoutMs ?? 600_000);
+    } finally {
+      release();
+    }
     if (!res.message) throw new ProviderError("invalid_response", "Ollama response missing message");
     const toolCalls: ToolCall[] = (res.message.tool_calls ?? []).map((c) => ({
       id: newId("tc"),
@@ -150,6 +158,7 @@ export class OllamaProvider implements Provider {
       usage: { promptTokens: res.prompt_eval_count, completionTokens: res.eval_count },
       durationMs: Date.now() - started,
       timing: { loadMs: ms(res.load_duration), promptMs: ms(res.prompt_eval_duration), generateMs: ms(res.eval_duration) },
+      thinkingChars: ((res.message as { thinking?: string }).thinking ?? "").length,
     };
   }
 
@@ -215,8 +224,13 @@ export class OllamaProvider implements Provider {
   async embed(model: string, input: string[], signal?: AbortSignal): Promise<number[][]> {
     // Released as soon as it has answered: it reloads in a moment, and on a small GPU those
     // few hundred megabytes are worth more to the model doing the work.
-    const res = await this.post<{ embeddings: number[][] }>("/api/embed", { model, input, keep_alive: "30s" }, signal, 120_000);
-    return res.embeddings;
+    const release = await acquireGpu(`embedding (${model})`, signal);
+    try {
+      const res = await this.post<{ embeddings: number[][] }>("/api/embed", { model, input, keep_alive: "30s" }, signal, 120_000);
+      return res.embeddings;
+    } finally {
+      release();
+    }
   }
 
   async health(): Promise<{ ok: boolean; detail: string }> {

@@ -10,6 +10,8 @@ import { ProcessManager } from "./commands/processManager.js";
 import { CommandRunner } from "./commands/runner.js";
 import { ProjectService } from "./workspace/projects.js";
 import { SnapshotService } from "./workspace/snapshots.js";
+import { runtimeOptions } from "./orchestrator/runtimeOptions.js";
+import { setGpuGatePolicy } from "./models/gpuGate.js";
 import { FileOperations } from "./workspace/operations.js";
 import { ModelRouter } from "./models/router.js";
 import { CapabilityLab } from "./models/capabilityLab.js";
@@ -57,6 +59,11 @@ export function createApp(opts: AppOptions = {}) {
   // MCP servers you connect (Prompts & Skills → Tools): extra tools for the roles you choose.
   const mcp = new McpManager(store);
   verifier.priorOf = (snap) => snapshots.priorContent(snap);
+  // The 8GB GPU profile: one local model request at a time across the app; the ones that wait say so in their build.
+  setGpuGatePolicy(
+    () => runtimeOptions(store).gpuProfile === "8gb",
+    (label, behind, position, meta) => bus.emit({ type: "model.queued", projectId: meta.projectId, runId: meta.runId, taskId: meta.taskId, message: `Waiting for the GPU: ${label} is ${position === 1 ? "next" : `number ${position} in line`}, behind ${behind}`, data: { behind, position } }),
+  );
   const orchestratorDeps: OrchestratorDeps = { store, bus, router, lab, projects, snapshots, ops, runner, processes, approvals, verifier, knowledge, mcp };
   const orchestrator = new Orchestrator(orchestratorDeps);
 

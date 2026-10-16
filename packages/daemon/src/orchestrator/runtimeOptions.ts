@@ -33,9 +33,20 @@ export interface RuntimeOptions {
    * run as the debugger and keep the model's own reasoning setting.
    */
   routineThinking: boolean;
+  /**
+   * How local models are run. "8gb": the 8GB local GPU profile - one local request at a time across the app, text
+   * support roles on the coder's model (qwen3:8b) instead of a model that doesn't fit the card, a fixed coding context
+   * (profileContext) with no larger fallback, the tools a step needs, and the planner's app model in bounded parts.
+   * "standard": as before.
+   */
+  gpuProfile: "standard" | "8gb";
+  /** The coding context in the 8GB profile, in tokens (12k fits qwen3:8b entirely on an 8 GB card; 16k mostly). */
+  profileContext: number;
+  /** The model text support roles use in the 8GB profile. */
+  profileSupportModel: string;
 }
 
-export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true, investigationBudget: 0, visualCritic: "off", routineThinking: false };
+export const DEFAULT_RUNTIME_OPTIONS: RuntimeOptions = { fastModel: { enabled: false, model: "qwen3:8b", tries: 2 }, rollbackBlocked: true, autoRetry: true, investigationBudget: 0, visualCritic: "off", routineThinking: false, gpuProfile: "standard", profileContext: 16384, profileSupportModel: "qwen3:8b" };
 const KEY = "runtimeOptions";
 
 export function runtimeOptions(store: Store): RuntimeOptions {

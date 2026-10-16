@@ -13,6 +13,10 @@ import { OllamaProvider } from "./ollama.js";
 import { OpenAICompatibleProvider } from "./openaiCompat.js";
 import { AnthropicProvider } from "./anthropic.js";
 import { stableStringify, sha256 } from "../util/ids.js";
+import { runtimeOptions } from "../orchestrator/runtimeOptions.js";
+
+/** Roles that only read and write text: in the 8GB profile they share the coder's model. The critic (vision) doesn't. */
+const SUPPORT_TEXT_ROLES = new Set<string>(["repository_analyst", "researcher", "reviewer", "designer", "documenter", "security_qa", "accessibility_qa", "compliance_triage"]);
 
 export interface RetryPolicy {
   maxRetries: number;
@@ -130,18 +134,31 @@ export class ModelRouter {
       }
     }
     const ev = { projectId: ctx.projectId, runId: ctx.runId, taskId: ctx.taskId };
-    const meta = { role: ctx.role, providerId: assignment.providerId, model: assignment.model, version: assignment.version };
+    // The 8GB GPU profile: text support roles run on the profile's model (one that fits the card); a request with
+    // images keeps its vision model. Each role keeps its own instructions and checks: only the model is shared.
+    const opts = runtimeOptions(this.store);
+    const profile = opts.gpuProfile === "8gb" && !provider.config.hosted;
+    const images = req.messages.some((m) => (m as { images?: string[] }).images?.length);
+    if (profile && SUPPORT_TEXT_ROLES.has(ctx.role) && !images && opts.profileSupportModel && assignment.model !== opts.profileSupportModel) assignment = { ...assignment, model: opts.profileSupportModel, version: undefined };
+    // The profile's context is a ceiling: no reply may ask for more (a long reply used to widen the window to 32k, and the
+    // model spilled onto the CPU). A reply that needs more is cut off and says so (doneReason "length").
+    if (profile) {
+      if (req.maxOutputTokens && req.maxOutputTokens > 4096) req = { ...req, maxOutputTokens: 4096 };
+      if (assignment.contextWindow && assignment.contextWindow > opts.profileContext) assignment = { ...assignment, contextWindow: opts.profileContext };
+    }
+    const think = req.think ?? assignment.reasoning ?? false;
+    const meta = { role: ctx.role, providerId: assignment.providerId, model: assignment.model, version: assignment.version, think, ...(profile ? { profile: "8gb" } : {}) };
     let attempt = 0;
     for (;;) {
       this.bus.emit({ ...ev, type: "model.requested", message: `${ctx.role} → ${assignment.model}${attempt ? ` (retry ${attempt})` : ""}`, data: { ...meta, attempt, messages: req.messages.length, tools: req.tools?.length ?? 0, images: req.messages.some((m) => (m as { images?: string[] }).images?.length) } });
       try {
-        const res = await provider.chat({ ...req, model: assignment.model, temperature: req.temperature ?? assignment.temperature, contextWindow: assignment.contextWindow, think: req.think ?? assignment.reasoning });
+        const res = await provider.chat({ ...req, model: assignment.model, temperature: req.temperature ?? assignment.temperature, contextWindow: assignment.contextWindow, think, gate: req.gate ?? { label: `${ctx.role}${ctx.runId ? ` (${ctx.runId.slice(0, 12)})` : ""}`, runId: ctx.runId, projectId: ctx.projectId, taskId: ctx.taskId } });
         this.bus.emit({
           ...ev,
           type: "model.completed",
           message: `${ctx.role} ← ${assignment.model}: ${res.toolCalls.length ? `${res.toolCalls.length} tool call(s): ${res.toolCalls.map((c) => c.name).join(", ")}` : "text response"} in ${res.durationMs}ms`,
           // Timing and prompt size feed the Performance view: where model time goes, and how big each request was.
-          data: { ...meta, durationMs: res.durationMs, usage: res.usage, timing: res.timing, promptChars: promptSize(req), toolCalls: res.toolCalls.map((c) => c.name) },
+          data: { ...meta, durationMs: res.durationMs, usage: res.usage, timing: res.timing, thinkingChars: res.thinkingChars ?? 0, doneReason: res.doneReason, promptChars: promptSize(req), toolCalls: res.toolCalls.map((c) => c.name) },
         });
         return res;
       } catch (raw) {

@@ -39,6 +39,8 @@ export interface ChatRequest {
    * forced into JSON and would otherwise write until the time-out (a 10-minute plan instead of 20 seconds).
    */
   maxOutputTokens?: number;
+  /** Who is asking, for the GPU queue (gpuGate.ts): "coder for Clean Cart", with the run it belongs to. */
+  gate?: { label: string; runId?: string; projectId?: string; taskId?: string };
 }
 
 export interface ChatResponse {
@@ -54,6 +56,8 @@ export interface ChatResponse {
    * prompt, and writing the reply. The rest of durationMs is network and queueing.
    */
   timing?: { loadMs?: number; promptMs?: number; generateMs?: number };
+  /** Characters of model-side thinking in the reply (0 when thinking was off). */
+  thinkingChars?: number;
 }
 
 export interface ModelInfo {

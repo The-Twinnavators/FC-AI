@@ -11,6 +11,8 @@ interface Options {
   investigationBudget?: number;
   visualCritic?: "off" | "advisory";
   routineThinking?: boolean;
+  gpuProfile?: "standard" | "8gb";
+  profileContext?: number;
 }
 
 export function RuntimeSettings() {
@@ -81,6 +83,27 @@ export function RuntimeSettings() {
             <span className="muted">FlowCode rewrites the request more precisely (files, names, what not to change) and tries once more. Never in Supervised projects.</span>
           </span>
         </label>
+        <div className="rt__sub">
+          <label className="label" htmlFor="rt-gpu">
+            Local GPU profile
+          </label>
+          <select id="rt-gpu" className="select" value={o.gpuProfile ?? "standard"} onChange={(e) => void update({ gpuProfile: e.target.value as "standard" | "8gb" })}>
+            <option value="standard">Standard</option>
+            <option value="8gb">8 GB GPU</option>
+          </select>
+          {o.gpuProfile === "8gb" ? (
+            <>
+              <label className="label" htmlFor="rt-ctx">
+                Coding context
+              </label>
+              <select id="rt-ctx" className="select" value={o.profileContext ?? 16384} onChange={(e) => void update({ profileContext: Number(e.target.value) })}>
+                <option value={12288}>12k (all on the GPU)</option>
+                <option value={16384}>16k</option>
+              </select>
+            </>
+          ) : null}
+          <span className="muted" style={{ fontSize: 12.5 }}>8 GB GPU: one local model request at a time across all builds (the rest wait, shown in their activity), support roles on qwen3:8b, a fixed coding context with no larger fallback, and the planner's app model in short parts. Image checks keep the vision model.</span>
+        </div>
         <label className="rt__row">
           <input type="checkbox" checked={!!o.routineThinking} onChange={(e) => void update({ routineThinking: e.target.checked })} />
           <span>
