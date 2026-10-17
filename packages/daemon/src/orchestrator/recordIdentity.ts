@@ -33,23 +33,68 @@ const title = (e: ModelEntity, row: Row) => String(row[e.titleField] ?? "").trim
 /** The values that describe the record (not its status or the places carrying it), to tell a repeat from a conflict. */
 const values = (e: ModelEntity, row: Row) => e.fields.filter((f) => f.key !== e.statusField).map((f) => norm(row[f.key])).join(" | ");
 
+/**
+ * The PRD's sample-data table rows as records of this kind: each column matched to a field by its label or key (the
+ * first column is the title), so a clash involving one of the PRD's records is settled by the PRD's own values.
+ */
+export function prdFixtureRows(e: ModelEntity, section: string): Row[] {
+  const lines = section.split(/\r?\n/).filter((l) => /^\s*\|/.test(l));
+  const cells = (l: string) => l.split("|").slice(1, -1).map((c) => c.trim().replace(/[*_`]/g, ""));
+  const out: Row[] = [];
+  let header: Array<string | undefined> | undefined;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^[\s|:-]+$/.test(lines[i]!)) continue;
+    if (/^[\s|:-]+$/.test(lines[i + 1] ?? "")) {
+      header = cells(lines[i]!).map((h, j) => (j === 0 ? e.titleField : e.fields.find((f) => norm(f.label) === norm(h) || norm(f.key) === norm(h))?.key));
+      continue;
+    }
+    if (!header) continue;
+    const row: Row = {};
+    cells(lines[i]!).forEach((c, j) => header![j] && (row[header![j]!] = c));
+    out.push(row);
+  }
+  return out;
+}
+
+/** Whether a record carries the PRD row's values (every column the PRD gives that maps to a field). */
+const agrees = (row: Row, prd: Row) => Object.entries(prd).every(([k, v]) => norm(row[k]) === norm(v));
+
 export interface MergeResult {
   rows: Row[];
-  /** Exact repeats left out. */
+  /** Identities held out: records that clash and can't be settled; any later record with that identity is held out too. */
+  held: string[];
+  /** Exact repeats collapsed into one. */
   repeats: string[];
-  /** Records left out because they clash with one already kept (same identity, different values; one identifier on two records; one record under two identifiers). */
+  /** Clashes and how each was settled (by the PRD's values, or by holding both versions out). */
   conflicts: string[];
 }
 
-/** Adds a batch to the records so far: each new record once, every left-out one said with why. */
-export function mergeRecords(e: ModelEntity, kept: Row[], incoming: Row[]): MergeResult {
-  const rows = [...kept];
+/**
+ * Adds a batch to the records so far. An exact repeat is collapsed (said). A clash (the same identity with different
+ * values, one identifier on two records, one record under two identifiers, or no identity at all) is never settled by
+ * keeping whichever came first: when it is one of the PRD's records, the version with the PRD's values is kept;
+ * otherwise neither version is kept, both are held out (said), and the batches that follow fill the place with other
+ * records. Records that differ in any identity field (another brand, another certification) are separate records.
+ */
+export function mergeRecords(e: ModelEntity, kept: Row[], incoming: Row[], opts: { held?: string[]; prdRows?: Row[] } = {}): MergeResult {
+  let rows = [...kept];
+  const held = new Set(opts.held ?? []);
   const repeats: string[] = [];
   const conflicts: string[] = [];
   const idField = identifierField(e);
+  const prdFor = (row: Row) => (opts.prdRows ?? []).find((p) => norm(p[e.titleField]) === norm(row[e.titleField]));
   for (const row of incoming) {
-    const id = idField ? norm(row[idField]) : "";
     const key = compositeKey(e, row);
+    if (!norm(row[e.titleField])) {
+      conflicts.push(`a record with no ${e.titleField} can't be identified; held out`);
+      continue;
+    }
+    const own = prdFor(row);
+    if (held.has(key) && !(own && agrees(row, own))) {
+      conflicts.push(`"${title(e, row)}" again, an identity already held out for clashing; held out`);
+      continue;
+    }
+    const id = idField ? norm(row[idField]) : "";
     const sameId = id ? rows.find((r) => norm(r[idField!]) === id) : undefined;
     const sameKey = rows.find((r) => compositeKey(e, r) === key);
     const other = sameId ?? sameKey;
@@ -57,12 +102,27 @@ export function mergeRecords(e: ModelEntity, kept: Row[], incoming: Row[]): Merg
       rows.push(row);
       continue;
     }
-    if (values(e, other) === values(e, row)) repeats.push(title(e, row));
-    else if (sameId && compositeKey(e, sameId) !== key) conflicts.push(`${idField} ${String(row[idField!])} is used by "${title(e, sameId)}" and "${title(e, row)}"; kept the first`);
-    else if (idField && sameKey && norm(sameKey[idField]) && id && norm(sameKey[idField]) !== id) conflicts.push(`"${title(e, row)}" appears under two ${idField}s (${String(sameKey[idField])}, ${String(row[idField])}); kept the first`);
-    else conflicts.push(`"${title(e, row)}" appears twice with different values (${compositeFields(e).join(", ")} the same); kept the first`);
+    if (values(e, other) === values(e, row) && (!idField || norm(other[idField]) === id)) {
+      repeats.push(title(e, row));
+      continue;
+    }
+    const what =
+      sameId && compositeKey(e, sameId) !== key
+        ? `${idField} ${String(row[idField!])} is used by "${title(e, sameId)}" and "${title(e, row)}"`
+        : idField && norm(other[idField]) && id && norm(other[idField]) !== id
+          ? `"${title(e, row)}" appears under two ${idField}s (${String(other[idField])}, ${String(row[idField])})`
+          : `"${title(e, row)}" appears twice with different values (${compositeFields(e).join(", ")} the same)`;
+    const prd = prdFor(other) ?? prdFor(row);
+    if (prd && agrees(other, prd) !== agrees(row, prd)) {
+      if (agrees(row, prd)) rows = rows.map((r) => (r === other ? row : r));
+      conflicts.push(`${what}; kept the version with the PRD's values`);
+      continue;
+    }
+    rows = rows.filter((r) => r !== other);
+    held.add(compositeKey(e, other)).add(key);
+    conflicts.push(`${what}; neither version is kept (held out)${prd ? ", and neither has the PRD's values" : ""}`);
   }
-  return { rows, repeats, conflicts };
+  return { rows, held: [...held], repeats, conflicts };
 }
 
 /** The PRD's named records not among these records (by title). */

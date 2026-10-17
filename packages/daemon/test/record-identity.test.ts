@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import type { ChatRequest } from "@flowcode/contracts";
 import type { ModelEntity } from "../src/orchestrator/appModel.js";
 import { prdNamedRecords, prdSampleSection } from "../src/orchestrator/appModel.js";
-import { batchNote, compositeFields, fixturesFirst, identifierField, mergeRecords, missingFixtures } from "../src/orchestrator/recordIdentity.js";
+import { batchNote, compositeFields, fixturesFirst, identifierField, mergeRecords, missingFixtures, prdFixtureRows } from "../src/orchestrator/recordIdentity.js";
 import { makeApp, makeProject } from "./helpers.js";
 
 const PRD = fs.readFileSync(path.join(import.meta.dirname, "../../../docs/handoff/slice/clean-cart-slice-prd.md"), "utf8");
@@ -45,16 +45,44 @@ describe("a record's identity", () => {
     expect(r.conflicts).toEqual([]);
   });
 
-  it("names a conflicting duplicate (same identity, different values) and keeps the first", () => {
-    const r = mergeRecords(product, [oat], [{ ...oat, ingredients: "Oats, water, rapeseed oil" }]);
-    expect(r.rows).toEqual([oat]);
-    expect(r.conflicts).toEqual(['"Oat Milk Original" appears twice with different values (name, brand, category the same); kept the first']);
+  it("for the recorded Clean Cart model is name, brand, category and certification (not title and category alone)", () => {
+    const schema = fs.readFileSync(path.join(import.meta.dirname, "fixtures/apps/lookup/src/app/schema.ts.txt"), "utf8");
+    const recorded = (JSON.parse(/export const schema[^=]*=\s*(\{[\s\S]*?\n\});/.exec(schema)![1]!) as { entities: ModelEntity[] }).entities;
+    expect(compositeFields(recorded.find((e) => e.key === "product")!)).toEqual(["name", "brand", "category", "certification"]);
+    expect(identifierField(recorded.find((e) => e.key === "product")!)).toBeUndefined();
+    // Variants that differ in any of those are separate records.
+    const r = mergeRecords(recorded.find((e) => e.key === "product")!, [{ ...oat, certification: "USDA Organic" }], [{ ...oat, certification: "Non-GMO Project Verified" }, { ...oat, brand: "Meadow Hill", certification: "USDA Organic" }]);
+    expect(r.rows).toHaveLength(3);
   });
 
-  it("names one identifier on two records, and one record under two identifiers", () => {
+  it("never settles a clash by keeping the first: a PRD record keeps the PRD's values; otherwise both versions are held out", () => {
+    const prdRows = prdFixtureRows(product, prdSampleSection(PRD));
+    expect(prdRows[0]).toEqual({ name: "Oat Milk Original", brand: "Willow Farms", category: "Beverages", ingredients: "Oats, water, sea salt" });
+    // The PRD's record: the version with its values wins, whichever came first.
+    const wrongFirst = mergeRecords(product, [{ ...oat, ingredients: "Oats, water, rapeseed oil" }], [oat], { prdRows });
+    expect(wrongFirst.rows).toEqual([oat]);
+    expect(wrongFirst.conflicts).toEqual(['"Oat Milk Original" appears twice with different values (name, brand, category the same); kept the version with the PRD\'s values']);
+    // An invented record: neither version, and the identity stays held out in later batches.
+    const almond = { name: "Almond Butter", brand: "Nutty", category: "Snacks", ingredients: "Almonds" };
+    const r = mergeRecords(product, [almond], [{ ...almond, ingredients: "Almonds, salt" }], { prdRows });
+    expect(r.rows).toEqual([]);
+    expect(r.conflicts[0]).toMatch(/; neither version is kept \(held out\)$/);
+    expect(mergeRecords(product, r.rows, [almond], { held: r.held, prdRows }).rows).toEqual([]);
+    // Neither version of a PRD record has its values: both held out, then the PRD's version (asked for by name) gets in.
+    const bad = mergeRecords(product, [{ ...oat, ingredients: "a" }], [{ ...oat, ingredients: "b" }], { prdRows });
+    expect(bad.conflicts[0]).toMatch(/held out\), and neither has the PRD's values$/);
+    expect(mergeRecords(product, bad.rows, [oat], { held: bad.held, prdRows }).rows).toEqual([oat]);
+  });
+
+  it("names one identifier on two records, one record under two identifiers, and a record with no identity, holding them out", () => {
     const a = { ...oat, sku: "WF-1" };
-    expect(mergeRecords(withSku, [a], [{ ...oat, name: "Rolled Oats", sku: "WF-1" }]).conflicts).toEqual(['sku WF-1 is used by "Oat Milk Original" and "Rolled Oats"; kept the first']);
-    expect(mergeRecords(withSku, [a], [{ ...oat, sku: "WF-2" }]).conflicts).toEqual(['"Oat Milk Original" appears under two skus (WF-1, WF-2); kept the first']);
+    expect(mergeRecords(withSku, [a], [{ ...oat, name: "Rolled Oats", sku: "WF-1" }]).conflicts).toEqual(['sku WF-1 is used by "Oat Milk Original" and "Rolled Oats"; neither version is kept (held out)']);
+    expect(mergeRecords(withSku, [a], [{ ...oat, sku: "WF-2" }]).conflicts).toEqual(['"Oat Milk Original" appears under two skus (WF-1, WF-2); neither version is kept (held out)']);
+    expect(mergeRecords(product, [], [{ ...oat, name: "" }])).toMatchObject({ rows: [], conflicts: ["a record with no name can't be identified; held out"] });
+    // Identity unavailable beyond the title (a kind with no other identifying field): same title, different values is a clash, not a variant.
+    const titleOnly: ModelEntity = { ...product, subtitleField: undefined, fields: [{ key: "name", label: "Name", type: "text", required: true }, { key: "notes", label: "Notes", type: "longtext" }] };
+    expect(compositeFields(titleOnly)).toEqual(["name"]);
+    expect(mergeRecords(titleOnly, [{ name: "Oat Milk", notes: "1 L" }], [{ name: "Oat Milk", notes: "2 L" }]).rows).toEqual([]);
   });
 
   it("finds the PRD's records missing after a merge, and puts the PRD's records first in its order", () => {
