@@ -755,7 +755,7 @@ Pre-delivery checklist (fix failures; say what you couldn't verify):
     // The user wants designs a senior designer would put in a portfolio (the level of the best work on Dribbble and
     // Behance), still usable: one strong, considered design, not several mock-ups.
     id: "skill.art-direction",
-    version: "1.0.3",
+    version: "1.0.4",
     roles: ["planner", "coder", "designer", "critic"],
     // Narrow on purpose: screen steps get it from designSkillIds; a one-value colour change or a table fix shouldn't.
     triggers: ["redesign", "landing page", "hero", "art direction", "portfolio", "visual design", "make it beautiful"],
@@ -775,8 +775,7 @@ Craft the details:
 - Scale and space carry the design: big confident type, generous whitespace (the spacing scale's larger steps between groups), aligned edges on one grid. Fewer, larger elements beat many small ones.
 - Compose, don't stack: vary the rhythm (a wide feature area beside a narrow list; full-width bands with dividers), not a column of identical cards.
 - Real, specific content from the PRD and the sample data, written like a good product: short labels, human dates ("Thu 9 Oct"), believable names.
-- Colour theory, not colour fill: neutrals tinted toward the brand hue (never flat grey); roughly 60% calm ground, 30% supporting surfaces and type, 10% brand accent reserved for the focal point and the primary action; one deliberate contrast moment (a deep brand-tinted band, sidebar or hero) so the screen isn't all white; status colours only for status. Check every text colour against its background (4.5:1 body, 3:1 large).
-- 60/30/10 colour: about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight. Radius: cards, containers and text boxes never above 12px (no pill text boxes). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.
+- Colour, 60/30/10: neutrals tinted toward the brand hue (never flat grey); about 60% neutral background and surfaces, 30% a secondary colour for supporting areas (--color-secondary, --color-secondary-hover, --color-on-secondary, --color-secondary-surface, --color-secondary-border) that harmonizes with the accent, 10% --color-accent only for the main action, links, focus and one key highlight; one deliberate contrast moment (a deep brand-tinted band, sidebar or hero) so the screen isn't all white; status colours only for status. Check every text colour against its background (4.5:1 body, 3:1 large). Radius: cards, containers and text boxes never above 12px (no pill text boxes; pills and round controls stay round). Nested corners: inner radius = outer radius - padding, kept at 50-75% of the outer.
 - Proportion, not size: controls at the kit's sm/md sizes (a primary button isn't a banner); one display-size element per screen and everything else on the type scale below it, so the hierarchy reads at a glance. Nothing oversized just to fill space.
 - Every element has a reason and a place on the grid: align to shared edges, group related things, and leave space empty on purpose rather than scattering components across the page.
 - Depth with restraint: one elevation level for things that float; subtle surface shifts and hairline dividers for structure.
@@ -807,7 +806,7 @@ Then ask: one clear focal point? Real type contrast? Nothing boxed that doesn't 
       "Still usable: contrast, 44px touch targets, an obvious primary action, a composition rethought for phone width",
     ],
     tests: [],
-    changelog: [{ version: "1.0.0", date: "2026-10-06", note: "Aspirational, portfolio-level design: concept first, then craft (the user asked for designs like the best of Dribbble and Behance)" }, { version: "1.0.1", date: "2026-10-07", note: "Expanded guidance (shipped without a version bump before)" }, { version: "1.0.2", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }, { version: "1.0.3", date: "2026-10-13", note: "Cards and text boxes curve at most 12px (was 24px)" }],
+    changelog: [{ version: "1.0.0", date: "2026-10-06", note: "Aspirational, portfolio-level design: concept first, then craft (the user asked for designs like the best of Dribbble and Behance)" }, { version: "1.0.1", date: "2026-10-07", note: "Expanded guidance (shipped without a version bump before)" }, { version: "1.0.2", date: "2026-10-12", note: "60/30/10 colour with the secondary tokens, accent only for the main action, radius at most 24px" }, { version: "1.0.3", date: "2026-10-13", note: "Cards and text boxes curve at most 12px (was 24px)" }, { version: "1.0.4", date: "2026-10-17", note: "One colour rule instead of two overlapping ones (no rule removed); pills stay round" }],
   },
   {
     // The thinking half of page blocking: the rules half is code (pageTypes.ts checks a page plan's parts against its
@@ -1216,6 +1215,28 @@ export function fixToolNames(text: string): string {
 }
 
 /** Skills as a system-prompt section. They come from the user's own library, so they are instructions, not data. */
+/**
+ * Skills for a step whose locked page plans are already in its objective (the screen briefs a design step carries):
+ * page-composition's planning (job, type, regions, the check of them) restates those plans, about 2,500 characters a
+ * request, so only what the plans don't say goes in: design each type's states, and the lock and how to change it
+ * (Clean Cart slice eval 1: the coder's system prompt was 19,152 characters and the step's packet didn't fit).
+ */
+export function withPlansGiven(skills: SkillSpec[], plansGiven: boolean): SkillSpec[] {
+  if (!plansGiven) return skills;
+  return skills.map((s) =>
+    s.id === "skill.page-composition"
+      ? {
+          ...s,
+          purpose: "Build each page from its locked plan (given in the step)",
+          instructions:
+            "The step's page plans are locked and given above (each page's type, the person's job and its regions with their catalog parts). Build every region with its part, and design the page type's states (loading, empty, no matches, error, success), not just the full happy page. Visual refinement inside a region is yours (variant, spacing, imagery, phone rearrangement). Leaving a region out, swapping its part or adding one is a structure change: call propose_layout_change with why, so the person sees it at review.",
+          allowedTools: ["read_file", "search_catalog", "get_catalog_contract", "propose_layout_change"],
+          acceptance: s.acceptance.filter((a) => !/^Each page plan names/.test(a)),
+        }
+      : s,
+  );
+}
+
 export function renderSkills(skills: SkillSpec[]): string {
   if (!skills.length) return "";
   const body = skills

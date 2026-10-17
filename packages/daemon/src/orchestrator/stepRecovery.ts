@@ -128,8 +128,15 @@ export function parseSplit(raw: unknown, task: Task, files: string[], titles: st
  * objective is only text copied from the step it came from, naming none of its files (Clean Cart slice eval 1: a part
  * with no files whose objective was the step's first sentence ran out of turns twice and blocked the build).
  */
-export function partProblems(p: SplitPart, parentObjective: string): string[] {
+/** A file this long gets a part of its own when a step is split. */
+export const LONG_FILE_LINES = 200;
+
+export function partProblems(p: SplitPart, parentObjective: string, linesOf?: (file: string) => number): string[] {
   const out: string[] = [];
+  // A part works on what fits one request whole: two long files together are the too-broad step again (the slice's
+  // design step: tokens.css and components.css, 284 and 283 lines, didn't fit with the rest; a part isn't split again).
+  const long = linesOf ? p.files.filter((f) => linesOf(f) > LONG_FILE_LINES) : [];
+  if (long.length > 1) out.push(`"${p.title}" has more than one long file (${long.join(", ")}); give each its own part`);
   if (!p.files.length) out.push(`"${p.title}" has no files to change`);
   const flat = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
   const namesAFile = p.files.some((f) => p.objective.toLowerCase().includes(f.toLowerCase()) || p.objective.toLowerCase().includes(f.replace(/^.*\//, "").replace(/\.[a-z0-9]+$/i, "").toLowerCase()));

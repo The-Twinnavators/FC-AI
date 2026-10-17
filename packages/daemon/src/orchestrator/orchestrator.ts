@@ -79,7 +79,7 @@ import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBrie
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
 import { testingGuide, testScaffold } from "./testingGuide.js";
-import { budgetSkills, charsPerToken, requestBudget } from "./requestBudget.js";
+import { budgetSkills, charsPerToken, laterTurnFits, requestBudget } from "./requestBudget.js";
 import { stepTools } from "./toolSelection.js";
 import { RECOVERY_BACKOFF_MS, causeOfBlocker, getInterruption, recordInterruption, resolveInterruption, updateInterruption, type Interruption, type InterruptionCause } from "./interruptions.js";
 import { createHash } from "node:crypto";
@@ -87,7 +87,7 @@ import { toolDef } from "./agentLoop.js";
 import { catalogContract, contractText } from "./catalogContract.js";
 import { concreteTargets, importedPieceContracts, navigationContract, screenRequirements, touchesNavigation } from "./packetContext.js";
 import { STYLE_FILE, contractProblems, deliverableChecks, type DeliverableContext, genericOnly, isTaskSpecific, separateMixed, testFileOf, writesTestsStep } from "./taskContract.js";
-import { FLOWCODE_LIMITS_KEY, compactPartObjective, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, partProblems, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
+import { FLOWCODE_LIMITS_KEY, LONG_FILE_LINES, compactPartObjective, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, partProblems, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
@@ -99,7 +99,7 @@ import { promptConfigFor } from "../quality/taskPrompt.js";
 import { isInterfaceStep, playbookFor } from "../knowledge/designPlaybook.js";
 import { protectedPolicyFor } from "../workspace/protectedFiles.js";
 import { correctionBrief, escalationBrief, getRecovery, installedPackages, recoveryKey, routeAfterFailure, sourceNear, typeDefinitions, typeNamesIn, type FailureVerdict } from "./recoveryRouting.js";
-import { capSkills, COPY_EDIT_SKILLS, designSkillIds, isCopyEdit, renderSkills, selectSkills, stackSkillIds, workflowSkillIds } from "../knowledge/skills.js";
+import { capSkills, COPY_EDIT_SKILLS, designSkillIds, isCopyEdit, renderSkills, selectSkills, stackSkillIds, withPlansGiven, workflowSkillIds } from "../knowledge/skills.js";
 import { scanComponentLibrary } from "../workspace/componentLibrary.js";
 import { scanStyles } from "../workspace/styleTokens.js";
 import { alignCheckNames, foldReadOnlySteps, isTsReact, jsxInJsFiles, kitFacts, withoutBadChecks, planTooBig, snippetToName, tsTask, typesFirst, undefinedTokens, workspaceTokenUsage } from "./guards.js";
@@ -1586,6 +1586,13 @@ export class Orchestrator {
     const files = listTree(jail, "src", 4, 200).children ?? [];
     // The step's own files, concrete (a folder in its paths expanded): what the parts are made from.
     const targets = concreteTargets(jail.root, task, this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? []);
+    const linesOf = (f: string) => {
+      try {
+        return fs.readFileSync(jail.resolve(f).abs, "utf8").split("\n").length;
+      } catch {
+        return 0;
+      }
+    };
     const flat: string[] = [];
     const walk = (nodes: typeof files, base = "src") => {
       for (const n of nodes) {
@@ -1620,7 +1627,7 @@ export class Orchestrator {
             content:
               "A coding agent ran out of actions twice on one step: it is too big to do in one go. Split it into 2 to 4 smaller steps, in the order they should be done. Each step changes one or two files from the project (or adds one new file under src/), and together they do exactly what the original step asks: nothing more, nothing less. Each objective names its files and says what to change in them. Leave out work that earlier steps already did or later steps will do. The building blocks in src/components/ui are the kit: they already use the design tokens and are not changed by steps, so never make a step about them. When the step has acceptance tests, give each step the exact titles of the tests it makes pass (\"tests\"), copied from the list; every test belongs to exactly one step, and a step is done only when its tests pass. Return JSON {\"steps\":[{\"title\": string, \"objective\": string, \"files\": string[], \"tests\": string[]}]}.",
           },
-          { role: "user", content: `Step: ${task.title}\n\nWhat it asks:\n${untrusted("step", task.objective)}${targets.files.length ? `\n\nThe step's own files (each new step changes one or two of these, or adds a new file under src/):\n${untrusted("step-files", targets.files.join("\n"))}` : ""}\n\nProject files:\n${untrusted("files", flat.join("\n"))}${titles.length ? `\n\nThe step's acceptance tests (${testFile}):\n${untrusted("tests", titles.map((t) => `- ${t}`).join("\n"))}` : ""}${context}` },
+          { role: "user", content: `Step: ${task.title}\n\nWhat it asks:\n${untrusted("step", task.objective)}${targets.files.length ? `\n\nThe step's own files (each new step changes one or two of these, or adds a new file under src/; a file over ${LONG_FILE_LINES} lines gets a step of its own):\n${untrusted("step-files", targets.files.map((f) => `${f} (${linesOf(f)} lines)`).join("\n"))}` : ""}\n\nProject files:\n${untrusted("files", flat.join("\n"))}${titles.length ? `\n\nThe step's acceptance tests (${testFile}):\n${untrusted("tests", titles.map((t) => `- ${t}`).join("\n"))}` : ""}${context}` },
         ],
         format: { type: "object", properties: { steps: { type: "array", items: { type: "object", properties: { title: { type: "string" }, objective: { type: "string" }, files: { type: "array", items: { type: "string" } }, tests: { type: "array", items: { type: "string" } } }, required: ["title", "objective", "files"] } } }, required: ["steps"] },
         timeoutMs: 240_000,
@@ -1632,7 +1639,7 @@ export class Orchestrator {
     }
     parts ??= sentenceSplit(task, targets.files);
     // Only parts that can each run as a step: files to change and an objective of their own (stepRecovery.partProblems).
-    const bad = (parts ?? []).flatMap((p) => partProblems(p, task.objective));
+    const bad = (parts ?? []).flatMap((p) => partProblems(p, task.objective, linesOf));
     if (!parts || bad.length || signal.aborted) {
       if (!signal.aborted) this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `"${task.title}" wasn't split: no split into steps that each have their own files and objective${bad.length ? ` (${bad.slice(0, 2).join("; ")})` : ""}`, data: { splitRejected: bad } });
       return false;
@@ -2822,7 +2829,8 @@ export class Orchestrator {
     // A wording-only step keeps no design skill matched by its words (a reword got avoid-ai-slop, 5,000 characters).
     const copyEdit = isCopyEdit(ownText);
     const fitting = copyEdit ? selected.filter((s) => COPY_EDIT_SKILLS.has(s.id) || s.id.startsWith("skill.proposed-")) : selected;
-    const skills = capSkills(fitting, stack, undefined, { design, retry: task.attempts > 1 || role === "debugger" });
+    // A step carrying its locked page plans gets page-composition without the planning those plans already are.
+    const skills = withPlansGiven(capSkills(fitting, stack, undefined, { design, retry: task.attempts > 1 || role === "debugger" }), /Sections, top to bottom:/.test(task.objective));
     // Interface work gets the project's reusable parts (cached until its source changes), so agents reuse them.
     // A wording-only change needs neither (isCopyEdit).
     const uiWork = !copyEdit && (skills.some((x) => x.id === "skill.avoid-ai-slop") || /\b(component|page|screen|layout|style|css|button|dialog|modal|form|card|ui)\b/i.test(`${task.title} ${task.objective}`));
@@ -2944,10 +2952,12 @@ export class Orchestrator {
       : [];
     // What's left for the brief once the system prompt and the tool definitions are counted.
     const allowedTools = (project.settings.allowExternalResearch ? (ROLE_TOOLS[role] ?? []) : ((ROLE_TOOLS[role] ?? []) as ToolName[]).filter((t) => t !== "find_image")) as ToolName[];
-    // The 8GB GPU profile shows a first attempt only the tools its work needs (toolSelection.ts); a retry sees them all.
-    const profile8 = runtimeOptions(this.d.store).gpuProfile === "8gb" && !assignment.providerId.startsWith("hosted");
-    const shownTools = profile8 && role === "coder" ? stepTools(allowedTools, task, { catalog: !!catalog, designStep: !!designStep }) : allowedTools;
-    const shownExtras = profile8 && role === "coder" && !/\b(docs?|documentation|library api|sdk|framework api)\b/i.test(`${task.title} ${task.objective}`) ? [] : extraTools;
+    // A local coder's first attempt is shown only the tools its work needs (toolSelection.ts), in every GPU profile; a
+    // retry (the debugger) sees them all, and a tool not shown still runs if called. Clean Cart slice eval 1: 15,808
+    // characters of tool definitions in a 57,344-character opening budget, most for tools a design step never uses.
+    const localModel = !assignment.providerId.startsWith("hosted");
+    const shownTools = localModel && role === "coder" ? stepTools(allowedTools, task, { catalog: !!catalog, designStep: !!designStep }) : allowedTools;
+    const shownExtras = localModel && role === "coder" && !/\b(docs?|documentation|library api|sdk|framework api)\b/i.test(`${task.title} ${task.objective}`) ? [] : extraTools;
     const toolsChars = JSON.stringify([...shownTools.map(toolDef), ...shownExtras.map((t) => t.def)]).length;
     const room = reqBudget.inputChars - system.length - toolsChars;
     const brief = fitHandoff(packet, renderTree(listTree(jail, ".", 2, lean ? 80 : 140)), (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name), Math.max(0, room));
@@ -2973,6 +2983,25 @@ export class Orchestrator {
       // Never sent with part of what it needs, and never sent over budget (a part can't be split again: the split path
       // then blocks it for the person's choice, saying why).
       return { kind: "split_required", reason: `its own files, checks and requirements need about ${tokens} more tokens than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window leaves for them` };
+    }
+    // The opening fits; a later turn must too (requestBudget.laterTurnFits): reading its largest own file in full and
+    // getting a diagnostic back. A step that can't is too broad and is split before it runs, not after its turns run out.
+    {
+      // The read a later turn needs: in full, the largest own file the opening carries only in part; a typical read
+      // (about 4,000 characters) when it carries them all whole.
+      let largest = 4000;
+      for (const p of ownFiles) {
+        try {
+          const lines = fs.readFileSync(jail.resolve(p).abs, "utf8").split("\n");
+          const partial = lines.length > (lean ? 260 : 400) || brief.dropped.some((d) => d.startsWith(`${p} shortened`));
+          if (partial) largest = Math.max(largest, lines.reduce((n, l) => n + l.length + 7, 0));
+        } catch {
+          /* not there yet */
+        }
+      }
+      const later = laterTurnFits(reqBudget, total, largest);
+      if (!later.fits && !this.d.store.getSetting(`splitPart:${task.id}`, false) && task.attempts === 1)
+        return { kind: "split_required", reason: `a later turn (its opening request, a full read of its largest file and a check result) needs about ${later.tokens} tokens, more than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window` };
     }
     const result = await runAgentLoop({
       router: this.d.router,

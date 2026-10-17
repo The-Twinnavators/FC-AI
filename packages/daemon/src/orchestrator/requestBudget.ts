@@ -54,6 +54,19 @@ export function requestBudget(opts: { windowTokens: number; replyTokens: number;
 }
 
 /**
+ * Whether a later turn still fits the window: the opening request, plus a full read of the step's largest own file,
+ * a diagnostic and the calls around them, counted at 80% of the measured characters a token (CSS and code tokenize
+ * denser than prose: Clean Cart slice eval 1 measured 3.97 on the opening and 3.21 on stylesheet-heavy turns), with
+ * the reply reserved. An opening that only just fits isn't enough: a step that can't read its own files and get its
+ * check results back within the window is too broad for it and is split before it runs.
+ */
+export function laterTurnFits(b: RequestBudget, openingChars: number, largestReadChars: number, diagnosticChars = 2000): { fits: boolean; tokens: number } {
+  const chars = openingChars + largestReadChars + diagnosticChars + 1400;
+  const tokens = Math.ceil(chars / (b.charsPerToken * 0.8)) + b.replyTokens;
+  return { fits: tokens <= b.windowTokens, tokens };
+}
+
+/**
  * Skills within their budget, in the order given (the step's workflow skill first, then design skills by fit): whole
  * skills while they fit; the first one always, shortened to the budget if it alone is larger. Returns what was left out.
  */

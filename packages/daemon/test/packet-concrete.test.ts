@@ -121,6 +121,13 @@ describe("splits that can run", () => {
     expect(parts.every((p) => !partProblems(p, t.objective).length)).toBe(true);
   });
 
+  it("gives each long file a part of its own (two long stylesheets together are the too-broad step again)", () => {
+    const lines = (f: string) => ({ "src/styles/tokens.css": 284, "src/styles/components.css": 283, "src/screens/LandingScreen.tsx": 28 })[f] ?? 0;
+    const both = { title: "Look", objective: "Restyle src/styles/tokens.css and src/styles/components.css.", files: ["src/styles/tokens.css", "src/styles/components.css"] };
+    expect(partProblems(both, designStep.objective, lines)).toEqual(['"Look" has more than one long file (src/styles/tokens.css, src/styles/components.css); give each its own part']);
+    expect(partProblems({ ...both, files: ["src/styles/tokens.css", "src/screens/LandingScreen.tsx"] }, designStep.objective, lines)).toEqual([]);
+  });
+
   it("keeps a model's parts only when each has files and its own objective", () => {
     const raw = { steps: [
       { title: "Frame", objective: "Restyle the LookupFrame bar in src/styles/components.css: brand colour and type.", files: ["src/styles/components.css"] },
