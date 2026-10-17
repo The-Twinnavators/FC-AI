@@ -15,6 +15,7 @@ import type { FileOperations } from "./operations.js";
 import { parseCustomProperties, validTokenValue } from "./styleTokens.js";
 import { withDarkTheme } from "./darkTheme.js";
 import { uiGallery } from "./componentLibrary.js";
+import { resolveFrame } from "../quality/appFrame.js";
 import { CONFIGURABLE_BLOCKS, buildPalette, componentStyleSpec, componentStylesCss, paletteFromTokens, rampTokens, roleTokens, type ComponentStyleValues, type Palette, type PaletteConfig } from "@flowcode/contracts";
 
 const TOKENS = "src/styles/tokens.css";
@@ -312,10 +313,15 @@ export function setDesignComponents(jail: PathJail, components: string[]): Desig
  */
 export function designBrief(jail: PathJail): string {
   const { components } = designComponents(jail);
+  // The frame App.tsx actually renders (appFrame.resolveFrame): when it isn't the kit's AppShell (.ui-shell), the kit's
+  // top bar isn't the app's, and naming it sent a design step to restyle rules nothing renders (Clean Cart slice eval 1:
+  // its frame is LookupFrame, fl-lkf-*). The app's own frame is named instead.
+  const frame = resolveFrame(jail.root);
+  const ownFrame = frame && !frame.classes.some((c) => c.startsWith("ui-shell")) ? frame : undefined;
   if (!components?.length) {
-    const kit = Object.keys(uiGallery());
+    const kit = Object.keys(uiGallery()).filter((c) => !(ownFrame && c === "ui-shell"));
     return kit.length
-      ? `No building blocks were picked in the design studio, so the app's whole starter kit is what to build with (use these from src/components/ui for these jobs; don't make new ones): ${kit.map((c) => `${blockLabel(c)} (.${c})`).join(", ")}.`
+      ? `No building blocks were picked in the design studio, so the app's whole starter kit is what to build with (use these from src/components/ui for these jobs; don't make new ones): ${kit.map((c) => `${blockLabel(c)} (.${c})`).join(", ")}.${ownFrame ? ` The app's frame (top bar and navigation) is ${ownFrame.component} (${ownFrame.file}, classes ${ownFrame.classes.slice(0, 4).map((c) => `.${c}`).join(", ")}): restyle it through those classes.` : ""}`
       : "";
   }
   const kit = components.filter(isKitBlock);

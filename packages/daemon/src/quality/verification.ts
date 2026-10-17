@@ -32,6 +32,20 @@ import { dataSourceProblems, readGeneratedData } from "./appData.js";
 import { appModelKey, prdNamedRecords, prdSampleSection, type AppModel } from "../orchestrator/appModel.js";
 import { declaredScreens } from "../orchestrator/screenPlan.js";
 import { journeyPlan, runJourney, type JourneyStep } from "./appJourney.js";
+/** Whether the project has test files yet (a baseline runs the tests only once there are some to run). */
+export function hasTestFiles(root: string): boolean {
+  const walk = (dir: string): boolean => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return false;
+    }
+    return entries.some((e) => (e.isDirectory() ? e.name !== "node_modules" && !e.name.startsWith(".") && walk(path.join(dir, e.name)) : /\.(test|spec)\.[jt]sx?$/.test(e.name)));
+  };
+  return walk(path.join(root, "src"));
+}
+
 /** Set by the step that writes the complete app (orchestrator/appFiles.ts appWrittenKey; not imported, to keep this module free of the app writer). */
 const appWrittenKey = (runId: string) => `appWritten:${runId}`;
 import { cleanupBlocking, cleanupReport, scanCleanup } from "./cleanupScan.js";
@@ -426,6 +440,11 @@ export class Verifier {
     return out;
   }
 
+  /** A script check (type check, lint, build, tests) recorded on a step: the functional baseline's technical checks. */
+  async scriptCheck(run: Run, kind: VerificationKind, taskId: string, signal?: AbortSignal): Promise<VerificationCheck> {
+    return this.runScriptCheck(run, kind, signal, taskId);
+  }
+
   private async runScriptCheck(run: Run, kind: VerificationKind, signal?: AbortSignal, taskId?: string): Promise<VerificationCheck> {
     const project = this.store.projects.require(run.projectId);
     const pf = this.projects.latestPreflight(project.id) ?? this.projects.preflight(project.id, run.id);
@@ -563,6 +582,20 @@ export class Verifier {
         case "verification": {
           // A step's own deliverable (orchestrator/taskContract.ts deliverableChecks): what it changed, the photos its
           // screens show, its seeded sample data, its app frame. Read from the workspace and the step's own snapshots.
+          // "baseline:<check>": one of the functional baseline's technical checks, judged as it is now, with no allowance
+          // for errors there when the step started (those are exactly what a baseline correction is there to fix).
+          if (c.check.kind.startsWith("baseline:")) {
+            const k = c.check.kind.slice("baseline:".length) as VerificationKind;
+            if (k === "tests" && !hasTestFiles(jail.root)) {
+              met = true;
+              break;
+            }
+            const chk = await this.runScriptCheck(run, k, opts.signal, task.id);
+            met = chk.status === "passed" || chk.status === "passed_with_warnings";
+            refs.push(...chk.evidenceRefs);
+            if (!met) failures.push(`${c.description}: ${chk.summary}`);
+            break;
+          }
           // "functional-journey": the journey through the app (appJourney.ts), run on this step (a baseline correction).
           if (c.check.kind === "functional-journey") {
             const j = await this.functionalJourney(run, { taskId: task.id, signal: opts.signal });

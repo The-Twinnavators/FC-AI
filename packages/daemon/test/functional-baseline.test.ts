@@ -71,8 +71,13 @@ describe("a failed baseline governs progression", () => {
     const mk = (id: string, title: string, ordinal: number, status: string, dependsOn: string[]) => app.store.tasks.upsert({ id, runId: run.id, title, objective: "o", status, dependsOn, expectedPaths: [], actualPaths: [], acceptanceCriteria: [], validationPlan: { kinds: [] }, role: "coder", ordinal, attempts: 1 } as unknown as Task);
     mk("w", "Write the complete app", 1, "running", []);
     mk("d", "Design the main screens", 2, "pending", ["w"]);
-    const orch = app.orchestrator as unknown as { correctBaseline: (r: unknown, t: Task, b: unknown) => void; baselineCorrected: (r: unknown, t: Task, cp: string) => void };
-    const failed = { taskId: "w", sourceState: { snapshotSeq: 3, srcSha256: "x" }, at: "", typecheck: "passed", dataSource: [], journey: { ok: false, summary: '11/13 journey steps passed; failed: Search: opens from the top bar (no working page is this screen (a placeholder doesn\'t count))' }, ok: false };
+    const orch = app.orchestrator as unknown as {
+      correctBaseline: (r: unknown, t: Task, b: unknown) => void;
+      baselineGate: (r: unknown, t: Task, v: { allMet: boolean; failures: string[] }, s: AbortSignal) => Promise<{ verdict: { allMet: boolean; failures: string[] }; stop?: boolean }>;
+      functionalBaseline: (...a: unknown[]) => Promise<unknown>;
+    };
+    // The lint check failed too, besides the journey; tests don't apply yet (no test files).
+    const failed = { taskId: "w", sourceState: { snapshotSeq: 3, srcSha256: "x" }, at: "", typecheck: "passed", checks: { typecheck: "passed", lint: "failed: 3 errors (no-unused-vars)", build: "passed", tests: "not applicable (no tests yet)" }, dataSource: [], journey: { ok: false, summary: '11/13 journey steps passed; failed: Search: opens from the top bar (no working page is this screen (a placeholder doesn\'t count))' }, ok: false };
     return { app, run, orch, failed };
   }
 
@@ -87,8 +92,10 @@ describe("a failed baseline governs progression", () => {
     expect(s.app.store.tasks.require("w").status).toBe("skipped");
     const fix = s.app.store.tasks.require(base.correctionTaskId!);
     expect(fix.title).toBe("Correct the generated app");
+    expect(fix.objective).toContain("- Lint: failed: 3 errors (no-unused-vars)");
     expect(fix.objective).toContain("- Journey: 11/13 journey steps passed; failed: Search: opens from the top bar");
-    expect(fix.acceptanceCriteria.map((c) => (c.check as { kind: string }).kind)).toEqual(["typecheck", "data-source", "functional-journey"]);
+    // Every applicable technical check, judged as it is (a failed lint can't be passed over), then records and journey.
+    expect(fix.acceptanceCriteria.map((c) => (c.check as { kind: string }).kind)).toEqual(["baseline:typecheck", "baseline:lint", "baseline:build", "data-source", "functional-journey"]);
     // Bounded: a step's attempts, and it is never split.
     expect(s.app.store.getSetting(`splitPart:${fix.id}`, false)).toBe(true);
     // Design waits on the correction.
@@ -109,15 +116,46 @@ describe("a failed baseline governs progression", () => {
     expect(s.app.store.tasks.require("d").status).toBe("pending");
   }, 60_000);
 
-  it("records the baseline verified at the correction's checkpoint once the correction's checks pass", () => {
+  it("verifies a correction only when the complete baseline passes again on the corrected app", async () => {
     const s = setup();
     s.orch.correctBaseline(s.app.store.runs.require(s.run.id), s.app.store.tasks.require("w"), s.failed);
-    const fixId = s.app.store.getSetting<FunctionalBaseline | null>(functionalBaselineKey(s.run.id), null)!.correctionTaskId!;
-    // Not before its journey passed.
-    s.orch.baselineCorrected(s.app.store.runs.require(s.run.id), s.app.store.tasks.require(fixId), "cp_fix");
-    expect(s.app.store.getSetting<FunctionalBaseline | null>(functionalBaselineKey(s.run.id), null)!.ok).toBe(false);
-    s.app.verifier.record(s.run.id, "functional_journey", "passed", "13/13 journey steps passed", ["artifact:j"], { taskId: fixId });
-    s.orch.baselineCorrected(s.app.store.runs.require(s.run.id), s.app.store.tasks.require(fixId), "cp_fix");
-    expect(s.app.store.getSetting<FunctionalBaseline | null>(functionalBaselineKey(s.run.id), null)).toMatchObject({ ok: true, checkpoint: "verified", checkpointId: "cp_fix", taskId: fixId, journey: { ok: true, summary: "13/13 journey steps passed", artifactId: "j" } });
+    const fix = s.app.store.tasks.require(s.app.store.getSetting<FunctionalBaseline | null>(functionalBaselineKey(s.run.id), null)!.correctionTaskId!);
+    const signal = new AbortController().signal;
+    // Its own criteria passed, but the complete baseline run again still fails on lint: not verified.
+    s.orch.functionalBaseline = async () => ({ ...s.failed, journey: { ok: true, summary: "16/16 journey steps passed" } });
+    const stillFailing = await s.orch.baselineGate(s.app.store.runs.require(s.run.id), fix, { allMet: true, failures: [] }, signal);
+    expect(stillFailing.verdict.allMet).toBe(false);
+    expect(stillFailing.verdict.failures[0]).toBe("The complete functional baseline, run again on the corrected app, still fails: Lint: failed: 3 errors (no-unused-vars)");
+    // All of it passes: verified.
+    s.orch.functionalBaseline = async () => ({ ...s.failed, checks: { typecheck: "passed", lint: "passed", build: "passed", tests: "not applicable (no tests yet)" }, journey: { ok: true, summary: "16/16 journey steps passed" }, ok: true });
+    const passing = await s.orch.baselineGate(s.app.store.runs.require(s.run.id), fix, { allMet: true, failures: [] }, signal);
+    expect(passing.verdict.allMet).toBe(true);
+    // The step that writes the app, on a failed baseline: replaced by a correction, stopped here.
+    const w2 = setup();
+    w2.orch.functionalBaseline = async () => w2.failed;
+    const stop = await w2.orch.baselineGate(w2.app.store.runs.require(w2.run.id), w2.app.store.tasks.require("w"), { allMet: true, failures: [] }, signal);
+    expect(stop.stop).toBe(true);
+    expect(w2.app.store.tasks.require("w").status).toBe("skipped");
   });
+
+  it("judges a baseline check as it is: errors there when the correction started aren't forgiven", async () => {
+    const { app } = makeApp();
+    const { project, ws } = makeProject(app, { "package.json": JSON.stringify({ name: "demo", version: "1.0.0", scripts: { lint: "eslint ." } }), "lint.js": 'console.log("src/a.ts(1,1): error no-unused-vars");process.exit(1);\n', "src/a.ts": "export const a = 1;\n" });
+    const bin = path.join(ws, "node_modules", ".bin");
+    fs.mkdirSync(bin, { recursive: true });
+    fs.writeFileSync(path.join(bin, "eslint.cmd"), '@node "%~dp0\\..\\..\\lint.js" %*\r\n');
+    fs.writeFileSync(path.join(bin, "eslint"), '#!/bin/sh\nnode "$(dirname "$0")/../../lint.js" "$@"\n', { mode: 0o755 });
+    app.projects.preflight(project.id);
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "o", constraints: [], attachedKnowledgeIds: [] });
+    const task = (kind: string) => ({ id: `t_${kind.replace(/\W/g, "")}`, runId: run.id, title: "Correct the generated app", objective: "o", status: "running", dependsOn: [], expectedPaths: ["src/a.ts"], actualPaths: [], acceptanceCriteria: [{ id: "c", description: "Lint passes", check: { type: "verification", kind }, evidenceRefs: [] }], validationPlan: { kinds: [] }, role: "coder", ordinal: 1, attempts: 1 }) as unknown as Task;
+    // The same lint error was there when each step started (its step baseline, captured as the orchestrator does).
+    for (const t of [task("lint"), task("baseline:lint")]) {
+      app.store.tasks.upsert(t);
+      await app.verifier.captureStepBaseline(app.store.runs.require(run.id), t.id);
+    }
+    const generic = await app.verifier.checkCriteria(app.store.runs.require(run.id), task("lint"));
+    const absolute = await app.verifier.checkCriteria(app.store.runs.require(run.id), task("baseline:lint"));
+    expect(generic.allMet).toBe(true);
+    expect(absolute.allMet).toBe(false);
+  }, 60_000);
 });

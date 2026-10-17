@@ -73,7 +73,14 @@ export function isInterfaceStep(task: Pick<Task, "title" | "objective" | "expect
  * (title words count more); one strong section per document first, so one long guide doesn't crowd out the rest.
  */
 export function playbookFor(app: Pick<App, "store">, text: string, limit = 2, maxChars = 1400): Array<{ id: string; title: string; content: string }> {
-  const items = playbookItems(app).filter((k) => !k.excluded);
+  // A part that is a worked example for another kind of product ("For a creative collaboration product:") isn't this
+  // step's: it goes only when the step's text shares a word with that kind (Clean Cart slice eval 1 got it).
+  const lower = text.toLowerCase();
+  const otherProduct = (content: string) => {
+    const kind = /^for an? ([a-z][a-z \-]{2,60}?) (?:product|app|tool|platform|service)s?:/im.exec(content)?.[1];
+    return !!kind && !kind.split(/[\s-]+/).some((w) => w.length >= 4 && lower.includes(w));
+  };
+  const items = playbookItems(app).filter((k) => !k.excluded && !otherProduct(k.content));
   if (!items.length) return [];
   const want = words(text);
   const scored = items
