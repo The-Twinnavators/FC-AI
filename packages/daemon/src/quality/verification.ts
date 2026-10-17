@@ -230,7 +230,7 @@ export class Verifier {
    * "done", turns later, and steps ran out of attempts. Not recorded as a verification; returns [] when the project
    * has no type check or it can't run.
    */
-  async newTypeErrors(run: Run, signal?: AbortSignal, paths: string[] = []): Promise<string[]> {
+  async newTypeErrors(run: Run, signal?: AbortSignal, paths: string[] = [], taskId?: string): Promise<string[]> {
     const project = this.store.projects.require(run.projectId);
     const pf = this.projects.latestPreflight(project.id);
     if (!pf) return [];
@@ -259,9 +259,46 @@ export class Verifier {
       signal,
     });
     if (res.record.status === "succeeded") return [];
+    const step = taskId ? this.store.getSetting<StepBaseline | null>(stepBaselineKey(taskId), null)?.typecheck : undefined;
+    if (step) return attributeDiagnostics(step.errors, errorLines(res.output)).introduced;
     const start = this.store.getSetting<Record<string, { passed: boolean; errors: string[] }> | null>(`runBaseline:${run.id}`, null)?.typecheck;
     const known = new Set(start?.errors ?? []);
     return errorLines(res.output).filter((l) => !known.has(signature(l)));
+  }
+
+  /**
+   * The type check and lint errors as they are now, run directly (no check record, no repeat guard), kept as the step's
+   * baseline when it starts: what it is judged against (checkCriteria, newTypeErrors). Re-taken when a step starts
+   * over from its first attempt (a reopened step), never between attempts, so an earlier attempt's errors stay its own.
+   */
+  async captureStepBaseline(run: Run, taskId: string, signal?: AbortSignal): Promise<StepBaseline> {
+    const project = this.store.projects.require(run.projectId);
+    const pf = this.projects.latestPreflight(project.id);
+    const out: StepBaseline = { at: new Date().toISOString() };
+    if (pf && (pf.manifestValid && pf.hasNodeModules)) {
+      for (const kind of ["typecheck", "lint"] as const) {
+        const cls = kind;
+        const script = pf.scripts.find((s) => s.name === SCRIPT_FOR[kind]) ?? pf.scripts.find((s) => s.classification === cls);
+        if (!script) continue;
+        const res = await this.runner.run({
+          jail: this.projects.jail(project),
+          projectId: project.id,
+          runId: run.id,
+          phase: "verification",
+          argv: scriptArgv(pf, script),
+          reason: `Diagnostics before this step (its baseline): ${kind}`,
+          preflight: pf,
+          timeoutMs: Math.min(project.settings.commandTimeoutMs, 120_000),
+          outputCapBytes: project.settings.outputCapBytes,
+          maxSameFingerprint: 1000,
+          signal,
+        });
+        if (res.record.status === "succeeded") out[kind] = { passed: true, errors: [] };
+        else if (res.record.status === "failed") out[kind] = { passed: false, errors: errorLines(res.output).map(signature) };
+      }
+    }
+    this.store.setSetting(stepBaselineKey(taskId), out);
+    return out;
   }
 
   private async runScriptCheck(run: Run, kind: VerificationKind, signal?: AbortSignal, taskId?: string): Promise<VerificationCheck> {
@@ -511,8 +548,10 @@ export class Verifier {
           const chk = kind === "app_wiring" ? this.appWiringCheck(run, task.id) : kind === "code_cleanup" ? this.cleanupCheck(run, task.id) : await this.runScriptCheck(run, kind, opts.signal, task.id);
           met = chk.status === "passed" || chk.status === "passed_with_warnings";
           refs.push(...chk.evidenceRefs);
-          // The project already failed this check before the run started: the step passes if it adds no new errors.
-          const start = this.store.getSetting<Record<string, { passed: boolean; errors: string[] }> | null>(`runBaseline:${run.id}`, null)?.[kind];
+          // Judged against the errors there when this step started (its step baseline; the run's start when there is
+          // none): errors already there are inherited, not this step's; every other error is this step's, whichever
+          // file it is in (a changed prop or export breaks its untouched callers: Clean Cart's App.tsx onNavigate).
+          const start = this.store.getSetting<StepBaseline | null>(stepBaselineKey(task.id), null)?.[kind as "typecheck" | "lint"] ?? this.store.getSetting<Record<string, { passed: boolean; errors: string[] }> | null>(`runBaseline:${run.id}`, null)?.[kind];
           let onlyNew: string[] | undefined;
           // "Not rerun: no file changed since it failed 3× with these errors" carries the same errors, so it's judged
           // like a failure. Calendar test 6: the week view step's own file was clean, but the repeat guard's "blocked"
@@ -522,33 +561,22 @@ export class Verifier {
           // neither): matching only "No progress" in its output never matched, so known errors failed a clean step.
           const failedLike = chk.status === "failed" || (chk.status === "blocked" && (!!ran?.errorFingerprint || /No progress/i.test(ran?.outputPreview ?? "")));
           if (!met && failedLike && start && !start.passed) {
-            const output = this.lastOutput.get(`${run.id}:${kind}`) ?? "";
-            const known = new Set(start.errors);
-            const now = errorLines(output);
-            onlyNew = now.filter((l) => !known.has(signature(l)));
-            if (now.length && !onlyNew.length) {
+            const now = errorLines(this.lastOutput.get(`${run.id}:${kind}`) ?? "");
+            const a = attributeDiagnostics(start.errors, now);
+            onlyNew = a.introduced;
+            if (now.length && !a.introduced.length) {
+              // Not this step's: it passes this check, and the errors stay on record. Excluding them from the step
+              // doesn't fix them: the run's own checks still run on the whole project and still fail on them.
               met = true;
-              refs.push(`note:no new ${kind} errors (${start.errors.length} were there before this run)`);
+              refs.push(`note:no new ${kind} errors since this step started; ${a.inherited.length} inherited (there before it), ${a.resolved} resolved. The app isn't healthy until the inherited ones are fixed.`);
+              const inherited = this.store.getSetting<Record<string, string[]> | null>(`inheritedErrors:${run.id}`, null) ?? {};
+              inherited[kind] = [...new Set([...(inherited[kind] ?? []), ...a.inherited])].slice(0, 200);
+              this.store.setSetting(`inheritedErrors:${run.id}`, inherited);
             }
           }
-          // Errors only in files this step didn't touch (another step's leftovers) don't fail this step: they're carried
-          // forward for the step that owns them, and the run's final checks still need the whole project clean.
-          // Calendar test 6: renamed screens from undone steps failed the month view step's type check for hours.
-          if (!met && failedLike && (kind === "typecheck" || kind === "lint")) {
-            const own = this.stepFiles(task);
-            const now = (onlyNew ?? errorLines(this.lastOutput.get(`${run.id}:${kind}`) ?? "")).filter((l) => !!errorFile(l));
-            const mine = now.filter((l) => own.has(errorFile(l)!));
-            if (now.length && !mine.length) {
-              met = true;
-              const files = [...new Set(now.map((l) => errorFile(l)!))];
-              refs.push(`note:${now.length} ${kind} error${now.length === 1 ? "" : "s"} in files this step didn't change (${files.slice(0, 4).join(", ")}${files.length > 4 ? "…" : ""}); carried forward`);
-              const carried = this.store.getSetting<Record<string, string[]> | null>(`carriedErrors:${run.id}`, null) ?? {};
-              carried[kind] = [...new Set([...(carried[kind] ?? []), ...now])].slice(0, 200);
-              this.store.setSetting(`carriedErrors:${run.id}`, carried);
-            } else if (mine.length && mine.length < now.length) onlyNew = mine;
-          }
           if (!met && onlyNew?.length) {
-            failures.push(`Check ${kind} failed with ${onlyNew.length} error${onlyNew.length === 1 ? "" : "s"} in this step's work (errors in other files, or there before this run, are not your concern):\n${onlyNew.slice(0, 12).join("\n")}`);
+            const elsewhere = [...new Set(onlyNew.map((l) => errorFile(l)).filter((f): f is string => !!f && !this.stepFiles(task).has(f)))];
+            failures.push(`Check ${kind} failed with ${onlyNew.length} error${onlyNew.length === 1 ? "" : "s"} that weren't there when this step started${elsewhere.length ? ` (including in ${elsewhere.slice(0, 4).join(", ")}, which use what this step changed: update those uses or keep what they rely on)` : ""}; errors already there before it are not this step's:\n${onlyNew.slice(0, 12).join("\n")}`);
             break;
           }
           if (!met) {
@@ -1044,6 +1072,34 @@ export function errorLines(output: string): string[] {
 /** An error line without its line and column numbers, so a shifted line still counts as the same error. */
 export function signature(line: string): string {
   return line.replace(/\(\d+,\d+\)|:\d+:\d+|\b\d+:\d+\b|line \d+|L:\s*\d+\s*\|\s*P:\s*\d+|\.py:\d+:/gi, (m) => (m.toLowerCase().startsWith(".py") ? ".py:" : "")).replace(/\s+/g, " ").trim();
+}
+
+/** A step's diagnostics when it started: each error's signature, once per occurrence (no line numbers). */
+export interface StepBaseline {
+  at: string;
+  typecheck?: { passed: boolean; errors: string[] };
+  lint?: { passed: boolean; errors: string[] };
+}
+export const stepBaselineKey = (taskId: string) => `stepBaseline:${taskId}`;
+
+/**
+ * Errors now against errors before, by signature (file, code and message, no line or column) and count: the same error
+ * on a moved line is inherited; one more of the same error is introduced. Resolved: how many earlier ones are gone.
+ */
+export function attributeDiagnostics(before: string[], nowLines: string[]): { introduced: string[]; inherited: string[]; resolved: number } {
+  const left = new Map<string, number>();
+  for (const s of before) left.set(s, (left.get(s) ?? 0) + 1);
+  const introduced: string[] = [];
+  const inherited: string[] = [];
+  for (const line of nowLines) {
+    const sig = signature(line);
+    const n = left.get(sig) ?? 0;
+    if (n > 0) {
+      left.set(sig, n - 1);
+      inherited.push(line);
+    } else introduced.push(line);
+  }
+  return { introduced, inherited, resolved: [...left.values()].reduce((a, b) => a + b, 0) };
 }
 
 export function errorSignatures(output: string): string[] {

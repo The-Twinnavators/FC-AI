@@ -379,7 +379,9 @@ export function createDispatcher(ctx: DispatchContext) {
       }
       const added = all.filter((l) => !errorFile(l) || edited.has(errorFile(l)!));
       const elsewhere = [...new Set(all.filter((l) => !added.includes(l)).map((l) => errorFile(l)!))];
-      const otherNote = elsewhere.length ? `\n(${all.length - added.length} type error${all.length - added.length === 1 ? "" : "s"} in other files, ${elsewhere.slice(0, 3).join(", ")}${elsewhere.length > 3 ? "…" : ""}, belong to other steps: leave them unless this step's own work caused them.)` : "";
+      // Only errors that weren't there when the step started come back here: in another file they are a use of what this
+      // edit changed (a prop, an export), so they are this step's to resolve, not another step's.
+      const otherNote = elsewhere.length ? `\n(${all.length - added.length} new type error${all.length - added.length === 1 ? "" : "s"} in other files since this step started, ${elsewhere.slice(0, 3).join(", ")}${elsewhere.length > 3 ? "…" : ""}: they use what this edit changed. Update those uses, or keep the prop or export they rely on.)` : "";
       // Progress detector: the same errors coming back after different ones means the edits are going round in a circle
       // (Calendar test 7: DOM Event → undefined CalendarEvent → never[] → Event, for 15 minutes). The identical-failure
       // stop never fires on a cycle, so end the attempt here and let a stronger model take the step.

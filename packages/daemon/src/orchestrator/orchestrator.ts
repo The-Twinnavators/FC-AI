@@ -34,7 +34,7 @@ import type { FileOperations } from "../workspace/operations.js";
 import type { CommandRunner } from "../commands/runner.js";
 import type { ProcessManager } from "../commands/processManager.js";
 import type { ApprovalService } from "../approvals/service.js";
-import type { Verifier } from "../quality/verification.js";
+import { stepBaselineKey, type Verifier } from "../quality/verification.js";
 import type { KnowledgeService } from "../knowledge/knowledge.js";
 import { TaskGraph } from "./dag.js";
 import { evaluateCompletionGate } from "./completionGate.js";
@@ -1719,6 +1719,9 @@ export class Orchestrator {
     }
     // A first attempt starts its routing afresh (a retry you asked for, a reopened step).
     if (task.attempts === 1) this.d.store.setSetting(recoveryKey(task.id), { corrections: 0, history: [] });
+    // The diagnostics this step starts with (verification.captureStepBaseline): it is judged on what it adds, in any file,
+    // never on what was already there. Taken at its first attempt (and again when it starts over), not between attempts.
+    if (task.attempts === 1 || !this.d.store.getSetting(stepBaselineKey(task.id), null)) await this.d.verifier.captureStepBaseline(this.d.store.runs.require(run.id), task.id, signal).catch(() => undefined);
     this.d.store.setSetting(`claimFailures:${task.id}`, []);
     const routedNext = task.attempts > 1 && task.role === "coder" ? getRecovery(this.d.store, task.id).next : undefined;
     this.d.bus.emit({ ...ev, type: "task.started", message: `Task started: ${task.title} (attempt ${task.attempts}${routedNext ? `, ${routedNext.label.charAt(0).toLowerCase()}${routedNext.label.slice(1)}` : ""})`, data: { role: task.role, attemptRole: this.attemptRole(task), ...(routedNext ? { correction: routedNext.correction } : {}) } });
@@ -2755,7 +2758,7 @@ export class Orchestrator {
         return v;
       },
       createdInRun: (rel) => this.d.store.snapshots.where("run_id = ?", run.id).some((s) => s.relativePath === rel && s.contentHash === "absent"),
-      typeErrorsAfterEdit: (paths) => this.d.verifier.newTypeErrors(this.d.store.runs.require(run.id), signal, paths),
+      typeErrorsAfterEdit: (paths) => this.d.verifier.newTypeErrors(this.d.store.runs.require(run.id), signal, paths, task.id),
       onNoProgress: () => this.d.store.setSetting(`taskCycled:${task.id}`, true),
       // The layout lock: a change to the planned structure, recorded with its reason for the person to see at review.
       onLayoutChange: (c) => {
