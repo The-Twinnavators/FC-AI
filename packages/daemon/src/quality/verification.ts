@@ -368,7 +368,7 @@ export class Verifier {
   }
 
   /** Evaluates a task's acceptance criteria from evidence (FR-V2, §10.3). */
-  async checkCriteria(run: Run, task: Task, opts: { signal?: AbortSignal } = {}): Promise<CriteriaVerdict> {
+  async checkCriteria(run: Run, task: Task, opts: { signal?: AbortSignal; only?: (c: Task["acceptanceCriteria"][number]) => boolean } = {}): Promise<CriteriaVerdict> {
     const jail = this.projects.jail(run.projectId);
     const failures: string[] = [];
     const evidenceRefs: string[] = [];
@@ -376,7 +376,7 @@ export class Verifier {
     const criteria = [...task.acceptanceCriteria];
     // Planner-written criteria are often shallow ("file exists"). A code task must also leave the project
     // compiling: once dependencies are installed and a typecheck script exists, require it implicitly.
-    if ((task.role === "coder" || task.role === "debugger") && !criteria.some((c) => c.check.type === "verification" && c.check.kind === "typecheck")) {
+    if (!opts.only && (task.role === "coder" || task.role === "debugger") && !criteria.some((c) => c.check.type === "verification" && c.check.kind === "typecheck")) {
       try {
         const pkg = JSON.parse(fs.readFileSync(path.join(jail.root, "package.json"), "utf8")) as { scripts?: Record<string, string> };
         if (pkg.scripts?.typecheck && fs.existsSync(path.join(jail.root, "node_modules"))) criteria.push({ id: "auto-typecheck", description: "The project still type-checks after this task", check: { type: "verification", kind: "typecheck" }, evidenceRefs: [] });
@@ -386,6 +386,8 @@ export class Verifier {
     }
     for (let i = 0; i < criteria.length; i++) {
       const c = criteria[i];
+      // Only some criteria (revalidation checks a step's own deliverable): the rest keep their last result.
+      if (opts.only && !opts.only(c)) continue;
       let met = false;
       const refs: string[] = [];
       switch (c.check.type) {

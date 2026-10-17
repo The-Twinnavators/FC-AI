@@ -107,6 +107,27 @@ describe("a step can't pass on generic checks alone", () => {
     expect(app.store.getSetting<string[]>(`addedChecks:${bad.id}`, []).length).toBeGreaterThan(0);
     expect(fs.existsSync(ws)).toBe(true);
   });
+
+  it("revalidates a step on its own deliverable only: another step's type errors don't reopen it", async () => {
+    const { app } = makeApp();
+    const { project, ws } = makeProject(app, {
+      "src/screens/HomeLandingPageScreen.tsx": "export default function Home() { return <h1>Home</h1>; }\n",
+      "package.json": JSON.stringify({ name: "demo", version: "1.0.0", scripts: { typecheck: "tsc --noEmit" } }),
+      // A stand-in type checker reporting an error in a screen a later step broke.
+      "check.js": `console.log("src/screens/CategoriesScreen.tsx(3,5): error TS2322: Type 'string' is not assignable to type 'number'.");\nprocess.exit(1);\n`,
+    });
+    const bin = path.join(ws, "node_modules", ".bin");
+    fs.mkdirSync(bin, { recursive: true });
+    fs.writeFileSync(path.join(bin, "tsc.cmd"), '@node "%~dp0\\..\\..\\check.js" %*\r\n');
+    fs.writeFileSync(path.join(bin, "tsc"), '#!/bin/sh\nnode "$(dirname "$0")/../../check.js" "$@"\n', { mode: 0o755 });
+    app.projects.preflight(project.id);
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Clean Cart", constraints: [], attachedKnowledgeIds: [] });
+    const good = { ...imagery({ id: "task_ok", title: "Write the about text", objective: "Write the about text on Home.", expectedPaths: ["src/screens/HomeLandingPageScreen.tsx"], ordinal: 11, acceptanceCriteria: [{ id: "tc", description: "The project still type-checks", check: { type: "verification" as const, kind: "typecheck" }, evidenceRefs: [] }] }), runId: run.id, status: "verified" as const };
+    app.store.tasks.upsert(good);
+    app.ops.replaceContent({ jail: app.projects.jail(project), projectId: project.id, runId: run.id, taskId: good.id, toolCallId: "t", approved: true }, "src/screens/HomeLandingPageScreen.tsx", "export default function Home() { return <h1>About Clean Cart</h1>; }\n");
+    await (app.orchestrator as unknown as { revalidateGenericPasses: (r: unknown, j: unknown, s: AbortSignal) => Promise<void> }).revalidateGenericPasses(app.store.runs.require(run.id), app.projects.jail(project), new AbortController().signal);
+    expect(app.store.tasks.require(good.id).status).toBe("verified");
+  }, 60_000);
 });
 
 describe("the request is budgeted as a whole, by priority", () => {

@@ -1589,7 +1589,9 @@ export class Orchestrator {
       if (t.status !== "verified" || t.role !== "coder" || this.isRuntimeStep(run, t) || this.isPolishStep(t) || !genericOnly(t)) continue;
       const task = this.addDeliverableChecks(run, t);
       if (!task.acceptanceCriteria.some(isTaskSpecific)) continue;
-      const verdict = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), task, { signal });
+      // Only its own deliverable: the generic checks (type check, lint, tests) now reflect later steps' work too, and
+      // judging an earlier step on them reopened three steps over another step's type errors (Clean Cart, 11:53).
+      const verdict = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), task, { signal, only: isTaskSpecific });
       const ev = { projectId: run.projectId, runId: run.id, taskId: t.id };
       if (verdict.allMet) {
         this.d.bus.emit({ ...ev, type: "verification.completed", message: `Revalidated "${t.title}": it passed on generic checks before, and its own deliverable holds` });
