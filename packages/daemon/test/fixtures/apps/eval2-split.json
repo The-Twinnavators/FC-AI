@@ -1,0 +1,71 @@
+{
+ "parent": {
+  "id": "task_5cb0b0addff2484baf05",
+  "title": "Design the main screens",
+  "objective": "Design the complete app like a senior product designer: it is already written and working (step \"Write the complete app\"): the app frame, one shared store in src/app/, and working pages on the library's patterns: Saved [saved] in src/screens/SavedScreen.tsx, Product [entry] in src/screens/ProductScreen.tsx, Lists [lists] in src/screens/ListsScreen.tsx, List [mylist] in src/screens/ListScreen.tsx, Categories [categories] in src/screens/CategoriesScreen.tsx, Search [catalog] in src/screens/CatalogScreen.tsx, Find Stores [places] in src/screens/PlacesScreen.tsx. Search and suggestions, categories and filters, where each entry is found near the person's ZIP code, likes, saves, sharing, ratings and comments, and lists tied to a place already work across pages. Start your reply with the concept in 5 lines (idea, composition, type, colour, signature moment) and build to it.\n- Keep those pages and the frame: never rebuild, replace or wrap them in new markup, and never give a page its own copy of the data. Give them this product's look through the Styles page (src/styles/tokens.css) and the pieces' fl-* classes in src/styles/components.css, and their words through their props (title, description and the like).\n- Compose each of these pages as a finished page in its screen file, on the same data (lookup from src/app/lookup with useLookup from src/sections/LookupData for ZIP code, places, likes, saves, ratings and lists: const state = useLookup(lookup) gives the state (zip, placeId, signedIn, liked, saved, ratings, lists) and the actions are the lookup's own methods (lookup.setZip(zip), lookup.choosePlace(id), lookup.toggleSave(id), lookup.addToList(listId, entryId)), never destructured from useLookup; the parts take just lookup, e.g. <ZipPrompt lookup={lookup} />; store from src/app/store and useRecords from src/sections/AppData for the entries; the look-up pieces as parts, imported exactly so: import { CatalogSearch, CategoryIndex, LookupCatalog } from '../sections/LookupCatalog'; import { ZipPrompt, PlaceBadge, PlaceFinder } from '../sections/PlaceFinder'; import { LookupEntry, RatingsPanel, WhereToFind } from '../sections/LookupEntry'; import { ListIndex, ListBuilder } from '../sections/ListBuilder' (no other files hold them); go() from src/app/routes to open an entry): Home (src/screens/LandingScreen.tsx) [the landing page: FlowCode wrote a working start with the search, the ZIP code, the categories and the most liked; make it the product's own front page, with the PRD's promise and sections, keeping those working parts].\nRun the app and look at each page at desktop and phone width before you finish.\nThe app: Clean Cart. Roles: Member (signed in as a demo account), Visitor (not signed in). Its data, store and navigation are written by FlowCode in src/app/ (schema.ts, store.ts) and src/App.tsx: every page reads and writes the same records through the store (src/app/store.ts), never its own copy.\n- Products (product): Name*, Brand*, Category*, Certification*, Ingredients*, Short Description; statuses ; 20 sample records.\n- Stores (store): Name*, ZIP Code*; statuses ; 8 sample records.\nNavigation: Home (Home [landing], Saved [saved], Product [entry], Lists [lists], List [mylist]); Browse (Categories [categories], Search [catalog], Find Stores [places]).\nA look-up app: people find product by category and search, and see which places near their ZIP code carries them (94110 Financial District, 94112 Mission District, 94114 Tenderloin). Likes, saves, ratings, comments and lists live in the look-up layer (src/app/lookup.ts, from src/sections/LookupData) beside the store.\n\nThe screens already render the library pieces matched to them (Home → LookupCatalog.tsx; Home → LookupEntry.tsx). They are each screen's starting structure: keep them, replace every value in their SAMPLE object with the spec's real content (then delete the SAMPLE comment), and reshape them for this screen. If a piece really doesn't fit its screen, remove it and name it with the reason in your task_complete summary (for example \"Removed FormFilters: the spec has no filters\").\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Search for a Product (Shopper; starts on Home; R13, R14, R15)\n1. Home: Enter a search term in the search box → Navigates to Search screen with results\nSuccess: Search results are displayed or no-results message if none match\nIf it goes wrong: No search term entered → User enters a search term and submits again\n\n## View Product Details (Shopper; starts on Search; R16)\n1. Search: Tap on a product to view its details → Navigates to Product screen\nSuccess: Product page displays name, brand, category, certification, ingredients and Save button\nIf it goes wrong: No product selected → User selects a product from the list\n\n## Save Product (Shopper; starts on Product; R5, R17)\n1. Product: Tap Save button → If signed in, product is saved and button changes to Unsave; if not signed in, prompts for sign-in\nSuccess: Product is saved to Saved list or user is prompted to sign in\nIf it goes wrong: User attempts to save without signing in → User signs in via one tap and then saves the product\n\n## View Saved Products (Shopper; starts on Home; R18, R19)\n1. Home: Navigate to Saved page → Displays list of saved products by name and brand\nSuccess: Saved products are listed and each opens its Product page\nIf it goes wrong: No saved products → User saves a product first\n\nScreen briefs (locked: build every section with its part; if one truly doesn't fit, record the change with propose_layout_change and its reason, never leave it out quietly): design each screen to its brief, from the person's side. The top of the screen shows what they must see first (not a generic title over a list); the sections come in this order, each built from its catalog part (add_library_piece with the ID when it isn't in the app yet), filled with the spec's real content.\n\n## Home\nPage type: Marketing page (inform and persuade someone who isn't using the product yet). Not on this page: app data tables or admin controls.\nFor: Shopper. Goal: Find a product by name or brand in a few seconds; see featured products.\nWorkflow: 1. Enter search term in the search box 2. View featured products 3. Navigate to Saved page\nFirst view (without scrolling): What Clean Cart is in one line, a search box, and a few featured products\nMain action: Search for a product or navigate to Saved\nSections, top to bottom:\n1. What Clean Cart Is: Introduce the app's purpose clearly.\n2. Search & Categories: Enable quick search and browsing by category. [p.lookup-catalog]\n3. Featured Products: Show popular or recommended items to attract attention. [p.lookup-catalog.grid]\n4. ZIP Code Finder: Allow user to select their location for local product info. [p.place-finder]\nStates: loading: Shows skeleton loaders while content loads; empty: Displays a message like 'No products found' if search returns nothing; error: Displays an error alert with retry option if data fails to load; success: Displays the home screen with featured products and search box\nOn a phone: On phone, top bar becomes fixed; search box expands full-width; grid of product cards stacks vertically.; one column; the main call to action near the top\nAccessibility: Search input must be keyboard accessible and labeled. Navigation buttons should have ARIA labels.\nMust satisfy: R13, R14, R15\n\nComposition manifest (what each page is built from; keep it current: add a part with add_library_piece, naming its page and section):\n## Home\n- What Clean Cart Is: GAP. t.app-storefront belongs on app screens, not on a marketing page page: build this section from core parts instead",
+  "expectedPaths": [
+   "src/screens/",
+   "src/styles/"
+  ],
+  "acceptanceCriteria": [
+   {
+    "id": "s1",
+    "description": "Typecheck passes",
+    "check": {
+     "type": "verification",
+     "kind": "typecheck"
+    },
+    "evidenceRefs": []
+   },
+   {
+    "id": "task_5cb0b0addff2484baf05-d-data",
+    "description": "The app's records (src/app/schema.ts) hold the PRD's sample records, each linked as the app model says",
+    "check": {
+     "type": "verification",
+     "kind": "data-source"
+    },
+    "evidenceRefs": []
+   },
+   {
+    "id": "task_5cb0b0addff2484baf05-d-frame",
+    "description": "The app frame (LookupFrame, src/sections/LookupFrame.tsx) is designed: its rules are restyled or it is changed or replaced by the app's own frame component, and it shows and navigates",
+    "check": {
+     "type": "verification",
+     "kind": "frame-designed"
+    },
+    "evidenceRefs": []
+   }
+  ],
+  "dependsOn": [],
+  "ordinal": 7,
+  "role": "coder",
+  "runId": "r",
+  "validationPlan": {
+   "kinds": [
+    "typecheck"
+   ]
+  }
+ },
+ "parts": [
+  {
+   "title": "Design the complete app like a senior product designer: it is already written and working (step \"Write the complete app\"",
+   "objective": "Design the complete app like a senior product designer: it is already written and working (step \"Write the complete app\"): the app frame, one shared store in src/app/, and working pages on the library's patterns: Saved [saved] in src/screens/SavedScreen.tsx, Product [entry] in src/screens/ProductScreen.tsx, Lists [lists] in src/screens/ListsScreen.tsx, List [mylist] in src/screens/ListScreen.tsx, Categories [categories] in src/screens/CategoriesScreen.tsx, Search [catalog] in src/screens/CatalogScreen.tsx, Find Stores [places] in src/screens/PlacesScreen.tsx.",
+   "files": [
+    "src/screens/ProductScreen.tsx",
+    "src/screens/SavedScreen.tsx"
+   ]
+  },
+  {
+   "title": "Give them this product's look through the Styles page (src/styles/tokens.css) and the pieces' fl-* classes in src/styles",
+   "objective": "Give them this product's look through the Styles page (src/styles/tokens.css) and the pieces' fl-* classes in src/styles/components.css, and their words through their props (title, description and the like).\n- Compose each of these pages as a finished page in its screen file, on the same data (lookup from src/app/lookup with useLookup from src/sections/LookupData for ZIP code, places, likes, saves, ratings and lists: const state = useLookup(lookup) gives the state (zip, placeId, signedIn, liked, saved, ratings, lists) and the actions are the lookup's own methods (lookup.setZip(zip), lookup.choosePlace(id), lookup.toggleSave(id), lookup.addToList(listId, entryId)), never destructured from useLookup; the parts take just lookup, e.g. <ZipPrompt lookup={lookup} />; store from src/app/store and useRecords from src/sections/AppData for the entries; the look-up pieces as parts, imported exactly so: import { CatalogSearch, CategoryIndex, LookupCatalog } from '../sections/LookupCatalog'; import { ZipPrompt, PlaceBadge, PlaceFinder } from '../sections/PlaceFinder'; import { LookupEntry, RatingsPanel, WhereToFind } from '../sections/LookupEntry'; import { ListIndex, ListBuilder } from '../sections/ListBuilder' (no other files hold them); go() from src/app/routes to open an entry): Home (src/screens/LandingScreen.tsx) [the landing page: FlowCode wrote a working start with the search, the ZIP code, the categories and the most liked; make it the product's own front page, with the PRD's promise and sections, keeping those working parts].",
+   "files": [
+    "src/styles/app.css",
+    "src/styles/tokens.css"
+   ]
+  }
+ ],
+ "frame": {
+  "component": "LookupFrame",
+  "file": "src/sections/LookupFrame.tsx"
+ }
+}

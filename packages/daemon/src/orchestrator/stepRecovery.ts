@@ -167,16 +167,65 @@ export function sentenceSplit(task: Task, targets: string[] = task.expectedPaths
  * The smaller steps that replace `task`, chained in order. The step's file checks go to the part that changes that
  * file (else the last part); every part keeps the type check.
  */
-export function buildSplit(task: Task, parts: SplitPart[], newId: () => string, ctx: DeliverableContext = {}): Task[] {
+/** The files that can satisfy the frame check: the app's resolved frame and the stylesheet its rules live in. */
+const frameFiles = (ctx: DeliverableContext) => [...(ctx.frame ? [norm(ctx.frame.file)] : []), "src/styles/components.css"];
+
+/** Workspace paths an objective names outright (src/…/File.ext). */
+const namedPaths = (text: string) => [...new Set([...text.matchAll(/\bsrc\/[\w./-]+\.(?:tsx?|jsx?|css|scss|json)\b/g)].map((m) => norm(m[0])))];
+
+/** Whether a part's objective is the parent step's own text (copied whole, or its opening), not a part's work. */
+export function copiesParent(objective: string, parent: string): boolean {
+  const flat = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+  const o = flat(objective);
+  const p = flat(parent);
+  return p.length > 0 && (o.includes(p.slice(0, Math.min(150, p.length))) || o.length >= p.length * 0.8);
+}
+
+/**
+ * A part's own objective from the parent step's text: the clauses that name its files (Clean Cart slice eval 2: part 1
+ * carried the whole step's objective, pages and frame included, and worked on two screens of it).
+ */
+export function ownObjective(parent: string, files: string[]): string {
+  const stems = files.map((f) => f.replace(/^.*\//, "").replace(/\.[a-z0-9]+$/i, "").toLowerCase());
+  const clauses = parent
+    .split(/\n+|(?<=[.;:])\s+|,\s+(?=[A-Z])/)
+    .map((c) => c.trim().replace(/^[-•]\s*/, ""))
+    .filter((c) => c.length >= 8 && (files.some((f) => c.includes(f)) || stems.some((st) => c.toLowerCase().includes(st))));
+  const unique = [...new Set(clauses.map((c) => c.replace(/[.;:,]+$/, "")))].slice(0, 8);
+  return `Work on ${files.join(" and ")}${unique.length ? `: ${unique.join("; ")}` : ", as the step asks for them"}.`;
+}
+
+export function buildSplit(task: Task, input: SplitPart[], newId: () => string, ctx: DeliverableContext = {}): Task[] {
+  // Each part's files include the ones its objective names outright, and its objective is its own, not the step's.
+  let parts = input.map((p) => {
+    const objective = copiesParent(p.objective, task.objective) ? ownObjective(task.objective, p.files) : p.objective;
+    return { ...p, objective, files: [...new Set([...p.files.map(norm), ...namedPaths(objective)])] };
+  });
+  // The frame check goes to the part that can pass it: the one holding the frame or its stylesheet; else the part about
+  // the look gets the stylesheet (Clean Cart slice eval 2: a screens-only part held it and couldn't finish).
+  const frameCheck = task.acceptanceCriteria.some((c) => c.check.type === "verification" && c.check.kind === "frame-designed");
+  let frameAt = parts.findIndex((p) => p.files.some((f) => frameFiles(ctx).includes(f)));
+  if (frameCheck && frameAt < 0) {
+    const look = parts.findIndex((p) => /\b(frame|navigation|top bar|look|styles?|tokens?|colou?rs?|theme)\b/i.test(`${p.title} ${p.objective}`));
+    frameAt = look >= 0 ? look : parts.length - 1;
+    parts = parts.map((p, i) => (i === frameAt ? { ...p, files: [...p.files, "src/styles/components.css"] } : p));
+  }
+  // The records check goes to the part with the app's data file, else the last part.
+  const dataAt = (() => {
+    const i = parts.findIndex((p) => p.files.includes("src/app/schema.ts"));
+    return i >= 0 ? i : parts.length - 1;
+  })();
   const ids = parts.map(() => newId());
   const fileChecks = task.acceptanceCriteria.filter((c) => c.check.type !== "manual" && "path" in c.check);
   // The step's own checks that aren't about one file (its acceptance tests passing, a build) belong to the last part:
   // the split step is done only when they pass. Calculator app: the parts kept only the type check, so "…then verify"
-  // passed without running the step's acceptance tests.
+  // passed without running the step's acceptance tests. The frame and records checks go where they can pass.
+  const kindOf = (c: (typeof task.acceptanceCriteria)[number]) => (c.check as { kind?: string }).kind ?? "";
   const wholeStep = task.acceptanceCriteria.filter((c) => c.check.type === "verification" && c.check.kind !== "typecheck");
   return parts.map((p, i) => {
     const last = i === parts.length - 1;
-    const mine = [...fileChecks.filter((c) => p.files.includes(norm((c.check as { path: string }).path)) || (last && !parts.some((q) => q.files.includes(norm((c.check as { path: string }).path))))), ...(last ? wholeStep : [])];
+    const placed = wholeStep.filter((c) => (kindOf(c) === "frame-designed" ? i === frameAt : kindOf(c) === "data-source" ? i === dataAt : last));
+    const mine = [...fileChecks.filter((c) => p.files.includes(norm((c.check as { path: string }).path)) || (last && !parts.some((q) => q.files.includes(norm((c.check as { path: string }).path))))), ...placed];
     // An earlier part is done when its own share of the step's acceptance tests passes.
     const testFile = wholeStep.map((c) => (c.check as { kind: string }).kind).find((k) => k.startsWith("tests:"))?.slice("tests:".length);
     if (!last && testFile && p.tests?.length) mine.push({ id: `${task.id}-tests`, description: `This part's acceptance tests pass (${p.tests.length} of the step's tests)`, check: { type: "verification", kind: partTestsKind(testFile, p.tests) } } as (typeof mine)[number]);
@@ -186,7 +235,8 @@ export function buildSplit(task: Task, parts: SplitPart[], newId: () => string, 
     ] as Task["acceptanceCriteria"];
     // A part with only the type check would pass whether or not it did its work: it gets its own deliverable's checks.
     const own = { id: ids[i]!, title: p.title, objective: p.objective, expectedPaths: p.files };
-    if (genericOnly({ acceptanceCriteria: criteria })) criteria.push(...deliverableChecks(own, ctx));
+    // Never the frame check on a part that can't pass it (it has its place above).
+    if (genericOnly({ acceptanceCriteria: criteria })) criteria.push(...deliverableChecks(own, ctx).filter((c) => (c.check as { kind?: string }).kind !== "frame-designed" || i === frameAt));
     return {
       id: ids[i],
       runId: task.runId,
