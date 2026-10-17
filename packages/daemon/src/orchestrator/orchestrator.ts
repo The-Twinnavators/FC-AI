@@ -3008,7 +3008,11 @@ export class Orchestrator {
     const task = this.d.store.tasks.require(taskId);
     if (!task.actualPaths.length) return;
     const undone = await this.safeUndo(run, task, jail, "it was blocked");
-    if (!undone.ok) this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, taskId, level: "warning", message: `Kept "${task.title}"'s changes: undoing them isn't safe (${undone.reason}). They wait for your decision; nothing was overwritten.` });
+    if (!undone.ok) return void this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, taskId, level: "warning", message: `Kept "${task.title}"'s changes: undoing them isn't safe (${undone.reason}). They wait for your decision; nothing was overwritten.` });
+    // Its start can hold later steps' never-accepted edits (they ran before it was reopened): undone too, so the
+    // workspace a retry starts from isn't built on work no step owns.
+    const later = await this.undoLaterUnaccepted(run, task, jail);
+    if (later) this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, taskId, level: "warning", message: `Kept other changes: ${later}. They wait for your decision; nothing was overwritten.` });
   }
 
   /**

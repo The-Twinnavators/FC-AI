@@ -129,6 +129,21 @@ describe("undoing a step's unaccepted changes", () => {
     expect(after.typecheck!.lines).toEqual(["src/old.ts(1,1): error TS2304: Cannot find name 'OLD'."]);
   }, 90_000);
 
+  it("a blocked step's undo also undoes the never-accepted edits of a later step it was working on top of", async () => {
+    const s = setup();
+    const a = s.mk("a", 1, "running", ["src/a.ts"]);
+    const b = s.mk("b", 2, "attempted", ["src/b.ts"]);
+    await s.baseline(b);
+    // b ran first (then a was reopened); a then edited the same file on top of b's half-done version.
+    s.edit(b.id, "src/b.ts", "BROKEN\n");
+    await s.baseline(a);
+    s.edit(a.id, "src/b.ts", "BROKEN\nexport const more = 1;\n");
+    const orch = s.app.orchestrator as unknown as { undoBlockedStep: (r: unknown, id: string, j: unknown) => Promise<void> };
+    await orch.undoBlockedStep(s.app.store.runs.require(s.run.id), a.id, s.app.projects.jail(s.app.store.runs.require(s.run.id).projectId));
+    expect(s.read("src/b.ts")).toBe("export const b = 1;\n");
+    expect(s.notes.filter((n) => n.startsWith("Undid")).length).toBe(2);
+  }, 60_000);
+
   it("leaves a step that once passed and was reopened alone (its files are built on when it runs again)", async () => {
     const s = setup();
     const a = s.mk("a", 1, "pending", ["src/a.ts"]);
