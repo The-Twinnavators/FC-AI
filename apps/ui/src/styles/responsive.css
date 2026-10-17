@@ -9267,6 +9267,20 @@ button.web-card__title:focus-visible {
   top: 14px;
   right: 14px;
 }
+/* The menu button sits over the card's preview thumbnail, often a light screen: a solid chip keeps it visible. */
+.pcard .proj-actions__btn,
+.qa-card-wrap .proj-actions__btn {
+  background: var(--bg-2);
+  color: var(--text-0);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+}
+.pcard .proj-actions__btn:hover,
+.pcard .proj-actions__btn[aria-expanded="true"],
+.qa-card-wrap .proj-actions__btn:hover,
+.qa-card-wrap .proj-actions__btn[aria-expanded="true"] {
+  background: var(--bg-3);
+}
 .qa-card-wrap .lrc-card__top {
   justify-content: flex-start;
   gap: 10px;
