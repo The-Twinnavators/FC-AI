@@ -1,0 +1,13 @@
+/**
+ * List
+ * Built by FlowCode from the app model; it reads and writes the app's store and look-up layer (src/app/).
+ */
+import { ListBuilder } from "../sections/ListBuilder";
+import { useHashId } from "../sections/AppData";
+import { go } from "../app/routes";
+import { lookup } from "../app/lookup";
+
+export default function ListScreen() {
+  const id = useHashId("list") ?? "";
+  return <ListBuilder lookup={lookup} id={id} onBack={() => go("lists")} onOpenEntry={(id) => go("product", id)} />;
+}

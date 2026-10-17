@@ -1,0 +1,11 @@
+/**
+ * Categories
+ * Built by FlowCode from the app model; it reads and writes the app's store and look-up layer (src/app/).
+ */
+import { CategoryIndex } from "../sections/LookupCatalog";
+import { go } from "../app/routes";
+import { lookup } from "../app/lookup";
+
+export default function CategoriesScreen() {
+  return <CategoryIndex lookup={lookup} onCategory={(c) => go("catalog", c)} />;
+}

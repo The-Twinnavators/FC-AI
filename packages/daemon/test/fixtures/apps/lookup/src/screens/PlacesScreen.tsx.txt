@@ -1,0 +1,12 @@
+/**
+ * Find Stores
+ * Built by FlowCode from the app model; it reads and writes the app's store and look-up layer (src/app/).
+ */
+import { PlaceFinder } from "../sections/PlaceFinder";
+import { go } from "../app/routes";
+import { lookup } from "../app/lookup";
+
+export default function PlacesScreen() {
+  void go;
+  return <PlaceFinder lookup={lookup} title={"Find Stores"} />;
+}

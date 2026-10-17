@@ -1,0 +1,22 @@
+/**
+ * Product
+ * Built by FlowCode from the app model; it reads and writes the app's store and look-up layer (src/app/).
+ */
+import { LookupEntry } from "../sections/LookupEntry";
+import { useHashId } from "../sections/AppData";
+import { go } from "../app/routes";
+import { lookup } from "../app/lookup";
+
+export default function ProductScreen() {
+  const id = useHashId("product") ?? "";
+  return (
+    <LookupEntry
+      lookup={lookup}
+      id={id}
+      shareScreen={"product"}
+      onBack={() => go("catalog")}
+      onOpenPlace={() => go("places")}
+      onOpenList={(list) => go("list", list)}
+    />
+  );
+}

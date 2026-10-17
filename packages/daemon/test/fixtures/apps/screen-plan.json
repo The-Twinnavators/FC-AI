@@ -1,0 +1,34 @@
+[
+ {
+  "label": "Home",
+  "file": "src/screens/LandingScreen.tsx"
+ },
+ {
+  "label": "Saved",
+  "file": "src/screens/SavedScreen.tsx"
+ },
+ {
+  "label": "Product",
+  "file": "src/screens/ProductScreen.tsx"
+ },
+ {
+  "label": "Lists",
+  "file": "src/screens/ListsScreen.tsx"
+ },
+ {
+  "label": "List",
+  "file": "src/screens/ListScreen.tsx"
+ },
+ {
+  "label": "Categories",
+  "file": "src/screens/CategoriesScreen.tsx"
+ },
+ {
+  "label": "Catalog",
+  "file": "src/screens/CatalogScreen.tsx"
+ },
+ {
+  "label": "Find Stores",
+  "file": "src/screens/PlacesScreen.tsx"
+ }
+]

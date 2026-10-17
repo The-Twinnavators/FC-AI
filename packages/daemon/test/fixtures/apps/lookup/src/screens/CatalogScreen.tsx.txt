@@ -1,0 +1,26 @@
+/**
+ * Catalog
+ * Built by FlowCode from the app model; it reads and writes the app's store and look-up layer (src/app/).
+ */
+import { LookupCatalog } from "../sections/LookupCatalog";
+import { useHashId } from "../sections/AppData";
+import { go } from "../app/routes";
+import { lookup } from "../app/lookup";
+
+export default function CatalogScreen() {
+  const arg = useHashId("catalog");
+  const query = arg?.startsWith("q=") ? arg.slice(2) : undefined;
+  const category = arg && !query ? arg : undefined;
+  return (
+    <LookupCatalog
+      key={arg ?? "all"}
+      lookup={lookup}
+      title={"Catalog"}
+      category={category}
+      query={query}
+      onOpen={(id) => go("product", id)}
+      onCategory={(c) => go("catalog", c)}
+      onSearch={(s) => go("catalog", `q=${s}`)}
+    />
+  );
+}

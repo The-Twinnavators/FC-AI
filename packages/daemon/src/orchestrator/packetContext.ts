@@ -69,11 +69,30 @@ export function navigationContract(root: string): string | undefined {
     const props = [...m[2]!.matchAll(/\b([a-zA-Z]\w*)\s*=/g)].map((x) => x[1]!);
     uses.set(m[1]!, new Set([...(uses.get(m[1]!) ?? []), ...props]));
   }
+  // A route table (const VIEWS = { "landing": LandingScreen, … } rendered as <View … /> from VIEWS[screen]): each
+  // screen gets the props the rendered element passes (Clean Cart slice: none).
+  const routes: string[] = [];
+  for (const t of app.matchAll(/const\s+(\w+)\s*(?::[^=]+)?=\s*\{([^{}]*)\}/g)) {
+    const pairs = [...t[2]!.matchAll(/["']?([\w-]+)["']?\s*:\s*([A-Z]\w*)\b/g)];
+    if (!pairs.length) continue;
+    const viaVar = new RegExp(`const\\s+(\\w+)\\s*=\\s*${t[1]}\\[`).exec(app)?.[1];
+    const el = viaVar ? new RegExp(`<${viaVar}\\b([^>]*?)\\/?>`).exec(app) : null;
+    if (!el) continue;
+    const props = [...el[1]!.matchAll(/\b([a-zA-Z]\w*)\s*=/g)].map((x) => x[1]!).filter((p) => p !== "key");
+    for (const [, id, comp] of pairs) {
+      uses.set(comp!, new Set([...(uses.get(comp!) ?? []), ...props]));
+      routes.push(`#/${id} → ${comp}`);
+    }
+  }
   if (!uses.size) return undefined;
+  // Navigation links the frame shows but that lead to no working page (a link marked "available": false).
+  const unavailable = [...app.matchAll(/\{\s*"id":\s*"([\w-]+)",\s*"label":\s*"([^"]+)"[^}]*"available":\s*false/g)].map((m) => `${m[2]} (#/${m[1]})`);
   const hash = /useScreen|location\.hash/.test(app) || fs.existsSync(path.join(root, "src/lib/screens.ts"));
   return [
     "How src/App.tsx renders the screens (FlowCode wrote it; it is the contract each screen keeps):",
     ...[...uses].map(([c, props]) => `- <${c}${props.size ? ` ${[...props].map((p) => `${p}={…}`).join(" ")}` : ""} />${props.size ? "" : " (no props: the screen must not require any)"}`),
+    routes.length ? `Routes (App.tsx's route table): ${routes.join(", ")}.` : "",
+    unavailable.length ? `Navigation links with no working page yet: ${unavailable.join(", ")}.` : "",
     hash ? "Screens switch by the URL hash (#/<screen id>, src/lib/screens.ts): link with href=\"#/<id>\" rather than adding a navigation prop." : "",
     "A screen whose props you change must be updated in App.tsx in the same step, or keep the props App.tsx passes.",
   ]
@@ -103,4 +122,76 @@ export function importedPieceContracts(root: string, files: string[], max = 4): 
     }
   }
   return out;
+}
+
+/** A step's paths as concrete files, and what couldn't be resolved or attached. */
+export interface ConcreteTargets {
+  files: string[];
+  gaps: string[];
+}
+
+const CODE = /\.(tsx?|jsx?|css|scss|json|md|html|vue|svelte)$/i;
+
+/**
+ * A step's paths as concrete, bounded files. A file path stays as it is. A folder (src/screens/, src/styles/) becomes
+ * the files in it the step is about, in this order: files its title or objective names (by file name or a planned
+ * screen's label), the planned screens in that folder, then the files the app imports from it (App.tsx and main.tsx);
+ * at most `perFolder` from each folder, never the whole tree. What is left of the relevant ones, or a folder with nothing
+ * resolvable, is reported as a gap instead of being dropped without a word.
+ *
+ * Clean Cart slice eval 1: the design step's paths were src/screens/ and src/styles/, and every attempt was sent with
+ * no source file at all; it rebuilt that context by reading until its turns ran out.
+ */
+export function concreteTargets(root: string, task: { title: string; objective: string; expectedPaths: string[] }, planned: Array<{ label: string; file: string }>, perFolder = 6): ConcreteTargets {
+  const files: string[] = [];
+  const gaps: string[] = [];
+  const text = `${task.title}\n${task.objective}`.toLowerCase();
+  let imports = "";
+  for (const f of ["src/App.tsx", "src/App.jsx", "src/main.tsx", "src/main.jsx"]) {
+    try {
+      imports += fs.readFileSync(path.join(root, f), "utf8");
+    } catch {
+      /* not there */
+    }
+  }
+  for (const raw of task.expectedPaths) {
+    const p = norm(raw);
+    const abs = path.join(root, p);
+    const isDir = p.endsWith("/") || (fs.existsSync(abs) && fs.statSync(abs).isDirectory());
+    if (!isDir) {
+      files.push(p);
+      continue;
+    }
+    const dir = p.replace(/\/$/, "");
+    let names: string[] = [];
+    try {
+      names = fs
+        .readdirSync(path.join(root, dir), { withFileTypes: true })
+        .filter((e) => e.isFile() && CODE.test(e.name) && !/\.(test|spec)\./.test(e.name))
+        .map((e) => `${dir}/${e.name}`);
+    } catch {
+      names = [];
+    }
+    if (!names.length) {
+      gaps.push(`${dir}/ has no files to work on yet`);
+      continue;
+    }
+    const base = (f: string) => f.replace(/^.*\//, "").replace(/\.[a-z0-9]+$/i, "");
+    // Named files in the order the step's text first mentions them (its first-named screens matter most).
+    const at = (f: string) => {
+      const hits = [text.indexOf(f.toLowerCase()), text.indexOf(base(f).toLowerCase()), ...planned.filter((s) => s.file === f).map((s) => text.indexOf(s.label.toLowerCase()))].filter((i) => i >= 0);
+      return hits.length ? Math.min(...hits) : -1;
+    };
+    const named = names.filter((f) => at(f) >= 0).sort((a, b) => at(a) - at(b));
+    const plannedHere = planned.map((s) => norm(s.file)).filter((f) => names.includes(f));
+    const imported = names.filter((f) => new RegExp(`["'][./]*${dir.replace(/^src\//, "")}/${base(f)}(\\.[a-z]+)?["']|/${base(f)}\\.css["']`).test(imports));
+    const ranked = [...new Set([...named, ...plannedHere, ...imported])];
+    if (!ranked.length) {
+      gaps.push(`${dir}/: none of its ${names.length} files is named by the step, planned as a screen or imported by the app; read the ones you need`);
+      continue;
+    }
+    files.push(...ranked.slice(0, perFolder));
+    if (ranked.length > perFolder) gaps.push(`${dir}/: ${ranked.length - perFolder} more relevant file${ranked.length - perFolder === 1 ? "" : "s"} not attached (${ranked.slice(perFolder).join(", ")}); read one when you need it`);
+  }
+  return { files: [...new Set(files)], gaps };
 }

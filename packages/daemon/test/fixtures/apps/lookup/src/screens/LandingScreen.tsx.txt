@@ -1,0 +1,27 @@
+/**
+ * Home
+ * Built by FlowCode from the app model; it reads and writes the app's store and look-up layer (src/app/).
+ */
+import { CatalogSearch, CategoryIndex, LookupCatalog } from "../sections/LookupCatalog";
+import { ZipPrompt } from "../sections/PlaceFinder";
+import { go } from "../app/routes";
+import { lookup } from "../app/lookup";
+
+export default function LandingScreen() {
+  return (
+    <div className="fl-lkf-stack">
+      {/* 1. Hero: Clean Cart, its promise and the search (design step: compose this from the PRD's words) */}
+      <section className="fl-lkf-hero" aria-labelledby="landing-title">
+        <h1 id="landing-title">{"Clean Cart"}</h1>
+        
+        <CatalogSearch lookup={lookup} onSearch={(s) => go("catalog", `q=${s}`)} onOpen={(id) => go("product", id)} />
+      </section>
+      {/* 2. Where to find it: the ZIP code */}
+      <ZipPrompt lookup={lookup} />
+      {/* 3. Categories */}
+      <CategoryIndex lookup={lookup} onCategory={(c) => go("catalog", c)} />
+      {/* 4. The most liked */}
+      <LookupCatalog lookup={lookup} title="Most liked" pageSize={8} toolbar={false} onOpen={(id) => go("product", id)} />
+    </div>
+  );
+}

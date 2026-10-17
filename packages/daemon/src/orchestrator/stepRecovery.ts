@@ -113,7 +113,7 @@ export function parseSplit(raw: unknown, task: Task, files: string[], titles: st
       // Only titles that are really in the step's test file.
       tests: Array.isArray(s.tests) ? (s.tests as unknown[]).map((t) => String(t).trim()).filter((t) => titles.includes(t)) : [],
     }))
-    .filter((s) => s.title && s.objective.length >= 15 && s.files.length)
+    .filter((s) => s.title && s.objective.length >= 15 && !partProblems(s, task.objective).length)
     // The starter kit's building blocks already use the design tokens and aren't edited by steps: a part that would
     // only change them has nothing to do (Calendar test 8: "Style components with design tokens" read the kit 90 times).
     .filter((s) => !s.files.every((f) => /^src\/components\/ui\//.test(f)));
@@ -123,7 +123,23 @@ export function parseSplit(raw: unknown, task: Task, files: string[], titles: st
 }
 
 /** Fallback when the planner can't split: one part per sentence of the step (the last sentence often applies to all). */
-export function sentenceSplit(task: Task): SplitPart[] | undefined {
+/**
+ * Why a proposed part can't be run as a step of its own (empty when it can): it has no files to change, or its
+ * objective is only text copied from the step it came from, naming none of its files (Clean Cart slice eval 1: a part
+ * with no files whose objective was the step's first sentence ran out of turns twice and blocked the build).
+ */
+export function partProblems(p: SplitPart, parentObjective: string): string[] {
+  const out: string[] = [];
+  if (!p.files.length) out.push(`"${p.title}" has no files to change`);
+  const flat = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+  const namesAFile = p.files.some((f) => p.objective.toLowerCase().includes(f.toLowerCase()) || p.objective.toLowerCase().includes(f.replace(/^.*\//, "").replace(/\.[a-z0-9]+$/i, "").toLowerCase()));
+  // The step's own summary (its first sentence) isn't a part's work; a later, specific sentence of it can be.
+  const firstOf = (s: string) => flat(s.split(/(?<=[.;:])\s+(?=[A-Z])|\n/)[0] ?? "");
+  if (!namesAFile && firstOf(p.objective) === firstOf(parentObjective)) out.push(`"${p.title}" only repeats the step's own summary and names none of its files`);
+  return out;
+}
+
+export function sentenceSplit(task: Task, targets: string[] = task.expectedPaths.filter((p) => !p.endsWith("/"))): SplitPart[] | undefined {
   const sentences = task.objective
     .split(/(?<=[.;])\s+(?=[A-Z])/)
     .map((s) => s.trim())
@@ -133,7 +149,11 @@ export function sentenceSplit(task: Task): SplitPart[] | undefined {
   const rules = sentences.filter((s) => general.test(s));
   const work = sentences.filter((s) => !general.test(s)).slice(0, 4);
   if (work.length < 2) return undefined;
-  return work.map((s) => ({ title: s.replace(/[.;]$/, "").slice(0, 120), objective: [s, ...rules].join(" "), files: task.expectedPaths.filter((p) => !p.endsWith("/")).slice(0, 2) }));
+  // Each sentence gets the step's files it names; one that names none has nothing concrete to do on its own.
+  const named = (s: string) => targets.filter((f) => s.toLowerCase().includes(f.toLowerCase()) || s.toLowerCase().includes(f.replace(/^.*\//, "").replace(/\.[a-z0-9]+$/i, "").toLowerCase())).slice(0, 2);
+  // A sentence naming none gets the step's own files when there are one or two of them (a sub-task on the same file).
+  const parts = work.map((s) => ({ title: s.replace(/[.;]$/, "").slice(0, 120), objective: [s, ...rules].join(" "), files: named(s).length ? named(s) : targets.length <= 2 ? targets : [] })).filter((p) => p.files.length);
+  return parts.length >= 2 ? parts : undefined;
 }
 
 /**

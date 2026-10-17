@@ -1,0 +1,284 @@
+@import "./fonts.css"; /* FlowCode local fonts */
+/*
+ * Design tokens: the only place raw values live. Components consume var(--…) tokens.
+ * To add a value, extend this file (extend_tokens workflow); never inline raw colors or sizes in components.
+ *
+ * How to use them (every screen follows these, so the app looks like one product):
+ *  - Accent (--color-accent) is for the one main action per screen, links, the current navigation item and focus. Nothing else.
+ *  - Color follows 60/30/10: neutrals (bg, surface) cover about 60%; the secondary covers about 30% (supporting
+ *    areas: tinted panels with --color-secondary-surface and --color-secondary-border, secondary buttons, tags and
+ *    filters with --color-secondary / --color-on-secondary); the accent stays at about 10%. The secondary is traced
+ *    from the accent by a colour harmony, so the two belong together.
+ *  - Success and danger colors are for status only (saved, done, error, delete). Never decoration.
+ *  - Cards and panels use the surface color on the page background; wells, tracks and hover use surface-sunken.
+ *  - Content uses the text color; descriptions, hints and labels use text-muted.
+ *  - Spacing runs from space-1 to space-9 on an 8px rhythm (space-3 is a 4px half-step); space-8 and space-9 separate page sections. Related things sit closer than unrelated ones.
+ *  - Radius: radius-sm for inputs and badges, radius-md for buttons, radius-lg for cards. Never mix in others.
+ *  - Controls share the control-sm/md/lg/xl heights (with matching control-pad-* and control-text-*), so buttons,
+ *    inputs and selects line up.
+ *  - Surfaces: cards, panels and controls are drawn only with the surface tokens (border, shadow, blur, radius),
+ *    so a different surface style restyles every screen at once.
+ *  - States: hover lifts by hover-lift, pressing scales to press-scale, disabled fades to disabled-opacity,
+ *    and keyboard focus always shows the focus ring.
+ */
+:root {
+  /* Color — semantic roles */
+  --color-bg: #FAFAF5;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #e7ede6;
+  --color-text: #141a13;
+  --color-text-muted: #686e67;
+  --color-border: #d3dad2;
+  --color-border-strong: #828881;
+  --color-accent: #15803d;
+  --color-accent-hover: #07672e;
+  --color-on-accent: #ffffff;
+  --color-focus: #3b9d58;
+  --color-danger: #aa4a36;
+  --color-danger-surface: #fff4f2;
+  --color-success: #15803d;
+  --color-warning: #8b640a;
+  /* Secondary (the 30%): analogous (+30°) to the accent, calmer than it */
+  --color-secondary: #166534;
+  --color-secondary-hover: #0b5328;
+  --color-on-secondary: #ffffff;
+  --color-secondary-surface: #e1f7e5;
+  --color-secondary-border: #6c9575;
+
+  /* Type */
+  --font-sans: "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fraunces", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+  --text-3xl: clamp(2.75rem, 6vw, 4rem);
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+  --tracking-tight: -0.02em;
+  --tracking-wide: 0.04em;
+  --measure: 68ch;
+  --weight-regular: 400;
+  --weight-medium: 550;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Type levels (Styles → Design → Typography): each heading level and body text has its own size, weight and line
+     height, starting from the scale above. Small and caption text use --text-sm and --text-xs. */
+  --type-display-size: var(--text-3xl);
+  --type-display-weight: var(--heading-weight);
+  --type-display-leading: var(--leading-tight);
+  --type-h1-size: var(--text-2xl);
+  --type-h1-weight: var(--heading-weight);
+  --type-h1-leading: var(--leading-tight);
+  --type-h2-size: var(--text-lg);
+  --type-h2-weight: var(--weight-semibold);
+  --type-h2-leading: var(--leading-snug);
+  --type-h3-size: var(--text-md);
+  --type-h3-weight: var(--weight-semibold);
+  --type-h3-leading: var(--leading-snug);
+  --type-body-size: var(--text-md);
+  --type-body-weight: var(--weight-regular);
+  --type-body-leading: var(--leading-normal);
+
+  /* Space (4px scale) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+
+  /* Shape — radius never exceeds 10px */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --border-width: 1px;
+  --focus-ring: 0 0 0 3px var(--color-focus);
+
+  /* Controls and states */
+  /* Control and button sizes (CSSVibes' button sizes: 32 / 40 / 48 / 56px, padding 16–28px, text 13–18px) */
+  --control-sm: 2rem;
+  --control-md: 2.5rem;
+  --control-lg: 3rem;
+  --control-xl: 3.5rem;
+  --control-pad-sm: 1rem;
+  --control-pad-md: 1.25rem;
+  --control-pad-lg: 1.5rem;
+  --control-pad-xl: 1.75rem;
+  --control-text-sm: 0.8125rem;
+  --control-text-md: 0.875rem;
+  --control-text-lg: 1rem;
+  --control-text-xl: 1.125rem;
+  --hover-lift: -1px;
+  --press-scale: 0.98;
+  --disabled-opacity: 0.55;
+
+  /* Surface style: flat (how cards, panels, buttons and inputs are drawn; set by the chosen vibe) */
+  --surface-bg: var(--color-surface);
+  --surface-border: var(--border-width) solid var(--color-border);
+  --surface-shadow: none;
+  --surface-shadow-hover: 0 6px 20px -12px color-mix(in srgb, var(--color-text) 35%, transparent);
+  --surface-blur: none;
+  --surface-radius: var(--radius-lg);
+  --control-radius: var(--radius-md);
+  --control-border: var(--border-width) solid var(--color-border-strong);
+  --control-shadow: none;
+  --control-shadow-hover: none;
+  --header-bg: var(--color-surface);
+  --page-backdrop: none;
+  --page-fill: var(--color-bg); /* a decorative section background's fill: transparent where the surface paints a backdrop */
+  --heading-weight: var(--weight-bold);
+  /* More surface-style traits (a style may set any; these defaults are the flat look; "initial" = not set) */
+  --control-bg: var(--color-surface);
+  --accent-bg: var(--color-accent);
+  --control-edge: initial;
+  --surface-edge: initial;
+  --control-shadow-active: var(--control-shadow-hover);
+  --control-shadow-focus: var(--focus-ring);
+  --well-shadow: var(--control-shadow);
+  --surface-shadow-selected: 0 0 0 1px var(--color-accent);
+  --surface-shadow-overlay: initial;
+  --surface-radius-sm: var(--radius-md);
+  --control-radius-sm: var(--radius-sm);
+  --pill-radius: 999px;
+  --field-radius: min(var(--control-radius), 12px); /* text boxes: never a pill, never over 12px */
+  --edge-width: var(--border-width);
+  --overlay-border: initial;
+  --tag-tilt: 0deg;
+  --hover-shift: none;
+  --press-shift: none;
+
+  /* Layout & motion */
+  --content-max: 72rem;
+  --breakpoint-wide: 900px;
+  --duration-fast: 120ms;
+  --easing: cubic-bezier(0.2, 0, 0, 1);
+  /* Motion (Styles → Tokens → motion): micro-animations give every action immediate feedback. Instant for presses,
+     fast for hovers and toggles, base for things appearing, slow for screens. Reduced motion turns all of it off. */
+  --duration-instant: 80ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --enter-distance: 8px;
+  --stagger: 40ms;
+
+  /* FlowCode palette: brand, neutral and status ramps (Styles → Design → Colours). Edited there. */
+  --brand-primary-50: #ecfcee;
+  --brand-primary-100: #d6f5db;
+  --brand-primary-200: #b3e7bc;
+  --brand-primary-300: #89d298;
+  --brand-primary-400: #5fb875;
+  --brand-primary-500: #3b9d58;
+  --brand-primary-600: #15803d;
+  --brand-primary-700: #07672e;
+  --brand-primary-800: #0c4d23;
+  --brand-primary-900: #033515;
+  --brand-secondary-50: #eefbf0;
+  --brand-secondary-100: #daf3df;
+  --brand-secondary-200: #bae4c3;
+  --brand-secondary-300: #94cea2;
+  --brand-secondary-400: #6fb481;
+  --brand-secondary-500: #4f9964;
+  --brand-secondary-600: #377d4c;
+  --brand-secondary-700: #166534;
+  --brand-secondary-800: #164c28;
+  --brand-secondary-900: #0a3419;
+  --brand-tertiary-50: #f3faea;
+  --brand-tertiary-100: #d9f99d;
+  --brand-tertiary-200: #cde0ad;
+  --brand-tertiary-300: #b0c983;
+  --brand-tertiary-400: #92ae5a;
+  --brand-tertiary-500: #769238;
+  --brand-tertiary-600: #5d771e;
+  --brand-tertiary-700: #495f0a;
+  --brand-tertiary-800: #354700;
+  --brand-tertiary-900: #243104;
+  --neutral-50: #f6fcf5;
+  --neutral-100: #e7ede6;
+  --neutral-200: #d3dad2;
+  --neutral-300: #b9c0b9;
+  --neutral-400: #9da39d;
+  --neutral-500: #828881;
+  --neutral-600: #686e67;
+  --neutral-700: #525751;
+  --neutral-800: #3b423a;
+  --neutral-900: #141a13;
+  --status-success-50: #ecfcee;
+  --status-success-100: #d6f5db;
+  --status-success-200: #b3e7bc;
+  --status-success-300: #89d298;
+  --status-success-400: #5fb875;
+  --status-success-500: #3b9d58;
+  --status-success-600: #15803d;
+  --status-success-700: #07672e;
+  --status-success-800: #0c4d23;
+  --status-success-900: #033515;
+  --status-warning-50: #fff6e6;
+  --status-warning-100: #fce9c9;
+  --status-warning-200: #f3d39c;
+  --status-warning-300: #e2b668;
+  --status-warning-400: #d09a28;
+  --status-warning-500: #ac7d13;
+  --status-warning-600: #8b640a;
+  --status-warning-700: #6e4f0c;
+  --status-warning-800: #543b01;
+  --status-warning-900: #392804;
+  --status-error-50: #fff4f2;
+  --status-error-100: #ffe4de;
+  --status-error-200: #ffc9bd;
+  --status-error-300: #fca490;
+  --status-error-400: #e6816b;
+  --status-error-500: #bd5742;
+  --status-error-600: #aa4a36;
+  --status-error-700: #8b3625;
+  --status-error-800: #6c2618;
+  --status-error-900: #4d170c;
+  --status-info-50: #eff8ff;
+  --status-info-100: #d9effe;
+  --status-info-200: #b1defe;
+  --status-info-300: #80c7f6;
+  --status-info-400: #53abe2;
+  --status-info-500: #2389c1;
+  --status-info-600: #0473a8;
+  --status-info-700: #0a5b85;
+  --status-info-800: #0d4463;
+  --status-info-900: #042f46;
+  /* End of FlowCode palette */
+}
+
+/* Dark theme: written by FlowCode from the style's palette. It applies with data-theme="dark" (the preview's light/dark toggle), never from the computer's setting. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #141a13;
+  --color-surface: #20261f;
+  --color-surface-sunken: #0e130d;
+  --color-text: #f6fcf5;
+  --color-text-muted: #b9c0b9;
+  --color-border: #525751;
+  --color-border-strong: #828881;
+  --color-accent: #89d298;
+  --color-accent-hover: #b3e7bc;
+  --color-on-accent: #111111;
+  --color-focus: #89d298;
+  --color-success: #89d298;
+  --color-warning: #e2b668;
+  --color-danger: #fca490;
+  --color-danger-surface: #4d170c;
+  --color-secondary: #5ea872;
+  --color-secondary-hover: #71bb84;
+  --color-on-secondary: #111111;
+  --color-secondary-surface: #223326;
+  --color-secondary-border: #5a8364;
+}
+/* End of dark theme */

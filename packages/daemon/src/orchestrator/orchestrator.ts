@@ -85,9 +85,9 @@ import { RECOVERY_BACKOFF_MS, causeOfBlocker, getInterruption, recordInterruptio
 import { createHash } from "node:crypto";
 import { toolDef } from "./agentLoop.js";
 import { catalogContract, contractText } from "./catalogContract.js";
-import { importedPieceContracts, navigationContract, screenRequirements, touchesNavigation } from "./packetContext.js";
+import { concreteTargets, importedPieceContracts, navigationContract, screenRequirements, touchesNavigation } from "./packetContext.js";
 import { STYLE_FILE, contractProblems, deliverableChecks, type DeliverableContext, genericOnly, isTaskSpecific, separateMixed, testFileOf, writesTestsStep } from "./taskContract.js";
-import { FLOWCODE_LIMITS_KEY, compactPartObjective, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
+import { FLOWCODE_LIMITS_KEY, compactPartObjective, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, partProblems, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
@@ -1531,6 +1531,8 @@ export class Orchestrator {
     if (runtime) return false;
     const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
     const files = listTree(jail, "src", 4, 200).children ?? [];
+    // The step's own files, concrete (a folder in its paths expanded): what the parts are made from.
+    const targets = concreteTargets(jail.root, task, this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? []);
     const flat: string[] = [];
     const walk = (nodes: typeof files, base = "src") => {
       for (const n of nodes) {
@@ -1565,7 +1567,7 @@ export class Orchestrator {
             content:
               "A coding agent ran out of actions twice on one step: it is too big to do in one go. Split it into 2 to 4 smaller steps, in the order they should be done. Each step changes one or two files from the project (or adds one new file under src/), and together they do exactly what the original step asks: nothing more, nothing less. Each objective names its files and says what to change in them. Leave out work that earlier steps already did or later steps will do. The building blocks in src/components/ui are the kit: they already use the design tokens and are not changed by steps, so never make a step about them. When the step has acceptance tests, give each step the exact titles of the tests it makes pass (\"tests\"), copied from the list; every test belongs to exactly one step, and a step is done only when its tests pass. Return JSON {\"steps\":[{\"title\": string, \"objective\": string, \"files\": string[], \"tests\": string[]}]}.",
           },
-          { role: "user", content: `Step: ${task.title}\n\nWhat it asks:\n${untrusted("step", task.objective)}\n\nProject files:\n${untrusted("files", flat.join("\n"))}${titles.length ? `\n\nThe step's acceptance tests (${testFile}):\n${untrusted("tests", titles.map((t) => `- ${t}`).join("\n"))}` : ""}${context}` },
+          { role: "user", content: `Step: ${task.title}\n\nWhat it asks:\n${untrusted("step", task.objective)}${targets.files.length ? `\n\nThe step's own files (each new step changes one or two of these, or adds a new file under src/):\n${untrusted("step-files", targets.files.join("\n"))}` : ""}\n\nProject files:\n${untrusted("files", flat.join("\n"))}${titles.length ? `\n\nThe step's acceptance tests (${testFile}):\n${untrusted("tests", titles.map((t) => `- ${t}`).join("\n"))}` : ""}${context}` },
         ],
         format: { type: "object", properties: { steps: { type: "array", items: { type: "object", properties: { title: { type: "string" }, objective: { type: "string" }, files: { type: "array", items: { type: "string" } }, tests: { type: "array", items: { type: "string" } } }, required: ["title", "objective", "files"] } } }, required: ["steps"] },
         timeoutMs: 240_000,
@@ -1575,8 +1577,13 @@ export class Orchestrator {
     } catch {
       parts = undefined;
     }
-    parts ??= sentenceSplit(task);
-    if (!parts || signal.aborted) return false;
+    parts ??= sentenceSplit(task, targets.files);
+    // Only parts that can each run as a step: files to change and an objective of their own (stepRecovery.partProblems).
+    const bad = (parts ?? []).flatMap((p) => partProblems(p, task.objective));
+    if (!parts || bad.length || signal.aborted) {
+      if (!signal.aborted) this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `"${task.title}" wasn't split: no split into steps that each have their own files and objective${bad.length ? ` (${bad.slice(0, 2).join("; ")})` : ""}`, data: { splitRejected: bad } });
+      return false;
+    }
     parts = dropDoneParts(parts, doneTitles);
     const pieces = buildSplit(task, parts, () => newId("task"), this.deliverableContext(run));
     this.replaceWithParts(run, task, pieces, `"${task.title}" was too big to finish in one go, so it was split into ${pieces.length} smaller steps`, `Split into ${pieces.length} smaller steps`);
@@ -2617,13 +2624,19 @@ export class Orchestrator {
     // Relevant artifacts (FR-A3): declared files, files this task already changed, and files named in the
     // failing evidence — with line numbers so repairs can quote exact, unique context.
     const mentioned = [...findings.join("\n").matchAll(/((?:src|app|lib|test|tests)\/[\w./-]+\.\w+)/g)].map((m) => m[1]);
-    const candidates = [...new Set([...task.expectedPaths, ...task.actualPaths, ...mentioned])];
+    // The step's own files, concrete (packetContext.concreteTargets): a folder in its paths becomes the bounded list of
+    // files in it the step is about, and what isn't attached is said, never dropped quietly.
+    const targets = concreteTargets(jail.root, task, this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? []);
+    if (targets.gaps.length) findings.push(`Files for this step: ${targets.gaps.join("; ")}.`);
+    const ownFiles = [...new Set([...targets.files, ...task.actualPaths.map((p) => p.replace(/\\/g, "/"))])];
+    const isText = (p: string) => !p.endsWith("/") && !p.startsWith("node_modules") && !/\.(png|jpe?g|webp|gif|avif|ico|bmp|woff2?|ttf|otf|eot|mp[34]|webm|pdf|zip)$/i.test(p) && fs.existsSync(path.join(jail.root, p)) && fs.statSync(path.join(jail.root, p)).isFile();
+    // Its own files are always attached (fitting shortens them, never leaves them out); files a finding names fill
+    // what room is left.
+    const others = [...new Set(mentioned)].filter((p) => !ownFiles.includes(p)).filter(isText).slice(0, lean ? 2 : 4);
+    const candidates = [...ownFiles.filter(isText), ...others];
     let budget = lean ? 16_000 : 28_000;
     let filesSent = 0;
     const files = candidates
-      // Text files only: a photo a finding names (public/images/hero.jpg) isn't something to read as source.
-      .filter((p) => !p.endsWith("/") && !p.startsWith("node_modules") && !/\.(png|jpe?g|webp|gif|avif|ico|bmp|woff2?|ttf|otf|eot|mp[34]|webm|pdf|zip)$/i.test(p) && fs.existsSync(path.join(jail.root, p)) && fs.statSync(path.join(jail.root, p)).isFile())
-      .slice(0, lean ? 4 : 6)
       .flatMap((p) => {
         try {
           // Leaner context = faster replies on local models: cap each file, and the total, sent with the step.
@@ -2634,7 +2647,7 @@ export class Orchestrator {
               .slice(0, cap)
               .map((l, i) => `${String(i + 1).padStart(4)}| ${l}`)
               .join("\n") + (all.length > cap ? `\n[${all.length - cap} more lines: use read_file to see the rest]` : "");
-          if ((budget -= numbered.length) < 0 && filesSent > 0) return [];
+          if ((budget -= numbered.length) < 0 && filesSent > 0 && !ownFiles.includes(p)) return [];
           filesSent++;
           return [{ path: `${p} (line-numbered; line prefixes are not part of the file)`, content: numbered }];
         } catch {
@@ -2669,7 +2682,7 @@ export class Orchestrator {
         // words happen to match.
         const nav = touchesNavigation(task);
         const plannedScreens = this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? [];
-        const stepFiles = [...task.expectedPaths, ...task.actualPaths].map((p) => p.replace(/\\/g, "/"));
+        const stepFiles = ownFiles;
         const mineScreens = plannedScreens.filter((s) => nav || stepFiles.some((p) => p === s.file || p.replace(/^.*\//, "").replace(/\.[a-z]+$/i, "").toLowerCase() === s.file.replace(/^.*\//, "").replace(/\.[a-z]+$/i, "").toLowerCase()));
         const screenText = screenRequirements(md, mineScreens.map((s) => s.label), nav);
         if (screenText) {
@@ -2707,8 +2720,8 @@ export class Orchestrator {
       });
     // The contracts of the library pieces this step's screens import (not only section files it owns), and how App.tsx
     // renders the screens, for steps that work on screens or the frame: kept through fitting like the requirements.
-    for (const c of importedPieceContracts(jail.root, [...task.expectedPaths, ...task.actualPaths].filter((p) => /\.(tsx|jsx)$/.test(p)))) if (!contracts.some((x) => x.name.split(" (")[0] === c.name.split(" (")[0])) contracts.push(c);
-    if (touchesNavigation(task) || [...task.expectedPaths, ...task.actualPaths].some((p) => /(^|\/)screens\//.test(p.replace(/\\/g, "/")))) {
+    for (const c of importedPieceContracts(jail.root, ownFiles.filter((p) => /\.(tsx|jsx)$/.test(p)))) if (!contracts.some((x) => x.name.split(" (")[0] === c.name.split(" (")[0])) contracts.push(c);
+    if (touchesNavigation(task) || ownFiles.some((p) => /(^|\/)screens\//.test(p))) {
       const navContract = navigationContract(jail.root);
       if (navContract) contracts.push({ name: "Navigation contract (src/App.tsx)", text: navContract });
     }

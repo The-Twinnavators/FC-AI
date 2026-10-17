@@ -1,0 +1,21 @@
+/**
+ * Saved
+ * Built by FlowCode from the app model; it reads and writes the app's store and look-up layer (src/app/).
+ */
+import { LookupCatalog } from "../sections/LookupCatalog";
+import { useLookup } from "../sections/LookupData";
+import { go } from "../app/routes";
+import { lookup } from "../app/lookup";
+
+export default function SavedScreen() {
+  const { saved } = useLookup(lookup);
+  return (
+    <LookupCatalog
+      lookup={lookup}
+      title={"Saved"}
+      only={saved}
+      empty={{ title: "Nothing saved yet", text: "Tap the heart on anything to keep it here.", action: { label: "Browse", onClick: () => go("catalog") } }}
+      onOpen={(id) => go("product", id)}
+    />
+  );
+}

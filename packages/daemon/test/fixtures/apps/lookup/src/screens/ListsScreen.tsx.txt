@@ -1,0 +1,11 @@
+/**
+ * Lists
+ * Built by FlowCode from the app model; it reads and writes the app's store and look-up layer (src/app/).
+ */
+import { ListIndex } from "../sections/ListBuilder";
+import { go } from "../app/routes";
+import { lookup } from "../app/lookup";
+
+export default function ListsScreen() {
+  return <ListIndex lookup={lookup} title={"Lists"} onOpen={(id) => go("list", id)} />;
+}
