@@ -5,6 +5,8 @@
  * (Clean Cart slice eval 1: Ollama answered "XML syntax error … <parameter> closed by </function>", the call was lost,
  * and the coder's next three replies were prose).
  */
+import fs from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { recoverTextCalls } from "../src/orchestrator/agentLoop.js";
 import { ScriptedProvider } from "../src/models/scripted.js";
@@ -45,7 +47,7 @@ describe("which text calls are recovered", () => {
 });
 
 /** A build whose coder speaks through `reply` (its n-th reply, the history so far). */
-async function build(reply: (n: number, h: Array<{ role: string; content?: unknown }>) => { content?: string; throws?: string }, opts: { supervised?: boolean } = {}) {
+async function build(reply: (n: number, h: Array<{ role: string; content?: unknown }>) => { content?: string; throws?: string }, opts: { supervised?: boolean; until?: (app: ReturnType<typeof makeApp>["app"]) => boolean } = {}) {
   const { app } = makeApp();
   app.router.sleep = async () => {};
   const plan = {
@@ -82,7 +84,8 @@ async function build(reply: (n: number, h: Array<{ role: string; content?: unkno
   const run = app.orchestrator.createRun({ projectId: project.id, objective: "g", constraints: [], attachedKnowledgeIds: [] });
   await app.orchestrator.plan(run.id);
   if (opts.supervised) app.orchestrator.approvePlan(run.id);
-  await waitFor(() => !app.orchestrator.isActive(run.id) && ["done", "done_with_warnings", "blocked", "failed", "awaiting_approval"].includes(app.store.runs.require(run.id).status), 60_000).catch(() => undefined);
+  if (opts.until) await waitFor(() => opts.until!(app), 60_000);
+  else await waitFor(() => !app.orchestrator.isActive(run.id) && ["done", "done_with_warnings", "blocked", "failed", "awaiting_approval"].includes(app.store.runs.require(run.id).status), 60_000).catch(() => undefined);
   return { app, run, ws, seen, notes, task: app.orchestrator.graph.tasks(run.id)[0]! };
 }
 const lastUser = (h: Array<{ role: string; content?: unknown }>) => String([...h].reverse().find((m) => m.role === "user")?.content ?? "");
@@ -107,7 +110,7 @@ describe("recovered calls in a build", () => {
   }, 90_000);
 
   it("doesn't apply a replayed change twice", async () => {
-    const write = fn("create_file", { path: "src/a.ts", content: "export const a = 1;" });
+    const write = fn("create_file", { path: "src/a.ts", content: "export const a = 1;", reason: "r" });
     const r = await build((n) => (n <= 2 ? { content: write } : { content: fn("task_complete", { summary: "done", changedPaths: '["src/a.ts"]' }) }));
     expect(r.notes.filter((x) => /^tool\.completed create_file/.test(x))).toHaveLength(1);
     expect(lastUser(r.seen[2]!)).toMatch(/already ran in your previous reply/);
@@ -119,8 +122,37 @@ describe("recovered calls in a build", () => {
     expect(r.notes.some((x) => /Invalid arguments for create_file: path/.test(x))).toBe(true);
   }, 90_000);
 
-  it("puts a recovered call that needs approval through the approval gate", async () => {
-    const r = await build((n) => (n === 1 ? { content: fn("create_file", { path: "src/other.ts", content: "export const o = 1;" }) } : { content: fn("task_complete", { summary: "done", changedPaths: '["src/other.ts"]' }) }), { supervised: true });
-    expect(r.notes.some((x) => /^approval\.requested .*create_file on src\/other\.ts/.test(x))).toBe(true);
+  it("runs an identical change again once the file has changed in between", async () => {
+    const one = fn("replace_file", { path: "src/a.ts", content: "export const a = 1;", reason: "r" });
+    const two = fn("replace_file", { path: "src/a.ts", content: "export const a = 2;", reason: "r" });
+    const r = await build((n) => (n === 1 ? { content: fn("create_file", { path: "src/a.ts", content: "export const a = 0;" }) } : n === 2 ? { content: one } : n === 3 ? { content: two } : n === 4 ? { content: one } : n === 5 ? { content: one } : { content: fn("task_complete", { summary: "done", changedPaths: '["src/a.ts"]' }) }));
+    // 2 → 1 → 2 → 1 → 1: the fourth reply is the same call as the second, after a change, so it runs; the fifth doesn't.
+    expect(r.notes.filter((x) => /^tool\.completed replace_file → ok/.test(x))).toHaveLength(3);
+    expect(r.notes.filter((x) => /^recovery\.action Didn't run .*already ran in your previous reply \(replace_file\) and the file hasn't changed since/.test(x))).toHaveLength(1);
+    expect(fs.readFileSync(path.join(r.ws, "src/a.ts"), "utf8")).toBe("export const a = 1;");
   }, 90_000);
+
+  it("never records a failed change as applied: the same call is run again", async () => {
+    const miss = fn("apply_patch", { path: "src/a.ts", edits: '[{"find": "not in the file", "replace": "x"}]', reason: "r" });
+    const r = await build((n) => (n === 1 ? { content: fn("create_file", { path: "src/a.ts", content: "export const a = 1;" }) } : n <= 3 ? { content: miss } : { content: fn("task_complete", { summary: "done", changedPaths: '["src/a.ts"]' }) }));
+    expect(r.notes.filter((x) => /^tool\.completed apply_patch → failed/.test(x))).toHaveLength(2);
+    expect(r.notes.some((x) => /already ran in your previous reply/.test(x))).toBe(false);
+  }, 90_000);
+
+  it("puts a recovered call that needs approval through the gate, and doesn't report it run while it waits", async () => {
+    const write = fn("create_file", { path: "src/other.ts", content: "export const o = 1;" });
+    const r = await build((n) => (n <= 2 ? { content: write } : { content: fn("task_complete", { summary: "done", changedPaths: "[]" }) }), { supervised: true, until: (app) => app.approvals.pending().some((a) => /create_file/.test(a.action)) });
+    expect(r.notes.some((x) => /^approval\.requested .*create_file on src\/other\.ts/.test(x))).toBe(true);
+    const waiting = r.app.store.toolCalls.where("run_id = ?", r.run.id).filter((c) => c.toolName === "create_file");
+    expect(waiting.map((c) => c.status)).toEqual(["requested"]);
+    expect(r.notes.some((x) => /^tool\.completed create_file/.test(x))).toBe(false);
+    expect(fs.existsSync(path.join(r.ws, "src/other.ts"))).toBe(false);
+    // Denied: not applied, so the identical call sent again goes to the gate again (not refused as a replay).
+    r.app.bus.subscribe((e) => void (e.type === "approval.requested" && setTimeout(() => r.app.approvals.pending().forEach((a) => r.app.approvals.decide(a.id, "deny")), 10)));
+    r.app.approvals.pending().forEach((a) => r.app.approvals.decide(a.id, "deny"));
+    await waitFor(() => !r.app.orchestrator.isActive(r.run.id), 60_000).catch(() => undefined);
+    expect(r.notes.filter((x) => /^approval\.requested .*create_file on src\/other\.ts/.test(x)).length).toBeGreaterThanOrEqual(2);
+    expect(r.notes.some((x) => /already ran in your previous reply/.test(x))).toBe(false);
+    expect(fs.existsSync(path.join(r.ws, "src/other.ts"))).toBe(false);
+  }, 120_000);
 });

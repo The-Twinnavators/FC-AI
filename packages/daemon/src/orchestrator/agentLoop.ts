@@ -356,8 +356,19 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
   let textCalls = 0;
   let badCalls = 0;
   let textMode = false;
-  // Recovered changes that ran in the last turn (name and arguments), so a replayed reply isn't applied twice.
-  let lastRecoveredOk = new Set<string>();
+  // Replay protection, scoped to this attempt: each recovered edit that was applied (name and exact arguments) with the
+  // version of its file it produced. The same edit sent again is refused only while that file is still at that version;
+  // any later applied edit to the file, or a command that may have changed files, moves it on, and the edit can run
+  // again. Failed or refused calls are never recorded as applied. Not keyed globally by tool name and arguments.
+  const recoveredApplied = new Map<string, { path: string; version: number }>();
+  const fileVersion = new Map<string, number>();
+  let commandEpoch = 0;
+  const versionOf = (p: string) => (fileVersion.get(p) ?? 0) + commandEpoch * 1_000_000;
+  const callKey = (c: ToolCall) => `${c.name}:${JSON.stringify(c.arguments)}`;
+  const isReplay = (c: ToolCall) => {
+    const at = EDIT_TOOLS.has(c.name as ToolName) ? recoveredApplied.get(callKey(c)) : undefined;
+    return !!at && versionOf(at.path) === at.version;
+  };
   let nudges = 0;
   const failedCalls = new Map<string, number>();
   // Reading: new content and repeats of unchanged content are counted apart; over budget, one structured check
@@ -483,20 +494,19 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
     let calls = res.toolCalls;
     if (!calls.length && res.content.trim()) {
       const recovered = recoverTextCalls(res.content, callable);
-      // A recovered change identical to one that ran in the previous turn isn't run again (a replayed reply).
-      const replayed = recovered.calls.filter((c) => EDIT_TOOLS.has(c.name as ToolName) && lastRecoveredOk.has(`${c.name}:${JSON.stringify(c.arguments)}`));
+      // A recovered change identical to one already applied, to a file nothing has changed since, isn't run again.
+      const replayed = recovered.calls.filter(isReplay);
       const fresh = recovered.calls.filter((c) => !replayed.includes(c));
       if (fresh.length) {
         calls = fresh;
         textCalls += fresh.length;
-        input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", message: `Read ${fresh.length} tool call${fresh.length === 1 ? "" : "s"} the model wrote as text (${fresh.map((c) => c.name).join(", ")}); running ${fresh.length === 1 ? "it" : "them"} with the usual checks.`, data: { role: input.role } });
+        input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", message: `Read ${fresh.length} tool call${fresh.length === 1 ? "" : "s"} the model wrote as text (${fresh.map((c) => c.name).join(", ")}); running ${fresh.length === 1 ? "it" : "them"} with the usual checks.${replayed.length ? ` Not run again: ${replayed.map((c) => c.name).join(", ")} (already applied, and the file hasn't changed since).` : ""}`, data: { role: input.role } });
       } else if (recovered.problem || replayed.length) {
         // Not run, and said why, with the reply kept whole for anyone looking into it.
-        const why = recovered.problem ?? `that change already ran in your previous reply (${replayed.map((c) => c.name).join(", ")}); it wasn't run twice`;
+        const why = recovered.problem ?? `that change already ran in your previous reply (${replayed.map((c) => c.name).join(", ")}) and the file hasn't changed since; it wasn't run twice`;
         input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", level: "warning", message: `Didn't run the model's text tool call: ${why}.`, data: { role: input.role, reply: redact(res.content).slice(0, 8000) } });
         messages.push({ role: "assistant", content: res.content });
         messages.push({ role: "user", content: `Runtime notice: ${why}. ${textMode ? "Call tools in the text form described in the system prompt: <function=TOOL_NAME> with one <parameter=…> per argument, closed by </function>, outside any code block." : "Invoke the tool through native tool calling."} Send one call now.` });
-        lastRecoveredOk = new Set();
         continue;
       } else if (textMode) {
         // Text mode, nothing recognisable: kept whole, so a missed format can be found later.
@@ -504,7 +514,6 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
       }
     }
     const recoveredThisTurn = calls !== res.toolCalls;
-    if (!recoveredThisTurn) lastRecoveredOk = new Set();
     if (res.content.trim() && !calls.length) {
       input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "agent.message", message: `${input.role}: ${redact(res.content).slice(0, 600)}`, data: { role: input.role } });
     }
@@ -668,7 +677,10 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
         data: { toolCallId: recordId, ok: exec.ok },
         level: exec.ok ? "info" : "warning",
       });
-      if (recoveredThisTurn && exec.ok) lastRecoveredOk.add(`${call.name}:${JSON.stringify(call.arguments)}`);
+      // File versions move on with every applied edit (native or recovered) and with any command, which may write files.
+      if (exec.ok && EDIT_TOOLS.has(name)) fileVersion.set(editFile, (fileVersion.get(editFile) ?? 0) + 1);
+      if (name === "run_command" || name === "run_script") commandEpoch++;
+      if (recoveredThisTurn && exec.ok && EDIT_TOOLS.has(name)) recoveredApplied.set(callKey(call), { path: editFile, version: versionOf(editFile) });
       if (EDIT_TOOLS.has(name)) {
         if (exec.ok) {
           tally.applied.push(editFile);
