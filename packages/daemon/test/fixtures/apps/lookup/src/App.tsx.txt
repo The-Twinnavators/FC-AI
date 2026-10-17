@@ -1,0 +1,94 @@
+/** Clean Cart: the look-up frame with its places, search and ZIP code, and the page for each destination. Written by FlowCode from the app model. */
+import type { ComponentType } from "react";
+import { LookupFrame, type LookupLink } from "./sections/LookupFrame";
+import { CatalogSearch } from "./sections/LookupCatalog";
+import { PlaceBadge, ZipPrompt } from "./sections/PlaceFinder";
+import { useRoute } from "./lib/screens";
+import { lookup } from "./app/lookup";
+import { SCREEN_IDS, go } from "./app/routes";
+import LandingScreen from "./screens/LandingScreen";
+import SavedScreen from "./screens/SavedScreen";
+import ProductScreen from "./screens/ProductScreen";
+import ListsScreen from "./screens/ListsScreen";
+import ListScreen from "./screens/ListScreen";
+import CategoriesScreen from "./screens/CategoriesScreen";
+import CatalogScreen from "./screens/CatalogScreen";
+import PlacesScreen from "./screens/PlacesScreen";
+
+const LINKS: LookupLink[] = [
+  {
+    "id": "landing",
+    "label": "Home",
+    "icon": "home",
+    "mobile": true
+  },
+  {
+    "id": "search",
+    "label": "Search",
+    "icon": "layers",
+    "available": false
+  },
+  {
+    "id": "saved",
+    "label": "Saved",
+    "icon": "heart",
+    "mobile": true
+  },
+  {
+    "id": "lists",
+    "label": "Lists",
+    "icon": "check",
+    "mobile": true
+  },
+  {
+    "id": "categories",
+    "label": "Categories",
+    "icon": "layers"
+  },
+  {
+    "id": "catalog",
+    "label": "Catalog",
+    "icon": "search",
+    "mobile": true
+  },
+  {
+    "id": "places",
+    "label": "Find Stores",
+    "icon": "pin",
+    "mobile": true
+  }
+];
+
+/** A page inside another highlights it in the bar (an entry its catalog, a list its lists). */
+const PARENT: Record<string, string> = {"product":"catalog","list":"lists"};
+
+const VIEWS: Record<string, ComponentType> = {
+  "landing": LandingScreen,
+  "saved": SavedScreen,
+  "product": ProductScreen,
+  "lists": ListsScreen,
+  "list": ListScreen,
+  "categories": CategoriesScreen,
+  "catalog": CatalogScreen,
+  "places": PlacesScreen,
+};
+
+export default function App() {
+  const { screen } = useRoute(SCREEN_IDS);
+  const View = VIEWS[screen];
+  return (
+    <LookupFrame
+      lookup={lookup}
+      product={"Clean Cart"}
+      links={LINKS}
+      current={PARENT[screen] ?? screen}
+      onNavigate={(id) => go(id)}
+      savedId={"saved"}
+      search={screen === "landing" ? undefined : <CatalogSearch lookup={lookup} onSearch={(s) => go("catalog", `q=${s}`)} onOpen={(id) => go("product", id)} />}
+      place={<PlaceBadge lookup={lookup} />}
+      prompt={screen === "landing" ? undefined : <ZipPrompt lookup={lookup} />}
+    >
+      {View ? <View key={screen} /> : null}
+    </LookupFrame>
+  );
+}

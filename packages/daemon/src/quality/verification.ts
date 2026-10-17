@@ -27,6 +27,9 @@ import type { ReferenceFile } from "@flowcode/contracts";
 import { critiqueWithFallback, designCrit, lookReview, visionCritique } from "./critique.js";
 import { demoAccount, lookCheck, type LookFinding } from "./lookCheck.js";
 import { frameEvidence, frameRendered } from "./frameCheck.js";
+import { isFrameSelector, resolveFrame } from "./appFrame.js";
+import { dataSourceProblems, readGeneratedData } from "./appData.js";
+import { appModelKey, prdNamedRecords, prdSampleSection } from "../orchestrator/appModel.js";
 import { cleanupBlocking, cleanupReport, scanCleanup } from "./cleanupScan.js";
 import { cloudCoder } from "../models/cloud.js";
 import { directionBrief, type DesignDirection } from "../knowledge/designDirection.js";
@@ -156,6 +159,16 @@ export class Verifier {
       }
       return demos.length ? `these library pieces still show their demo content: ${demos.join(", ")}. Replace each SAMPLE with this product's real content` : undefined;
     }
+    // A complete app's records, in the source FlowCode generated (quality/appData.ts).
+    if (kind === "data-source") {
+      const data = readGeneratedData(root);
+      if (!data) return "the app has no generated records (src/app/schema.ts with its schema and seed)";
+      const refs = this.store.getSetting<Array<{ role: string; content: string }>>(`runRefs:${task.runId}`, []);
+      const prd = refs.find((r) => r.role === "prd")?.content ?? "";
+      const model = this.store.getSetting<{ lookup?: { entries: string; places: string; placesField: string } } | null>(appModelKey(task.runId), null);
+      const problems = dataSourceProblems(data, prdNamedRecords(prdSampleSection(prd)), model?.lookup);
+      return problems.length ? problems.slice(0, 6).join("; ") : undefined;
+    }
     if (kind === "frame-designed") {
       const ev = this.frameEvidenceFor(task, root);
       return ev.ok ? undefined : ev.problem;
@@ -183,13 +196,17 @@ export class Verifier {
     }
     const cssChanges = [...firstOf.entries()].filter(([rel]) => /\.(css|scss)$/.test(rel)).map(([rel, s]) => ({ file: rel, before: s.contentHash === "absent" ? "" : (this.priorOf?.(s) ?? ""), now: read(rel) }));
     const app = read("src/App.tsx") + read("src/App.jsx");
+    // The frame App.tsx renders (appFrame.ts), resolved from the app, not assumed to be the starter's AppShell.
+    const resolved = resolveFrame(root);
+    const frame = resolved ? { ...resolved, isFrame: (sel: string) => isFrameSelector(resolved, sel) } : undefined;
+    const frameFileChanged = !!resolved && firstOf.has(resolved.file);
     const components = [...firstOf.entries()]
       .filter(([rel, s]) => /^src\/components\/(?!ui\/)[\w/-]+\.(tsx|jsx)$/.test(rel) && s.contentHash === "absent" && fs.existsSync(path.join(root, rel)))
       .map(([rel]) => {
         const stem = rel.replace(/^src\//, "").replace(/\.(tsx|jsx)$/, "");
         return { file: rel, rendered: new RegExp(`from\\s+["']\\.\\/${stem.replace(/[.*+?^${}()|[\]\\]/g, "\\  /** Upserts the run-level check of a kind (or task-level when taskId is given). */")}["']`).test(app) };
       });
-    return frameEvidence(cssChanges, components);
+    return frameEvidence(cssChanges, components, frame, frameFileChanged);
   }
 
   /**
@@ -500,7 +517,7 @@ export class Verifier {
         case "verification": {
           // A step's own deliverable (orchestrator/taskContract.ts deliverableChecks): what it changed, the photos its
           // screens show, its seeded sample data, its app frame. Read from the workspace and the step's own snapshots.
-          if (/^(changed:|images-used:|data-seeded:|piece-content:|frame-designed$)/.test(c.check.kind)) {
+          if (/^(changed:|images-used:|data-seeded:|data-source$|piece-content:|frame-designed$)/.test(c.check.kind)) {
             let why = this.deliverableProblem(c.check.kind, task, jail.root);
             // The frame: that it changed (above), then that it shows and its navigation works, in the browser.
             if (!why && c.check.kind === "frame-designed") {

@@ -1,0 +1,442 @@
+/** The app's records, written by FlowCode from the app model: what each record holds, its statuses and status changes, and the sample data. */
+import type { AppSchema, RecordData } from "../sections/AppData";
+
+export const schema: AppSchema = {
+  "appKey": "clean-cart",
+  "roles": [
+    "Member (signed in as a demo account)",
+    "Visitor (not signed in)"
+  ],
+  "entities": [
+    {
+      "key": "product",
+      "label": "Product",
+      "plural": "Products",
+      "titleField": "name",
+      "subtitleField": "brand",
+      "idPrefix": "PRD",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "brand",
+          "label": "Brand",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "options": [
+            "Beverages",
+            "Bakery",
+            "Breakfast",
+            "Baby",
+            "Snacks",
+            "Dairy"
+          ],
+          "required": true
+        },
+        {
+          "key": "certification",
+          "label": "Certification",
+          "type": "select",
+          "options": [
+            "Non-GMO Project Verified",
+            "USDA Organic"
+          ],
+          "required": true
+        },
+        {
+          "key": "ingredients",
+          "label": "Ingredients",
+          "type": "longtext",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Short Description",
+          "type": "longtext"
+        }
+      ],
+      "columns": [],
+      "filters": []
+    },
+    {
+      "key": "store",
+      "label": "Store",
+      "plural": "Stores",
+      "titleField": "name",
+      "subtitleField": "zip",
+      "idPrefix": "STR",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "zip",
+          "label": "ZIP Code",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "columns": [],
+      "filters": []
+    }
+  ]
+};
+
+export const seed: Record<string, RecordData[]> = {
+  "product": [
+    {
+      "id": "PRD-1001",
+      "name": "Oat Milk Original",
+      "brand": "Willow Farms",
+      "category": "Beverages",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Oats, water, sea salt",
+      "description": "Creamy oat milk perfect for coffee or cereal.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003"
+      ]
+    },
+    {
+      "id": "PRD-1002",
+      "name": "Sourdough Country Loaf",
+      "brand": "Hearth & Grain",
+      "category": "Bakery",
+      "certification": "USDA Organic",
+      "ingredients": "Wheat flour, water, salt, sourdough starter",
+      "description": "Authentic sourdough bread with a crispy crust and soft interior.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003"
+      ]
+    },
+    {
+      "id": "PRD-1003",
+      "name": "Rolled Oats",
+      "brand": "Sunrise Valley",
+      "category": "Breakfast",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Whole grain rolled oats",
+      "description": "Perfect for oatmeal, baking, or as a healthy snack.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003"
+      ]
+    },
+    {
+      "id": "PRD-1004",
+      "name": "Pear Puree",
+      "brand": "Little Sprout",
+      "category": "Baby",
+      "certification": "USDA Organic",
+      "ingredients": "Organic pears",
+      "description": "Smooth and delicious pear puree for baby's first foods.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003"
+      ]
+    },
+    {
+      "id": "PRD-1005",
+      "name": "Black Bean Chips",
+      "brand": "Mesa Crunch",
+      "category": "Snacks",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Black beans, corn, sunflower oil, salt",
+      "description": "Crispy chips made from black beans and corn.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003"
+      ]
+    },
+    {
+      "id": "PRD-1006",
+      "name": "Greek Yogurt Plain",
+      "brand": "Meadow Hill",
+      "category": "Dairy",
+      "certification": "USDA Organic",
+      "ingredients": "Cultured pasteurized milk",
+      "description": "Creamy plain Greek yogurt, high in protein.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003"
+      ]
+    },
+    {
+      "id": "PRD-1007",
+      "name": "Almond Milk Vanilla",
+      "brand": "Willow Farms",
+      "category": "Beverages",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Almonds, water, sea salt, vanilla extract",
+      "description": "Rich and creamy almond milk with a hint of vanilla.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003",
+        "STR-1004"
+      ]
+    },
+    {
+      "id": "PRD-1008",
+      "name": "Whole Wheat Bread",
+      "brand": "Hearth & Grain",
+      "category": "Bakery",
+      "certification": "USDA Organic",
+      "ingredients": "Whole wheat flour, water, salt, yeast",
+      "description": "Nutritious whole wheat bread with a hearty texture.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003",
+        "STR-1005"
+      ]
+    },
+    {
+      "id": "PRD-1009",
+      "name": "Quinoa Flakes",
+      "brand": "Sunrise Valley",
+      "category": "Breakfast",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Organic quinoa flakes",
+      "description": "Gluten-free quinoa flakes for a healthy breakfast.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003",
+        "STR-1006"
+      ]
+    },
+    {
+      "id": "PRD-1010",
+      "name": "Apple Puree",
+      "brand": "Little Sprout",
+      "category": "Baby",
+      "certification": "USDA Organic",
+      "ingredients": "Organic apples",
+      "description": "Sweet and smooth apple puree for baby's first foods.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003",
+        "STR-1007"
+      ]
+    },
+    {
+      "id": "PRD-1011",
+      "name": "Oat Milk Original",
+      "brand": "Willow Farms",
+      "category": "Beverages",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Oats, water, sea salt",
+      "description": "Creamy oat milk perfect for coffee or cereal.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1003"
+      ]
+    },
+    {
+      "id": "PRD-1012",
+      "name": "Sourdough Country Loaf",
+      "brand": "Hearth & Grain",
+      "category": "Bakery",
+      "certification": "USDA Organic",
+      "ingredients": "Wheat flour, water, salt, sourdough starter",
+      "description": "Authentic sourdough bread with a tangy flavor.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1002",
+        "STR-1004"
+      ]
+    },
+    {
+      "id": "PRD-1013",
+      "name": "Rolled Oats",
+      "brand": "Sunrise Valley",
+      "category": "Breakfast",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Whole grain rolled oats",
+      "description": "Perfect for oatmeal or baking.",
+      "carriedBy": [
+        "STR-1002",
+        "STR-1003",
+        "STR-1005"
+      ]
+    },
+    {
+      "id": "PRD-1014",
+      "name": "Pear Puree",
+      "brand": "Little Sprout",
+      "category": "Baby",
+      "certification": "USDA Organic",
+      "ingredients": "Organic pears",
+      "description": "Smooth and delicious pear puree for baby meals.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1003",
+        "STR-1006"
+      ]
+    },
+    {
+      "id": "PRD-1015",
+      "name": "Black Bean Chips",
+      "brand": "Mesa Crunch",
+      "category": "Snacks",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Black beans, corn, sunflower oil, salt",
+      "description": "Crispy and flavorful chips made from black beans.",
+      "carriedBy": [
+        "STR-1002",
+        "STR-1004",
+        "STR-1005"
+      ]
+    },
+    {
+      "id": "PRD-1016",
+      "name": "Greek Yogurt Plain",
+      "brand": "Meadow Hill",
+      "category": "Dairy",
+      "certification": "USDA Organic",
+      "ingredients": "Cultured pasteurized milk",
+      "description": "Rich and creamy plain Greek yogurt.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1003",
+        "STR-1007"
+      ]
+    },
+    {
+      "id": "PRD-1017",
+      "name": "Almond Milk Vanilla",
+      "brand": "Nuts & More",
+      "category": "Beverages",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Almonds, water, vanilla extract",
+      "description": "Delicious vanilla-flavored almond milk.",
+      "carriedBy": [
+        "STR-1002",
+        "STR-1004",
+        "STR-1008"
+      ]
+    },
+    {
+      "id": "PRD-1018",
+      "name": "Whole Wheat Bread",
+      "brand": "Bread & Butter",
+      "category": "Bakery",
+      "certification": "USDA Organic",
+      "ingredients": "Whole wheat flour, water, salt, yeast",
+      "description": "Nutritious whole wheat bread with a hearty texture.",
+      "carriedBy": [
+        "STR-1001",
+        "STR-1005",
+        "STR-1007"
+      ]
+    },
+    {
+      "id": "PRD-1019",
+      "name": "Quinoa Flakes",
+      "brand": "Green Grains",
+      "category": "Breakfast",
+      "certification": "Non-GMO Project Verified",
+      "ingredients": "Quinoa flakes",
+      "description": "Light and nutritious quinoa flakes for breakfast.",
+      "carriedBy": [
+        "STR-1003",
+        "STR-1006",
+        "STR-1008"
+      ]
+    },
+    {
+      "id": "PRD-1020",
+      "name": "Apple Puree",
+      "brand": "Nature's Best",
+      "category": "Baby",
+      "certification": "USDA Organic",
+      "ingredients": "Organic apples",
+      "description": "Sweet and smooth apple puree for baby meals.",
+      "carriedBy": [
+        "STR-1002",
+        "STR-1004",
+        "STR-1006"
+      ]
+    }
+  ],
+  "store": [
+    {
+      "id": "STR-1001",
+      "name": "Green Valley Market",
+      "zip": "94110",
+      "lat": 37.7669,
+      "lng": -122.43560000000001
+    },
+    {
+      "id": "STR-1002",
+      "name": "Harvest Co-op",
+      "zip": "94110",
+      "lat": 37.7909,
+      "lng": -122.3816
+    },
+    {
+      "id": "STR-1003",
+      "name": "Mission Fresh",
+      "zip": "94110",
+      "lat": 37.8149,
+      "lng": -122.3936
+    },
+    {
+      "id": "STR-1004",
+      "name": "Urban Greens Grocery",
+      "zip": "94112",
+      "lat": 37.7353,
+      "lng": -122.4194
+    },
+    {
+      "id": "STR-1005",
+      "name": "Pacific Produce",
+      "zip": "94112",
+      "lat": 37.7593,
+      "lng": -122.4314
+    },
+    {
+      "id": "STR-1006",
+      "name": "Sunrise Market",
+      "zip": "94114",
+      "lat": 37.792500000000004,
+      "lng": -122.4941
+    },
+    {
+      "id": "STR-1007",
+      "name": "Golden Gate Farmers",
+      "zip": "94115",
+      "lat": 37.7114,
+      "lng": -122.4012
+    },
+    {
+      "id": "STR-1008",
+      "name": "Haight Street Market",
+      "zip": "94116",
+      "lat": 37.7768,
+      "lng": -122.4174
+    }
+  ]
+};

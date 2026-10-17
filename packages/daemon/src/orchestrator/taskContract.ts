@@ -165,18 +165,33 @@ const KIT = /^src\/components\/ui\//;
  * one of its own files. From what the step is for: its screens show the photos it saved; its sample data is seeded;
  * its app frame is restyled or replaced. Added openly (the caller records and announces them), never silently.
  */
-export function deliverableChecks(task: Pick<Task, "id" | "title" | "objective" | "expectedPaths">): Criterion[] {
+/**
+ * What the app the checks apply to is: a complete app (FlowCode wrote its data, store and pages from the app model, so
+ * its records are checked in the generated source), and the frame App.tsx renders (appFrame.ts), named in the check.
+ */
+export interface DeliverableContext {
+  completeApp?: boolean;
+  frame?: { component: string; file: string };
+}
+
+export function deliverableChecks(task: Pick<Task, "id" | "title" | "objective" | "expectedPaths">, ctx: DeliverableContext = {}): Criterion[] {
   const own = task.expectedPaths.map((p) => p.replace(/\\/g, "/")).filter((p) => /\.[a-z0-9]+$/i.test(p) && !KIT.test(p));
   const text = `${task.title}\n${task.objective.split(/\n\n/)[0]}`;
   const out: Criterion[] = [];
   const add = (key: string, description: string, kind: string) => out.push({ id: `${task.id}-d-${key}`, description, check: { type: "verification", kind }, evidenceRefs: [] } as unknown as Criterion);
   if (own.length) add("changed", `This step changes its own files (${own.join(" or ")})`, `changed:${own.join("|")}`);
   if (/\b(imagery|images?|photos?|pictures?)\b/i.test(text)) add("images", "The step's screens show the photos in public/images (an image or background pointing at them)", `images-used:${(own.filter((p) => /\.(tsx|jsx|css)$/.test(p)).join("|")) || "src"}`);
-  if (/\b(seed|sample data|sample records|collections?)\b/i.test(text) && /\b(createCollection|sim|records?)\b/i.test(text)) add("data", "Sample data is seeded: a collection created with createCollection holds at least 8 records", "data-seeded:8");
+  // A complete app's records are written by FlowCode into src/app/schema.ts: they are checked there (the PRD's named
+  // records present, a look-up app's entries carried by places). Seeded collections are checked only where they are
+  // how the app holds its data.
+  const dataStep = /\b(seed|sample data|sample records|collections?)\b/i.test(text) && /\b(createCollection|sim|records?)\b/i.test(text);
+  if (dataStep && ctx.completeApp) add("data", "The app's records (src/app/schema.ts) hold the PRD's sample records, each linked as the app model says", "data-source");
+  else if (dataStep) add("data", "Sample data is seeded: a collection created with createCollection holds at least 8 records", "data-seeded:8");
   // Screens the step owns don't still show a library piece's demo content (a pottery studio on a grocery app's Home).
   const screens = own.filter((p) => /^src\/screens\/[\w-]+\.(tsx|jsx)$/.test(p));
   if (screens.length) add("pieces", "The library pieces these screens render show this product's content, not their demo", `piece-content:${screens.join("|")}`);
-  if (/\b(app )?frame\b|\bnavigation\b|\bAppShell\b/i.test(text)) add("frame", "The app frame is designed: the ui-shell__* rules are restyled or the frame is replaced by the app's own component", "frame-designed");
+  if (/\b(app )?frame\b|\bnavigation\b|\bAppShell\b/i.test(text))
+    add("frame", ctx.frame ? `The app frame (${ctx.frame.component}, ${ctx.frame.file}) is designed: its rules are restyled or it is changed or replaced by the app's own frame component, and it shows and navigates` : "The app frame is designed: its rules are restyled or it is replaced by the app's own frame component, and it shows and navigates", "frame-designed");
   return out;
 }
 

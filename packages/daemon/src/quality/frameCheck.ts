@@ -44,28 +44,42 @@ export function cssRules(text: string): Map<string, string> {
   return rules;
 }
 
-/** Frame rules whose declarations differ between two versions of a stylesheet (new rules included; removed ones too). */
-export function frameCssChanges(before: string, after: string): string[] {
+/**
+ * Frame rules whose declarations differ between two versions of a stylesheet (new rules included; removed ones too).
+ * `isFrame`: which selectors are the frame's; the app's resolved frame (appFrame.ts) when there is one, else the
+ * generic frame vocabulary.
+ */
+export function frameCssChanges(before: string, after: string, isFrame: (selector: string) => boolean = (s) => FRAME_SELECTOR.test(s)): string[] {
   const a = cssRules(before);
   const b = cssRules(after);
   const changed: string[] = [];
-  for (const [sel, decls] of b) if (FRAME_SELECTOR.test(sel) && a.get(sel) !== decls) changed.push(sel);
-  for (const sel of a.keys()) if (FRAME_SELECTOR.test(sel) && !b.has(sel)) changed.push(sel);
+  for (const [sel, decls] of b) if (isFrame(sel) && a.get(sel) !== decls) changed.push(sel);
+  for (const sel of a.keys()) if (isFrame(sel) && !b.has(sel)) changed.push(sel);
   return [...new Set(changed)];
 }
 
 /**
  * Part 1. `cssChanges`: each stylesheet the step changed, before its first edit and now. `components`: frame components
- * the step created in src/components (outside the kit) with whether App.tsx imports them.
+ * the step created in src/components (outside the kit) with whether App.tsx imports them. `frame`: the frame App.tsx
+ * renders (appFrame.ts), when it could be resolved: rules naming its classes are frame rules, and a change to its own
+ * component file is frame evidence. `frameFileChanged`: the step changed that file.
  */
-export function frameEvidence(cssChanges: Array<{ file: string; before: string; now: string }>, components: Array<{ file: string; rendered: boolean }>): { ok: true; selectors: string[]; component?: string } | { ok: false; problem: string } {
+export function frameEvidence(
+  cssChanges: Array<{ file: string; before: string; now: string }>,
+  components: Array<{ file: string; rendered: boolean }>,
+  frame?: { component: string; file: string; classes: string[]; isFrame: (selector: string) => boolean },
+  frameFileChanged = false,
+): { ok: true; selectors: string[]; component?: string } | { ok: false; problem: string } {
   const rendered = components.find((c) => c.rendered);
-  const selectors = [...new Set(cssChanges.flatMap((c) => frameCssChanges(c.before, c.now)))];
-  if (selectors.length || rendered) return { ok: true, selectors, ...(rendered ? { component: rendered.file } : {}) };
+  const selectors = [...new Set(cssChanges.flatMap((c) => frameCssChanges(c.before, c.now, frame?.isFrame)))];
+  // The frame component's own file, changed by the step: its rendered classes are what the browser part looks for.
+  const ownSelectors = frameFileChanged && frame ? frame.classes.slice(0, 6).map((c) => `.${c}`) : [];
+  if (selectors.length || rendered || ownSelectors.length) return { ok: true, selectors: selectors.length ? selectors : ownSelectors, ...(rendered ? { component: rendered.file } : frameFileChanged && frame ? { component: frame.file } : {}) };
+  const name = frame ? `${frame.component} (${frame.file}, classes like .${frame.classes.slice(0, 2).join(", .")})` : "the frame (ui-shell, the app frame, its nav, header, tab or side bar)";
   const unused = components.filter((c) => !c.rendered);
-  if (unused.length) return { ok: false, problem: `the frame component ${unused.map((c) => c.file).join(", ")} isn't rendered: App.tsx doesn't import it, and no frame rule (ui-shell, the app frame, its nav or header) changed` };
+  if (unused.length) return { ok: false, problem: `the frame component ${unused.map((c) => c.file).join(", ")} isn't rendered: App.tsx doesn't import it, and no rule of ${name} changed` };
   const other = cssChanges.some((c) => c.before !== c.now);
-  return { ok: false, problem: other ? "this step's stylesheet changes don't touch the frame: no rule for the frame (ui-shell, the app frame, its nav, header, tab or side bar) changed" : "no frame rule changed and no frame component of the app's own was added in src/components/" };
+  return { ok: false, problem: other ? `this step's stylesheet changes don't touch the frame: no rule of ${name} changed` : `no rule of ${name} changed, its component wasn't changed, and no frame component of the app's own was added` };
 }
 
 /** Removes pseudo-classes and pseudo-elements that only match in a state (hover, focus) so the element itself is found. */

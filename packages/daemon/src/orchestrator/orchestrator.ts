@@ -36,6 +36,7 @@ import type { ProcessManager } from "../commands/processManager.js";
 import type { ApprovalService } from "../approvals/service.js";
 import { attributeDiagnostics, stepBaselineKey, type StepBaseline, type Verifier } from "../quality/verification.js";
 import type { ArtifactService } from "../db/artifacts.js";
+import { resolveFrame } from "../quality/appFrame.js";
 import type { KnowledgeService } from "../knowledge/knowledge.js";
 import { TaskGraph } from "./dag.js";
 import { evaluateCompletionGate } from "./completionGate.js";
@@ -85,7 +86,7 @@ import { createHash } from "node:crypto";
 import { toolDef } from "./agentLoop.js";
 import { catalogContract, contractText } from "./catalogContract.js";
 import { importedPieceContracts, navigationContract, screenRequirements, touchesNavigation } from "./packetContext.js";
-import { STYLE_FILE, contractProblems, deliverableChecks, genericOnly, isTaskSpecific, separateMixed, testFileOf, writesTestsStep } from "./taskContract.js";
+import { STYLE_FILE, contractProblems, deliverableChecks, type DeliverableContext, genericOnly, isTaskSpecific, separateMixed, testFileOf, writesTestsStep } from "./taskContract.js";
 import { FLOWCODE_LIMITS_KEY, compactPartObjective, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
@@ -1577,7 +1578,7 @@ export class Orchestrator {
     parts ??= sentenceSplit(task);
     if (!parts || signal.aborted) return false;
     parts = dropDoneParts(parts, doneTitles);
-    const pieces = buildSplit(task, parts, () => newId("task"));
+    const pieces = buildSplit(task, parts, () => newId("task"), this.deliverableContext(run));
     this.replaceWithParts(run, task, pieces, `"${task.title}" was too big to finish in one go, so it was split into ${pieces.length} smaller steps`, `Split into ${pieces.length} smaller steps`);
     return true;
   }
@@ -1587,8 +1588,15 @@ export class Orchestrator {
   }
 
   /** Adds a step's deliverable checks (taskContract.ts), recorded and announced. */
+  /** What the deliverable checks apply to: a complete app (its records in the generated source) and its rendered frame. */
+  private deliverableContext(run: Run): DeliverableContext {
+    const root = this.d.projects.jail(run.projectId).root;
+    const frame = resolveFrame(root);
+    return { completeApp: this.d.store.getSetting<boolean>(appWrittenKey(run.id), false), ...(frame ? { frame: { component: frame.component, file: frame.file } } : {}) };
+  }
+
   private addDeliverableChecks(run: Run, task: Task): Task {
-    const added = deliverableChecks(task);
+    const added = deliverableChecks(task, this.deliverableContext(run));
     const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
     if (!added.length) {
       this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `"${task.title}" has only generic checks and no file of its own to check; it can't pass as "already done" without an edit` });

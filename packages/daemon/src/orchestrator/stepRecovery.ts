@@ -9,7 +9,7 @@
  *     them) no longer waits on it and runs anyway.
  */
 import type { Task } from "@flowcode/contracts";
-import { deliverableChecks, genericOnly } from "./taskContract.js";
+import { deliverableChecks, type DeliverableContext, genericOnly } from "./taskContract.js";
 
 /** How many attempts of a step ended with the coder out of actions (from the step's recorded findings). */
 export function budgetOuts(findings: string[]): number {
@@ -140,7 +140,7 @@ export function sentenceSplit(task: Task): SplitPart[] | undefined {
  * The smaller steps that replace `task`, chained in order. The step's file checks go to the part that changes that
  * file (else the last part); every part keeps the type check.
  */
-export function buildSplit(task: Task, parts: SplitPart[], newId: () => string): Task[] {
+export function buildSplit(task: Task, parts: SplitPart[], newId: () => string, ctx: DeliverableContext = {}): Task[] {
   const ids = parts.map(() => newId());
   const fileChecks = task.acceptanceCriteria.filter((c) => c.check.type !== "manual" && "path" in c.check);
   // The step's own checks that aren't about one file (its acceptance tests passing, a build) belong to the last part:
@@ -159,7 +159,7 @@ export function buildSplit(task: Task, parts: SplitPart[], newId: () => string):
     ] as Task["acceptanceCriteria"];
     // A part with only the type check would pass whether or not it did its work: it gets its own deliverable's checks.
     const own = { id: ids[i]!, title: p.title, objective: p.objective, expectedPaths: p.files };
-    if (genericOnly({ acceptanceCriteria: criteria })) criteria.push(...deliverableChecks(own));
+    if (genericOnly({ acceptanceCriteria: criteria })) criteria.push(...deliverableChecks(own, ctx));
     return {
       id: ids[i],
       runId: task.runId,
