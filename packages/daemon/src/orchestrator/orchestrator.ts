@@ -109,6 +109,7 @@ import type { McpManager } from "../mcp/manager.js";
 import { mcpStepTools } from "../mcp/stepTools.js";
 import { designResearch, designResearchBrief } from "../quality/designResearch.js";
 import { failuresOf, fixBrief, fixDiff, recordFix, similarFixes } from "../knowledge/fixMemory.js";
+import { inheritedNote, provisionalFromKey, provisionalKey, type ProvisionalSet } from "./provisional.js";
 import { figmaBrief, figmaLinks } from "../mcp/figma.js";
 import { creditAdvice } from "../quality/blockerText.js";
 import { screenSpecBrief } from "../quality/screenCoverage.js";
@@ -1587,6 +1588,7 @@ export class Orchestrator {
     parts = dropDoneParts(parts, doneTitles);
     const pieces = buildSplit(task, parts, () => newId("task"), this.deliverableContext(run));
     this.replaceWithParts(run, task, pieces, `"${task.title}" was too big to finish in one go, so it was split into ${pieces.length} smaller steps`, `Split into ${pieces.length} smaller steps`);
+    this.keepProvisional(run, this.d.store.tasks.require(task.id), jail, pieces);
     return true;
   }
 
@@ -1955,6 +1957,7 @@ export class Orchestrator {
         this.d.store.runs.upsert({ ...this.d.store.runs.require(run.id), safeCheckpointId: safe.id });
         this.d.bus.emit({ ...ev, type: "recovery.action", message: `"${task.title}" was already done: its checks pass, so no more work was needed` });
         this.d.bus.emit({ ...ev, type: "task.verified", message: `Task verified: ${task.title}`, data: { checkpointId: safe.id } });
+        this.settleProvisional(run, task.id);
         return;
       }
     }
@@ -2301,6 +2304,7 @@ export class Orchestrator {
       this.updateTask(task, { status: "verified", blocker: undefined, checkpointId: safe.id });
       this.d.store.runs.upsert({ ...this.d.store.runs.require(run.id), safeCheckpointId: safe.id });
       this.d.bus.emit({ ...ev, type: "task.verified", message: `Task verified: ${task.title}`, data: { checkpointId: safe.id } });
+      this.settleProvisional(run, task.id);
       return;
     }
     const why = [outcome.kind !== "complete" ? `agent outcome: ${outcome.kind}${"reason" in outcome ? ` (${outcome.reason})` : ""}` : "", ...verdict.failures].filter(Boolean);
@@ -2330,9 +2334,11 @@ export class Orchestrator {
     // Out of actions twice: the step is too big for one go. Split it into smaller steps instead of retrying it whole.
     // Only when it can be split: a part of a split step is never split again, and undoing it first threw its work away
     // for nothing (Calendar prototype: a part at 2 failing tests of 58 was undone back to 26, attempt after attempt).
+    // Its edits are kept across the split as a provisional set its parts inherit (keepProvisional), not undone first
+    // (Clean Cart slice eval 1: the valid hero rewrite was undone at the split); undone only when it isn't split.
     if (outcome.kind === "budget_exhausted" && budgetOuts(this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, [])) >= 2 && !this.d.store.getSetting(`splitPart:${task.id}`, false)) {
-      await this.undoBlockedStep(run, task.id, jail);
       if (await this.splitStep(run, this.d.store.tasks.require(task.id), jail, signal)) return;
+      await this.undoBlockedStep(run, task.id, jail);
     }
     // The same failure twice running: every attempt after the first runs as the debugger, the biggest single cost in a
     // build, so spending the rest of the budget on a wall it has already hit twice buys nothing but latency.
@@ -3068,6 +3074,13 @@ export class Orchestrator {
   }
 
   private async undoBlockedStep(run: Run, taskId: string, jail: ReturnType<ProjectService["jail"]>) {
+    await this.undoOwnBlockedChanges(run, taskId, jail);
+    // A part of a split that fails: the split step's provisional set it inherited goes back too (or waits for you).
+    const parentId = this.d.store.getSetting<string>(provisionalFromKey(taskId), "");
+    if (parentId) await this.restoreProvisional(run, parentId, jail, `its part "${this.d.store.tasks.require(taskId).title}" was blocked`);
+  }
+
+  private async undoOwnBlockedChanges(run: Run, taskId: string, jail: ReturnType<ProjectService["jail"]>) {
     if (!runtimeOptions(this.d.store).rollbackBlocked) return;
     const task = this.d.store.tasks.require(taskId);
     if (!task.actualPaths.length) return;
@@ -3148,6 +3161,78 @@ export class Orchestrator {
       const undone = await this.safeUndo(run, t, jail, `"${task.title}", which it builds on, starts over`);
       if (!undone.ok) return `"${t.title}" has unaccepted changes that can't be undone safely (${undone.reason})`;
     }
+    // A later split step's provisional set is unaccepted work too (splitting accepted nothing).
+    for (const t of this.graph.tasks(run.id).filter((x) => x.ordinal > task.ordinal && x.status === "skipped").sort((a, b) => b.ordinal - a.ordinal)) {
+      if (this.d.store.getSetting<ProvisionalSet | null>(provisionalKey(t.id), null)?.state !== "provisional") continue;
+      const why = await this.restoreProvisional(run, t.id, jail, `"${task.title}", which it builds on, starts over`);
+      if (why) return why;
+    }
+    return undefined;
+  }
+
+  /**
+   * At a split, the step's edits stay in place as a provisional set its parts inherit (provisional.ts): a checkpoint,
+   * its files (whose snapshots are the baseline), its diff and the diagnostics it ended with kept as an artifact, and the
+   * parts that own it. Recorded once: a resumed or repeated split doesn't record or apply it again.
+   */
+  private keepProvisional(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>, pieces: Task[]): ProvisionalSet | undefined {
+    const existing = this.d.store.getSetting<ProvisionalSet | null>(provisionalKey(task.id), null);
+    if (existing) return existing;
+    const plan = this.d.snapshots.planTaskUndo(task.id, jail, (id) => this.d.store.tasks.get(id)?.status);
+    if (!plan.files.length) return undefined;
+    let diff = "";
+    try {
+      diff = fixDiff({ store: this.d.store, snapshots: this.d.snapshots }, jail, task.id).diff;
+    } catch {
+      diff = "";
+    }
+    const findings = this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []);
+    const cp = this.d.snapshots.createCheckpoint(run.id, `Provisional "${task.title}" (split)`, false, task.id);
+    const art = (this.d.artifacts ?? { save: () => ({ id: "not kept" }) }).save({ runId: run.id, kind: "other", label: `Provisional changes: ${task.title}`, mime: "text/plain", content: [`Kept across the split into: ${pieces.map((p) => p.title).join("; ")}`, `Files: ${plan.files.map((f) => f.rel).join(", ")}`, `Diagnostics and findings it ended with:\n${findings.join("\n")}`, `Diff:\n${diff}`].join("\n\n"), meta: { taskId: task.id, provisional: true } });
+    const set: ProvisionalSet = { parentId: task.id, parentTitle: task.title, files: plan.files.map((f) => f.rel), checkpointId: cp.id, artifactId: art.id, children: pieces.map((p) => p.id), state: "provisional", at: new Date().toISOString() };
+    this.d.store.setSetting(provisionalKey(task.id), set);
+    for (const p of pieces) {
+      this.d.store.setSetting(provisionalFromKey(p.id), task.id);
+      this.d.store.setSetting(`taskFindings:${p.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${p.id}`, []), inheritedNote(set)].slice(-12));
+    }
+    this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: task.id, type: "recovery.action", message: `Kept "${task.title}"'s changes (${set.files.join(", ")}) for its parts to build on; not accepted until every part passes. Diff in artifact ${art.id}.`, data: { provisional: set } });
+    return set;
+  }
+
+  /** After a step is verified: a split step's provisional set is accepted once every part that owns it is verified. */
+  private settleProvisional(run: Run, taskId: string) {
+    const parentId = this.d.store.getSetting<string>(provisionalFromKey(taskId), "");
+    const set = parentId ? this.d.store.getSetting<ProvisionalSet | null>(provisionalKey(parentId), null) : null;
+    if (!set || set.state !== "provisional") return;
+    if (!set.children.every((id) => this.d.store.tasks.get(id)?.status === "verified")) return;
+    this.d.store.setSetting(provisionalKey(parentId), { ...set, state: "accepted", at: new Date().toISOString() });
+    this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: parentId, type: "recovery.action", message: `Accepted "${set.parentTitle}"'s kept changes: every part of its split passed its checks` });
+  }
+
+  /**
+   * Puts a split step's whole provisional set back: its parts' unaccepted edits first (newest first), then its own, each
+   * through the coherent undo. Parts that were verified keep theirs; when one of them (or anything else) changed the
+   * same files, or the undo would add errors, nothing more is overwritten and the set waits for the person. Returns why
+   * when it couldn't.
+   */
+  private async restoreProvisional(run: Run, parentId: string, jail: ReturnType<ProjectService["jail"]>, why: string): Promise<string | undefined> {
+    const set = this.d.store.getSetting<ProvisionalSet | null>(provisionalKey(parentId), null);
+    if (!set || set.state !== "provisional") return undefined;
+    const ev = { projectId: run.projectId, runId: run.id, taskId: parentId };
+    const wait = (reason: string) => {
+      this.d.store.setSetting(provisionalKey(parentId), { ...set, state: "reconcile", reason, at: new Date().toISOString() });
+      this.d.bus.emit({ ...ev, type: "run.status_changed", level: "warning", message: `Kept "${set.parentTitle}"'s provisional changes (${why}): ${reason}. They wait for your decision; nothing was overwritten. Diff in artifact ${set.artifactId}.` });
+      return `"${set.parentTitle}" has provisional changes that can't be put back safely (${reason})`;
+    };
+    if (!runtimeOptions(this.d.store).rollbackBlocked) return wait("undoing blocked work is turned off");
+    const parts = set.children.map((id) => this.d.store.tasks.get(id)).filter((t): t is Task => !!t && t.status !== "verified").sort((a, b) => b.ordinal - a.ordinal);
+    for (const t of parts) {
+      const undone = await this.safeUndo(run, t, jail, `the split of "${set.parentTitle}" is put back (${why})`);
+      if (!undone.ok) return wait(`"${t.title}": ${undone.reason}`);
+    }
+    const undone = await this.safeUndo(run, this.d.store.tasks.require(parentId), jail, `its split didn't succeed (${why})`);
+    if (!undone.ok) return wait(undone.reason);
+    this.d.store.setSetting(provisionalKey(parentId), { ...set, state: "restored", reason: why, at: new Date().toISOString() });
     return undefined;
   }
 
