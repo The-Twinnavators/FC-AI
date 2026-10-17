@@ -57,7 +57,8 @@ describe("the catalog reaches the build's agents", () => {
       describe: async () => undefined,
       health: async () => ({ ok: true, detail: "stub" }),
     });
-    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Build the plans page in the PRD.", kind: "spec_build", references: [{ name: "prd.md", role: "prd", content: PRD }], constraints: [], attachedKnowledgeIds: [] });
+    // A Quick sketch, asked for: the designed-screens path (a complete app needs a usable app model, or it stops).
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Build the plans page in the PRD.", kind: "spec_build", buildMode: "sketch", references: [{ name: "prd.md", role: "prd", content: PRD }], constraints: [], attachedKnowledgeIds: [] });
     await app.orchestrator.plan(run.id);
 
     // Page planning: the PRD's own screen.

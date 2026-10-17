@@ -64,6 +64,7 @@ import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } fr
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
 import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
+import { completenessProblems } from "./appModel.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
@@ -1024,8 +1025,10 @@ export class Orchestrator {
     let problems: string[] = [];
     // Sized for the planner's provider: switching a build between cloud and local needs nothing else.
     const budget = appModelBudget(this.d.router.isHosted(run.modelAssignments.planner));
-    // The 8GB GPU profile writes it in bounded parts (each with its own retry), so it isn't tried whole twice.
-    const inParts = runtimeOptions(this.d.store).gpuProfile === "8gb" && !this.d.router.isHosted(run.modelAssignments.planner);
+    // A local planner writes it in bounded parts (structure, then each kind of record in batches, then ratings and
+    // lists), each reply capped with its own retry: whole, qwen3:8b's model came back with no products, stores or ZIP
+    // areas (Clean Cart). A cloud planner writes it whole.
+    const inParts = !this.d.router.isHosted(run.modelAssignments.planner);
     for (const temperature of inParts ? [0.2] : [0.2, 0.4]) {
       try {
         const got = inParts
@@ -1053,12 +1056,21 @@ export class Orchestrator {
           return undefined;
         }
         problems = got.problems;
-        const model = got.model;
+        let model = got.model;
+        // Complete enough to build what was asked: records for every kind, a look-up app's entries linked to places, a
+        // page for every screen the PRD names. Otherwise it isn't used (and the build stops below, saying so).
+        if (model) {
+          const missing = completenessProblems(model, declaredScreens(prd));
+          if (missing.length) {
+            problems = [...missing, ...problems];
+            model = undefined;
+          }
+        }
         // Pieces still on the approval shelf are never used by a build.
         const waiting = model ? unapprovedPieces(model) : [];
         if (model && waiting.length) {
-          this.d.bus.emit({ ...ev, type: "plan.proposed", message: `This is a ${model.lookup ? "look-up app" : "complete app"}, but the pieces it is built from are waiting for your approval in the Component library (${waiting.join(", ")}). This build designs its main screens instead; approve them to have FlowCode write the whole working app.`, level: "warning" });
-          return undefined;
+          this.d.bus.emit({ ...ev, type: "plan.proposed", message: `This is a ${model.lookup ? "look-up app" : "complete app"}, but the pieces it is built from are waiting for your approval in the Component library (${waiting.join(", ")}). FlowCode stopped instead of building something else.`, level: "error" });
+          throw new Error(`The complete app needs library pieces that are waiting for your approval (${waiting.join(", ")}). Approve them in the Component library and resume, or start it again as a Quick sketch (New build), which is a different, reduced deliverable: designed screens with sample content, not the working app.`);
         }
         if (model) {
           this.d.store.setSetting(appModelKey(run.id), model);
@@ -1071,8 +1083,9 @@ export class Orchestrator {
         problems = [(err as Error).message.slice(0, 200)];
       }
     }
-    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `The app model wasn't usable (${problems.slice(0, 3).join("; ")}); this build designs its main screens instead of writing the complete app`, level: "warning" });
-    return undefined;
+    // A complete app was asked for: an unusable model never quietly becomes a different deliverable (demo screens).
+    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `The app model wasn't usable (${problems.slice(0, 4).join("; ")}). FlowCode stopped instead of building something else.`, level: "error", data: { appModelProblems: problems } });
+    throw new Error(`The app model for the complete app isn't usable: ${problems.slice(0, 4).join("; ")}. Resume to plan it again, or start it again as a Quick sketch (New build), which is a different, reduced deliverable: designed screens with sample content, not the working app.`);
   }
 
   /**

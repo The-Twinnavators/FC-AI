@@ -483,3 +483,43 @@ export function socialRequest(product: string, entries: Array<{ id: string; titl
     "likes and saves: { <entry id>: count } for 6 to 10 popular entries.",
   ].join("\n");
 }
+
+/** Which look-up page kind a PRD screen name points at, by its words (the generated look-up pages have fixed kinds). */
+const SCREEN_KIND: Array<[RegExp, LookupKind[]]> = [
+  [/\b(home|landing|welcome|start)\b/, ["landing"]],
+  [/\b(search|browse|find (?!a (store|shop|place))|results?|catalog(ue)?)\b/, ["catalog"]],
+  [/\bcategor/, ["categories", "catalog"]],
+  [/\b(product|item|detail|entry|record)\b/, ["entry"]],
+  [/\b(stores?|shops?|places?|locations?|nearby|near me|zip|map)\b/, ["places"]],
+  [/\b(lists?|grocery|shopping|cart|basket)\b/, ["lists", "mylist"]],
+  [/\b(saved|favou?rites?|bookmarks?|wishlist)\b/, ["saved"]],
+];
+const STOP = new Set(["the", "and", "for", "page", "screen", "view", "your", "with", "a", "an", "of", "to"]);
+
+/** Whether the app's pages cover a screen the PRD names: a page sharing a word of its name, or a look-up page of its kind. */
+export function coversScreen(views: ModelView[], name: string): boolean {
+  const n = name.toLowerCase().replace(/[()]/g, " ");
+  const words = n.split(/[^a-z0-9]+/).filter((w) => w.length >= 3 && !STOP.has(w));
+  if (views.some((v) => words.some((w) => `${v.label} ${v.id}`.toLowerCase().includes(w)))) return true;
+  const kinds = SCREEN_KIND.filter(([re]) => re.test(n)).flatMap(([, k]) => k);
+  return views.some((v) => kinds.includes(v.kind as LookupKind));
+}
+
+/**
+ * What makes an app model too incomplete to build the asked-for app from (generic, from the model and the PRD): a kind
+ * of record with no sample records, a look-up app whose entries say no place carries them, a screen the PRD names
+ * with no page. Each is a reason not to use it; thresholds on how many records there are stay non-blocking problems.
+ */
+export function completenessProblems(m: AppModel, declared: Array<{ name: string }>): string[] {
+  const out: string[] = [];
+  for (const e of m.entities) if (!(m.seed[e.key] ?? []).length) out.push(`No sample ${e.plural.toLowerCase()}: every page of them would be empty`);
+  if (m.lookup) {
+    const entries = m.seed[m.lookup.entries] ?? [];
+    const places = m.seed[m.lookup.places] ?? [];
+    const pf = m.lookup.placesField;
+    if (entries.length && places.length && !entries.some((r) => Array.isArray(r[pf]) && (r[pf] as unknown[]).length)) out.push(`None of the ${m.entities.find((e) => e.key === m.lookup!.entries)?.plural.toLowerCase() ?? "entries"} say which ${m.lookup.placeWord || "place"}s carry them`);
+  }
+  const views = m.nav.flatMap((g) => g.items);
+  for (const d of declared) if (!coversScreen(views, d.name)) out.push(`The PRD's "${d.name}" screen has no page in the app model`);
+  return out;
+}

@@ -313,6 +313,8 @@ describe("a spec build plans from the checklist", () => {
         const system = String(req.messages[0]?.content ?? "");
         const user = String(req.messages.at(-1)?.content ?? "");
         if (system.startsWith("You design the data and navigation")) return { content: JSON.stringify(model), toolCalls: [], model: "stub", durationMs: 1 };
+        // A local planner writes the model in parts: the sample records come one kind at a time.
+        if (system.startsWith("You write realistic sample records")) return { content: JSON.stringify({ records: model.seed.event }), toolCalls: [], model: "stub", durationMs: 1 };
         if (system.startsWith("You decide which screens")) throw new Error("a complete app takes its screens from the app model");
         if (system.startsWith("You map a product's experience")) {
           return { content: JSON.stringify({ roles: [{ name: "Planners", goals: ["See the week"] }], workflows: [{ name: "Check the week", role: "Planners", entry: "Week", steps: [{ screen: "Week", action: "Open the week", result: "Sees this week's events" }, { screen: "Events", action: "Open an event", result: "Sees it" }], success: "Knows what's on", requirementIds: [] }], data: [], permissions: [] }), toolCalls: [], model: "stub", durationMs: 1 };
