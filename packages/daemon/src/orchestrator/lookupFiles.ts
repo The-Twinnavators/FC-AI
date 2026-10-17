@@ -11,6 +11,31 @@ import type { AppModel, ModelView } from "./appModel.js";
 /** The library pieces a look-up app is built from (their data layers and icons come with them). */
 export const LOOKUP_PIECES = ["lookup-frame", "lookup-catalog", "lookup-entry", "place-finder", "list-builder"];
 
+/**
+ * How the Home page is composed, from the library's own layouts: the opening (the look-up hero with its search, the
+ * library's centered hero with the search under it, or its split hero with the most liked entry beside the promise),
+ * the categories (tiles, chips or a sideways rail), the most liked entries (a grid of cards or wide rows) and the order
+ * of the sections under the opening. A design concept chooses one; the person picks the concept.
+ */
+export interface HomeLayout {
+  /**
+   * A whole Home page from the library's full-page designs, made for look-up apps (lookup-home-<design>.tsx: the
+   * storefront, magazine and listings pages, filled from the app's data). When set, it is the page; the parts below
+   * describe the composed page used without one.
+   */
+  design?: "storefront" | "magazine" | "listings";
+  hero: "search" | "centered" | "split";
+  categories: "tiles" | "chips" | "rail";
+  list: "grid" | "rows";
+  order: Array<"zip" | "categories" | "featured">;
+}
+export const DEFAULT_HOME: HomeLayout = { hero: "search", categories: "tiles", list: "grid", order: ["zip", "categories", "featured"] };
+/** The library heroes a Home layout uses, beside the look-up pieces. */
+export const homePieces = (h?: HomeLayout) => (h?.design ? [`lookup-home-${h.design}`] : h?.hero === "centered" ? ["hero-centered"] : h?.hero === "split" ? ["hero-split"] : []);
+/** Whether the Home page has its own search (then the top bar leaves its search out there). Every full-page design does. */
+const heroSearches = (h: HomeLayout) => Boolean(h.design) || h.hero !== "split";
+const DESIGN_COMPONENT = { storefront: "LookupHomeStorefront", magazine: "LookupHomeMagazine", listings: "LookupHomeListings" } as const;
+
 const pascal = (id: string) => id.split(/[^a-zA-Z0-9]+/).filter(Boolean).map((w) => w[0]!.toUpperCase() + w.slice(1)).join("");
 const q = (s: string) => JSON.stringify(s);
 const attr = (s: string) => `{${JSON.stringify(s)}}`;
@@ -55,6 +80,7 @@ export function lookupScreenSource(m: AppModel, v: ModelView): string | undefine
     case "mylist":
       return `${head}\nimport { ListBuilder } from "../sections/ListBuilder";\nimport { useHashId } from "../sections/AppData";\n${imports}\n\nexport default function ${name}() {\n  const id = useHashId(${q(v.id)}) ?? "";\n  return <ListBuilder lookup={lookup} id={id}${r.lists ? ` onBack={() => go(${q(r.lists)})}` : ""} onOpenEntry={${open}} />;\n}\n`;
     case "landing": {
+      if (m.home) return landingSource(m, v, m.home, { head, imports, open, tags, catalogProps, toCatalog, catalog: r.catalog });
       // A working start the design step composes into the product's landing page: the promise, search, the ZIP code,
       // the categories and the most liked entries, all on the same data.
       return `${head}\nimport { CatalogSearch, CategoryIndex, LookupCatalog } from "../sections/LookupCatalog";\nimport { ZipPrompt } from "../sections/PlaceFinder";\n${imports}\n\nexport default function ${name}() {\n  return (\n    <div className="fl-lkf-stack">\n      {/* 1. Hero: ${commentSafe(m.product)}, its promise and the search (design step: compose this from the PRD's words) */}\n      <section className="fl-lkf-hero" aria-labelledby="landing-title">\n        <h1 id="landing-title">{${q(m.product)}}</h1>\n        ${v.purpose ? `<p>{${q(v.purpose)}}</p>` : ""}\n        <CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${toCatalog('`q=${s}`')}} onOpen={${open}} />\n      </section>\n      {/* 2. Where to find it: the ZIP code */}\n      <ZipPrompt lookup={lookup} />\n      {/* 3. Categories */}\n      <CategoryIndex lookup={lookup} onCategory={(c) => ${toCatalog("c")}} />\n      {/* 4. The most liked */}\n      <LookupCatalog lookup={lookup} title="Most liked" pageSize={8} toolbar={false} onOpen={${open}}${catalogProps} />\n    </div>\n  );\n}\n`;
@@ -62,6 +88,60 @@ export function lookupScreenSource(m: AppModel, v: ModelView): string | undefine
     default:
       return undefined;
   }
+}
+
+/** The Home page composed from a chosen layout: one opening, then the ZIP code, categories and most liked in its order. */
+function landingSource(
+  m: AppModel,
+  v: ModelView,
+  h: HomeLayout,
+  p: { head: string; imports: string; open: string; tags: string; catalogProps: string; toCatalog: (arg: string) => string; catalog?: string },
+): string {
+  if (h.design) {
+    const name = DESIGN_COMPONENT[h.design];
+    const to = (arg: string) => p.toCatalog(arg);
+    return `${p.head}
+import { ${name} } from "../sections/${pascal(`lookup-home-${h.design}`)}";
+${p.imports}
+
+/* Home: the ${h.design} page from the library, filled from the app's data. */
+export default function ${pascal(v.id)}Screen() {
+  return (
+    <${name}
+      lookup={lookup}
+      product={${q(m.product)}}${v.purpose ? `
+      promise={${q(v.purpose)}}` : ""}
+      onOpen={${p.open}}
+      onCategory={(c) => ${to("c")}}
+      onSearch={(s) => ${to("`q=${s}`")}}
+      onBrowse={() => ${to("undefined")}}
+    />
+  );
+}
+`;
+  }
+  const browse = p.catalog ? `{ label: "Browse everything", href: ${q(`#/${p.catalog}`)} }` : "undefined";
+  const search = `<CatalogSearch lookup={lookup}${p.tags} onSearch={(s) => ${p.toCatalog("`q=${s}`")}} onOpen={${p.open}} />`;
+  const lede = q(v.purpose ?? "");
+  const hero =
+    h.hero === "centered"
+      ? `<HeroCentered id="landing" title={${q(m.product)}} lede={${lede}} primary={${browse}} background="grid">\n        <div className="fl-lkf-hero-search">${search}</div>\n      </HeroCentered>`
+      : h.hero === "split"
+        ? `<HeroSplit id="landing" title={${q(m.product)}} lede={${lede}} primary={${browse}} aside={<LookupSpotlight lookup={lookup} onOpen={${p.open}} />} />`
+        : `<section className="fl-lkf-hero" aria-labelledby="landing-title">\n        <h1 id="landing-title">{${q(m.product)}}</h1>\n        ${v.purpose ? `<p>{${lede}}</p>` : ""}\n        ${search}\n      </section>`;
+  const parts: Record<HomeLayout["order"][number], string> = {
+    zip: `<ZipPrompt lookup={lookup} />`,
+    categories: `<CategoryIndex lookup={lookup} layout=${attr(h.categories)} onCategory={(c) => ${p.toCatalog("c")}} />`,
+    featured: `<LookupCatalog lookup={lookup} title="Most liked" pageSize={8} toolbar={false} layout=${attr(h.list)} onOpen={${p.open}}${p.catalogProps} />`,
+  };
+  const order = [...new Set([...h.order, ...DEFAULT_HOME.order])];
+  const imports = [
+    `import { ${["CategoryIndex", "LookupCatalog", ...(heroSearches(h) ? ["CatalogSearch"] : []), ...(h.hero === "split" ? ["LookupSpotlight"] : [])].sort().join(", ")} } from "../sections/LookupCatalog";`,
+    `import { ZipPrompt } from "../sections/PlaceFinder";`,
+    ...(h.hero === "centered" ? [`import { HeroCentered } from "../sections/HeroCentered";`] : []),
+    ...(h.hero === "split" ? [`import { HeroSplit } from "../sections/HeroSplit";`] : []),
+  ].join("\n");
+  return `${p.head}\n${imports}\n${p.imports}\n\n/* Home layout: ${h.hero} opening; ${order.join(", ")}; categories as ${h.categories}; most liked as ${h.list}. */\nexport default function ${pascal(v.id)}Screen() {\n  void go;\n  return (\n    <div className="fl-lkf-stack fl-lkf-home fl-lkf-home--${h.hero}">\n      ${hero}\n${order.map((k) => `      ${parts[k]}`).join("\n")}\n    </div>\n  );\n}\n`;
 }
 
 /** The look-up layer: places, availability, likes, saves, ratings and lists, beside the store. */
@@ -116,7 +196,7 @@ export function lookupAppSource(m: AppModel, built: ModelView[], defaultIcon: Re
     `      current={PARENT[screen] ?? screen}`,
     `      onNavigate={(id) => go(id)}${r.saved ? `\n      savedId=${attr(r.saved)}` : ""}`,
     // The landing page's hero has the search; a second one in the bar above it is one too many (Clean Cart's look check).
-    `      search={${r.landing ? `screen === ${q(r.landing)} ? undefined : ` : ""}<CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${r.catalog ? `go(${q(r.catalog)}, \`q=\${s}\`)` : "void s"}} onOpen={${open}} />}`,
+    `      search={${r.landing && heroSearches(m.home ?? DEFAULT_HOME) ? `screen === ${q(r.landing)} ? undefined : ` : ""}<CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${r.catalog ? `go(${q(r.catalog)}, \`q=\${s}\`)` : "void s"}} onOpen={${open}} />}`,
     `      place={<PlaceBadge lookup={lookup} />}`,
     `      prompt={screen === ${q(r.landing ?? "")} ? undefined : <ZipPrompt lookup={lookup} />}`,
     `    >`,

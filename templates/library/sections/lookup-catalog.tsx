@@ -1,7 +1,7 @@
 /** @flowcode-library lookup-catalog · Look-up catalog: search, categories, filters and where to find it (Tables and lists)
  * Catalog ID: p.lookup-catalog (pattern)
  * Function: The look-up catalog (p.lookup-catalog): the browse screen of a "find it and where to get it" app (products and the stores that carry them, books and the libraries that hold them, clinics and their services). A grid of cards with a picture, the category, ratings and a save toggle, and on each card where to get it near the person's ZIP code or at their chosen place; a search with suggestions as people type, category and facet filters, "Available near me" (asks for a ZIP code inline), sorting, removable filter chips, a live count and Show more. Also exports CategoryIndex (every category as a tile with a count) and CatalogSearch (the compact top-bar search). Built on the look-up data layer (createLookup from ./lookup-data beside the app's store).
- * Use it as: import { LookupCatalog, CategoryIndex, CatalogSearch } from "./lookup-catalog"; <LookupCatalog lookup={lookup} title? description? category? query? onOpen?={(id) => go("book", id)} onCategory?={(name) => ...} onSearch?={(q) => ...} pageSize?={12} facets?={["ages"]} badgeField?="award" tagsField?="tags" dateField?="published" imageField?="image" loading? only?={savedIds} toolbar?={false} empty?={{ title: "Nothing saved yet", text: "Tap the bookmark on anything to keep it here.", action?: { label: "Browse", onClick } }} />; <CategoryIndex lookup={lookup} onCategory={(name) => ...} description? selected? />; <CatalogSearch lookup={lookup} onSearch={(q) => ...} onOpen={(id) => ...} onCategory? placeholder? tagsField? />
+ * Use it as: import { LookupCatalog, CategoryIndex, CatalogSearch } from "./lookup-catalog"; <LookupCatalog lookup={lookup} title? description? category? query? onOpen?={(id) => go("book", id)} onCategory?={(name) => ...} onSearch?={(q) => ...} pageSize?={12} facets?={["ages"]} badgeField?="award" tagsField?="tags" dateField?="published" imageField?="image" loading? only?={savedIds} toolbar?={false} layout?="grid"|"rows" empty?={{ title: "Nothing saved yet", text: "Tap the bookmark on anything to keep it here.", action?: { label: "Browse", onClick } }} />; <CategoryIndex lookup={lookup} onCategory={(name) => ...} description? selected? layout?="tiles"|"chips"|"rail" />; <LookupSpotlight lookup={lookup} onOpen?={(id) => ...} label? />; <CatalogSearch lookup={lookup} onSearch={(q) => ...} onOpen={(id) => ...} onCategory? placeholder? tagsField? />
  * Variants: p.lookup-catalog.grid - the full catalog: search with suggestions, filters, near me, sort and a grid of cards that say where each one is; p.lookup-catalog.categories - the way in: every category as a tinted tile with an icon and how many there are; p.lookup-catalog.search - the compact search for an app's top bar, with the same suggestions (entries open, categories filter)
  * Built from: c.button, c.search.bar, c.select, c.chip.input, c.empty-state
  * Look: A toolbar with a rounded search field and its suggestion list, a row of selects and a "Available near me" pill, removable filter chips with Clear all and a count; below, a grid of cards with a tinted picture tile, a small save button on its corner, the category in small caps, the title (matched letters marked), the author, a star rating and a pin line saying which places near the ZIP code have it.
@@ -39,10 +39,11 @@ type SortKey = "liked" | "rated" | "newest" | "az";
 export const pluralOf = (word: string) => (/[^aeiou]y$/i.test(word) ? `${word.slice(0, -1)}ies` : /(s|x|z|ch|sh)$/i.test(word) ? `${word}es` : `${word}s`);
 
 const ICONS = ["image", "sparkle", "layers", "star", "globe", "heart", "bolt", "folder"];
-const str = (v: unknown) => (v === undefined || v === null ? "" : String(v));
+export const str = (v: unknown) => (v === undefined || v === null ? "" : String(v));
 
 /** The look-up's entity, entries and categories (with counts), following the stores. */
-function useCatalog(lookup: LookupStore) {
+/** The catalog data every look-up piece reads: the entity, its entries (not drafts), categories with counts, tones and icons, and place names. */
+export function useCatalog(lookup: LookupStore) {
   const state = useLookup(lookup);
   const cfg = lookup.config;
   const e = lookup.app.entity(cfg.entries);
@@ -369,9 +370,11 @@ export type LookupCatalogProps = {
    * such as "Most liked" on a landing page under its hero search.
    */
   toolbar?: boolean;
+  /** "grid": picture cards in columns (the default); "rows": wide rows, the picture beside the words, two to a line. */
+  layout?: "grid" | "rows";
 };
 
-export function LookupCatalog({ lookup, title, description, category: catProp, query: qProp, onOpen, onCategory, onSearch, pageSize = 12, facets = [], badgeField, tagsField, dateField, imageField = "image", loading, only, empty, toolbar = true }: LookupCatalogProps) {
+export function LookupCatalog({ lookup, title, description, category: catProp, query: qProp, onOpen, onCategory, onSearch, pageSize = 12, facets = [], badgeField, tagsField, dateField, imageField = "image", loading, only, empty, toolbar = true, layout = "grid" }: LookupCatalogProps) {
   const { state, e, entries: all, categories, placeName, placeWord } = useCatalog(lookup);
   const onlyKey = only ? only.join("|") : null;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -585,7 +588,7 @@ export function LookupCatalog({ lookup, title, description, category: catProp, q
       </div>
 
       {loading ? (
-        <ul className="fl-cat-grid" aria-busy="true" aria-label={`Loading ${plural}`}>
+        <ul className={`fl-cat-grid fl-cat-grid--${layout}`} aria-busy="true" aria-label={`Loading ${plural}`}>
           {Array.from({ length: Math.min(pageSize, 8) }, (_, i) => (
             <li key={i} className="fl-cat-card fl-cat-card--skeleton" aria-hidden="true">
               <span className="fl-cat-pic fl-cat-bone" />
@@ -644,7 +647,7 @@ export function LookupCatalog({ lookup, title, description, category: catProp, q
         </div>
       ) : (
         <>
-          <ul ref={grid} className="fl-cat-grid" aria-label={title ?? e.plural}>
+          <ul ref={grid} className={`fl-cat-grid fl-cat-grid--${layout}`} data-layout={layout} aria-label={title ?? e.plural}>
             {visible.map((r) => (
               <Card key={r.id} lookup={lookup} e={e} r={r} q={q.trim()} badgeField={badgeField} imageField={imageField} categories={categories} onOpen={onOpen} placeName={placeName} />
             ))}
@@ -771,13 +774,14 @@ function Card({
 
 // ── Category index ──
 
-export function CategoryIndex({ lookup, onCategory, description, selected }: { lookup: LookupStore; onCategory: (name: string) => void; description?: string; selected?: string }) {
+/** layout: "tiles" (a grid of tiles, the default), "chips" (one wrapping row of pills), "rail" (large tiles in one row that scrolls sideways). */
+export function CategoryIndex({ lookup, onCategory, description, selected, layout = "tiles" }: { lookup: LookupStore; onCategory: (name: string) => void; description?: string; selected?: string; layout?: "tiles" | "chips" | "rail" }) {
   const { e, categories } = useCatalog(lookup);
   const plural = e.plural.toLowerCase();
   return (
     <div className="fl-cat-index" data-fl="p.lookup-catalog.categories">
       {description ? <p className="fl-cat-lede">{description}</p> : null}
-      <ul className="fl-cat-tiles">
+      <ul className={`fl-cat-tiles fl-cat-tiles--${layout}`} data-layout={layout} aria-label={`${e.plural} by category`}>
         {categories.map((c) => (
           <li key={c.name}>
             <button type="button" className="fl-cat-tile" aria-pressed={selected !== undefined ? selected === c.name : undefined} onClick={() => onCategory(c.name)}>
@@ -791,6 +795,49 @@ export function CategoryIndex({ lookup, onCategory, description, selected }: { l
         ))}
       </ul>
     </div>
+  );
+}
+
+// ── Spotlight ──
+
+/** The most liked entry, large: a picture, its category, name and maker, its rating and an Open action. */
+export function LookupSpotlight({ lookup, onOpen, label = "Most liked this week" }: { lookup: LookupStore; onOpen?: (id: string) => void; label?: string }) {
+  const { e, entries, categories } = useCatalog(lookup);
+  const top = useMemo(() => [...entries].sort((a, b) => lookup.likes(b.id).count - lookup.likes(a.id).count)[0], [entries, lookup]);
+  if (!top) return null;
+  const name = str(top[e.titleField]) || top.id;
+  const sub = e.subtitleField ? str(top[e.subtitleField]) : "";
+  const catName = str(top[lookup.config.categoryField]);
+  const c = categories.find((x) => x.name === catName);
+  const sum = lookup.summary(top.id);
+  return (
+    <article className="fl-cat-spot" data-fl="p.lookup-catalog.spotlight" aria-label={`${label}: ${name}`}>
+      <div className="fl-cat-pic fl-cat-spot-pic" data-tone={c?.tone ?? 0}>
+        <Icon name={c?.icon ?? "image"} />
+      </div>
+      <div className="fl-cat-spot-body">
+        <p className="fl-cat-kind">{label}</p>
+        <h2 className="fl-cat-spot-name">{name}</h2>
+        {sub ? <p className="fl-cat-sub">{sub}</p> : null}
+        <p className="fl-cat-meta">
+          {sum.count ? (
+            <span className="fl-cat-stars">
+              <Icon name="star" filled />
+              {`${sum.average.toFixed(1)} from ${sum.count} ${sum.count === 1 ? "rating" : "ratings"}`}
+            </span>
+          ) : (
+            <span className="fl-cat-stars fl-cat-stars--none">No ratings yet</span>
+          )}
+        </p>
+        {onOpen ? (
+          <div className="fl-cat-spot-act">
+            <Button size={40} variant="primary" onClick={() => onOpen(top.id)}>
+              {`Open ${name}`}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </article>
   );
 }
 
@@ -866,15 +913,29 @@ const SAMPLE = {
 export default function LookupCatalogSheet() {
   const [cat, setCat] = useState("");
   const [q, setQ] = useState("");
+  const [tiles, setTiles] = useState<"tiles" | "chips" | "rail">("tiles");
+  const [rows, setRows] = useState<"grid" | "rows">("grid");
   const catalog = useRef<HTMLDivElement>(null);
+  const pick = <T extends string>(label: string, options: T[], value: T, set: (v: T) => void) => (
+    <div className="fl-cat-demo" role="group" aria-label={label}>
+      <span className="fl-cat-demo-label">{label}</span>
+      {options.map((o) => (
+        <button key={o} type="button" className="fl-cat-demo-btn" aria-pressed={value === o} onClick={() => set(o)}>
+          {o[0]!.toUpperCase() + o.slice(1)}
+        </button>
+      ))}
+    </div>
+  );
   const toCatalog = () => catalog.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-spec fl-ctl-spec--wide">
         <h3>Category index</h3>
-        <p className="fl-ctl-btn-what">Every genre as a tile with how many books it has. Pick one and the catalog below filters to it.</p>
+        <p className="fl-ctl-btn-what">Every genre with how many books it has, as tiles, a row of chips or a rail that scrolls sideways. Pick one and the catalog below filters to it.</p>
+        {pick("Layout", ["tiles", "chips", "rail"], tiles, setTiles)}
         <CategoryIndex
           lookup={sampleLookup}
+          layout={tiles}
           selected={cat}
           onCategory={(name) => {
             setCat(name === cat ? "" : name);
@@ -900,7 +961,14 @@ export default function LookupCatalogSheet() {
           tagsField={SAMPLE.tagsField}
           dateField={SAMPLE.dateField}
           pageSize={8}
+          layout={rows}
         />
+        {pick("Cards", ["grid", "rows"], rows, setRows)}
+      </div>
+      <div className="fl-ctl-spec fl-ctl-spec--wide">
+        <h3>Spotlight</h3>
+        <p className="fl-ctl-btn-what">The most liked book, large, for the opening of a landing page beside its promise.</p>
+        <LookupSpotlight lookup={sampleLookup} onOpen={(id) => toast(`The page for ${id} opens here.`, "info")} />
       </div>
       <div className="fl-ctl-spec fl-ctl-spec--wide">
         <h3>Compact search</h3>

@@ -1,0 +1,299 @@
+[
+  {
+    "id": "concept-editorial",
+    "results": [
+      {
+        "id": "type-families",
+        "aspect": "typography",
+        "statement": "Headings in Playfair Display, text in Literata",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "text in \"literata\", heading (h1) in \"playfair display\""
+      },
+      {
+        "id": "type-scale",
+        "aspect": "hierarchy",
+        "statement": "A expressive type scale (headings step up 1.414x per level), headings at weight 700",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "scale tokens as specified; heading 31.984px over text 12px, weight 700"
+      },
+      {
+        "id": "palette",
+        "aspect": "palette",
+        "statement": "Background #f6f1e7, text #2a2118, accent #7a3b1e",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "page rgb(246, 241, 231), text rgb(42, 33, 24), accent token #7a3b1e"
+      },
+      {
+        "id": "density",
+        "aspect": "density",
+        "statement": "airy spacing",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "spacing as specified; a card's padding ?px"
+      },
+      {
+        "id": "shape",
+        "aspect": "surface",
+        "statement": "Corners 2/2/4/4px, 1px borders",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "corner and border tokens as specified; a card's corners ?px, border ?px"
+      },
+      {
+        "id": "surfaces",
+        "aspect": "surface",
+        "statement": "Flat surfaces",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "surface tokens as the flat style; a card's shadow ?"
+      },
+      {
+        "id": "content-width",
+        "aspect": "composition",
+        "statement": "wide content width",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "content width 90rem"
+      },
+      {
+        "id": "home-layout",
+        "aspect": "composition",
+        "statement": "Home: the library's magazine page, filled from the app's data",
+        "by": "library",
+        "status": "implemented",
+        "evidence": "the magazine page; 5 blocks beside a side column; opening 0.11 of the screen; up to 4 like items in a row (2 groups)"
+      }
+    ],
+    "layout": {
+      "order": [],
+      "hero": {
+        "centered": false,
+        "beside": true,
+        "width": 1440
+      }
+    },
+    "structure": {
+      "design": "magazine",
+      "blocks": 5,
+      "sidebar": true,
+      "opening": 0.11,
+      "perRow": 4,
+      "groups": 2,
+      "firstRow": 4
+    },
+    "signature": {
+      "sidebar": "side column",
+      "opening": "short opening",
+      "groups": "2 groups of like items",
+      "firstRow": "4 in the first row",
+      "blocks": "5 blocks"
+    },
+    "timings": {
+      "applyMs": 403.18640000000005,
+      "verifyMs": 8.247400000000198,
+      "journeyMs": 19470.1884
+    },
+    "journeyFailed": []
+  },
+  {
+    "id": "concept-market",
+    "results": [
+      {
+        "id": "type-families",
+        "aspect": "typography",
+        "statement": "Headings in Fraunces, text in Work Sans",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "text in \"work sans\", heading (h1) in \"fraunces\""
+      },
+      {
+        "id": "type-scale",
+        "aspect": "hierarchy",
+        "statement": "A regular type scale (headings step up 1.25x per level), headings at weight 600",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "scale tokens as specified; heading 31.248px over text 12px, weight 600"
+      },
+      {
+        "id": "palette",
+        "aspect": "palette",
+        "statement": "Background #f3f7f1, text #14251a, accent #1f6f43",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "page rgb(243, 247, 241), text rgb(20, 37, 26), accent token #1f6f43"
+      },
+      {
+        "id": "density",
+        "aspect": "density",
+        "statement": "regular spacing",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "spacing as specified; a card's padding ?px"
+      },
+      {
+        "id": "shape",
+        "aspect": "surface",
+        "statement": "Corners 6/8/12/12px, 1px borders",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "corner and border tokens as specified; a card's corners ?px, border ?px"
+      },
+      {
+        "id": "surfaces",
+        "aspect": "surface",
+        "statement": "Flat surfaces",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "surface tokens as the flat style; a card's shadow ?"
+      },
+      {
+        "id": "content-width",
+        "aspect": "composition",
+        "statement": "wide content width",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "content width 90rem"
+      },
+      {
+        "id": "home-layout",
+        "aspect": "composition",
+        "statement": "Home: the library's storefront page, filled from the app's data",
+        "by": "library",
+        "status": "implemented",
+        "evidence": "the storefront page; 3 blocks; opening 0.21 of the screen; up to 4 like items in a row (1 groups)"
+      }
+    ],
+    "layout": {
+      "order": [],
+      "hero": {
+        "centered": false,
+        "beside": false,
+        "width": 1440
+      }
+    },
+    "structure": {
+      "design": "storefront",
+      "blocks": 3,
+      "sidebar": false,
+      "opening": 0.21,
+      "perRow": 4,
+      "groups": 1,
+      "firstRow": 4
+    },
+    "signature": {
+      "sidebar": "full width",
+      "opening": "medium opening",
+      "groups": "1 groups of like items",
+      "firstRow": "4 in the first row",
+      "blocks": "3 blocks"
+    },
+    "timings": {
+      "applyMs": 381.5470999999998,
+      "verifyMs": 9.284100000000763,
+      "journeyMs": 19481.5544
+    },
+    "journeyFailed": []
+  },
+  {
+    "id": "concept-bold",
+    "results": [
+      {
+        "id": "type-families",
+        "aspect": "typography",
+        "statement": "Headings in Oswald, text in DM Sans",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "text in \"dm sans\", heading (h1) in \"oswald\""
+      },
+      {
+        "id": "type-scale",
+        "aspect": "hierarchy",
+        "statement": "A compact type scale (headings step up 1.125x per level), headings at weight 600",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "scale tokens as specified; heading 25.632px over text 16px, weight 600"
+      },
+      {
+        "id": "palette",
+        "aspect": "palette",
+        "statement": "Background #fff3c4, text #111111, accent #1d4ed8",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "page rgb(255, 243, 196), text rgb(17, 17, 17), accent token #1d4ed8"
+      },
+      {
+        "id": "density",
+        "aspect": "density",
+        "statement": "compact spacing",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "spacing as specified; a card's padding 0px"
+      },
+      {
+        "id": "shape",
+        "aspect": "surface",
+        "statement": "Corners 0/0/0/0px, 3px borders",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "corner and border tokens as specified; a card's corners 0px, border 3px"
+      },
+      {
+        "id": "surfaces",
+        "aspect": "surface",
+        "statement": "Neo-brutalist surfaces",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "surface tokens as the neobrutalism style; a card's shadow rgb(17, 17, 17) 6px 6px 0px 0px"
+      },
+      {
+        "id": "content-width",
+        "aspect": "composition",
+        "statement": "wide content width",
+        "by": "tokens",
+        "status": "implemented",
+        "evidence": "content width 90rem"
+      },
+      {
+        "id": "home-layout",
+        "aspect": "composition",
+        "statement": "Home: the library's listings page, filled from the app's data",
+        "by": "library",
+        "status": "implemented",
+        "evidence": "the listings page; 5 blocks; opening 0.37 of the screen; up to 4 like items in a row (3 groups)"
+      }
+    ],
+    "layout": {
+      "order": [],
+      "hero": {
+        "centered": false,
+        "beside": false,
+        "width": 1440
+      }
+    },
+    "structure": {
+      "design": "listings",
+      "blocks": 5,
+      "sidebar": false,
+      "opening": 0.37,
+      "perRow": 4,
+      "groups": 3,
+      "firstRow": 3
+    },
+    "signature": {
+      "sidebar": "full width",
+      "opening": "medium opening",
+      "groups": "3 groups of like items",
+      "firstRow": "3 in the first row",
+      "blocks": "5 blocks"
+    },
+    "timings": {
+      "applyMs": 423.5671000000002,
+      "verifyMs": 6.003899999996065,
+      "journeyMs": 19452.6144
+    },
+    "journeyFailed": []
+  }
+]

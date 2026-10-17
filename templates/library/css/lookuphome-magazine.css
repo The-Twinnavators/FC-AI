@@ -1,0 +1,32 @@
+/*
+ * Look-up Home, magazine design (lookup-home-magazine.tsx): the few rules the look-up Home adds on top of the
+ * magazine front page's own (sites.css .fl-st-mag-*) and the catalog's tinted picture tiles (catalog.css .fl-cat-pic).
+ * The sidebar stays sticky under the look-up frame's sticky top bar (about 3.75rem); entry titles are buttons drawn as
+ * the source's links. Tokens only.
+ */
+.fl-st.fl-lhm { background: none; }
+.fl-lhm .fl-st-mag-layout { min-height: 0; }
+/* The masthead title is the page heading itself: display font, the heading weight from the style. */
+.fl-lhm-h1 { margin: 0; font: var(--type-h1-weight, var(--heading-weight, var(--weight-bold))) var(--text-xl) / 1 var(--font-display); }
+.fl-lhm-h1 strong { font: inherit; }
+
+.fl-lhm-link {
+  display: inline; padding: 0; border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-text);
+  font: inherit; text-align: left; cursor: pointer; transition: color var(--duration-fast) var(--easing);
+}
+.fl-lhm-link:hover { color: var(--color-accent); text-decoration: underline; }
+
+.fl-lhm-cover, .fl-lhm-pic { border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); }
+.fl-lhm-cover { aspect-ratio: 4 / 3; }
+.fl-lhm-cover > svg { width: 4.5rem; height: 4.5rem; }
+.fl-lhm-pic { aspect-ratio: 16 / 10; }
+
+@media (min-width: 961px) {
+  .fl-lhm .fl-st-mag-side { top: 3.75rem; height: calc(100vh - 3.75rem); }
+}
+@media (max-width: 960px) {
+  .fl-lhm .fl-st-mag-side.is-open { overflow-y: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-lhm-link { transition: none; }
+}

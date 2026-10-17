@@ -17,6 +17,10 @@ import type { FileOperations } from "./operations.js";
 import { applyDesign } from "./designStudio.js";
 import { setSurfaceStyle } from "./surfaceStyle.js";
 import { parseCustomProperties } from "./styleTokens.js";
+import type { AppModel } from "../orchestrator/appModel.js";
+import { appFiles, screenFileOf } from "../orchestrator/appFiles.js";
+import { homePieces, type HomeLayout } from "../orchestrator/lookupFiles.js";
+import { pieceFiles, syncedLibraryCss } from "../orchestrator/sectionRecipes.js";
 
 export type Density = "compact" | "regular" | "airy";
 export type TypeScale = "compact" | "regular" | "expressive";
@@ -60,6 +64,8 @@ export interface DesignSpec {
   };
   composition: {
     contentWidth: "narrow" | "regular" | "wide";
+    /** The Home page's layout, composed from the library's pieces (look-up apps). Deterministic: no coder step. */
+    home?: HomeLayout;
     /** Changes to how screens are laid out that tokens can't make: work for the coder, each naming its screen or part. */
     changes: Array<{ target: string; change: string }>;
   };
@@ -69,8 +75,8 @@ export interface DesignSpec {
   sources: Array<{ kind: "selected-style" | "prd" | "reference" | "internal"; ref: string; confidence: "high" | "medium" | "low" }>;
 }
 
-/** Who implements each requirement of a spec. */
-export type Responsibility = "tokens" | "coder" | "unsupported";
+/** Who implements each requirement of a spec: the app's tokens, the library's layouts (composed by FlowCode), the coder, or nothing here. */
+export type Responsibility = "tokens" | "library" | "coder" | "unsupported";
 
 export interface SpecRequirement {
   id: string;
@@ -172,6 +178,9 @@ export function specRequirements(s: DesignSpec): SpecRequirement[] {
     { id: "surfaces", aspect: "surface", statement: `${STYLE_VIBES.find((v) => v.id === s.surface.vibe)?.name ?? s.surface.vibe} surfaces`, by: "tokens", tokens: ["--surface-shadow", "--surface-border"] },
     { id: "content-width", aspect: "composition", statement: `${s.composition.contentWidth} content width`, by: "tokens", tokens: ["--content-max"] },
   ];
+  const h = s.composition.home;
+  if (h)
+    req.push({ id: "home-layout", aspect: "composition", statement: h.design ? `Home: the library's ${h.design} page, filled from the app's data` : `Home: a ${h.hero} opening, then ${h.order.join(", ")}; categories as ${h.categories}, most liked as ${h.list}`, by: "library" });
   // Headings in capitals: no token sets text-transform, so it's the coder's (on the app's own heading rules).
   if (s.typography.headingCase === "upper") req.push({ id: "heading-case", aspect: "typography", statement: "Headings in capitals, tracked", by: "coder" });
   s.composition.changes.forEach((c, i) => req.push({ id: `composition-${i + 1}`, aspect: "composition", statement: `${c.target}: ${c.change}`, by: "coder" }));
@@ -190,6 +199,8 @@ export interface SpecApplication {
   requirements: SpecRequirement[];
   /** Bounded work for the coder: each requirement it implements, with the files to change. */
   coderWork: Array<{ requirement: string; statement: string; files: string[] }>;
+  /** The app model with the Home layout recorded, for later builds to keep (when the layout was applied). */
+  model?: AppModel;
   /** Implementation evidence comes from the rendered app; approval is the person's and starts pending. */
   humanApproval: "pending";
 }
@@ -203,7 +214,7 @@ export function applyDesignSpec(
   ops: FileOperations,
   ctx: { projectId: string; runId: string },
   s: DesignSpec,
-  targets: { frameCss: string; screens: string[] } = { frameCss: "src/styles/components.css", screens: [] },
+  targets: { frameCss: string; screens: string[]; model?: AppModel } = { frameCss: "src/styles/components.css", screens: [] },
 ): SpecApplication {
   const problems = specProblems(s);
   if (problems.length) throw new Error(`The design spec "${s.name}" can't be applied: ${problems.join("; ")}`);
@@ -217,11 +228,45 @@ export function applyDesignSpec(
   // A token this app doesn't declare can't be set (the token writer only changes existing ones): unsupported here.
   const declared = new Set(parseCustomProperties(fs.readFileSync(path.join(jail.root, "src/styles/tokens.css"), "utf8")).map((d) => d.name));
   const missing = Object.keys(tokens).filter((n) => !declared.has(n));
-  const requirements = specRequirements(s).map((r) => (r.by === "tokens" && r.tokens?.some((n) => missing.includes(n)) ? { ...r, by: "unsupported" as const, missing: r.tokens.filter((n) => missing.includes(n)) } : r));
+  // The Home layout: the landing page and the frame rewritten from the app model with the layout, and the library
+  // pieces it uses copied in. Only for a look-up app written from its model; otherwise the layout is unsupported here.
+  const home = s.composition.home;
+  const model = home && targets.model?.lookup ? { ...targets.model, home } : undefined;
+  if (model && home) {
+    const landing = model.nav.flatMap((g) => g.items).find((v) => v.kind === "landing");
+    const files = appFiles(model).filter((f) => f.path === "src/App.tsx" || (landing && f.path === screenFileOf(landing)));
+    const op = { jail, projectId: ctx.projectId, runId: ctx.runId, approved: false };
+    // The pieces it uses, and the catalog piece itself when the app's copy predates what they read from it (its layouts
+    // and the shared useCatalog hook).
+    const seen = new Set<string>();
+    const pieces = [...homePieces(home), "lookup-catalog"].flatMap((id) => pieceFiles(id, seen).map((p) => ({ path: p.rel, content: p.content, main: p.id === "lookup-catalog" })));
+    for (const f of [...pieces, ...files]) {
+      const abs = path.join(jail.root, f.path);
+      // An existing piece is kept (it may have been reshaped for the app), except an older catalog copy, refreshed.
+      const stale = "main" in f && f.main && fs.existsSync(abs) && !fs.readFileSync(abs, "utf8").includes("export function useCatalog");
+      if (f.path.startsWith("src/sections/") && fs.existsSync(abs) && !stale) continue;
+      if (fs.existsSync(abs) && fs.readFileSync(abs, "utf8") === f.content) continue;
+      const r = fs.existsSync(abs) ? ops.replaceContent(op, f.path, f.content) : ops.create_file(op, { path: f.path, content: f.content });
+      if (!r.ok) throw new Error(r.message ?? `Couldn't write ${f.path}`);
+    }
+    const css = syncedLibraryCss(jail.root);
+    if (css !== undefined) {
+      const r = ops.replaceContent(op, "src/styles/library.css", css);
+      if (!r.ok) throw new Error(r.message ?? "Couldn't update the library styles");
+    }
+    applied.push(home.design ? `home: the ${home.design} page` : `home layout: ${home.hero} opening, categories as ${home.categories}, most liked as ${home.list}`);
+  }
+  const requirements = specRequirements(s).map((r) =>
+    r.by === "tokens" && r.tokens?.some((n) => missing.includes(n))
+      ? { ...r, by: "unsupported" as const, missing: r.tokens.filter((n) => missing.includes(n)) }
+      : r.by === "library" && !model
+        ? { ...r, by: "unsupported" as const, missing: ["a look-up app written from its app model"] }
+        : r,
+  );
   const filesFor = (r: SpecRequirement) => {
     const named = targets.screens.filter((f) => r.statement.toLowerCase().includes(f.replace(/^.*\//, "").replace(/(Screen)?\.[a-z]+$/i, "").toLowerCase()));
     return r.aspect === "composition" || r.aspect === "responsive" ? (named.length ? named : [targets.frameCss]) : [targets.frameCss];
   };
   const coderWork = requirements.filter((r) => r.by === "coder").map((r) => ({ requirement: r.id, statement: r.statement, files: filesFor(r) }));
-  return { specId: s.id, version: 1, applied, tokens, missing, requirements, coderWork, humanApproval: "pending" };
+  return { specId: s.id, version: 1, applied, tokens, missing, requirements, coderWork, ...(model ? { model } : {}), humanApproval: "pending" };
 }

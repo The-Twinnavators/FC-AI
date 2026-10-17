@@ -7,6 +7,7 @@
  * The shapes mirror the library's data layer (templates/library/sections/app-data.tsx).
  */
 import type { Requirement } from "../quality/spec.js";
+import type { HomeLayout } from "./lookupFiles.js";
 
 export type FieldType = "text" | "longtext" | "number" | "money" | "percent" | "date" | "select" | "boolean" | "email";
 export type Tone = "neutral" | "info" | "success" | "warning" | "danger";
@@ -82,6 +83,8 @@ export interface AppModel {
   lookup?: LookupModel;
   /** Screens the PRD names that a working page of their kind stands for (Search → the catalog page), made explicit. */
   aliases?: ScreenAlias[];
+  /** A look-up app's Home layout, from the chosen design concept (lookupFiles.ts); the default when left out. */
+  home?: HomeLayout;
 }
 
 export interface ScreenAlias {

@@ -14,14 +14,14 @@ import { appModelKey, appModelNote } from "./appModel.js";
 import { ADD_LAYOUTS } from "./layoutRecipes.js";
 import { APP_LAYOUT, type ScreenPlan } from "./screenPlan.js";
 import { recordUse } from "./libraryUse.js";
-import { LOOKUP_PIECES, lookupAppSource, lookupFile, lookupScreenSource } from "./lookupFiles.js";
+import { LOOKUP_PIECES, homePieces, lookupAppSource, lookupFile, lookupScreenSource } from "./lookupFiles.js";
 import { pieceFiles, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
 import { DESIGN_SCREENS, type RuntimeStepArgs } from "./templates.js";
 
 /** The library pieces a complete app is built from. */
 export const APP_PIECES = ["app-frame", "resource-index", "record-wizard", "record-detail", "app-dashboard"];
 /** The pieces this app is built from: the look-up pieces for a look-up app, the working app pieces otherwise. */
-export const piecesOf = (m: AppModel) => (m.lookup ? LOOKUP_PIECES : APP_PIECES);
+export const piecesOf = (m: AppModel) => (m.lookup ? [...LOOKUP_PIECES, ...homePieces(m.home)] : APP_PIECES);
 
 /**
  * The pieces this app needs that the owner hasn't approved yet (still on the approval shelf). Builds never use a piece
