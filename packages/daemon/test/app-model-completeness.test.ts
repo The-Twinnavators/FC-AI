@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { ChatRequest } from "@flowcode/contracts";
-import { completenessProblems, coversScreen, parseAppModel } from "../src/orchestrator/appModel.js";
+import { completenessProblems, coversScreen, parseAppModel, prdNamedRecords, prdSampleSection } from "../src/orchestrator/appModel.js";
 import { makeApp, makeProject } from "./helpers.js";
 
 const structure = {
@@ -39,6 +39,49 @@ describe("app model completeness", () => {
     expect(coversScreen(views, "Choose a store")).toBe(true);
     expect(coversScreen(views, "Saved")).toBe(true);
     expect(coversScreen(views, "Recipes")).toBe(false);
+  });
+});
+
+describe("the PRD's own sample data", () => {
+  const PRD = "# Shop\n\n## 8. Sample data\n\n| Product | Brand | Category |\n|---|---|---|\n| Oat Milk Original | Willow Farms | Beverages |\n| Sourdough Loaf | Hearth & Grain | Bakery |\n\nStores: three in 94110.\n\n## 9. Look\nGreen.";
+
+  it("finds the sample-data section and the records its tables name", () => {
+    const section = prdSampleSection(PRD);
+    expect(section).toMatch(/^## 8\. Sample data/);
+    expect(section).not.toContain("## 9. Look");
+    expect(prdNamedRecords(section)).toEqual(["Oat Milk Original", "Sourdough Loaf"]);
+    expect(prdNamedRecords("Prose only, e.g. \"Sunrise Oats\".")).toEqual([]);
+  });
+
+  it("gives the sample-record requests the PRD's sample data", async () => {
+    const { app } = makeApp();
+    const seen: string[] = [];
+    app.router.register({
+      config: { id: "ollama", kind: "ollama", label: "stub", enabled: true, hosted: false },
+      chat: async (req: ChatRequest) => {
+        const system = String(req.messages[0]?.content ?? "");
+        const user = String(req.messages[1]?.content ?? "");
+        if (system.startsWith("You write realistic sample records")) seen.push(user);
+        const body = system.includes("Write it in parts") ? structure : system.startsWith("You write realistic sample records") ? { records: [{ name: "Oat Milk Original", category: "Produce", zip: "94110", carriedBy: ["STR-1001"] }] } : { ratings: [], lists: [] };
+        return { content: JSON.stringify(body), toolCalls: [], model: req.model, durationMs: 1, doneReason: "stop" };
+      },
+      listModels: async () => [],
+      describe: async () => undefined,
+      health: async () => ({ ok: true, detail: "" }),
+    } as never);
+    for (const role of ["planner", "coder", "debugger"] as const) app.router.setRoleAssignment(role, { providerId: "ollama", model: "qwen3-coder:30b" });
+    const { project } = makeProject(app, { "README.md": "# demo\n" });
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "Shop", constraints: [], attachedKnowledgeIds: [] });
+    await (app.orchestrator as unknown as { appModelInParts: (...a: unknown[]) => Promise<unknown> }).appModelInParts(app.store.runs.require(run.id), PRD, [], "", "", new AbortController().signal);
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.every((u) => u.includes("The PRD's sample data") && u.includes("Oat Milk Original | Willow Farms"))).toBe(true);
+  }, 60_000);
+
+  it("requires every record the PRD names to be in the app's records", () => {
+    const m = withSeed(20, true);
+    expect(completenessProblems(m, [], ["Oat Milk Original"])).toEqual(['The PRD\'s sample record "Oat Milk Original" isn\'t in the app\'s records']);
+    m.seed.product![0]!.name = "Oat Milk Original";
+    expect(completenessProblems(m, [], ["oat milk original"])).toEqual([]);
   });
 });
 

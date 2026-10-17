@@ -510,8 +510,11 @@ export function coversScreen(views: ModelView[], name: string): boolean {
  * of record with no sample records, a look-up app whose entries say no place carries them, a screen the PRD names
  * with no page. Each is a reason not to use it; thresholds on how many records there are stay non-blocking problems.
  */
-export function completenessProblems(m: AppModel, declared: Array<{ name: string }>): string[] {
+export function completenessProblems(m: AppModel, declared: Array<{ name: string }>, namedRecords: string[] = []): string[] {
   const out: string[] = [];
+  // Records the PRD lists by name (its sample-data table) are the ones the app shows: each must be there.
+  const titles = new Set(m.entities.flatMap((e) => (m.seed[e.key] ?? []).map((r) => String(r[e.titleField] ?? "").trim().toLowerCase())));
+  for (const n of namedRecords) if (!titles.has(n.trim().toLowerCase())) out.push(`The PRD's sample record "${n}" isn't in the app's records`);
   for (const e of m.entities) if (!(m.seed[e.key] ?? []).length) out.push(`No sample ${e.plural.toLowerCase()}: every page of them would be empty`);
   if (m.lookup) {
     const entries = m.seed[m.lookup.entries] ?? [];
@@ -521,5 +524,30 @@ export function completenessProblems(m: AppModel, declared: Array<{ name: string
   }
   const views = m.nav.flatMap((g) => g.items);
   for (const d of declared) if (!coversScreen(views, d.name)) out.push(`The PRD's "${d.name}" screen has no page in the app model`);
+  return out;
+}
+
+/** The PRD's sample-data section (its title says sample, example, seed or fixture data), shortened to `budget`. */
+export function prdSampleSection(md: string, budget = 2500): string {
+  const lines = md.split(/\r?\n/);
+  const at = lines.findIndex((l) => /^#{1,4}\s/.test(l) && /\b(sample|example|seed|fixture)s?\s+(data|records)\b|\bfixtures?\b/i.test(l));
+  if (at < 0) return "";
+  const level = (/^(#+)/.exec(lines[at]!)?.[1] ?? "#").length;
+  const end = lines.findIndex((l, i) => i > at && /^#{1,4}\s/.test(l) && (/^(#+)/.exec(l)?.[1] ?? "#").length <= level);
+  return lines.slice(at, end < 0 ? undefined : end).join("\n").trim().slice(0, budget);
+}
+
+/** The records a sample-data section lists by name: the first cell of each row of its tables (headers excluded). */
+export function prdNamedRecords(section: string): string[] {
+  const rows = section.split(/\r?\n/).filter((l) => /^\s*\|/.test(l));
+  const out: string[] = [];
+  for (let i = 0; i < rows.length; i++) {
+    const cells = rows[i]!.split("|").slice(1, -1).map((c) => c.trim());
+    const next = rows[i + 1] ?? "";
+    // A header row is followed by its |---| separator; separators themselves are skipped.
+    if (/^\s*\|?\s*:?-{3,}/.test(rows[i]!.replace(/\|/g, "")) || /^[\s|:-]+$/.test(rows[i]!)) continue;
+    if (/^[\s|:-]+$/.test(next)) continue;
+    if (cells[0]) out.push(cells[0].replace(/[*_`]/g, ""));
+  }
   return out;
 }
