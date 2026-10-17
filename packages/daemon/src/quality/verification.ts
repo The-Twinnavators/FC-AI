@@ -26,6 +26,7 @@ import { analyzeHtml, compareFidelity, summarizeReference } from "./spec.js";
 import type { ReferenceFile } from "@flowcode/contracts";
 import { critiqueWithFallback, designCrit, lookReview, visionCritique } from "./critique.js";
 import { demoAccount, lookCheck, type LookFinding } from "./lookCheck.js";
+import { frameEvidence, frameRendered } from "./frameCheck.js";
 import { cleanupBlocking, cleanupReport, scanCleanup } from "./cleanupScan.js";
 import { cloudCoder } from "../models/cloud.js";
 import { directionBrief, type DesignDirection } from "../knowledge/designDirection.js";
@@ -156,20 +157,73 @@ export class Verifier {
       return demos.length ? `these library pieces still show their demo content: ${demos.join(", ")}. Replace each SAMPLE with this product's real content` : undefined;
     }
     if (kind === "frame-designed") {
-      const own = snaps.find((s) => /^src\/components\/(?!ui\/)[\w/-]+\.(tsx|jsx)$/.test(s.relativePath.replace(/\\/g, "/")) && s.contentHash === "absent");
-      if (own && fs.existsSync(path.join(root, own.relativePath))) return undefined;
-      // ui-shell__ rules this step changed: lines in the current stylesheet that weren't there before its first edit.
-      const css = snaps.find((s) => /\.css$/.test(s.relativePath));
-      if (css) {
-        const before = new Set((this.priorOf?.(css) ?? "").split("\n").map((l) => l.trim()));
-        const changed = read(css.relativePath).split("\n").filter((l) => l.trim() && !before.has(l.trim()));
-        const shell = changed.filter((l) => /ui-shell|--header|--nav|\bnav\b|sidebar|tabbar|topbar/i.test(l)).length;
-        if (shell >= 6) return undefined;
-        return `only ${shell} changed line${shell === 1 ? "" : "s"} touch the app frame (ui-shell__ rules or navigation); restyle the frame or replace it with the app's own component`;
-      }
-      return "no ui-shell__ rules were restyled and no frame component was added in src/components/";
+      const ev = this.frameEvidenceFor(task, root);
+      return ev.ok ? undefined : ev.problem;
     }
     return `unknown check ${kind}`;
+  }
+
+  /**
+   * The frame evidence this step left (quality/frameCheck.ts, part 1): each stylesheet it changed, before its first edit
+   * and now, and the frame components it created with whether App.tsx renders them.
+   */
+  frameEvidenceFor(task: Task, root: string): ReturnType<typeof frameEvidence> {
+    const snaps = this.store.snapshots.where("task_id = ? ORDER BY seq ASC", task.id).filter((s) => !s.restoredAt);
+    const read = (rel: string) => {
+      try {
+        return fs.readFileSync(path.join(root, rel), "utf8");
+      } catch {
+        return "";
+      }
+    };
+    const firstOf = new Map<string, (typeof snaps)[number]>();
+    for (const s of snaps) {
+      const rel = s.relativePath.replace(/\\/g, "/");
+      if (!firstOf.has(rel)) firstOf.set(rel, s);
+    }
+    const cssChanges = [...firstOf.entries()].filter(([rel]) => /\.(css|scss)$/.test(rel)).map(([rel, s]) => ({ file: rel, before: s.contentHash === "absent" ? "" : (this.priorOf?.(s) ?? ""), now: read(rel) }));
+    const app = read("src/App.tsx") + read("src/App.jsx");
+    const components = [...firstOf.entries()]
+      .filter(([rel, s]) => /^src\/components\/(?!ui\/)[\w/-]+\.(tsx|jsx)$/.test(rel) && s.contentHash === "absent" && fs.existsSync(path.join(root, rel)))
+      .map(([rel]) => {
+        const stem = rel.replace(/^src\//, "").replace(/\.(tsx|jsx)$/, "");
+        return { file: rel, rendered: new RegExp(`from\\s+["']\\.\\/${stem.replace(/[.*+?^${}()|[\]\\]/g, "\\  /** Upserts the run-level check of a kind (or task-level when taskId is given). */")}["']`).test(app) };
+      });
+    return frameEvidence(cssChanges, components);
+  }
+
+  /**
+   * The frame shows and its navigation works, in the browser (quality/frameCheck.ts, part 2): on the app's preview,
+   * over the planned screens. Undefined when it passes; a reason when it doesn't or can't be checked (a check that
+   * can't run never counts as passed).
+   */
+  async frameBrowserCheck(run: Run, task: Task, selectors: string[], signal?: AbortSignal): Promise<string | undefined> {
+    const project = this.store.projects.require(run.projectId);
+    const jail = this.projects.jail(project);
+    const pf = this.projects.preflight(project.id, run.id);
+    if (!pf.hasNodeModules) return "it couldn't be checked in the browser: the app's dependencies aren't installed";
+    if (pf.previewStrategy === "none") return "it couldn't be checked in the browser: the project has no preview";
+    const port = await freePort();
+    const server = await this.runner.run({ jail, projectId: project.id, runId: run.id, taskId: task.id, phase: "preview", argv: previewArgv(pf, port), reason: `Start the dev server to check "${task.title}"'s app frame`, preflight: pf, signal, server: { readyPattern: /(Local:\s+https?:\/\/|ready in|started server on|Listening on)/i, readyTimeoutMs: 60_000 } });
+    if (server.record.status !== "succeeded" || !server.serverProcId) return "it couldn't be checked in the browser: the dev server didn't start";
+    const url = (server.serverUrl ?? `http://127.0.0.1:${port}/`).replace(/#.*$/, "");
+    let session: BrowserSession | undefined;
+    try {
+      session = await BrowserSession.launch(run.id, this.processes);
+      const page = await session.browser.newPage({ viewport: { width: 1280, height: 800 } });
+      const routes = (this.store.getSetting<ScreenPlan | null>(`screenPlan:${run.id}`, null)?.screens ?? []).map((s) => s.id);
+      const why = await frameRendered(page, async (route) => {
+        await page.goto(route ? `${url}#/${route}` : url, { waitUntil: "load", timeout: 30_000 });
+        await page.waitForTimeout(400);
+      }, routes, selectors);
+      this.record(run.id, "design_qa", why ? "failed" : "passed", why ? `Frame check on "${task.title}": ${why}` : `Frame check on "${task.title}": the frame shows and its navigation changes the screen`, [], { taskId: task.id });
+      return why;
+    } catch (err) {
+      return `it couldn't be checked in the browser: ${(err as Error).message.slice(0, 160)}`;
+    } finally {
+      await session?.close().catch(() => undefined);
+      if (server.serverProcId) await this.processes.killProcess(server.serverProcId).catch(() => undefined);
+    }
   }
 
   /** Upserts the run-level check of a kind (or task-level when taskId is given). */
@@ -447,7 +501,12 @@ export class Verifier {
           // A step's own deliverable (orchestrator/taskContract.ts deliverableChecks): what it changed, the photos its
           // screens show, its seeded sample data, its app frame. Read from the workspace and the step's own snapshots.
           if (/^(changed:|images-used:|data-seeded:|piece-content:|frame-designed$)/.test(c.check.kind)) {
-            const why = this.deliverableProblem(c.check.kind, task, jail.root);
+            let why = this.deliverableProblem(c.check.kind, task, jail.root);
+            // The frame: that it changed (above), then that it shows and its navigation works, in the browser.
+            if (!why && c.check.kind === "frame-designed") {
+              const ev = this.frameEvidenceFor(task, jail.root);
+              why = ev.ok ? await this.frameBrowserCheck(run, task, ev.selectors, opts.signal) : ev.problem;
+            }
             met = !why;
             if (why) failures.push(`${c.description}: ${why}`);
             break;
