@@ -65,7 +65,7 @@ import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } fr
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
 import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
-import { completenessProblems, prdNamedRecords, prdSampleSection } from "./appModel.js";
+import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
@@ -1063,6 +1063,9 @@ export class Orchestrator {
         // Complete enough to build what was asked: records for every kind, a look-up app's entries linked to places, a
         // page for every screen the PRD names. Otherwise it isn't used (and the build stops below, saying so).
         if (model) {
+          // A screen the PRD names, covered only by a working page of its kind, becomes an explicit alias first.
+          model = resolveScreenAliases(model, declaredScreens(prd));
+          if (model.aliases?.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Required screens made explicit: ${model.aliases.map((a) => `${a.screen} is the ${a.kind} page (${a.view})${a.replaced ? `, replacing the placeholder link "${a.replaced}"` : ""}`).join("; ")}. Each is checked in the browser as that screen`, data: { aliases: model.aliases } });
           const missing = completenessProblems(model, declaredScreens(prd), prdNamedRecords(prdSampleSection(prd)));
           if (missing.length) {
             problems = [...missing, ...problems];

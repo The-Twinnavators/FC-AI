@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { ChatRequest } from "@flowcode/contracts";
-import { completenessProblems, coversScreen, parseAppModel, prdNamedRecords, prdSampleSection } from "../src/orchestrator/appModel.js";
+import { completenessProblems, coversScreen, parseAppModel, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "../src/orchestrator/appModel.js";
 import { makeApp, makeProject } from "./helpers.js";
 
 const structure = {
@@ -25,7 +25,11 @@ const withSeed = (products: number, carried: boolean) =>
 describe("app model completeness", () => {
   it("passes a model with records, linked entries and a page for each named screen", () => {
     const m = withSeed(20, true);
-    expect(completenessProblems(m, [{ name: "Home (landing page)" }, { name: "Search" }, { name: "Product" }, { name: "Saved" }, { name: "Choose a store" }, { name: "Grocery lists" }])).toEqual([]);
+    // As planning does: a screen covered only by a page of its kind is made its explicit alias first.
+    const screens = [{ name: "Home (landing page)" }, { name: "Search" }, { name: "Product" }, { name: "Saved" }, { name: "Choose a store" }, { name: "Grocery lists" }];
+    const resolved = resolveScreenAliases(m, screens);
+    expect(resolved.aliases?.map((a) => `${a.screen}=${a.kind}`)).toEqual(["Search=catalog"]);
+    expect(completenessProblems(resolved, screens)).toEqual([]);
   });
 
   it("names a kind with no records, entries no place carries, and a PRD screen with no page", () => {
@@ -94,4 +98,36 @@ describe("an unusable app model stops planning", () => {
     expect(asked.filter((a) => a.startsWith("You write realistic sample records")).length).toBeGreaterThan(0);
     expect(asked.some((a) => a.startsWith("You decide which screens"))).toBe(false);
   }, 60_000);
+});
+
+describe("required screens are working pages", () => {
+  /** The model with exactly these pages (parsing a look-up model adds its working set, catalog included). */
+  const only = (items: Array<{ id: string; label: string; kind: string }>) => ({ ...nav([]), nav: [{ label: "Clean Cart", items }] }) as ReturnType<typeof nav>;
+  const nav = (items: Array<{ id: string; label: string; kind: string }>) => parseAppModel({ ...structure, nav: [{ label: "Clean Cart", items }], seed: { store: [{ name: "S", zip: "94110" }], product: [{ name: "Oat Milk Original", category: "Produce", carriedBy: ["STR-1001"] }] } }).model!;
+  const SLICE = [{ name: "Home (landing page)" }, { name: "Search" }, { name: "Product" }, { name: "Saved" }];
+
+  it("rejects a required route that is only a placeholder", () => {
+    const m = only([{ id: "landing", label: "Home", kind: "landing" }, { id: "search", label: "Search", kind: "placeholder" }, { id: "product", label: "Product", kind: "entry" }, { id: "saved", label: "Saved", kind: "saved" }]);
+    expect(resolveScreenAliases(m, SLICE).aliases).toBeUndefined();
+    expect(completenessProblems(resolveScreenAliases(m, SLICE), SLICE)).toEqual(['The PRD\'s "Search" screen is only a placeholder in the app model ("Search", not built); a required screen needs a working page']);
+  });
+
+  it("makes the slice's Search an explicit alias of its working catalog page, in the top bar, replacing the placeholder link", async () => {
+    // The eval-1 model's shape: a Search placeholder beside a working Catalog page.
+    const m = resolveScreenAliases(nav([{ id: "landing", label: "Home", kind: "landing" }, { id: "search", label: "Search", kind: "placeholder" }, { id: "saved", label: "Saved", kind: "saved" }, { id: "catalog", label: "Catalog", kind: "catalog" }, { id: "product", label: "Product", kind: "entry" }]), SLICE);
+    expect(m.aliases).toEqual([{ screen: "Search", view: "catalog", kind: "catalog", replaced: "search" }]);
+    expect(completenessProblems(m, SLICE)).toEqual([]);
+    const { lookupAppSource } = await import("../src/orchestrator/lookupFiles.js");
+    const app = lookupAppSource(m, m.nav.flatMap((g) => g.items), {});
+    expect(app).toContain('"id": "catalog",\n    "label": "Search"');
+    expect(app).not.toContain('"available": false');
+  });
+
+  it("never renames a page that is another required screen", () => {
+    const m = resolveScreenAliases(only([{ id: "landing", label: "Home", kind: "landing" }, { id: "saved", label: "Saved", kind: "catalog" }]), [{ name: "Search" }, { name: "Saved" }]);
+    expect(m.aliases).toBeUndefined();
+    expect(m.nav[0]!.items.map((v) => v.label)).toEqual(["Home", "Saved"]);
+    // And a screen only a page of its kind could stand for, without an explicit alias, isn't covered.
+    expect(completenessProblems(m, [{ name: "Search" }])).toEqual([`The PRD's "Search" screen has no page of its own: only "Saved" (catalog) could stand for it, and it isn't made its alias (that page is another required screen's)`]);
+  });
 });

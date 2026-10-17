@@ -80,6 +80,18 @@ export interface AppModel {
   nav: Array<{ label: string; items: ModelView[] }>;
   /** A look-up app (shape "lookup"): what is looked up and where it is found. */
   lookup?: LookupModel;
+  /** Screens the PRD names that a working page of their kind stands for (Search → the catalog page), made explicit. */
+  aliases?: ScreenAlias[];
+}
+
+export interface ScreenAlias {
+  /** The screen as the PRD names it. */
+  screen: string;
+  /** The working page that is that screen (its id and kind). */
+  view: string;
+  kind: ViewKind;
+  /** The placeholder link it replaced, if there was one. */
+  replaced?: string;
 }
 
 export const appModelKey = (runId: string) => `appModel:${runId}`;
@@ -496,13 +508,56 @@ const SCREEN_KIND: Array<[RegExp, LookupKind[]]> = [
 ];
 const STOP = new Set(["the", "and", "for", "page", "screen", "view", "your", "with", "a", "an", "of", "to"]);
 
-/** Whether the app's pages cover a screen the PRD names: a page sharing a word of its name, or a look-up page of its kind. */
-export function coversScreen(views: ModelView[], name: string): boolean {
+const screenWords = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[()]/g, " ")
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length >= 3 && !STOP.has(w));
+const namedBy = (v: ModelView, name: string) => screenWords(name).some((w) => `${v.label} ${v.id}`.toLowerCase().includes(w));
+
+/**
+ * The working page that covers a screen the PRD names: one sharing a word of its name, else a look-up page of its kind
+ * (an alias). A placeholder ("not in this prototype") never covers a required screen (Clean Cart slice eval 1: the
+ * Search link was a placeholder and counted as the PRD's Search screen).
+ */
+export function coveringView(views: ModelView[], name: string): { view: ModelView; byName: boolean } | undefined {
+  const working = views.filter((v) => v.kind !== "placeholder");
   const n = name.toLowerCase().replace(/[()]/g, " ");
-  const words = n.split(/[^a-z0-9]+/).filter((w) => w.length >= 3 && !STOP.has(w));
-  if (views.some((v) => words.some((w) => `${v.label} ${v.id}`.toLowerCase().includes(w)))) return true;
   const kinds = SCREEN_KIND.filter(([re]) => re.test(n)).flatMap(([, k]) => k);
-  return views.some((v) => kinds.includes(v.kind as LookupKind));
+  // Of the pages sharing a word of its name, the one of its kind first ("Product" is the product page, not "Products").
+  const named = working.filter((v) => namedBy(v, name));
+  const pick = named.find((v) => kinds.includes(v.kind as LookupKind)) ?? named[0];
+  if (pick) return { view: pick, byName: true };
+  const byKind = working.find((v) => kinds.includes(v.kind as LookupKind));
+  return byKind ? { view: byKind, byName: false } : undefined;
+}
+
+/** Whether the app's working pages cover a screen the PRD names (placeholders never do). */
+export function coversScreen(views: ModelView[], name: string): boolean {
+  return !!coveringView(views, name);
+}
+
+/**
+ * Makes each alias explicit: a PRD screen covered only by a working page of its kind (Search by the catalog page) gets
+ * that page under the PRD's name in the navigation, replacing a placeholder link of that name, and is recorded in the
+ * model's aliases (so it is checked in the browser as that screen: search, no results, and the same records through
+ * detail and Saved). A page whose own name is another required screen is never renamed.
+ */
+export function resolveScreenAliases(m: AppModel, declared: Array<{ name: string }>): AppModel {
+  const aliases: ScreenAlias[] = [...(m.aliases ?? [])];
+  let nav = m.nav;
+  for (const d of declared) {
+    const views = nav.flatMap((g) => g.items);
+    const cover = coveringView(views, d.name);
+    if (!cover || cover.byName) continue;
+    if (declared.some((o) => o !== d && coveringView(views, o.name)?.view === cover.view)) continue;
+    const label = d.name.replace(/\s*\(.*\)\s*/g, "").trim() || d.name;
+    const placeholder = views.find((v) => v.kind === "placeholder" && namedBy(v, d.name));
+    nav = nav.map((g) => ({ ...g, items: g.items.filter((v) => v !== placeholder).map((v) => (v === cover.view ? { ...v, label } : v)) }));
+    aliases.push({ screen: d.name, view: cover.view.id, kind: cover.view.kind, ...(placeholder ? { replaced: placeholder.id } : {}) });
+  }
+  return aliases.length ? { ...m, nav, aliases } : m;
 }
 
 /**
@@ -523,7 +578,17 @@ export function completenessProblems(m: AppModel, declared: Array<{ name: string
     if (entries.length && places.length && !entries.some((r) => Array.isArray(r[pf]) && (r[pf] as unknown[]).length)) out.push(`None of the ${m.entities.find((e) => e.key === m.lookup!.entries)?.plural.toLowerCase() ?? "entries"} say which ${m.lookup.placeWord || "place"}s carry them`);
   }
   const views = m.nav.flatMap((g) => g.items);
-  for (const d of declared) if (!coversScreen(views, d.name)) out.push(`The PRD's "${d.name}" screen has no page in the app model`);
+  for (const d of declared) {
+    const cover = coveringView(views, d.name);
+    // Covered by a page of its kind only counts as that screen once it is an explicit alias (resolveScreenAliases).
+    if (cover && (cover.byName || m.aliases?.some((a) => a.screen === d.name && a.view === cover.view.id))) continue;
+    if (cover) {
+      out.push(`The PRD's "${d.name}" screen has no page of its own: only "${cover.view.label}" (${cover.view.kind}) could stand for it, and it isn't made its alias (that page is another required screen's)`);
+      continue;
+    }
+    const placeholder = views.find((v) => v.kind === "placeholder" && namedBy(v, d.name));
+    out.push(placeholder ? `The PRD's "${d.name}" screen is only a placeholder in the app model ("${placeholder.label}", not built); a required screen needs a working page` : `The PRD's "${d.name}" screen has no page in the app model`);
+  }
   return out;
 }
 
