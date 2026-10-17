@@ -762,8 +762,12 @@ export class Verifier {
     if (required.has("app_wiring") || ["src/App.tsx", "src/App.jsx"].some((f) => fs.existsSync(path.join(jail.root, f)))) this.appWiringCheck(run);
     const qa = this.staticQa(run, jail, compliance);
     const needsBrowser = ["server_start", "preview_health", "screenshots", "accessibility", "design_qa", "visual_critique"].some((k) => required.has(k as VerificationKind)) && pf.previewStrategy !== "none";
-    if (needsBrowser && !opts.signal?.aborted) await this.browserChecks(run, pf.previewStrategy, qa, opts.signal, compliance);
-    else if (required.has("accessibility") && compliance) this.finishAccessibility(run, qa.a11y, undefined, undefined);
+    // The full accessibility audit (axe and the keyboard walk-through) runs for a Compliance build, and whenever the run's
+    // strategy requires the accessibility check: a required check is always recorded (a prototype's strategy leaves it out,
+    // prototype.ts). Before, a strategy that required it never got a record (phase7 reference-scheduler test).
+    const fullA11y = compliance || required.has("accessibility");
+    if (needsBrowser && !opts.signal?.aborted) await this.browserChecks(run, pf.previewStrategy, qa, opts.signal, fullA11y);
+    else if (required.has("accessibility")) this.finishAccessibility(run, qa.a11y, undefined, undefined);
   }
 
   /** Static QA. The security, privacy and SEO scans aren't recorded for prototype builds (orchestrator/prototype.ts). */
