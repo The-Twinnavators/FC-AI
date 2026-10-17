@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "id": "fixture-bold-aisle",
+  "name": "Bold Aisle",
+  "thesis": "A loud, fast store shelf: condensed capitals, hard outlines and tight rows, so many products scan at once.",
+  "typography": { "display": "Oswald", "body": "DM Sans", "scale": "compact", "headingWeight": 600, "headingCase": "upper" },
+  "palette": {
+    "bg": "#fff3c4", "surface": "#ffffff", "surfaceSunken": "#ffe68a", "text": "#111111", "textMuted": "#3d3d3d",
+    "border": "#111111", "borderStrong": "#111111", "accent": "#1d4ed8", "accentHover": "#1e40af", "onAccent": "#ffffff", "secondary": "#be123c"
+  },
+  "density": "compact",
+  "surface": { "vibe": "neobrutalism", "radii": [0, 0, 0, 0], "borderWidth": 3 },
+  "composition": {
+    "contentWidth": "wide",
+    "changes": [{ "target": "Search", "change": "Filters as a sticky row of chips above a dense four-column grid" }]
+  },
+  "signature": "A price tag tilted on each product card's corner",
+  "responsive": ["Below 600px the grid becomes two columns and the chip row scrolls sideways"],
+  "sources": [{ "kind": "internal", "ref": "controlled regression fixture B", "confidence": "high" }]
+}

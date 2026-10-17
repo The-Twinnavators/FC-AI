@@ -46,14 +46,14 @@
 .fl-lkf-stack { display: grid; gap: var(--space-6); min-width: 0; } /* 32px: sections sit 24-40px apart */
 /* The landing page's opening: title, promise and search, evenly spaced. */
 .fl-lkf-hero { display: grid; gap: var(--space-4); max-width: 44rem; }
-.fl-lkf-hero h1 { margin: 0; font-family: var(--font-display, var(--font-sans)); font-size: var(--text-3xl, 2.25rem); line-height: 1.1; text-wrap: balance; }
+.fl-lkf-hero h1 { margin: 0; font-family: var(--font-display, var(--font-sans)); font-weight: var(--type-h1-weight, var(--heading-weight, var(--weight-bold))); font-size: var(--text-3xl, 2.25rem); line-height: 1.1; text-wrap: balance; }
 .fl-lkf-hero p { margin: 0; color: var(--color-text-muted); font-size: var(--text-lg); }
 .fl-lkf-foot { padding: var(--space-6) var(--space-5); color: var(--color-text-muted); font-size: var(--text-xs); text-align: center; }
 .fl-lkf-bottom { display: none; }
 
 .fl-lkf-later { display: grid; justify-items: center; gap: var(--space-3); max-width: 32rem; margin: 0 auto; padding: var(--space-9, 6rem) var(--space-5); text-align: center; }
 .fl-lkf-later svg { width: 2.5rem; height: 2.5rem; color: var(--color-text-muted); }
-.fl-lkf-later h1 { margin: 0; font-family: var(--font-display, var(--font-sans)); font-size: var(--text-2xl); }
+.fl-lkf-later h1 { margin: 0; font-family: var(--font-display, var(--font-sans)); font-weight: var(--type-h1-weight, var(--heading-weight, var(--weight-bold))); font-size: var(--text-2xl); }
 .fl-lkf-later p { margin: 0; color: var(--color-text-muted); }
 
 .fl-lkf-link:focus-visible, .fl-lkf-brand:focus-visible, .fl-lkf-avatar:focus-visible { outline: none; box-shadow: var(--focus-ring); }
@@ -78,7 +78,7 @@
 .fl-lkf-demo-search { width: 100%; }
 .fl-lkf-demo-place { padding: var(--space-1) var(--space-3); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: var(--text-sm); white-space: nowrap; }
 .fl-lkf-demo-page { padding: 0; }
-.fl-lkf-demo-page h1 { margin: 0 0 var(--space-2); font-family: var(--font-display, var(--font-sans)); font-size: var(--text-2xl); }
+.fl-lkf-demo-page h1 { margin: 0 0 var(--space-2); font-family: var(--font-display, var(--font-sans)); font-weight: var(--type-h1-weight, var(--heading-weight, var(--weight-bold))); font-size: var(--text-2xl); }
 .fl-lkf-demo-page p { margin: 0; color: var(--color-text-muted); }
 
 @media (prefers-reduced-motion: reduce) { .fl-lkf * { transition: none !important; } }

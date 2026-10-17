@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "id": "fixture-field-notes",
+  "name": "Field Notes",
+  "thesis": "A calm, editorial grocery guide: generous space, a literary serif voice and quiet paper surfaces, so reading a label feels unhurried.",
+  "typography": { "display": "Playfair Display", "body": "Literata", "scale": "expressive", "headingWeight": 700, "headingCase": "normal" },
+  "palette": {
+    "bg": "#f6f1e7", "surface": "#fffdf8", "surfaceSunken": "#ece4d4", "text": "#2a2118", "textMuted": "#5f5446",
+    "border": "#ddd2bf", "borderStrong": "#8c7f6c", "accent": "#7a3b1e", "accentHover": "#5f2c14", "onAccent": "#ffffff", "secondary": "#3f5a3c"
+  },
+  "density": "airy",
+  "surface": { "vibe": "flat", "radii": [2, 2, 4, 4], "borderWidth": 1 },
+  "composition": {
+    "contentWidth": "narrow",
+    "changes": [{ "target": "Home", "change": "Lead with one featured product set large above a two-column list" }]
+  },
+  "signature": "Each product's ingredient line set like a footnote under its name",
+  "responsive": ["Below 600px the two-column list becomes one column with the featured product first"],
+  "sources": [{ "kind": "internal", "ref": "controlled regression fixture A", "confidence": "high" }]
+}
