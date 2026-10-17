@@ -222,6 +222,56 @@ export function parseTextToolCalls(text: string, allowed: Set<string>): ToolCall
 }
 
 /**
+ * Tool calls a model wrote as text, recovered only when they are explicit and unambiguous (the alternate format read
+ * when the provider can't parse native calls). Recovered: complete <function=…>…</function> or <tool_call>{…}</tool_call>
+ * blocks outside code fences, or a reply that is nothing but one JSON call (bare or in one fence). Not recovered, and
+ * said why so the model can send the call properly: an incomplete block (then none of the reply's calls run), a JSON
+ * call inside prose, a call inside a code fence (an example), a tool this step can't use, a whole file written as a
+ * code block (its path would be a guess). Identical calls in one reply are kept once. Every recovered call still goes
+ * through the ordinary schema, path, scope and approval checks.
+ */
+export function recoverTextCalls(text: string, allowed: Set<string>): { calls: ToolCall[]; problem?: string } {
+  const unfenced = text.replace(/```[\s\S]*?```/g, (m) => " ".repeat(m.length));
+  const opens = (unfenced.match(/<function=[\w-]+>/g) ?? []).length + (unfenced.match(/<tool_call>/g) ?? []).length;
+  const closes = (unfenced.match(/<\/function>/g) ?? []).length + (unfenced.match(/<\/tool_call>/g) ?? []).length;
+  if (opens > closes) return { calls: [], problem: "a tool call in your reply is incomplete (a <function=…> or <tool_call> block without its closing tag), so none of its calls ran" };
+  const dedupe = (calls: ToolCall[]) => {
+    const seen = new Set<string>();
+    return calls.filter((c) => {
+      const k = `${c.name}:${JSON.stringify(c.arguments)}`;
+      return !seen.has(k) && (seen.add(k), true);
+    });
+  };
+  const named = (t: string) => [...t.matchAll(/<function=([\w-]+)>|"(?:name|tool|tool_name)"\s*:\s*"([\w-]+)"/g)].map((m) => m[1] ?? m[2]!).filter(Boolean);
+  if (opens > 0) {
+    const calls = dedupe(parseTextToolCalls(unfenced, allowed));
+    const unknown = named(unfenced).filter((n) => !allowed.has(n));
+    if (unknown.length) return { calls: [], problem: `${[...new Set(unknown)].join(", ")} isn't a tool this step can use, so nothing in that reply ran` };
+    if (!calls.length) return { calls: [], problem: "your tool call couldn't be read (its arguments aren't in the <parameter=…> form), so nothing ran" };
+    return { calls };
+  }
+  // JSON calls: only a reply that is nothing but the call(s), bare or in one fence.
+  const whole = text.trim().replace(/^```(?:json)?\s*\n([\s\S]*?)\n?```$/, "$1").trim();
+  if (/^[[{][\s\S]*[}\]]$/.test(whole)) {
+    let v: unknown;
+    try {
+      v = JSON.parse(whole);
+    } catch {
+      v = undefined;
+    }
+    if (v !== undefined) {
+      const calls = dedupe(parseTextToolCalls(whole, allowed));
+      const unknown = named(whole).filter((n) => !allowed.has(n));
+      if (unknown.length) return { calls: [], problem: `${[...new Set(unknown)].join(", ")} isn't a tool this step can use, so nothing ran` };
+      if (calls.length) return { calls };
+    }
+  }
+  if (codeBlockEdit(text, allowed)) return { calls: [], problem: "your reply has a whole file as a code block; nothing was written (FlowCode doesn't guess the call). Write it with replace_file, giving its path and content" };
+  if (looksLikePseudoToolCall(text)) return { calls: [], problem: "your reply describes a tool call in prose or a code example, so nothing ran" };
+  return { calls: [] };
+}
+
+/**
  * A whole file written as a code block in the reply instead of as a tool call. In text mode qwen3-coder explains the fix
  * and then writes the corrected file in a ```tsx block (No BIO & GMO build: three attempts in a row, each "prose only",
  * the right fix never applied). When the reply names exactly one source file and has one complete code block for it,
@@ -306,6 +356,8 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
   let textCalls = 0;
   let badCalls = 0;
   let textMode = false;
+  // Recovered changes that ran in the last turn (name and arguments), so a replayed reply isn't applied twice.
+  let lastRecoveredOk = new Set<string>();
   let nudges = 0;
   const failedCalls = new Map<string, number>();
   // Reading: new content and repeats of unchanged content are counted apart; over budget, one structured check
@@ -377,6 +429,10 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
       if (e.kind === "tool_call_invalid" && !textMode && /xml syntax|closed by <?\/?|element <parameter>|<\/parameter>/i.test(e.message)) {
         textMode = true;
         turns--;
+        // The provider returned only its error, not the reply: the call is lost and has to be sent again. Said plainly,
+        // with the format to use from now on (Clean Cart slice eval 1: the coder's Home rewrite failed to parse, and its
+        // next three replies were prose because nothing told it why).
+        messages.push({ role: "user", content: "Runtime notice: the model service couldn't read your last tool call (file content with closing tags inside it), so nothing ran. From now on call tools in the text form described in the system prompt: <function=TOOL_NAME> with one <parameter=…> per argument, closed by </function>, outside any code block. Send that call again now." });
         input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", message: "The provider couldn't parse this model's tool calls (file content with closing tags); FlowCode reads them itself from now on.", data: { role: input.role } });
         continue;
       }
@@ -426,15 +482,29 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
     // Tool calls written as text are read and run like native ones (same validation, permissions and approvals).
     let calls = res.toolCalls;
     if (!calls.length && res.content.trim()) {
-      const recovered = parseTextToolCalls(res.content, callable);
-      const block = recovered.length ? undefined : codeBlockEdit(res.content, callable);
-      if (block) recovered.push(block);
-      if (recovered.length) {
-        calls = recovered;
-        textCalls += recovered.length;
-        input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", message: `Read ${recovered.length} tool call${recovered.length === 1 ? "" : "s"} the model wrote as text (${recovered.map((c) => c.name).join(", ")}); running ${recovered.length === 1 ? "it" : "them"} with the usual checks.`, data: { role: input.role } });
+      const recovered = recoverTextCalls(res.content, callable);
+      // A recovered change identical to one that ran in the previous turn isn't run again (a replayed reply).
+      const replayed = recovered.calls.filter((c) => EDIT_TOOLS.has(c.name as ToolName) && lastRecoveredOk.has(`${c.name}:${JSON.stringify(c.arguments)}`));
+      const fresh = recovered.calls.filter((c) => !replayed.includes(c));
+      if (fresh.length) {
+        calls = fresh;
+        textCalls += fresh.length;
+        input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", message: `Read ${fresh.length} tool call${fresh.length === 1 ? "" : "s"} the model wrote as text (${fresh.map((c) => c.name).join(", ")}); running ${fresh.length === 1 ? "it" : "them"} with the usual checks.`, data: { role: input.role } });
+      } else if (recovered.problem || replayed.length) {
+        // Not run, and said why, with the reply kept whole for anyone looking into it.
+        const why = recovered.problem ?? `that change already ran in your previous reply (${replayed.map((c) => c.name).join(", ")}); it wasn't run twice`;
+        input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", level: "warning", message: `Didn't run the model's text tool call: ${why}.`, data: { role: input.role, reply: redact(res.content).slice(0, 8000) } });
+        messages.push({ role: "assistant", content: res.content });
+        messages.push({ role: "user", content: `Runtime notice: ${why}. ${textMode ? "Call tools in the text form described in the system prompt: <function=TOOL_NAME> with one <parameter=…> per argument, closed by </function>, outside any code block." : "Invoke the tool through native tool calling."} Send one call now.` });
+        lastRecoveredOk = new Set();
+        continue;
+      } else if (textMode) {
+        // Text mode, nothing recognisable: kept whole, so a missed format can be found later.
+        input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "recovery.action", level: "warning", message: "The model's reply had no tool call FlowCode could read.", data: { role: input.role, reply: redact(res.content).slice(0, 8000) } });
       }
     }
+    const recoveredThisTurn = calls !== res.toolCalls;
+    if (!recoveredThisTurn) lastRecoveredOk = new Set();
     if (res.content.trim() && !calls.length) {
       input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "agent.message", message: `${input.role}: ${redact(res.content).slice(0, 600)}`, data: { role: input.role } });
     }
@@ -598,6 +668,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
         data: { toolCallId: recordId, ok: exec.ok },
         level: exec.ok ? "info" : "warning",
       });
+      if (recoveredThisTurn && exec.ok) lastRecoveredOk.add(`${call.name}:${JSON.stringify(call.arguments)}`);
       if (EDIT_TOOLS.has(name)) {
         if (exec.ok) {
           tally.applied.push(editFile);
