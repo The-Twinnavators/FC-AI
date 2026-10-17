@@ -55,6 +55,65 @@ describe("render loops", () => {
     for (const e of ok) expect(renderLoops(screen(e)), e).toEqual([]);
   });
 
+  it("leaves alone the Clean Cart slice's three timed effects (recorded verbatim), which were taken for loops", () => {
+    const recorded = [
+      // src/sections/ListBuilder.tsx:334
+      `const [undo, setUndo] = useState<string | null>(null);
+  useEffect(() => {
+    if (!undo) return;
+    const t = window.setTimeout(() => setUndo(null), 10000);
+    return () => window.clearTimeout(t);
+  }, [undo]);`,
+      // src/sections/LookupEntry.tsx:740
+      `const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const t = window.setTimeout(() => setCopied(false), 2400);
+    return () => window.clearTimeout(t);
+  }, [copied]);`,
+      // src/sections/LookupEntry.tsx:1220
+      `const [view, setView] = useState<"page" | "missing" | "loading">("page");
+  useEffect(() => {
+    if (view !== "loading") return;
+    const t = window.setTimeout(() => setView("page"), reducedMotion() ? 2400 : 1800);
+    return () => window.clearTimeout(t);
+  }, [view]);`,
+    ];
+    for (const e of recorded) expect(renderLoops(screen(e)), e).toEqual([]);
+    // Without its timer, an early return that reads the state still settles it.
+    expect(renderLoops(screen(`useEffect(() => {
+    if (count === 0) return;
+    setCount(0);
+  }, [count]);`))).toEqual([]);
+  });
+
+  it("still names a loop after an early return that doesn't read the state, or in a callback that runs right away, as suspicious", () => {
+    const guarded = renderLoops(screen(`useEffect(() => {
+    if (!items.length) return;
+    setFiltered([...filtered]);
+  }, [filtered, items]);`));
+    expect(guarded).toMatchObject([{ severity: "suspicious", message: expect.stringMatching(/under a condition that doesn't read filtered/) }]);
+    const each = renderLoops(screen(`useEffect(() => {
+    items.forEach((x) => setCount(count + x.length));
+  }, [count, items]);`));
+    expect(each).toMatchObject([{ severity: "suspicious", message: expect.stringMatching(/from a function or callback inside it/) }]);
+  });
+
+  it("keeps the unconditional loops blocking, and only those go with a test run", () => {
+    const sort = screen(`useEffect(() => {
+    const sorted = [...filtered];
+    setFiltered(sorted);
+  }, [filtered]);`);
+    expect(renderLoops(sort)[0]!.severity).toBe("blocking");
+    const maybe = screen(`useEffect(() => {
+    if (sort === "name") setFiltered([...filtered]);
+  }, [filtered, sort]);`);
+    expect(renderLoops(maybe)[0]!.severity).toBe("suspicious");
+    expect(renderLoopNote([{ path: "src/A.tsx", text: maybe }], "blocking")).toBe("");
+    expect(renderLoopNote([{ path: "src/A.tsx", text: maybe }])).toMatch(/^Possible re-render loop/);
+    expect(renderLoopNote([{ path: "src/B.tsx", text: sort }], "blocking")).toMatch(/^Endless re-render found/);
+  });
+
   it("puts the file and line in one note, and says nothing when there's no loop", () => {
     const bad = screen(`useEffect(() => {
     setFiltered([...filtered]);

@@ -410,7 +410,7 @@ export function createDispatcher(ctx: DispatchContext) {
             }),
         )
       : "";
-    const loopNote = loops ? `\n\n${loops}\nFix this before running the tests.` : "";
+    const loopNote = loops ? `\n\n${loops}${loops.startsWith("Endless") ? "\nFix this before running the tests." : ""}` : "";
     return { ok: res.ok, content: res.ok ? `${res.message}${res.diff ? `\n${res.diff.slice(0, 3000)}` : ""}${autoNote}${typeNote}${loopNote}` : `ERROR: ${res.message}` };
   };
 
@@ -558,6 +558,7 @@ export function createDispatcher(ctx: DispatchContext) {
         case "run_script": {
           const pf = ctx.preflight() ?? ctx.refreshPreflight();
           let argv: string[];
+          let loopAfterTests = "";
           if (name === "run_script") {
             // "npm run typecheck" (or "pnpm typecheck") means the script "typecheck".
             // Reporter and watch flags change only how results print; FlowCode summarises failures itself, so they're
@@ -589,11 +590,10 @@ export function createDispatcher(ctx: DispatchContext) {
             if (script.classification === "dev" || script.classification === "start" || script.classification === "preview")
               return { ok: false, content: `"${script.name}" starts a server that keeps running, so it can't be run as a check. FlowCode starts the app itself to look at the screens after your edits. To check your work, use run_script "typecheck" or "test".` };
             // A screen that re-renders forever makes every test hang until the time limit (No BIO & GMO build: five
-            // minutes per run, with only "timed out" to go on). Say where the loop is instead of running.
-            if (script.classification === "test") {
-              const loops = renderLoopNote(sourceFiles(ctx.jail.root));
-              if (loops) return { ok: false, content: `Not run: the tests would hang. ${loops}\nFix the loop, then run the tests again.` };
-            }
+            // minutes per run, with only "timed out" to go on). Where the source shows one, it is named with the result;
+            // the tests still run, since a source check isn't proof they can't (Clean Cart slice eval 1: three timed
+            // effects were taken for loops and every test run was refused).
+            if (script.classification === "test") loopAfterTests = renderLoopNote(sourceFiles(ctx.jail.root), "blocking");
             argv = file ? [...scriptArgv(pf, script), "--", file, ...(testName ? ["-t", testName] : [])] : scriptArgv(pf, script);
           } else {
             argv = (a.argv as string[]).map(String);
@@ -631,7 +631,8 @@ export function createDispatcher(ctx: DispatchContext) {
           if (res.record.status === "blocked") return { ok: false, content: `${header}\nPolicy: ${res.record.policyReasons.join("; ")}\n${res.record.outputPreview ?? ""}` };
           // A failed test run starts with every failing test and why, since the tail only holds the last few.
           const digest = res.record.status === "succeeded" ? "" : testFailureDigest(res.output);
-          return { ok: res.record.status === "succeeded", content: `${header}\n${digest}${untrusted("command-output", tail)}${res.record.status === "succeeded" ? "" : hintText(res.output.split(/\r?\n/))}` };
+          const loopNote = loopAfterTests ? `\n\n${loopAfterTests}\n${res.record.status === "timed_out" ? "That is the likely reason the tests timed out." : "Fix it even if the tests finished: the screen would freeze in the browser."}` : "";
+          return { ok: res.record.status === "succeeded", content: `${header}\n${digest}${untrusted("command-output", tail)}${res.record.status === "succeeded" ? "" : hintText(res.output.split(/\r?\n/))}${loopNote}` };
         }
         case "request_approval": {
           const ap = ctx.approvals.request({
