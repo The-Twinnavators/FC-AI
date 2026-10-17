@@ -172,7 +172,8 @@ export function fitHandoff(p: HandoffPacket, workspaceTree: string, scripts: str
     text = render();
   }
   if (over()) {
-    packet.findings = packet.findings.map((f) => (f.length > 600 ? `${f.slice(0, 600)}…` : f));
+    // The located evidence of a correction or escalation (recoveryRouting.ts) is the point of that attempt: never cut.
+    packet.findings = packet.findings.map((f) => (f.length > 600 && !/^(Focused correction:|Escalated to you|The located evidence)/.test(f) ? `${f.slice(0, 600)}…` : f));
     text = render();
   }
   // The step's own files: shortened step by step (stylesheets first), never left out.

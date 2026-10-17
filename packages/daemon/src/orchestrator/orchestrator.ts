@@ -83,6 +83,7 @@ import { RECOVERY_BACKOFF_MS, causeOfBlocker, getInterruption, recordInterruptio
 import { createHash } from "node:crypto";
 import { toolDef } from "./agentLoop.js";
 import { catalogContract, contractText } from "./catalogContract.js";
+import { importedPieceContracts, navigationContract, screenRequirements, touchesNavigation } from "./packetContext.js";
 import { STYLE_FILE, contractProblems, deliverableChecks, genericOnly, isTaskSpecific, separateMixed, testFileOf, writesTestsStep } from "./taskContract.js";
 import { FLOWCODE_LIMITS_KEY, compactPartObjective, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
@@ -2639,6 +2640,18 @@ export class Orchestrator {
           requirements.push(`PRD ${prdPath}, section${sec.used.length === 1 ? "" : "s"} ${sec.used.join(", ")}:\n${sec.text}`);
           cited = "cited";
         }
+        // What the PRD says about the screens this step works on (all of them for the frame and navigation), and its
+        // navigation section when the step touches them: kept through fitting (packetContext.ts), whatever the step's
+        // words happen to match.
+        const nav = touchesNavigation(task);
+        const plannedScreens = this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? [];
+        const stepFiles = [...task.expectedPaths, ...task.actualPaths].map((p) => p.replace(/\\/g, "/"));
+        const mineScreens = plannedScreens.filter((s) => nav || stepFiles.some((p) => p === s.file || p.replace(/^.*\//, "").replace(/\.[a-z]+$/i, "").toLowerCase() === s.file.replace(/^.*\//, "").replace(/\.[a-z]+$/i, "").toLowerCase()));
+        const screenText = screenRequirements(md, mineScreens.map((s) => s.label), nav);
+        if (screenText) {
+          requirements.push(screenText);
+          cited ||= "cited";
+        }
       } catch {
         cited = "";
       }
@@ -2668,6 +2681,13 @@ export class Orchestrator {
         const c = catalogContract(x.ref ?? x.id);
         return c ? [{ name: `${x.name} (${x.ref}, ${sectionFile(x.id)})`, text: contractText(c).slice(0, 2500) }] : [];
       });
+    // The contracts of the library pieces this step's screens import (not only section files it owns), and how App.tsx
+    // renders the screens, for steps that work on screens or the frame: kept through fitting like the requirements.
+    for (const c of importedPieceContracts(jail.root, [...task.expectedPaths, ...task.actualPaths].filter((p) => /\.(tsx|jsx)$/.test(p)))) if (!contracts.some((x) => x.name.split(" (")[0] === c.name.split(" (")[0])) contracts.push(c);
+    if (touchesNavigation(task) || [...task.expectedPaths, ...task.actualPaths].some((p) => /(^|\/)screens\//.test(p.replace(/\\/g, "/")))) {
+      const navContract = navigationContract(jail.root);
+      if (navContract) contracts.push({ name: "Navigation contract (src/App.tsx)", text: navContract });
+    }
     // What's installed, so a step doesn't import a package the project doesn't have (a test step imported
     // react-router-dom, not installed, and spent its next turns on the type errors).
     const installed = installedPackages(jail.root);
@@ -2845,8 +2865,9 @@ export class Orchestrator {
     // sent as it is, said plainly).
     if (brief.overflow > 0) {
       const tokens = Math.round(brief.overflow / reqBudget.charsPerToken);
-      if (role === "coder" && !this.d.store.getSetting(`splitPart:${task.id}`, false)) return { kind: "split_required", reason: `its own files, checks and requirements need about ${tokens} more tokens than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window leaves for them` };
-      this.d.bus.emit({ type: "recovery.action", level: "warning", projectId: project.id, runId: run.id, taskId: task.id, message: `"${task.title}" is about ${tokens} tokens over its budget even with its files shortened; it runs with less room to work` });
+      // Never sent with part of what it needs, and never sent over budget (a part can't be split again: the split path
+      // then blocks it for the person's choice, saying why).
+      return { kind: "split_required", reason: `its own files, checks and requirements need about ${tokens} more tokens than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window leaves for them` };
     }
     const result = await runAgentLoop({
       router: this.d.router,

@@ -1,0 +1,35 @@
+import { HeroSplit } from "../sections/HeroSplit";
+import { ShopCollection } from "../sections/ShopCollection";
+import { FeaturesAlternating } from "../sections/FeaturesAlternating";
+import { CtaBanner } from "../sections/CtaBanner";
+
+const HomeLandingPageScreen = () => {
+  return (
+    <div className="fl-bg-soft">
+      <HeroSplit
+        title="Clean Cart: Find Non-GMO Food Near You"
+        cta="Browse Categories"
+        image={{ src: "hero-market.jpg", alt: "Fresh organic produce in a market setting" }}
+      />
+      <ShopCollection
+        eyebrow="Featured Categories"
+        heading="Explore Our Categories"
+        lede="Find what you're looking for in our curated categories"
+        currency="USD"
+        sizes={['S', 'M', 'L']}
+        colors={[{ id: 'green', name: 'Organic' }, { id: 'brown', name: 'Whole Grain' }, { id: 'white', name: 'Dairy-Free' }]}
+        products={[{ id: '1', name: 'Organic Produce', price: 499, colour: 'green', sizes: ['S', 'M', 'L'], image: 'product-organic.jpg' }, { id: '2', name: 'Whole Grain Bread', price: 399, colour: 'brown', sizes: ['S', 'M', 'L'], image: 'product-bread.webp' }, { id: '3', name: 'Dairy-Free Alternatives', price: 599, colour: 'white', sizes: ['S', 'M', 'L'], image: 'product-dairy.jpg' }]}
+      />
+      <FeaturesAlternating
+        items={[{ icon: "shopping-cart", title: "Find Stores", description: "Enter your ZIP code to find stores carrying non-GMO and bio-engineered-free products" }, { icon: "list", title: "Create Lists", description: "Build and save grocery lists with store-specific items" }, { icon: "star", title: "Rate Products", description: "Share your feedback to help others find quality non-GMO options" }]}
+      />
+      <CtaBanner
+        title="Start Shopping Today"
+        cta="Enter ZIP Code"
+        image={{ src: "hero-market-2.jpg", alt: "Organic fruits and vegetables in a market setting" }}
+      />
+    </div>
+  );
+};
+
+export default HomeLandingPageScreen;

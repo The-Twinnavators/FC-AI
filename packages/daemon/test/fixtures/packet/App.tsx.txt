@@ -1,0 +1,31 @@
+import { AppShell } from "./components/ui";
+import { useScreen } from "./lib/screens";
+import HomeLandingPageScreen from "./screens/HomeLandingPageScreen";
+import CategoriesScreen from "./screens/CategoriesScreen";
+import CategoryScreen from "./screens/CategoryScreen";
+import SearchScreen from "./screens/SearchScreen";
+import ProductScreen from "./screens/ProductScreen";
+import GroceryListsScreen from "./screens/GroceryListsScreen";
+
+const SCREENS = [{ id: "home-landing-page", label: "Home (landing page)" }, { id: "categories", label: "Categories" }, { id: "category", label: "Category" }, { id: "search", label: "Search" }, { id: "product", label: "Product" }, { id: "grocery-lists", label: "Grocery lists" }];
+const SCREEN_IDS = SCREENS.map((s) => s.id);
+/** Whole website pages: drawn on their own, with their own header and footer. */
+const FULL_PAGE = ["home-landing-page"];
+
+export default function App() {
+  const [current, go] = useScreen(SCREEN_IDS);
+  if (FULL_PAGE.includes(current)) return (
+    <>
+      {current === "home-landing-page" ? <HomeLandingPageScreen /> : null}
+    </>
+  );
+  return (
+    <AppShell name="Clean Cart" screens={SCREENS} current={current} onNavigate={go}>
+      {current === "categories" ? <CategoriesScreen /> : null}
+      {current === "category" ? <CategoryScreen /> : null}
+      {current === "search" ? <SearchScreen /> : null}
+      {current === "product" ? <ProductScreen /> : null}
+      {current === "grocery-lists" ? <GroceryListsScreen /> : null}
+    </AppShell>
+  );
+}
