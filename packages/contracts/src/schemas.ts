@@ -283,6 +283,7 @@ export const VerificationKind = z.enum([
   "seo",
   "spec_fidelity",
   "app_wiring",
+  "functional_journey",
   "final_report",
 ]);
 export type VerificationKind = z.infer<typeof VerificationKind>;

@@ -118,6 +118,12 @@ export function mergeRecords(e: ModelEntity, kept: Row[], incoming: Row[], opts:
       conflicts.push(`${what}; kept the version with the PRD's values`);
       continue;
     }
+    // Both carry every value the PRD gives: it is the PRD's record; they differ only in what the PRD doesn't say.
+    if (prd && agrees(other, prd) && agrees(row, prd)) {
+      const differ = e.fields.filter((f) => norm(other[f.key]) !== norm(row[f.key])).map((f) => f.key);
+      conflicts.push(`${what}: both have the PRD's values and differ only in ${differ.join(", ")}, which the PRD doesn't give; kept one`);
+      continue;
+    }
     rows = rows.filter((r) => r !== other);
     held.add(compositeKey(e, other)).add(key);
     conflicts.push(`${what}; neither version is kept (held out)${prd ? ", and neither has the PRD's values" : ""}`);

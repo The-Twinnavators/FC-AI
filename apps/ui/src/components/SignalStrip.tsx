@@ -26,6 +26,7 @@ const ORDER: VerificationKind[] = [
   "design_qa",
   "visual_critique",
   "spec_fidelity",
+  "functional_journey",
   "security_scan",
   "final_report",
 ];
@@ -36,7 +37,7 @@ const NAME: Partial<Record<VerificationKind, string>> = Object.fromEntries(Objec
 /** A check's status in one or two words (a blocked check is waiting on an earlier step, not stuck). */
 // A check that was skipped because it couldn't run (no credit, model unreachable) verified nothing: say so.
 const checkStatusShort = (st?: string, summary?: string) => (checkCouldNotRun(st, summary) ? "Couldn't run" : st === "passed_with_warnings" ? "Notes" : st === "blocked" ? "Waiting" : st === "failed" ? "Needs fixing" : !st || st === "not_run" ? "Not yet" : statusLabel(st));
-const BROWSER: VerificationKind[] = ["server_start", "preview_health", "screenshots", "accessibility", "design_qa", "visual_critique", "spec_fidelity"];
+const BROWSER: VerificationKind[] = ["server_start", "preview_health", "screenshots", "accessibility", "design_qa", "visual_critique", "spec_fidelity", "functional_journey"];
 const STATIC: VerificationKind[] = ["security_scan", "compliance_triage", "seo"];
 const groupNote = (k: VerificationKind) =>
   BROWSER.includes(k) ? "Re-runs the browser checks together (dev server, preview, screenshots, accessibility, design, critique). About a minute." : STATIC.includes(k) ? "Re-runs the static scans together." : k === "project_preflight" || k === "manifest_validation" ? "Re-reads the project setup." : "";

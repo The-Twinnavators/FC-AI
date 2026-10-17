@@ -46,6 +46,7 @@ export const CHECK_NAME: Record<string, string> = {
   preview_health: "live preview",
   screenshots: "screenshots",
   spec_fidelity: "match to the spec",
+  functional_journey: "browser journey through the app",
   security_scan: "security scan",
 };
 

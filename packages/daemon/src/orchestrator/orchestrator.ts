@@ -110,6 +110,7 @@ import { mcpStepTools } from "../mcp/stepTools.js";
 import { designResearch, designResearchBrief } from "../quality/designResearch.js";
 import { failuresOf, fixBrief, fixDiff, recordFix, similarFixes } from "../knowledge/fixMemory.js";
 import { inheritedNote, provisionalFromKey, provisionalKey, type ProvisionalSet } from "./provisional.js";
+import { dataSourceProblems, readGeneratedData } from "../quality/appData.js";
 import { batchNote, fixturesFirst, holdsFixtures, mergeRecords, missingFixtures, prdFixtureRows } from "./recordIdentity.js";
 import { figmaBrief, figmaLinks } from "../mcp/figma.js";
 import { creditAdvice } from "../quality/blockerText.js";
@@ -144,6 +145,19 @@ export function codingReplyCap(a: ModelAssignment): number {
   const w = codingWindowTokens(a);
   return a.providerId.startsWith("hosted") ? Math.max(16_000, Math.floor(w / 4)) : Math.min(4096, Math.floor(w / 4));
 }
+
+/** The functional baseline of a complete app (orchestrator.functionalBaseline). */
+export interface FunctionalBaseline {
+  checkpointId: string;
+  taskId: string;
+  sourceState: { snapshotSeq: number; srcSha256: string };
+  at: string;
+  typecheck: string;
+  dataSource: string[];
+  journey: { ok: boolean; summary: string; artifactId?: string };
+  ok: boolean;
+}
+export const functionalBaselineKey = (runId: string) => `functionalBaseline:${runId}`;
 
 export class Orchestrator {
   private active = new Map<string, AbortController>();
@@ -1080,6 +1094,9 @@ export class Orchestrator {
         }
         if (model) {
           this.d.store.setSetting(appModelKey(run.id), model);
+          // A complete app is done only when the journey through it passes after design (quality/appJourney.ts).
+          const fresh = this.d.store.runs.require(run.id);
+          if (fresh.strategy && !fresh.strategy.requiredChecks.includes("functional_journey")) this.d.store.runs.upsert({ ...fresh, strategy: { ...fresh.strategy, requiredChecks: [...fresh.strategy.requiredChecks.filter((k) => k !== "final_report"), "functional_journey", "final_report"] } });
           const views = model.nav.flatMap((g) => g.items);
           this.d.bus.emit({ ...ev, type: "plan.proposed", message: `The app model: ${model.product}, ${model.entities.map((e) => `${e.plural} (${e.fields.length} fields, ${(model.seed[e.key] ?? []).length} sample records)`).join(", ")}; roles ${model.roles.join(", ")}; ${views.length} destinations, ${views.filter((v) => v.kind !== "placeholder").length} working pages${problems.length ? `. Corrected: ${problems.slice(0, 6).join("; ")}` : ""}`, data: { appModel: model } });
           return model;
@@ -1761,7 +1778,9 @@ export class Orchestrator {
     const status = gate.status;
     // A prototype build is the person's to judge: its checks passing makes it ready for their review, not complete.
     const review = isFinishedRun(status) && needsHumanReview(this.reviewDeps(), run);
-    const msg = isFinishedRun(status) ? `${review ? "Checks passed; ready for your review (not complete until you approve every page and journey and sign off)" : "Done gate passed"}${gate.warnings.length ? ` with ${gate.warnings.length} warning(s)` : ""}${gate.unverified.length ? `; not fully verified: ${gate.unverified.join("; ")}` : ""}` : `Done gate not met: ${gate.unmet.slice(0, 3).join("; ")}`;
+    const base = this.d.store.getSetting<FunctionalBaseline | null>(functionalBaselineKey(runId), null);
+    const partial = !isFinishedRun(status) && base?.ok ? `Functional baseline verified at checkpoint ${base.checkpointId}; design unfinished (partial delivery, not success). ` : "";
+    const msg = isFinishedRun(status) ? `${review ? "Checks passed; ready for your review (not complete until you approve every page and journey and sign off)" : "Done gate passed"}${gate.warnings.length ? ` with ${gate.warnings.length} warning(s)` : ""}${gate.unverified.length ? `; not fully verified: ${gate.unverified.join("; ")}` : ""}` : `${partial}Done gate not met: ${gate.unmet.slice(0, 3).join("; ")}`;
     const final = this.setStatus(runId, status, msg);
     if (isFinishedRun(status)) {
       const cp = this.d.snapshots.createCheckpoint(runId, review ? "Ready for review (version 1)" : "Run verified", true);
@@ -2340,6 +2359,8 @@ export class Orchestrator {
       this.d.store.runs.upsert({ ...this.d.store.runs.require(run.id), safeCheckpointId: safe.id });
       this.d.bus.emit({ ...ev, type: "task.verified", message: `Task verified: ${task.title}`, data: { checkpointId: safe.id } });
       this.settleProvisional(run, task.id);
+      // The app FlowCode just wrote: its functional baseline, before any design work (recorded on this step only).
+      if (task.title === WRITE_APP) await this.functionalBaseline(run, this.d.store.tasks.require(task.id), safe.id, signal);
       return;
     }
     const why = [outcome.kind !== "complete" ? `agent outcome: ${outcome.kind}${"reason" in outcome ? ` (${outcome.reason})` : ""}` : "", ...verdict.failures].filter(Boolean);
@@ -3203,6 +3224,43 @@ export class Orchestrator {
       if (why) return why;
     }
     return undefined;
+  }
+
+  /**
+   * The functional baseline: right after FlowCode writes the app (no design yet), the applicable checks (type check, the
+   * app's records against the PRD's in the generated source) and the journey through it in the browser, recorded with the
+   * checkpoint and the source state they ran on. It is evidence that the app worked at that point, kept apart from the
+   * final checks: it never satisfies them, and the journey runs again in final verification after design. A run that
+   * stops in design reports it as partial delivery ("Functional baseline verified at checkpoint …; design unfinished").
+   */
+  private async functionalBaseline(run: Run, task: Task, checkpointId: string, signal: AbortSignal) {
+    const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
+    const root = this.d.projects.jail(run.projectId).root;
+    const diag = await this.d.verifier.captureDiagnostics(this.d.store.runs.require(run.id), signal).catch(() => undefined);
+    const prd = prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []));
+    const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
+    const data = readGeneratedData(root);
+    const dataProblems = data ? dataSourceProblems(data, prdNamedRecords(prdSampleSection(prd)), model?.lookup) : ["src/app/schema.ts couldn't be read"];
+    const journey = await this.d.verifier.functionalJourney(this.d.store.runs.require(run.id), { taskId: task.id, signal });
+    const hash = createHash("sha256");
+    const walk = (dir: string) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+        const abs = path.join(dir, e.name);
+        if (e.isDirectory()) walk(abs);
+        else hash.update(path.relative(root, abs).split(path.sep).join("/")).update(fs.readFileSync(abs));
+      }
+    };
+    try {
+      walk(path.join(root, "src"));
+    } catch {
+      /* no src: the hash says so by being of nothing */
+    }
+    const snapshotSeq = Math.max(0, ...this.d.store.snapshots.where("run_id = ?", run.id).map((x) => x.seq));
+    const typecheckOk = diag?.typecheck ? diag.typecheck.passed : undefined;
+    const ok = typecheckOk !== false && !dataProblems.length && !!journey?.ok;
+    const baseline: FunctionalBaseline = { checkpointId, taskId: task.id, sourceState: { snapshotSeq, srcSha256: hash.digest("hex") }, at: new Date().toISOString(), typecheck: typecheckOk === undefined ? "not run" : typecheckOk ? "passed" : `${diag!.typecheck!.lines.length} error(s)`, dataSource: dataProblems, journey: journey ? { ok: journey.ok, summary: journey.summary, artifactId: journey.artifactId } : { ok: false, summary: "not run (no written app model)" }, ok };
+    this.d.store.setSetting(functionalBaselineKey(run.id), baseline);
+    this.d.bus.emit({ ...ev, type: "verification.completed", level: ok ? "info" : "warning", message: `Functional baseline at checkpoint ${checkpointId} (before design): ${ok ? "verified" : "not verified"}. Type check ${baseline.typecheck}; records ${dataProblems.length ? dataProblems.slice(0, 2).join("; ") : "match the PRD"}; journey ${baseline.journey.summary}. This doesn't count as the final check; the journey runs again after design.`, data: { functionalBaseline: baseline } });
   }
 
   /**

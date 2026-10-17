@@ -92,6 +92,7 @@ const CHECK_NAMES: Record<string, string> = {
   compliance_triage: "the compliance triage check",
   seo: "the SEO check",
   spec_fidelity: "the spec fidelity check",
+  functional_journey: "the browser journey through the app",
   app_wiring: "the app wiring check",
   code_cleanup: "the clean-up scan",
   final_report: "the final evidence report",

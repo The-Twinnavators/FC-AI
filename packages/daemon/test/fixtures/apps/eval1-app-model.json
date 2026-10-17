@@ -1,0 +1,744 @@
+{
+ "product": "Clean Cart",
+ "roles": [
+  "Member (signed in as a demo account)",
+  "Visitor (not signed in)"
+ ],
+ "entities": [
+  {
+   "key": "product",
+   "label": "Product",
+   "plural": "Products",
+   "titleField": "name",
+   "subtitleField": "brand",
+   "idPrefix": "PRD",
+   "fields": [
+    {
+     "key": "name",
+     "label": "Name",
+     "type": "text",
+     "required": true
+    },
+    {
+     "key": "brand",
+     "label": "Brand",
+     "type": "text",
+     "required": true
+    },
+    {
+     "key": "category",
+     "label": "Category",
+     "type": "select",
+     "options": [
+      "Beverages",
+      "Bakery",
+      "Breakfast",
+      "Baby",
+      "Snacks",
+      "Dairy"
+     ],
+     "required": true
+    },
+    {
+     "key": "certification",
+     "label": "Certification",
+     "type": "select",
+     "options": [
+      "Non-GMO Project Verified",
+      "USDA Organic"
+     ],
+     "required": true
+    },
+    {
+     "key": "ingredients",
+     "label": "Ingredients",
+     "type": "longtext",
+     "required": true
+    },
+    {
+     "key": "description",
+     "label": "Short Description",
+     "type": "longtext"
+    }
+   ],
+   "columns": [],
+   "filters": []
+  },
+  {
+   "key": "store",
+   "label": "Store",
+   "plural": "Stores",
+   "titleField": "name",
+   "subtitleField": "zip",
+   "idPrefix": "STR",
+   "fields": [
+    {
+     "key": "name",
+     "label": "Name",
+     "type": "text",
+     "required": true
+    },
+    {
+     "key": "zip",
+     "label": "ZIP Code",
+     "type": "text",
+     "required": true
+    }
+   ],
+   "columns": [],
+   "filters": []
+  }
+ ],
+ "seed": {
+  "product": [
+   {
+    "id": "PRD-1001",
+    "name": "Oat Milk Original",
+    "brand": "Willow Farms",
+    "category": "Beverages",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Oats, water, sea salt",
+    "description": "Creamy oat milk perfect for coffee or cereal.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003"
+    ]
+   },
+   {
+    "id": "PRD-1002",
+    "name": "Sourdough Country Loaf",
+    "brand": "Hearth & Grain",
+    "category": "Bakery",
+    "certification": "USDA Organic",
+    "ingredients": "Wheat flour, water, salt, sourdough starter",
+    "description": "Authentic sourdough bread with a crispy crust and soft interior.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003"
+    ]
+   },
+   {
+    "id": "PRD-1003",
+    "name": "Rolled Oats",
+    "brand": "Sunrise Valley",
+    "category": "Breakfast",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Whole grain rolled oats",
+    "description": "Perfect for oatmeal, baking, or as a healthy snack.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003"
+    ]
+   },
+   {
+    "id": "PRD-1004",
+    "name": "Pear Puree",
+    "brand": "Little Sprout",
+    "category": "Baby",
+    "certification": "USDA Organic",
+    "ingredients": "Organic pears",
+    "description": "Smooth and delicious pear puree for baby's first foods.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003"
+    ]
+   },
+   {
+    "id": "PRD-1005",
+    "name": "Black Bean Chips",
+    "brand": "Mesa Crunch",
+    "category": "Snacks",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Black beans, corn, sunflower oil, salt",
+    "description": "Crispy chips made from black beans and corn.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003"
+    ]
+   },
+   {
+    "id": "PRD-1006",
+    "name": "Greek Yogurt Plain",
+    "brand": "Meadow Hill",
+    "category": "Dairy",
+    "certification": "USDA Organic",
+    "ingredients": "Cultured pasteurized milk",
+    "description": "Creamy plain Greek yogurt, high in protein.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003"
+    ]
+   },
+   {
+    "id": "PRD-1007",
+    "name": "Almond Milk Vanilla",
+    "brand": "Willow Farms",
+    "category": "Beverages",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Almonds, water, sea salt, vanilla extract",
+    "description": "Rich and creamy almond milk with a hint of vanilla.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003",
+     "STR-1004"
+    ]
+   },
+   {
+    "id": "PRD-1008",
+    "name": "Whole Wheat Bread",
+    "brand": "Hearth & Grain",
+    "category": "Bakery",
+    "certification": "USDA Organic",
+    "ingredients": "Whole wheat flour, water, salt, yeast",
+    "description": "Nutritious whole wheat bread with a hearty texture.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003",
+     "STR-1005"
+    ]
+   },
+   {
+    "id": "PRD-1009",
+    "name": "Quinoa Flakes",
+    "brand": "Sunrise Valley",
+    "category": "Breakfast",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Organic quinoa flakes",
+    "description": "Gluten-free quinoa flakes for a healthy breakfast.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003",
+     "STR-1006"
+    ]
+   },
+   {
+    "id": "PRD-1010",
+    "name": "Apple Puree",
+    "brand": "Little Sprout",
+    "category": "Baby",
+    "certification": "USDA Organic",
+    "ingredients": "Organic apples",
+    "description": "Sweet and smooth apple puree for baby's first foods.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003",
+     "STR-1007"
+    ]
+   },
+   {
+    "id": "PRD-1011",
+    "name": "Oat Milk Original",
+    "brand": "Willow Farms",
+    "category": "Beverages",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Oats, water, sea salt",
+    "description": "Creamy oat milk perfect for coffee or cereal.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1003"
+    ]
+   },
+   {
+    "id": "PRD-1012",
+    "name": "Sourdough Country Loaf",
+    "brand": "Hearth & Grain",
+    "category": "Bakery",
+    "certification": "USDA Organic",
+    "ingredients": "Wheat flour, water, salt, sourdough starter",
+    "description": "Authentic sourdough bread with a tangy flavor.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1002",
+     "STR-1004"
+    ]
+   },
+   {
+    "id": "PRD-1013",
+    "name": "Rolled Oats",
+    "brand": "Sunrise Valley",
+    "category": "Breakfast",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Whole grain rolled oats",
+    "description": "Perfect for oatmeal or baking.",
+    "carriedBy": [
+     "STR-1002",
+     "STR-1003",
+     "STR-1005"
+    ]
+   },
+   {
+    "id": "PRD-1014",
+    "name": "Pear Puree",
+    "brand": "Little Sprout",
+    "category": "Baby",
+    "certification": "USDA Organic",
+    "ingredients": "Organic pears",
+    "description": "Smooth and delicious pear puree for baby meals.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1003",
+     "STR-1006"
+    ]
+   },
+   {
+    "id": "PRD-1015",
+    "name": "Black Bean Chips",
+    "brand": "Mesa Crunch",
+    "category": "Snacks",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Black beans, corn, sunflower oil, salt",
+    "description": "Crispy and flavorful chips made from black beans.",
+    "carriedBy": [
+     "STR-1002",
+     "STR-1004",
+     "STR-1005"
+    ]
+   },
+   {
+    "id": "PRD-1016",
+    "name": "Greek Yogurt Plain",
+    "brand": "Meadow Hill",
+    "category": "Dairy",
+    "certification": "USDA Organic",
+    "ingredients": "Cultured pasteurized milk",
+    "description": "Rich and creamy plain Greek yogurt.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1003",
+     "STR-1007"
+    ]
+   },
+   {
+    "id": "PRD-1017",
+    "name": "Almond Milk Vanilla",
+    "brand": "Nuts & More",
+    "category": "Beverages",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Almonds, water, vanilla extract",
+    "description": "Delicious vanilla-flavored almond milk.",
+    "carriedBy": [
+     "STR-1002",
+     "STR-1004",
+     "STR-1008"
+    ]
+   },
+   {
+    "id": "PRD-1018",
+    "name": "Whole Wheat Bread",
+    "brand": "Bread & Butter",
+    "category": "Bakery",
+    "certification": "USDA Organic",
+    "ingredients": "Whole wheat flour, water, salt, yeast",
+    "description": "Nutritious whole wheat bread with a hearty texture.",
+    "carriedBy": [
+     "STR-1001",
+     "STR-1005",
+     "STR-1007"
+    ]
+   },
+   {
+    "id": "PRD-1019",
+    "name": "Quinoa Flakes",
+    "brand": "Green Grains",
+    "category": "Breakfast",
+    "certification": "Non-GMO Project Verified",
+    "ingredients": "Quinoa flakes",
+    "description": "Light and nutritious quinoa flakes for breakfast.",
+    "carriedBy": [
+     "STR-1003",
+     "STR-1006",
+     "STR-1008"
+    ]
+   },
+   {
+    "id": "PRD-1020",
+    "name": "Apple Puree",
+    "brand": "Nature's Best",
+    "category": "Baby",
+    "certification": "USDA Organic",
+    "ingredients": "Organic apples",
+    "description": "Sweet and smooth apple puree for baby meals.",
+    "carriedBy": [
+     "STR-1002",
+     "STR-1004",
+     "STR-1006"
+    ]
+   }
+  ],
+  "store": [
+   {
+    "id": "STR-1001",
+    "name": "Green Valley Market",
+    "zip": "94110",
+    "lat": 37.7669,
+    "lng": -122.43560000000001
+   },
+   {
+    "id": "STR-1002",
+    "name": "Harvest Co-op",
+    "zip": "94110",
+    "lat": 37.7909,
+    "lng": -122.3816
+   },
+   {
+    "id": "STR-1003",
+    "name": "Mission Fresh",
+    "zip": "94110",
+    "lat": 37.8149,
+    "lng": -122.3936
+   },
+   {
+    "id": "STR-1004",
+    "name": "Urban Greens Grocery",
+    "zip": "94112",
+    "lat": 37.7353,
+    "lng": -122.4194
+   },
+   {
+    "id": "STR-1005",
+    "name": "Pacific Produce",
+    "zip": "94112",
+    "lat": 37.7593,
+    "lng": -122.4314
+   },
+   {
+    "id": "STR-1006",
+    "name": "Sunrise Market",
+    "zip": "94114",
+    "lat": 37.792500000000004,
+    "lng": -122.4941
+   },
+   {
+    "id": "STR-1007",
+    "name": "Golden Gate Farmers",
+    "zip": "94115",
+    "lat": 37.7114,
+    "lng": -122.4012
+   },
+   {
+    "id": "STR-1008",
+    "name": "Haight Street Market",
+    "zip": "94116",
+    "lat": 37.7768,
+    "lng": -122.4174
+   }
+  ]
+ },
+ "nav": [
+  {
+   "label": "Home",
+   "items": [
+    {
+     "id": "landing",
+     "label": "Home",
+     "kind": "landing"
+    },
+    {
+     "id": "search",
+     "label": "Search",
+     "kind": "placeholder",
+     "entity": "product"
+    },
+    {
+     "id": "saved",
+     "label": "Saved",
+     "kind": "saved",
+     "entity": "product"
+    },
+    {
+     "id": "product",
+     "label": "Product",
+     "kind": "entry"
+    },
+    {
+     "id": "lists",
+     "label": "Lists",
+     "kind": "lists"
+    },
+    {
+     "id": "list",
+     "label": "List",
+     "kind": "mylist"
+    }
+   ]
+  },
+  {
+   "label": "Browse",
+   "items": [
+    {
+     "id": "categories",
+     "label": "Categories",
+     "kind": "categories",
+     "entity": "product"
+    },
+    {
+     "id": "catalog",
+     "label": "Catalog",
+     "kind": "catalog",
+     "entity": "product"
+    },
+    {
+     "id": "places",
+     "label": "Find Stores",
+     "kind": "places",
+     "entity": "store"
+    }
+   ]
+  }
+ ],
+ "lookup": {
+  "entries": "product",
+  "places": "store",
+  "categoryField": "category",
+  "placesField": "carriedBy",
+  "areas": [
+   {
+    "zip": "94110",
+    "label": "Financial District",
+    "lat": 37.7969,
+    "lng": -122.4056
+   },
+   {
+    "zip": "94112",
+    "label": "Mission District",
+    "lat": 37.7593,
+    "lng": -122.4194
+   },
+   {
+    "zip": "94114",
+    "label": "Inner Richmond",
+    "lat": 37.7685,
+    "lng": -122.4701
+   },
+   {
+    "zip": "94115",
+    "label": "Outer Mission",
+    "lat": 37.7294,
+    "lng": -122.4312
+   },
+   {
+    "zip": "94116",
+    "label": "Haight-Ashbury",
+    "lat": 37.7708,
+    "lng": -122.4354
+   },
+   {
+    "zip": "94117",
+    "label": "Tenderloin",
+    "lat": 37.7862,
+    "lng": -122.4109
+   }
+  ],
+  "placeWord": "place",
+  "carryWord": "carries",
+  "detailFields": [],
+  "facets": [],
+  "ratings": [
+   {
+    "entryId": "PRD-1001",
+    "who": "Sarah M",
+    "stars": 5,
+    "text": "Absolutely creamy and delicious! Perfect for my coffee.",
+    "at": "2026-03-15T10:30:00Z",
+    "helpful": 24
+   },
+   {
+    "entryId": "PRD-1002",
+    "who": "Michael T",
+    "stars": 4,
+    "text": "Great texture and flavor. My family loves it for sandwiches.",
+    "at": "2026-01-22T14:15:00Z",
+    "helpful": 18
+   },
+   {
+    "entryId": "PRD-1003",
+    "who": "Emily R",
+    "stars": 5,
+    "text": "The best oats I've ever had. Sooo good in my morning smoothie!",
+    "at": "2026-02-10T08:45:00Z",
+    "helpful": 31
+   },
+   {
+    "entryId": "PRD-1004",
+    "who": "David L",
+    "stars": 3,
+    "text": "Nice pear flavor but a bit too sweet for my taste.",
+    "at": "2026-04-05T16:20:00Z",
+    "helpful": 12
+   },
+   {
+    "entryId": "PRD-1005",
+    "who": "Lisa K",
+    "stars": 4,
+    "text": "Crunchy and tasty. Great for snacking on the go.",
+    "at": "2026-03-28T11:00:00Z",
+    "helpful": 27
+   },
+   {
+    "entryId": "PRD-1006",
+    "who": "James P",
+    "stars": 5,
+    "text": "Thick and creamy. Perfect for my Greek yogurt parfait.",
+    "at": "2026-02-18T09:30:00Z",
+    "helpful": 35
+   },
+   {
+    "entryId": "PRD-1007",
+    "who": "Rachel S",
+    "stars": 4,
+    "text": "Delicious vanilla flavor. My kids love it!",
+    "at": "2026-01-30T13:45:00Z",
+    "helpful": 22
+   },
+   {
+    "entryId": "PRD-1008",
+    "who": "Thomas W",
+    "stars": 5,
+    "text": "Perfect for toast. Very fresh and tasty.",
+    "at": "2026-03-12T15:10:00Z",
+    "helpful": 29
+   },
+   {
+    "entryId": "PRD-1009",
+    "who": "Jennifer H",
+    "stars": 4,
+    "text": "Good texture and flavor. Great for breakfast.",
+    "at": "2026-02-25T07:20:00Z",
+    "helpful": 15
+   },
+   {
+    "entryId": "PRD-1010",
+    "who": "Robert B",
+    "stars": 3,
+    "text": "Sweet apple flavor but a bit too thin for my liking.",
+    "at": "2026-04-01T18:00:00Z",
+    "helpful": 8
+   },
+   {
+    "entryId": "PRD-1011",
+    "who": "Amanda G",
+    "stars": 5,
+    "text": "Same great taste as before. My go-to milk!",
+    "at": "2026-03-20T12:00:00Z",
+    "helpful": 26
+   },
+   {
+    "entryId": "PRD-1012",
+    "who": "Christopher D",
+    "stars": 4,
+    "text": "Nice sourdough taste. Good for my morning toast.",
+    "at": "2026-02-08T10:15:00Z",
+    "helpful": 19
+   },
+   {
+    "entryId": "PRD-1013",
+    "who": "Patricia M",
+    "stars": 5,
+    "text": "Perfect oats for my overnight oats. So creamy!",
+    "at": "2026-01-27T08:30:00Z",
+    "helpful": 33
+   },
+   {
+    "entryId": "PRD-1014",
+    "who": "William J",
+    "stars": 4,
+    "text": "Good pear flavor. My kids enjoy it as a snack.",
+    "at": "2026-03-17T14:45:00Z",
+    "helpful": 17
+   },
+   {
+    "entryId": "PRD-1015",
+    "who": "Elizabeth F",
+    "stars": 5,
+    "text": "Crunchy and delicious! My favorite snack chips.",
+    "at": "2026-02-14T16:30:00Z",
+    "helpful": 28
+   },
+   {
+    "entryId": "PRD-1016",
+    "who": "Daniel C",
+    "stars": 4,
+    "text": "Great texture and taste. Perfect for my breakfast bowl.",
+    "at": "2026-03-05T09:00:00Z",
+    "helpful": 21
+   }
+  ],
+  "lists": [
+   {
+    "id": "LST-1001",
+    "name": "Breakfast Items",
+    "placeId": "STR-1001",
+    "items": [
+     {
+      "entryId": "PRD-1003",
+      "qty": 2,
+      "done": false
+     },
+     {
+      "entryId": "PRD-1006",
+      "qty": 1,
+      "done": false
+     },
+     {
+      "entryId": "PRD-1010",
+      "qty": 1,
+      "done": false
+     }
+    ]
+   },
+   {
+    "id": "LST-1002",
+    "name": "Snack Shopping",
+    "placeId": "STR-1003",
+    "items": [
+     {
+      "entryId": "PRD-1005",
+      "qty": 3,
+      "done": true
+     },
+     {
+      "entryId": "PRD-1007",
+      "qty": 1,
+      "done": false
+     },
+     {
+      "entryId": "PRD-1015",
+      "qty": 2,
+      "done": false
+     }
+    ]
+   }
+  ],
+  "likes": {
+   "PRD-1001": 42,
+   "PRD-1003": 38,
+   "PRD-1006": 35,
+   "PRD-1007": 31,
+   "PRD-1010": 29,
+   "PRD-1015": 27,
+   "PRD-1011": 25,
+   "PRD-1013": 23
+  },
+  "saves": {
+   "PRD-1001": 36,
+   "PRD-1003": 32,
+   "PRD-1006": 29,
+   "PRD-1007": 27,
+   "PRD-1010": 25,
+   "PRD-1015": 23,
+   "PRD-1011": 21,
+   "PRD-1013": 19
+  }
+ }
+}

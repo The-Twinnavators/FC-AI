@@ -29,7 +29,11 @@ import { demoAccount, lookCheck, type LookFinding } from "./lookCheck.js";
 import { frameEvidence, frameRendered } from "./frameCheck.js";
 import { isFrameSelector, resolveFrame } from "./appFrame.js";
 import { dataSourceProblems, readGeneratedData } from "./appData.js";
-import { appModelKey, prdNamedRecords, prdSampleSection } from "../orchestrator/appModel.js";
+import { appModelKey, prdNamedRecords, prdSampleSection, type AppModel } from "../orchestrator/appModel.js";
+import { declaredScreens } from "../orchestrator/screenPlan.js";
+import { journeyPlan, runJourney, type JourneyStep } from "./appJourney.js";
+/** Set by the step that writes the complete app (orchestrator/appFiles.ts appWrittenKey; not imported, to keep this module free of the app writer). */
+const appWrittenKey = (runId: string) => `appWritten:${runId}`;
 import { cleanupBlocking, cleanupReport, scanCleanup } from "./cleanupScan.js";
 import { cloudCoder } from "../models/cloud.js";
 import { directionBrief, type DesignDirection } from "../knowledge/designDirection.js";
@@ -237,6 +241,48 @@ export class Verifier {
       return why;
     } catch (err) {
       return `it couldn't be checked in the browser: ${(err as Error).message.slice(0, 160)}`;
+    } finally {
+      await session?.close().catch(() => undefined);
+      if (server.serverProcId) await this.processes.killProcess(server.serverProcId).catch(() => undefined);
+    }
+  }
+
+  /**
+   * The app-model-derived browser journey (appJourney.ts) on the app's preview, recorded as the functional_journey
+   * check: on the step that wrote the app when `taskId` is given (the functional baseline, which never counts as the
+   * run's final check), else run-level (final verification, after design). Undefined when the run has no complete app.
+   */
+  async functionalJourney(run: Run, opts: { taskId?: string; signal?: AbortSignal } = {}): Promise<{ ok: boolean; steps: JourneyStep[]; artifactId?: string; summary: string } | undefined> {
+    const model = this.store.getSetting<AppModel | null>(appModelKey(run.id), null);
+    if (!model || !this.store.getSetting<boolean>(appWrittenKey(run.id), false)) return undefined;
+    const project = this.store.projects.require(run.projectId);
+    const jail = this.projects.jail(project);
+    const pf = this.projects.preflight(project.id, run.id);
+    const prd = this.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []).filter((r) => r.role === "prd").map((r) => r.content).join("\n\n");
+    const plan = journeyPlan(model, declaredScreens(prd), prdNamedRecords(prdSampleSection(prd)));
+    const fail = (why: string) => {
+      const summary = `The journey couldn't run: ${why}`;
+      this.record(run.id, "functional_journey", "failed", summary, [], { taskId: opts.taskId });
+      return { ok: false, steps: [], summary };
+    };
+    if (!pf.hasNodeModules) return fail("the app's dependencies aren't installed");
+    if (pf.previewStrategy === "none") return fail("the project has no preview");
+    const port = await freePort();
+    const server = await this.runner.run({ jail, projectId: project.id, runId: run.id, taskId: opts.taskId, phase: "preview", argv: previewArgv(pf, port), reason: "Start the dev server for the journey through the app", preflight: pf, signal: opts.signal, server: { readyPattern: /(Local:\s+https?:\/\/|ready in|started server on|Listening on)/i, readyTimeoutMs: 60_000 } });
+    if (server.record.status !== "succeeded" || !server.serverProcId) return fail("the dev server didn't start");
+    const url = (server.serverUrl ?? `http://127.0.0.1:${port}/`).replace(/#.*$/, "");
+    let session: BrowserSession | undefined;
+    try {
+      session = await BrowserSession.launch(run.id, this.processes);
+      const page = await session.browser.newPage({ viewport: { width: 1280, height: 860 } });
+      const res = await runJourney(page, url, plan);
+      const art = this.artifacts.save({ runId: run.id, kind: "log", label: opts.taskId ? "Functional baseline: journey through the app" : "Journey through the app", mime: "application/json", content: JSON.stringify({ plan, steps: res.steps }, null, 2), meta: { ok: res.ok, taskId: opts.taskId } });
+      const failed = res.steps.filter((s) => !s.ok);
+      const summary = `${res.steps.length - failed.length}/${res.steps.length} journey steps passed${failed.length ? `; failed: ${failed.slice(0, 3).map((s) => `${s.step} (${s.detail})`).join("; ")}` : ""}`;
+      this.record(run.id, "functional_journey", res.ok ? "passed" : "failed", summary, [`artifact:${art.id}`], { taskId: opts.taskId });
+      return { ...res, artifactId: art.id, summary };
+    } catch (err) {
+      return fail((err as Error).message.slice(0, 160));
     } finally {
       await session?.close().catch(() => undefined);
       if (server.serverProcId) await this.processes.killProcess(server.serverProcId).catch(() => undefined);
@@ -768,6 +814,11 @@ export class Verifier {
     const fullA11y = compliance || required.has("accessibility");
     if (needsBrowser && !opts.signal?.aborted) await this.browserChecks(run, pf.previewStrategy, qa, opts.signal, fullA11y);
     else if (required.has("accessibility")) this.finishAccessibility(run, qa.a11y, undefined, undefined);
+    // A complete app: the journey through it again, after design (the baseline on the step that wrote it doesn't count here).
+    if (!opts.signal?.aborted && (required.has("functional_journey") || this.store.getSetting<boolean>(appWrittenKey(run.id), false))) {
+      const res = await this.functionalJourney(run, { signal: opts.signal });
+      if (!res && required.has("functional_journey")) this.record(run.id, "functional_journey", "failed", "The journey couldn't run: the run has no written app model", []);
+    }
   }
 
   /** Static QA. The security, privacy and SEO scans aren't recorded for prototype builds (orchestrator/prototype.ts). */

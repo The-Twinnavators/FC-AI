@@ -74,6 +74,7 @@ export const CHECKS: Record<string, { name: string; short: string; explain: stri
   accessibility: { name: "Accessibility", short: "Access", explain: "Automatic checks that people using a keyboard or screen reader can use the app." },
   design_qa: { name: "Design check", short: "Design", explain: "The screens were checked for layout, contrast, placeholder text and phone size." },
   visual_critique: { name: "Design review", short: "Review", explain: "A review of the screenshots for visual polish." },
+  functional_journey: { name: "Works as asked", short: "Works", explain: "In the browser: every screen the PRD names opens from the top bar, and the PRD's own records can be searched, opened and saved." },
   spec_fidelity: { name: "Matches your spec", short: "Spec", explain: "The app includes the words, links and fields from your reference page." },
   security_scan: { name: "Security", short: "Security", explain: "A scan for common security mistakes, such as secrets left in the code." },
   compliance_triage: { name: "Policy check", short: "Policy", explain: "A scan for privacy and policy topics worth a human look." },

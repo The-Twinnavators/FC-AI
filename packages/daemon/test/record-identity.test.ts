@@ -74,6 +74,15 @@ describe("a record's identity", () => {
     expect(mergeRecords(product, bad.rows, [oat], { held: bad.held, prdRows }).rows).toEqual([oat]);
   });
 
+  it("keeps a PRD record once when both versions have the PRD's values and differ only in what the PRD doesn't give (the recorded eval-1 seed)", () => {
+    const recorded = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "fixtures/apps/eval1-app-model.json"), "utf8")) as { entities: ModelEntity[]; seed: Record<string, Array<Record<string, unknown>>> };
+    const e = recorded.entities.find((x) => x.key === "product")!;
+    const r = mergeRecords(e, [], recorded.seed.product!, { prdRows: prdFixtureRows(e, prdSampleSection(PRD)) });
+    expect(FIXTURES.map((n) => r.rows.filter((x) => x.name === n).length)).toEqual(FIXTURES.map(() => 1));
+    expect(r.conflicts).toContain('"Sourdough Country Loaf" appears twice with different values (name, brand, category, certification the same): both have the PRD\'s values and differ only in description, which the PRD doesn\'t give; kept one');
+    expect(r.repeats).toEqual(["Oat Milk Original"]);
+  });
+
   it("names one identifier on two records, one record under two identifiers, and a record with no identity, holding them out", () => {
     const a = { ...oat, sku: "WF-1" };
     expect(mergeRecords(withSku, [a], [{ ...oat, name: "Rolled Oats", sku: "WF-1" }]).conflicts).toEqual(['sku WF-1 is used by "Oat Milk Original" and "Rolled Oats"; neither version is kept (held out)']);
