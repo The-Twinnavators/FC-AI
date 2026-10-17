@@ -204,7 +204,7 @@ export class Verifier {
       .filter(([rel, s]) => /^src\/components\/(?!ui\/)[\w/-]+\.(tsx|jsx)$/.test(rel) && s.contentHash === "absent" && fs.existsSync(path.join(root, rel)))
       .map(([rel]) => {
         const stem = rel.replace(/^src\//, "").replace(/\.(tsx|jsx)$/, "");
-        return { file: rel, rendered: new RegExp(`from\\s+["']\\.\\/${stem.replace(/[.*+?^${}()|[\]\\]/g, "\\  /** Upserts the run-level check of a kind (or task-level when taskId is given). */")}["']`).test(app) };
+        return { file: rel, rendered: new RegExp(`from\\s+["']\\.\\/${stem.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`).test(app) };
       });
     return frameEvidence(cssChanges, components, frame, frameFileChanged);
   }
