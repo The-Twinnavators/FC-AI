@@ -757,11 +757,11 @@
   top: 14px;
   right: 16px;
 }
-/* In a page header (My Projects → a project) the menu sits in line with the header's buttons. */
-.page__head .proj-actions {
+/* In a page's top row (My Projects → a project) the menu sits in line with the row's buttons. */
+.page__toprow .proj-actions {
   position: static;
 }
-.page__head .proj-actions__btn {
+.page__toprow .proj-actions__btn {
   width: 36px;
   height: 36px;
   border: 1px solid var(--line-strong);

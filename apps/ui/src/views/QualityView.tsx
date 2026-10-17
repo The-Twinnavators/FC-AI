@@ -60,12 +60,9 @@ export function QualityView({ projects, projectId, view: routeView, runId, reloa
   }, [view]);
   return (
     <div className="page">
-      <BackLink fallback="/quality" fallbackLabel="My Projects" />
-      <header className="page__head">
-        <div>
-          <span className="label">My Projects</span>
-          <h1 className="page__title">{projects.find((p) => p.id === projectId)?.name ?? "Project"}</h1>
-        </div>
+      {/* The back link and the project's actions share the top row; the title gets the full width below. */}
+      <div className="page__toprow" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+        <BackLink fallback="/quality" fallbackLabel="My Projects" />
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <ProjectWorkingAgent projectId={projectId} />
           <StartOver runId={(projects.find((p) => p.id === projectId) as (Project & { latestRun?: { id: string } }) | undefined)?.latestRun?.id} />
@@ -83,6 +80,12 @@ export function QualityView({ projects, projectId, view: routeView, runId, reloa
           ) : null}
           {/* Rename, edit the request, delete: the same menu as on the projects list. */}
           {projects.find((p) => p.id === projectId) ? <ProjectActions project={projects.find((p) => p.id === projectId) as Project & { latestRun?: { id: string } }} onChanged={() => reload?.()} /> : null}
+        </div>
+      </div>
+      <header className="page__head">
+        <div>
+          <span className="label">My Projects</span>
+          <h1 className="page__title">{projects.find((p) => p.id === projectId)?.name ?? "Project"}</h1>
         </div>
       </header>
       <Tabs label="quality-view" value={view} onChange={setView} tabs={TABS.map((t) => (t.id === "waiting" && decisions.waiting.length ? { ...t, label: `Waiting on you (${decisions.waiting.length})` } : t.id === "ideas" && decisions.ideas.length + decisions.saved.length ? { ...t, label: `Suggestions (${decisions.ideas.length + decisions.saved.length})` } : t))} />
