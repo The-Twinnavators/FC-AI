@@ -50,7 +50,8 @@ describe("approvals and the decision log", () => {
       const { project } = makeProject(app, { "a.txt": "x" });
       await call("POST", `/projects/${project.id}/settings`, { allowExternalResearch: true });
       const d = listDecisions(app, { kind: "settings" })[0];
-      expect(d).toMatchObject({ projectId: project.id, actor: "user" });
+      // The API has one shared local token: the actor is unknown, and where the request came from is recorded.
+      expect(d).toMatchObject({ projectId: project.id, actor: "unknown", origin: "no browser origin (a script or tool calling the API)" });
       expect(d.summary).toMatch(/allowExternalResearch: true/);
     });
     expect(describeBody({ apiKey: "sk-secret-123", provider: "anthropic" })).toBe("apiKey (changed); provider: anthropic");
