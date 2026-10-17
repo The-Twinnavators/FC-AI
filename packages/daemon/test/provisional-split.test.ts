@@ -9,10 +9,11 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { Task } from "@flowcode/contracts";
 import { makeApp, makeProject } from "./helpers.js";
+import { createApp } from "../src/app.js";
 import { provisionalKey, type ProvisionalSet } from "../src/orchestrator/provisional.js";
 
 function setup() {
-  const { app } = makeApp();
+  const { app, dataDir } = makeApp();
   const { project, ws } = makeProject(app, { "src/b.ts": "export const b = 1;\n", "src/d.ts": "export const d = 1;\n", "src/e.ts": "export const e = 1;\n" });
   const run = app.orchestrator.createRun({ projectId: project.id, objective: "g", constraints: [], attachedKnowledgeIds: [] });
   const jail = app.projects.jail(project);
@@ -51,7 +52,7 @@ function setup() {
   const c1 = mk("c1", 3, "pending");
   const c2 = mk("c2", 4, "pending");
   const split = () => orch.keepProvisional(r(), app.store.tasks.require(p.id), jail, [c1, c2]);
-  return { app, run, jail, a, p, c1, c2, edit, status, verify, read, orch, r, set, notes, split };
+  return { app, dataDir, project, run, jail, a, p, c1, c2, edit, status, verify, read, orch, r, set, notes, split };
 }
 
 describe("a split step's edits across the split", () => {
@@ -124,5 +125,44 @@ describe("a split step's edits across the split", () => {
     await s.orch.undoBlockedStep(s.r(), "c1", s.jail);
     expect(s.notes.filter((n) => n.startsWith('Undid "Step p"')).length).toBe(undos);
     expect(s.read("src/b.ts")).toBe("export const b = 1;\n");
+  }, 60_000);
+
+  it("keeps unrelated accepted work when a failed part puts the set back", async () => {
+    const s = setup();
+    // Step a (before the split, verified) and a step after it, accepted, on other files.
+    s.edit("a", "src/e.ts", "export const e = 9; // accepted earlier\n");
+    s.split();
+    s.edit("c1", "src/d.ts", "BROKEN\n");
+    s.status("c1", "blocked");
+    await s.orch.undoBlockedStep(s.r(), "c1", s.jail);
+    expect(s.read("src/b.ts")).toBe("export const b = 1;\n");
+    expect(s.read("src/e.ts")).toBe("export const e = 9; // accepted earlier\n");
+    expect(s.app.store.tasks.require("a").status).toBe("verified");
+  }, 60_000);
+
+  it("survives a cancel and a real daemon restart unaccepted, applied once, and still goes back as a whole", async () => {
+    const s = setup();
+    s.split();
+    s.edit("c1", "src/d.ts", "export const d = 2; // part 1, in progress\n");
+    s.status("c1", "running");
+    await s.app.orchestrator.cancel(s.run.id).catch(() => undefined);
+    expect(s.set("p")!.state).toBe("provisional");
+    const snaps = s.app.store.snapshots.where("run_id = ?", s.run.id).length;
+    // The daemon stops and starts again on the same data.
+    s.app.db.close();
+    const app2 = createApp({ dataDir: s.dataDir });
+    await app2.orchestrator.reconcileOnStartup();
+    const set2 = app2.store.getSetting<ProvisionalSet | null>(provisionalKey("p"), null)!;
+    expect(set2).toMatchObject({ state: "provisional", children: ["c1", "c2"] });
+    expect(app2.store.snapshots.where("run_id = ?", s.run.id).length).toBe(snaps);
+    expect(s.read("src/b.ts")).toBe("export const b = 2; // hero from the PRD\n");
+    // Not accepted by the restart: only every part verified accepts it. Part 1 then fails: the whole set goes back.
+    const orch2 = app2.orchestrator as unknown as { undoBlockedStep: (r: unknown, id: string, j: unknown) => Promise<void> };
+    app2.store.tasks.upsert({ ...app2.store.tasks.require("c1"), status: "blocked" });
+    await orch2.undoBlockedStep(app2.store.runs.require(s.run.id), "c1", app2.projects.jail(s.project));
+    expect(s.read("src/d.ts")).toBe("export const d = 1;\n");
+    expect(s.read("src/b.ts")).toBe("export const b = 1;\n");
+    expect(app2.store.getSetting<ProvisionalSet | null>(provisionalKey("p"), null)!.state).toBe("restored");
+    app2.db.close();
   }, 60_000);
 });
