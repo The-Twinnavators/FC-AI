@@ -127,6 +127,15 @@ export interface OrchestratorDeps {
 }
 
 const MAX_TASK_ATTEMPTS = 3;
+/** A coding attempt's context window in tokens: the assignment's (as set by codingWindow), else 128k hosted or 16k local. */
+export function codingWindowTokens(a: ModelAssignment): number {
+  return a.contextWindow ?? (a.providerId.startsWith("hosted") ? 128_000 : 16_384);
+}
+/** A coding reply's cap in tokens: a quarter of the window, at most 4,096 locally; at least 16,000 hosted. */
+export function codingReplyCap(a: ModelAssignment): number {
+  const w = codingWindowTokens(a);
+  return a.providerId.startsWith("hosted") ? Math.max(16_000, Math.floor(w / 4)) : Math.min(4096, Math.floor(w / 4));
+}
 
 export class Orchestrator {
   private active = new Map<string, AbortController>();
@@ -227,6 +236,19 @@ export class Orchestrator {
     // a Local fix inherited the parent's cloud critic and sent screenshots to it).
     const inherited = parent?.projectId === project.id ? Object.fromEntries(Object.entries(parent.modelAssignments).filter(([, a]) => a && !a.providerId.startsWith("hosted"))) : {};
     const assignments = { ...this.d.router.roleAssignments(project.id), ...inherited, ...(input.modelAssignments ?? {}) };
+    // Where each choice came from, most specific first (the same order as the merge above), for the run-start record.
+    const globalRoles = this.d.store.getSetting<Record<string, ModelAssignment>>("roleAssignments", {});
+    const roleMeta = this.d.router.roleSettingMeta();
+    const sourceOf = (role: string): string =>
+      input.modelAssignments?.[role as AgentRole]
+        ? "chosen for this build (the cloud/local switch when it was started)"
+        : inherited[role]
+          ? "kept from the earlier build this one follows"
+          : project.settings.modelOverrides?.[role as AgentRole]
+            ? "this project's model setting"
+            : globalRoles[role]
+              ? `the global role setting (Models page)${roleMeta[role] ? `, set ${roleMeta[role]!.at} by ${roleMeta[role]!.actor} via ${roleMeta[role]!.origin}` : ", set before changes were recorded"}`
+              : "FlowCode's default";
     const run: Run = {
       id: newId("run"),
       projectId: project.id,
@@ -244,6 +266,7 @@ export class Orchestrator {
     };
     this.d.store.runs.upsert(run);
     this.d.bus.emit({ type: "run.created", projectId: project.id, runId: run.id, message: `Run created: ${input.objective.slice(0, 160)}`, data: { kind: input.kind, templateId: input.templateId } });
+    this.d.store.setSetting(`runModelSources:${run.id}`, Object.fromEntries(["planner", "coder", "debugger"].map((r) => [r, sourceOf(r)])));
     // Strategy is chosen after preflight, during planning.
     const refs = input.references ?? [];
     // An empty workspace with references is a spec build; references are stored as artifacts and as
@@ -373,6 +396,7 @@ export class Orchestrator {
     {
       const needed = await this.providerReady(run, ["planner", "coder", "debugger"], true);
       if (!needed.ok) throw new Error(preflightSummary(needed));
+      await this.recordModelSelection(run);
       const support = await this.providerReady(run, (Object.keys(run.modelAssignments) as AgentRole[]).filter((r) => !["planner", "coder", "debugger"].includes(r)), true, false);
       if (!support.ok) this.d.bus.emit({ type: "provider.checked", projectId: project.id, runId, level: "warning", message: `A support model can't be used yet: ${support.problems[0]}`, data: { check: support } });
     }
@@ -2352,6 +2376,47 @@ export class Orchestrator {
     return next ? next.role : "debugger";
   }
 
+  /**
+   * The context window a coding attempt runs with (the same rule for the attempt and for the run-start record): the 8GB
+   * profile's fixed context; else a local model that supports 32k gets the size that fits the card (contextForCoding);
+   * else the assignment's own.
+   */
+  private async codingWindow(assignment: ModelAssignment, base: ModelAssignment, info?: { maxContext?: number; sizeBytes?: number }): Promise<number | undefined> {
+    const hosted = assignment.providerId.startsWith("hosted");
+    if (runtimeOptions(this.d.store).gpuProfile === "8gb" && !hosted) return runtimeOptions(this.d.store).profileContext;
+    return !hosted && !base.contextWindow && (info?.maxContext ?? 0) >= 32_768 ? await contextForCoding(info?.sizeBytes) : undefined;
+  }
+
+  /**
+   * The build's planner, coder and debugger as they will run: model, provider, where each choice came from, the context
+   * window and the reply cap. Recorded once when planning starts (event "model.selection" and the run's setting), so the
+   * effective models are visible before any model work, and nothing about them is changed here.
+   */
+  private async recordModelSelection(run: Run) {
+    const sources = this.d.store.getSetting<Record<string, string>>(`runModelSources:${run.id}`, {});
+    const rows: Array<{ role: string; model: string; providerId: string; source: string; contextTokens: number; replyCapTokens: number; note: string }> = [];
+    for (const role of ["planner", "coder", "debugger"] as const) {
+      const a = run.modelAssignments[role];
+      if (!a) continue;
+      let info: { maxContext?: number; sizeBytes?: number } | undefined;
+      try {
+        info = (await this.d.router.provider(a.providerId).describe(a.model)) ?? undefined;
+      } catch {
+        info = undefined;
+      }
+      if (role === "planner") {
+        // Planner calls use the assignment's window or Ollama's 8,192, widened per call only for a long reply.
+        rows.push({ role, model: a.model, providerId: a.providerId, source: sources[role] ?? "not recorded", contextTokens: a.contextWindow ?? (a.providerId.startsWith("hosted") ? 128_000 : 8192), replyCapTokens: a.providerId.startsWith("hosted") ? 16_000 : 4096, note: "per call; a call asking for a longer reply gets a larger window (up to 32,768 locally)" });
+        continue;
+      }
+      const window = await this.codingWindow(a, a, info);
+      const eff = window ? { ...a, contextWindow: window } : a;
+      rows.push({ role, model: a.model, providerId: a.providerId, source: sources[role] ?? "not recorded", contextTokens: codingWindowTokens(eff), replyCapTokens: codingReplyCap(eff), note: role === "coder" && a.reasoning && !runtimeOptions(this.d.store).routineThinking ? "thinking off on routine attempts" : "" });
+    }
+    this.d.store.setSetting(`runModels:${run.id}`, rows);
+    this.d.bus.emit({ type: "model.selection", projectId: run.projectId, runId: run.id, message: `Models for this build: ${rows.map((r) => `${r.role} ${r.model} (${r.providerId}; ${Math.round(r.contextTokens / 1024)}k context, replies up to ${r.replyCapTokens} tokens; from ${r.source})`).join("; ")}`, data: { models: rows } });
+  }
+
   /** The model service can't be used: the step waits with its work kept and the attempt given back. */
   private pauseForProvider(run: Run, task: Task, kind: ProviderErrorKind, detail: string) {
     const label = assignmentLabel(run, task);
@@ -2423,8 +2488,7 @@ export class Orchestrator {
       // prompt whole - Ollama cuts a prompt that does not fit the window without saying so.
       // The 8GB GPU profile codes in its fixed context (measured to fit the card); a step whose own material doesn't fit
       // is split, never sent to a larger window that spills onto the CPU.
-      const gpu8 = runtimeOptions(this.d.store).gpuProfile === "8gb" && !assignment.providerId.startsWith("hosted");
-      const window = gpu8 ? runtimeOptions(this.d.store).profileContext : !assignment.providerId.startsWith("hosted") && !base.contextWindow && (info?.maxContext ?? 0) >= 32_768 ? await contextForCoding(info?.sizeBytes) : undefined;
+      const window = await this.codingWindow(assignment, base, info);
       if (window) assignment = { ...assignment, contextWindow: window };
       // Routine coding turns (a step's first attempt) run without thinking unless it's turned on in Speed & recovery;
       // retries run as the debugger and keep the model's reasoning.
@@ -2633,9 +2697,9 @@ export class Orchestrator {
     const tests = writesTestsStep(task) ? testingGuide(jail.root, 7000, testFileOf(task)) : "";
     // The whole first request is budgeted in tokens (requestBudget.ts): system, skills, tool definitions, brief, room to
     // work and the reply. Skills get their share in the order picked (workflow skill first, then design by fit).
-    const windowTokens = assignment.contextWindow ?? (assignment.providerId.startsWith("hosted") ? 128_000 : 16_384);
+    const windowTokens = codingWindowTokens(assignment);
     const hostedModel = assignment.providerId.startsWith("hosted");
-    const replyTokens = hostedModel ? Math.max(16_000, Math.floor(windowTokens / 4)) : Math.min(4096, Math.floor(windowTokens / 4));
+    const replyTokens = codingReplyCap(assignment);
     const reqBudget = requestBudget({ windowTokens, replyTokens, charsPerToken: charsPerToken(this.d.store, assignment.model, hostedModel ? 3.8 : 3.6), hosted: hostedModel });
     const skillFit = budgetSkills(skills, reqBudget.skillChars, renderSkills);
     // A local model's reply is capped (a quarter of its window): edits come in pieces that fit, so none is cut off.

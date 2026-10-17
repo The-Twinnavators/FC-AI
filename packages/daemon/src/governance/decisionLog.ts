@@ -13,7 +13,13 @@ export interface Decision {
   id: string;
   at: string;
   kind: DecisionKind;
-  actor: "user" | "flowcode";
+  /**
+   * Who made it. "unknown": a request through the API, which has one shared local token and no sign-in, so the person
+   * (or tool) behind it can't be named; `origin` says where the request came from.
+   */
+  actor: "user" | "flowcode" | "unknown";
+  /** Where an API request came from: the FlowCode window, the dev UI at an address, or no browser (a script or tool). */
+  origin?: string;
   summary: string;
   reason?: string;
   projectId?: string;
@@ -63,7 +69,7 @@ const GOVERNED: Record<string, { kind: DecisionKind; summary: (p: Record<string,
   "POST /settings/runtime": { kind: "settings", summary: (_p, b) => `Changed run options (${describeBody(b)})` },
   "POST /web/settings": { kind: "settings", summary: (_p, b) => `Changed web search settings (${describeBody(b)})` },
   "POST /projects/:id/settings": { kind: "settings", summary: (_p, b) => `Changed project settings (${describeBody(b)})` },
-  "POST /models/roles": { kind: "model", summary: (_p, b) => `Changed model roles (${describeBody(b)})` },
+  "POST /models/roles": { kind: "model", summary: (_p, b) => { const x = (b ?? {}) as { role?: string; assignment?: { providerId?: string; model?: string } }; return `Set the ${x.role ?? "?"} model to ${x.assignment?.model ?? "?"} (${x.assignment?.providerId ?? "?"})`; } },
   "POST /models/providers": { kind: "model", summary: () => "Changed a model provider" },
   "POST /models/cloud-coder": { kind: "model", summary: (_p, b) => `Changed the cloud coder (${describeBody(b)})` },
   "POST /models/cloud-coder/provider": { kind: "model", summary: (_p, b) => `Changed the cloud provider (${describeBody(b)})` },
@@ -98,4 +104,11 @@ export function watchDecisions(app: App) {
       // The log never affects the run.
     }
   });
+}
+
+/** Where an API request came from, from its Origin header (the daemon only accepts these origins). */
+export function requestOrigin(origin: string | undefined): string {
+  if (!origin) return "no browser origin (a script or tool calling the API)";
+  if (origin === "null" || origin.startsWith("app://")) return "the FlowCode desktop window";
+  return `the FlowCode UI at ${origin}`;
 }

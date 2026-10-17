@@ -32,6 +32,15 @@ export const DEFAULT_PROVIDERS: ProviderConfig[] = [
   { id: "hosted-anthropic", kind: "anthropic", label: "Anthropic (Claude)", baseUrl: "https://api.anthropic.com", enabled: false, hosted: true, apiKeyRef: "FLOWCODE_ANTHROPIC_API_KEY" },
 ];
 
+export const ROLE_META_KEY = "roleAssignmentsMeta";
+export interface RoleSettingMeta {
+  model: string;
+  providerId: string;
+  at: string;
+  actor: "user" | "flowcode" | "unknown";
+  origin: string;
+}
+
 export const DEFAULT_ROLE_MODELS: Partial<Record<AgentRole, ModelAssignment>> = {
   planner: { providerId: "ollama", model: "qwen3:14b", temperature: 0.2 },
   // Code writing and repair use a model tuned for agentic coding and tool calls. If it can't be used, the step stops
@@ -99,10 +108,22 @@ export class ModelRouter {
     return merged;
   }
 
-  setRoleAssignment(role: AgentRole, a: ModelAssignment) {
+  /**
+   * Sets a role's default model, with who set it and from where (`actor` is "unknown" when the request can't name a
+   * person: the API has one shared local token). Kept beside the setting so a build can say where its models came from.
+   */
+  setRoleAssignment(role: AgentRole, a: ModelAssignment, by: { actor: "user" | "flowcode" | "unknown"; origin: string } = { actor: "unknown", origin: "not recorded" }) {
     const global = this.store.getSetting<Record<string, ModelAssignment>>("roleAssignments", {});
     global[role] = a;
     this.store.setSetting("roleAssignments", global);
+    const meta = this.store.getSetting<Record<string, RoleSettingMeta>>(ROLE_META_KEY, {});
+    meta[role] = { model: a.model, providerId: a.providerId, at: new Date().toISOString(), actor: by.actor, origin: by.origin };
+    this.store.setSetting(ROLE_META_KEY, meta);
+  }
+
+  /** Who set each role's default model, when and from where (only for changes since this was recorded). */
+  roleSettingMeta(): Record<string, RoleSettingMeta> {
+    return this.store.getSetting<Record<string, RoleSettingMeta>>(ROLE_META_KEY, {});
   }
 
   assignmentFor(role: AgentRole, projectId?: string): ModelAssignment {

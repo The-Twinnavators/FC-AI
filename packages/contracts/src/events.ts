@@ -46,6 +46,8 @@ export const EVENT_TYPES = [
   "agent.message",
   "model.tier",
   "model.switched",
+  // The models a build uses, where each choice came from, and their context and reply limits (recorded at the start).
+  "model.selection",
   // The provider and model check before model work: which service answered and which models it has.
   "provider.checked",
   // A local model request waiting for the GPU behind another (the 8GB GPU profile runs one at a time).

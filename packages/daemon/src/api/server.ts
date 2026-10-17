@@ -61,7 +61,7 @@ import { libraryStats } from "./libraryStats.js";
 import { troubleshoot } from "../quality/troubleshoot.js";
 import { getRunReview, IMPROVEMENTS_KEY, recordRunReview, type Improvement } from "../quality/runReview.js";
 import { decideItem, refreshReview, signOff, submitReview } from "../quality/humanReview.js";
-import { governedRoute, listDecisions, logDecision } from "../governance/decisionLog.js";
+import { governedRoute, listDecisions, logDecision, requestOrigin } from "../governance/decisionLog.js";
 import { modelPerformance } from "../models/modelPerformance.js";
 import { libraryReport } from "../orchestrator/libraryUse.js";
 import { draftScreenSpec, getScreenSpecs, saveScreenSpec, screenCoverage } from "../quality/screenCoverage.js";
@@ -121,7 +121,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
           try {
             const runId = spec.includes("/runs/:id") ? ctx.params.id : undefined;
             const projectId = spec.includes("/projects/:id") ? ctx.params.id : runId ? app.store.runs.get(runId)?.projectId : undefined;
-            logDecision(app, { kind: gov.kind, actor: "user", summary: gov.summary(ctx.params, ctx.body), ...(projectId ? { projectId } : {}), ...(runId ? { runId } : {}), ref: spec });
+            // The API has one shared local token and no sign-in: the actor can't be named, only where the request came from.
+            logDecision(app, { kind: gov.kind, actor: "unknown", origin: requestOrigin(ctx.req.headers.origin), summary: gov.summary(ctx.params, ctx.body), ...(projectId ? { projectId } : {}), ...(runId ? { runId } : {}), ref: spec });
           } catch {
             // Logging never changes the outcome of the request.
           }
@@ -1239,13 +1240,13 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     const a = app.router.roleAssignments();
     return Object.fromEntries(Object.entries(a).map(([role, asg]) => [role, { assignment: asg, eligibility: role === "coder" ? app.lab.coderEligibility(asg) : undefined, configHash: ModelRouter.configHash(asg) }]));
   });
-  add(R.setRoleAssignment, ({ body }) => {
+  add(R.setRoleAssignment, ({ body, req }) => {
     const b = parse(z.object({ role: C.AgentRole, assignment: C.ModelAssignment }), body);
     if (b.role === "coder") {
       const e = app.lab.coderEligibility(b.assignment);
       if (!e.eligible) throw new HttpError(409, `Cannot make ${b.assignment.model} the default Coder: ${e.reason}`);
     }
-    app.router.setRoleAssignment(b.role, b.assignment);
+    app.router.setRoleAssignment(b.role, b.assignment, { actor: "unknown", origin: requestOrigin(req.headers.origin) });
     // Builds still going switch too (the agents use what the person just chose).
     const switched = app.orchestrator.switchRoleModel(b.role, b.assignment);
     return { ok: true, switched: switched.length };
@@ -1680,6 +1681,8 @@ function runView(app: App, id: string) {
     resumable: !app.orchestrator.isActive(id) && !app.orchestrator.isProbing(id) && !C.TERMINAL_RUN_STATUSES.includes(run.status) && (run.planApproved || (run.status === "blocked" && !tasks.length)),
     coder: app.orchestrator.coderCheck(run),
     tasks: tasks.map((t) => ({ ...t, attemptRole: attemptRoleOf(t) })),
+    // The models as recorded when planning started (model, provider, where each came from, context, reply cap).
+    models: app.store.getSetting<unknown[]>(`runModels:${id}`, []),
     checks: app.store.checks.where("run_id = ? ORDER BY updated_at ASC", id),
     commands: app.store.commands.where("run_id = ? ORDER BY created_at ASC", id),
     approvals: app.store.approvals.where("run_id = ? ORDER BY created_at ASC", id),

@@ -173,7 +173,7 @@ export function applySuggestion(app: App, patternId: string): SolverSuggestion {
       const e = app.lab.coderEligibility(next);
       if (!e.eligible) throw new Error(`Can't make ${next.model} the Coder: ${e.reason}`);
     }
-    app.router.setRoleAssignment(sug.action.role, next);
+    app.router.setRoleAssignment(sug.action.role, next, { actor: "unknown", origin: "a Researcher suggestion applied from System → Model problems" });
     logDecision(app, { kind: "model", actor: "user", summary: `Applied the Researcher's suggestion: the ${sug.action.role} now uses ${sug.action.model} (was ${before?.model ?? "unset"})`, reason: sug.title });
   }
   sug.status = "applied";

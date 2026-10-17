@@ -38,7 +38,7 @@ async function main() {
 
   // Model preflight: the Coder must pass the capability lab for this exact configuration.
   const coder: ModelAssignment = { providerId: "ollama", model, temperature: 0.1 };
-  for (const role of ["planner", "coder", "debugger"] as const) app.router.setRoleAssignment(role, { ...coder, temperature: role === "planner" ? 0.2 : 0.1 });
+  for (const role of ["planner", "coder", "debugger"] as const) app.router.setRoleAssignment(role, { ...coder, temperature: role === "planner" ? 0.2 : 0.1 }, { actor: "flowcode", origin: "the golden-path benchmark script" });
   let elig = app.lab.coderEligibility(coder);
   if (!elig.eligible) {
     log(`Coder preflight: ${elig.reason} — running capability lab for ${model}`);

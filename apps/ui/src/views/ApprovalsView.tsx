@@ -19,7 +19,8 @@ interface Decision {
   id: string;
   at: string;
   kind: string;
-  actor: "user" | "flowcode";
+  actor: "user" | "flowcode" | "unknown";
+  origin?: string;
   summary: string;
   reason?: string;
   projectId?: string;
@@ -135,7 +136,7 @@ export function ApprovalsView({ projects, projectsLoaded = true }: { projects: P
   // One dated feed for the calendar: the decision log, plus decided approvals from before it existed (not logged twice).
   const logged = new Set((decisions.data ?? []).map((d) => d.ref).filter(Boolean));
   const entries: LogEntry[] = [
-    ...log.map((d) => ({ id: d.id, at: d.at, chip: KIND[d.kind] ?? d.kind, summary: d.summary, ...(d.reason ? { reason: d.reason } : {}), who: `${d.actor === "user" ? "You" : "FlowCode"}${d.projectId ? ` · ${name.get(d.projectId) ?? "project"}` : ""}`, ...(d.projectId ? { projectId: d.projectId } : {}), ...(d.runId ? { runId: d.runId } : {}) })),
+    ...log.map((d) => ({ id: d.id, at: d.at, chip: KIND[d.kind] ?? d.kind, summary: d.summary, ...(d.reason ? { reason: d.reason } : {}), who: `${d.actor === "user" ? "You" : d.actor === "unknown" ? `Unknown person or tool${d.origin ? ` (via ${d.origin})` : ""}` : "FlowCode"}${d.projectId ? ` · ${name.get(d.projectId) ?? "project"}` : ""}`, ...(d.projectId ? { projectId: d.projectId } : {}), ...(d.runId ? { runId: d.runId } : {}) })),
     ...(!kind || kind === "approval"
       ? (history.data ?? [])
           .filter((a) => a.resolvedAt && !logged.has(`approval:${a.id}`))
