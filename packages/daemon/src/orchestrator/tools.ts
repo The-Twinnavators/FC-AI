@@ -23,6 +23,7 @@ import { screenKey } from "../quality/appWiring.js";
 import { pieceFiles, pieceImport, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
 import { catalogContract, contractText, nearIds, resolveCatalogId, searchCatalog, searchText } from "./catalogContract.js";
 import { renderLoopNote } from "./renderLoops.js";
+import { FileViews } from "./fileViews.js";
 import { afterEdit, syntaxGuard, testFailureDigest, buildingBlockImports, coverUpEdit, editGuard, nativeInWebApp, toTsPath, removesTokenInUse, workspaceTokenUsage, unredactLines } from "./guards.js";
 
 export interface DispatchContext {
@@ -42,6 +43,8 @@ export interface DispatchContext {
   verifyClaim?: () => Promise<{ allMet: boolean; failures: string[] }>;
   /** True when `rel` was created (did not exist before) earlier in this run. */
   createdInRun?: (rel: string) => boolean;
+  /** Files the step's packet carried whole (not shortened, not cut at the line cap), with the content sent: seen in full. */
+  attachedWhole?: () => Array<{ path: string; content: string }>;
   /** Type errors added since the run started, checked right after a code edit so the agent fixes them in the same turn. */
   typeErrorsAfterEdit?: (paths: string[]) => Promise<string[]>;
   /** Called when the edits stop making progress (the same errors keep coming back): the step moves to a stronger model. */
@@ -157,6 +160,22 @@ export function createDispatcher(ctx: DispatchContext) {
     }
   };
 
+  /** What this attempt has seen of each file (fileViews.ts), for the partial-view rewrite guard. */
+  const views = new FileViews();
+  let attachedSeen = false;
+  const seeAttached = () => {
+    if (attachedSeen) return;
+    attachedSeen = true;
+    for (const f of ctx.attachedWhole?.() ?? []) views.saw(f.path, f.content);
+  };
+  const currentText = (rel: string): string | undefined => {
+    try {
+      return fs.readFileSync(ctx.jail.resolve(rel).abs, "utf8");
+    } catch {
+      return undefined;
+    }
+  };
+
   /** apply_patch misses per file in this attempt (drives the replace_file recovery path). */
   const patchMisses = new Map<string, number>();
   /** The type errors after each edit in this attempt, to notice when they start repeating. */
@@ -234,10 +253,19 @@ export function createDispatcher(ctx: DispatchContext) {
       }
       const refused = editGuard(name, rel, before, args, { patchMisses: patchMisses.get(rel) ?? 0 });
       if (refused) return { ok: false, content: refused };
+      // The partial-view guard: a whole-file rewrite only of a file this attempt has seen all of, as it is now.
+      if (name === "replace_file" && before !== undefined) {
+        seeAttached();
+        const missing = views.missing(rel, before);
+        if (missing) return { ok: false, content: `Not applied: replace_file rewrites all of ${rel}, but ${missing}; what you haven't seen would be lost. Read it first (read_file "${rel}", or the unseen lines with from and to), or change only what you need with apply_patch.` };
+      }
       // Advice alone didn't stop it (Calendar test 6: misses on CalendarMonth.tsx kept coming): from the third miss on a
       // short file, apply_patch is refused and the file's real text is sent, so the rewrite starts from what's there.
-      if (name === "apply_patch" && before !== undefined && (patchMisses.get(rel) ?? 0) >= 3 && before.split("\n").length <= MAX_REWRITE_LINES)
+      if (name === "apply_patch" && before !== undefined && (patchMisses.get(rel) ?? 0) >= 3 && before.split("\n").length <= MAX_REWRITE_LINES) {
+        // The whole file is shown here, so it counts as seen: the rewrite it asks for is allowed.
+        views.saw(rel, before);
         return { ok: false, content: `Not applied: apply_patch has missed ${rel} ${patchMisses.get(rel)} times because the text you're matching isn't what the file says now. Use replace_file with the COMPLETE corrected file instead (no approval needed). This is the file as it is now:\n${untrusted(rel, before)}` };
+      }
       const after = before === undefined ? undefined : afterEdit(name, before, args);
       if (before !== undefined && after !== undefined && /\.(css|scss|pcss)$/i.test(rel)) {
         const inUse = removesTokenInUse(rel, before, after, workspaceTokenUsage(ctx.jail));
@@ -303,6 +331,13 @@ export function createDispatcher(ctx: DispatchContext) {
       }
       syntaxRefusals.delete(target.rel);
     }
+    let editRel = "";
+    try {
+      editRel = typeof args.path === "string" ? ctx.jail.resolve(String(args.path)).rel : "";
+    } catch {
+      editRel = ""; // outside the project: the operation refuses it
+    }
+    const editBefore = editRel ? currentText(editRel) : undefined;
     const opCtx = { jail: ctx.jail, projectId: ctx.project.id, runId: ctx.run.id, taskId: ctx.task.id, toolCallId, approved };
     const call = (c: typeof opCtx): OpResult => (ctx.ops as unknown as Record<string, (c: unknown, a: unknown) => OpResult>)[name].call(ctx.ops, c, args);
     let res = call(opCtx);
@@ -321,7 +356,18 @@ export function createDispatcher(ctx: DispatchContext) {
       });
       const decided = await awaitApproval(a);
       if (decided.status !== "approved") return { ok: false, content: `Approval ${decided.status}: ${res.approvalReason}. The file was NOT changed.` };
+      // Approved against the file as it was: a rewrite still needs the file unchanged since (the guard, rechecked now).
+      if (name === "replace_file" && editBefore !== undefined) {
+        const now = currentText(editRel);
+        const stale = now === undefined || now !== editBefore ? `${editRel} changed while the approval was waiting` : views.missing(editRel, now);
+        if (stale) return { ok: false, content: `Not applied: ${stale}. The file was NOT changed. Read it again, then send the change.` };
+      }
       res = call({ ...opCtx, approved: true });
+    }
+    // The agent's own applied edit: it knows what it wrote, so a complete view carries over to the new version.
+    if (res.ok && (name === "apply_patch" || name === "replace_file" || name === "create_file") && editRel) {
+      const now = currentText(editRel);
+      if (now !== undefined) views.edited(editRel, editBefore, now);
     }
     if (name === "apply_patch") {
       const rel = ctx.jail.resolve(String(args.path)).rel;
@@ -480,7 +526,18 @@ export function createDispatcher(ctx: DispatchContext) {
             if (from > lines.length) return { ok: false, content: `${f.path} has ${lines.length} lines; line ${from} is past the end.` };
             const width = String(to).length;
             const body = lines.slice(from - 1, to).map((l, i) => `${String(from + i).padStart(width)}| ${l}`).join("\n");
+            const raw = currentText(f.path);
+            if (raw !== undefined) views.saw(f.path, raw, from, to);
             return { ok: true, content: `(${f.path}, lines ${from}–${to} of ${lines.length}${f.truncated ? "+" : ""}. The "N| " at the start of each line is its number, not part of the file: leave it out of apply_patch find text, and pass the number as "line" if the text occurs more than once.)\n${untrusted(f.path, body)}` };
+          }
+          // A whole read is a complete view of this version; a truncated one covers only the lines it showed.
+          if (!f.truncated) {
+            const raw = currentText(f.path);
+            if (raw !== undefined) views.saw(f.path, raw);
+          }
+          else {
+            const full = currentText(f.path);
+            if (full !== undefined) views.saw(f.path, full, 1, Math.max(1, f.content.split("\n").length - 1));
           }
           return { ok: true, content: untrusted(f.path, f.content) + (f.truncated ? "\n[file truncated]" : "") };
         }

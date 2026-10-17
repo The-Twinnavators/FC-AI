@@ -2705,6 +2705,8 @@ export class Orchestrator {
     const candidates = [...ownFiles.filter(isText), ...others];
     let budget = lean ? 16_000 : 28_000;
     let filesSent = 0;
+    // Each attached file as it was read, with its numbered text, so the dispatcher knows which went whole (fileViews.ts).
+    const attached: Array<{ path: string; raw: string; numbered: string; whole: boolean }> = [];
     const files = candidates
       .flatMap((p) => {
         try {
@@ -2718,6 +2720,11 @@ export class Orchestrator {
               .join("\n") + (all.length > cap ? `\n[${all.length - cap} more lines: use read_file to see the rest]` : "");
           if ((budget -= numbered.length) < 0 && filesSent > 0 && !ownFiles.includes(p)) return [];
           filesSent++;
+          try {
+            attached.push({ path: p, raw: fs.readFileSync(jail.resolve(p).abs, "utf8"), numbered, whole: all.length <= cap });
+          } catch {
+            /* unreadable as text: not counted as seen */
+          }
           return [{ path: `${p} (line-numbered; line prefixes are not part of the file)`, content: numbered }];
         } catch {
           return [];
@@ -2857,6 +2864,7 @@ export class Orchestrator {
       this.d.bus.emit({ type: "skill.applied", projectId: project.id, runId: run.id, taskId: task.id, message: `Skills for "${task.title}": ${skillFit.kept.map((s) => s.id).join(", ")}${skillFit.dropped.length ? ` (left out to fit ${assignment.model}'s skill budget: ${skillFit.dropped.join(", ")})` : ""}`, data: { role, skills: skillFit.kept.map((s) => `${s.id}@${s.version}`), dropped: skillFit.dropped } });
     }
     const pf = () => this.d.projects.latestPreflight(project.id);
+    let fittedBrief = "";
     const dispatcher = createDispatcher({
       project,
       currentProject: () => this.d.store.projects.require(project.id),
@@ -2899,6 +2907,8 @@ export class Orchestrator {
         this.d.store.setSetting(`claimFailures:${task.id}`, v.allMet ? [] : v.failures.slice(0, 8));
         return v;
       },
+      // Seen whole: attached in full and still in full in the fitted brief (not shortened or left out to fit).
+      attachedWhole: () => attached.filter((f) => f.whole && fittedBrief.includes(f.numbered)).map((f) => ({ path: f.path, content: f.raw })),
       createdInRun: (rel) => this.d.store.snapshots.where("run_id = ?", run.id).some((s) => s.relativePath === rel && s.contentHash === "absent"),
       typeErrorsAfterEdit: (paths) => this.d.verifier.newTypeErrors(this.d.store.runs.require(run.id), signal, paths, task.id),
       onNoProgress: () => this.d.store.setSetting(`taskCycled:${task.id}`, true),
@@ -2962,6 +2972,7 @@ export class Orchestrator {
     const room = reqBudget.inputChars - system.length - toolsChars;
     const brief = fitHandoff(packet, renderTree(listTree(jail, ".", 2, lean ? 80 : 140)), (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name), Math.max(0, room));
     const total = system.length + toolsChars + brief.text.length;
+    fittedBrief = brief.text;
     this.d.bus.emit({
       type: "recovery.action",
       projectId: project.id,

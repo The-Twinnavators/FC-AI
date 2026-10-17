@@ -47,7 +47,7 @@ describe("which text calls are recovered", () => {
 });
 
 /** A build whose coder speaks through `reply` (its n-th reply, the history so far). */
-async function build(reply: (n: number, h: Array<{ role: string; content?: unknown }>) => { content?: string; throws?: string }, opts: { supervised?: boolean; until?: (app: ReturnType<typeof makeApp>["app"]) => boolean } = {}) {
+async function build(reply: (n: number, h: Array<{ role: string; content?: unknown }>) => { content?: string; throws?: string }, opts: { supervised?: boolean; until?: (app: ReturnType<typeof makeApp>["app"]) => boolean; files?: Record<string, string> } = {}) {
   const { app } = makeApp();
   app.router.sleep = async () => {};
   const plan = {
@@ -77,7 +77,7 @@ async function build(reply: (n: number, h: Array<{ role: string; content?: unkno
   const lab = await app.lab.probe({ providerId: "scripted-ideal", model: "agent" });
   app.store.capabilities.upsert({ ...lab, id: "cap_copy", providerId: "scripted", model: "agent", configHash: ModelRouter.configHash(asg) });
   for (const role of ["planner", "coder", "debugger"] as const) app.router.setRoleAssignment(role, asg);
-  const { project, ws } = makeProject(app, { "README.md": "# demo\n" });
+  const { project, ws } = makeProject(app, { "README.md": "# demo\n", ...(opts.files ?? {}) });
   app.projects.updateSettings(project.id, { autonomy: opts.supervised ? "supervised" : "assisted" });
   const notes: string[] = [];
   app.bus.subscribe((e) => void (/recovery\.action|tool\.(completed|rejected)|approval\.requested/.test(e.type) && notes.push(`${e.type} ${e.message}`)));
@@ -155,4 +155,12 @@ describe("recovered calls in a build", () => {
     expect(r.notes.some((x) => /already ran in your previous reply/.test(x))).toBe(false);
     expect(fs.existsSync(path.join(r.ws, "src/other.ts"))).toBe(false);
   }, 120_000);
+
+  it("can't bypass the partial-view guard: a recovered rewrite of a file seen only in part is refused", async () => {
+    const long = Array.from({ length: 300 }, (_, i) => `export const v${i} = ${i};`).join("\n") + "\nexport const a = 1;\n";
+    const rewrite = Array.from({ length: 300 }, (_, i) => `export const w${i} = ${i};`).join("\n") + "\nexport const a = 2;\n";
+    const r = await build((n) => (n === 1 ? { content: fn("replace_file", { path: "src/a.ts", content: rewrite, reason: "r" }) } : { content: fn("task_complete", { summary: "done", changedPaths: "[]" }) }), { files: { "src/a.ts": long } });
+    expect(r.notes.some((x) => /^tool\.completed replace_file → failed: Not applied: replace_file rewrites all of src\/a\.ts, but this attempt (has seen only part of|hasn't seen) src\/a\.ts/.test(x))).toBe(true);
+    expect(fs.readFileSync(path.join(r.ws, "src/a.ts"), "utf8")).toBe(long);
+  }, 90_000);
 });
