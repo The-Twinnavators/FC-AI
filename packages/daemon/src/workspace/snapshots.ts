@@ -99,6 +99,44 @@ export class SnapshotService {
     return updated;
   }
 
+  /**
+   * What undoing a task's changes would do, without writing anything: each file it changed and the state it goes back
+   * to (its state before the task's first change), and the conflicts that make the undo unsafe: a later change to the
+   * same file by another step (accepted or not), or a file that no longer matches the task's last change (edited
+   * since, outside FlowCode or by a step that left no snapshot). An undo with conflicts must not run: restoring would
+   * overwrite that later work.
+   */
+  planTaskUndo(taskId: string, jail: PathJail, statusOf: (taskId: string) => string | undefined): { files: Array<{ rel: string; first: SnapshotRow; last: SnapshotRow }>; conflicts: string[] } {
+    const own = this.store.snapshots.where("task_id = ? ORDER BY seq ASC", taskId).filter((s) => !s.restoredAt);
+    const byFile = new Map<string, SnapshotRow[]>();
+    for (const s of own) byFile.set(s.relativePath.replace(/\\/g, "/"), [...(byFile.get(s.relativePath.replace(/\\/g, "/")) ?? []), s]);
+    const files: Array<{ rel: string; first: SnapshotRow; last: SnapshotRow }> = [];
+    const conflicts: string[] = [];
+    for (const [rel, snaps] of byFile) {
+      const first = snaps[0]!;
+      const last = snaps.at(-1)!;
+      files.push({ rel, first, last });
+      const later = this.store.snapshots
+        .where("run_id = ? AND seq > ? ORDER BY seq ASC", first.runId, first.seq)
+        .filter((s) => !s.restoredAt && s.taskId !== taskId && s.relativePath.replace(/\\/g, "/") === rel);
+      for (const s of later) conflicts.push(`${rel}: changed later by another step (${s.taskId ?? "no step"}, ${statusOf(s.taskId ?? "") ?? "unknown status"}) at ${s.createdAt}`);
+      if (!later.length && last.postContentHash) {
+        const { abs } = jail.resolve(rel, { allowSecret: false });
+        const now = fs.existsSync(abs) ? sha256(fs.readFileSync(abs)) : ABSENT;
+        if (now !== last.postContentHash) conflicts.push(`${rel}: no longer matches this step's last change (edited since, with no snapshot)`);
+      }
+    }
+    return { files, conflicts };
+  }
+
+  /** Marks snapshots as not restored again (an undo put back because it wasn't coherent). */
+  unmarkRestored(ids: string[]) {
+    for (const id of ids) {
+      const s = this.store.snapshots.get(id);
+      if (s) this.store.snapshots.upsert({ ...s, restoredAt: undefined });
+    }
+  }
+
   /** Rolls back every snapshot of a task, newest first. */
   restoreTask(taskId: string, jail: PathJail): SnapshotRow[] {
     const snaps = this.store.snapshots.where("task_id = ? ORDER BY seq DESC", taskId).filter((s) => !s.restoredAt);

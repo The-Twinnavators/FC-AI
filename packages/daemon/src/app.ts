@@ -74,7 +74,7 @@ export function createApp(opts: AppOptions = {}) {
       if (meta.runId && meta.projectId && cur?.cause === "gpu_queue" && cur.state !== "resolved") resolveInterruption(store, bus, meta.projectId, meta.runId, `Started: the GPU is free (waited ${Math.round(waitedMs / 1000)} s)`);
     },
   );
-  const orchestratorDeps: OrchestratorDeps = { store, bus, router, lab, projects, snapshots, ops, runner, processes, approvals, verifier, knowledge, mcp };
+  const orchestratorDeps: OrchestratorDeps = { store, bus, router, lab, projects, snapshots, ops, runner, processes, approvals, verifier, knowledge, mcp, artifacts };
   const orchestrator = new Orchestrator(orchestratorDeps);
 
   // Repo Report (ported from FlowAgent): its tables live in this database (migration 4), its files beside it, and it

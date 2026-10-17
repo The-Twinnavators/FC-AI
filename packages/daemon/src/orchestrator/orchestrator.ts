@@ -34,7 +34,8 @@ import type { FileOperations } from "../workspace/operations.js";
 import type { CommandRunner } from "../commands/runner.js";
 import type { ProcessManager } from "../commands/processManager.js";
 import type { ApprovalService } from "../approvals/service.js";
-import { stepBaselineKey, type Verifier } from "../quality/verification.js";
+import { attributeDiagnostics, stepBaselineKey, type StepBaseline, type Verifier } from "../quality/verification.js";
+import type { ArtifactService } from "../db/artifacts.js";
 import type { KnowledgeService } from "../knowledge/knowledge.js";
 import { TaskGraph } from "./dag.js";
 import { evaluateCompletionGate } from "./completionGate.js";
@@ -122,6 +123,8 @@ export interface OrchestratorDeps {
   approvals: ApprovalService;
   verifier: Verifier;
   knowledge: KnowledgeService;
+  /** Where kept evidence goes (an undone step's diff); optional like mcp. */
+  artifacts?: ArtifactService;
   /** MCP servers you connected; optional so tests and tools that build an orchestrator without one still work. */
   mcp?: McpManager;
 }
@@ -1723,6 +1726,16 @@ export class Orchestrator {
     if (task.attempts === 1) this.d.store.setSetting(recoveryKey(task.id), { corrections: 0, history: [] });
     // The diagnostics this step starts with (verification.captureStepBaseline): it is judged on what it adds, in any file,
     // never on what was already there. Taken at its first attempt (and again when it starts over), not between attempts.
+    if (task.attempts === 1) {
+      // Steps after this one that never got accepted are undone first (safely), so it doesn't start on their half-done
+      // work; if that can't be done coherently, it waits for the person instead of building on it.
+      const blocked = await this.undoLaterUnaccepted(run, task, jail);
+      if (blocked) {
+        this.updateTask(this.d.store.tasks.require(task.id), { status: "blocked", attempts: 0, blocker: { reason: `Reconcile first: ${blocked}`, category: "user", failureClass: "task_contract", evidenceRefs: [], nextAction: "Look at the kept diff (Review tab and the run's artifacts), keep or undo those changes, then retry this step." } });
+        this.d.bus.emit({ ...ev, type: "task.blocked", level: "warning", message: `"${task.title}" waits for you: ${blocked}` });
+        return;
+      }
+    }
     if (task.attempts === 1 || !this.d.store.getSetting(stepBaselineKey(task.id), null)) await this.d.verifier.captureStepBaseline(this.d.store.runs.require(run.id), task.id, signal).catch(() => undefined);
     this.d.store.setSetting(`claimFailures:${task.id}`, []);
     const routedNext = task.attempts > 1 && task.role === "coder" ? getRecovery(this.d.store, task.id).next : undefined;
@@ -2028,7 +2041,7 @@ export class Orchestrator {
       // Calendar design rebuild: a step stopped at 28 of 29 tests and all 16 of its file changes were undone.
       const tally = this.lastTestTally(run.id, task.id);
       if (tally && nearlyPassing(tally)) this.d.bus.emit({ ...ev, type: "run.status_changed", message: `Kept "${task.title}"'s changes: ${tally.passed} of ${tally.passed + tally.failed} of its tests pass, so a retry continues from here.` });
-      else this.undoBlockedStep(run, task.id, jail);
+      else await this.undoBlockedStep(run, task.id, jail);
       this.d.bus.emit({ ...ev, type: "task.blocked", message: `Task blocked: ${task.title} — ${reason}`, level: "warning" });
       return;
     }
@@ -2056,7 +2069,7 @@ export class Orchestrator {
           : { reason: `Model error (${outcome.error.kind}): ${outcome.error.message}`, category: "model", evidenceRefs: [], nextAction: "Check the provider in Diagnostics, then retry the task" },
       });
       // Running out of credits says nothing about the work: keep it for the retry.
-      if (!quota) this.undoBlockedStep(run, task.id, jail);
+      if (!quota) await this.undoBlockedStep(run, task.id, jail);
       this.d.bus.emit({ ...ev, type: "task.blocked", message: `Task blocked by model error: ${outcome.error.kind}`, level: "error" });
       return;
     }
@@ -2286,7 +2299,7 @@ export class Orchestrator {
     // Only when it can be split: a part of a split step is never split again, and undoing it first threw its work away
     // for nothing (Calendar prototype: a part at 2 failing tests of 58 was undone back to 26, attempt after attempt).
     if (outcome.kind === "budget_exhausted" && budgetOuts(this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, [])) >= 2 && !this.d.store.getSetting(`splitPart:${task.id}`, false)) {
-      this.undoBlockedStep(run, task.id, jail);
+      await this.undoBlockedStep(run, task.id, jail);
       if (await this.splitStep(run, this.d.store.tasks.require(task.id), jail, signal)) return;
     }
     // The same failure twice running: every attempt after the first runs as the debugger, the biggest single cost in a
@@ -2317,7 +2330,7 @@ export class Orchestrator {
       // build: a design step that passed every functional check lost all 14 file changes over three design suggestions.
       const looksOnly = why.length > 0 && why.every((w) => /^(Look check|Design crit|A design lead)/.test(w));
       if (nearlyDone || outOfTurns || looksOnly) this.d.bus.emit({ ...ev, type: "run.status_changed", message: nearlyDone ? `Kept "${task.title}"'s changes: its own tests pass and only earlier tests need fixing, so a retry continues from here.` : looksOnly ? `Kept "${task.title}"'s changes: everything works and only design findings are left, so a retry continues from here.` : `Kept "${task.title}"'s changes: it ran out of turns while working, so a retry continues from here instead of starting over.` });
-      else this.undoBlockedStep(run, task.id, jail);
+      else await this.undoBlockedStep(run, task.id, jail);
       return;
     }
     this.updateTask(task, { status: "attempted" });
@@ -2990,14 +3003,84 @@ export class Orchestrator {
     return undefined;
   }
 
-  private undoBlockedStep(run: Run, taskId: string, jail: ReturnType<ProjectService["jail"]>) {
+  private async undoBlockedStep(run: Run, taskId: string, jail: ReturnType<ProjectService["jail"]>) {
     if (!runtimeOptions(this.d.store).rollbackBlocked) return;
     const task = this.d.store.tasks.require(taskId);
     if (!task.actualPaths.length) return;
+    const undone = await this.safeUndo(run, task, jail, "it was blocked");
+    if (!undone.ok) this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, taskId, level: "warning", message: `Kept "${task.title}"'s changes: undoing them isn't safe (${undone.reason}). They wait for your decision; nothing was overwritten.` });
+  }
+
+  /**
+   * Undoes a step's changes that were never accepted, only when that is coherent (snapshots.planTaskUndo): no later
+   * step and nothing outside FlowCode changed the same files since, and putting the files back adds no type or lint
+   * error beyond those the step started with (a later accepted step can depend on what it added). Its diff and the
+   * diagnostics it ended with are kept as an artifact first. An undo that isn't coherent changes nothing and says why.
+   * Undoing never makes the app healthy by itself: errors the step started with are still there, and still reported.
+   */
+  private async safeUndo(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>, why: string): Promise<{ ok: true; restored: number; inherited: number } | { ok: false; reason: string }> {
+    const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
+    const plan = this.d.snapshots.planTaskUndo(task.id, jail, (id) => this.d.store.tasks.get(id)?.status);
+    if (!plan.files.length) return { ok: true, restored: 0, inherited: 0 };
+    // What is undone stays inspectable: the diff and the diagnostics the step ended with.
+    let diff = "";
+    try {
+      diff = fixDiff({ store: this.d.store, snapshots: this.d.snapshots }, jail, task.id).diff;
+    } catch {
+      diff = "";
+    }
+    const findings = this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []);
+    const art = (this.d.artifacts ?? { save: () => ({ id: "not kept" }) }).save({ runId: run.id, kind: "other", label: `Undone changes: ${task.title}`, mime: "text/plain", content: [`Why: ${why}`, `Files: ${plan.files.map((f) => f.rel).join(", ")}`, plan.conflicts.length ? `Not undone (conflicts):\n${plan.conflicts.join("\n")}` : "", `Diagnostics and findings it ended with:\n${findings.join("\n")}`, `Diff:\n${diff}`].filter(Boolean).join("\n\n"), meta: { taskId: task.id, undone: !plan.conflicts.length } });
+    if (plan.conflicts.length) {
+      this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `Not undoing "${task.title}": ${plan.conflicts.length} file${plan.conflicts.length === 1 ? "" : "s"} changed since by other work (${plan.conflicts[0]}). Its diff is kept (artifact ${art.id}).`, data: { conflicts: plan.conflicts, artifactId: art.id } });
+      return { ok: false, reason: plan.conflicts.join("; ") };
+    }
+    // Keep what is there now, to put it back if the undo turns out not to be coherent.
+    const now = plan.files.map((f) => {
+      const { abs } = jail.resolve(f.rel, { allowSecret: false });
+      return { abs, content: fs.existsSync(abs) ? fs.readFileSync(abs) : undefined };
+    });
     const restored = this.d.snapshots.restoreTask(task.id, jail);
-    if (!restored.length) return;
-    this.updateTask(task, { actualPaths: [] });
-    this.d.bus.emit({ type: "recovery.action", projectId: run.projectId, runId: run.id, taskId, message: `Undid the half-finished changes from "${task.title}" (${restored.length} file change${restored.length === 1 ? "" : "s"}) right away, so the next steps start from working files.` });
+    const base = this.d.store.getSetting<StepBaseline | null>(stepBaselineKey(task.id), null);
+    if (base) {
+      const after = await this.d.verifier.captureDiagnostics(this.d.store.runs.require(run.id)).catch(() => undefined);
+      const added = (["typecheck", "lint"] as const).flatMap((k) => (after?.[k] && base[k] ? attributeDiagnostics(base[k]!.errors, after[k]!.lines).introduced : []));
+      if (added.length) {
+        for (const f of now) {
+          if (f.content === undefined) fs.rmSync(f.abs, { force: true });
+          else (fs.mkdirSync(path.dirname(f.abs), { recursive: true }), fs.writeFileSync(f.abs, f.content));
+        }
+        this.d.snapshots.unmarkRestored(restored.map((s) => s.id));
+        this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `Not undoing "${task.title}": putting its files back adds ${added.length} error${added.length === 1 ? "" : "s"} it didn't start with (other work depends on it): ${added[0]}. Its changes were kept; its diff is in artifact ${art.id}.`, data: { introduced: added.slice(0, 20), artifactId: art.id } });
+        return { ok: false, reason: `the undo would add ${added.length} error${added.length === 1 ? "" : "s"} (${added[0]})` };
+      }
+      const inherited = (["typecheck", "lint"] as const).reduce((n, k) => n + (after?.[k]?.lines.length ?? 0), 0);
+      this.updateTask(this.d.store.tasks.require(task.id), { actualPaths: [] });
+      this.d.bus.emit({ ...ev, type: "recovery.action", message: `Undid "${task.title}" (${restored.length} file change${restored.length === 1 ? "" : "s"}, ${why}): its files are as they were when it started${inherited ? `, with the ${inherited} error${inherited === 1 ? "" : "s"} that were there then (still to fix; the app isn't healthy)` : ""}. Its diff is kept (artifact ${art.id}).`, data: { artifactId: art.id, inherited } });
+      return { ok: true, restored: restored.length, inherited };
+    }
+    this.updateTask(this.d.store.tasks.require(task.id), { actualPaths: [] });
+    this.d.bus.emit({ ...ev, type: "recovery.action", message: `Undid "${task.title}" (${restored.length} file change${restored.length === 1 ? "" : "s"}, ${why}). Its diff is kept (artifact ${art.id}).`, data: { artifactId: art.id } });
+    return { ok: true, restored: restored.length, inherited: 0 };
+  }
+
+  /**
+   * Before a step starts over, the unaccepted work of steps after it (attempted, blocked or invalidated, never verified)
+   * is undone safely: they will run again after it, and their half-done edits would otherwise be the ground it works
+   * on, owned by no step (Clean Cart: an invalidated step's broken Home screen). Verified and skipped steps keep theirs.
+   * Returns why it couldn't when an undo isn't coherent: the step then waits for the person to reconcile.
+   */
+  private async undoLaterUnaccepted(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>): Promise<string | undefined> {
+    // Never-accepted only: a step that once passed (a "Verified" checkpoint) and was reopened keeps its files, whose
+    // right parts it builds on when it runs again.
+    const verifiedCheckpoints = this.d.store.checkpoints.where("run_id = ?", run.id).filter((c) => c.label.startsWith("Verified"));
+    const everVerified = (id: string) => verifiedCheckpoints.some((c) => c.taskId === id);
+    const later = this.graph.tasks(run.id).filter((t) => t.ordinal > task.ordinal && ["attempted", "blocked", "invalidated", "pending", "failed"].includes(t.status) && !everVerified(t.id) && this.d.store.snapshots.where("task_id = ?", t.id).some((s) => !s.restoredAt));
+    for (const t of later.sort((a, b) => b.ordinal - a.ordinal)) {
+      const undone = await this.safeUndo(run, t, jail, `"${task.title}", which it builds on, starts over`);
+      if (!undone.ok) return `"${t.title}" has unaccepted changes that can't be undone safely (${undone.reason})`;
+    }
+    return undefined;
   }
 
   rollbackTask(runId: string, taskId: string) {

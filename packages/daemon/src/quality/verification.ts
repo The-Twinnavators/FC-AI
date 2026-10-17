@@ -272,9 +272,18 @@ export class Verifier {
    * over from its first attempt (a reopened step), never between attempts, so an earlier attempt's errors stay its own.
    */
   async captureStepBaseline(run: Run, taskId: string, signal?: AbortSignal): Promise<StepBaseline> {
+    const now = await this.captureDiagnostics(run, signal);
+    const out: StepBaseline = { at: new Date().toISOString() };
+    for (const k of ["typecheck", "lint"] as const) if (now[k]) out[k] = { passed: now[k]!.passed, errors: now[k]!.lines.map(signature) };
+    this.store.setSetting(stepBaselineKey(taskId), out);
+    return out;
+  }
+
+  /** The type check and lint as they are now: whether each passed and its error lines. Nothing is recorded. */
+  async captureDiagnostics(run: Run, signal?: AbortSignal): Promise<{ typecheck?: { passed: boolean; lines: string[] }; lint?: { passed: boolean; lines: string[] } }> {
     const project = this.store.projects.require(run.projectId);
     const pf = this.projects.latestPreflight(project.id);
-    const out: StepBaseline = { at: new Date().toISOString() };
+    const out: { typecheck?: { passed: boolean; lines: string[] }; lint?: { passed: boolean; lines: string[] } } = {};
     if (pf && (pf.manifestValid && pf.hasNodeModules)) {
       for (const kind of ["typecheck", "lint"] as const) {
         const cls = kind;
@@ -293,11 +302,10 @@ export class Verifier {
           maxSameFingerprint: 1000,
           signal,
         });
-        if (res.record.status === "succeeded") out[kind] = { passed: true, errors: [] };
-        else if (res.record.status === "failed") out[kind] = { passed: false, errors: errorLines(res.output).map(signature) };
+        if (res.record.status === "succeeded") out[kind] = { passed: true, lines: [] };
+        else if (res.record.status === "failed") out[kind] = { passed: false, lines: errorLines(res.output) };
       }
     }
-    this.store.setSetting(stepBaselineKey(taskId), out);
     return out;
   }
 
