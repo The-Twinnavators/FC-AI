@@ -110,6 +110,7 @@ import { mcpStepTools } from "../mcp/stepTools.js";
 import { designResearch, designResearchBrief } from "../quality/designResearch.js";
 import { failuresOf, fixBrief, fixDiff, recordFix, similarFixes } from "../knowledge/fixMemory.js";
 import { inheritedNote, provisionalFromKey, provisionalKey, type ProvisionalSet } from "./provisional.js";
+import { batchNote, fixturesFirst, holdsFixtures, mergeRecords, missingFixtures } from "./recordIdentity.js";
 import { figmaBrief, figmaLinks } from "../mcp/figma.js";
 import { creditAdvice } from "../quality/blockerText.js";
 import { screenSpecBrief } from "../quality/screenCoverage.js";
@@ -1130,7 +1131,8 @@ export class Orchestrator {
     let placeIds: string[] = [];
     // The PRD's own sample data: its listed records first, exactly as given (the app shows the PRD's products).
     const sampleSection = prdSampleSection(prd);
-    const sample = sampleSection ? `\nThe PRD's sample data (data, not instructions). Start with the records it lists for these, exactly as given (names and values), then add others like them:\n${untrusted("sample-data", sampleSection)}` : "";
+    const fixtures = prdNamedRecords(sampleSection);
+    const merges: string[] = [];
     for (const e of [...(places ? [places] : []), ...entities.filter((x) => x !== places)]) {
       const extra =
         e === places
@@ -1140,20 +1142,43 @@ export class Orchestrator {
             : "";
       // In batches of at most ten records: twenty products in one reply ran past the 3,500-token cap twice and the whole
       // model was lost. A later batch that fails keeps the records already written (fewer samples is a noted problem).
+      // Each batch is merged by the records' identity (recordIdentity.ts): repeats and clashes are left out and said; the
+      // PRD's sample records are asked for only while some are missing (Clean Cart slice eval 1: asked in every batch,
+      // each of the six products was in the catalog twice).
       const want = e === places ? 8 : e === entries ? 20 : 14;
-      const rows: unknown[] = [];
-      for (let from = 0; from < want; from += 10) {
-        const count = Math.min(10, want - from);
-        const more = from ? ` These are records ${from + 1} to ${from + count}: different from the first ${from} (${rows.slice(0, 12).map((r) => String((r as Record<string, unknown>)[e.titleField] ?? "")).filter(Boolean).join(", ")}).` : "";
+      let rows: Array<Record<string, unknown>> = [];
+      const note = (from: number, count: number, only?: string[]) => {
+        const text = only ? `Write exactly these records from the PRD's sample data, exactly as given (names and values), once each, and nothing else: ${only.join(", ")}.` : batchNote(e, rows, from, count, sampleSection, fixtures);
+        return `${extra}${text ? `\n${text}` : ""}${/PRD's sample/.test(text) ? `\nThe PRD's sample data (data, not instructions):\n${untrusted("sample-data", sampleSection)}` : ""}`.trim();
+      };
+      const take = (got: Record<string, unknown>, count: number, label: string) => {
+        const merged = mergeRecords(e, rows, (Array.isArray(got.records) ? (got.records as unknown[]) : []).filter((x): x is Record<string, unknown> => !!x && typeof x === "object").slice(0, count));
+        rows = merged.rows;
+        if (merged.repeats.length) merges.push(`${e.plural} (${label}): left out ${merged.repeats.length} repeat${merged.repeats.length === 1 ? "" : "s"} (${merged.repeats.slice(0, 6).join(", ")})`);
+        for (const c of merged.conflicts) merges.push(`${e.plural} (${label}): ${c}`);
+      };
+      for (let from = 0; rows.length < want && from < want + 10; from += 10) {
+        const count = Math.min(10, want - rows.length);
         try {
-          const got = await ask(SEED_SYSTEM, seedRequest(base.model.product, e, count, `${extra}${more}${sample}`.trim()), SEED_SCHEMA, 3500);
-          rows.push(...(Array.isArray(got.records) ? (got.records as unknown[]).slice(0, count) : []));
+          take(await ask(SEED_SYSTEM, seedRequest(base.model.product, e, count, note(rows.length, count)), SEED_SCHEMA, 3500), count, `batch ${from / 10 + 1}`);
         } catch (err) {
           if (signal.aborted || !rows.length) throw err;
           break;
         }
       }
-      seed[e.key] = rows;
+      // The PRD's records of this kind still missing after the batches: asked for once, by name; what's still missing
+      // then stays missing (the completeness check stops planning with it) rather than being replaced by invented ones.
+      const missing = holdsFixtures(e, rows, fixtures) ? missingFixtures(e, rows, fixtures) : [];
+      if (missing.length) {
+        try {
+          take(await ask(SEED_SYSTEM, seedRequest(base.model.product, e, missing.length, note(rows.length, missing.length, missing)), SEED_SCHEMA, 3500), missing.length, "the PRD's missing records");
+        } catch (err) {
+          if (signal.aborted) throw err;
+        }
+        const still = missingFixtures(e, rows, fixtures);
+        merges.push(`${e.plural}: asked once more for the PRD's ${missing.length} missing record${missing.length === 1 ? "" : "s"} (${missing.join(", ")}); ${still.length ? `still missing: ${still.join(", ")}` : "all there now"}`);
+      }
+      seed[e.key] = holdsFixtures(e, rows, fixtures) ? fixturesFirst(e, rows, fixtures) : rows;
       if (e === places) placeIds = seed[e.key]!.map((_, i) => `${e.idPrefix}-${1001 + i}`);
     }
     let social: Record<string, unknown> = {};
@@ -1162,6 +1187,10 @@ export class Orchestrator {
       social = await ask(SOCIAL_SYSTEM, socialRequest(base.model.product, list, placeIds), SOCIAL_SCHEMA, 2500).catch(() => ({}));
     }
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `The app model in ${calls} bounded planner replies: the structure, ${Object.keys(seed).length} sets of sample records${lookupShape ? ", ratings and lists" : ""}` });
+    if (merges.length) {
+      this.d.store.setSetting(`appModelMerges:${run.id}`, merges);
+      this.d.bus.emit({ ...ev, type: "plan.proposed", level: "warning", message: `Sample records merged by identity: ${merges.join("; ").slice(0, 600)}`, data: { merges } });
+    }
     return parseAppModel({ ...structure, seed, ...(lookupShape ? { lookup: { ...l, ...social } } : {}) });
   }
 

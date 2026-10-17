@@ -98,7 +98,7 @@ async function modelInParts(dropAreas = false, failSecondEntries = false) {
           : part === "places"
             ? { records: Array.from({ length: 8 }, (_, i) => ({ name: `Store ${i}`, zip: "94110" })) }
             : part === "entries"
-              ? { records: Array.from({ length: 20 }, (_, i) => ({ name: `Apples ${i}`, category: "Produce", carriedBy: user.includes("STR-1001") ? ["STR-1001", "STR-1002"] : [] })) }
+              ? { records: Array.from({ length: 20 }, (_, i) => ({ name: `Apples ${i + (user.includes("records 11 to 20") ? 10 : 0)}`, category: "Produce", carriedBy: user.includes("STR-1001") ? ["STR-1001", "STR-1002"] : [] })) }
               : { ratings: [{ entry: "PRD-1001", who: "Ana R.", stars: 5, text: "Crisp", at: "2026-03-01", helpful: 2 }], lists: [{ name: "Weekly", place: "STR-1001", items: [{ entry: "PRD-1002", qty: 2, done: false }] }], likes: { "PRD-1001": 12 }, saves: {} };
       return { content: JSON.stringify(body), toolCalls: [], model: req.model, durationMs: 1, doneReason: "stop" };
     },
