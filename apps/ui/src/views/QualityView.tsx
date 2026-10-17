@@ -4,6 +4,7 @@
  * so links and Back work. Build analysis and static triage have their own pages (they scan a repo on disk).
  */
 import { useEffect, useState } from "react";
+import { ProjectActions } from "../components/ProjectActions";
 import type { Project } from "@flowcode/contracts";
 import { Empty, Icon, Tabs } from "../components/ui";
 import { navigate } from "../router";
@@ -32,7 +33,7 @@ const TABS: Array<{ id: QualityTab; label: string }> = [
   { id: "intel", label: "Repository intelligence" },
 ];
 
-export function QualityView({ projects, projectId, view: routeView, runId }: { projects: Project[]; projectId: string; view?: string; runId?: string }) {
+export function QualityView({ projects, projectId, view: routeView, runId, reload }: { projects: Project[]; projectId: string; view?: string; runId?: string; reload?: () => void }) {
   const view: QualityTab = TABS.some((t) => t.id === routeView) ? (routeView as QualityTab) : "plan";
   const setView = (v: QualityTab) => navigate(`/quality/${projectId}/${v}`);
   // Switching project keeps the current tab.
@@ -80,6 +81,8 @@ export function QualityView({ projects, projectId, view: routeView, runId }: { p
               ))}
             </select>
           ) : null}
+          {/* Rename, edit the request, delete: the same menu as on the projects list. */}
+          {projects.find((p) => p.id === projectId) ? <ProjectActions project={projects.find((p) => p.id === projectId) as Project & { latestRun?: { id: string } }} onChanged={() => reload?.()} /> : null}
         </div>
       </header>
       <Tabs label="quality-view" value={view} onChange={setView} tabs={TABS.map((t) => (t.id === "waiting" && decisions.waiting.length ? { ...t, label: `Waiting on you (${decisions.waiting.length})` } : t.id === "ideas" && decisions.ideas.length + decisions.saved.length ? { ...t, label: `Suggestions (${decisions.ideas.length + decisions.saved.length})` } : t))} />

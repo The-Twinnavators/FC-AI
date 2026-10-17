@@ -757,6 +757,16 @@
   top: 14px;
   right: 16px;
 }
+/* In a page header (My Projects → a project) the menu sits in line with the header's buttons. */
+.page__head .proj-actions {
+  position: static;
+}
+.page__head .proj-actions__btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+}
 .proj-actions__btn {
   display: inline-grid;
   place-items: center;
