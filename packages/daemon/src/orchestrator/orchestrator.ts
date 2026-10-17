@@ -156,6 +156,10 @@ export interface FunctionalBaseline {
   dataSource: string[];
   journey: { ok: boolean; summary: string; artifactId?: string };
   ok: boolean;
+  /** "verified": a functional checkpoint; "unverified": kept for inspection and recovery after the checks failed. */
+  checkpoint: "verified" | "unverified";
+  /** The correction step after a failed baseline, if any. */
+  correctionTaskId?: string;
 }
 export const functionalBaselineKey = (runId: string) => `functionalBaseline:${runId}`;
 
@@ -2361,13 +2365,18 @@ export class Orchestrator {
           /* never let recording a fix fail a passing step */
         }
       }
-      const safe = this.d.snapshots.createCheckpoint(run.id, `Verified "${task.title}"`, true, task.id);
+      // The app FlowCode just wrote is verified only once its functional baseline passes (before any design); else its
+      // files are kept unverified and one bounded correction step comes first (correctBaseline).
+      const baseline = task.title === WRITE_APP ? await this.functionalBaseline(run, task, signal) : undefined;
+      if (signal.aborted) return;
+      if (baseline && !baseline.ok) return this.correctBaseline(run, this.d.store.tasks.require(task.id), baseline);
+      const safe = this.d.snapshots.createCheckpoint(run.id, `Verified "${task.title}"${baseline ? " (functional baseline)" : ""}`, true, task.id);
       this.updateTask(task, { status: "verified", blocker: undefined, checkpointId: safe.id });
       this.d.store.runs.upsert({ ...this.d.store.runs.require(run.id), safeCheckpointId: safe.id });
       this.d.bus.emit({ ...ev, type: "task.verified", message: `Task verified: ${task.title}`, data: { checkpointId: safe.id } });
       this.settleProvisional(run, task.id);
-      // The app FlowCode just wrote: its functional baseline, before any design work (recorded on this step only).
-      if (task.title === WRITE_APP) await this.functionalBaseline(run, this.d.store.tasks.require(task.id), safe.id, signal);
+      if (baseline) this.recordBaseline(run, { ...baseline, checkpointId: safe.id, checkpoint: "verified" });
+      this.baselineCorrected(run, task, safe.id);
       return;
     }
     const why = [outcome.kind !== "complete" ? `agent outcome: ${outcome.kind}${"reason" in outcome ? ` (${outcome.reason})` : ""}` : "", ...verdict.failures].filter(Boolean);
@@ -3273,8 +3282,7 @@ export class Orchestrator {
    * final checks: it never satisfies them, and the journey runs again in final verification after design. A run that
    * stops in design reports it as partial delivery ("Functional baseline verified at checkpoint …; design unfinished").
    */
-  private async functionalBaseline(run: Run, task: Task, checkpointId: string, signal: AbortSignal) {
-    const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
+  private async functionalBaseline(run: Run, task: Task, signal: AbortSignal): Promise<Omit<FunctionalBaseline, "checkpointId" | "checkpoint">> {
     const root = this.d.projects.jail(run.projectId).root;
     const diag = await this.d.verifier.captureDiagnostics(this.d.store.runs.require(run.id), signal).catch(() => undefined);
     const prd = prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []));
@@ -3298,9 +3306,55 @@ export class Orchestrator {
     const snapshotSeq = Math.max(0, ...this.d.store.snapshots.where("run_id = ?", run.id).map((x) => x.seq));
     const typecheckOk = diag?.typecheck ? diag.typecheck.passed : undefined;
     const ok = typecheckOk !== false && !dataProblems.length && !!journey?.ok;
-    const baseline: FunctionalBaseline = { checkpointId, taskId: task.id, sourceState: { snapshotSeq, srcSha256: hash.digest("hex") }, at: new Date().toISOString(), typecheck: typecheckOk === undefined ? "not run" : typecheckOk ? "passed" : `${diag!.typecheck!.lines.length} error(s)`, dataSource: dataProblems, journey: journey ? { ok: journey.ok, summary: journey.summary, artifactId: journey.artifactId } : { ok: false, summary: "not run (no written app model)" }, ok };
-    this.d.store.setSetting(functionalBaselineKey(run.id), baseline);
-    this.d.bus.emit({ ...ev, type: "verification.completed", level: ok ? "info" : "warning", message: `Functional baseline at checkpoint ${checkpointId} (before design): ${ok ? "verified" : "not verified"}. Type check ${baseline.typecheck}; records ${dataProblems.length ? dataProblems.slice(0, 2).join("; ") : "match the PRD"}; journey ${baseline.journey.summary}. This doesn't count as the final check; the journey runs again after design.`, data: { functionalBaseline: baseline } });
+    return { taskId: task.id, sourceState: { snapshotSeq, srcSha256: hash.digest("hex") }, at: new Date().toISOString(), typecheck: typecheckOk === undefined ? "not run" : typecheckOk ? "passed" : `${diag!.typecheck!.lines.length} error(s)`, dataSource: dataProblems, journey: journey ? { ok: journey.ok, summary: journey.summary, artifactId: journey.artifactId } : { ok: false, summary: "not run (no written app model)" }, ok };
+  }
+
+  /** A correction step after a failed baseline passed the baseline's checks: the baseline is verified at its checkpoint. */
+  private baselineCorrected(run: Run, task: Task, checkpointId: string) {
+    if (!this.d.store.getSetting(`baselineCorrection:${task.id}`, false)) return;
+    const before = this.d.store.getSetting<FunctionalBaseline | null>(functionalBaselineKey(run.id), null);
+    const journey = this.d.store.checks.where("run_id = ? AND kind = 'functional_journey'", run.id).find((c) => c.taskId === task.id && c.status === "passed");
+    if (!before || !journey) return;
+    this.recordBaseline(run, { ...before, taskId: task.id, checkpointId, checkpoint: "verified", ok: true, at: new Date().toISOString(), typecheck: "passed", dataSource: [], journey: { ok: true, summary: journey.summary, artifactId: journey.evidenceRefs[0]?.replace(/^artifact:/, "") } });
+  }
+
+  /** Records the baseline with its checkpoint, and says so. */
+  private recordBaseline(run: Run, b: FunctionalBaseline) {
+    this.d.store.setSetting(functionalBaselineKey(run.id), b);
+    this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: b.taskId, type: "verification.completed", level: b.ok ? "info" : "warning", message: `Functional baseline (before design): ${b.ok ? `verified, checkpoint ${b.checkpointId}` : `not verified; the generated app is kept unverified at checkpoint ${b.checkpointId}`}. Type check ${b.typecheck}; records ${b.dataSource.length ? b.dataSource.slice(0, 2).join("; ") : "match the PRD"}; journey ${b.journey.summary}. It doesn't count as the final check; the journey runs again after design.`, data: { functionalBaseline: b } });
+  }
+
+  /**
+   * A failed baseline: the generated files are kept under a checkpoint labelled unverified, and one correction step
+   * (bounded like any step: its attempts, no split) fixes the observed failures; its checks run the baseline's checks
+   * again (type check, the PRD's records, the journey). Design waits on it, so if it can't, the run stops before design.
+   */
+  private correctBaseline(run: Run, task: Task, b: Omit<FunctionalBaseline, "checkpointId" | "checkpoint">) {
+    const cp = this.d.snapshots.createCheckpoint(run.id, "Generated app, unverified (functional baseline failed)", false, task.id);
+    const failures = [b.typecheck !== "passed" && b.typecheck !== "not run" ? `Type check: ${b.typecheck}` : "", ...b.dataSource.map((d) => `Records: ${d}`), b.journey.ok ? "" : `Journey: ${b.journey.summary}`].filter(Boolean);
+    const fix = {
+      ...task,
+      id: newId("task"),
+      title: "Correct the generated app",
+      objective: `The app FlowCode generated failed its functional baseline, before any design. Fix only these failures, in the files they name (the records in src/app/schema.ts, the routes and links in src/App.tsx, the screens), without redesigning or rebuilding the app:\n${failures.map((f) => `- ${f}`).join("\n")}\nThe same checks then run again: the type check, the PRD's records in the app's data, and the journey through the app in the browser.`,
+      expectedPaths: ["src/app/schema.ts", "src/App.tsx"],
+      actualPaths: [],
+      acceptanceCriteria: [
+        { id: "fb-tc", description: "The project type-checks", check: { type: "verification", kind: "typecheck" }, evidenceRefs: [] },
+        { id: "fb-data", description: "The app's records (src/app/schema.ts) hold the PRD's sample records, each linked as the app model says", check: { type: "verification", kind: "data-source" }, evidenceRefs: [] },
+        { id: "fb-journey", description: "The journey through the app passes: every PRD screen opens, the PRD's records are found once, open and save, and an empty search says so", check: { type: "verification", kind: "functional-journey" }, evidenceRefs: [] },
+      ],
+      status: "pending",
+      attempts: 0,
+      role: "coder",
+      blocker: undefined,
+      checkpointId: undefined,
+      dependsOn: task.dependsOn,
+      ordinal: task.ordinal + 1,
+    } as Task;
+    this.recordBaseline(run, { ...b, checkpointId: cp.id, checkpoint: "unverified", correctionTaskId: fix.id });
+    this.d.store.setSetting(`baselineCorrection:${fix.id}`, true);
+    this.replaceWithParts(run, task, [fix], `"${task.title}" wrote the app, but its functional baseline failed (${failures.slice(0, 2).join("; ")}); its files are kept, unverified, and one correction step follows before any design`, "Functional baseline failed: corrected by the next step");
   }
 
   /**

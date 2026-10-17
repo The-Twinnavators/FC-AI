@@ -563,6 +563,13 @@ export class Verifier {
         case "verification": {
           // A step's own deliverable (orchestrator/taskContract.ts deliverableChecks): what it changed, the photos its
           // screens show, its seeded sample data, its app frame. Read from the workspace and the step's own snapshots.
+          // "functional-journey": the journey through the app (appJourney.ts), run on this step (a baseline correction).
+          if (c.check.kind === "functional-journey") {
+            const j = await this.functionalJourney(run, { taskId: task.id, signal: opts.signal });
+            met = !!j?.ok;
+            if (!met) failures.push(`${c.description}: ${j?.summary ?? "the run has no written app model"}`);
+            break;
+          }
           if (/^(changed:|images-used:|data-seeded:|data-source$|piece-content:|frame-designed$)/.test(c.check.kind)) {
             let why = this.deliverableProblem(c.check.kind, task, jail.root);
             // The frame: that it changed (above), then that it shows and its navigation works, in the browser.
