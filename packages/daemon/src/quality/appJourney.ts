@@ -22,7 +22,9 @@ export interface JourneyPlan {
   entryView?: string;
   saved?: { view: string; label: string };
   /** The records the journey looks for: the PRD's named records, else the first sample records; `once` when one record has that title. */
-  records: Array<{ title: string; once: boolean }>;
+  records: Array<{ title: string; once: boolean; subtitle?: string }>;
+  /** The model has a not-signed-in role (a visitor): saving asks to sign in, and signing in is one tap. */
+  visitor?: boolean;
 }
 
 export interface JourneyStep {
@@ -54,7 +56,13 @@ export function journeyPlan(m: AppModel, declared: Array<{ name: string }>, name
     ...(catalogView ? { catalog: { view: catalogView.id, label: catalogView.label } } : {}),
     ...(find("entry") ? { entryView: find("entry")!.id } : {}),
     ...(saved ? { saved: { view: saved.id, label: saved.label } } : {}),
-    records: titles.map((t) => ({ title: t, once: count(t) <= 1 })),
+    records: titles.map((t) => {
+      // The record's other identifying text (its brand, its subtitle), to check it is the same record on every page.
+      const row = rows.find((r) => titleOf(r).toLowerCase() === t.toLowerCase());
+      const subtitle = entries?.subtitleField && row ? String(row[entries.subtitleField] ?? "").trim() : "";
+      return { title: t, once: count(t) <= 1, ...(subtitle ? { subtitle } : {}) };
+    }),
+    ...(m.roles.some((r) => /\b(visitor|guest|not signed in|signed out|anonymous)\b/i.test(r)) ? { visitor: true } : {}),
   };
 }
 
@@ -142,20 +150,74 @@ export async function runJourney(page: Page, url: string, plan: JourneyPlan): Pr
         await page.waitForTimeout(500);
         const h = await hash();
         if (!h.startsWith(`#/${plan.entryView}`)) throw new Error(`it went to ${h || "(no route)"}, not the record page`);
-        if (!(await main().innerText()).includes(first.title)) throw new Error(`the record page doesn't show "${first.title}"`);
+        const text = await main().innerText();
+        if (!text.includes(first.title)) throw new Error(`the record page doesn't show "${first.title}"`);
+        if (first.subtitle && !text.includes(first.subtitle)) throw new Error(`the record page shows "${first.title}" but not "${first.subtitle}": another record`);
         return h;
       });
     }
-    if (first && plan.saved) {
-      await step(`Saving "${first.title}" puts the same record in ${plan.saved.label}`, async () => {
+    if (first && plan.saved && plan.entryView) {
+      // Fresh browser state, then everything through the app's own controls.
+      await page.goto(base, { waitUntil: "load", timeout: 30_000 });
+      await page.evaluate(() => localStorage.clear());
+      await page.reload({ waitUntil: "load" });
+      const control = (name: RegExp) => page.getByRole("button", { name }).or(page.getByRole("menuitem", { name })).first();
+      const openRecord = async () => {
         await search(first.title);
-        const save = main().getByRole("button", { name: `Save ${first.title}`, exact: true }).first();
-        if (!(await save.count())) throw new Error(`no "Save ${first.title}" control`);
-        await save.click();
-        await page.waitForTimeout(400);
+        await titled(first.title).first().click();
+        await page.waitForTimeout(500);
+      };
+      const saveControl = () => main().getByRole("button", { name: /^save\b/i }).first();
+      const savedHere = async () => {
         await open(plan.saved!.view);
-        if (!(await titled(first.title).count()) && !(await main().innerText()).includes(first.title)) throw new Error(`${plan.saved!.label} doesn't show "${first.title}"`);
+        const text = await main().innerText();
+        return text.includes(first.title) && (!first.subtitle || text.includes(first.subtitle));
+      };
+      if (plan.visitor) {
+        await step(`A visitor's Save asks them to sign in`, async () => {
+          // A visitor: sign out through the account menu when the app starts signed in.
+          if (!(await control(/^sign in$/i).count())) {
+            const account = control(/account/i);
+            if (!(await account.count())) throw new Error("no account control to sign out with, and no Sign in control");
+            await account.click();
+            const out = control(/sign out|log out/i);
+            if (!(await out.count())) throw new Error("the account menu has no Sign out");
+            await out.click();
+            await page.waitForTimeout(400);
+          }
+          await openRecord();
+          const save = saveControl();
+          if (!(await save.count())) throw new Error(`the record page has no Save control`);
+          await save.click();
+          await page.waitForTimeout(400);
+          const said = await page.locator("body").innerText();
+          if (!/sign in/i.test(said)) throw new Error("saving as a visitor didn't ask them to sign in");
+          if (!(await control(/^sign in$/i).count())) throw new Error("no Sign in control was offered");
+          return "asked to sign in";
+        });
+        await step("Signing in is one tap", async () => {
+          await control(/^sign in$/i).click();
+          await page.waitForTimeout(500);
+          if (await control(/^sign in$/i).count()) throw new Error("still signed out after tapping Sign in");
+          return "signed in";
+        });
+      }
+      await step(`Saving "${first.title}" puts the same record (${first.subtitle ? `${first.title}, ${first.subtitle}` : first.title}) in ${plan.saved.label}`, async () => {
+        await openRecord();
+        const save = saveControl();
+        if (!(await save.count())) throw new Error("the record page has no Save control");
+        // A visitor's Save can complete on sign-in: only press it when it isn't on already (pressing again removes it).
+        if ((await save.getAttribute("aria-pressed")) !== "true") await save.click();
+        await page.waitForTimeout(400);
+        if ((await saveControl().getAttribute("aria-pressed")) === "false") throw new Error("the Save control isn't on after saving");
+        if (!(await savedHere())) throw new Error(`${plan.saved!.label} doesn't show "${first.title}"${first.subtitle ? ` from ${first.subtitle}` : ""}`);
         return "saved and shown";
+      });
+      await step(`"${first.title}" is still in ${plan.saved.label} after a reload`, async () => {
+        await page.reload({ waitUntil: "load" });
+        await page.waitForTimeout(400);
+        if (!(await savedHere())) throw new Error(`${plan.saved!.label} lost "${first.title}" on reload`);
+        return "kept";
       });
     }
     await step("A search that matches nothing says so", async () => {

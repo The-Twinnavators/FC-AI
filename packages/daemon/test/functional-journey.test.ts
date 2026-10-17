@@ -95,7 +95,10 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1" || !fs.existsSync(path
       "Saved: opens from the top bar",
       ...NAMED.map((n) => `Search finds "${n}"`),
       'Opening "Oat Milk Original" shows that record',
-      'Saving "Oat Milk Original" puts the same record in Saved',
+      "A visitor's Save asks them to sign in",
+      "Signing in is one tap",
+      'Saving "Oat Milk Original" puts the same record (Oat Milk Original, Willow Farms) in Saved',
+      '"Oat Milk Original" is still in Saved after a reload',
       "A search that matches nothing says so",
     ]);
   }, 180_000);
