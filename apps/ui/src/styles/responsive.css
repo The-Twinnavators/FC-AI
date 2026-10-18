@@ -16990,3 +16990,31 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .hc-thesis, .hc-fonts { display: block; color: var(--text-1); font-size: 12px; line-height: 1.4; }
 .hc-fonts { color: var(--text-2); }
 .hc-default { display: inline-flex; gap: 8px; align-items: center; color: var(--text-1); font-size: 13px; cursor: pointer; }
+
+/* An approval in a pop-up (the build's blocking approval): the card is a column whose body scrolls and whose actions
+   stay in view, so long plans, the Home direction and Approve/Deny are always reachable (small windows, zoom). */
+.approval-modal > .approval {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  margin: 0;
+}
+.approval-modal > .approval > .approval__head,
+.approval-modal > .approval > .approval__actions {
+  flex: none;
+}
+.approval-modal > .approval > .approval__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.approval-modal > .approval > .approval__actions {
+  background: var(--bg-2);
+}
+/* Short windows and high zoom: the pop-up uses the full height, so the actions keep their place. */
+@media (max-height: 640px) {
+  .modal-scrim:has(> .approval-modal) { padding: 8px; }
+  .modal-box.approval-modal { max-height: calc(100vh - 16px); }
+}
