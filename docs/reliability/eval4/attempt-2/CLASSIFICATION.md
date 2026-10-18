@@ -20,7 +20,7 @@ This attempt is neither a design success nor a design failure.
 4. At 02:38:49Z the card's choice was set to **the generic default Home** (`conceptId: "default"`, by user).
 5. At 02:39:02Z **the plan was denied** (decision log: "Denied: Approve implementation plan…", actor user). FlowCode cancelled the run ("plan denied").
 
-The reason for the denial isn't recorded and isn't assumed here. Shortly before it:
+**The owner's stated reason (after the run): "the design wasn't what I wanted".** The card gave no way to change the look short of denying the plan. Context shortly before the denial:
 - the owner set a rule that surface styles are Flat or Tactile only (Bold aisle uses neo-brutalist surfaces);
 - the owner reported that the plan card's pop-up was cut off.
 
