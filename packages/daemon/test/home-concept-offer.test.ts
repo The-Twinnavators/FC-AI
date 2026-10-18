@@ -18,7 +18,9 @@ import type { Task } from "@flowcode/contracts";
 
 const RECORDED = path.resolve(import.meta.dirname, "../../../.flowcode-data/workspaces/clean-cart-slice-eval-1-9b1947");
 const MODEL = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "fixtures/apps/eval1-app-model.json"), "utf8")) as AppModel;
-const APPROVED = new Set([...LIBRARY_SECTIONS.map((s) => s.id), "lookup-home-storefront", "lookup-home-magazine", "lookup-home-listings"]);
+/** The catalog without any Home page approved, and with all three: the tests say which pages are approved. */
+const NONE = new Set(LIBRARY_SECTIONS.map((s) => s.id).filter((id) => !id.startsWith("lookup-home-")));
+const APPROVED = new Set([...NONE, "lookup-home-storefront", "lookup-home-magazine", "lookup-home-listings"]);
 
 function lookupRun() {
   const { app } = makeApp();
@@ -31,10 +33,10 @@ function lookupRun() {
 describe("Home concepts on the plan card", () => {
   it("isn't offered while the Home pieces wait for approval, and says so", () => {
     const { app, run } = lookupRun();
-    const offer = conceptOffer(app.store, run.id, false);
+    const offer = conceptOffer(app.store, run.id, false, NONE);
     expect(offer.offered).toBe(false);
     expect(offer.why).toMatch(/waiting for your approval in the Component library \(lookup-home-/);
-    expect(() => chooseConcept(app.store, app.bus, run, "concept-market", "user")).toThrow(/waiting for your approval/);
+    expect(() => chooseConcept(app.store, app.bus, run, "concept-market", "user", NONE)).toThrow(/waiting for your approval/);
   });
 
   it("is offered with what the live preview runs on: the app's own records, look-up config and links", () => {
@@ -81,14 +83,14 @@ describe("Home concepts on the plan card", () => {
     expect(b.app.bus.list({ runId: b.run.id }).some((e) => /No custom Home direction was selected/.test(e.message))).toBe(true);
     // Concepts weren't offered (their pieces wait for approval): recorded with why, still open.
     const c = lookupRun();
-    settleConcept(c.app.store, c.app.bus, c.run);
+    settleConcept(c.app.store, c.app.bus, c.run, NONE);
     expect(direction(c.app, c.run.id)).toMatchObject({ kind: "not_offered", outstanding: true });
     expect(direction(c.app, c.run.id)?.why).toMatch(/waiting for your approval/);
   });
 
   it("approves concepts one by one: a concept whose page is approved is offered, the others aren't", () => {
     const { app, run } = lookupRun();
-    const one = new Set([...LIBRARY_SECTIONS.map((s) => s.id), "lookup-home-magazine"]);
+    const one = new Set([...NONE, "lookup-home-magazine"]);
     expect(conceptOffer(app.store, run.id, false, one).concepts.map((c) => c.id)).toEqual(["concept-editorial"]);
   });
 
