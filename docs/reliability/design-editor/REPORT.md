@@ -74,3 +74,62 @@
 - **Partial PRD branding:** shown as the PRD's first colour (pre-filled with its source, and a "use the PRD's colour" option when changed). Fonts named in a PRD aren't read yet.
 - **Deferred as agreed:** website capture (its consent and private-address gap is still open on the existing "Capture a style" button) and external themes.
 - **Scratch project:** a test project, "Design editor test (scratch)", now exists in your project list, with its files in `.flowcode-data/workspaces/design-editor-test-scratch`. It can be deleted when you like.
+
+---
+
+# Workflow gaps closed (after provisional acceptance)
+
+Commits: 7fc102a (one path), 1b440f4 (capture contained), 2b7361d (applied ≠ verified), 1b82fee (approval harness). No build or evaluation was run.
+
+1. **One governed appearance path.**
+   - Colours, fonts and the surface style change only through the Look: draft, then "Use this direction", then "Apply changes".
+   - In the UI, the Colors and Typography cards and the Surface tab say "Change in Look", and the Surface tab is read-only. The old colour and typography editors are removed.
+   - The API refuses, with 409 and a pointer to the Look, leaving files untouched:
+     - `design/choice`;
+     - `design/palette`;
+     - `styles/surface`;
+     - colour, font and surface tokens, or web fonts, sent to `POST /design`.
+   - Corners and density stay direct edits.
+   - The Tokens tab's single-token edit is kept and labelled "Advanced: direct source edit". The Look then reports that the app differs.
+2. **Applied is not verified.** "Apply changes" records and shows four separate results:
+   - **File update:** Applied.
+   - **Technical verification:** the latest build's typecheck and build, rerun.
+   - **Browser and functional verification:** the build's `preview_health` and screenshots through the existing verifier, then the journey through the app when the build requires it. These run only if the technical checks passed.
+   - **Your visual approval:** always Pending.
+   - A check that can't run shows "Not run" with the reason; it is never shown as passed.
+   - **Rollback:** a failed check does not undo anything. The previous look is restored from that apply's snapshots, using Undo in Changes. A failed *write* is still restored automatically, as before.
+3. **Capture contained.**
+   - "Capture a style" and New build's website field are disabled, with the reason shown.
+   - `POST /design/capture` returns 403 before anything is opened or read.
+   - `POST /builds` refuses a website address.
+   - The build step never opens a recorded website.
+   - The last capture is kept and still readable.
+4. **Approval integration, via the real UI.** `approval-look-ui.test.ts`: a test daemon with a scripted planner, and the UI's own dev server, at 1024×560.
+   - **Plan card:**
+     - edit;
+     - the draft survives Escape and a fresh page;
+     - "Use this direction" and "Approve plan" are reached with Tab and are in view when focused;
+     - approval settles version 1 with no unconfirmed edits.
+   - **Review card:** edit, then Apply by keyboard. The result showed Applied, Technical ✓ (typecheck, build), Browser ✓ (preview) and Visual approval pending, and the review approval stayed pending.
+   - **Bug found and fixed:** the card is on screen twice (in the pop-up and in the run panel), and the two copies shared one radio group. The pop-up's Surface (and Home layout) choice therefore showed unchecked after reopening. Each copy now has its own group.
+   - Screenshots: `gaps/harness-plan-card-1024x560.png`, `gaps/harness-review-card-1024x560.png`.
+5. **Bold aisle (Flat), for your decision. Not changed.** Screenshots: `bold-aisle-flat-home-desktop.png`, `-mobile.png`. Palette:
+
+   | Role | Value |
+   |---|---|
+   | Background | #fff8dc (yellow) |
+   | Surface | #ffffff |
+   | Sunken | #fbefc0 |
+   | Text | #111111 |
+   | Muted text | #3d3d3d |
+   | Border | #e6dcb4 |
+   | Strong border | #8a7f55 |
+   | Accent | #1d4ed8 (hover #1e40af), on accent #ffffff |
+   | **Secondary** | **#be123c (crimson)**: drives the pink diagonal and tiles on the yellow ground |
+   | Type | Oswald 600 / DM Sans, compact |
+   | Shape | 1px borders, corners 4–8px, no shadows |
+
+**Tests:**
+- daemon suite: 1,605 passed (26 skipped browser cases);
+- browser files, one at a time: 52 passed across 13 files;
+- typechecks: contracts, daemon, UI, and the library's 206 pieces.
