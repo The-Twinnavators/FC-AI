@@ -1,0 +1,2428 @@
+{
+  "projectId": "prj_cb315e70e0b74335ada7",
+  "hasPlan": true,
+  "runId": "run_05368827afde426eac8b",
+  "createdAt": "2026-10-18T15:51:48.872Z",
+  "requirements": {
+    "total": 184,
+    "inSteps": 140,
+    "forPeople": 40,
+    "later": 12,
+    "filledIn": 55
+  },
+  "steps": [
+    {
+      "key": "scaffold",
+      "n": 1,
+      "title": "Scaffold from verified starter template",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_75e949ff94d74b689203",
+      "items": [
+        {
+          "id": "plan.step.scaffold",
+          "title": "Scaffold from verified starter template",
+          "description": "Copy the verified React starter template into the workspace.",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": [
+            "."
+          ]
+        }
+      ]
+    },
+    {
+      "key": "deps",
+      "n": 2,
+      "title": "Install dependencies (approved)",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_67c69dfa34ec49468c34",
+      "items": [
+        {
+          "id": "plan.step.deps",
+          "title": "Install dependencies (approved)",
+          "description": "Install declared dependencies after user approval.",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": [
+            "package-lock.json"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "refs",
+      "n": 3,
+      "title": "Import spec references",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_c9763d7e87294db09fc5",
+      "items": [
+        {
+          "id": "plan.step.refs",
+          "title": "Import spec references",
+          "description": "Place the supplied PRD, HTML, CSS and JSON files in the workspace for the agents to read.",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": []
+        }
+      ]
+    },
+    {
+      "key": "style",
+      "n": 4,
+      "title": "Capture the style",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_6803620377fd41379f66",
+      "items": [
+        {
+          "id": "plan.step.style",
+          "title": "Capture the style",
+          "description": "Apply the direction you selected (on the plan card or the Design tab); with none selected, keep the base styling and pass the industry design direction to the design steps as advice.",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": [
+            "src/styles/tokens.css",
+            "src/styles/components.css"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "review",
+      "n": 5,
+      "title": "Review the prototype plan and the design",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_f2339298cf3244e18a79",
+      "items": [
+        {
+          "id": "plan.step.review",
+          "title": "Review the prototype plan and the design",
+          "description": "Wait for the person to approve the prototype plan and the design set on the Styles page.",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": []
+        }
+      ]
+    },
+    {
+      "key": "fc_sections",
+      "n": 6,
+      "title": "Add library sections",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_f5b1820141314dcbb9b2",
+      "items": [
+        {
+          "id": "plan.step.fc_sections",
+          "title": "Add library sections",
+          "description": "Keep FlowCode's component library in .flowcode/sections/ with its index, for the screens to draw on (the spec calls for no section as a starting point)",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": [
+            "src/styles/library.css"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "layout",
+      "n": 7,
+      "title": "Write the complete app",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_565002320bd645ba9436",
+      "items": [
+        {
+          "id": "plan.step.layout",
+          "title": "App layout and navigation",
+          "description": "Build the app's structure before any feature (follow the app-layout-navigation and ux-design-principles skills): in src/App.tsx use the ready-made <AppShell> from src/components/ui (it renders the header with the product name from the spec, a <nav> to each main screen the spec describes, and a <main",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": [
+            "src/App.tsx"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "screens",
+      "n": 8,
+      "title": "Design the main screens",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_cc1e105d0c59483d9758",
+      "items": [
+        {
+          "id": "plan.step.screens",
+          "title": "Design the main screens",
+          "description": "Design each main screen like a senior product designer whose work is good enough for a studio portfolio (the best of Dribbble and Behance), and still easy to use: one finished composition per screen, before any feature is added (follow the art-direction skill, then the design-system and ux skills, a",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": []
+        }
+      ]
+    },
+    {
+      "key": "lrc_1",
+      "n": 9,
+      "title": "User and context: User and context: remaining requirements and 11 more",
+      "kind": "feature",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_d0947f0ccf9a4e19bc92",
+      "items": [
+        {
+          "id": "plan.user-and-context.remaining",
+          "title": "User and context: remaining requirements",
+          "description": "Every requirement below from \"User and context\" works in the app.",
+          "section": "User and context",
+          "covers": [
+            {
+              "id": "R12",
+              "text": "Gallery: Autumn Portrait Session."
+            },
+            {
+              "id": "R14",
+              "text": "Gallery contains 12 photos."
+            },
+            {
+              "id": "R11",
+              "text": "Demo client: Maya Chen."
+            },
+            {
+              "id": "R13",
+              "text": "Photographer: Rowan Studio."
+            },
+            {
+              "id": "R15",
+              "text": "Client must choose exactly five photos before submitting."
+            },
+            {
+              "id": "R16",
+              "text": "One user role: client."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.screens-and-navigation.remaining",
+          "title": "Screens and navigation: remaining requirements",
+          "description": "Every requirement below from \"Screens and navigation\" works in the app.",
+          "section": "Screens and navigation",
+          "covers": [
+            {
+              "id": "R19",
+              "text": "Gallery."
+            },
+            {
+              "id": "R23",
+              "text": "Initial screen: Gallery."
+            },
+            {
+              "id": "R18",
+              "text": "Primary navigation has exactly two destinations:"
+            },
+            {
+              "id": "R24",
+              "text": "Do not add a marketing landing page, pricing page, photographer dashboard, or account settings."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.r4-photo-detail.remaining",
+          "title": "R4 — Photo detail: remaining requirements",
+          "description": "Every requirement below from \"R4 — Photo detail\" works in the app.",
+          "section": "R4 — Photo detail",
+          "covers": [
+            {
+              "id": "R60",
+              "text": "Display selected image, title, category, Add to selection / Remove from selection control, editing-notes field, Previous and Next controls, and a way back to Gallery."
+            },
+            {
+              "id": "R61",
+              "text": "Previous and Next follow the full 12-photo sample-data order regardless of Gallery filters."
+            },
+            {
+              "id": "R63",
+              "text": "Returning to Gallery preserves search and category state."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.r5-shortlist-behavior.remaining",
+          "title": "R5 — Shortlist behavior: remaining requirements",
+          "description": "Every requirement below from \"R5 — Shortlist behavior\" works in the app.",
+          "section": "R5 — Shortlist behavior",
+          "covers": [
+            {
+              "id": "R64",
+              "text": "Client can add and remove photos from Gallery, photo detail, and My Selection."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.r9-submitted-state.remaining",
+          "title": "R9 — Submitted state: remaining requirements",
+          "description": "Every requirement below from \"R9 — Submitted state\" works in the app.",
+          "section": "R9 — Submitted state",
+          "covers": [
+            {
+              "id": "R85",
+              "text": "Client may still browse Gallery and photo detail."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.r12-navigation-and-identity.remaining",
+          "title": "R12 — Navigation and identity: remaining requirements",
+          "description": "Every requirement below from \"R12 — Navigation and identity\" works in the app.",
+          "section": "R12 — Navigation and identity",
+          "covers": [
+            {
+              "id": "R95",
+              "text": "Unknown photo ID shows a useful not-found state with a Gallery link."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.gallery-composition.remaining",
+          "title": "Gallery composition: remaining requirements",
+          "description": "Every requirement below from \"Gallery composition\" works in the app.",
+          "section": "Gallery composition",
+          "covers": [
+            {
+              "id": "R107",
+              "text": "Compact product header and primary navigation."
+            },
+            {
+              "id": "R108",
+              "text": "Gallery title, photographer, and selection progress."
+            },
+            {
+              "id": "R109",
+              "text": "Search and category controls."
+            },
+            {
+              "id": "R110",
+              "text": "Photo grid."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.journey-a-find-and-inspect.remaining",
+          "title": "Journey A — Find and inspect: remaining requirements",
+          "description": "Every requirement below from \"Journey A — Find and inspect\" works in the app.",
+          "section": "Journey A — Find and inspect",
+          "covers": [
+            {
+              "id": "R133",
+              "text": "Open Gallery."
+            },
+            {
+              "id": "R137",
+              "text": "Return to Gallery and confirm search remains."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.prototype-boundaries.remaining",
+          "title": "Prototype boundaries: remaining requirements",
+          "description": "Every requirement below from \"Prototype boundaries\" works in the app.",
+          "section": "Prototype boundaries",
+          "covers": [
+            {
+              "id": "R5",
+              "text": "Bundled sample data and browser storage."
+            },
+            {
+              "id": "R6",
+              "text": "No backend, authentication provider, external API, or real submission."
+            },
+            {
+              "id": "R7",
+              "text": "Client is already signed in as a demo user."
+            },
+            {
+              "id": "R8",
+              "text": "Changes persist after page reload in the same browser."
+            },
+            {
+              "id": "R9",
+              "text": "Use the existing starter, component library, and dependencies. Add no packages."
+            },
+            {
+              "id": "R10",
+              "text": "No network connection necessary for the core workflow after the app and bundled assets have loaded."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.client-selection-state.client-selection-state-management",
+          "title": "Client Selection State Management",
+          "description": "Implement shared client selection state with shortlisted photo IDs, editing notes, selection status, and submission timestamp.",
+          "section": "Client selection state",
+          "covers": [
+            {
+              "id": "R44",
+              "text": "Shortlisted photo IDs."
+            },
+            {
+              "id": "R45",
+              "text": "Editing note per photo."
+            },
+            {
+              "id": "R46",
+              "text": "Selection status: Draft or Submitted."
+            },
+            {
+              "id": "R47",
+              "text": "Submission timestamp, when submitted."
+            },
+            {
+              "id": "R48",
+              "text": "Do not create separate copies of selection state in different screens."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "select a photo and check shortlist",
+              "expect": "photo ID in shortlist"
+            },
+            {
+              "behaviour": "add note to photo and reopen",
+              "expect": "saved note remains"
+            },
+            {
+              "behaviour": "submit selection with status",
+              "expect": "Submitted status"
+            }
+          ],
+          "files": [
+            "src/app/store.ts"
+          ]
+        },
+        {
+          "id": "plan.r2-search.photo-grid-search-and-filter",
+          "title": "Photo Grid Search and Filter",
+          "description": "Enable case-insensitive search of photo titles and category filtering.",
+          "section": "R2 — Search",
+          "covers": [
+            {
+              "id": "R51",
+              "text": "Search matches photo titles case-insensitively."
+            },
+            {
+              "id": "R52",
+              "text": "light returns Window Light and Last Light, not Golden Hour."
+            },
+            {
+              "id": "R53",
+              "text": "WINDOW returns Window Light."
+            },
+            {
+              "id": "R54",
+              "text": "mountain produces no results."
+            },
+            {
+              "id": "R55",
+              "text": "No-results state offers a clear way to clear search."
+            },
+            {
+              "id": "R56",
+              "text": "Search and category filtering work together."
+            },
+            {
+              "id": "R57",
+              "text": "Provide All, Outdoor, and Studio filters."
+            },
+            {
+              "id": "R58",
+              "text": "Outdoor contains seven records; Studio contains five."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "search for 'light'",
+              "expect": "Window Light and Last Light"
+            },
+            {
+              "behaviour": "filter by Outdoor category",
+              "expect": "7 photos"
+            },
+            {
+              "behaviour": "clear search after no results",
+              "expect": "all photos displayed"
+            }
+          ],
+          "files": [
+            "src/screens/GalleryScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.r5-shortlist-behavior.shortlist-management-and-validation",
+          "title": "Shortlist Management and Validation",
+          "description": "Implement shortlist behavior with duplicate prevention, count limits, and removal logic.",
+          "section": "R5 — Shortlist behavior",
+          "covers": [
+            {
+              "id": "R65",
+              "text": "No duplicate selections."
+            },
+            {
+              "id": "R66",
+              "text": "Count updates everywhere."
+            },
+            {
+              "id": "R67",
+              "text": "Maximum five selected photos."
+            },
+            {
+              "id": "R68",
+              "text": "Attempting to add a sixth does not remove or replace an existing selection."
+            },
+            {
+              "id": "R70",
+              "text": "Removing a photo permits another to be added."
+            },
+            {
+              "id": "R71",
+              "text": "Selection status must not rely on color alone."
+            },
+            {
+              "id": "R80",
+              "text": "Submission is available only with exactly five selected photos."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "select 5 photos and try to select 6th",
+              "expect": "no replacement occurs"
+            },
+            {
+              "behaviour": "remove one photo from shortlist",
+              "expect": "can add another photo"
+            },
+            {
+              "behaviour": "submit with exactly 5 photos",
+              "expect": "confirmation dialog opens"
+            }
+          ],
+          "files": [
+            "src/screens/GalleryScreen.tsx",
+            "src/app/store.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "lrc_2",
+      "n": 10,
+      "title": "R6 — Editing notes: Editing Notes Management and 6 more",
+      "kind": "feature",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_a00d71f1350a445c94b5",
+      "items": [
+        {
+          "id": "plan.r6-editing-notes.editing-notes-management",
+          "title": "Editing Notes Management",
+          "description": "Enable optional editing notes per photo with character count and persistence.",
+          "section": "R6 — Editing notes",
+          "covers": [
+            {
+              "id": "R72",
+              "text": "Each photo can have an optional editing note of up to 300 characters."
+            },
+            {
+              "id": "R73",
+              "text": "Save locally without a separate Save button."
+            },
+            {
+              "id": "R74",
+              "text": "Show a character count."
+            },
+            {
+              "id": "R75",
+              "text": "Notes remain attached when a photo is removed from the shortlist."
+            },
+            {
+              "id": "R76",
+              "text": "Reopening a photo restores its note."
+            },
+            {
+              "id": "R77",
+              "text": "Submission includes notes for selected photos only."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "enter note in photo detail",
+              "expect": "note saved and restored on reopen"
+            },
+            {
+              "behaviour": "add note with 300 characters",
+              "expect": "character count shows 0 remaining"
+            },
+            {
+              "behaviour": "submit selection with notes",
+              "expect": "notes included in submission summary"
+            }
+          ],
+          "files": [
+            "src/screens/GalleryScreen.tsx",
+            "src/screens/PhotoDetailScreen.tsx",
+            "src/app/store.ts"
+          ]
+        },
+        {
+          "id": "plan.r8-submission-eligibility.submission-flow-and-confirmation",
+          "title": "Submission Flow and Confirmation",
+          "description": "Implement submission confirmation dialog with photo summary and locking behavior.",
+          "section": "R8 — Submission eligibility",
+          "covers": [
+            {
+              "id": "R82",
+              "text": "At five, Submit selection opens a confirmation dialog summarizing the five photos, their notes, and that submission will lock the selection."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "attempt to submit with 4 photos",
+              "expect": "submit button disabled"
+            },
+            {
+              "behaviour": "submit with 5 photos",
+              "expect": "confirmation dialog opens"
+            },
+            {
+              "behaviour": "submit selection",
+              "expect": "selection status becomes Submitted"
+            }
+          ],
+          "files": [
+            "src/screens/MySelectionScreen.tsx",
+            "src/app/store.ts"
+          ]
+        },
+        {
+          "id": "plan.r3-category-filters.remaining",
+          "title": "R3 — Category filters: remaining requirements",
+          "description": "Every requirement below from \"R3 — Category filters\" works in the app.",
+          "section": "R3 — Category filters",
+          "covers": [
+            {
+              "id": "R59",
+              "text": "Changing search or category does not alter shortlist or notes."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.r8-submission-eligibility.client-selection-state-management",
+          "title": "Client Selection State Management",
+          "description": "Implement shared client selection state that persists across app reloads and manages shortlist, notes, status, and submission timestamp.",
+          "section": "R8 — Submission eligibility",
+          "covers": [
+            {
+              "id": "R83",
+              "text": "Cancel returns to editable selection without losing changes."
+            },
+            {
+              "id": "R84",
+              "text": "Confirming submission sets Submitted status, records a timestamp, shows confirmation and the five submitted photos, and locks shortlist changes and editing notes across the app."
+            },
+            {
+              "id": "R86",
+              "text": "Do not send email, make external requests, or imply a real photographer received the submission."
+            },
+            {
+              "id": "R87",
+              "text": "After submission, provide Start over with a confirmation dialog explaining that it clears selected photos, all notes, submission status, and timestamp."
+            },
+            {
+              "id": "R88",
+              "text": "Cancel preserves everything. Confirm returns to empty Draft state."
+            },
+            {
+              "id": "R89",
+              "text": "Do not clear unrelated browser storage."
+            },
+            {
+              "id": "R90",
+              "text": "Shortlist, notes, status, and timestamp survive a full reload."
+            },
+            {
+              "id": "R91",
+              "text": "Reloading after submission must not unlock selection."
+            },
+            {
+              "id": "R92",
+              "text": "Use a namespaced storage key."
+            },
+            {
+              "id": "R93",
+              "text": "If saved data cannot be read, recover to a usable Draft state and show a concise notice instead of crashing."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "reload the app after setting some photos as selected",
+              "expect": "the same selection is preserved"
+            },
+            {
+              "behaviour": "submit the selection and reload",
+              "expect": "selection remains locked and submitted status is shown"
+            },
+            {
+              "behaviour": "try to load corrupted data in storage",
+              "expect": "app recovers to usable Draft state with no crash"
+            }
+          ],
+          "files": [
+            "src/app/store.ts"
+          ]
+        },
+        {
+          "id": "plan.journey-a-find-and-inspect.photo-grid-search-and-filtering",
+          "title": "Photo Grid Search and Filtering",
+          "description": "Implement photo grid search by title (case-insensitive) and category filtering.",
+          "section": "Journey A — Find and inspect",
+          "covers": [
+            {
+              "id": "R134",
+              "text": "Search WINDOW."
+            },
+            {
+              "id": "R135",
+              "text": "Confirm Window Light is the only result."
+            },
+            {
+              "id": "R136",
+              "text": "Open it and confirm title, category, and image match."
+            },
+            {
+              "id": "R138",
+              "text": "Clear search and select Outdoor."
+            },
+            {
+              "id": "R139",
+              "text": "Confirm seven photos appear."
+            },
+            {
+              "id": "R140",
+              "text": "Begin in an empty Draft state."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "search for 'light' in gallery grid",
+              "expect": "Window Light and Last Light are shown"
+            },
+            {
+              "behaviour": "select Outdoor category filter",
+              "expect": "7 photos appear in the grid"
+            },
+            {
+              "behaviour": "search for 'WINDOW' in gallery grid",
+              "expect": "Window Light is the only result"
+            }
+          ],
+          "files": [
+            "src/screens/GalleryScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.r12-navigation-and-identity.photo-detail-navigation-and-identity",
+          "title": "Photo Detail Navigation and Identity",
+          "description": "Ensure photo detail screen displays correct record and maintains navigation consistency.",
+          "section": "R12 — Navigation and identity",
+          "covers": [
+            {
+              "id": "R94",
+              "text": "Directly opening a valid photo route displays that record."
+            },
+            {
+              "id": "R96",
+              "text": "Browser Back and Forward work."
+            },
+            {
+              "id": "R97",
+              "text": "Photo opened from grid is the same record displayed in detail."
+            },
+            {
+              "id": "R98",
+              "text": "Switching photos must not carry one photo’s note into another."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "navigate directly to photo detail URL with ID 123",
+              "expect": "photo with ID 123 is displayed"
+            },
+            {
+              "behaviour": "open photo detail, navigate away, then use browser back button",
+              "expect": "return to previous screen with correct state"
+            },
+            {
+              "behaviour": "select a photo, add note, switch to another photo",
+              "expect": "the second photo has no note from the first"
+            }
+          ],
+          "files": [
+            "src/screens/PhotoDetailScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.concept-editorial-contact-sheet.remaining",
+          "title": "Concept: Editorial contact sheet: remaining requirements",
+          "description": "Every requirement below from \"Concept: Editorial contact sheet\" works in the app.",
+          "section": "Concept: Editorial contact sheet",
+          "covers": [
+            {
+              "id": "R99",
+              "text": "Warm off-white background."
+            },
+            {
+              "id": "R100",
+              "text": "Near-black text."
+            },
+            {
+              "id": "R101",
+              "text": "Muted cobalt accent for primary actions and selected states."
+            },
+            {
+              "id": "R102",
+              "text": "Fine borders and restrained corner rounding."
+            },
+            {
+              "id": "R103",
+              "text": "Generous whitespace and clear typographic hierarchy."
+            },
+            {
+              "id": "R104",
+              "text": "Minimal chrome around photography."
+            },
+            {
+              "id": "R105",
+              "text": "Use available fonts and assets. Add no font package."
+            },
+            {
+              "id": "R106",
+              "text": "Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, and excessive badges or repeated instructions."
+            }
+          ],
+          "tests": [],
+          "files": []
+        }
+      ]
+    },
+    {
+      "key": "lrc_3",
+      "n": 11,
+      "title": "Journey B — Select, annotate, and persist: Photo Selection and Annotation and 3 more",
+      "kind": "feature",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_9046e05ec54145d4a3b7",
+      "items": [
+        {
+          "id": "plan.journey-b-select-annotate-and-persist.photo-selection-and-annotation",
+          "title": "Photo Selection and Annotation",
+          "description": "Allow users to select up to five photos, add notes to them, and persist this state across reloads.",
+          "section": "Journey B — Select, annotate, and persist",
+          "covers": [
+            {
+              "id": "R141",
+              "text": "Open Golden Hour and add it."
+            },
+            {
+              "id": "R142",
+              "text": "Add note: “Please soften the background.”"
+            },
+            {
+              "id": "R143",
+              "text": "Add four other photos."
+            },
+            {
+              "id": "R144",
+              "text": "Attempt to add a sixth."
+            },
+            {
+              "id": "R145",
+              "text": "Confirm original five remain and limit is explained."
+            },
+            {
+              "id": "R147",
+              "text": "Reload and confirm selection and note persist."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "select Golden Hour photo",
+              "expect": "Golden Hour appears in My Selection"
+            },
+            {
+              "behaviour": "add note 'Please soften the background' to Golden Hour",
+              "expect": "Note is saved and shown for Golden Hour"
+            },
+            {
+              "behaviour": "attempt to select a sixth photo",
+              "expect": "Limit explanation message appears"
+            }
+          ],
+          "files": [
+            "src/screens/GalleryScreen.tsx",
+            "src/screens/MySelectionScreen.tsx",
+            "src/app/store.ts"
+          ]
+        },
+        {
+          "id": "plan.journey-c-remove-and-replace.photo-replacement-and-removal",
+          "title": "Photo Replacement and Removal",
+          "description": "Enable users to remove selected photos and replace them with different ones while maintaining correct order.",
+          "section": "Journey C — Remove and replace",
+          "covers": [
+            {
+              "id": "R148",
+              "text": "Begin with five selected photos."
+            },
+            {
+              "id": "R150",
+              "text": "Confirm count changes everywhere."
+            },
+            {
+              "id": "R151",
+              "text": "Add a different photo."
+            },
+            {
+              "id": "R152",
+              "text": "Confirm correct five in sample-data order."
+            },
+            {
+              "id": "R153",
+              "text": "Reopen removed photo and confirm any previously saved note remains."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "remove a photo from My Selection",
+              "expect": "Selection count decreases by one"
+            },
+            {
+              "behaviour": "replace removed photo with a new selection",
+              "expect": "New photo appears in correct order"
+            },
+            {
+              "behaviour": "reopen removed photo",
+              "expect": "Previously saved note remains visible"
+            }
+          ],
+          "files": [
+            "src/screens/GalleryScreen.tsx",
+            "src/screens/MySelectionScreen.tsx",
+            "src/app/store.ts"
+          ]
+        },
+        {
+          "id": "plan.journey-d-submit-and-lock.submission-and-locking",
+          "title": "Submission and Locking",
+          "description": "Allow users to submit their selection when exactly five photos are selected, locking the selection state.",
+          "section": "Journey D — Submit and lock",
+          "covers": [
+            {
+              "id": "R154",
+              "text": "With fewer than five, confirm submission cannot proceed."
+            },
+            {
+              "id": "R155",
+              "text": "Select exactly five."
+            },
+            {
+              "id": "R156",
+              "text": "Open submission dialog, cancel, and confirm nothing changes."
+            },
+            {
+              "id": "R157",
+              "text": "Open it again and confirm."
+            },
+            {
+              "id": "R158",
+              "text": "Verify Submitted status, timestamp, and correct five photos."
+            },
+            {
+              "id": "R159",
+              "text": "Verify shortlist and note editing are locked across screens."
+            },
+            {
+              "id": "R160",
+              "text": "Reload and confirm submitted state remains locked."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "attempt to submit with fewer than five photos",
+              "expect": "Submission blocked with error message"
+            },
+            {
+              "behaviour": "submit exactly five photos",
+              "expect": "Submitted status is shown for all selected photos"
+            },
+            {
+              "behaviour": "reload after submission",
+              "expect": "Submitted state remains locked and unchanged"
+            }
+          ],
+          "files": [
+            "src/screens/MySelectionScreen.tsx",
+            "src/app/store.ts"
+          ]
+        },
+        {
+          "id": "plan.journey-e-start-over.reset-and-start-over",
+          "title": "Reset and Start Over",
+          "description": "Allow users to reset their selection back to draft state, clearing all selections and notes.",
+          "section": "Journey E — Start over",
+          "covers": [
+            {
+              "id": "R161",
+              "text": "Begin in Submitted state."
+            },
+            {
+              "id": "R162",
+              "text": "Open Start over and cancel; confirm all submitted data remains."
+            },
+            {
+              "id": "R163",
+              "text": "Open Start over again and confirm."
+            },
+            {
+              "id": "R164",
+              "text": "Verify empty Draft selection and cleared notes."
+            },
+            {
+              "id": "R165",
+              "text": "Reload and confirm reset persists."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "open start over dialog",
+              "expect": "Dialog appears with cancel/confirm options"
+            },
+            {
+              "behaviour": "confirm reset after submission",
+              "expect": "Selection becomes empty and status resets to Draft"
+            },
+            {
+              "behaviour": "reload after reset",
+              "expect": "Reset state persists across reloads"
+            }
+          ],
+          "files": [
+            "src/screens/MySelectionScreen.tsx",
+            "src/app/store.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "lrc_4",
+      "n": 12,
+      "title": "Prototype boundaries: Gallery Screen Functionality and 4 more",
+      "kind": "feature",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_ff0c1f27a2b7417da7f6",
+      "items": [
+        {
+          "id": "plan.prototype-boundaries.gallery-screen-functionality",
+          "title": "Gallery Screen Functionality",
+          "description": "Display a responsive grid of photos with search and category filtering capabilities.",
+          "section": "Prototype boundaries",
+          "covers": [
+            {
+              "id": "R4",
+              "text": "Responsive, local-first web app."
+            },
+            {
+              "id": "R69",
+              "text": "Explain the limit through accessible feedback."
+            },
+            {
+              "id": "R115",
+              "text": "Use Balanced functional motion through the existing motion foundation."
+            },
+            {
+              "id": "R116",
+              "text": "Appropriate uses: selection feedback, confirmation dialogs, restrained photo-detail transitions, and filter-result continuity."
+            },
+            {
+              "id": "R118",
+              "text": "Respect reduced-motion preferences. Animation-off must leave all content and controls usable."
+            },
+            {
+              "id": "R119",
+              "text": "Keyboard access to every action."
+            },
+            {
+              "id": "R120",
+              "text": "Visible focus indicators and descriptive control names."
+            },
+            {
+              "id": "R125",
+              "text": "No hover-only controls or information."
+            },
+            {
+              "id": "R126",
+              "text": "Test desktop and a 390px-wide phone viewport."
+            },
+            {
+              "id": "R127",
+              "text": "No horizontal page overflow."
+            },
+            {
+              "id": "R128",
+              "text": "Adaptive grid columns."
+            },
+            {
+              "id": "R129",
+              "text": "Usable search and filters."
+            },
+            {
+              "id": "R130",
+              "text": "Detail images fit without hiding navigation or actions."
+            },
+            {
+              "id": "R132",
+              "text": "All actions available without hover."
+            },
+            {
+              "id": "R168",
+              "text": "Desktop and phone layouts reviewed."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "search for 'light'",
+              "expect": "Window Light and Last Light"
+            },
+            {
+              "behaviour": "filter by category Outdoor",
+              "expect": "Outdoor photos"
+            },
+            {
+              "behaviour": "resize to 390px width",
+              "expect": "grid columns adjust appropriately"
+            }
+          ],
+          "files": [
+            "src/screens/GalleryScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.r7-my-selection.my-selection-screen-implementation",
+          "title": "My Selection Screen Implementation",
+          "description": "Show client's photo selection with notes and submission controls.",
+          "section": "R7 — My Selection",
+          "covers": [
+            {
+              "id": "R79",
+              "text": "When empty, show an empty state with a return-to-Gallery action."
+            },
+            {
+              "id": "R81",
+              "text": "With fewer than five, explain how many more are needed. Mouse or keyboard interaction must not submit."
+            },
+            {
+              "id": "R112",
+              "text": "Selected photos and notes, or empty state."
+            },
+            {
+              "id": "R114",
+              "text": "At phone width, keep submission easy to find without obscuring content."
+            },
+            {
+              "id": "R121",
+              "text": "Modal confirmation dialogs prevent interaction with background page content."
+            },
+            {
+              "id": "R122",
+              "text": "Closing dialogs returns focus to the trigger when it still exists."
+            },
+            {
+              "id": "R123",
+              "text": "Selection feedback available to assistive technology."
+            },
+            {
+              "id": "R124",
+              "text": "Appropriate image alt text."
+            },
+            {
+              "id": "R131",
+              "text": "Accessible dialog content on small screens."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "view My Selection with no photos selected",
+              "expect": "empty state with return-to-Gallery action"
+            },
+            {
+              "behaviour": "select 3 photos and try to submit",
+              "expect": "explain how many more are needed"
+            },
+            {
+              "behaviour": "select 5 photos and submit",
+              "expect": "selection status changes to Submitted"
+            }
+          ],
+          "files": [
+            "src/screens/MySelectionScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.motion-and-accessibility.remaining",
+          "title": "Motion and accessibility: remaining requirements",
+          "description": "Every requirement below from \"Motion and accessibility\" works in the app.",
+          "section": "Motion and accessibility",
+          "covers": [
+            {
+              "id": "R117",
+              "text": "Expressive features are off: no parallax, ambient backgrounds, autoplay, smooth-scroll package, or long/blocking entrance sequence."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.r7-my-selection.my-selection-screen",
+          "title": "My Selection Screen",
+          "description": "Display selected photos in original order with notes, controls to open or remove, selection progress, and Submit button.",
+          "section": "R7 — My Selection",
+          "covers": [
+            {
+              "id": "R78",
+              "text": "Before submission, display selected photos in original sample-data order, their titles and notes, controls to open or remove a photo, selection progress, and Submit selection action."
+            },
+            {
+              "id": "R111",
+              "text": "Title and selection status."
+            },
+            {
+              "id": "R112",
+              "text": "Selected photos and notes, or empty state."
+            },
+            {
+              "id": "R113",
+              "text": "Selection progress and submission action."
+            },
+            {
+              "id": "R146",
+              "text": "Open My Selection and confirm the same five records and note."
+            },
+            {
+              "id": "R149",
+              "text": "Remove one from My Selection."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "Open My Selection screen with 5 selected photos",
+              "expect": "Shows 5 photos in original order with titles and notes"
+            },
+            {
+              "behaviour": "Open My Selection screen with no selected photos",
+              "expect": "Shows empty state with return-to-Gallery action"
+            },
+            {
+              "behaviour": "Select 4 photos and open My Selection",
+              "expect": "Shows selection progress as 4/5"
+            }
+          ],
+          "files": [
+            "src/screens/MySelectionScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.r8-submission-eligibility.selection-validation-and-feedback",
+          "title": "Selection Validation and Feedback",
+          "description": "Prevent submission with fewer than five photos and provide clear feedback.",
+          "section": "R8 — Submission eligibility",
+          "covers": [
+            {
+              "id": "R81",
+              "text": "With fewer than five, explain how many more are needed. Mouse or keyboard interaction must not submit."
+            },
+            {
+              "id": "R69",
+              "text": "Explain the limit through accessible feedback."
+            },
+            {
+              "id": "R22",
+              "text": "Submission confirmation is a state of My Selection, not another navigation link."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "Attempt to submit with 4 photos selected",
+              "expect": "Error message stating 'You need 1 more photo to submit"
+            },
+            {
+              "behaviour": "Select 5 photos and click Submit",
+              "expect": "Submission confirmation dialog appears"
+            },
+            {
+              "behaviour": "Submit selection",
+              "expect": "Selection status changes to Submitted with timestamp"
+            }
+          ],
+          "files": [
+            "src/screens/MySelectionScreen.tsx",
+            "src/app/store.ts"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "lrc_5",
+      "n": 13,
+      "title": "My Selection composition: Responsive Design and Accessibility and 9 more",
+      "kind": "feature",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_587e9d996b8b4a31b3a0",
+      "items": [
+        {
+          "id": "plan.my-selection-composition.responsive-design-and-accessibility",
+          "title": "Responsive Design and Accessibility",
+          "description": "Ensure My Selection screen works on phone width and meets accessibility standards.",
+          "section": "My Selection composition",
+          "covers": [
+            {
+              "id": "R114",
+              "text": "At phone width, keep submission easy to find without obscuring content."
+            },
+            {
+              "id": "R119",
+              "text": "Keyboard access to every action."
+            },
+            {
+              "id": "R120",
+              "text": "Visible focus indicators and descriptive control names."
+            },
+            {
+              "id": "R121",
+              "text": "Modal confirmation dialogs prevent interaction with background page content."
+            },
+            {
+              "id": "R122",
+              "text": "Closing dialogs returns focus to the trigger when it still exists."
+            },
+            {
+              "id": "R126",
+              "text": "Test desktop and a 390px-wide phone viewport."
+            },
+            {
+              "id": "R127",
+              "text": "No horizontal page overflow."
+            },
+            {
+              "id": "R128",
+              "text": "Adaptive grid columns."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "Resize browser to 390px width",
+              "expect": "Grid columns adjust appropriately for phone viewport"
+            },
+            {
+              "behaviour": "Navigate using keyboard to Submit button",
+              "expect": "Button receives visible focus indicator"
+            },
+            {
+              "behaviour": "Click Submit with 5 photos selected",
+              "expect": "Confirmation dialog appears and prevents interaction with background"
+            }
+          ],
+          "files": [
+            "src/screens/MySelectionScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.prototype-boundaries.remaining-2",
+          "title": "Prototype boundaries: remaining requirements",
+          "description": "Every requirement below from \"Prototype boundaries\" works in the app.",
+          "section": "Prototype boundaries",
+          "covers": [
+            {
+              "id": "R4",
+              "text": "Responsive, local-first web app."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.responsive-behavior.gallery-search-and-filter",
+          "title": "Gallery Search and Filter",
+          "description": "Users can search photos by title and filter by category, with responsive behavior.",
+          "section": "Responsive behavior",
+          "covers": [
+            {
+              "id": "R129",
+              "text": "Usable search and filters."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "enter 'light' into search field",
+              "expect": "Window Light and Last Light"
+            },
+            {
+              "behaviour": "select 'Outdoor' category filter",
+              "expect": "only photos with Outdoor category displayed"
+            }
+          ],
+          "files": [
+            "src/screens/GalleryScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.responsive-behavior.photo-detail-responsive-layout",
+          "title": "Photo Detail Responsive Layout",
+          "description": "Photo detail screen displays images and actions appropriately on all device sizes.",
+          "section": "Responsive behavior",
+          "covers": [
+            {
+              "id": "R130",
+              "text": "Detail images fit without hiding navigation or actions."
+            },
+            {
+              "id": "R131",
+              "text": "Accessible dialog content on small screens."
+            },
+            {
+              "id": "R132",
+              "text": "All actions available without hover."
+            },
+            {
+              "id": "R168",
+              "text": "Desktop and phone layouts reviewed."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "view photo detail on small screen",
+              "expect": "image fits without hiding navigation or actions"
+            },
+            {
+              "behaviour": "click action button on mobile",
+              "expect": "button is accessible without hover"
+            }
+          ],
+          "files": [
+            "src/screens/PhotoDetailScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.screens-and-navigation.photo-detail-screen",
+          "title": "Photo Detail Screen",
+          "description": "A photo detail screen opens from a photo card, showing the photo's details and status history.",
+          "section": "Screens and navigation",
+          "covers": [
+            {
+              "id": "R21",
+              "text": "Photo detail opens from a photo card; it is not a primary navigation destination."
+            },
+            {
+              "id": "R62",
+              "text": "Do not wrap: disable Previous on photo-01 and Next on photo-12."
+            },
+            {
+              "id": "R4",
+              "text": "Responsive, local-first web app."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "click photo card in gallery",
+              "expect": "PhotoDetailScreen opens with photo details"
+            },
+            {
+              "behaviour": "click previous button on first photo",
+              "expect": "No navigation occurs"
+            },
+            {
+              "behaviour": "click next button on last photo",
+              "expect": "No navigation occurs"
+            }
+          ],
+          "files": [
+            "src/screens/PhotoDetailScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.r7-my-selection.my-selection-screen-2",
+          "title": "My Selection Screen",
+          "description": "A screen displaying selected photos and notes, with submission controls.",
+          "section": "R7 — My Selection",
+          "covers": [
+            {
+              "id": "R79",
+              "text": "When empty, show an empty state with a return-to-Gallery action."
+            },
+            {
+              "id": "R81",
+              "text": "With fewer than five, explain how many more are needed. Mouse or keyboard interaction must not submit."
+            },
+            {
+              "id": "R112",
+              "text": "Selected photos and notes, or empty state."
+            },
+            {
+              "id": "R114",
+              "text": "At phone width, keep submission easy to find without obscuring content."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "open My Selection screen when empty",
+              "expect": "Empty state with return-to-gallery action"
+            },
+            {
+              "behaviour": "select 3 photos and submit",
+              "expect": "Submission error message: 'At least 5 photos required"
+            },
+            {
+              "behaviour": "select 7 photos and submit",
+              "expect": "Submission successful with timestamp"
+            }
+          ],
+          "files": [
+            "src/screens/MySelectionScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.r5-shortlist-behavior.gallery-photo-grid",
+          "title": "Gallery Photo Grid",
+          "description": "A responsive photo grid showing all photos with search and category filtering.",
+          "section": "R5 — Shortlist behavior",
+          "covers": [
+            {
+              "id": "R69",
+              "text": "Explain the limit through accessible feedback."
+            },
+            {
+              "id": "R126",
+              "text": "Test desktop and a 390px-wide phone viewport."
+            },
+            {
+              "id": "R128",
+              "text": "Adaptive grid columns."
+            },
+            {
+              "id": "R129",
+              "text": "Usable search and filters."
+            }
+          ],
+          "tests": [
+            {
+              "behaviour": "search 'light' in gallery",
+              "expect": "Window Light and Last Light photos displayed"
+            },
+            {
+              "behaviour": "filter by category 'Outdoor'",
+              "expect": "Only Outdoor category photos shown"
+            },
+            {
+              "behaviour": "resize browser to 390px width",
+              "expect": "Grid columns adjust to fit screen"
+            }
+          ],
+          "files": [
+            "src/screens/GalleryScreen.tsx"
+          ]
+        },
+        {
+          "id": "plan.motion-and-accessibility.remaining-2",
+          "title": "Motion and accessibility: remaining requirements",
+          "description": "Every requirement below from \"Motion and accessibility\" works in the app.",
+          "section": "Motion and accessibility",
+          "covers": [
+            {
+              "id": "R115",
+              "text": "Use Balanced functional motion through the existing motion foundation."
+            },
+            {
+              "id": "R116",
+              "text": "Appropriate uses: selection feedback, confirmation dialogs, restrained photo-detail transitions, and filter-result continuity."
+            },
+            {
+              "id": "R117",
+              "text": "Expressive features are off: no parallax, ambient backgrounds, autoplay, smooth-scroll package, or long/blocking entrance sequence."
+            },
+            {
+              "id": "R118",
+              "text": "Respect reduced-motion preferences. Animation-off must leave all content and controls usable."
+            },
+            {
+              "id": "R119",
+              "text": "Keyboard access to every action."
+            },
+            {
+              "id": "R120",
+              "text": "Visible focus indicators and descriptive control names."
+            },
+            {
+              "id": "R121",
+              "text": "Modal confirmation dialogs prevent interaction with background page content."
+            },
+            {
+              "id": "R122",
+              "text": "Closing dialogs returns focus to the trigger when it still exists."
+            },
+            {
+              "id": "R123",
+              "text": "Selection feedback available to assistive technology."
+            },
+            {
+              "id": "R124",
+              "text": "Appropriate image alt text."
+            },
+            {
+              "id": "R125",
+              "text": "No hover-only controls or information."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.responsive-behavior.remaining",
+          "title": "Responsive behavior: remaining requirements",
+          "description": "Every requirement below from \"Responsive behavior\" works in the app.",
+          "section": "Responsive behavior",
+          "covers": [
+            {
+              "id": "R127",
+              "text": "No horizontal page overflow."
+            },
+            {
+              "id": "R130",
+              "text": "Detail images fit without hiding navigation or actions."
+            },
+            {
+              "id": "R131",
+              "text": "Accessible dialog content on small screens."
+            },
+            {
+              "id": "R132",
+              "text": "All actions available without hover."
+            }
+          ],
+          "tests": [],
+          "files": []
+        },
+        {
+          "id": "plan.verification-and-completion-criteria.remaining",
+          "title": "Verification and completion criteria: remaining requirements",
+          "description": "Every requirement below from \"Verification and completion criteria\" works in the app.",
+          "section": "Verification and completion criteria",
+          "covers": [
+            {
+              "id": "R168",
+              "text": "Desktop and phone layouts reviewed."
+            }
+          ],
+          "tests": [],
+          "files": []
+        }
+      ]
+    },
+    {
+      "key": "polish",
+      "n": 14,
+      "title": "Design polish",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_16ddb3b03bf446dea7ba",
+      "items": [
+        {
+          "id": "plan.step.polish",
+          "title": "Design polish",
+          "description": "Polish the whole app as one product, to the standard of a studio portfolio, without changing what it does (follow the art-direction skill and the concept the screens were designed to, then the design-system and micro-feedback skills).",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": []
+        }
+      ]
+    },
+    {
+      "key": "cleanup",
+      "n": 15,
+      "title": "Clean up the code",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_1344bad4f51c479c90e1",
+      "items": [
+        {
+          "id": "plan.step.cleanup",
+          "title": "Clean up the code",
+          "description": "Remove what the build left behind, without changing what the app does or how it looks.",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": []
+        }
+      ]
+    },
+    {
+      "key": "m_assemble",
+      "n": 16,
+      "title": "Assemble the app: wire every page and component into App.tsx",
+      "kind": "setup",
+      "status": "not_started",
+      "taskStatus": "pending",
+      "evidence": "Queued",
+      "runId": "run_05368827afde426eac8b",
+      "taskId": "task_694cb30596a4414a9490",
+      "items": [
+        {
+          "id": "plan.step.m_assemble",
+          "title": "Assemble the app: wire every page and component into App.tsx",
+          "description": "Finish the app in src/App.tsx: every screen that was built is reachable and shown once in its main area (never the same screen twice): the main screens from the app shell's navigation, a record's own page from the list or result that opens it (never a navigation link), each component that was create",
+          "section": "Project foundation",
+          "covers": [],
+          "tests": [],
+          "files": [
+            "src/App.tsx"
+          ]
+        }
+      ]
+    }
+  ],
+  "review": [
+    {
+      "id": "spec.R166",
+      "title": "All five journeys work through the actual app.",
+      "description": "All five journeys work through the actual app.",
+      "section": "Verification and completion criteria",
+      "covers": [
+        {
+          "id": "R166",
+          "text": "All five journeys work through the actual app."
+        }
+      ]
+    },
+    {
+      "id": "spec.R167",
+      "title": "Typecheck, lint, tests, and production build pass.",
+      "description": "Typecheck, lint, tests, and production build pass.",
+      "section": "Verification and completion criteria",
+      "covers": [
+        {
+          "id": "R167",
+          "text": "Typecheck, lint, tests, and production build pass."
+        }
+      ]
+    },
+    {
+      "id": "spec.R169",
+      "title": "No broken images, dead controls, or uncaught console errors.",
+      "description": "No broken images, dead controls, or uncaught console errors.",
+      "section": "Verification and completion criteria",
+      "covers": [
+        {
+          "id": "R169",
+          "text": "No broken images, dead controls, or uncaught console errors."
+        }
+      ]
+    },
+    {
+      "id": "spec.R170",
+      "title": "Reduced motion and animation-off checked.",
+      "description": "Reduced motion and animation-off checked.",
+      "section": "Verification and completion criteria",
+      "covers": [
+        {
+          "id": "R170",
+          "text": "Reduced motion and animation-off checked."
+        }
+      ]
+    },
+    {
+      "id": "spec.R171",
+      "title": "Tests verify behavior and real sample records, not internal component names or invented status text.",
+      "description": "Tests verify behavior and real sample records, not internal component names or invented status text.",
+      "section": "Verification and completion criteria",
+      "covers": [
+        {
+          "id": "R171",
+          "text": "Tests verify behavior and real sample records, not internal component names or invented status text."
+        }
+      ]
+    },
+    {
+      "id": "spec.R172",
+      "title": "Explicitly report unmet requirements and untested platforms.",
+      "description": "Explicitly report unmet requirements and untested platforms.",
+      "section": "Verification and completion criteria",
+      "covers": [
+        {
+          "id": "R172",
+          "text": "Explicitly report unmet requirements and untested platforms."
+        }
+      ]
+    },
+    {
+      "id": "spec.R17",
+      "title": "User need: “I want to compare my photos, choose my five favorites, leave any editing notes, and confidently…",
+      "description": "User need: “I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the photographer.”",
+      "section": "User and context",
+      "covers": [
+        {
+          "id": "R17",
+          "text": "User need: “I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the photographer.”"
+        }
+      ]
+    },
+    {
+      "id": "spec.R20",
+      "title": "My Selection, with the current shortlist count.",
+      "description": "My Selection, with the current shortlist count.",
+      "section": "Screens and navigation",
+      "covers": [
+        {
+          "id": "R20",
+          "text": "My Selection, with the current shortlist count."
+        }
+      ]
+    },
+    {
+      "id": "spec.R79",
+      "title": "When empty, show an empty state with a return-to-Gallery action.",
+      "description": "When empty, show an empty state with a return-to-Gallery action.",
+      "section": "R7 — My Selection",
+      "covers": [
+        {
+          "id": "R79",
+          "text": "When empty, show an empty state with a return-to-Gallery action."
+        }
+      ]
+    },
+    {
+      "id": "spec.R115",
+      "title": "Use Balanced functional motion through the existing motion foundation.",
+      "description": "Use Balanced functional motion through the existing motion foundation.",
+      "section": "Motion and accessibility",
+      "covers": [
+        {
+          "id": "R115",
+          "text": "Use Balanced functional motion through the existing motion foundation."
+        }
+      ]
+    },
+    {
+      "id": "spec.R116",
+      "title": "Appropriate uses: selection feedback, confirmation dialogs, restrained photo-detail transitions, and filter…",
+      "description": "Appropriate uses: selection feedback, confirmation dialogs, restrained photo-detail transitions, and filter-result continuity.",
+      "section": "Motion and accessibility",
+      "covers": [
+        {
+          "id": "R116",
+          "text": "Appropriate uses: selection feedback, confirmation dialogs, restrained photo-detail transitions, and filter-result continuity."
+        }
+      ]
+    },
+    {
+      "id": "spec.R117",
+      "title": "Expressive features are off: no parallax, ambient backgrounds, autoplay, smooth-scroll package, or long/blo…",
+      "description": "Expressive features are off: no parallax, ambient backgrounds, autoplay, smooth-scroll package, or long/blocking entrance sequence.",
+      "section": "Motion and accessibility",
+      "covers": [
+        {
+          "id": "R117",
+          "text": "Expressive features are off: no parallax, ambient backgrounds, autoplay, smooth-scroll package, or long/blocking entrance sequence."
+        }
+      ]
+    },
+    {
+      "id": "spec.R118",
+      "title": "Respect reduced-motion preferences. Animation-off must leave all content and controls usable.",
+      "description": "Respect reduced-motion preferences. Animation-off must leave all content and controls usable.",
+      "section": "Motion and accessibility",
+      "covers": [
+        {
+          "id": "R118",
+          "text": "Respect reduced-motion preferences. Animation-off must leave all content and controls usable."
+        }
+      ]
+    },
+    {
+      "id": "spec.R123",
+      "title": "Selection feedback available to assistive technology.",
+      "description": "Selection feedback available to assistive technology.",
+      "section": "Motion and accessibility",
+      "covers": [
+        {
+          "id": "R123",
+          "text": "Selection feedback available to assistive technology."
+        }
+      ]
+    },
+    {
+      "id": "spec.R124",
+      "title": "Appropriate image alt text.",
+      "description": "Appropriate image alt text.",
+      "section": "Motion and accessibility",
+      "covers": [
+        {
+          "id": "R124",
+          "text": "Appropriate image alt text."
+        }
+      ]
+    },
+    {
+      "id": "spec.R125",
+      "title": "No hover-only controls or information.",
+      "description": "No hover-only controls or information.",
+      "section": "Motion and accessibility",
+      "covers": [
+        {
+          "id": "R125",
+          "text": "No hover-only controls or information."
+        }
+      ]
+    },
+    {
+      "id": "spec.R1",
+      "title": "Build a complete working prototype that lets a photography client review a gallery, shortlist photos, leave…",
+      "description": "Build a complete working prototype that lets a photography client review a gallery, shortlist photos, leave notes, and submit a final selection.",
+      "section": "Product goal",
+      "covers": [
+        {
+          "id": "R1",
+          "text": "Build a complete working prototype that lets a photography client review a gallery, shortlist photos, leave notes, and submit a final selection."
+        }
+      ]
+    },
+    {
+      "id": "spec.R2",
+      "title": "The app should feel like a polished photography product, not an admin dashboard or marketing website.",
+      "description": "The app should feel like a polished photography product, not an admin dashboard or marketing website.",
+      "section": "Product goal",
+      "covers": [
+        {
+          "id": "R2",
+          "text": "The app should feel like a polished photography product, not an admin dashboard or marketing website."
+        }
+      ]
+    },
+    {
+      "id": "spec.R3",
+      "title": "Primary journey: Gallery → photo detail → shortlist → review selection → submit.",
+      "description": "Primary journey: Gallery → photo detail → shortlist → review selection → submit.",
+      "section": "Product goal",
+      "covers": [
+        {
+          "id": "R3",
+          "text": "Primary journey: Gallery → photo detail → shortlist → review selection → submit."
+        }
+      ]
+    },
+    {
+      "id": "spec.R49",
+      "title": "Display gallery title, photographer, a concise instruction to choose five photos, current selection count, …",
+      "description": "Display gallery title, photographer, a concise instruction to choose five photos, current selection count, and all 12 photos initially in a responsive grid.",
+      "section": "R1 — Gallery overview",
+      "covers": [
+        {
+          "id": "R49",
+          "text": "Display gallery title, photographer, a concise instruction to choose five photos, current selection count, and all 12 photos initially in a responsive grid."
+        }
+      ]
+    },
+    {
+      "id": "spec.R50",
+      "title": "The main content is the photography, not statistics or explanatory cards.",
+      "description": "The main content is the photography, not statistics or explanatory cards.",
+      "section": "R1 — Gallery overview",
+      "covers": [
+        {
+          "id": "R50",
+          "text": "The main content is the photography, not statistics or explanatory cards."
+        }
+      ]
+    },
+    {
+      "id": "spec.R25",
+      "title": "gallery-autumn",
+      "description": "gallery-autumn",
+      "section": "Gallery",
+      "covers": [
+        {
+          "id": "R25",
+          "text": "gallery-autumn"
+        }
+      ]
+    },
+    {
+      "id": "spec.R26",
+      "title": "Autumn Portrait Session",
+      "description": "Autumn Portrait Session",
+      "section": "Gallery",
+      "covers": [
+        {
+          "id": "R26",
+          "text": "Autumn Portrait Session"
+        }
+      ]
+    },
+    {
+      "id": "spec.R27",
+      "title": "Photographer",
+      "description": "Photographer",
+      "section": "Gallery",
+      "covers": [
+        {
+          "id": "R27",
+          "text": "Photographer"
+        }
+      ]
+    },
+    {
+      "id": "spec.R28",
+      "title": "Maya Chen",
+      "description": "Maya Chen",
+      "section": "Gallery",
+      "covers": [
+        {
+          "id": "R28",
+          "text": "Maya Chen"
+        }
+      ]
+    },
+    {
+      "id": "spec.R29",
+      "title": "Required selection count",
+      "description": "Required selection count",
+      "section": "Gallery",
+      "covers": [
+        {
+          "id": "R29",
+          "text": "Required selection count"
+        }
+      ]
+    },
+    {
+      "id": "spec.R30",
+      "title": "Each photo has a stable ID, title, category, orientation, image source, and descriptive alt text.",
+      "description": "Each photo has a stable ID, title, category, orientation, image source, and descriptive alt text.",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R30",
+          "text": "Each photo has a stable ID, title, category, orientation, image source, and descriptive alt text."
+        }
+      ]
+    },
+    {
+      "id": "spec.R31",
+      "title": "photo-01: Golden Hour",
+      "description": "photo-01: Golden Hour",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R31",
+          "text": "photo-01: Golden Hour"
+        }
+      ]
+    },
+    {
+      "id": "spec.R32",
+      "title": "photo-02: Window Light",
+      "description": "photo-02: Window Light",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R32",
+          "text": "photo-02: Window Light"
+        }
+      ]
+    },
+    {
+      "id": "spec.R33",
+      "title": "photo-03: Walking Together",
+      "description": "photo-03: Walking Together",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R33",
+          "text": "photo-03: Walking Together"
+        }
+      ]
+    },
+    {
+      "id": "spec.R34",
+      "title": "photo-04: Quiet Smile",
+      "description": "photo-04: Quiet Smile",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R34",
+          "text": "photo-04: Quiet Smile"
+        }
+      ]
+    },
+    {
+      "id": "spec.R35",
+      "title": "photo-05: Garden Steps",
+      "description": "photo-05: Garden Steps",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R35",
+          "text": "photo-05: Garden Steps"
+        }
+      ]
+    },
+    {
+      "id": "spec.R36",
+      "title": "photo-06: Soft Shadows",
+      "description": "photo-06: Soft Shadows",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R36",
+          "text": "photo-06: Soft Shadows"
+        }
+      ]
+    },
+    {
+      "id": "spec.R37",
+      "title": "photo-07: Autumn Path",
+      "description": "photo-07: Autumn Path",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R37",
+          "text": "photo-07: Autumn Path"
+        }
+      ]
+    },
+    {
+      "id": "spec.R38",
+      "title": "photo-08: Looking Back",
+      "description": "photo-08: Looking Back",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R38",
+          "text": "photo-08: Looking Back"
+        }
+      ]
+    },
+    {
+      "id": "spec.R39",
+      "title": "photo-09: Linen Backdrop",
+      "description": "photo-09: Linen Backdrop",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R39",
+          "text": "photo-09: Linen Backdrop"
+        }
+      ]
+    },
+    {
+      "id": "spec.R40",
+      "title": "photo-10: Under the Oak",
+      "description": "photo-10: Under the Oak",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R40",
+          "text": "photo-10: Under the Oak"
+        }
+      ]
+    },
+    {
+      "id": "spec.R41",
+      "title": "photo-11: Candid Laugh",
+      "description": "photo-11: Candid Laugh",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R41",
+          "text": "photo-11: Candid Laugh"
+        }
+      ]
+    },
+    {
+      "id": "spec.R42",
+      "title": "photo-12: Last Light",
+      "description": "photo-12: Last Light",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R42",
+          "text": "photo-12: Last Light"
+        }
+      ]
+    },
+    {
+      "id": "spec.R43",
+      "title": "Use distinct, appropriate bundled photographs when available. Do not rely on remote image URLs at runtime. …",
+      "description": "Use distinct, appropriate bundled photographs when available. Do not rely on remote image URLs at runtime. If suitable assets are unavailable, use distinct local placeholder images with clear photo titles. Do not use broken images or add dependencies to obtain imagery.",
+      "section": "Photo records",
+      "covers": [
+        {
+          "id": "R43",
+          "text": "Use distinct, appropriate bundled photographs when available. Do not rely on remote image URLs at runtime. If suitable assets are unavailable, use distinct local placeholder images with clear photo titles. Do not use broken images or add dependencies to obtain imagery."
+        }
+      ]
+    }
+  ],
+  "later": [
+    {
+      "id": "spec.R173",
+      "title": "Photographer or administrator roles.",
+      "description": "Photographer or administrator roles.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R173",
+          "text": "Photographer or administrator roles."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R174",
+      "title": "Multiple galleries.",
+      "description": "Multiple galleries.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R174",
+          "text": "Multiple galleries."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R175",
+      "title": "Photo upload or download.",
+      "description": "Photo upload or download.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R175",
+          "text": "Photo upload or download."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R176",
+      "title": "Image editing, cropping, or zoom tools.",
+      "description": "Image editing, cropping, or zoom tools.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R176",
+          "text": "Image editing, cropping, or zoom tools."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R177",
+      "title": "Payments or real authentication.",
+      "description": "Payments or real authentication.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R177",
+          "text": "Payments or real authentication."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R178",
+      "title": "Email or notifications.",
+      "description": "Email or notifications.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R178",
+          "text": "Email or notifications."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R179",
+      "title": "Public sharing.",
+      "description": "Public sharing.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R179",
+          "text": "Public sharing."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R180",
+      "title": "Ratings or social comments.",
+      "description": "Ratings or social comments.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R180",
+          "text": "Ratings or social comments."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R181",
+      "title": "AI features.",
+      "description": "AI features.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R181",
+          "text": "AI features."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R182",
+      "title": "Backend services or cloud synchronization.",
+      "description": "Backend services or cloud synchronization.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R182",
+          "text": "Backend services or cloud synchronization."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R183",
+      "title": "Marketing pages.",
+      "description": "Marketing pages.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R183",
+          "text": "Marketing pages."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    },
+    {
+      "id": "spec.R184",
+      "title": "Additional navigation destinations.",
+      "description": "Additional navigation destinations.",
+      "section": "Out of scope",
+      "covers": [
+        {
+          "id": "R184",
+          "text": "Additional navigation destinations."
+        }
+      ],
+      "reason": "listed under \"Out of scope\"",
+      "realApp": false
+    }
+  ]
+}

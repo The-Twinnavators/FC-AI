@@ -1,0 +1,63 @@
+[
+  {
+    "screen": "My Selection",
+    "pageType": "other",
+    "who": "Demo client: Maya Chen",
+    "goal": "I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the photographer.",
+    "workflow": [
+      "View selected photos in shortlist",
+      "Edit notes for each selected photo",
+      "Remove a photo from shortlist",
+      "Submit selection when ready",
+      "Start over if needed"
+    ],
+    "firstView": "Shortlist header with count, list of selected photos, and submission controls",
+    "primaryAction": "Submit the selection or start over",
+    "sections": [
+      {
+        "title": "Selection Summary",
+        "purpose": "To show how many photos are selected and provide submission controls",
+        "part": "c.badge"
+      },
+      {
+        "title": "Selected Photos",
+        "purpose": "To display all selected photos with their notes",
+        "part": "c.list-row"
+      },
+      {
+        "title": "Submission Controls",
+        "purpose": "To allow submitting or resetting the selection",
+        "part": "c.button"
+      }
+    ],
+    "navIn": [],
+    "navOut": [],
+    "states": {
+      "loading": "Shows skeleton placeholders while loading shortlist",
+      "empty": "Displays empty state with message 'No photos selected yet' when no selection exists",
+      "error": "Shows error alert if shortlist fails to load",
+      "success": "Displays the list of selected photos with notes and submission controls"
+    },
+    "responsive": "On phone, photo grid becomes vertical list, buttons stack vertically",
+    "accessibility": "All interactive elements are keyboard accessible and have proper ARIA labels",
+    "acceptance": [
+      "R148",
+      "R149",
+      "R150",
+      "R151",
+      "R152",
+      "R153",
+      "R154",
+      "R155",
+      "R156",
+      "R157",
+      "R158",
+      "R159",
+      "R160",
+      "R161",
+      "R162",
+      "R163",
+      "R164"
+    ]
+  }
+]
