@@ -156,7 +156,8 @@ export function lookupData(m: AppModel) {
 /** The frame's links, as App.tsx holds them. */
 export function lookupLinks(m: AppModel, defaultIcon: Record<string, string>) {
   const shown = m.nav.flatMap((g) => g.items).filter((v) => v.kind !== "entry" && v.kind !== "mylist");
-  return shown.map((v) => ({ id: v.id, label: v.label, icon: v.icon ?? defaultIcon[v.kind] ?? "dot", ...(v.kind === "placeholder" ? { available: false } : {}), ...(["landing", "catalog", "places", "lists", "saved"].includes(v.kind) ? { mobile: true } : {}) }));
+  // Saved is the bookmark, as Save is everywhere in the app (the heart is Like), whatever icon the model gave it.
+  return shown.map((v) => ({ id: v.id, label: v.label, icon: v.kind === "saved" ? "bookmark" : (v.icon ?? defaultIcon[v.kind] ?? "dot"), ...(v.kind === "placeholder" ? { available: false } : {}), ...(["landing", "catalog", "places", "lists", "saved"].includes(v.kind) ? { mobile: true } : {}) }));
 }
 
 /** The look-up layer: places, availability, likes, saves, ratings and lists, beside the store. */
@@ -210,7 +211,8 @@ export function lookupAppSource(m: AppModel, built: ModelView[], defaultIcon: Re
     // The landing page's hero has the search; a second one in the bar above it is one too many (Clean Cart's look check).
     `      search={${r.landing && heroSearches(m.home ?? DEFAULT_HOME) ? `screen === ${q(r.landing)} ? undefined : ` : ""}<CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${r.catalog ? `go(${q(r.catalog)}, \`q=\${s}\`)` : "void s"}} onOpen={${open}} />}`,
     `      place={<PlaceBadge lookup={lookup} />}`,
-    `      prompt={screen === ${q(r.landing ?? "")} ? undefined : <ZipPrompt lookup={lookup} />}`,
+    // No frame ZIP banner on Home (its own opening) or on a record's page (it has its own "Where to find it" form).
+    `      prompt={${[r.landing, r.entry].filter(Boolean).map((id) => `screen === ${q(id!)}`).join(" || ") || "false"} ? undefined : <ZipPrompt lookup={lookup} />}`,
     `    >`,
     `      {View ? <View key={screen} /> : null}`,
     `    </LookupFrame>`,

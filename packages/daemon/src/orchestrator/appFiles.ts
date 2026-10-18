@@ -34,7 +34,7 @@ export function unapprovedPieces(m: AppModel, library = LIBRARY_SECTIONS): strin
   return piecesOf(m).filter((id) => !approved.has(id));
 }
 
-const DEFAULT_ICON: Record<ModelView["kind"], string> = { list: "folder", create: "plus", detail: "file", dashboard: "chart", queue: "check", custom: "layers", placeholder: "layers", landing: "home", catalog: "search", categories: "layers", entry: "file", places: "pin", lists: "check", mylist: "check", saved: "heart" };
+const DEFAULT_ICON: Record<ModelView["kind"], string> = { list: "folder", create: "plus", detail: "file", dashboard: "chart", queue: "check", custom: "layers", placeholder: "layers", landing: "home", catalog: "search", categories: "layers", entry: "file", places: "pin", lists: "check", mylist: "check", saved: "bookmark" };
 const pascal = (id: string) => id.split(/[^a-zA-Z0-9]+/).filter(Boolean).map((w) => w[0]!.toUpperCase() + w.slice(1)).join("");
 export const screenFileOf = (v: ModelView) => `src/screens/${pascal(v.id)}Screen.tsx`;
 const q = (s: string) => JSON.stringify(s);

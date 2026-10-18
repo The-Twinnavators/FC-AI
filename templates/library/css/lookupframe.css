@@ -61,6 +61,8 @@
 /* Phones: the places move to the bottom bar; the search drops under the bar. */
 @media (max-width: 760px) {
   .fl-lkf-bar { flex-wrap: wrap; gap: var(--space-2); padding: var(--space-2) var(--space-3); }
+  /* No ZIP banner on phones: it took most of the first screen. The top bar's place control still sets the ZIP code. */
+  .fl-lkf-prompt { display: none; }
   .fl-lkf-links { display: none; }
   .fl-lkf-name { font-size: var(--text-md); }
   .fl-lkf-logo { width: 1.75rem; height: 1.75rem; }
