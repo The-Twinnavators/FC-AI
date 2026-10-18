@@ -1,0 +1,508 @@
+[
+  {
+    "which": "original design step",
+    "task": "Design the main screens",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 17519,
+    "skillChars": 7113,
+    "toolsChars": 9551,
+    "briefChars": 40472,
+    "objectiveChars": 4989,
+    "overflowChars": 12428,
+    "overflowTokens": 3233,
+    "totalTokens": 17569,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 183517
+    },
+    "largestReadChars": 480883,
+    "files": [
+      "src/screens/GalleryScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/screens/PhotoDetailScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/screens/MySelectionScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/styles/app.css (line-numbered; line prefixes are not part of the file)",
+      "src/styles/library.css (line-numbered; line prefixes are not part of the file)",
+      "src/styles/tokens.css (line-numbered; line prefixes are not part of the file)",
+      "src/styles/components.css (line-numbered; line prefixes are not part of the file)",
+      "src/styles/fonts.css (line-numbered; line prefixes are not part of the file)",
+      "src/styles/motion.css (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 5 of 7)\"",
+      "knowledge \"Design playbook: custom-modern-ux-design-playbook-ai-agent (part 1 of 6)\"",
+      "design guidance shortened (1996 to 1503 characters)",
+      "design guidance",
+      "finished steps' file lists",
+      "src/styles/tokens.css shortened to 200 lines",
+      "src/styles/components.css shortened to 200 lines",
+      "src/styles/motion.css shortened to 200 lines",
+      "src/styles/app.css shortened to 120 lines",
+      "src/styles/library.css shortened to 120 lines",
+      "src/styles/tokens.css shortened to 120 lines",
+      "src/styles/components.css shortened to 120 lines",
+      "src/styles/motion.css shortened to 120 lines",
+      "src/styles/app.css shortened to 60 lines",
+      "src/styles/library.css shortened to 60 lines",
+      "src/styles/tokens.css shortened to 60 lines",
+      "src/styles/components.css shortened to 60 lines",
+      "src/styles/motion.css shortened to 60 lines",
+      "catalog contracts shortened"
+    ]
+  },
+  {
+    "which": "part 1",
+    "expectedPaths": [
+      "src/styles/components.css",
+      "src/styles/tokens.css",
+      "src/app/store.ts"
+    ],
+    "checks": [
+      "frame-designed",
+      "typecheck"
+    ],
+    "task": "Frame and shared Frameproof styles",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 17607,
+    "skillChars": 7201,
+    "toolsChars": 9551,
+    "briefChars": 27206,
+    "objectiveChars": 2286,
+    "overflowChars": 0,
+    "overflowTokens": 0,
+    "totalTokens": 14141,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 26967
+    },
+    "largestReadChars": 12577,
+    "files": [
+      "src/styles/components.css (line-numbered; line prefixes are not part of the file)",
+      "src/styles/tokens.css (line-numbered; line prefixes are not part of the file)",
+      "src/app/store.ts (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 5 of 7)\"",
+      "knowledge \"Design playbook: custom-modern-ux-design-playbook-ai-agent (part 1 of 6)\"",
+      "design guidance shortened (1996 to 1503 characters)",
+      "design guidance",
+      "finished steps' file lists",
+      "src/styles/components.css shortened to 200 lines",
+      "src/styles/tokens.css shortened to 200 lines",
+      "src/styles/components.css shortened to 120 lines",
+      "src/styles/tokens.css shortened to 120 lines"
+    ]
+  },
+  {
+    "which": "part 2",
+    "expectedPaths": [
+      "src/screens/GalleryScreen.tsx",
+      "src/app/schema.ts",
+      "public/images/",
+      "src/styles/tokens.css",
+      "src/app/store.ts"
+    ],
+    "checks": [
+      "data-source",
+      "typecheck"
+    ],
+    "task": "Gallery photo grid, title search and category filter",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 18688,
+    "skillChars": 8282,
+    "toolsChars": 9551,
+    "briefChars": 25846,
+    "objectiveChars": 2972,
+    "overflowChars": 0,
+    "overflowTokens": 0,
+    "totalTokens": 14068,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 25980
+    },
+    "largestReadChars": 9820,
+    "files": [
+      "src/screens/GalleryScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/app/schema.ts (line-numbered; line prefixes are not part of the file)",
+      "src/styles/tokens.css (line-numbered; line prefixes are not part of the file)",
+      "src/app/store.ts (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 5 of 7)\"",
+      "knowledge \"Design playbook: custom-modern-ux-design-playbook-ai-agent (part 1 of 6)\"",
+      "design guidance shortened (1996 to 1503 characters)",
+      "design guidance",
+      "finished steps' file lists",
+      "src/styles/tokens.css shortened to 200 lines",
+      "src/app/schema.ts shortened to 200 lines",
+      "src/styles/tokens.css shortened to 120 lines",
+      "src/app/schema.ts shortened to 120 lines",
+      "src/styles/tokens.css shortened to 60 lines",
+      "src/app/schema.ts shortened to 60 lines"
+    ]
+  },
+  {
+    "which": "part 3",
+    "expectedPaths": [
+      "src/screens/PhotoDetailScreen.tsx",
+      "src/styles/tokens.css",
+      "src/app/store.ts"
+    ],
+    "checks": [
+      "typecheck",
+      "changed:src/screens/PhotoDetailScreen.tsx|src/styles/tokens.css|src/app/store.ts",
+      "images-used:src/screens/PhotoDetailScreen.tsx|src/styles/tokens.css",
+      "piece-content:src/screens/PhotoDetailScreen.tsx"
+    ],
+    "task": "Photo detail composition",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 18688,
+    "skillChars": 8282,
+    "toolsChars": 9551,
+    "briefChars": 25610,
+    "objectiveChars": 2281,
+    "overflowChars": 0,
+    "overflowTokens": 0,
+    "totalTokens": 14007,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 25903
+    },
+    "largestReadChars": 9820,
+    "files": [
+      "src/screens/PhotoDetailScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/styles/tokens.css (line-numbered; line prefixes are not part of the file)",
+      "src/app/store.ts (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 5 of 7)\"",
+      "knowledge \"Design playbook: custom-modern-ux-design-playbook-ai-agent (part 1 of 6)\"",
+      "design guidance shortened (1996 to 1503 characters)",
+      "design guidance",
+      "finished steps' file lists",
+      "src/styles/tokens.css shortened to 200 lines",
+      "src/styles/tokens.css shortened to 120 lines"
+    ]
+  },
+  {
+    "which": "part 4",
+    "expectedPaths": [
+      "src/screens/MySelectionScreen.tsx",
+      "src/styles/tokens.css",
+      "src/app/store.ts"
+    ],
+    "checks": [
+      "typecheck",
+      "changed:src/screens/MySelectionScreen.tsx|src/styles/tokens.css|src/app/store.ts",
+      "images-used:src/screens/MySelectionScreen.tsx|src/styles/tokens.css",
+      "piece-content:src/screens/MySelectionScreen.tsx"
+    ],
+    "task": "My Selection page composition",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 18688,
+    "skillChars": 8282,
+    "toolsChars": 9551,
+    "briefChars": 23988,
+    "objectiveChars": 2140,
+    "overflowChars": 0,
+    "overflowTokens": 0,
+    "totalTokens": 13585,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 25376
+    },
+    "largestReadChars": 9820,
+    "files": [
+      "src/screens/MySelectionScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/styles/tokens.css (line-numbered; line prefixes are not part of the file)",
+      "src/app/store.ts (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Fix: src/sections/LookupEntry.tsx shows \"Sample data\" (sample content). Replace it with the rea\"",
+      "knowledge \"Fix: These tokens are still used but no longer defined, so their styles break: --fl-in-lo (used\"",
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 5 of 7)\"",
+      "knowledge \"Design playbook: custom-modern-ux-design-playbook-ai-agent (part 1 of 6)\"",
+      "design guidance shortened (1996 to 1503 characters)",
+      "design guidance",
+      "finished steps' file lists",
+      "src/styles/tokens.css shortened to 200 lines",
+      "src/styles/tokens.css shortened to 120 lines"
+    ]
+  },
+  {
+    "which": "part 5",
+    "expectedPaths": [
+      "src/styles/components.css",
+      "src/screens/GalleryScreen.tsx",
+      "src/screens/PhotoDetailScreen.tsx",
+      "src/screens/MySelectionScreen.tsx",
+      "src/styles/tokens.css",
+      "src/app/store.ts"
+    ],
+    "checks": [
+      "images-used:src",
+      "typecheck"
+    ],
+    "task": "Cross-screen responsive, accessibility and consistency review",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 17607,
+    "skillChars": 7201,
+    "toolsChars": 9551,
+    "briefChars": 27704,
+    "objectiveChars": 2212,
+    "overflowChars": 0,
+    "overflowTokens": 0,
+    "totalTokens": 14270,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 27129
+    },
+    "largestReadChars": 12577,
+    "files": [
+      "src/styles/components.css (line-numbered; line prefixes are not part of the file)",
+      "src/screens/GalleryScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/screens/PhotoDetailScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/screens/MySelectionScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/styles/tokens.css (line-numbered; line prefixes are not part of the file)",
+      "src/app/store.ts (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: rule-of-8-ux-web-layout-guide (part 1 of 4)\"",
+      "knowledge \"Design playbook: custom-modern-ux-design-playbook-ai-agent (part 1 of 6)\"",
+      "design guidance shortened (1996 to 1503 characters)",
+      "design guidance",
+      "finished steps' file lists",
+      "src/styles/components.css shortened to 200 lines",
+      "src/styles/tokens.css shortened to 200 lines",
+      "src/styles/components.css shortened to 120 lines",
+      "src/styles/tokens.css shortened to 120 lines",
+      "src/styles/components.css shortened to 60 lines",
+      "src/styles/tokens.css shortened to 60 lines",
+      "catalog contracts shortened"
+    ]
+  },
+  {
+    "which": "task_c64bd101583d4c10880c",
+    "task": "User and context: Gallery Screen Composition and 7 more",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 21638,
+    "skillChars": 7615,
+    "toolsChars": 11621,
+    "briefChars": 55862,
+    "objectiveChars": 37700,
+    "overflowChars": 34007,
+    "overflowTokens": 8846,
+    "totalTokens": 23182,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 35479
+    },
+    "largestReadChars": 4000,
+    "files": [
+      "src/screens/GalleryScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/screens/PhotoDetailScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/app/store.ts (line-numbered; line prefixes are not part of the file)",
+      "src/screens/MySelectionScreen.tsx (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: typography-ux-design-ai-coding-agent (part 4 of 6)\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 5 of 7)\"",
+      "catalog contracts shortened"
+    ]
+  },
+  {
+    "which": "task_153a919733fe4514b0e5",
+    "task": "R2 — Search: Search Functionality and 10 more",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 21638,
+    "skillChars": 7615,
+    "toolsChars": 11621,
+    "briefChars": 65887,
+    "objectiveChars": 50278,
+    "overflowChars": 44032,
+    "overflowTokens": 11453,
+    "totalTokens": 25789,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 38739
+    },
+    "largestReadChars": 4000,
+    "files": [
+      "src/screens/GalleryScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/app/store.ts (line-numbered; line prefixes are not part of the file)",
+      "src/screens/MySelectionScreen.tsx (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: typography-ux-design-ai-coding-agent (part 4 of 6)\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 4 of 7)\"",
+      "catalog contracts shortened"
+    ]
+  },
+  {
+    "which": "task_da8a6259c7974a969a5f",
+    "task": "R12 — Navigation and identity: Navigate to Photo Detail Correctly and 10 more",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 21638,
+    "skillChars": 7615,
+    "toolsChars": 11621,
+    "briefChars": 67001,
+    "objectiveChars": 48033,
+    "overflowChars": 45146,
+    "overflowTokens": 11743,
+    "totalTokens": 26079,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 39101
+    },
+    "largestReadChars": 4000,
+    "files": [
+      "src/screens/PhotoDetailScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/app/store.ts (line-numbered; line prefixes are not part of the file)",
+      "src/screens/GalleryScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/screens/MySelectionScreen.tsx (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Fix: Edits already applied in an earlier attempt and kept in the files: src/sections/RecordDeta\"",
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: typography-ux-design-ai-coding-agent (part 4 of 6)\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 4 of 7)\"",
+      "catalog contracts shortened"
+    ]
+  },
+  {
+    "which": "task_fa30f6722b91412caa2d",
+    "task": "Responsive behavior: Responsive Gallery Layout and 15 more",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 21638,
+    "skillChars": 7615,
+    "toolsChars": 11621,
+    "briefChars": 83773,
+    "objectiveChars": 66324,
+    "overflowChars": 61918,
+    "overflowTokens": 16106,
+    "totalTokens": 30442,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 44554
+    },
+    "largestReadChars": 4000,
+    "files": [
+      "src/screens/GalleryScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/screens/MySelectionScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/screens/PhotoDetailScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/styles/app.css (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: typography-ux-design-ai-coding-agent (part 4 of 6)\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 5 of 7)\"",
+      "src/styles/app.css",
+      "catalog contracts shortened"
+    ]
+  },
+  {
+    "which": "task_dfbb2681d5d548dd8d91",
+    "task": "Screens and navigation: My Selection Screen Composition and 8 more",
+    "role": "coder",
+    "model": "qwen3:8b",
+    "windowTokens": 24576,
+    "replyTokens": 4096,
+    "charsPerToken": 3.8444864707593833,
+    "inputChars": 55114,
+    "systemChars": 21638,
+    "skillChars": 7615,
+    "toolsChars": 11621,
+    "briefChars": 58399,
+    "objectiveChars": 40373,
+    "overflowChars": 36544,
+    "overflowTokens": 9506,
+    "totalTokens": 23841,
+    "budgetTokens": 14336,
+    "laterTurn": {
+      "fits": false,
+      "tokens": 36304
+    },
+    "largestReadChars": 4000,
+    "files": [
+      "src/screens/MySelectionScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/app/store.ts (line-numbered; line prefixes are not part of the file)",
+      "src/screens/GalleryScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/screens/PhotoDetailScreen.tsx (line-numbered; line prefixes are not part of the file)",
+      "src/styles/app.css (line-numbered; line prefixes are not part of the file)"
+    ],
+    "dropped": [
+      "knowledge \"Spec: Frameproof-PRD.md\"",
+      "knowledge \"Design playbook: typography-ux-design-ai-coding-agent (part 4 of 6)\"",
+      "knowledge \"Design playbook: ux-architecture-best-practices-ai-coding-agent (part 5 of 7)\"",
+      "src/styles/app.css",
+      "catalog contracts shortened"
+    ]
+  }
+]

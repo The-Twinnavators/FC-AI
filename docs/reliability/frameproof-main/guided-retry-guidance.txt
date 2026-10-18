@@ -1,0 +1,13 @@
+Read src/sections/RecordDetail.tsx from disk immediately before editing. Treat the current file as authoritative; any earlier excerpt is stale.
+
+Inside the "Copy record id" action, replace the entire failing expression with explicit control flow:
+- If navigator.clipboard is unavailable, show the existing neutral toast containing the record ID, then return.
+- Otherwise call navigator.clipboard.writeText(rec.id), retaining the existing success and failure toasts.
+
+Restore the missing-clipboard behavior if it has been lost. Do not merely remove optional chaining or suppress the lint rule (@typescript-eslint/no-unused-expressions).
+
+Change no unrelated file, schema, records, image paths, or navigation.
+
+Run the lint check (npm run lint) and inspect the diff. Confirm the unavailable, success, and rejection paths remain represented correctly.
+
+If an edit fails to match, reread the file before another edit. Do not repeat an identical patch. If you cannot perform this correction, report the failed tool call with report_blocked and stop rather than continuing in circles.

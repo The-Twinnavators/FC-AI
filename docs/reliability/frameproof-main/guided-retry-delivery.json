@@ -1,0 +1,43 @@
+{
+  "sentAt": "2026-10-18T22:48:21.256Z",
+  "c1_http": {
+    "status": 200,
+    "ok": true
+  },
+  "c2_event": {
+    "events": [
+      {
+        "at": "2026-10-18T22:48:21.283Z",
+        "taskId": "task_312e944aa65d45ceb3d7",
+        "data": {
+          "retry": true,
+          "guided": true
+        },
+        "message": "Retry requested; reopened 1 task(s)"
+      }
+    ],
+    "ok": true
+  },
+  "c3_stored": {
+    "ok": true,
+    "storedChars": 1116,
+    "expectedChars": 1116
+  },
+  "c4_paused": {
+    "paused": true,
+    "newTaskStarted": [],
+    "ok": true
+  },
+  "task": {
+    "status": "pending",
+    "attempts": 0
+  },
+  "run": {
+    "status": "running",
+    "active": true
+  },
+  "response": "{\"id\":\"run_b789650d36dd4323aa4b\",\"projectId\":\"prj_7dc3fb8e913b4f61840f\",\"objective\":\"Frameproof: build the attached PRD as a complete working prototype.\",\"status\":\"running\",\"strategy\":{\"kind\":\"spec_bu",
+  "eventsAfter": [
+    "22:48:21 task.started Retry requested; reopened 1 task(s)"
+  ]
+}

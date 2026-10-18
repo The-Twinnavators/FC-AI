@@ -115,7 +115,7 @@ import { findPrd, matchSections, relatesToPrd, repoInstructions, sectionIndex, s
 import { AUTO_RETRY_MARK, runtimeOptions } from "./runtimeOptions.js";
 import type { McpManager } from "../mcp/manager.js";
 import { mcpStepTools } from "../mcp/stepTools.js";
-import { designResearch, designResearchBrief } from "../quality/designResearch.js";
+import { designResearch, designResearchBrief, researchKey, type DesignResearch } from "../quality/designResearch.js";
 import { failuresOf, fixBrief, fixDiff, recordFix, similarFixes } from "../knowledge/fixMemory.js";
 import { inheritedNote, provisionalFromKey, provisionalKey, type ProvisionalSet } from "./provisional.js";
 import { dataSourceProblems, readGeneratedData } from "../quality/appData.js";
@@ -152,6 +152,30 @@ export function codingWindowTokens(a: ModelAssignment): number {
 export function codingReplyCap(a: ModelAssignment): number {
   const w = codingWindowTokens(a);
   return a.providerId.startsWith("hosted") ? Math.max(16_000, Math.floor(w / 4)) : Math.min(4096, Math.floor(w / 4));
+}
+
+/** A step's request as its attempt would assemble it (Orchestrator.measureRequest): sizes, budget and overflow. */
+export interface RequestMeasure {
+  task: string;
+  role: string;
+  model: string;
+  windowTokens: number;
+  replyTokens: number;
+  charsPerToken: number;
+  inputChars: number;
+  systemChars: number;
+  skillChars: number;
+  toolsChars: number;
+  briefChars: number;
+  objectiveChars: number;
+  overflowChars: number;
+  overflowTokens: number;
+  totalTokens: number;
+  budgetTokens: number;
+  laterTurn: { fits: boolean; tokens: number };
+  largestReadChars: number;
+  files: string[];
+  dropped: string[];
 }
 
 /** The functional baseline of a complete app (orchestrator.functionalBaseline). */
@@ -2730,7 +2754,20 @@ ${brief.text}` : objective, expectedPaths });
     this.d.store.setSetting(FLOWCODE_LIMITS_KEY, [{ at: nowIso(), runId: run.id, projectId: run.projectId, taskId: task.id, step: task.title, guard: guard || "no progress", model: run.modelAssignments.debugger?.model ?? run.modelAssignments.coder?.model }, ...list].slice(0, 50));
   }
 
-  private async agentAttempt(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>, signal: AbortSignal, changed: Set<string>, role: AgentRole, modelOverride?: string): Promise<AgentOutcome> {
+  /**
+   * The request a step's attempt would send, measured through the attempt's own assembly (agentAttempt with `measure`):
+   * the system prompt and skills, the tools shown, the fitted brief and its overflow, and the later-turn check. It stops
+   * before the request artifact and before any model call; design research is read from its cache only. Its caller runs
+   * it on an isolated copy of the data: the attempt's preparation still records its usual events.
+   */
+  async measureRequest(runId: string, task: Task, role: AgentRole = "coder"): Promise<RequestMeasure | undefined> {
+    const run = this.d.store.runs.require(runId);
+    let m: RequestMeasure | undefined;
+    await this.agentAttempt(run, { ...task, attempts: Math.max(1, task.attempts) }, this.d.projects.jail(run.projectId), new AbortController().signal, new Set(), role, undefined, (x) => (m = x));
+    return m;
+  }
+
+  private async agentAttempt(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>, signal: AbortSignal, changed: Set<string>, role: AgentRole, modelOverride?: string, measure?: (m: RequestMeasure) => void): Promise<AgentOutcome> {
     const project = this.d.store.projects.require(run.projectId);
     const designTitles = [DESIGN_SCREENS, DESIGN_POLISH];
     const designStep = designTitles.includes(task.title) || designTitles.includes(this.d.store.getSetting<string>(`splitParent:${task.id}`, ""));
@@ -2808,7 +2845,7 @@ ${brief.text}` : objective, expectedPaths });
       guidance.push("Composition (FlowCode rule): the first screen is the product's main tool (search, list, board, editor), shown working with real data, not a pitch. No Hero component, eyebrow label, marketing headline or 'Browse…' call-to-action block; if the app has a separate home screen that only introduces the tool, merge it into the tool screen (keep its route and test labels). Compose each screen from the design research and direction: decide the layout yourself, then use the kit (src/components/ui) for controls such as Button, Field, chips, Card and Dialog, not for page templates.");
     // Design research (inspiration from Dribbble, Behance and real products), done once per project while it's fresh.
     if (designStep) {
-      const research = await designResearch(
+      const research = measure ? (this.d.store.getSetting<DesignResearch | null>(researchKey(project.id), null) ?? undefined) : await designResearch(
         { store: this.d.store, bus: this.d.bus, router: this.d.router, processes: this.d.processes },
         { projectId: project.id, runId: run.id, objective: run.objective, prdText: ((p) => { try { return p ? readFile(jail, p).content.slice(0, 6000) : ""; } catch { return ""; } })(findPrd(jail, run.referencePaths)), direction, models: [...(project.settings.allowHostedModels ? [cloudCoder(this.d.router, this.d.store).ready ? cloudCoder(this.d.router, this.d.store).assignment : undefined] : []), run.modelAssignments.critic], allowed: project.settings.allowExternalResearch, signal },
       ).catch(() => undefined);
@@ -3151,12 +3188,12 @@ ${brief.text}` : objective, expectedPaths });
     // The step's own material doesn't fit: split it rather than send part of what it needs (a part already split is
     // sent as it is, said plainly).
     // The request as fitted, kept for inspection (system prompt and brief; tool definitions are listed by name).
-    try {
+    if (!measure) try {
       this.d.artifacts?.save({ runId: run.id, kind: "other", label: `Request: ${task.title} (attempt ${task.attempts}, ${role})`, mime: "text/plain", content: `Model: ${assignment.model} (${assignment.providerId}), ${windowTokens} token window, replies up to ${replyTokens} tokens\nTool definitions: ${toolsChars} characters\n\n=== system ===\n${system}\n\n=== brief ===\n${brief.text}`, meta: { taskId: task.id, attempt: task.attempts, role, fittedRequest: true } });
     } catch {
       /* keeping a copy never affects the step */
     }
-    if (brief.overflow > 0) {
+    if (brief.overflow > 0 && !measure) {
       const tokens = Math.round(brief.overflow / reqBudget.charsPerToken);
       // Never sent with part of what it needs, and never sent over budget (a part can't be split again: the split path
       // then blocks it for the person's choice, saying why).
@@ -3178,6 +3215,10 @@ ${brief.text}` : objective, expectedPaths });
         }
       }
       const later = laterTurnFits(reqBudget, total, largest);
+      if (measure) {
+        measure({ task: task.title, role, model: assignment.model, windowTokens, replyTokens, charsPerToken: reqBudget.charsPerToken, inputChars: reqBudget.inputChars, systemChars: system.length, skillChars: skillFit.text.length, toolsChars, briefChars: brief.text.length, objectiveChars: task.objective.length, overflowChars: brief.overflow, overflowTokens: Math.round(brief.overflow / reqBudget.charsPerToken), totalTokens: Math.round(total / reqBudget.charsPerToken), budgetTokens: Math.round(reqBudget.inputChars / reqBudget.charsPerToken), laterTurn: { fits: later.fits, tokens: later.tokens }, largestReadChars: largest, files: packet.relevantFiles.map((f) => f.path.replace(/ (line-numbered.*)$/, "")), dropped: brief.dropped });
+        return { kind: "no_action", reason: "measured only" };
+      }
       if (!later.fits && !this.d.store.getSetting(`splitPart:${task.id}`, false) && task.attempts === 1)
         return { kind: "split_required", reason: `a later turn (its opening request, a full read of its largest file and a check result) needs about ${later.tokens} tokens, more than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window` };
     }
