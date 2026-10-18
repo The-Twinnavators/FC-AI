@@ -27,6 +27,7 @@ import path from "node:path";
 import fs from "node:fs";
 import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
+import { DeadlinePassedError } from "../orchestrator/runDeadline.js";
 import { z } from "zod";
 import * as C from "@flowcode/contracts";
 import type { App } from "../app.js";
@@ -784,7 +785,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     // D7: who writes this one change. "cloud" (the chat's "Use the cloud for this change", ticked) is the consent for this
     // change only; "local" pins it to the local models even when an earlier build of the project used the cloud
     // (a follow-up otherwise copies its parent's models).
-    const { coder } = parse(z.object({ coder: z.enum(["local", "cloud"]).optional() }).passthrough(), body ?? {});
+    const { coder, deadlineAt, deadlineReason } = parse(z.object({ coder: z.enum(["local", "cloud"]).optional(), deadlineAt: z.string().max(40).optional(), deadlineReason: z.string().max(300).optional() }).passthrough(), body ?? {});
     if (coder === "cloud") {
       const cloud = cloudCoder();
       if (!cloud.ready) throw new HttpError(409, `The cloud model isn't ready: ${cloud.problem}. Set it up on the Models page, or leave the box unticked.`);
@@ -795,6 +796,14 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       input = { ...input, modelAssignments: { ...input.modelAssignments, planner: local.planner, coder: local.coder, debugger: local.debugger } };
     }
     const run = app.orchestrator.createRun(input);
+    // An absolute deadline for the whole run (planning, approval waits, retries and restarts included).
+    if (deadlineAt) {
+      try {
+        app.orchestrator.setRunDeadline(run.id, deadlineAt, "user", deadlineReason ?? "set when the build was started");
+      } catch (err) {
+        throw new HttpError(400, (err as Error).message);
+      }
+    }
     void app.orchestrator.plan(run.id).catch(() => undefined);
     return run;
   });
@@ -878,7 +887,26 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     void app.orchestrator.restartWithNewModels(run.id).catch(() => undefined);
     return updated;
   });
-  add("POST /runs/:id/pause", ({ params }) => app.orchestrator.pauseRun(params.id, true));
+  // Who paused it: the person (the default) or FlowCode/a script ("system"), so a script's pause isn't shown as yours.
+  add("POST /runs/:id/pause", ({ params, body }) => app.orchestrator.pauseRun(params.id, true, parse(z.object({ by: z.enum(["user", "system"]).optional() }), body ?? {}).by ?? "user"));
+  // The run's absolute deadline: set once, then only extended explicitly (who, when and why are recorded).
+  add("GET /runs/:id/deadline", ({ params }) => app.orchestrator.runDeadline(params.id) ?? null);
+  add("POST /runs/:id/deadline", ({ params, body }) => {
+    const b = parse(z.object({ at: z.string().max(40), reason: z.string().min(3).max(300) }), body);
+    try {
+      return app.orchestrator.setRunDeadline(params.id, b.at, "user", b.reason);
+    } catch (err) {
+      throw new HttpError(400, (err as Error).message);
+    }
+  });
+  add("POST /runs/:id/deadline/extend", ({ params, body }) => {
+    const b = parse(z.object({ until: z.string().max(40), reason: z.string().min(3).max(300) }), body);
+    try {
+      return app.orchestrator.extendRunDeadline(params.id, b.until, "user", b.reason);
+    } catch (err) {
+      throw new HttpError(400, (err as Error).message);
+    }
+  });
   // Retry recovery: the person asks FlowCode to try now (also after its automatic attempts ran out).
   add("POST /runs/:id/recover", async ({ params }) => app.orchestrator.recoverNow(params.id, true));
   // Maintenance: FlowCode's own work pauses a build with a continuation registered first; finishing it resumes them.
@@ -1641,7 +1669,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       const out = await route.h({ params, query: url.searchParams, body, req, res });
       if (out !== SENT) json(res, 200, out ?? { ok: true });
     } catch (err) {
-      const status = err instanceof HttpError ? err.status : err instanceof PolicyError ? 403 : err instanceof NotFoundError ? 404 : err instanceof SyntaxError ? 400 : 500;
+      const status = err instanceof HttpError ? err.status : err instanceof DeadlinePassedError ? 409 : err instanceof PolicyError ? 403 : err instanceof NotFoundError ? 404 : err instanceof SyntaxError ? 400 : 500;
       json(res, status, { error: sanitizeError(err) });
     }
   });

@@ -21,6 +21,7 @@ export type InterruptionCause =
   | "task_contract" // a step's brief and checks need the person's choice
   | "internal_error" // FlowCode itself failed (one bounded retry)
   | "orphaned" // marked as working, but no FlowCode worker runs it (resumed from its checkpoint, at most twice)
+  | "deadline" // the run's absolute deadline passed (only an extension the person records lets it go on)
   | "cancelled";
 
 export interface Interruption {
@@ -87,6 +88,8 @@ export function policyFor(cause: InterruptionCause): Policy {
       return { recoverable: false, needsUser: true, action: "Blocked: the step used all its attempts", resumeWhen: "you retry the step, with guidance if you like", maxAttempts: 0, timeoutMs: 0 };
     case "task_contract":
       return { recoverable: false, needsUser: true, action: "Waiting for your choice about the step", resumeWhen: "you answer and retry the step", maxAttempts: 0, timeoutMs: 0 };
+    case "deadline":
+      return { recoverable: false, needsUser: true, action: "Stopped: the run's deadline passed", resumeWhen: "you extend the deadline (the extension is recorded), then continue", maxAttempts: 0, timeoutMs: 0 };
     case "cancelled":
       return { recoverable: false, needsUser: true, action: "Stopped by you", resumeWhen: "you resume it", maxAttempts: 0, timeoutMs: 0 };
   }

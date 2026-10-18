@@ -81,6 +81,7 @@ import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenP
 import { testingGuide, testScaffold } from "./testingGuide.js";
 import { budgetSkills, charsPerToken, laterTurnFits, requestBudget } from "./requestBudget.js";
 import { stepTools } from "./toolSelection.js";
+import { DeadlinePassedError, deadlinePassed, extendDeadline, getDeadline, markExpired, markStopped, setDeadline, type RunDeadline } from "./runDeadline.js";
 import { RECOVERY_BACKOFF_MS, causeOfBlocker, getInterruption, recordInterruption, resolveInterruption, updateInterruption, type Interruption, type InterruptionCause } from "./interruptions.js";
 import { createHash } from "node:crypto";
 import { toolDef } from "./agentLoop.js";
@@ -178,6 +179,8 @@ export class Orchestrator {
   private active = new Map<string, AbortController>();
   /** Recovery timers per run (unattended runs, interruptions.ts), and the runs a recovery is working on right now. */
   private recoveryTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  /** One expiry timer per run with a deadline (re-armed from the store after a restart). */
+  private deadlineTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private recovering = new Set<string>();
   private watchdog?: ReturnType<typeof setInterval>;
   /** The last provider and model check per run (in memory, so a daemon restart checks again). */
@@ -409,6 +412,8 @@ export class Orchestrator {
 
   /** Planning phase: preflight → repository context → Planner → structured plan → approval gate. */
   async plan(runId: string): Promise<Run> {
+    // Planning is model work too: none starts after the deadline.
+    if (this.deadlineStops(runId, "planning")) return this.d.store.runs.require(runId);
     try {
       return await this.planInner(runId);
     } catch (err) {
@@ -1371,7 +1376,11 @@ export class Orchestrator {
     this.d.store.runs.upsert({ ...updated, safeCheckpointId: cp.id });
     const status = this.setStatus(runId, "running", "Plan approved; execution starting");
     // Approving the plan is the go-ahead: execution starts without a separate click.
-    if (autoStart && !this.active.has(runId)) return this.start(runId);
+    if (autoStart && !this.active.has(runId)) {
+      // Approving the plan after the deadline records the approval but starts no work.
+      if (this.deadlineStops(runId, "plan approval")) return this.d.store.runs.require(runId);
+      return this.start(runId);
+    }
     return status;
   }
 
@@ -1381,6 +1390,7 @@ export class Orchestrator {
   start(runId: string): Run {
     const run = this.d.store.runs.require(runId);
     if (!run.planApproved) throw new Error("Plan must be approved before execution");
+    this.refuseIfExpired(runId, "start");
     if (TERMINAL_RUN_STATUSES.includes(run.status)) throw new Error(`Run is ${run.status}`);
     if (this.active.has(runId)) return run;
     const coder = this.coderCheck(run);
@@ -1425,6 +1435,8 @@ export class Orchestrator {
       })
       .finally(() => {
         this.active.delete(runId);
+        // Stopped after the deadline: when work actually stopped, and the overrun.
+        if (getDeadline(this.d.store, runId)?.expired) this.noteDeadlineStop(runId);
         // Tell open pages the work loop has ended. Without this the builder kept saying "Debugger is working" on a
         // stopped build (the stop event arrives while the loop is still finishing), and the chat treated a new change
         // as a question about work in progress (Kids cash app).
@@ -1455,6 +1467,7 @@ export class Orchestrator {
       if (this.pausedRuns.has(runId) && !signal.aborted) this.d.bus.emit({ type: "run.status_changed", projectId: project.id, runId, message: "Paused: the step in progress finished; Continue starts the next one" });
       while ((this.paused || this.pausedRuns.has(runId)) && !signal.aborted) await new Promise((r) => setTimeout(r, 1000));
       if (signal.aborted) return;
+      if (this.deadlineStops(runId, "before the next step")) return;
       const task = this.graph.next(runId);
       if (!task) break;
       run = this.d.store.runs.upsert({ ...this.d.store.runs.require(runId), currentTaskId: task.id });
@@ -1463,6 +1476,8 @@ export class Orchestrator {
     }
     this.releaseIndependentSteps(runId);
     this.graph.propagateInvalidation(runId);
+    // The final checks are work too: none start after the deadline.
+    if (this.deadlineStops(runId, "before the final checks")) return;
     const tasks = this.graph.tasks(runId);
     const anyDead = tasks.some((t) => ["blocked", "failed", "invalidated"].includes(t.status));
     this.d.bus.emit({ type: "phase.completed", projectId: project.id, runId, message: (() => { const n = this.graph.summary(runId); const total = Object.values(n).reduce((x, y) => x + y, 0); return `Building finished: ${n.verified} of ${total} steps done${n.blocked ? `, ${n.blocked} need${n.blocked === 1 ? "s" : ""} your help` : ""}${n.invalidated ? `, ${n.invalidated} waiting on an earlier step` : ""}`; })(), data: { phase: "implementation", summary: this.graph.summary(runId) } });
@@ -1821,6 +1836,7 @@ export class Orchestrator {
   }
 
   private async runTask(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>, signal: AbortSignal) {
+    if (this.deadlineStops(run.id, `before "${task.title}"`)) return;
     const project = this.d.store.projects.require(run.projectId);
     const ev = { projectId: project.id, runId: run.id, taskId: task.id };
     // A step the coder already ran out of actions on twice (this run or before a resume) is split before trying again.
@@ -3103,6 +3119,7 @@ export class Orchestrator {
    */
   resume(runId: string): Run {
     const run = this.d.store.runs.require(runId);
+    this.refuseIfExpired(runId, "resume");
     // A build you stopped can be continued (its files are as it left them); one that finished or failed can't.
     if (TERMINAL_RUN_STATUSES.includes(run.status) && run.status !== "cancelled") throw new Error(`Run is ${run.status}; start an iteration run instead`);
     if (this.active.has(runId)) return run;
@@ -3155,6 +3172,7 @@ export class Orchestrator {
 
   retryTask(runId: string, taskId: string, guidance?: string): Run {
     const run = this.d.store.runs.require(runId);
+    this.refuseIfExpired(runId, "retry");
     if (TERMINAL_RUN_STATUSES.includes(run.status) && run.status !== "failed") throw new Error(`Run is ${run.status}`);
     // A follow-up build FlowCode started on its own when this one stopped ("Trying once more with a clearer request")
     // works on the same files: retrying here takes the work back, so that follow-up stops (Calculator test 1: both
@@ -3490,6 +3508,14 @@ export class Orchestrator {
   /** Called on daemon start: reconcile runs interrupted by a crash/restart. */
   async reconcileOnStartup() {
     await this.d.processes.cleanupAll("daemon restart");
+    // Deadlines: a run whose deadline passed while the daemon was down is stopped now (never auto-resumed); the others
+    // get their expiry timer back from the stored deadline.
+    for (const run of this.d.store.runs.list().filter((x) => !TERMINAL_RUN_STATUSES.includes(x.status))) {
+      const dl = getDeadline(this.d.store, run.id);
+      if (!dl) continue;
+      if (deadlinePassed(dl)) this.expireRun(run.id, "daemon restart");
+      else this.armDeadline(run.id);
+    }
     // Runs interrupted mid-planning are planned again automatically.
     for (const run of this.d.store.runs.where("status = 'draft'")) {
       if (run.plan) continue;
@@ -3511,6 +3537,11 @@ export class Orchestrator {
     for (const run of this.d.store.runs.where("status IN ('running','recovering','verifying')")) {
       for (const t of this.graph.tasks(run.id)) if (t.status === "running" || t.status === "awaiting_approval") this.updateTask(t, { status: "attempted", attempts: Math.max(0, t.attempts - 1) });
       const level = this.d.store.projects.get(run.projectId)?.settings.autonomy ?? "supervised";
+      if (deadlinePassed(getDeadline(this.d.store, run.id))) {
+        this.pausedRuns.add(run.id);
+        this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: "Daemon restarted: this build's deadline has passed, so it stays stopped until the deadline is extended" });
+        continue;
+      }
       // Paused by the person before the restart: it stays paused (it waits for Continue), with its place kept.
       const pausedBy = this.d.store.getSetting<string | boolean>(`runPaused:${run.id}`, false);
       if (pausedBy) {
@@ -3520,8 +3551,8 @@ export class Orchestrator {
           this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: "Daemon restarted: paused for maintenance; it resumes automatically once the model service and workspace check out" });
           this.scheduleRecovery(run.id, 5_000);
         } else {
-          if (it?.state !== "active") recordInterruption(this.d.store, this.d.bus, run.projectId, { runId: run.id, cause: "user_pause", by: "user", detail: "Paused before the daemon restarted; kept paused." });
-          this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: "Daemon restarted: this build stays paused, as you left it; Continue resumes it from its current step" });
+          if (it?.state !== "active" && pausedBy !== "system") recordInterruption(this.d.store, this.d.bus, run.projectId, { runId: run.id, cause: "user_pause", by: "user", detail: "Paused before the daemon restarted; kept paused." });
+          this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: pausedBy === "system" ? "Daemon restarted: this build stays paused (FlowCode or a script paused it); Continue resumes it from its current step" : "Daemon restarted: this build stays paused, as you left it; Continue resumes it from its current step" });
         }
         continue;
       }
@@ -3606,6 +3637,7 @@ export class Orchestrator {
   private scheduleRecovery(runId: string, delayMs?: number) {
     const it = getInterruption(this.d.store, runId);
     if (!it || it.state === "resolved" || !it.recoverable) return;
+    if (deadlinePassed(getDeadline(this.d.store, runId))) return;
     this.clearRecovery(runId);
     const wait = delayMs ?? (it.nextAttemptAt ? Math.max(0, Date.parse(it.nextAttemptAt) - Date.now()) : (RECOVERY_BACKOFF_MS[Math.min(it.attempt, RECOVERY_BACKOFF_MS.length - 1)] ?? 60_000));
     updateInterruption(this.d.store, runId, { nextAttemptAt: new Date(Date.now() + wait).toISOString() });
@@ -3624,6 +3656,8 @@ export class Orchestrator {
     const run = this.d.store.runs.require(runId);
     if (!it || it.state === "resolved") return { resumed: false, why: "nothing to recover" };
     if (this.recovering.has(runId)) return { resumed: false, why: "a recovery is already running" };
+    // Before "already running": a build winding down after its deadline isn't running again.
+    if (it.cause === "deadline" || this.deadlineStops(runId, "recovery")) return { resumed: false, why: "the run's deadline passed: extend it to continue" };
     if (this.active.has(runId)) {
       resolveInterruption(this.d.store, this.d.bus, run.projectId, runId, "Already running: a worker has the build");
       return { resumed: true };
@@ -3732,6 +3766,99 @@ export class Orchestrator {
     return found;
   }
 
+  // ───────────────────────────── Deadline (runDeadline.ts) ─────────────────────────────
+
+  /** Sets the run's absolute deadline (once; later changes are recorded extensions) and arms its expiry. */
+  setRunDeadline(runId: string, at: string, by: string, reason: string): RunDeadline {
+    const run = this.d.store.runs.require(runId);
+    const d = setDeadline(this.d.store, runId, at, by, reason);
+    this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: `Deadline set for ${d.at} (${reason}); no work starts after it`, data: { deadline: d } });
+    if (deadlinePassed(d)) this.expireRun(runId, "set in the past");
+    else this.armDeadline(runId);
+    return d;
+  }
+
+  /** An explicit, recorded extension; the run stays paused until Continue. */
+  extendRunDeadline(runId: string, until: string, by: string, reason: string): RunDeadline {
+    const run = this.d.store.runs.require(runId);
+    const d = extendDeadline(this.d.store, runId, until, by, reason);
+    this.armDeadline(runId);
+    const it = getInterruption(this.d.store, runId);
+    if (it?.state !== "resolved" && it?.cause === "deadline") updateInterruption(this.d.store, runId, { action: "Deadline extended: waiting for you to continue", resumeWhen: "you press Continue" });
+    this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: `Deadline extended to ${d.at} by ${by}: ${reason}`, data: { deadline: d } });
+    return d;
+  }
+
+  runDeadline(runId: string): RunDeadline | undefined {
+    return getDeadline(this.d.store, runId);
+  }
+
+  private armDeadline(runId: string) {
+    const old = this.deadlineTimers.get(runId);
+    if (old) clearTimeout(old);
+    this.deadlineTimers.delete(runId);
+    const d = getDeadline(this.d.store, runId);
+    if (!d || deadlinePassed(d)) return;
+    // setTimeout holds at most ~24.8 days; a later deadline re-arms when this one fires.
+    const wait = Math.min(Date.parse(d.at) - Date.now(), 2_000_000_000);
+    const t = setTimeout(() => {
+      this.deadlineTimers.delete(runId);
+      if (deadlinePassed(getDeadline(this.d.store, runId))) this.expireRun(runId, "the deadline was reached while it worked");
+      else this.armDeadline(runId);
+    }, Math.max(0, wait));
+    (t as { unref?: () => void }).unref?.();
+    this.deadlineTimers.set(runId, t);
+  }
+
+  /** At a point that starts work: true (and the run is stopped) when the deadline has passed. */
+  private deadlineStops(runId: string, where: string): boolean {
+    if (!deadlinePassed(getDeadline(this.d.store, runId))) return false;
+    this.expireRun(runId, where);
+    return true;
+  }
+
+  /** Continue, Retry, resume and start on an expired run are refused, with what lets it go on. */
+  private refuseIfExpired(runId: string, action: string) {
+    const d = getDeadline(this.d.store, runId);
+    if (!deadlinePassed(d)) return;
+    this.expireRun(runId, action);
+    throw new DeadlinePassedError(`This build's deadline (${d!.at}) has passed, so it can't ${action}. Extend the deadline first (the extension is recorded).`);
+  }
+
+  /**
+   * The deadline passed: record it once with what was running or waiting, stop starting work, abort interruptible work
+   * through the run's signal (model requests, commands, browser checks honour it; a file write or snapshot in progress
+   * settles first), and pause the run. Pending approvals stay pending; resolving one starts nothing.
+   */
+  private expireRun(runId: string, where: string) {
+    const run = this.d.store.runs.get(runId);
+    if (!run) return;
+    const first = !getDeadline(this.d.store, runId)?.expired;
+    const inProgress = this.graph.tasks(runId).filter((t) => t.status === "running").map((t) => t.title);
+    const waiting = this.d.store.approvals.where("run_id = ? AND status = 'pending'", runId).map((a) => `${a.kind} approval pending since ${a.createdAt}: ${a.action}`);
+    const d = markExpired(this.d.store, runId, where, inProgress, waiting);
+    this.pausedRuns.add(runId);
+    this.d.store.setSetting(`runPaused:${runId}`, "system");
+    if (first && d) {
+      recordInterruption(this.d.store, this.d.bus, run.projectId, { runId, cause: "deadline", by: "system", detail: `The deadline ${d.at} passed (found at ${where}).${inProgress.length ? ` Running: ${inProgress.join("; ")}.` : ""}${waiting.length ? ` Waiting: ${waiting.join("; ")}.` : ""}` });
+      this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, level: "warning", message: `Deadline reached (${d.at}): no new work starts, work in progress is stopped, and the build waits for an extension`, data: { deadline: d } });
+    }
+    const ctrl = this.active.get(runId);
+    if (ctrl && !ctrl.signal.aborted) ctrl.abort(new Error("The run's deadline passed"));
+    if (!ctrl) this.noteDeadlineStop(runId);
+  }
+
+  /** Work actually stopped after the deadline: the overrun, recorded once. */
+  private noteDeadlineStop(runId: string) {
+    const before = getDeadline(this.d.store, runId);
+    if (before?.expired?.stoppedAt) return;
+    const d = markStopped(this.d.store, runId);
+    const run = this.d.store.runs.get(runId);
+    if (d?.expired?.stoppedAt && run && d.expired.overrunMs !== undefined)
+      this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: `Stopped ${Math.round(d.expired.overrunMs / 1000)} s after the deadline (work in progress had to settle)`, data: { deadline: d } });
+  }
+
+
   // ───────────────────────────── Scheduler control (System page) ─────────────────────────────
 
   /** When paused, running tasks finish but no new task starts; queued runs wait. */
@@ -3742,8 +3869,11 @@ export class Orchestrator {
 
   pauseRun(runId: string, paused: boolean, by: "user" | "system" = "user"): { paused: boolean } {
     const run = this.d.store.runs.require(runId);
+    if (!paused) this.refuseIfExpired(runId, "continue");
     if (paused) this.pausedRuns.add(runId);
     else this.pausedRuns.delete(runId);
+    // A pause by FlowCode or a script isn't recorded as yours (eval 3: a script's pause read "Paused by you"); it is
+    // kept as "system" below, and nothing resumes it on its own.
     if (paused && by === "user") recordInterruption(this.d.store, this.d.bus, run.projectId, { runId, cause: "user_pause", by: "user", detail: this.active.has(runId) ? "You paused it: the step in progress finishes first, then it waits." : "You paused it." });
     if (!paused) {
       this.clearRecovery(runId);
