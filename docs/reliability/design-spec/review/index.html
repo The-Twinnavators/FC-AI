@@ -34,7 +34,7 @@
   <div class="notes">
     <div><b>User and task</b>People who browse and read before choosing (labels, makers, ratings); weak for "find one thing fast".</div>
     <div><b>Composition</b>Masthead, a sticky side column (search, sections, most liked, saved), the most liked product as a cover story, section tiles, a feed, a browse band.</div>
-    <div><b>Typography</b>Playfair Display headings over Literata, an expressive scale; meta lines at 12px (the floor).</div>
+    <div><b>Typography</b>Playfair Display headings over Literata, an expressive scale; meta lines at the small step (12px).</div>
     <div><b>Products</b>Tinted tiles with the category icon; the cover is large; feed cards with save.</div>
     <div><b>Mobile</b>The side column folds behind a "Sections and search" button; six section tiles stack as tall single tiles, a long scroll before the feed.</div>
   </div>
@@ -102,23 +102,39 @@
 </section>
 
 <section>
+  <h2>Product image continuity</h2>
+  <p class="muted">The same product (Oat Milk Original) as Home, Catalog and Product show it, desktop. Home and Catalog draw a tinted tile with the category's icon (assigned by category order, so Beverages gets the generic picture icon); Product draws the initials. Your decision whether to change it (EVAL4-PLAN.md §3C).</p>
+  <div class="row" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+    <figure><div class="shot"><img src="concept-editorial-image-home.png" alt="Editorial: the product on Home"></div><figcaption>Editorial · Home</figcaption></figure>
+    <figure><div class="shot"><img src="concept-editorial-image-catalog.png" alt="Editorial: the product on Catalog"></div><figcaption>Editorial · Catalog</figcaption></figure>
+    <figure><div class="shot"><img src="concept-editorial-image-product.png" alt="Editorial: the product's page"></div><figcaption>Editorial · Product</figcaption></figure>
+    <figure><div class="shot"><img src="concept-market-image-home.png" alt="Market hall: the product on Home"></div><figcaption>Market hall · Home</figcaption></figure>
+    <figure><div class="shot"><img src="concept-market-image-catalog.png" alt="Market hall: the product on Catalog"></div><figcaption>Market hall · Catalog</figcaption></figure>
+    <figure><div class="shot"><img src="concept-market-image-product.png" alt="Market hall: the product's page"></div><figcaption>Market hall · Product</figcaption></figure>
+    <figure><div class="shot"><img src="concept-bold-image-home.png" alt="Bold aisle: the product on Home"></div><figcaption>Bold aisle · Home</figcaption></figure>
+    <figure><div class="shot"><img src="concept-bold-image-catalog.png" alt="Bold aisle: the product on Catalog"></div><figcaption>Bold aisle · Catalog</figcaption></figure>
+    <figure><div class="shot"><img src="concept-bold-image-product.png" alt="Bold aisle: the product's page"></div><figcaption>Bold aisle · Product</figcaption></figure>
+  </div>
+</section>
+
+<section>
   <h2>Across the journey: what holds, what doesn't</h2>
   <p><b>Holds on every page, in all three:</b> the heading and text families, the palette and page colour, the surface treatment (flat outlines, or the neo-brutalist outlines and hard shadows), field and button corners, the frame and its navigation. No page errors and no sideways scrolling at either width.</p>
   <h3 class="warn">Inconsistencies (reported, not fixed here)</h3>
   <ul class="issues">
     <li><b>Product pictures change by page.</b> Home and Catalog draw a tile with the category icon; the Product page shows initials ("OM"). Same product, two looks.</li>
-    <li><b>Heading sizes aren't one system across page types.</b> Bold aisle: Home 25.6px, Product 22.8px, Catalog 20.3px. Editorial: Product 45px, Catalog 32px. Each page sets its own level.</li>
-    <li><b>Primary buttons differ in height:</b> 48px on Home's opening, 40px elsewhere (Editorial, Bold aisle).</li>
-    <li><b>Two ZIP prompts on Product:</b> the frame's "Find it near you" banner and the page's own "Where to find it" form. On a phone the banner takes most of the first screen on every page but Home.</li>
-    <li><b>Save iconography:</b> the frame's mobile bar shows Saved with a heart, while the save toggles are bookmarks and the heart means Like on Product. (The Home pages used a heart for Save too; fixed in this review.)</li>
-    <li><b>"Search" is highlighted on Product</b>, because the product's parent page is the catalog, which the PRD calls Search.</li>
-    <li><b>Meta lines at 12px</b> (ratings, makers) on several pages: at the readability floor.</li>
+    <li><b>Heading sizes differ by page type</b> (Bold aisle: Home 25.6px, Product 22.8px, Catalog 20.3px; Editorial: Product 45px, Catalog 32px). These follow intended roles (display heading, record title, page title; see EVAL4-PLAN.md §2); pages with the same role match. Editorial's large record title is a choice for you to accept or reject.</li>
+    <li><b>Button heights:</b> 48px for Home's hero action, 40px for standard actions: intended roles, not a defect.</li>
+    <li><b>Two ZIP prompts on Product:</b> the frame's "Find it near you" banner and the page's own "Where to find it" form. On a phone the banner takes most of the first screen on every page but Home. Correction proposed (§3B).</li>
+    <li><b>Save iconography:</b> the frame's mobile bar shows Saved with a heart, while the save toggles are bookmarks and the heart means Like on Product. Correction proposed (EVAL4-PLAN.md §3A). (The Home pages used a heart for Save too; fixed in this review.)</li>
+    <li><b>"Search" is highlighted on Product</b>: intended. The product's parent section is the catalog, which the PRD calls Search (§3D).</li>
+    <li><b>Meta lines at 12px</b>: the small step of each scale; the muted text passes WCAG AA on every surface (5.7:1 at the lowest). Size is for you to judge, not a threshold claim.</li>
     <li><b>Long phone scrolls:</b> Market hall's Home is one column of eight tall cards; Editorial's sections stack as six tall tiles.</li>
   </ul>
   <h3>Fixed during this review</h3>
   <ul class="issues">
     <li>Market hall, phone: the search pushed the page wider than the screen (a flex basis that became a height in the narrow column layout).</li>
-    <li>Editorial and Bold aisle: Save used the heart icon (the app's Like); now the bookmark, like the catalog. The library's icon set gained the bookmark.</li>
+    <li>Editorial and Bold aisle: Save used the heart icon (the app's Like); now the bookmark, like the catalog. The library's icon set gained the bookmark, and applying a concept refreshes an app's icon set that predates it (an earlier app drew the fallback sparkle).</li>
   </ul>
 </section>
 </main>
