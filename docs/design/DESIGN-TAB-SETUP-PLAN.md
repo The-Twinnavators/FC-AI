@@ -145,3 +145,81 @@ At plan approval: the chosen direction is on the plan card (as concepts are now)
 
 13. An imported system appears in the theme selector with its source (repository, path, commit, licence). It works with the network off. A value it doesn't give is marked "not in the source"; a font it names that isn't bundled is marked "substituted".
 14. Re-importing is explicit, and shows what changed before anything is replaced.
+
+---
+
+## 7. Approved foundation (sections 1–2): qualifications, states and transitions
+
+**Status.** Sections 1–2 are approved in principle as the foundation. Implementation starts only after the replacement eval 4 has ended, unless the owner explicitly postpones that evaluation. No external theme import in this phase: the core works with FlowCode's own themes and manual controls. open-design waits until its real files, schema, licences, attribution and fonts are checked. Brand-named systems stay unapproved.
+
+### 7.1 Requirements added before implementation
+
+1. **Draft, selected and applied are three separate things.** Selecting a direction never implies an existing app has adopted it. "Applied" is set only by a successful write.
+2. **A failed update keeps the previous applied styling.** The failure is recorded, and the draft is kept for correction.
+3. **Later steps don't silently overwrite explicit branding.** That covers the capture step, concept application and the design steps, and applies to the user's branding and the PRD's requirements alike. A concept applies only its composition (the Home layout), or shows an explicit conflict for the person to resolve.
+4. **Partial PRD branding:** the tab shows the values the PRD supplies (with their source) and the choices still open, not an empty setup.
+5. **Existing projects are kept as they are.**
+   - No silent restyling, and no invented history.
+   - A known automatic default is relabelled accurately, only where the record shows it (a `styleCapture` whose source is an industry direction): "Legacy FlowCode default (food / grocery direction)".
+   - Without that evidence, the label is "Source not recorded".
+6. **Base styling is not branding.**
+   - A runnable project may have neutral base CSS (the starter's tokens) while its state is "No brand direction selected".
+   - That base is labelled **"Base styling — no brand direction selected"**, never "Custom" and never as a choice.
+7. **Preview isn't application.** Browsing themes, editing drafts and viewing samples write no generated-app file. Only "Use this direction" writes.
+8. **One engine.** Reuse the existing design settings (`designChoice` and related), token writers (`applyDesign`, `applyCapturedStyle`, `setSurfaceStyle`, `applyDesignSpec`), snapshots, approvals and checks. No parallel styling engine.
+9. **Reconciliation stays narrow.**
+   - The tab keeps reading the project's actual tokens.
+   - When the app's tokens no longer match the applied record (later edits, generated code), it says "The app's styles differ from the applied direction" and lists the tokens that differ.
+   - Stored settings never claim a style the app doesn't render.
+10. **Capture safety comes first.** The reviewed capture path is enabled only after its checks pass:
+    - project network consent;
+    - private, link-local and localhost destinations refused for the first URL, every redirect and every browser subrequest;
+    - timeouts and size limits.
+
+    If the current immediate-apply capture stays available meanwhile, a narrow containment (consent plus a private-address check on that endpoint) is proposed separately.
+
+### 7.2 State per project (one record, existing keys extended)
+
+| Field | Meaning |
+|---|---|
+| `base` | `{ source: "starter" \| "legacy-default" \| "unknown", detail }`: what renders when there's no direction, with its evidence |
+| `draft?` | `{ spec, sources, updatedAt }`: being edited; never written to the app |
+| `selected?` | `{ spec, version, sources, selectedAt, by: "you" \| "prd" }`: the chosen direction |
+| `applied?` | `{ version, appliedAt, snapshotIds }`: the selected version successfully written |
+| `lastFailure?` | `{ version, at, reason }`: an update that didn't apply (the previous `applied` is kept) |
+| `prdBranding` | Values the PRD supplies, with their section, and the choices still open |
+
+`designChoice:<project>` becomes this record. The old value `{ id: "custom", by: "flowcode" }` is read as `base: legacy-default` where `styleCapture` shows an industry source, and as `base: unknown` otherwise. Nothing is rewritten in the project's files.
+
+The tab's label comes from comparing the record with the scanned tokens:
+- "No brand direction selected"
+- "Selected, not yet applied"
+- "Applied"
+- "The app's styles differ from the applied direction"
+
+### 7.3 Transitions
+
+| From | Action | To | Writes app files? |
+|---|---|---|---|
+| any | Edit, browse a theme, capture for review, Suggest | `draft` updated | No |
+| `draft` | Use this direction (no app yet) | `selected` = draft | No (the build applies it) |
+| `draft` | Use this direction (app exists) | `selected` = draft → governed apply → `applied` | Yes, snapshotted; checks rerun |
+| `selected` | Build reaches "Capture the style" / "Write the complete app" | `applied` on success | Yes, through the build's existing steps |
+| apply fails | — | `lastFailure` recorded; `applied` unchanged; `draft` kept | Snapshots restore any partial write |
+| `applied` | Undo in Changes | `applied` = the previous version | Yes, a snapshot restore |
+| any | Concept picked with a brand `selected` | Composition only, or a conflict shown | Only the Home layout |
+| none | Build with no direction | `base` stays; the design requirement stays open | Starter base only; no industry default |
+
+### 7.4 Acceptance tests for the foundation
+
+1. **New project, no direction:** the state is `base: starter`, with none selected; the tab shows "No brand direction selected" and the base label. No "Custom" and no "Set by FlowCode".
+2. **The capture step with no source and no direction** writes no tokens. The industry direction is recorded as advice.
+3. **A legacy project** (the cancelled eval 4 attempt 1) is labelled "Legacy FlowCode default (food / grocery direction)"; its files are unchanged. A project without the evidence is labelled "Source not recorded".
+4. **Drafting** (theme, edit, Suggest) changes `draft` only: the app's files are byte-identical before and after.
+5. **"Use this direction" with no app** sets `selected`; `applied` stays unset until the build applies it.
+6. **"Use this direction" with an app** creates snapshots, sets `applied`, and reruns typecheck, build and preview. Undo restores the previous applied version.
+7. **A forced failed apply** (for example, a token the app lacks) keeps the previous `applied` and the files, records `lastFailure`, and keeps the draft.
+8. **Divergence:** editing a token in the app after apply shows "differs from the applied direction" with that token named.
+9. **A PRD giving only a primary colour:** the primary is shown with its PRD source; the other settings are listed as open choices; a suggestion never replaces the PRD value.
+10. **Selecting a concept with a brand selected:** only the Home layout changes, and the brand tokens are byte-identical. A concept that requires different brand values shows a conflict instead of applying them.
+11. **No model calls** for drafting, theme browsing or Suggest. No extra approval request at plan approval.
