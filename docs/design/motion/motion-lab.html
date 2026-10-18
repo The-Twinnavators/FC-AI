@@ -514,7 +514,7 @@ dialog input { font: 14px var(--font-body); padding: 8px 10px; border-radius: 8p
 <!-- 8 -->
 <section class="pat" id="filter" aria-labelledby="h-filter">
   <header><p class="eyebrow">Functional · all levels</p><h2 id="h-filter">Filtering and sorting continuity</h2>
-    <p class="why">Items keep their identity while they move, so you can follow where a product went. The list itself updates immediately, so a screen reader or a test reads the new result at once. Rapid changes skip to the latest result.</p></header>
+    <p class="why">Items keep their identity while they move, so you can follow where a product went. The list itself updates immediately, so a screen reader or a test reads the new result at once. A rapid change interrupts the move from wherever the items are.</p></header>
   <div class="stage">
     <div class="row">
       <div class="chips" role="group" aria-label="Category" id="chips">
@@ -531,7 +531,7 @@ dialog input { font: 14px var(--font-body); padding: 8px 10px; border-radius: 8p
   <dl class="spec">
     <dt>Use for</dt><dd>Filter chips, sort, reorder, add/remove from a list.</dd>
     <dt>Avoid</dt><dd>Fading the whole list out and in (loses continuity); moving 200 items (limit to what's on screen).</dd>
-    <dt>Native</dt><dd><span class="tag native">View Transitions</span> with a name per item; fallback a FLIP with the Web Animations API.</dd>
+    <dt>Native</dt><dd><span class="tag native">FLIP with the Web Animations API</span>: the new results paint first, then items glide. (A view transition per press delayed the response on a slow phone: measured.)</dd>
     <dt>Library</dt><dd>Small: Motion's <code>layout</code> does this in React, but native covers it.</dd>
     <dt>Reduced</dt><dd>Instant reorder with a short fade.</dd>
     <dt>Tests</dt><dd>3 chips clicked in 100ms → list matches the last; count announced; keyboard focus stays on the chip.</dd>
@@ -810,7 +810,7 @@ dialog input { font: 14px var(--font-body); padding: 8px 10px; border-radius: 8p
     ["Oat Milk Original", "dairy", 2.89], ["Coconut yogurt", "dairy", 3.6], ["Almond milk", "dairy", 2.49], ["Sourdough loaf", "bakery", 4.5],
     ["Rye bread", "bakery", 3.8], ["Croissants (4)", "bakery", 5.2], ["Gala apples", "produce", 0.62], ["Baby spinach", "produce", 2.4], ["Blueberries", "produce", 4.2],
   ].map(([n, c, p], i) => ({ id: i, n, c, p }));
-  let filter = "all", asc = true, fvt;
+  let filter = "all", asc = true;
   const list = $("#list");
   const visible = () => ITEMS.filter((x) => filter === "all" || x.c === filter).sort((a, b) => (asc ? a.p - b.p : b.p - a.p));
   const renderList = () => {
@@ -818,23 +818,27 @@ dialog input { font: 14px var(--font-body); padding: 8px 10px; border-radius: 8p
     list.innerHTML = v.map((x) => `<div class="item" data-id="${x.id}" style="view-transition-name:it-${x.id};view-transition-class:item"><b>${x.n}</b><span>$${x.p.toFixed(2)}</span></div>`).join("");
     $("#count").textContent = `${v.length} products`;
   };
+  let movingItems = [];
+  const msOf = (name) => parseFloat(getComputedStyle(root).getPropertyValue(name)) || 0;
   const flip = (update) => {
+    // Where each item is now (mid-move included), then stop the running move and glide from there.
     const first = new Map($$(".item", list).map((el) => [el.dataset.id, el.getBoundingClientRect()]));
+    movingItems.forEach((m) => m.cancel()); movingItems = [];
     update();
     if (reduced()) return;
+    const easing = getComputedStyle(root).getPropertyValue("--ease-out").trim();
     $$(".item", list).forEach((el) => {
       const f = first.get(el.dataset.id);
-      if (!f) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200 }); return; }
+      if (!f) { movingItems.push(el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: msOf("--dur-base"), easing })); return; }
       const l = el.getBoundingClientRect(); const dx = f.left - l.left, dy = f.top - l.top;
-      if (dx || dy) el.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration: 300, easing: "cubic-bezier(.16,1,.3,1)" });
+      if (Math.abs(dx) >= 1 || Math.abs(dy) >= 1) movingItems.push(el.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration: msOf("--dur-slow"), easing }));
     });
   };
   const changeList = (mutate) => {
     mutate();
-    fvt?.skipTransition?.();
     if (root.hasAttribute("data-off")) return renderList();
-    if (document.startViewTransition && !reduced()) { fvt = document.startViewTransition(renderList); fvt.ready.catch(() => {}); fvt.finished.catch(() => {}); }
-    else if (!reduced()) flip(renderList);
+    // FLIP, not a view transition: the new results paint at once (a snapshot first delayed the response on a slow phone).
+    if (!reduced()) flip(renderList);
     else renderList();
   };
   $$("#chips .chip").forEach((b) => b.addEventListener("click", () => changeList(() => { filter = b.dataset.c; $$("#chips .chip").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); })));
@@ -913,7 +917,8 @@ dialog input { font: 14px var(--font-body); padding: 8px 10px; border-radius: 8p
     ["Dialog: open then close at once → closed, focus back on the opener", async () => {
       const b = $("#open-dlg"); b.focus(); b.click();
       $("#dlg").close(); await settle(400);
-      return !$("#dlg").open && document.activeElement === b;
+      const closed = !$("#dlg").open, focusBack = document.activeElement === b;
+      return (closed && focusBack) || `state ${closed ? "ok (closed)" : "WRONG (still open)"}; focus ${focusBack ? "ok" : "elsewhere: " + (document.activeElement?.id || document.activeElement?.tagName)}`;
     }],
     ["Drawer's field is usable on the first frame", async () => {
       const d = $("#drw"); d.showModal(); await frame();
@@ -930,18 +935,20 @@ dialog input { font: 14px var(--font-body); padding: 8px 10px; border-radius: 8p
       await settle(500);
       const sel = tabs.find((t) => t.getAttribute("aria-selected") === "true");
       const ix = ind.getBoundingClientRect(), tx = sel.getBoundingClientRect();
-      const ok = sel === tabs[1] && document.activeElement === tabs[1] && Math.abs(ix.left - tx.left) < 2 && Math.abs(ix.width - tx.width) < 2;
-      selectTab(tabs[0], false); return ok;
+      const okSel = sel === tabs[1], okFocus = document.activeElement === tabs[1], okInd = Math.abs(ix.left - tx.left) < 2 && Math.abs(ix.width - tx.width) < 2;
+      selectTab(tabs[0], false);
+      // The keys go to whatever has focus: if something else took it, they never reached the tabs.
+      return (okSel && okFocus && okInd) || `selection ${okSel ? "ok" : "not moved"}; focus ${okFocus ? "ok" : "elsewhere: " + (document.activeElement?.id || document.activeElement?.tagName)}; indicator ${okInd ? "on the selected tab" : "OFF the selected tab"}`;
     }],
     ["Page transitions: 3 quick clicks end on the last; Back returns; focus on the heading", async () => {
       const links = $$("nav a", mini);
       links[1].click(); links[2].click(); links[1].click();
       await settle(700);
-      const okLast = current === "list" && document.activeElement === $("h3", miniPage);
+      const okPage = current === "list", okFocus = document.activeElement === $("h3", miniPage), focusWas = document.activeElement?.id || document.activeElement?.tagName;
       history.back(); await settle(800);
       const okBack = current === "stores";
       go("home", { focus: false }); await settle(600);
-      return okLast && okBack;
+      return (okPage && okFocus && okBack) || `last page ${okPage ? "ok" : "WRONG"}; focus ${okFocus ? "on its heading" : "elsewhere: " + focusWas}; Back ${okBack ? "ok" : "WRONG"}`;
     }],
     ["Filter: 3 chips within 100ms → the list matches the last", async () => {
       const chips = $$("#chips .chip"); chips[1].click(); await sleep(30); chips[2].click(); await sleep(30); chips[3].click();
@@ -974,9 +981,19 @@ dialog input { font: 14px var(--font-body); padding: 8px 10px; border-radius: 8p
     const ul = $("#checks"); ul.innerHTML = CHECKS.map(([n]) => `<li><span class="wait" aria-hidden="true">…</span><span>${n}</span></li>`).join("");
     let pass = 0;
     for (const [i, [, fn]] of CHECKS.entries()) {
-      let ok = false; try { ok = await fn(); } catch (err) { console.error(err); }
+      let ok = false, detail = "";
+      try { const r = await fn(); ok = r === true; if (typeof r === "string") detail = r; } catch (err) { console.error(err); detail = String(err); }
       const li = ul.children[i]; li.firstChild.className = ok ? "ok" : "no"; li.firstChild.textContent = ok ? "✓" : "✕";
-      li.querySelector("span:last-child").insertAdjacentHTML("beforeend", ok ? "" : " <b>(failed)</b>");
+      if (!ok) {
+        const label = li.children[1];
+        const b = document.createElement("b");
+        b.textContent = " (failed)";
+        const d = document.createElement("span");
+        d.className = "muted";
+        d.dataset.detail = "";
+        d.textContent = detail ? ` ${detail}` : "";
+        label.append(b, d);
+      }
       if (ok) pass++;
     }
     $("#run-sum").textContent = `${pass} of ${CHECKS.length} passed at ${level()}${root.hasAttribute("data-rm") ? ", reduced motion" : ""}${root.hasAttribute("data-off") ? ", animation off" : ""} · ${root.getAttribute("data-surface")}`;

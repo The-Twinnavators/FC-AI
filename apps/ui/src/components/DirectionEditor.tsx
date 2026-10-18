@@ -6,7 +6,7 @@
  * (workspace/designState.ts, contracts appearance.ts).
  */
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { APPEARANCE_THEMES, BASE_APPEARANCE, STYLE_VIBES, TYPE_PAIRS, appearanceChecks, appearanceFromTheme, appearanceTokens, type Appearance, type AppearanceCheck } from "@flowcode/contracts";
+import { APPEARANCE_THEMES, BASE_APPEARANCE, MOTION_LABEL, MOTION_LEVELS, STYLE_VIBES, TYPE_PAIRS, appearanceChecks, appearanceFromTheme, appearanceTokens, type Appearance, type AppearanceCheck } from "@flowcode/contracts";
 import { post, useResource } from "../api";
 import { ColorPicker } from "./ColorPicker";
 
@@ -246,6 +246,19 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
               </label>
             ))}
           </fieldset>
+          {/* How much the app moves. Reduced motion on a person's device always wins; expressive effects need their own
+              opt-in and an eligible page (homepage, marketing, portfolio), so a level alone never turns them on. */}
+          <fieldset className="ds-field ds-seg">
+            <legend>Motion</legend>
+            {MOTION_LEVELS.map((m) => (
+              <label key={m} className={cur.motion?.level === m ? "is-on" : ""} title={MOTION_LABEL[m].detail}>
+                <input type="radio" name={`ds-motion-${group}`} checked={cur.motion?.level === m} onChange={() => edit({ motion: { ...cur.motion, level: m } }, "you")} /> {MOTION_LABEL[m].name}
+              </label>
+            ))}
+          </fieldset>
+          <p className="ds-hint dim">
+            {cur.motion ? MOTION_LABEL[cur.motion.level].detail : "Not set for this direction: the app keeps the motion it has."} People who ask their device for reduced motion get quick fades instead, at every level.
+          </p>
           <div className="ds-field">
             <span>Primary colour{sources.primary ? <span className="ds-src"> · from {SOURCE_LABEL(sources.primary)}</span> : null}</span>
             <ColorPicker label="Primary colour" value={cur.primary} onChange={(hex) => edit({ primary: hex }, "you")} swatches={prdPrimary ? [{ label: `PRD: ${prdPrimary.name}`, hex: prdPrimary.hex }] : []} />

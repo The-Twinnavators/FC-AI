@@ -136,11 +136,4 @@ h3 {
   padding: var(--space-5);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-  }
-}
+/* Reduced motion and "animation off" are handled in motion.css (quick fades instead of erasing every transition). */

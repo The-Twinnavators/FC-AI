@@ -1,0 +1,208 @@
+/**
+ * Motion (FlowCode). The amounts come from the motion tokens in tokens.css (--duration-*, --enter-distance, --stagger*,
+ * --press-scale), which the Look's motion level sets: Minimal, Balanced or Expressive. Library pieces already draw their
+ * feedback with those tokens, so a level changes them all at once.
+ *
+ * Precedence, strongest first:
+ *  1. Animation off (<html data-motion="off">, from ?motion=off or FlowCode's preview): no transitions, keyframes or
+ *     view transitions at all. Everything is shown in its final state, and the helpers (lib/motion.ts) update at once.
+ *  2. Reduced motion (the person's system setting): the tokens become quick fades (90-120ms) with no travel, scale or
+ *     stagger, and scrolling jumps. It follows the setting live while the app is open. Unlike the old blanket rule
+ *     (0.01ms !important on everything), it doesn't erase the fades that tell people something changed.
+ *  3. The level's tokens.
+ *
+ * Nothing here hides content at rest: entrances start from a visible element, so with any animation skipped, cancelled,
+ * unsupported or off, the page is complete. Correctness never waits for an animation to finish.
+ */
+
+/* ── 2. Reduced motion: wins over every level (higher specificity than tokens.css, and loaded after it) ── */
+@media (prefers-reduced-motion: reduce) {
+  :root:root:root {
+    --duration-instant: 0ms;
+    --duration-fast: 90ms;
+    --duration-base: 120ms;
+    --duration-slow: 120ms;
+    --enter-distance: 0px;
+    --stagger: 0ms;
+    --stagger-max: 0ms;
+    --press-scale: 1;
+    --hover-lift: 0px;
+  }
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── 1. Animation off: immediate and complete ── */
+html[data-motion="off"],
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  transition: none !important;
+  animation: none !important;
+  scroll-behavior: auto !important;
+}
+html[data-motion="off"]::view-transition-group(*),
+html[data-motion="off"]::view-transition-old(*),
+html[data-motion="off"]::view-transition-new(*) {
+  animation: none !important;
+}
+
+/* ── Page transitions (lib/screens.ts starts them; same-document View Transitions where supported) ──
+   Only the page content takes part: the frame (top bar, navigation) stays still. Direction follows the navigation:
+   forward slides in from the end, Back from the start. Same-page updates and Minimal crossfade only. */
+:root {
+  view-transition-name: none;
+}
+main {
+  view-transition-name: fc-page;
+}
+/* The page under a transition is already the new one: clicks and taps reach it straight away, never held until the
+   animation ends. */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(fc-page) {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-out);
+}
+:root[data-nav]::view-transition-old(fc-page) {
+  animation: fc-page-out var(--duration-base) var(--ease-out) both;
+}
+:root[data-nav]::view-transition-new(fc-page) {
+  animation: fc-page-in var(--duration-slow) var(--ease-out) both;
+}
+:root[data-nav="back"]::view-transition-old(fc-page) {
+  animation-name: fc-page-out-back;
+}
+:root[data-nav="back"]::view-transition-new(fc-page) {
+  animation-name: fc-page-in-back;
+}
+@keyframes fc-page-out {
+  to { opacity: 0; translate: calc(var(--enter-distance) * -1) 0; }
+}
+@keyframes fc-page-in {
+  from { opacity: 0; translate: var(--enter-distance) 0; }
+}
+@keyframes fc-page-out-back {
+  to { opacity: 0; translate: var(--enter-distance) 0; }
+}
+@keyframes fc-page-in-back {
+  from { opacity: 0; translate: calc(var(--enter-distance) * -1) 0; }
+}
+
+/* Results that move in place (filter, sort) are animated by lib/motion.ts moveItems (Web Animations, after the new
+   results have painted), not by a view transition: a snapshot before every filter press delayed the response by up
+   to ~100ms on a slow phone (measured, docs/design/motion/perf-2026-10-18.json). */
+
+/* ── Content arriving for the first time (useEnterOnce): once per item, never on re-render; the delay is capped by
+   steps and by total, so nothing waits longer than --stagger-max. ── */
+.fc-enter {
+  animation: fc-enter var(--duration-slow) var(--ease-out) backwards;
+  animation-delay: min(calc(min(var(--fc-i, 0), var(--stagger-steps, 5)) * var(--stagger)), var(--stagger-max, 200ms));
+}
+@keyframes fc-enter {
+  from { opacity: 0; translate: 0 var(--enter-distance); }
+}
+
+/* ── Dialogs and drawers (native <dialog>): enter from @starting-style, leave with allow-discrete. The browser keeps the
+   focus trap, Escape and the return of focus; every control works from the first frame; closing never waits. ── */
+dialog {
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    translate var(--duration-base) var(--ease-out),
+    overlay var(--duration-base) allow-discrete,
+    display var(--duration-base) allow-discrete;
+}
+dialog:not([open]) {
+  opacity: 0;
+  translate: 0 var(--enter-distance);
+}
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    translate: 0 var(--enter-distance);
+  }
+}
+dialog::backdrop {
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    overlay var(--duration-base) allow-discrete,
+    display var(--duration-base) allow-discrete;
+}
+dialog:not([open])::backdrop {
+  opacity: 0;
+}
+@starting-style {
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+dialog.fc-drawer:not([open]) {
+  translate: 100% 0;
+  opacity: 1;
+}
+@starting-style {
+  dialog.fc-drawer[open] {
+    translate: 100% 0;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.fc-drawer:not([open]) {
+    translate: 0 0;
+    opacity: 0;
+  }
+  @starting-style {
+    dialog.fc-drawer[open] {
+      translate: 0 0;
+      opacity: 0;
+    }
+  }
+}
+
+/* ── Expand and collapse: <details> where the browser can animate to auto height; .fc-collapse (grid rows 0fr → 1fr)
+   everywhere. Closed content is inert (lib/motion.ts useCollapse), so it can't be tabbed into while hidden. ── */
+@supports (interpolate-size: allow-keywords) {
+  details.fc-details {
+    interpolate-size: allow-keywords;
+  }
+  details.fc-details::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size var(--duration-slow) var(--ease-out),
+      content-visibility var(--duration-slow) allow-discrete;
+  }
+  details.fc-details[open]::details-content {
+    block-size: auto;
+  }
+}
+.fc-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-slow) var(--ease-out);
+}
+.fc-collapse > * {
+  overflow: hidden;
+  min-height: 0;
+}
+.fc-collapse[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+/* ── Tabs: one indicator that moves between tabs (lib/motion.ts useTabIndicator sets its place). ── */
+.fc-tab-indicator {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: var(--fc-tab-w, 0px);
+  translate: var(--fc-tab-x, 0px) 0;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transition:
+    translate var(--duration-base) var(--ease-out),
+    width var(--duration-base) var(--ease-out);
+  pointer-events: none;
+}

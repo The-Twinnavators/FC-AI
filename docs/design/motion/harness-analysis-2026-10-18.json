@@ -1,0 +1,135 @@
+{
+  "measuredAt": "2026-10-18T06:23:40.103Z",
+  "browser": "Chromium 153.0.8010.12",
+  "A_cleanRuns": {
+    "minimal": [
+      {
+        "summary": "12 of 12 passed at minimal · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at minimal · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at minimal · flat",
+        "failed": []
+      }
+    ],
+    "balanced": [
+      {
+        "summary": "12 of 12 passed at balanced · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at balanced · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at balanced · flat",
+        "failed": []
+      }
+    ],
+    "expressive": [
+      {
+        "summary": "12 of 12 passed at expressive · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at expressive · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at expressive · flat",
+        "failed": []
+      }
+    ],
+    "expressive+reduced": [
+      {
+        "summary": "12 of 12 passed at expressive, reduced motion · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at expressive, reduced motion · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at expressive, reduced motion · flat",
+        "failed": []
+      }
+    ],
+    "balanced+off": [
+      {
+        "summary": "12 of 12 passed at balanced, animation off · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at balanced, animation off · flat",
+        "failed": []
+      },
+      {
+        "summary": "12 of 12 passed at balanced, animation off · flat",
+        "failed": []
+      }
+    ]
+  },
+  "B_withPressesElsewhere": [
+    {
+      "summary": "11 of 12 passed at balanced · flat",
+      "failed": [
+        "Page transitions: 3 quick clicks end on the last; Back returns; focus on the heading — last page ok; focus elsewhere: BODY; Back ok"
+      ]
+    },
+    {
+      "summary": "11 of 12 passed at balanced · flat",
+      "failed": [
+        "Page transitions: 3 quick clicks end on the last; Back returns; focus on the heading — last page ok; focus elsewhere: BODY; Back ok"
+      ]
+    },
+    {
+      "summary": "11 of 12 passed at balanced · flat",
+      "failed": [
+        "Page transitions: 3 quick clicks end on the last; Back returns; focus on the heading — last page ok; focus elsewhere: BODY; Back ok"
+      ]
+    }
+  ],
+  "C_realInput": {
+    "balanced: dialog open + Escape → closed, focus on opener": {
+      "pass": 10,
+      "of": 10,
+      "notes": []
+    },
+    "balanced: tabs: 4 × ArrowRight → second tab, focus and indicator on it": {
+      "pass": 10,
+      "of": 10,
+      "notes": []
+    },
+    "balanced: pages: 3 presses → last page, focus on its heading; Back → previous": {
+      "pass": 10,
+      "of": 10,
+      "notes": []
+    },
+    "expressive: dialog open + Escape → closed, focus on opener": {
+      "pass": 10,
+      "of": 10,
+      "notes": []
+    },
+    "expressive: tabs: 4 × ArrowRight → second tab, focus and indicator on it": {
+      "pass": 10,
+      "of": 10,
+      "notes": []
+    },
+    "expressive: pages: 3 presses → last page, focus on its heading; Back → previous": {
+      "pass": 10,
+      "of": 10,
+      "notes": []
+    }
+  },
+  "D_disclosurePhone4x": {
+    "frames": 221,
+    "p50": 16.7,
+    "p95": 16.7,
+    "max": 16.8,
+    "over25ms": 0
+  }
+}

@@ -55,6 +55,9 @@ export function lookupScreenSource(m: AppModel, v: ModelView): string | undefine
   const name = `${pascal(v.id)}Screen`;
   const head = `/**\n * ${commentSafe(v.label)}${v.purpose ? `: ${commentSafe(v.purpose)}` : ""}\n * Built by FlowCode from the app model; it reads and writes the app's store and look-up layer (src/app/).\n */`;
   const imports = `import { go } from "../app/routes";\nimport { lookup } from "../app/lookup";`;
+  // The catalog's own filter and search stay on the catalog: the address changes, but it isn't a new page.
+  const catalogImports = `import { go, update } from "../app/routes";\nimport { lookup } from "../app/lookup";`;
+  const onCatalog = (arg: string) => (r.catalog ? `update(${q(r.catalog)}, ${arg})` : "undefined");
   const open = r.entry ? `(id) => go(${q(r.entry)}, id)` : "undefined";
   const tags = l.tagsField ? ` tagsField=${attr(l.tagsField)}` : "";
   const toCatalog = (arg: string) => (r.catalog ? `go(${q(r.catalog)}, ${arg})` : "undefined");
@@ -66,7 +69,8 @@ export function lookupScreenSource(m: AppModel, v: ModelView): string | undefine
   switch (v.kind) {
     case "catalog":
       // The address carries a category (#/<catalog>/<category>) or a search (#/<catalog>/q=<words>).
-      return `${head}\nimport { LookupCatalog } from "../sections/LookupCatalog";\nimport { useHashId } from "../sections/AppData";\n${imports}\n\nexport default function ${name}() {\n  const arg = useHashId(${q(v.id)});\n  const query = arg?.startsWith("q=") ? arg.slice(2) : undefined;\n  const category = arg && !query ? arg : undefined;\n  return (\n    <LookupCatalog\n      key={arg ?? "all"}\n      lookup={lookup}\n      title=${attr(v.label)}${v.purpose ? `\n      description=${attr(v.purpose)}` : ""}\n      category={category}\n      query={query}\n      onOpen={${open}}\n      onCategory={(c) => ${toCatalog("c")}}\n      onSearch={(s) => ${toCatalog('`q=${s}`')}}${catalogProps}\n    />\n  );\n}\n`;
+      // One catalog for every category and search (no remount): what you were using keeps focus as the results change.
+      return `${head}\nimport { LookupCatalog } from "../sections/LookupCatalog";\nimport { useHashId } from "../sections/AppData";\n${v.id === r.catalog ? catalogImports : imports}\n\nexport default function ${name}() {\n  const arg = useHashId(${q(v.id)});\n  const query = arg?.startsWith("q=") ? arg.slice(2) : undefined;\n  const category = arg && !query ? arg : undefined;\n  return (\n    <LookupCatalog\n      lookup={lookup}\n      title=${attr(v.label)}${v.purpose ? `\n      description=${attr(v.purpose)}` : ""}\n      category={category}\n      query={query}\n      onOpen={${open}}\n      onCategory={(c) => ${v.id === r.catalog ? onCatalog("c") : toCatalog("c")}}\n      onSearch={(s) => ${v.id === r.catalog ? onCatalog('`q=${s}`') : toCatalog('`q=${s}`')}}${catalogProps}\n    />\n  );\n}\n`;
     case "categories":
       return `${head}\nimport { CategoryIndex } from "../sections/LookupCatalog";\n${imports}\n\nexport default function ${name}() {\n  return <CategoryIndex lookup={lookup}${v.purpose ? ` description=${attr(v.purpose)}` : ""} onCategory={(c) => ${toCatalog("c")}} />;\n}\n`;
     case "saved":

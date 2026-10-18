@@ -1,0 +1,271 @@
+{
+  "measuredAt": "2026-10-18T06:05:19.134Z",
+  "browser": "Chromium 153.0.8010.12",
+  "note": "Event Timing durations are rounded by the browser to 8ms. Frame intervals are main-thread requestAnimationFrame; View Transition animations run on the compositor.",
+  "desktop/off (baseline)": {
+    "responsiveness": {
+      "presses": {
+        "n": 10,
+        "p75": 16,
+        "max": 16
+      },
+      "keyboard": {
+        "n": 4,
+        "p75": 16,
+        "max": 16
+      }
+    },
+    "framesPageTransition": {
+      "frames": 220,
+      "p50": 16.7,
+      "p95": 16.7,
+      "max": 16.8,
+      "over25ms": 0,
+      "longAnimationFrames": 0,
+      "longestLoAF": 0
+    },
+    "framesResultsMove": {
+      "frames": 171,
+      "p50": 16.7,
+      "p95": 16.7,
+      "max": 16.8,
+      "over25ms": 0,
+      "longAnimationFrames": 0,
+      "longestLoAF": 0
+    }
+  },
+  "desktop/balanced": {
+    "responsiveness": {
+      "presses": {
+        "n": 10,
+        "p75": 16,
+        "max": 16
+      },
+      "keyboard": {
+        "n": 3,
+        "p75": 24,
+        "max": 24
+      }
+    },
+    "framesPageTransition": {
+      "frames": 219,
+      "p50": 16.7,
+      "p95": 16.7,
+      "max": 33.3,
+      "over25ms": 1,
+      "longAnimationFrames": 0,
+      "longestLoAF": 0
+    },
+    "framesResultsMove": {
+      "frames": 170,
+      "p50": 16.7,
+      "p95": 16.8,
+      "max": 16.8,
+      "over25ms": 0,
+      "longAnimationFrames": 0,
+      "longestLoAF": 0
+    }
+  },
+  "desktop/expressive": {
+    "responsiveness": {
+      "presses": {
+        "n": 10,
+        "p75": 16,
+        "max": 16
+      },
+      "keyboard": {
+        "n": 4,
+        "p75": 16,
+        "max": 16
+      }
+    },
+    "framesPageTransition": {
+      "frames": 219,
+      "p50": 16.7,
+      "p95": 16.7,
+      "max": 33.4,
+      "over25ms": 1,
+      "longAnimationFrames": 0,
+      "longestLoAF": 0
+    },
+    "framesResultsMove": {
+      "frames": 170,
+      "p50": 16.7,
+      "p95": 16.7,
+      "max": 16.8,
+      "over25ms": 0,
+      "longAnimationFrames": 0,
+      "longestLoAF": 0
+    }
+  },
+  "desktop/reduced": {
+    "responsiveness": {
+      "presses": {
+        "n": 10,
+        "p75": 16,
+        "max": 16
+      },
+      "keyboard": {
+        "n": 3,
+        "p75": 16,
+        "max": 16
+      }
+    },
+    "framesPageTransition": {
+      "frames": 219,
+      "p50": 16.7,
+      "p95": 16.8,
+      "max": 33.4,
+      "over25ms": 1,
+      "longAnimationFrames": 0,
+      "longestLoAF": 0
+    },
+    "framesResultsMove": {
+      "frames": 171,
+      "p50": 16.7,
+      "p95": 16.8,
+      "max": 16.8,
+      "over25ms": 0,
+      "longAnimationFrames": 0,
+      "longestLoAF": 0
+    }
+  },
+  "phone/off (baseline)": {
+    "responsiveness": {
+      "presses": {
+        "n": 10,
+        "p75": 48,
+        "max": 56
+      },
+      "keyboard": {
+        "n": 4,
+        "p75": 40,
+        "max": 40
+      }
+    },
+    "framesPageTransition": {
+      "frames": 202,
+      "p50": 16.7,
+      "p95": 16.8,
+      "max": 149.9,
+      "over25ms": 4,
+      "longAnimationFrames": 4,
+      "longestLoAF": 168
+    },
+    "framesResultsMove": {
+      "frames": 165,
+      "p50": 16.7,
+      "p95": 16.8,
+      "max": 49.9,
+      "over25ms": 5,
+      "longAnimationFrames": 4,
+      "longestLoAF": 63.8
+    }
+  },
+  "phone/balanced": {
+    "responsiveness": {
+      "presses": {
+        "n": 10,
+        "p75": 48,
+        "max": 56
+      },
+      "keyboard": {
+        "n": 4,
+        "p75": 48,
+        "max": 56
+      }
+    },
+    "framesPageTransition": {
+      "frames": 195,
+      "p50": 16.7,
+      "p95": 16.8,
+      "max": 166.8,
+      "over25ms": 4,
+      "longAnimationFrames": 4,
+      "longestLoAF": 157.9
+    },
+    "framesResultsMove": {
+      "frames": 158,
+      "p50": 16.7,
+      "p95": 16.8,
+      "max": 50.1,
+      "over25ms": 7,
+      "longAnimationFrames": 4,
+      "longestLoAF": 73.3
+    }
+  },
+  "phone/expressive": {
+    "responsiveness": {
+      "presses": {
+        "n": 10,
+        "p75": 48,
+        "max": 56
+      },
+      "keyboard": {
+        "n": 4,
+        "p75": 72,
+        "max": 72
+      }
+    },
+    "framesPageTransition": {
+      "frames": 195,
+      "p50": 16.7,
+      "p95": 16.7,
+      "max": 166.8,
+      "over25ms": 4,
+      "longAnimationFrames": 4,
+      "longestLoAF": 161.2
+    },
+    "framesResultsMove": {
+      "frames": 152,
+      "p50": 16.7,
+      "p95": 33.3,
+      "max": 83.4,
+      "over25ms": 8,
+      "longAnimationFrames": 5,
+      "longestLoAF": 94.5
+    }
+  },
+  "phone/reduced": {
+    "responsiveness": {
+      "presses": {
+        "n": 10,
+        "p75": 40,
+        "max": 48
+      },
+      "keyboard": {
+        "n": 4,
+        "p75": 48,
+        "max": 56
+      }
+    },
+    "framesPageTransition": {
+      "frames": 197,
+      "p50": 16.7,
+      "p95": 16.7,
+      "max": 150,
+      "over25ms": 4,
+      "longAnimationFrames": 4,
+      "longestLoAF": 144.8
+    },
+    "framesResultsMove": {
+      "frames": 159,
+      "p50": 16.7,
+      "p95": 16.8,
+      "max": 50,
+      "over25ms": 7,
+      "longAnimationFrames": 5,
+      "longestLoAF": 68.6
+    }
+  },
+  "summary": [
+    "desktop/off (baseline): presses p75 16ms max 16ms (n=10); keys p75 16ms max 16ms; page frames p50 16.7 p95 16.7 max 16.8 (>25ms: 0/220, LoAF 0); move frames p95 16.7 max 16.8 (>25ms: 0/171, LoAF 0)",
+    "desktop/balanced: presses p75 16ms max 16ms (n=10); keys p75 24ms max 24ms; page frames p50 16.7 p95 16.7 max 33.3 (>25ms: 1/219, LoAF 0); move frames p95 16.8 max 16.8 (>25ms: 0/170, LoAF 0)",
+    "desktop/expressive: presses p75 16ms max 16ms (n=10); keys p75 16ms max 16ms; page frames p50 16.7 p95 16.7 max 33.4 (>25ms: 1/219, LoAF 0); move frames p95 16.7 max 16.8 (>25ms: 0/170, LoAF 0)",
+    "desktop/reduced: presses p75 16ms max 16ms (n=10); keys p75 16ms max 16ms; page frames p50 16.7 p95 16.8 max 33.4 (>25ms: 1/219, LoAF 0); move frames p95 16.8 max 16.8 (>25ms: 0/171, LoAF 0)",
+    "phone/off (baseline): presses p75 48ms max 56ms (n=10); keys p75 40ms max 40ms; page frames p50 16.7 p95 16.8 max 149.9 (>25ms: 4/202, LoAF 4); move frames p95 16.8 max 49.9 (>25ms: 5/165, LoAF 4)",
+    "phone/balanced: presses p75 48ms max 56ms (n=10); keys p75 48ms max 56ms; page frames p50 16.7 p95 16.8 max 166.8 (>25ms: 4/195, LoAF 4); move frames p95 16.8 max 50.1 (>25ms: 7/158, LoAF 4)",
+    "phone/expressive: presses p75 48ms max 56ms (n=10); keys p75 72ms max 72ms; page frames p50 16.7 p95 16.7 max 166.8 (>25ms: 4/195, LoAF 4); move frames p95 33.3 max 83.4 (>25ms: 8/152, LoAF 5)",
+    "phone/reduced: presses p75 40ms max 48ms (n=10); keys p75 48ms max 56ms; page frames p50 16.7 p95 16.7 max 150 (>25ms: 4/197, LoAF 4); move frames p95 16.8 max 50 (>25ms: 7/159, LoAF 5)"
+  ]
+}

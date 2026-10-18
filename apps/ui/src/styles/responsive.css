@@ -17096,3 +17096,6 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .ds-verify__row.is-passed .ds-verify__v > span:first-child { color: var(--sig-ok); }
 .ds-verify__row.is-failed .ds-verify__v > span:first-child { color: var(--sig-bad, #e5484d); }
 @container ds (max-width: 640px) { .ds-verify__row { grid-template-columns: 1fr; } }
+
+/* Look editor: a one-line hint under a choice. */
+.ds-hint { margin: -4px 0 0; font-size: 12px; }

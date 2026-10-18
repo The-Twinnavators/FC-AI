@@ -25,6 +25,7 @@
  * entry's page.
  */
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { Button } from "./buttons-variants";
 import { Icon } from "./icons";
 import { fieldOf, toast, Toaster, type EntityDef, type RecordData } from "./app-data";
@@ -32,6 +33,49 @@ import { useLookup, type LookupStore } from "./lookup-data";
 import { sampleLookup } from "./lookup-sample";
 
 // ── Helpers ──
+
+/** Animations of the results moving now (interrupted by the next change, cancelled when the catalog goes away). */
+let moving: Animation[] = [];
+const ms = (v: string, fallback: number) => (/ms$/.test(v.trim()) ? parseFloat(v) : /s$/.test(v.trim()) ? parseFloat(v) * 1000 : fallback);
+/**
+ * Results keep their identity while they move (a filter, the sort, "near me"). The new results are on screen in the
+ * very next frame; then each card that stays glides from where it was and new cards fade in (a FLIP with the Web
+ * Animations API, on the compositor). Same contract as the app's lib/motion.ts moveItems(), written here so the piece
+ * stays self-contained: a newer change interrupts from where the cards are, nothing waits for an animation, reduced
+ * motion only fades, animation off and long lists (over 24 cards) just update.
+ */
+function continuity(list: HTMLElement | null, update: () => void) {
+  const root = document.documentElement;
+  const off = root.dataset.motion === "off" || !list || list.children.length > 24 || typeof Element.prototype.animate !== "function";
+  if (off) {
+    update();
+    return;
+  }
+  const reduced = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Where each card is now, mid-move included, before the running move stops.
+  const first = new Map<string, DOMRect>();
+  for (const el of Array.from(list.children) as HTMLElement[]) if (el.dataset.key) first.set(el.dataset.key, el.getBoundingClientRect());
+  for (const m of moving) m.cancel();
+  moving = [];
+  flushSync(update);
+  const css = getComputedStyle(root);
+  const slow = ms(css.getPropertyValue("--duration-slow"), 320);
+  const base = ms(css.getPropertyValue("--duration-base"), 200);
+  const easing = css.getPropertyValue("--ease-out").trim() || "ease-out";
+  for (const el of Array.from(list.children) as HTMLElement[]) {
+    const was = el.dataset.key ? first.get(el.dataset.key) : undefined;
+    if (!was) {
+      moving.push(el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: base, easing }));
+      continue;
+    }
+    if (reduced) continue;
+    const now = el.getBoundingClientRect();
+    const dx = was.left - now.left;
+    const dy = was.top - now.top;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+    moving.push(el.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration: slow, easing }));
+  }
+}
 
 type SortKey = "liked" | "rated" | "newest" | "az";
 
@@ -399,7 +443,7 @@ export function LookupCatalog({ lookup, title, description, category: catProp, q
     onSearch?.(v);
   };
   const changeCat = (v: string) => {
-    setCat(v);
+    continuity(grid.current, () => setCat(v));
     onCategory?.(v);
   };
   // Without a ZIP code there is nothing to be near: the filter goes off.
@@ -474,8 +518,16 @@ export function LookupCatalog({ lookup, title, description, category: catProp, q
       setAskZip((v) => !v);
       return;
     }
-    setNear((v) => !v);
+    continuity(grid.current, () => setNear((v) => !v));
   };
+  // Nothing left half-moved when the catalog goes away mid-move.
+  useEffect(
+    () => () => {
+      for (const m of moving) m.cancel();
+      moving = [];
+    },
+    [],
+  );
 
   const visible = results.slice(0, shown);
   const left = results.length - visible.length;
@@ -519,7 +571,7 @@ export function LookupCatalog({ lookup, title, description, category: catProp, q
             ))}
           </Select>
           {facetDefs.map((f) => (
-            <Select key={f.key} label={f.label} value={facetVals[f.key] ?? ""} onChange={(v) => setFacetVals((x) => ({ ...x, [f.key]: v }))}>
+            <Select key={f.key} label={f.label} value={facetVals[f.key] ?? ""} onChange={(v) => continuity(grid.current, () => setFacetVals((x) => ({ ...x, [f.key]: v })))}>
               <option value="">{`${f.label}: any`}</option>
               {f.opts.map((o) => (
                 <option key={o} value={o}>
@@ -537,7 +589,7 @@ export function LookupCatalog({ lookup, title, description, category: catProp, q
               Change ZIP
             </button>
           ) : null}
-          <Select label="Sort by" value={sort} onChange={(v) => setSort(v as SortKey)}>
+          <Select label="Sort by" value={sort} onChange={(v) => continuity(grid.current, () => setSort(v as SortKey))}>
             <option value="liked">Sort: most liked</option>
             <option value="rated">Sort: top rated</option>
             {dateField ? <option value="newest">Sort: newest</option> : null}
@@ -722,7 +774,7 @@ function Card({
   }
 
   return (
-    <li className="fl-cat-card">
+    <li className="fl-cat-card" data-key={r.id}>
       <div className="fl-cat-pic" data-tone={c?.tone ?? 0}>
         {img ? <img src={img} alt="" loading="lazy" /> : <Icon name={c?.icon ?? "image"} />}
       </div>

@@ -853,6 +853,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     gradient: z.boolean().optional(),
     status: z.record(z.enum(["success", "warning", "error", "info"]), z.string().max(20)).optional(),
     fonts: z.object({ display: z.string().max(60), body: z.string().max(60) }),
+    motion: z.object({ level: z.enum(C.MOTION_LEVELS), expressive: z.array(z.enum(C.EXPRESSIVE_FEATURES)).max(6).optional() }).optional(),
   });
   const designJail = (id: string) => {
     try {

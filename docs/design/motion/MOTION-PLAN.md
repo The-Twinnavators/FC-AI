@@ -1,6 +1,6 @@
 # Motion foundation: plan and library assessment
 
-Status: **proposal for review**. Nothing is installed or integrated.
+Status: phases 1–2 implemented (native only) and stopped for review; see section 8. Phases 3–4 not started. No dependencies.
 
 Live harness: `motion-lab.html` in this folder, also published privately as "FlowCode Motion Lab". Every pattern runs there with the three motion levels, Flat/Tactile and reduced motion, and has its use/avoid/native/library/reduced/tests spec. Its in-page checks exercise rapid input, focus, history and "animation off".
 
@@ -35,9 +35,9 @@ The harness reviews the *patterns*. It isn't the builder, and it doesn't show th
 
   | Level | Durations | Travel | Stagger | Expressive patterns |
   |---|---|---|---|---|
-  | Minimal | 100/140/180ms | 0 | none | none; demos become click-through steps |
-  | Balanced (default) | 140/220/340ms | 10px | 40ms, capped at 6 | short hero rise only |
-  | Expressive | 160/280/460ms, hero 760ms | 22px | 60ms | hero choreography, demo, and opted-in parallax, smooth scroll, ambient |
+  | Minimal | 100/140/180ms | 0 | none | none, even if approved; demos become click-through steps |
+  | Balanced (default) | 120/200/320ms (the starter's own) | 8px | 40ms, max 5 steps / 200ms | none by itself; an approved hero on an eligible page plays as a short rise |
+  | Expressive | 160/260/420ms | 16px | 50ms, max 6 steps / 300ms | none by itself; approved capabilities on eligible pages play in full |
 
 - **Reduced motion wins at every level** (OS setting): no travel, scale, parallax, autoplay or ambient movement; only fades of 90–120ms.
 - **"Animation off"** must leave the app fully working; this is tested.
@@ -58,7 +58,7 @@ The harness reviews the *patterns*. It isn't the builder, and it doesn't show th
 | Tabs/nav indicator | One indicator moved by CSS transition | No |
 | Page transitions | `document.startViewTransition` (same-document); instant fallback | No (React Router supports it) |
 | Card entrance/interaction | IntersectionObserver + keyframes, once per card, capped stagger | No |
-| Filter/sort continuity | View Transitions with a name per item; FLIP via Web Animations as fallback | Small: Motion's `layout` is convenient in React |
+| Filter/sort continuity | FLIP with Web Animations (the new results paint first). A view transition per press was measured too slow on a slowed phone (section 8) | Small: Motion's `layout` is convenient in React |
 | Hero/section choreography | Keyframes; `animation-timeline: view()` where supported | Only for long timelines or pinned scroll scenes (GSAP) |
 | Product demonstration | Step script + CSS; IntersectionObserver/`visibilitychange` to pause | Optional for long, precisely timed demos (GSAP) |
 | Smooth scrolling | `scroll-behavior: smooth` for anchors | Lenis adds inertial wheel smoothing (opt-in only) |
@@ -75,29 +75,38 @@ Every pattern degrades to instant and correct behaviour.
 
 **Conclusion:** all functional patterns, and the Balanced level of the expressive ones, need no new package.
 
-## 4. Library assessment (read-only; versions from the npm registry, 2026-10-18)
+## 4. Library assessment: evidence (read-only; fetched 2026-10-18)
 
-| Library | Version, licence | Inside FlowCode's own UI | Bundled into generated apps | In templates / the component catalog | Suitability |
-|---|---|---|---|---|---|
-| **Lenis** | 1.3.27, MIT; no runtime deps | OK | OK (keep the MIT notice) | OK (MIT notice) | Good for opt-in smooth scroll. Respects reduced motion by default. Caveats: iframes; Safari capped at 60fps; nested scroll needs config; `syncTouch` unstable on iOS < 16. |
-| **GSAP** | 3.15.0, GSAP Standard "no charge" licence (Webflow; effective 2025-04-30, modified 2025-05-30). Not open source. | Allowed for websites and apps, but see the restriction | **Risk**: see below | Not addressed by the licence | Best-in-class timelines. The licence is the problem. |
-| **Vanta** | 0.5.24 (last npm publish appears to be 2022), MIT; needs three.js (MIT), about 120 KB gzipped | OK | OK (notices) | OK (notices) | Poor fit: heavy, WebGL battery cost on phones, no reduced-motion support, maintenance unclear. |
-| **React Bits** | No npm package (copied via shadcn/jsrepo); MIT + Commons Clause | Using it in an app is allowed | **Not OK** to have FlowCode supply it automatically: the clause forbids redistributing "the components themselves", alone or in a bundle | **Not OK** | Can't be bundled under FlowCode's licensing rule (MIT/CC BY only). Its ideas can be reimplemented independently; its code can't be copied. |
-| *Motion (for comparison)* | 14.3.0, MIT | OK | OK | OK | The one package that would add real value in React (springs, `layout`, exit animations). Not needed for this plan. |
+These redistribution conclusions are my assessment of the licence texts, not legal clearance. No third-party animation code is in FlowCode, its templates or its component catalog. Adding any needs separate approval.
 
-**GSAP in detail:** the licence prohibits, without Webflow's written consent, using GSAP in a tool that lets users build visual animations without code and that competes with Webflow's animation features.
+| Library | Version (npm "latest", publish date, tarball shasum) | Licence evidence (source, revision, SHA-256 of the file as fetched) |
+|---|---|---|
+| Lenis | 1.3.27, published 2026-10-15, gitHead `1f60fb9`, shasum `9c714ca3…805b3` | npm `license: "MIT"`. [LICENSE](https://github.com/darkroomengineering/lenis/blob/main/LICENSE) last changed in commit `8c1b302ab0ab86ce0c50a25ccbfaca69908bd907` (2024-04-22); sha256 `7d1896b31f2eed9f286b05faca067c4e35b2f109ae7c4ed5105220e2d2820228` (1,088 bytes): "The MIT License … Copyright (c) 2024 darkroom.engineering". |
+| GSAP | 3.15.0, published 2026-04-13, shasum `7851baaf…d14` | npm `license: "Standard 'no charge' license: https://gsap.com/standard-license."` [README](https://github.com/greensock/GSAP/blob/master/README.md) at commit `13e2b790546426a1a2e0e9b409f3f8dc6d6611f2` points to the same page. The [licence page](https://gsap.com/standard-license) is Webflow's: effective 2025-04-30, last modified 2025-05-30 (as the page states). |
+| Vanta | 0.5.24, published 2022-09-16, gitHead `b09bdb4`, shasum `46ec96b0…fb3` | npm `license: "MIT"`. [LICENSE.md](https://github.com/tengbao/vanta/blob/master/LICENSE.md) last changed in commit `bc0baf88c126c228db06dd3a2504c19594ef532f` (2020-04-03); sha256 `65df69dccc2a06fcf307e81da62c0f64b4abc03fe64a23944427a69642edadcb` (1,048 bytes): MIT, "Copyright 2020 Teng Bao". Needs three.js (MIT), loaded separately. |
+| React Bits | No npm package (copied in via shadcn/jsrepo) | [LICENSE.md](https://github.com/DavidHDev/react-bits/blob/main/LICENSE.md) last changed in commit `ecdd797468fc87f7b463157627d1174b0c36fdf5` (2026-01-01); sha256 `f4c33af6739191537738662d223b68d77bc226f4b57ea883e16481d8cc5c73c9` (1,303 bytes); titled "MIT + Commons Clause License Condition v1.0". |
+| Motion (comparison only) | 14.3.0, published 2026-10-15, gitHead `52dfb32`, shasum `76c2395a…6c2` | npm `license: "MIT"`. Not needed for phases 1–2. |
 
-FlowCode picking a motion level and generating animated sites is close enough to that description that I'd treat it as **not usable without written confirmation from Webflow**. Webflow can also revise or terminate the licence.
+**What each licence means for the three uses** (my assessment):
 
-This is my reading of the licence, not legal advice.
+| | Inside FlowCode's own UI | Bundled into generated apps | Redistributed in templates / the component catalog |
+|---|---|---|---|
+| Lenis (MIT) | Allowed | Allowed, with the MIT notice | Allowed, with the MIT notice |
+| GSAP (Webflow Standard) | Allowed for a website or app in general | **Risk**: see below | Not addressed by the licence; treat as not allowed without Webflow's written consent |
+| Vanta (MIT) | Allowed | Allowed, with notices (Vanta and three.js) | Allowed, with notices. Not recommended (weight, battery, no reduced-motion handling, unmaintained since 2022) |
+| React Bits | Allowed only "as part of an application, website, or product" | **Not allowed** for FlowCode to supply automatically | **Not allowed** |
 
-**Recommendation:**
+**GSAP, specifically:** the licence forbids "Prohibited Uses" without Webflow's prior written consent. That includes a tool that lets users build visual animations without code and competes with Webflow's animation features. FlowCode choosing a motion level and generating animated pages fits that description closely enough that I wouldn't adopt GSAP without Webflow's confirmation.
 
-- No package for the foundation: native CSS and browser APIs cover every functional pattern and Balanced.
-- Lenis is the one candidate worth approving later, for the opt-in smooth-scroll feature only, if native `scroll-behavior` proves too plain.
-- No GSAP without Webflow's confirmation.
-- No Vanta.
-- No React Bits code.
+**React Bits, specifically:** this is a project-specific restriction, not the generic Commons Clause.
+- **The standard Commons Clause v1.0** withholds the right to "Sell", meaning offering for a fee a product or service whose value comes substantially from the software.
+- **React Bits' own text** does two different things:
+  - it narrows the MIT grant to use "as part of an application, website, or product";
+  - it adds that you may use it commercially only if you do not "sell, sublicense, or redistribute the components themselves", whether alone, in a bundle or as a ported version.
+
+  That second condition covers free redistribution of the components too, which a catalog or template would be. It's broader than the generic clause.
+
+**Decision for phases 1–2:** native browser features only. Lenis is held for a later, specific smooth-scrolling requirement.
 
 ## 5. Implementation plan (after your approval; no dependencies)
 
@@ -164,3 +173,163 @@ Each phase is self-contained, tested, and followed by a stop for review.
   - real phones;
   - frame rate under load;
   - visual taste, which is yours to judge.
+
+## 8. Phases 1–2: implemented (native only), for review
+
+Phases 3–4 (optional expressive pieces, automatic motion selection) are not started. No dependency was added and no builder evaluation was run.
+
+### Contracts, defaults and migration
+
+- **`packages/contracts/src/motion.ts`** (new):
+  - `MotionLevel` (minimal, balanced, expressive) and `MotionSetting { level, expressive? }`;
+  - `ExpressiveFeature` (hero, sectionReveal, productDemo, parallax, smoothScroll, ambient);
+  - `PagePurpose` (app, homepage, marketing, portfolio);
+  - `motionTokens(level)`, `staggerDelay(level, i)`, `expressiveAllowed(motion, feature, page)`, `motionProblems`.
+- **`Appearance.motion?`:** motion is part of the Look, using the same draft → select → apply path and the same verification. There is no new configuration system.
+  - New directions (`BASE_APPEARANCE`, themes) start **Balanced** with no expressive capability.
+  - A direction made before motion existed has no `motion`. Applying it leaves the app's motion untouched.
+- **Scope:** the Look holds the level and any approved expressive capabilities, and the page purpose decides eligibility.
+  - `expressiveAllowed` is false for a level alone (Balanced or Expressive), for an app screen even when the project opted in, and for everything at Minimal.
+  - A short hero rise therefore needs the hero opt-in *and* an eligible page.
+  - The Look editor shows the three levels. It has no expressive opt-in controls yet, because there are no expressive pieces until phase 3.
+- **Tokens:**
+  - Balanced equals the starter's existing values, so it changes nothing an app already does.
+  - Added: `--stagger-steps`, `--stagger-max`, `--motion-level`.
+  - Stagger is capped twice at every level, by steps and by total delay: Minimal 0, Balanced 5 steps / 200ms, Expressive 6 steps / 300ms.
+  - `--press-scale` stays the surface style's, not motion's.
+- **Existing projects are preserved:**
+  - nothing changes until a Look *with a level* is applied;
+  - then `workspace/motionStyle.ts` adds the missing motion tokens, `src/styles/motion.css` and its import, and removes the old blanket rule, all snapshotted;
+  - changing only the level afterwards writes only motion tokens, so colours, fonts, surface, layout and later advanced token edits stay.
+  - Router and helper code reaches *new* apps (the starter); an existing app's code isn't rewritten.
+  - A rebuild that regenerates an older app's `routes.ts` stays compatible: its `update()` falls back to an ordinary navigation when the app's router predates same-page updates. The first full browser run caught this: 6 files failed on the recorded app until it was fixed.
+
+### Precedence
+
+Animation off > reduced motion > level. In `src/styles/motion.css`:
+
+- **The old blanket rule is removed.** `0.01ms !important` on everything erased the 90–120ms fades. Reduced motion now overrides the motion tokens with higher specificity (`:root:root:root`, loaded last), and that holds at every level.
+- **Each animation kind under reduced motion:**
+  - **CSS transitions and keyframes:** follow the tokens; library pieces also keep their own reduced rules (46 of 48 stylesheets).
+  - **Web Animations:** `moveItems` reads the mode live and only fades.
+  - **View Transitions:** keep running, but their tokens become a short crossfade with no travel.
+  - **Scrolling:** `scroll-behavior: auto`.
+  - **Preference changes while the app is open:** media queries apply live, and `motionMode()` is read on every call. Tested by switching the emulated setting mid-session.
+- **Animation off** (`?motion=off`, or FlowCode's preview message): no transitions, keyframes or view transitions, applied at once. The helpers update without animating, and no state waits for an animation to finish.
+
+### Patterns (native)
+
+| Pattern | Implementation | In the fixture app |
+|---|---|---|
+| Control feedback | The library pieces' existing token-driven presses and transitions, sized by the level | Yes (save toggle, links, filters) |
+| Save and selection | `useSaveState` (immediate acknowledgement, spinner after 150ms, coalesced clicks, cleanup on unmount) | Hook unit-tested; the fixture's save is an instant toggle |
+| Dialogs and drawers | Native `<dialog>` with `@starting-style` and `allow-discrete` exit (`dialog`, `.fc-drawer`) | The fixture's dialogs are library popovers (their own token motion); the native pattern isn't in this app |
+| Expand and collapse | `.fc-collapse` (grid rows, inert content via `useCollapse`); `details.fc-details` where `interpolate-size` exists | Not in this app (harness only) |
+| Tabs | `.fc-tab-indicator` with `useTabIndicator` | Not in this app (harness only) |
+| Page transitions | `lib/screens.ts`: one router listener, View Transition where supported, `::view-transition { pointer-events: none }` so presses during a transition reach the new page at once | Yes |
+| Results moving | `moveItems` / the catalog's `continuity`: FLIP with Web Animations (the new results paint first), interrupted from where items are | Yes (category, near me, sort) |
+
+### Focus and scrolling, by kind of navigation (`lib/screens.ts`)
+
+| Kind | Animation | Scroll | Focus |
+|---|---|---|---|
+| **New page** (a link, a button, `go()`) | Page transition | To the top | The page's `h1`, else `<main>` |
+| **Back / Forward** | Page transition, reversed | Back to where that page was | Moves only if it was lost (to `<main>`, without scrolling); the page's name is announced politely |
+| **Same-page update** (only the query changed, or the page called `updateRoute`: a filter, a search; Back/Forward across such steps too) | None as a page | Unchanged | Unchanged |
+| **Going where you already are, or overtaken by a newer navigation** | — | Nothing of its own | Nothing of its own; the newest navigation always renders, whichever callback runs |
+
+**Bug fixed along the way:** the generated catalog screen remounted the whole catalog on every category change (`key={arg}`), so focus fell to the page. It now keeps one catalog and declares the filter as a same-page update (`update()` in the generated `routes.ts`).
+
+### Tests
+
+- **Contract** (`motion-contract.test.ts`, 9): Balanced = the starter's values; level token keys; stagger caps at every level; eligibility (level alone, app screen, Minimal); old directions carry no motion tokens; a level-only change touches only motion tokens.
+- **Existing apps** (`motion-apply.test.ts`, 2, on the recorded Clean Cart app):
+  - nothing changes without a level;
+  - applying adds motion and removes the blanket rule, with only the Look's files changed;
+  - a level-only change writes only motion tokens and keeps an advanced colour edit.
+- **Template unit tests** (shipped inside every new app; 15 in the fixture: `lib/motion.test.ts`, `lib/screens.test.ts`):
+  - transitions fall back, are skipped by a newer one and still update;
+  - a browser refusing to start one still updates;
+  - the mode is read live;
+  - saves coalesce, and unmounting leaves no timers or warnings;
+  - `useEnterOnce` disconnects;
+  - `moveItems` applies first and animates after;
+  - navigation kinds: new, same-page, Back, overtaken.
+- **Generated fixture app in Chromium** (`motion-fixture-app.test.ts`, 15; run 3 times, 15/15 each):
+  - **Interrupted input, at each level:** rapid navigation, and a raw press 30ms into a transition (took effect in under 150ms); filter changes during movement match the animation-off result.
+  - **Navigation and focus:** Back/Forward scroll restoration and focus; same-page updates don't scroll or move focus; rapid save toggles; popover focus return ×5.
+  - **Reduced motion:** quick fades with no travel, followed live when the setting changes.
+  - **Animation off:** no transition starts, nothing animates, nothing hidden.
+  - **Unsupported View Transitions:** navigation, Back and filters behave the same.
+  - **Cleanup:** leaving mid-move leaves nothing behind.
+  - **Screenshots:** with animation off they are byte-identical.
+- **The early harness failures** (`motion-lab-harness.test.ts` → `harness-analysis-2026-10-18.json`):
+  - **Clean runs:** 15 of 15 runs pass 12/12, across Minimal, Balanced, Expressive, Expressive with reduced motion, and animation off.
+  - **With real presses landing elsewhere on the page mid-run:** 3 of 3 runs fail one check. The detail is always "last page ok; focus elsewhere: BODY; Back ok", so the press moved focus. Navigation state and Back were never wrong. The tabs failure from the first session is the same kind: the check sends synthetic keys to whatever has focus, so they missed the tabs once focus moved.
+  - **The three flows that failed, with real input only** (real presses, the real Escape and arrow keys, the browser's own Back): 60/60 at Balanced and Expressive.
+  - **Conclusion:** test interference, not a defect reproducible with real use. The checks assert focus, which any press legitimately moves.
+
+**Full suites:**
+- daemon: 1,616 passed, 44 skipped;
+- browser files, one at a time: 67 passed across 14 files;
+- typechecks: contracts, daemon, UI and the library's 206 pieces;
+- the fixture app: its own typecheck, lint and 19 tests.
+
+### Measured performance
+
+Chromium 153.0.8010.12, generated fixture app (`perf-2026-10-18.json`), against a baseline with animation off.
+
+**Responsiveness** is the browser's Event Timing (input delay + handling + next paint, rounded to 8ms; presses n=10 per condition, keyboard n=3–4):
+
+| Condition | Presses p75 / max | Keyboard (category change) p75 / max |
+|---|---|---|
+| Desktop, off (baseline) | 16 / 16ms | 16 / 16ms |
+| Desktop, Balanced | 16 / 16ms | 24 / 24ms |
+| Desktop, Expressive | 16 / 16ms | 16 / 16ms |
+| Desktop, reduced | 16 / 16ms | 16 / 16ms |
+| Phone (390×844, CPU ÷4), off | 48 / 56ms | 40 / 40ms |
+| Phone, Balanced | 48 / 56ms | 48 / 56ms |
+| Phone, Expressive | 48 / 56ms | 72 / 72ms |
+| Phone, reduced | 40 / 48ms | 48 / 56ms |
+
+**Frame timing** is separate: main-thread animation-frame intervals during a page transition and during a results move. View Transitions animate on the compositor, so this describes the main thread only.
+
+| Condition | Page transition: p95 / max, frames > 25ms | Results move: p95 / max, frames > 25ms |
+|---|---|---|
+| Desktop, off | 16.7 / 16.8ms, 0 of 220 | 16.7 / 16.8ms, 0 of 171 |
+| Desktop, Balanced | 16.7 / 33.3ms, 1 of 219 | 16.8 / 16.8ms, 0 of 170 |
+| Desktop, Expressive | 16.7 / 33.4ms, 1 of 219 | 16.7 / 16.8ms, 0 of 170 |
+| Phone ÷4, off | 16.8 / 150ms, 4 of 202 | 16.8 / 50ms, 5 of 165 |
+| Phone ÷4, Balanced | 16.8 / 167ms, 4 of 195 | 16.8 / 50ms, 7 of 158 |
+| Phone ÷4, Expressive | 16.7 / 167ms, 4 of 195 | 33.3 / 83ms, 8 of 152 |
+| Phone ÷4, reduced | 16.7 / 150ms, 4 of 197 | 16.8 / 50ms, 7 of 159 |
+
+On the throttled phone the long page-transition frames (about 150–170ms, 4 long animation frames) are present with animation off too. They come from rendering the next page, not from motion.
+
+**One finding changed the design.** A View Transition for every filter press held the next paint for its snapshot: on the slowed phone, keyboard response was p75 120–144ms and frames reached 183ms, against 40ms with animation off. Results now move with FLIP (Web Animations), and page changes keep View Transitions. Expressive is still the heaviest on the slowed phone (72ms keyboard p75, results-move p95 33ms).
+
+**Exceptions to transform/opacity, measured:**
+- **Disclosure grid rows** (layout per frame): harness, phone ÷4, 6 open/close cycles: p95 16.7ms, 0 of 221 frames over 25ms.
+- **Colour, border and shadow transitions** of library controls (paint only): included in the press measurements above.
+- `interpolate-size` / `details` height: Chromium only; not measured separately.
+
+### Browser coverage and known gaps
+
+- **Tested:**
+  - Chromium 153 through Playwright: desktop, plus a phone emulation (touch, 390×844, CPU ÷4);
+  - jsdom for the unit tests;
+  - unsupported View Transitions simulated by removing the API.
+- **Not tested:** Safari, Firefox, a real phone or tablet, and assistive technology (the announcer and focus moves were checked in the DOM, not with a screen reader).
+- **Gaps:**
+  - The **Angular starter** keeps the old blanket reduced-motion rule and has no `motion.css`. Its `tokens.css` carries the new tokens, because it must equal the React starter's.
+  - **The fixture app doesn't exercise** tabs, the native `<dialog>` pattern or `.fc-collapse`; they're covered in the harness and by unit tests only.
+  - **The library's `useHashId`** keeps its own hash listener. A record-to-record change on the same screen (product A → B) renders outside the page transition's snapshot: correct, but it can look like a cut instead of a slide.
+  - **Screenshots in FlowCode's verifier** don't yet use `?motion=off`; only these tests do.
+  - **The static accessibility scan** still accepts any `prefers-reduced-motion` rule. With `motion.css` present, it no longer finds model-written CSS that moves without a reduced-motion path.
+  - **Expressive opt-ins** exist as data and eligibility only, with no editor controls (phase 3).
+
+### Review recordings (`recordings/`)
+
+1. `1-balanced-product-journey-desktop.webm`: catalog, filters, sort, save, a product, Back, Lists.
+2. `2-expressive-marketing-harness-desktop.webm` and `-phone.webm`: hero, card entrances, filtering, sort and the product demo. The harness only; expressive pieces aren't in the builder.
+3. `3-reduced-product-journey-phone.webm` and `3-reduced-marketing-harness-desktop.webm`: the same, with reduced motion.

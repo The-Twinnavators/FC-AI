@@ -143,16 +143,8 @@ export function NotInPrototype({ label, onHome }: { label: string; onHome?: () =
 export function LookupFrame({ lookup, product, logo, links, current, onNavigate, search, place, prompt, savedId, children, footer, fixed = true }: LookupFrameProps) {
   const st = useLookup(lookup);
   const mainRef = useRef<HTMLElement>(null);
-  const first = useRef(true);
-  // Moving to another place puts focus at the top of the page (people using a screen reader hear where they are).
-  useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
-    mainRef.current?.focus();
-    window.scrollTo({ top: 0 });
-  }, [current]);
+  // Focus and scrolling after a navigation are the router's (lib/screens.ts): a new page focuses its heading and
+  // scrolls to the top; Back and Forward return to where the page was; a same-page update moves nothing.
   const visible = links.filter((l) => l.id !== savedId || st.signedIn);
   const mobile = (links.some((l) => l.mobile) ? links.filter((l) => l.mobile) : links).filter((l) => l.available !== false).slice(0, 5);
   const here = links.find((l) => l.id === current);

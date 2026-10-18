@@ -10,6 +10,7 @@
 import { BUNDLED_FONTS } from "./fonts.js";
 import { DESIGN_TEMPLATES, designTemplate } from "./designTemplates.js";
 import { STYLE_VIBES, vibeTokens } from "./styleVibes.js";
+import { motionProblems, motionTokens, type MotionSetting } from "./motion.js";
 import { buildPalette, contrastRatio, normalizeHex, roleTokens, type BrandColor, type NeutralTone, type StatusKind } from "./palette.js";
 
 /** The surfaces FlowCode suggests and starts from. Others need the person's explicit request for the project. */
@@ -57,6 +58,11 @@ export interface Appearance {
   /** Status colours the person set; the others are suggested from the palette. */
   status?: Partial<Record<StatusKind, string>>;
   fonts: { display: string; body: string };
+  /**
+   * How much the app moves (motion.ts). Unset on directions made before motion existed: applying one of those leaves
+   * the app's motion as it is. New directions start Balanced with no expressive capability.
+   */
+  motion?: MotionSetting;
 }
 
 const KIND_FALLBACK: Record<string, string> = { sans: "system-ui, sans-serif", serif: "Georgia, serif", display: "Georgia, serif", mono: "ui-monospace, monospace" };
@@ -65,7 +71,7 @@ const stack = (family: string) => `"${family}", ${KIND_FALLBACK[bundled(family)?
 const firstFamily = (s: string) => (s.split(",")[0] ?? "").trim().replace(/^["']|["']$/g, "");
 
 /** FlowCode's starting point for a new direction: a neutral, Flat appearance (not a brand). */
-export const BASE_APPEARANCE: Appearance = { mode: "light", surface: "flat", primary: "#2f5bd3", neutral: "pure", fonts: { display: "Inter", body: "Inter" } };
+export const BASE_APPEARANCE: Appearance = { mode: "light", surface: "flat", primary: "#2f5bd3", neutral: "pure", fonts: { display: "Inter", body: "Inter" }, motion: { level: "balanced" } };
 
 /** A FlowCode theme as an appearance preset. Its surface is Flat or Tactile (never its old suggested vibe). */
 export function appearanceFromTheme(id: string, surface: string = "flat"): Appearance | undefined {
@@ -79,7 +85,7 @@ export function appearanceFromTheme(id: string, surface: string = "flat"): Appea
   };
   const tint = warm(c.bg);
   const neutral: NeutralTone = Math.abs(tint) < 6 ? "pure" : tint > 0 ? "warm" : "cool";
-  return { theme: t.id, mode: t.dark ? "dark" : "light", surface, primary: c.accent, secondary: c.secondary, neutral, fonts: { display: firstFamily(t.fonts.display), body: firstFamily(t.fonts.sans) } };
+  return { theme: t.id, mode: t.dark ? "dark" : "light", surface, primary: c.accent, secondary: c.secondary, neutral, fonts: { display: firstFamily(t.fonts.display), body: firstFamily(t.fonts.sans) }, motion: { level: "balanced" } };
 }
 
 export const APPEARANCE_THEMES = DESIGN_TEMPLATES.map((t) => ({ id: t.id, name: t.name, dark: t.dark }));
@@ -93,6 +99,7 @@ export function appearanceProblems(a: Appearance, allowedSurfaces: readonly stri
     if (!bundled(family)) out.push(`the ${role} font "${family}" isn't one FlowCode bundles; choose one of ${BUNDLED_FONTS.map((f) => f.family).join(", ")}`);
   if (!STYLE_VIBES.some((v) => v.id === a.surface)) out.push(`surface style "${a.surface}" doesn't exist`);
   else if (!allowedSurfaces.includes(a.surface)) out.push(`the ${STYLE_VIBES.find((v) => v.id === a.surface)?.name} surface style is used only when you ask for it for this project; FlowCode starts from Flat or Tactile`);
+  if (a.motion) out.push(...motionProblems(a.motion));
   return out;
 }
 
@@ -103,7 +110,7 @@ const brandOf = (a: Appearance): BrandColor[] =>
     ...(a.tertiary && normalizeHex(a.tertiary) ? [{ hex: normalizeHex(a.tertiary)!, role: "tertiary" as const }] : []),
   ];
 
-/** The token values an appearance gives the app (colour roles, fonts, surface style, gradient). Deterministic. */
+/** The token values an appearance gives the app (colour roles, fonts, surface style, gradient, motion). Deterministic. */
 export function appearanceTokens(a: Appearance): Record<string, string> {
   const palette = buildPalette({ brand: brandOf(a), neutral: a.neutral, status: a.status });
   const roles = roleTokens(palette, a.mode === "dark");
@@ -112,6 +119,7 @@ export function appearanceTokens(a: Appearance): Record<string, string> {
     const to = a.secondary && normalizeHex(a.secondary) ? normalizeHex(a.secondary)! : `color-mix(in srgb, ${roles["--color-accent"]} 70%, #ffffff)`;
     t["--accent-bg"] = `linear-gradient(135deg, ${roles["--color-accent"]}, ${to})`;
   }
+  if (a.motion) Object.assign(t, motionTokens(a.motion.level));
   return t;
 }
 

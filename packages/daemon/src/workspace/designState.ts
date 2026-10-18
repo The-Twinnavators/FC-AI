@@ -10,12 +10,13 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { DEFAULT_SURFACES, appearanceChecks, appearanceProblems, appearanceTokens, type Appearance } from "@flowcode/contracts";
+import { DEFAULT_SURFACES, appearanceChecks, appearanceProblems, appearanceTokens, motionTokens, sameAppearance, type Appearance } from "@flowcode/contracts";
 import type { Store } from "../db/store.js";
 import type { PathJail } from "../security/pathJail.js";
 import type { FileOperations } from "./operations.js";
 import { applyDesign, tokenValues } from "./designStudio.js";
 import { setSurfaceStyle } from "./surfaceStyle.js";
+import { setMotionStyle } from "./motionStyle.js";
 
 /** Where a value came from: the person, a FlowCode theme, the PRD, or a FlowCode suggestion. */
 export type DesignSource = "you" | `theme:${string}` | "prd" | "suggested" | "concept";
@@ -148,14 +149,31 @@ export function applySelected(
   if (!hasApp(jail)) return { state: s, ok: false, reason: "This project has no app yet; the build applies the selected direction", changed: [] };
   const snapshots: string[] = [];
   const changed: string[] = [];
+  const want = s.selected.appearance;
+  // Only the motion level changed since the last apply: only motion is written, so colours, fonts, surface and layout
+  // (and any advanced token edits since) stay exactly as they are.
+  const sameExceptMotion = !!s.applied && sameAppearance({ ...s.applied.appearance, motion: undefined }, { ...want, motion: undefined });
+  const motionOnly = sameExceptMotion && !sameAppearance(s.applied!.appearance, want);
   try {
-    const surface = setSurfaceStyle(jail, ops, ctx, s.selected.appearance.surface);
-    snapshots.push(...surface.snapshotIds);
-    changed.push(...surface.changed);
-    // The appearance's own values (a dark appearance's are dark) go on the app's main theme.
-    const res = applyDesign(jail, ops, ctx, { theme: "default", values: appearanceTokens(s.selected.appearance) });
-    if (res.snapshotId) snapshots.push(res.snapshotId);
-    if (res.changed.length) changed.push(TOKENS);
+    if (want.motion) {
+      const motion = setMotionStyle(jail, ops, ctx);
+      snapshots.push(...motion.snapshotIds);
+      changed.push(...motion.changed);
+    }
+    if (motionOnly) {
+      const res = applyDesign(jail, ops, ctx, { theme: "default", values: want.motion ? motionTokens(want.motion.level) : {} });
+      if (res.snapshotId) snapshots.push(res.snapshotId);
+      if (res.changed.length) changed.push(TOKENS);
+    } else {
+      const surface = setSurfaceStyle(jail, ops, ctx, want.surface);
+      snapshots.push(...surface.snapshotIds);
+      changed.push(...surface.changed);
+      // The appearance's own values (a dark appearance's are dark) go on the app's main theme. A direction without a
+      // motion level (made before motion existed) leaves the app's motion as it is.
+      const res = applyDesign(jail, ops, ctx, { theme: "default", values: appearanceTokens(want) });
+      if (res.snapshotId) snapshots.push(res.snapshotId);
+      if (res.changed.length) changed.push(TOKENS);
+    }
   } catch (err) {
     for (const id of [...snapshots].reverse()) {
       try {
