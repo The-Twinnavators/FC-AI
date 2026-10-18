@@ -1,0 +1,49 @@
+[
+  {
+    "screen": "Home",
+    "pageType": "marketing",
+    "who": "Shopper",
+    "goal": "Find a product by name or brand in a few seconds; see featured products.",
+    "workflow": [
+      "Enter search term in the search box",
+      "View featured products",
+      "Navigate to Saved page"
+    ],
+    "firstView": "What Clean Cart is in one line, a search box, and a few featured products",
+    "primaryAction": "Search for products or navigate to Saved",
+    "sections": [
+      {
+        "title": "App Introduction",
+        "purpose": "Introduce Clean Cart's purpose to the shopper.",
+        "part": ""
+      },
+      {
+        "title": "Search and Categories",
+        "purpose": "Enable shopper to search or browse by category.",
+        "part": "p.lookup-catalog"
+      },
+      {
+        "title": "Featured Products",
+        "purpose": "Show top-rated or popular products to attract attention.",
+        "part": "p.lookup-catalog.grid"
+      }
+    ],
+    "navIn": [],
+    "navOut": [],
+    "states": {
+      "loading": "Shows skeleton loaders for content while loading",
+      "empty": "Displays a message like 'No products found' if search returns nothing",
+      "error": "Displays an error message if data fails to load",
+      "success": "Displays the home screen with featured products and search box"
+    },
+    "responsive": "On phone, top bar becomes sticky with search and ZIP code; bottom navigation appears.",
+    "accessibility": "Search box is keyboard accessible with proper labels; buttons have ARIA roles.",
+    "acceptance": [
+      "R4",
+      "R6",
+      "R13",
+      "R14",
+      "R15"
+    ]
+  }
+]

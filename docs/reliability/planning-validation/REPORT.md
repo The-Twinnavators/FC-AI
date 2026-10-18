@@ -64,3 +64,28 @@ The planner didn't apply most of the content. This matches the limitation record
 - no approval.
 
 The decision on version 2 is the owner's.
+
+## Accepted outcome and what happened after the export (added 2026-10-18)
+
+**Accepted outcome:**
+- The review and versioning workflow passed.
+- The substantive plan revision failed.
+- There is no app-generation result.
+
+**After the version-2 export (11:05)**, these happened on the validation daemon from the UI, not by Claude:
+- the Home direction "Bold aisle" was picked at 11:11:40;
+- Look version 1 (flat surfaces, balanced motion) was selected at 11:13:45;
+- plan version 2 was approved at 11:13:57.
+
+**What ran after the approval:**
+- the starter scaffold;
+- the automatic coder capability probe;
+- the dependency-install permission opened and is still pending.
+
+**Pause:** because the owner's instruction was not to approve version 2 or generate, the run was paused at about 11:26. Nothing else was pressed.
+
+**Evidence:**
+- `v2-after-approval/`: the state after the approval.
+- `v2/raw/`: the planning intermediates (`export-raw.mjs`).
+
+The diagnosis and repair that followed are in `docs/reliability/planning-repair/REPORT.md`.

@@ -1,0 +1,11 @@
+{
+  "kind": "concept",
+  "conceptId": "concept-bold",
+  "name": "Bold aisle",
+  "outstanding": false,
+  "visualApproval": "pending",
+  "at": "2026-10-18T11:13:57.381Z",
+  "appearance": {
+    "version": 1
+  }
+}

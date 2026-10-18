@@ -6,7 +6,7 @@
  * look-up frame (a top bar with search and the ZIP code; a bottom bar on phones). The landing page is a starting point the
  * design step composes; custom pages are left for the design and feature steps.
  */
-import type { AppModel, ModelView } from "./appModel.js";
+import { inPrimaryNav, type AppModel, type ModelView } from "./appModel.js";
 
 /** The library pieces a look-up app is built from (their data layers and icons come with them). */
 export const LOOKUP_PIECES = ["lookup-frame", "lookup-catalog", "lookup-entry", "place-finder", "list-builder"];
@@ -60,6 +60,9 @@ export function lookupScreenSource(m: AppModel, v: ModelView): string | undefine
   const onCatalog = (arg: string) => (r.catalog ? `update(${q(r.catalog)}, ${arg})` : "undefined");
   const open = r.entry ? `(id) => go(${q(r.entry)}, id)` : "undefined";
   const tags = l.tagsField ? ` tagsField=${attr(l.tagsField)}` : "";
+  // What this build leaves out (planScope.ts): the entry page hides its controls, Home and the frame their parts.
+  const omit = l.omit ?? [];
+  const entryOmit = omit.filter((c) => c !== "categories");
   const toCatalog = (arg: string) => (r.catalog ? `go(${q(r.catalog)}, ${arg})` : "undefined");
   const catalogProps = [
     l.badgeField ? ` badgeField=${attr(l.badgeField)}` : "",
@@ -76,7 +79,7 @@ export function lookupScreenSource(m: AppModel, v: ModelView): string | undefine
     case "saved":
       return `${head}\nimport { LookupCatalog } from "../sections/LookupCatalog";\nimport { useLookup } from "../sections/LookupData";\n${imports}\n\nexport default function ${name}() {\n  const { saved } = useLookup(lookup);\n  return (\n    <LookupCatalog\n      lookup={lookup}\n      title=${attr(v.label)}\n      only={saved}\n      empty={{ title: "Nothing saved yet", text: "Tap the heart on anything to keep it here."${r.catalog ? `, action: { label: "Browse", onClick: () => go(${q(r.catalog)}) }` : ""} }}\n      onOpen={${open}}${catalogProps}\n    />\n  );\n}\n`;
     case "entry":
-      return `${head}\nimport { LookupEntry } from "../sections/LookupEntry";\nimport { useHashId } from "../sections/AppData";\n${imports}\n\nexport default function ${name}() {\n  const id = useHashId(${q(v.id)}) ?? "";\n  return (\n    <LookupEntry\n      lookup={lookup}\n      id={id}\n      shareScreen=${attr(v.id)}${r.catalog ? `\n      onBack={() => go(${q(r.catalog)})}` : ""}${r.places ? `\n      onOpenPlace={() => go(${q(r.places)})}` : ""}${r.mylist ? `\n      onOpenList={(list) => go(${q(r.mylist)}, list)}` : ""}${l.detailFields.length ? `\n      detailFields={${JSON.stringify(l.detailFields)}}` : ""}${l.badgeField ? `\n      badgeField=${attr(l.badgeField)}` : ""}\n    />\n  );\n}\n`;
+      return `${head}\nimport { LookupEntry } from "../sections/LookupEntry";\nimport { useHashId } from "../sections/AppData";\n${imports}\n\nexport default function ${name}() {\n  const id = useHashId(${q(v.id)}) ?? "";\n  return (\n    <LookupEntry\n      lookup={lookup}\n      id={id}\n      shareScreen=${attr(v.id)}${r.catalog ? `\n      onBack={() => go(${q(r.catalog)})}` : ""}${r.places ? `\n      onOpenPlace={() => go(${q(r.places)})}` : ""}${r.mylist ? `\n      onOpenList={(list) => go(${q(r.mylist)}, list)}` : ""}${l.detailFields.length ? `\n      detailFields={${JSON.stringify(l.detailFields)}}` : ""}${l.badgeField ? `\n      badgeField=${attr(l.badgeField)}` : ""}${entryOmit.length ? `\n      omit={${JSON.stringify(entryOmit)}}` : ""}\n    />\n  );\n}\n`;
     case "places":
       return `${head}\nimport { PlaceFinder } from "../sections/PlaceFinder";\n${imports}\n\nexport default function ${name}() {\n  void go;\n  return <PlaceFinder lookup={lookup} title=${attr(v.label)}${v.purpose ? ` description=${attr(v.purpose)}` : ""} />;\n}\n`;
     case "lists":
@@ -86,8 +89,11 @@ export function lookupScreenSource(m: AppModel, v: ModelView): string | undefine
     case "landing": {
       if (m.home) return landingSource(m, v, m.home, { head, imports, open, tags, catalogProps, toCatalog, catalog: r.catalog });
       // A working start the design step composes into the product's landing page: the promise, search, the ZIP code,
-      // the categories and the most liked entries, all on the same data.
-      return `${head}\nimport { CatalogSearch, CategoryIndex, LookupCatalog } from "../sections/LookupCatalog";\nimport { ZipPrompt } from "../sections/PlaceFinder";\n${imports}\n\nexport default function ${name}() {\n  return (\n    <div className="fl-lkf-stack">\n      {/* 1. Hero: ${commentSafe(m.product)}, its promise and the search (design step: compose this from the PRD's words) */}\n      <section className="fl-lkf-hero" aria-labelledby="landing-title">\n        <h1 id="landing-title">{${q(m.product)}}</h1>\n        ${v.purpose ? `<p>{${q(v.purpose)}}</p>` : ""}\n        <CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${toCatalog('`q=${s}`')}} onOpen={${open}} />\n      </section>\n      {/* 2. Where to find it: the ZIP code */}\n      <ZipPrompt lookup={lookup} />\n      {/* 3. Categories */}\n      <CategoryIndex lookup={lookup} onCategory={(c) => ${toCatalog("c")}} />\n      {/* 4. The most liked */}\n      <LookupCatalog lookup={lookup} title="Most liked" pageSize={8} toolbar={false} onOpen={${open}}${catalogProps} />\n    </div>\n  );\n}\n`;
+      // the categories and the most liked entries, all on the same data (only the parts this build has).
+      const zip = !omit.includes("places");
+      const cats = !omit.includes("categories");
+      const featured = omit.includes("likes") ? "Featured" : "Most liked";
+      return `${head}\nimport { ${["CatalogSearch", ...(cats ? ["CategoryIndex"] : []), "LookupCatalog"].join(", ")} } from "../sections/LookupCatalog";\n${zip ? 'import { ZipPrompt } from "../sections/PlaceFinder";\n' : ""}${imports}\n\nexport default function ${name}() {\n  return (\n    <div className="fl-lkf-stack">\n      {/* 1. Hero: ${commentSafe(m.product)}, its promise and the search (design step: compose this from the PRD's words) */}\n      <section className="fl-lkf-hero" aria-labelledby="landing-title">\n        <h1 id="landing-title">{${q(m.product)}}</h1>\n        ${v.purpose ? `<p>{${q(v.purpose)}}</p>` : ""}\n        <CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${toCatalog('`q=${s}`')}} onOpen={${open}} />\n      </section>\n${zip ? "      {/* Where to find it: the ZIP code */}\n      <ZipPrompt lookup={lookup} />\n" : ""}${cats ? `      {/* Categories */}\n      <CategoryIndex lookup={lookup} onCategory={(c) => ${toCatalog("c")}} />\n` : ""}      {/* ${featured} */}\n      <LookupCatalog lookup={lookup} title=${attr(featured)} pageSize={8} toolbar={false} onOpen={${open}}${catalogProps} />\n    </div>\n  );\n}\n`;
     }
     default:
       return undefined;
@@ -138,10 +144,11 @@ export default function ${pascal(v.id)}Screen() {
     categories: `<CategoryIndex lookup={lookup} layout=${attr(h.categories)} onCategory={(c) => ${p.toCatalog("c")}} />`,
     featured: `<LookupCatalog lookup={lookup} title="Most liked" pageSize={8} toolbar={false} layout=${attr(h.list)} onOpen={${p.open}}${p.catalogProps} />`,
   };
-  const order = [...new Set([...h.order, ...DEFAULT_HOME.order])];
+  const omit = m.lookup?.omit ?? [];
+  const order = [...new Set([...h.order, ...DEFAULT_HOME.order])].filter((k) => !(k === "zip" && omit.includes("places")) && !(k === "categories" && omit.includes("categories")));
   const imports = [
     `import { ${["CategoryIndex", "LookupCatalog", ...(heroSearches(h) ? ["CatalogSearch"] : []), ...(h.hero === "split" ? ["LookupSpotlight"] : [])].sort().join(", ")} } from "../sections/LookupCatalog";`,
-    `import { ZipPrompt } from "../sections/PlaceFinder";`,
+    ...(order.includes("zip") ? [`import { ZipPrompt } from "../sections/PlaceFinder";`] : []),
     ...(h.hero === "centered" ? [`import { HeroCentered } from "../sections/HeroCentered";`] : []),
     ...(h.hero === "split" ? [`import { HeroSplit } from "../sections/HeroSplit";`] : []),
   ].join("\n");
@@ -159,7 +166,7 @@ export function lookupData(m: AppModel) {
 
 /** The frame's links, as App.tsx holds them. */
 export function lookupLinks(m: AppModel, defaultIcon: Record<string, string>) {
-  const shown = m.nav.flatMap((g) => g.items).filter((v) => v.kind !== "entry" && v.kind !== "mylist");
+  const shown = m.nav.flatMap((g) => g.items).filter((v) => inPrimaryNav(m, v));
   // Saved is the bookmark, as Save is everywhere in the app (the heart is Like), whatever icon the model gave it.
   return shown.map((v) => ({ id: v.id, label: v.label, icon: v.kind === "saved" ? "bookmark" : (v.icon ?? defaultIcon[v.kind] ?? "dot"), ...(v.kind === "placeholder" ? { available: false } : {}), ...(["landing", "catalog", "places", "lists", "saved"].includes(v.kind) ? { mobile: true } : {}) }));
 }
@@ -182,12 +189,14 @@ export function lookupAppSource(m: AppModel, built: ModelView[], defaultIcon: Re
   if (r.mylist && r.lists) parent[r.mylist] = r.lists;
   const open = r.entry ? `(id) => go(${q(r.entry)}, id)` : "undefined";
   const tags = m.lookup!.tagsField ? ` tagsField=${attr(m.lookup!.tagsField)}` : "";
+  // No ZIP code or place in the frame when this build leaves places out (planScope.ts).
+  const places = !(m.lookup!.omit ?? []).includes("places");
   return [
     `/** ${commentSafe(m.product)}: the look-up frame with its places, search and ZIP code, and the page for each destination. Written by FlowCode from the app model. */`,
     `import type { ComponentType } from "react";`,
     `import { LookupFrame, type LookupLink } from "./sections/LookupFrame";`,
     `import { CatalogSearch } from "./sections/LookupCatalog";`,
-    `import { PlaceBadge, ZipPrompt } from "./sections/PlaceFinder";`,
+    ...(places ? [`import { PlaceBadge, ZipPrompt } from "./sections/PlaceFinder";`] : []),
     `import { useRoute } from "./lib/screens";`,
     `import { lookup } from "./app/lookup";`,
     `import { SCREEN_IDS, go } from "./app/routes";`,
@@ -214,9 +223,9 @@ export function lookupAppSource(m: AppModel, built: ModelView[], defaultIcon: Re
     `      onNavigate={(id) => go(id)}${r.saved ? `\n      savedId=${attr(r.saved)}` : ""}`,
     // The landing page's hero has the search; a second one in the bar above it is one too many (Clean Cart's look check).
     `      search={${r.landing && heroSearches(m.home ?? DEFAULT_HOME) ? `screen === ${q(r.landing)} ? undefined : ` : ""}<CatalogSearch lookup={lookup}${tags} onSearch={(s) => ${r.catalog ? `go(${q(r.catalog)}, \`q=\${s}\`)` : "void s"}} onOpen={${open}} />}`,
-    `      place={<PlaceBadge lookup={lookup} />}`,
+    ...(places ? [`      place={<PlaceBadge lookup={lookup} />}`] : []),
     // No frame ZIP banner on Home (its own opening) or on a record's page (it has its own "Where to find it" form).
-    `      prompt={${[r.landing, r.entry].filter(Boolean).map((id) => `screen === ${q(id!)}`).join(" || ") || "false"} ? undefined : <ZipPrompt lookup={lookup} />}`,
+    ...(places ? [`      prompt={${[r.landing, r.entry].filter(Boolean).map((id) => `screen === ${q(id!)}`).join(" || ") || "false"} ? undefined : <ZipPrompt lookup={lookup} />}`] : []),
     `    >`,
     `      {View ? <View key={screen} /> : null}`,
     `    </LookupFrame>`,

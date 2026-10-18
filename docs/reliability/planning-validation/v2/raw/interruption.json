@@ -1,0 +1,17 @@
+{
+  "recoverable": false,
+  "needsUser": true,
+  "action": "Waiting for your approval: can't continue automatically",
+  "resumeWhen": "you approve or decline",
+  "maxAttempts": 0,
+  "timeoutMs": 0,
+  "attempt": 0,
+  "runId": "run_0561a54a50d84c4fb1bb",
+  "cause": "approval",
+  "by": "system",
+  "detail": "Plan ready for review",
+  "at": "2026-10-18T10:59:44.676Z",
+  "state": "resolved",
+  "resolvedAt": "2026-10-18T11:13:57.392Z",
+  "resolution": "Running again"
+}

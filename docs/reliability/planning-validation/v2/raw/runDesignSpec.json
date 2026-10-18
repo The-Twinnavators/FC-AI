@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "id": "concept-bold",
+  "name": "Bold aisle",
+  "thesis": "Find it fast: the library's listings design, with a search hero, real counts as proof points, sortable listings, the stores near you and the ZIP code; flat surfaces on a light yellow ground.",
+  "typography": {
+    "display": "Oswald",
+    "body": "DM Sans",
+    "scale": "compact",
+    "headingWeight": 600,
+    "headingCase": "normal"
+  },
+  "palette": {
+    "bg": "#fff8dc",
+    "surface": "#ffffff",
+    "surfaceSunken": "#fbefc0",
+    "text": "#111111",
+    "textMuted": "#3d3d3d",
+    "border": "#e6dcb4",
+    "borderStrong": "#8a7f55",
+    "accent": "#1d4ed8",
+    "accentHover": "#1e40af",
+    "onAccent": "#ffffff",
+    "secondary": "#be123c"
+  },
+  "density": "compact",
+  "surface": {
+    "vibe": "flat",
+    "radii": [
+      4,
+      6,
+      8,
+      8
+    ],
+    "borderWidth": 1
+  },
+  "composition": {
+    "contentWidth": "wide",
+    "changes": [],
+    "home": {
+      "design": "listings",
+      "hero": "search",
+      "categories": "tiles",
+      "list": "grid",
+      "order": [
+        "zip",
+        "featured",
+        "categories"
+      ]
+    }
+  },
+  "signature": "",
+  "responsive": [],
+  "sources": [
+    {
+      "kind": "internal",
+      "ref": "Home concept: bold aisle",
+      "confidence": "high"
+    }
+  ]
+}

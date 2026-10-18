@@ -1,0 +1,295 @@
+[
+  {
+    "requirement": "R1",
+    "text": "A shopper can find a product by name or brand in a few seconds.",
+    "workflows": [],
+    "pages": [],
+    "behavior": "A shopper can find a product by name or brand in a few seconds.",
+    "verification": "a person checks it at review",
+    "status": "for a person to check"
+  },
+  {
+    "requirement": "R2",
+    "text": "The product page says plainly why the product qualifies (its certification) and lists its ingredients.",
+    "workflows": [],
+    "pages": [],
+    "behavior": "The product page says plainly why the product qualifies (its certification) and lists its ingredients.",
+    "verification": "a person checks it at review",
+    "status": "for a person to check"
+  },
+  {
+    "requirement": "R3",
+    "text": "A shopper can save a product and come back to it later on the Saved page.",
+    "workflows": [],
+    "pages": [],
+    "behavior": "A shopper can save a product and come back to it later on the Saved page.",
+    "verification": "a person checks it at review",
+    "status": "for a person to check"
+  },
+  {
+    "requirement": "R4",
+    "text": "Searches, opens products and saves them.",
+    "workflows": [
+      "Search for Product"
+    ],
+    "pages": [
+      "Home",
+      "Search"
+    ],
+    "behavior": "type 'flour' into the search box and submit → Search screen with flour-related products; click on a product from search results → Product Detail screen for that product",
+    "verification": "acceptance tests in step \"Home Screen with Search\"; journey test for \"Search for Product\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R5",
+    "text": "Searches and opens products; saving asks them to sign in (one tap in the prototype).",
+    "workflows": [
+      "Save Product"
+    ],
+    "pages": [
+      "Product Detail"
+    ],
+    "behavior": "save a product from Product Detail page → Product appears on Saved screen; click Save button without being signed in → Sign-in prompt appears",
+    "verification": "acceptance tests in step \"Saved Items Functionality\"; journey test for \"Save Product\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R6",
+    "text": "What Clean Cart is in one line, a search box, and a few featured products.",
+    "workflows": [
+      "Search for Product"
+    ],
+    "pages": [
+      "Home",
+      "Search"
+    ],
+    "behavior": "enter 'oat' in search box → Oat Milk Original; enter 'xyz123' in search box → No results found",
+    "verification": "acceptance tests in step \"Home Screen Implementation\"; journey test for \"Search for Product\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R7",
+    "text": "Results for a search across product names and brands; a clear no-results message.",
+    "workflows": [
+      "Search for Product"
+    ],
+    "pages": [
+      "Home",
+      "Search"
+    ],
+    "behavior": "enter 'oat' in search box → Oat Milk Original; enter 'XYZ123' in search box → No results found",
+    "verification": "acceptance tests in step \"Search Screen Functionality\"; journey test for \"Search for Product\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R8",
+    "text": "One product: name, brand, category, certification, ingredients and a Save button.",
+    "workflows": [
+      "View Product Details"
+    ],
+    "pages": [
+      "Search",
+      "Product Detail"
+    ],
+    "behavior": "open a product detail page → Product name, brand, category, certification and ingredients displayed; click the Save button when not signed in → Sign-in prompt appears",
+    "verification": "acceptance tests in step \"Product Detail Page\"; journey test for \"View Product Details\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R9",
+    "text": "The products the member saved, each opening its product page.",
+    "workflows": [
+      "View Saved Products"
+    ],
+    "pages": [
+      "Home",
+      "Saved"
+    ],
+    "behavior": "visit Saved screen with saved products → list of saved products with name and brand; click on a saved product in the list → navigate to Product Detail screen for that product",
+    "verification": "acceptance tests in step \"Saved Products List\"; journey test for \"View Saved Products\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R10",
+    "text": "Name, brand, category, certification, ingredients, short description",
+    "workflows": [
+      "View Product Details"
+    ],
+    "pages": [
+      "Search",
+      "Product Detail"
+    ],
+    "behavior": "open a product detail page → Product name, brand, category, certification and ingredients displayed; click the Save button when not signed in → Sign-in prompt appears",
+    "verification": "acceptance tests in step \"Product Detail Page\"; journey test for \"View Product Details\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R11",
+    "text": "Which stores carry it",
+    "workflows": [
+      "View Product Details"
+    ],
+    "pages": [
+      "Search",
+      "Product Detail"
+    ],
+    "behavior": "open a product detail page → Product name, brand, category, certification and ingredients displayed; click the Save button when not signed in → Sign-in prompt appears",
+    "verification": "acceptance tests in step \"Product Detail Page\"; journey test for \"View Product Details\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R12",
+    "text": "Name, ZIP code",
+    "workflows": [],
+    "pages": [],
+    "behavior": "Stores: remaining requirements",
+    "verification": "step \"Stores: remaining requirements\"",
+    "status": "no workflow"
+  },
+  {
+    "requirement": "R13",
+    "text": "R1: The Home page has a search box; submitting it shows the Search page with the results.",
+    "workflows": [
+      "Search for Product"
+    ],
+    "pages": [
+      "Home",
+      "Search"
+    ],
+    "behavior": "type 'flour' into the search box and submit → Search screen with flour-related products; click on a product from search results → Product Detail screen for that product",
+    "verification": "acceptance tests in step \"Home Screen with Search\"; journey test for \"Search for Product\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R14",
+    "text": "R2: Search matches product names and brands, case-insensitively (\"oat\" finds \"Oat Milk Original\").",
+    "workflows": [
+      "Search for Product"
+    ],
+    "pages": [
+      "Home",
+      "Search"
+    ],
+    "behavior": "enter 'oat' in search box → Oat Milk Original; enter 'XYZ123' in search box → No results found",
+    "verification": "acceptance tests in step \"Search Screen Functionality\"; journey test for \"Search for Product\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R15",
+    "text": "R3: A search with no match says so and suggests trying another word.",
+    "workflows": [
+      "Search for Product"
+    ],
+    "pages": [
+      "Home",
+      "Search"
+    ],
+    "behavior": "enter 'oat' in search box → Oat Milk Original; enter 'XYZ123' in search box → No results found",
+    "verification": "acceptance tests in step \"Search Screen Functionality\"; journey test for \"Search for Product\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R16",
+    "text": "R4: The Product page shows the product's name, brand, category, certification and ingredients from its record.",
+    "workflows": [
+      "View Product Details"
+    ],
+    "pages": [
+      "Search",
+      "Product Detail"
+    ],
+    "behavior": "open a product detail page → Product name, brand, category, certification and ingredients displayed; click the Save button when not signed in → Sign-in prompt appears",
+    "verification": "acceptance tests in step \"Product Detail Page\"; journey test for \"View Product Details\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R17",
+    "text": "R5: The Product page has a Save button; a signed-in member's Save adds the product to Saved, and pressing it again removes it.",
+    "workflows": [
+      "Save Product"
+    ],
+    "pages": [
+      "Product Detail"
+    ],
+    "behavior": "click Save button on Product Detail screen → product added to Saved list; click Save button again on same product → product removed from Saved list",
+    "verification": "acceptance tests in step \"Save Product Button\"; journey test for \"Save Product\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R18",
+    "text": "R6: The Saved page lists the saved products by name and brand; each opens its Product page.",
+    "workflows": [
+      "View Saved Products"
+    ],
+    "pages": [
+      "Home",
+      "Saved"
+    ],
+    "behavior": "visit Saved screen with saved products → list of saved products with name and brand; click on a saved product in the list → navigate to Product Detail screen for that product",
+    "verification": "acceptance tests in step \"Saved Products List\"; journey test for \"View Saved Products\"",
+    "status": "planned"
+  },
+  {
+    "requirement": "R19",
+    "text": "R7: Saved products are still saved after the page is reloaded (kept in this browser).",
+    "workflows": [],
+    "pages": [],
+    "behavior": "save a product and reload the page → product remains in Saved list after reload; close browser and reopen app → previously saved products are still in Saved list",
+    "verification": "acceptance tests in step \"Persistent Saved Products\"",
+    "status": "no workflow"
+  },
+  {
+    "requirement": "R20",
+    "text": "Non-GMO Project Verified",
+    "workflows": [],
+    "pages": [],
+    "behavior": "Non-GMO Project Verified",
+    "verification": "a person checks it at review",
+    "status": "for a person to check"
+  },
+  {
+    "requirement": "R21",
+    "text": "Wheat flour, water, salt, sourdough starter",
+    "workflows": [],
+    "pages": [],
+    "behavior": "Wheat flour, water, salt, sourdough starter",
+    "verification": "a person checks it at review",
+    "status": "for a person to check"
+  },
+  {
+    "requirement": "R22",
+    "text": "Non-GMO Project Verified",
+    "workflows": [],
+    "pages": [],
+    "behavior": "Non-GMO Project Verified",
+    "verification": "a person checks it at review",
+    "status": "for a person to check"
+  },
+  {
+    "requirement": "R23",
+    "text": "Little Sprout",
+    "workflows": [],
+    "pages": [],
+    "behavior": "Little Sprout",
+    "verification": "a person checks it at review",
+    "status": "for a person to check"
+  },
+  {
+    "requirement": "R24",
+    "text": "Black beans, corn, sunflower oil, salt",
+    "workflows": [],
+    "pages": [],
+    "behavior": "Black beans, corn, sunflower oil, salt",
+    "verification": "a person checks it at review",
+    "status": "for a person to check"
+  },
+  {
+    "requirement": "R25",
+    "text": "Cultured pasteurized milk",
+    "workflows": [],
+    "pages": [],
+    "behavior": "Cultured pasteurized milk",
+    "verification": "a person checks it at review",
+    "status": "for a person to check"
+  }
+]

@@ -125,7 +125,7 @@ const text = (v: unknown, max: number) => String(v ?? "").replace(/\s+/g, " ").t
  * catalog gaps for the composition manifest, not silent omissions. A real part from outside the screen's list is
  * simply not used.
  */
-export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: CatalogManifest | undefined, dropped?: Array<{ page: string; section: string; part: string }>, issues?: CompositionIssue[]): ScreenBrief[] {
+export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: CatalogManifest | undefined, dropped?: Array<{ page: string; section: string; part: string }>, issues?: CompositionIssue[], app = false): ScreenBrief[] {
   const list = Array.isArray((raw as { screens?: unknown })?.screens) ? ((raw as { screens: unknown[] }).screens as Array<Record<string, unknown>>) : [];
   const out: ScreenBrief[] = [];
   for (const s of plan.screens) {
@@ -142,7 +142,7 @@ export function parseScreenBriefs(raw: unknown, plan: ScreenPlan, manifest: Cata
       .filter((x) => x.title);
     if (!sections.length) continue;
     // The page's type, then its parts checked against it: what doesn't belong comes out, a missing job is recorded.
-    const pageType = pageTypeOf(r.pageType, s.label, s.purpose, plan.screens.indexOf(s) > 0 && /\bdetails?\b/i.test(s.label));
+    const pageType = pageTypeOf(r.pageType, s.label, s.purpose, plan.screens.indexOf(s) > 0 && /\bdetails?\b/i.test(s.label), app);
     const checked = checkComposition(s.label, pageType, sections);
     issues?.push(...checked.issues);
     const screensOnly = (v: unknown) =>

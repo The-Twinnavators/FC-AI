@@ -321,7 +321,7 @@ export function featurePrompt(t: BatchTask, reqs: Requirement[], section: string
     context: [`PRD section: ${section}. This task implements these requirements (quoted from the PRD in spec/):`, quote(mine), t.files.length ? `Files: ${t.files.join(", ")}.` : "", cfg.repoNote].filter(Boolean).join("\n"),
     steps: t.steps.length ? t.steps : [`Read the requirements above and the files named.`, `Implement each requirement in ${t.files.join(", ") || "the screen it belongs to"}.`, "Run the checks below and fix anything you broke."],
     constraints: ["Use names, labels, keys and routes exactly as the PRD writes them.", "Build only these requirements; other tasks cover the rest of the PRD.", "Use the building blocks in src/components/ui and the design tokens; no new dependencies.", FIT_THE_DESIGN, PROTOTYPE_CONSTRAINT],
-    acceptance: [...(t.tests ?? []).map((x) => `Test: ${x.behaviour} → shows "${x.expect}"`), ...t.acceptance, ...mine.map((r) => `${r.id} is implemented: ${r.text.length > 140 ? `${r.text.slice(0, 137)}…` : r.text}`), ...cfg.verifyLines],
+    acceptance: [...(t.tests ?? []).map((x) => (testKind(x) === "text" ? `Test: ${x.behaviour} → shows "${x.expect}"` : `Test: ${x.behaviour} → check that ${x.expect.replace(/\.$/, "")} (an outcome, not text to look for)`)), ...t.acceptance, ...mine.map((r) => `${r.id} is implemented: ${r.text.length > 140 ? `${r.text.slice(0, 137)}…` : r.text}`), ...cfg.verifyLines],
   });
 }
 
@@ -436,11 +436,29 @@ export function groupSteps(items: PlanItem[], max = MAX_FEATURE_STEPS): PlanItem
 /** Where a step's acceptance tests live: one file per step, under src/acceptance/. */
 export const testFileFor = (title: string) => `src/acceptance/${slug(title) || "step"}.test.tsx`;
 
+/** What the step's tests are written against: the spec's own words (for exact text) and where the app keeps its data. */
+export interface TestContext {
+  /** The PRD and the app's sample records: text a test may require word for word must be in here. */
+  corpus?: string;
+  /** Where the tests read the real sample data. */
+  dataNote?: string;
+}
+
+/** One acceptance test as the step's brief writes it: an exact text, an outcome to observe, or a page named by its internal name. */
+export function testLine(t: AcceptanceTest, ctx: TestContext = {}): string {
+  const expect = t.expect.replace(/\.$/, "");
+  const kind = testKind(t, ctx.corpus);
+  if (kind === "text") return `- ${t.behaviour} → the app shows "${t.expect}"`;
+  if (kind === "identifier") return `- ${t.behaviour} → check that ${expect} (an outcome, not text: a screen or page name here says where the person is; check it by that page's own heading, record or controls, never by looking for these words)`;
+  return `- ${t.behaviour} → check that ${expect} (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)`;
+}
+
 /** How a step writes and runs its acceptance tests (the tests come first; the step is done when they pass). */
-function testBrief(file: string, items: PlanItem[]): string {
+function testBrief(file: string, items: PlanItem[], ctx: TestContext = {}): string {
   // An exact value is text the app shows; anything else is a description of what to check, not words to find on screen
-  // (Calculator app: "Calculator screen loads offline" became a test that searched the page for that sentence).
-  const tests = items.flatMap((i) => (i.tests ?? []).map((t) => (isExactTest(t) ? `- ${t.behaviour} → the app shows "${t.expect}"` : `- ${t.behaviour} → check that ${t.expect.replace(/\.$/, "")} (a description of what to verify, not text to look for)`)));
+  // (Calculator app: "Calculator screen loads offline" became a test that searched the page for that sentence; Clean Cart
+  // planning validation: "Sign-in prompt appears" and "product added to Saved list" were required as visible text).
+  const tests = items.flatMap((i) => (i.tests ?? []).map((t) => testLine(t, ctx)));
   const reqs = items.filter((i) => !(i.tests ?? []).length).map((i) => `- ${i.title} (${i.covers.join(", ") || "this item"}): at least one test of what the user does and sees`);
   return [
     `FIRST write the acceptance tests in ${file}, then build until they pass. The step is done when \`run_script "test -- ${file}"\` passes.`,
@@ -449,11 +467,30 @@ function testBrief(file: string, items: PlanItem[]): string {
     ...reqs,
     "How: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).",
     "Find elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).",
-    "Write tests against the screen's real sample data: read it first (src/sim, or the data the screen imports) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.",
+    `Write tests against the screen's real sample data: read it first (${ctx.dataNote ?? "src/sim, or the data the screen imports"}) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.`,
     "Every test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.",
     "Build on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.",
   ].join("\n");
 }
+
+/**
+ * What a test's expected value is:
+ *  - "text": words the app must show exactly (the spec quotes them, or a record holds them: "Oat Milk Original", "14");
+ *  - "identifier": it names a screen or page by its internal name ("Product Detail screen for that product");
+ *  - "outcome": a described result to observe ("Sign-in prompt appears", "product added to Saved list").
+ * With the spec's words at hand (corpus), only text found there, or a number, is exact.
+ */
+export function testKind(t: AcceptanceTest, corpus?: string): "text" | "outcome" | "identifier" {
+  const e = t.expect.trim();
+  if (/\b[A-Z]\w*Screen\b|\bsrc\/|\[[a-z]+\]|\b(screen|page|route|view|tab)\b/i.test(e)) return "identifier";
+  const numeric = /^[\d\s.,+\-−×÷*/=%()eE$€£]+$/.test(e);
+  if (corpus !== undefined && !numeric && isExactValue(e)) return normalize(corpus).includes(normalize(e)) ? (isExactTest(t) ? "text" : "outcome") : "outcome";
+  if (DESCRIBES.test(e)) return "outcome";
+  return isExactTest(t) ? "text" : "outcome";
+}
+const normalize = (s: string) => s.toLowerCase().replace(/["“”'‘’`]/g, "").replace(/\s+/g, " ");
+/** Words that describe a result rather than being the result's own text. */
+const DESCRIBES = /\b(appears?|displayed|shown|shows?|added|removed|remains?|still|navigates?|navigated|opens?|opened|prompt(ed)?|list of|visible|updated|redirect\w*|is|are|gets?|becomes?)\b/i;
 
 /** A test whose expected value is exact text the app shows, not a layout or visual check described in words. */
 export function isExactTest(t: AcceptanceTest): boolean {
@@ -480,7 +517,7 @@ function stepTitle(group: PlanItem[]): string {
  * prompts plus its acceptance tests; it is checked by those tests (the file exists, it checks each expected result,
  * and it passes) and the type check, never by the type check alone.
  */
-export function stepsFromGroups(groups: PlanItem[][], after: string, prefix = "lrc"): PlanTask[] {
+export function stepsFromGroups(groups: PlanItem[][], after: string, prefix = "lrc", ctx: TestContext = {}): PlanTask[] {
   return groups.map((group, n) => {
     const key = `${prefix}_${n + 1}`;
     const title = stepTitle(group);
@@ -488,12 +525,12 @@ export function stepsFromGroups(groups: PlanItem[][], after: string, prefix = "l
     for (const i of group) i.stepKey = key;
     // Only exact on-screen values ("14", "Can't divide by zero") are required word for word in the test file; a
     // described check ("has the accent colour") is still a test, but its wording isn't forced into the file.
-    const expects = [...new Set(group.flatMap((i) => (i.tests ?? []).filter(isExactTest).map((t) => t.expect)))].slice(0, 8);
+    const expects = [...new Set(group.flatMap((i) => (i.tests ?? []).filter((t) => testKind(t, ctx.corpus) === "text").map((t) => t.expect)))].slice(0, 8);
     const files = [...new Set(group.flatMap((i) => i.files))];
     return {
       key,
       title,
-      objective: [testBrief(file, group), ...group.map((i) => i.aiPrompt)].join("\n\n---\n\n"),
+      objective: [testBrief(file, group, ctx), ...group.map((i) => i.aiPrompt)].join("\n\n---\n\n"),
       dependsOn: [n ? `${prefix}_${n}` : after],
       expectedPaths: [...(files.length ? files : ["src/"]), file],
       acceptanceCriteria: [

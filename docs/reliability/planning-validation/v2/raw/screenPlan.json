@@ -1,0 +1,61 @@
+{
+  "product": "Clean Cart",
+  "screens": [
+    {
+      "id": "home",
+      "label": "Home",
+      "component": "HomeScreen",
+      "file": "src/screens/HomeScreen.tsx",
+      "purpose": "Home: the first page: what it is, search, the ZIP code, categories and the most liked"
+    },
+    {
+      "id": "search",
+      "label": "Search",
+      "component": "SearchScreen",
+      "file": "src/screens/SearchScreen.tsx",
+      "purpose": "Search: the entries to search, filter by category and find near you"
+    },
+    {
+      "id": "saved",
+      "label": "Saved",
+      "component": "SavedScreen",
+      "file": "src/screens/SavedScreen.tsx",
+      "purpose": "Saved: the what the person saved"
+    },
+    {
+      "id": "categories",
+      "label": "Categories",
+      "component": "CategoriesScreen",
+      "file": "src/screens/CategoriesScreen.tsx",
+      "purpose": "Categories: the categories to browse"
+    },
+    {
+      "id": "lists",
+      "label": "Lists",
+      "component": "ListsScreen",
+      "file": "src/screens/ListsScreen.tsx",
+      "purpose": "Lists: the the person's lists, each for one place"
+    },
+    {
+      "id": "list",
+      "label": "List",
+      "component": "ListScreen",
+      "file": "src/screens/ListScreen.tsx",
+      "purpose": "List: the one list: its place, what that place carries, quantities and what is done"
+    },
+    {
+      "id": "product-detail",
+      "label": "Product Detail",
+      "component": "ProductDetailScreen",
+      "file": "src/screens/ProductDetailScreen.tsx",
+      "purpose": "Product Detail: the one entry: why it qualifies, where to find it nearby, likes, saves, sharing, ratings and comments"
+    },
+    {
+      "id": "store-finder",
+      "label": "Store Finder",
+      "component": "StoreFinderScreen",
+      "file": "src/screens/StoreFinderScreen.tsx",
+      "purpose": "Store Finder: the places near a ZIP code, to choose one"
+    }
+  ]
+}

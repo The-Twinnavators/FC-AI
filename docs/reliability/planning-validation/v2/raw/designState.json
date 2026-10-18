@@ -1,0 +1,33 @@
+{
+  "surfaceExceptions": [],
+  "base": {
+    "source": "none",
+    "detail": "No app yet"
+  },
+  "selected": {
+    "appearance": {
+      "mode": "light",
+      "surface": "flat",
+      "primary": "#2f9bd3",
+      "neutral": "pure",
+      "secondary": "#be6a2a",
+      "tertiary": "#3f5d7d",
+      "fonts": {
+        "display": "Roboto",
+        "body": "Roboto"
+      },
+      "motion": {
+        "level": "balanced"
+      }
+    },
+    "sources": {
+      "primary": "you",
+      "fonts": "you",
+      "tertiary": "you",
+      "secondary": "you"
+    },
+    "version": 1,
+    "selectedAt": "2026-10-18T11:13:45.006Z",
+    "by": "you"
+  }
+}

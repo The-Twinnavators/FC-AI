@@ -1,0 +1,14 @@
+[
+  {
+    "id": "lookup-catalog",
+    "screen": "Home",
+    "score": 18,
+    "reason": "A starting point for the Home screen: Look-up catalog: search, categories, filters and where to find it"
+  },
+  {
+    "id": "lookup-entry",
+    "screen": "Home",
+    "score": 13,
+    "reason": "A starting point for the Home screen: Look-up entry: details, where to find it near you, like, save, share, ratings"
+  }
+]

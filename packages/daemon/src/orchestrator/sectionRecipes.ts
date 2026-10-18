@@ -346,3 +346,20 @@ async function addSections({ deps, run, task, jail, onChanged }: RuntimeStepArgs
 }
 
 export const SECTION_STEPS: Record<string, (a: RuntimeStepArgs) => Promise<AgentOutcome>> = { [ADD_SECTIONS]: addSections };
+
+/** The website opening and closing a PRD's wording can pull in (pickSections' "pitch"): never part of an app's screens. */
+const FUNNEL = new Set(["navigation", "hero", "cta", "footer"]);
+
+/**
+ * The library step without the marketing funnel (a website's header, hero, call-to-action banner and footer), for an app
+ * whose frame and Home are its own (Clean Cart planning validation: "product page" in the PRD read as a website, and a
+ * product-discovery app got a hero, a CTA banner and a footer). Sections the PRD names (a FAQ, a contact form) stay.
+ */
+export function dropFunnel(task: PlanTask): { task: PlanTask; dropped: string[] } {
+  const picks = picksIn(task.objective);
+  const funnel = (id: string) => FUNNEL.has(LIBRARY_SECTIONS.find((s) => s.id === id)?.category ?? "");
+  const dropped = picks.filter((p) => funnel(p.id)).map((p) => p.id);
+  if (!dropped.length) return { task, dropped };
+  const files = new Set(dropped.map(sectionFile));
+  return { task: { ...task, objective: sectionsObjective(picks.filter((p) => !funnel(p.id))), expectedPaths: task.expectedPaths.filter((p) => !files.has(p)) }, dropped };
+}

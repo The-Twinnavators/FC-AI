@@ -8,6 +8,7 @@
  */
 import type { Requirement } from "../quality/spec.js";
 import type { HomeLayout } from "./lookupFiles.js";
+import type { LookupCapability } from "./planScope.js";
 
 export type FieldType = "text" | "longtext" | "number" | "money" | "percent" | "date" | "select" | "boolean" | "email";
 export type Tone = "neutral" | "info" | "success" | "warning" | "danger";
@@ -62,6 +63,8 @@ export interface LookupModel {
   lists: Array<{ id: string; name: string; placeId?: string; items: Array<{ entryId: string; qty: number; done: boolean }> }>;
   likes: Record<string, number>;
   saves: Record<string, number>;
+  /** What the look-up pieces leave out in this build (planScope.ts): capabilities deferred or not asked for. */
+  omit?: LookupCapability[];
 }
 export interface ModelView {
   id: string;
@@ -85,6 +88,8 @@ export interface AppModel {
   aliases?: ScreenAlias[];
   /** A look-up app's Home layout, from the chosen design concept (lookupFiles.ts); the default when left out. */
   home?: HomeLayout;
+  /** The primary navigation the PRD declares (planScope.ts), by label; missing: every destination but record pages. */
+  primaryNav?: string[];
 }
 
 export interface ScreenAlias {
@@ -321,16 +326,42 @@ export function parseAppModel(raw: unknown): { model?: AppModel; problems: strin
   return { model: entities.length && nav.length ? { product: str(r.product, 60) || "App", roles: roles.length ? roles : ["User"], entities, seed, nav } : undefined, problems };
 }
 
+/** A record's own page (or one list): opened from another page, never a navigation link. */
+const OPENED_FROM_OTHERS: ViewKind[] = ["detail", "entry", "mylist"];
+
+/** Whether a destination is a link in the app's primary navigation (the PRD's declared links when it names them). */
+export function inPrimaryNav(m: AppModel, v: ModelView): boolean {
+  if (OPENED_FROM_OTHERS.includes(v.kind)) return false;
+  // Only a look-up app's other destinations are always reachable from its pages (catalog, entry, saved); an app of
+  // records keeps its every page in the navigation.
+  if (!m.primaryNav?.length || !m.lookup) return true;
+  const names = m.primaryNav.map((n) => n.toLowerCase());
+  const alias = m.aliases?.find((a) => a.view === v.id)?.screen.toLowerCase();
+  return names.includes(v.label.toLowerCase()) || (!!alias && names.includes(alias)) || (v.kind === "landing" && names.includes("home"));
+}
+
 /** The model as the design and build steps read it. */
 export function appModelNote(m: AppModel): string {
+  const views = m.nav.flatMap((g) => g.items);
+  const tag = (i: ModelView) => `${i.label}${i.kind === "placeholder" ? " [not in this prototype]" : ` [${i.kind}]`}`;
+  const primary = views.filter((v) => inPrimaryNav(m, v));
+  const others = views.filter((v) => !inPrimaryNav(m, v));
+  const omit = new Set(m.lookup?.omit ?? []);
+  const lookupHas = (["likes", "ratings", "comments", "sharing", "lists"] as const).filter((c) => !omit.has(c));
   return [
-    `The app: ${m.product}. Roles: ${m.roles.join(", ")}. Its data, store and navigation are written by FlowCode in src/app/ (schema.ts, store.ts) and src/App.tsx: every page reads and writes the same records through the store (src/app/store.ts), never its own copy.`,
+    `The app: ${m.product}. Roles: ${m.roles.join(", ")}. Its data, store and navigation are written by FlowCode in src/app/ (schema.ts, store.ts) and src/App.tsx: every page reads the same records through the store (src/app/store.ts), never its own copy.`,
     ...m.entities.map((e) => `- ${e.plural} (${e.key}): ${e.fields.map((f) => `${f.label}${f.required ? "*" : ""}`).join(", ")}; statuses ${(e.statuses ?? []).map((s) => s.label).join(" → ")}; ${(m.seed[e.key] ?? []).length} sample records.`),
-    `Navigation: ${m.nav.map((g) => `${g.label} (${g.items.map((i) => `${i.label}${i.kind === "placeholder" ? " [not in this prototype]" : ` [${i.kind}]`}`).join(", ")})`).join("; ")}.`,
+    `Primary navigation: ${primary.map(tag).join(", ") || "none"}.`,
+    others.length ? `Opened from other pages (not in the navigation): ${others.map(tag).join(", ")}.` : "",
     ...(m.lookup
-      ? [`A look-up app: people find ${m.lookup.entries} by ${m.lookup.categoryField} and search, and see which ${m.lookup.placeWord}s near their ZIP code ${m.lookup.carryWord} them (${m.lookup.areas.map((a) => `${a.zip} ${a.label}`).join(", ")}). Likes, saves, ratings, comments and lists live in the look-up layer (src/app/lookup.ts, from src/sections/LookupData) beside the store.`]
+      ? [
+          `A look-up app: people find ${m.lookup.entries} by search${omit.has("categories") ? "" : ` and ${m.lookup.categoryField}`}${omit.has("places") ? "" : `, and see which ${m.lookup.placeWord}s near their ZIP code ${m.lookup.carryWord} them (${m.lookup.areas.map((a) => `${a.zip} ${a.label}`).join(", ")})`}. Saves${lookupHas.length ? ` and ${lookupHas.join(", ")}` : ""} live in the look-up layer (src/app/lookup.ts, from src/sections/LookupData), which reads the records from the store.`,
+          omit.size ? `Not in this build (the look-up pieces leave them out): ${[...omit].join(", ")}.` : "",
+        ]
       : []),
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 /** A look-up app's lookup section, checked against its two entities and their seed (ids as the store numbers them). */

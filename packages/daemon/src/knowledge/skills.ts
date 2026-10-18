@@ -812,7 +812,7 @@ Then ask: one clear focal point? Real type contrast? Nothing boxed that doesn't 
     // The thinking half of page blocking: the rules half is code (pageTypes.ts checks a page plan's parts against its
     // type; the layout lock sends back a design step that drops a planned section without propose_layout_change).
     id: "skill.page-composition",
-    version: "1.0.0",
+    version: "1.0.1",
     roles: ["planner", "designer", "coder"],
     triggers: ["page plan", "page structure", "screen brief", "page type", "page composition", "wireframe"],
     enabled: true,

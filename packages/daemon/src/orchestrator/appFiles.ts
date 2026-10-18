@@ -10,7 +10,8 @@ import path from "node:path";
 import { DEFAULT_SURFACES, LIBRARY_SECTIONS, type PlanTask } from "@flowcode/contracts";
 import type { AgentOutcome } from "./agentLoop.js";
 import type { AppModel, ModelView } from "./appModel.js";
-import { appModelKey, appModelNote } from "./appModel.js";
+import { appModelKey, appModelNote, inPrimaryNav } from "./appModel.js";
+import type { LookupCapability } from "./planScope.js";
 import { ADD_LAYOUTS } from "./layoutRecipes.js";
 import { APP_LAYOUT, type ScreenPlan } from "./screenPlan.js";
 import { recordUse } from "./libraryUse.js";
@@ -115,7 +116,7 @@ export function appFiles(m: AppModel): Array<{ path: string; content: string }> 
     if (list) parent[v.id] = list;
   }
   const schema = { appKey: m.product.toLowerCase().replace(/[^a-z0-9]+/g, "-"), roles: m.roles, entities: m.entities };
-  const navForFrame = m.nav.map((g) => ({ label: g.label, items: g.items.filter((v) => v.kind !== "detail").map((v) => ({ id: v.id, label: v.label, icon: v.icon ?? DEFAULT_ICON[v.kind], ...(v.kind === "placeholder" ? { available: false } : {}) })) })).filter((g) => g.items.length);
+  const navForFrame = m.nav.map((g) => ({ label: g.label, items: g.items.filter((v) => inPrimaryNav(m, v)).map((v) => ({ id: v.id, label: v.label, icon: v.icon ?? DEFAULT_ICON[v.kind], ...(v.kind === "placeholder" ? { available: false } : {}) })) })).filter((g) => g.items.length);
   const first = built.find((v) => v.kind === "landing") ?? built.find((v) => v.kind === "dashboard") ?? built.find((v) => v.kind === "list") ?? built[0];
   const ids = [...(first ? [first.id] : []), ...views.map((v) => v.id).filter((id) => id !== first?.id)];
   return [
@@ -300,20 +301,34 @@ export const APP_STEPS: Record<string, (a: RuntimeStepArgs) => Promise<AgentOutc
 export function screenPlanOf(m: AppModel): ScreenPlan {
   return {
     product: m.product,
-    screens: builtViews(m).map((v) => ({ id: v.id, label: v.label, component: `${pascal(v.id)}Screen`, file: screenFileOf(v), purpose: v.purpose ?? `${v.label}: the ${LOOKUP_PURPOSE[v.kind] ?? (v.kind === "create" ? "step-by-step form for a new record" : v.kind === "detail" ? "one record, its status and history" : v.kind === "queue" ? "records waiting on a decision" : v.kind === "dashboard" ? "how things stand" : "every record, to find and act on")}` })),
+    screens: builtViews(m).map((v) => ({ id: v.id, label: v.label, component: `${pascal(v.id)}Screen`, file: screenFileOf(v), purpose: v.purpose ?? `${v.label}: the ${lookupPurpose(m, v.kind) ?? (v.kind === "create" ? "step-by-step form for a new record" : v.kind === "detail" ? "one record, its status and history" : v.kind === "queue" ? "records waiting on a decision" : v.kind === "dashboard" ? "how things stand" : "every record, to find and act on")}` })),
   };
 }
 
-const LOOKUP_PURPOSE: Partial<Record<ModelView["kind"], string>> = {
-  landing: "first page: what it is, search, the ZIP code, categories and the most liked",
-  catalog: "entries to search, filter by category and find near you",
-  categories: "categories to browse",
-  entry: "one entry: why it qualifies, where to find it nearby, likes, saves, sharing, ratings and comments",
-  places: "places near a ZIP code, to choose one",
-  lists: "the person's lists, each for one place",
-  mylist: "one list: its place, what that place carries, quantities and what is done",
-  saved: "what the person saved",
-};
+/** What a look-up page is for, with only what this build has (planScope.ts: left-out capabilities aren't promised). */
+function lookupPurpose(m: AppModel, kind: ModelView["kind"]): string | undefined {
+  const has = (c: LookupCapability) => !(m.lookup?.omit ?? []).includes(c);
+  const join = (xs: Array<string | false>) => xs.filter(Boolean).join(", ").replace(/, ([^,]*)$/, " and $1");
+  const purpose: Partial<Record<ModelView["kind"], string>> = {
+    landing: `first page: ${join(["what it is", "search", has("places") && "the ZIP code", has("categories") && "categories", has("likes") ? "the most liked" : "featured entries"])}`,
+    catalog: `entries to search${has("categories") ? ", filter by category" : ""}${has("places") ? " and find near you" : ""}`,
+    categories: "categories to browse",
+    entry: `one entry: ${join(["why it qualifies", has("places") && "where to find it nearby", has("likes") && "likes", "saves", has("sharing") && "sharing", has("ratings") && "ratings", has("comments") && "comments"])}`,
+    places: "places near a ZIP code, to choose one",
+    lists: "the person's lists, each for one place",
+    mylist: "one list: its place, what that place carries, quantities and what is done",
+    saved: "what the person saved",
+  };
+  return purpose[kind];
+}
+
+/** What already works in a look-up app, with only what this build has. */
+function lookupWorking(m: AppModel): string {
+  const has = (c: LookupCapability) => !(m.lookup?.omit ?? []).includes(c);
+  const parts = ["search and suggestions", has("categories") && "categories and filters", has("places") && "where each entry is found near the person's ZIP code", has("likes") && "likes", "saves (a visitor is asked to sign in first)", has("sharing") && "sharing", has("ratings") && "ratings", has("comments") && "comments", has("lists") && "lists tied to a place"].filter(Boolean) as string[];
+  const out = (m.lookup?.omit ?? []).length ? ` Not in this build: ${m.lookup!.omit!.join(", ")} (no page, link, control or test for them).` : "";
+  return `${parts.join(", ").replace(/^./, (c) => c.toUpperCase())} already work across pages.${out}`;
+}
 
 /** The pages the design steps build themselves (the rest are the library's working patterns). */
 export function customPlanOf(m: AppModel): ScreenPlan {
@@ -328,7 +343,7 @@ function completeDesignObjective(m: AppModel): string {
   const patterns = built.filter((v) => !designed(v));
   const custom = built.filter(designed);
   const working = m.lookup
-    ? "Search and suggestions, categories and filters, where each entry is found near the person's ZIP code, likes, saves, sharing, ratings and comments, and lists tied to a place already work across pages."
+    ? lookupWorking(m)
     : "Lists, the create wizard, record pages, status changes by role, notifications and the dashboard already work across pages.";
   const data = m.lookup
     ? "on the same data (lookup from src/app/lookup with useLookup from src/sections/LookupData for ZIP code, places, likes, saves, ratings and lists: const state = useLookup(lookup) gives the state (zip, placeId, signedIn, liked, saved, ratings, lists) and the actions are the lookup's own methods (lookup.setZip(zip), lookup.choosePlace(id), lookup.toggleSave(id), lookup.addToList(listId, entryId)), never destructured from useLookup; the parts take just lookup, e.g. <ZipPrompt lookup={lookup} />; store from src/app/store and useRecords from src/sections/AppData for the entries; the look-up pieces as parts, imported exactly so: import { CatalogSearch, CategoryIndex, LookupCatalog } from '../sections/LookupCatalog'; import { ZipPrompt, PlaceBadge, PlaceFinder } from '../sections/PlaceFinder'; import { LookupEntry, RatingsPanel, WhereToFind } from '../sections/LookupEntry'; import { ListIndex, ListBuilder } from '../sections/ListBuilder' (no other files hold them); go() from src/app/routes to open an entry)"
@@ -337,7 +352,7 @@ function completeDesignObjective(m: AppModel): string {
     `Design the complete app like a senior product designer: it is already written and working (step "${WRITE_APP}"): the app frame, one shared store in src/app/, and working pages on the library's patterns: ${patterns.map((v) => `${v.label} [${v.kind}] in ${screenFileOf(v)}`).join(", ")}. ${working} Start your reply with the concept in 5 lines (idea, composition, type, colour, signature moment) and build to it.`,
     "- Keep those pages and the frame: never rebuild, replace or wrap them in new markup, and never give a page its own copy of the data. Give them this product's look through the Styles page (src/styles/tokens.css) and the pieces' fl-* classes in src/styles/components.css, and their words through their props (title, description and the like).",
     custom.length
-      ? `- Compose each of these pages as a finished page in its screen file, ${data}: ${custom.map((v) => `${v.label} (${screenFileOf(v)})${v.kind === "landing" ? " [the landing page: FlowCode wrote a working start with the search, the ZIP code, the categories and the most liked; make it the product's own front page, with the PRD's promise and sections, keeping those working parts]" : ""}${v.purpose ? `: ${v.purpose}` : ""}`).join("; ")}.`
+      ? `- Compose each of these pages as a finished page in its screen file, ${data}: ${custom.map((v) => `${v.label} (${screenFileOf(v)})${v.kind === "landing" ? ` [the landing page: FlowCode wrote a working start (${lookupPurpose(m, "landing")?.replace(/^first page: /, "") ?? "its search and featured entries"}); make it the product's own front page from the PRD's screen brief, keeping those working parts]` : ""}${v.purpose ? `: ${v.purpose}` : ""}`).join("; ")}.`
       : "- There are no custom pages: every page is a working pattern.",
     "Run the app and look at each page at desktop and phone width before you finish.",
     appModelNote(m),

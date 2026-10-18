@@ -1,0 +1,153 @@
+{
+  "screens": [
+    {
+      "screen": "Home",
+      "picks": [
+        {
+          "ref": "p.lookup-catalog",
+          "id": "lookup-catalog",
+          "name": "Look-up catalog: search, categories, filters and where to find it",
+          "score": 20,
+          "why": "tags search, categories, ZIP code"
+        },
+        {
+          "ref": "p.lookup-entry",
+          "id": "lookup-entry",
+          "name": "Look-up entry: details, where to find it near you, like, save, share, ratings",
+          "score": 13,
+          "why": "tags zip code"
+        },
+        {
+          "ref": "p.lookup-frame",
+          "id": "lookup-frame",
+          "name": "Look-up frame: top bar with search and ZIP code, bottom bar on phones",
+          "score": 10,
+          "why": "its words"
+        },
+        {
+          "ref": "t.app-storefront",
+          "id": "app-storefront",
+          "name": "Shop home screen",
+          "score": 10,
+          "why": "tags search"
+        }
+      ],
+      "alternates": [
+        {
+          "ref": "p.lookup-catalog.categories",
+          "id": "lookup-catalog",
+          "name": "Look-up catalog: search, categories, filters and where to find it categories",
+          "score": 20,
+          "why": "tags search, categories, ZIP code"
+        },
+        {
+          "ref": "p.lookup-catalog.grid",
+          "id": "lookup-catalog",
+          "name": "Look-up catalog: search, categories, filters and where to find it grid",
+          "score": 20,
+          "why": "tags search, categories, ZIP code"
+        },
+        {
+          "ref": "p.lookup-entry.page",
+          "id": "lookup-entry",
+          "name": "Look-up entry: details, where to find it near you, like, save, share, ratings page",
+          "score": 12,
+          "why": "tags zip code, page"
+        },
+        {
+          "ref": "p.lookup-entry.ratings",
+          "id": "lookup-entry",
+          "name": "Look-up entry: details, where to find it near you, like, save, share, ratings ratings",
+          "score": 12,
+          "why": "tags zip code"
+        },
+        {
+          "ref": "p.place-finder",
+          "id": "place-finder",
+          "name": "Place finder: places near a ZIP code, on a list and a simple map",
+          "score": 10,
+          "why": "tags ZIP code"
+        },
+        {
+          "ref": "p.place-finder.page",
+          "id": "place-finder",
+          "name": "Place finder: places near a ZIP code, on a list and a simple map page",
+          "score": 10,
+          "why": "tags ZIP code, page"
+        }
+      ]
+    }
+  ],
+  "shared": [
+    {
+      "ref": "p.comment-box",
+      "id": "input-textarea",
+      "name": "Textareas",
+      "score": 14,
+      "why": "use case \"comments\""
+    },
+    {
+      "ref": "b.shop-product-cards",
+      "id": "shop-product-cards",
+      "name": "Product cards",
+      "score": 14,
+      "why": "use case \"featured products\""
+    },
+    {
+      "ref": "c.pagination",
+      "id": "pagination-variants",
+      "name": "Pagination: numbered, simple and load more",
+      "score": 14,
+      "why": "use case \"search results\""
+    },
+    {
+      "ref": "c.pagination.numbered",
+      "id": "pagination-variants",
+      "name": "Pagination: numbered, simple and load more numbered",
+      "score": 14,
+      "why": "use case \"search results\""
+    },
+    {
+      "ref": "c.pagination.simple",
+      "id": "pagination-variants",
+      "name": "Pagination: numbered, simple and load more simple",
+      "score": 14,
+      "why": "use case \"search results\""
+    },
+    {
+      "ref": "c.pagination.load-more",
+      "id": "pagination-variants",
+      "name": "Pagination: numbered, simple and load more load more",
+      "score": 14,
+      "why": "use case \"search results\""
+    },
+    {
+      "ref": "c.pagination@classic",
+      "id": "pagination",
+      "name": "Pagination (classic)",
+      "score": 14,
+      "why": "use case \"search results\""
+    },
+    {
+      "ref": "p.auth-form",
+      "id": "auth-sign-in",
+      "name": "Sign in",
+      "score": 13,
+      "why": "use case \"sign in\""
+    },
+    {
+      "ref": "p.auth-form.icon-reveal",
+      "id": "auth-icon-reveal",
+      "name": "Sign in (icon reveal)",
+      "score": 13,
+      "why": "use case \"sign in\""
+    },
+    {
+      "ref": "p.top-nav",
+      "id": "top-nav-variants",
+      "name": "Top nav: app bar, marketing header and the phone menu",
+      "score": 11,
+      "why": "its words"
+    }
+  ]
+}

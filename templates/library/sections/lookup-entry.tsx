@@ -58,6 +58,8 @@ export type LookupEntryProps = {
   shareScreen?: string;
   /** Still fetching: a skeleton in the page's shape. */
   loading?: boolean;
+  /** What this app leaves out (a slice without them): their controls and panels aren't shown. Saving always stays. */
+  omit?: Array<"likes" | "sharing" | "lists" | "places" | "ratings" | "comments">;
 };
 
 // ── Small helpers ──
@@ -1058,7 +1060,7 @@ function Skeleton() {
   );
 }
 
-export function LookupEntry({ lookup, id, onBack, backLabel, onOpenPlace, onOpenList, detailFields, badgeField, imageField, shareScreen, loading }: LookupEntryProps) {
+export function LookupEntry({ lookup, id, onBack, backLabel, onOpenPlace, onOpenList, detailFields, badgeField, imageField, shareScreen, loading, omit = [] }: LookupEntryProps) {
   const st = useLookup(lookup);
   const e = lookup.app.entity(lookup.config.entries);
   const rec: RecordData | undefined = (lookup.app.get().records[e.key] ?? []).find((r) => r.id === id);
@@ -1150,25 +1152,25 @@ export function LookupEntry({ lookup, id, onBack, backLabel, onOpenPlace, onOpen
       </header>
 
       <div className="fl-ent-actions" role="group" aria-label="Actions">
-        <Button variant="secondary" size={40} icon="heart" pressed={likes.mine} aria-label={`Like, ${plural(likes.count, "like", "likes")}`} onClick={() => lookup.toggleLike(rec.id)}>
+        {omit.includes("likes") ? null : <Button variant="secondary" size={40} icon="heart" pressed={likes.mine} aria-label={`Like, ${plural(likes.count, "like", "likes")}`} onClick={() => lookup.toggleLike(rec.id)}>
           {likes.mine ? "Liked" : "Like"} <span className="fl-ent-count">{likes.count.toLocaleString()}</span>
-        </Button>
+        </Button>}
         <Button variant="secondary" size={40} pressed={saves.mine} aria-label={`Save, ${plural(saves.count, "save", "saves")}`} onClick={() => lookup.toggleSave(rec.id)}>
           <Bookmark on={saves.mine} />
           {saves.mine ? "Saved" : "Save"} <span className="fl-ent-count">{saves.count.toLocaleString()}</span>
         </Button>
-        <ShareMenu title={title} url={url} text={[subtitle, about].filter(Boolean).join(". ").slice(0, 200)} />
-        <AddToList lookup={lookup} id={rec.id} title={title} />
+        {omit.includes("sharing") ? null : <ShareMenu title={title} url={url} text={[subtitle, about].filter(Boolean).join(". ").slice(0, 200)} />}
+        {omit.includes("lists") ? null : <AddToList lookup={lookup} id={rec.id} title={title} />}
       </div>
       {!st.signedIn ? (
         <p className="fl-ent-signin">
           <Icon name="lock" />
-          <span>Sign in to like, save, rate it or add it to a list.</span>
+          <span>Sign in to {[!omit.includes("likes") && "like", "save", !omit.includes("ratings") && "rate it", !omit.includes("lists") && "add it to a list"].filter(Boolean).join(", ").replace(/, ([^,]*)$/, " or $1")}.</span>
           <Button variant="primary" size={32} onClick={() => lookup.signIn()}>
             Sign in
           </Button>
         </p>
-      ) : inLists.length ? (
+      ) : inLists.length && !omit.includes("lists") ? (
         <p className="fl-ent-inlists">
           <Icon name="folder" />
           <span>In your lists:</span>
@@ -1191,8 +1193,8 @@ export function LookupEntry({ lookup, id, onBack, backLabel, onOpenPlace, onOpen
         </p>
       ) : null}
 
-      <WhereToFind lookup={lookup} id={rec.id} onOpenPlace={onOpenPlace} />
-      <RatingsPanel lookup={lookup} id={rec.id} />
+      {omit.includes("places") ? null : <WhereToFind lookup={lookup} id={rec.id} onOpenPlace={onOpenPlace} />}
+      {omit.includes("ratings") && omit.includes("comments") ? null : <RatingsPanel lookup={lookup} id={rec.id} />}
     </article>
   );
 }

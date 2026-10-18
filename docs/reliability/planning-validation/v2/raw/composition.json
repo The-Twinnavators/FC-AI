@@ -1,0 +1,50 @@
+{
+  "entries": [
+    {
+      "page": "Home",
+      "section": "Search and Categories",
+      "ref": "p.lookup-catalog",
+      "version": "base",
+      "mode": "whole",
+      "why": "Enable shopper to search or browse by category.",
+      "adaptations": [],
+      "dependencies": [
+        "c.button",
+        "c.search.bar",
+        "c.select",
+        "c.chip.input",
+        "c.empty-state"
+      ],
+      "pieceId": "lookup-catalog",
+      "appFile": "src/sections/LookupCatalog.tsx",
+      "by": "plan"
+    },
+    {
+      "page": "Home",
+      "section": "Featured Products",
+      "ref": "p.lookup-catalog.grid",
+      "version": "base",
+      "mode": "whole",
+      "why": "Show top-rated or popular products to attract attention.",
+      "adaptations": [],
+      "dependencies": [
+        "c.button",
+        "c.search.bar",
+        "c.select",
+        "c.chip.input",
+        "c.empty-state"
+      ],
+      "pieceId": "lookup-catalog",
+      "appFile": "src/sections/LookupCatalog.tsx",
+      "by": "plan"
+    }
+  ],
+  "gaps": [
+    {
+      "page": "Home",
+      "section": "App Introduction",
+      "reason": "t.app-storefront belongs on app screens, not on a marketing page page: build this section from core parts instead"
+    }
+  ],
+  "changes": []
+}

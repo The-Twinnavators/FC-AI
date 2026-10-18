@@ -154,7 +154,7 @@ describe("writing the checklist from a PRD", () => {
     const [step] = stepsFromGroups([[item]], "layout");
     expect(step.acceptanceCriteria.filter((c) => c.check.type === "file_contains").map((c) => (c.check as { text: string }).text)).toEqual(["Can't divide by zero", "0.3"]);
     // The described checks are still tests the step writes.
-    expect(step.objective).toContain("look at + → check that has the accent colour (a description of what to verify, not text to look for)");
+    expect(step.objective).toContain("look at + → check that has the accent colour (an outcome to verify through what the person sees");
     // Exact values stay "the app shows".
     expect(step.objective).toContain('press 1 ÷ 0 = → the app shows "Can\'t divide by zero"');
     expect(step.objective).toMatch(/never compare a value with itself/);

@@ -1,0 +1,770 @@
+{
+  "runId": "run_0561a54a50d84c4fb1bb",
+  "createdAt": "2026-10-18T11:04:02.656Z",
+  "requirements": [
+    {
+      "id": "R1",
+      "text": "A shopper can find a product by name or brand in a few seconds.",
+      "section": "2. Goals",
+      "code": []
+    },
+    {
+      "id": "R2",
+      "text": "The product page says plainly why the product qualifies (its certification) and lists its ingredients.",
+      "section": "2. Goals",
+      "code": []
+    },
+    {
+      "id": "R3",
+      "text": "A shopper can save a product and come back to it later on the Saved page.",
+      "section": "2. Goals",
+      "code": []
+    },
+    {
+      "id": "R4",
+      "text": "Searches, opens products and saves them.",
+      "section": "3. People",
+      "code": []
+    },
+    {
+      "id": "R5",
+      "text": "Searches and opens products; saving asks them to sign in (one tap in the prototype).",
+      "section": "3. People",
+      "code": []
+    },
+    {
+      "id": "R6",
+      "text": "What Clean Cart is in one line, a search box, and a few featured products.",
+      "section": "4. Main screens",
+      "code": []
+    },
+    {
+      "id": "R7",
+      "text": "Results for a search across product names and brands; a clear no-results message.",
+      "section": "4. Main screens",
+      "code": []
+    },
+    {
+      "id": "R8",
+      "text": "One product: name, brand, category, certification, ingredients and a Save button.",
+      "section": "4. Main screens",
+      "code": []
+    },
+    {
+      "id": "R9",
+      "text": "The products the member saved, each opening its product page.",
+      "section": "4. Main screens",
+      "code": []
+    },
+    {
+      "id": "R10",
+      "text": "Name, brand, category, certification, ingredients, short description",
+      "section": "Products",
+      "code": []
+    },
+    {
+      "id": "R11",
+      "text": "Which stores carry it",
+      "section": "Products",
+      "code": []
+    },
+    {
+      "id": "R12",
+      "text": "Name, ZIP code",
+      "section": "Stores",
+      "code": []
+    },
+    {
+      "id": "R13",
+      "text": "R1: The Home page has a search box; submitting it shows the Search page with the results.",
+      "section": "7. Requirements",
+      "code": []
+    },
+    {
+      "id": "R14",
+      "text": "R2: Search matches product names and brands, case-insensitively (\"oat\" finds \"Oat Milk Original\").",
+      "section": "7. Requirements",
+      "code": []
+    },
+    {
+      "id": "R15",
+      "text": "R3: A search with no match says so and suggests trying another word.",
+      "section": "7. Requirements",
+      "code": []
+    },
+    {
+      "id": "R16",
+      "text": "R4: The Product page shows the product's name, brand, category, certification and ingredients from its record.",
+      "section": "7. Requirements",
+      "code": []
+    },
+    {
+      "id": "R17",
+      "text": "R5: The Product page has a Save button; a signed-in member's Save adds the product to Saved, and pressing it again removes it.",
+      "section": "7. Requirements",
+      "code": []
+    },
+    {
+      "id": "R18",
+      "text": "R6: The Saved page lists the saved products by name and brand; each opens its Product page.",
+      "section": "7. Requirements",
+      "code": []
+    },
+    {
+      "id": "R19",
+      "text": "R7: Saved products are still saved after the page is reloaded (kept in this browser).",
+      "section": "7. Requirements",
+      "code": []
+    },
+    {
+      "id": "R20",
+      "text": "Non-GMO Project Verified",
+      "section": "8. Sample data",
+      "code": []
+    },
+    {
+      "id": "R21",
+      "text": "Wheat flour, water, salt, sourdough starter",
+      "section": "8. Sample data",
+      "code": []
+    },
+    {
+      "id": "R22",
+      "text": "Non-GMO Project Verified",
+      "section": "8. Sample data",
+      "code": []
+    },
+    {
+      "id": "R23",
+      "text": "Little Sprout",
+      "section": "8. Sample data",
+      "code": []
+    },
+    {
+      "id": "R24",
+      "text": "Black beans, corn, sunflower oil, salt",
+      "section": "8. Sample data",
+      "code": []
+    },
+    {
+      "id": "R25",
+      "text": "Cultured pasteurized milk",
+      "section": "8. Sample data",
+      "code": []
+    }
+  ],
+  "filledIn": [
+    "R12"
+  ],
+  "items": [
+    {
+      "id": "plan.step.scaffold",
+      "title": "Scaffold from verified starter template",
+      "description": "Copy the verified React starter template into the workspace.",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "."
+      ],
+      "stepKey": "scaffold",
+      "aiPrompt": "# Scaffold from verified starter template\n\n## Goal\nCopy the verified React starter template into the workspace.\n\n## Context\nCopy the verified React starter template into the workspace.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Copy the verified React starter template into the workspace.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- package.json exists\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_61e3a2798ac94b98ad25"
+    },
+    {
+      "id": "plan.step.deps",
+      "title": "Install dependencies (approved)",
+      "description": "Install declared dependencies after user approval.",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "package-lock.json"
+      ],
+      "stepKey": "deps",
+      "aiPrompt": "# Install dependencies (approved)\n\n## Goal\nInstall declared dependencies after user approval.\n\n## Context\nInstall declared dependencies after user approval.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Install declared dependencies after user approval.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- node_modules installed\n- Starter typechecks\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_40eefb8e40814bfe85ed"
+    },
+    {
+      "id": "plan.step.refs",
+      "title": "Import spec references",
+      "description": "Place the supplied PRD, HTML, CSS and JSON files in the workspace for the agents to read.",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "spec/",
+        "src/content/"
+      ],
+      "stepKey": "refs",
+      "aiPrompt": "# Import spec references\n\n## Goal\nPlace the supplied PRD, HTML, CSS and JSON files in the workspace for the agents to read.\n\n## Context\nPlace the supplied PRD, HTML, CSS and JSON files in the workspace for the agents to read.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Place the supplied PRD, HTML, CSS and JSON files in the workspace for the agents to read.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- clean-cart-slice-prd.md imported\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_8407b27d501f4728a1ee"
+    },
+    {
+      "id": "plan.step.style",
+      "title": "Capture the style",
+      "description": "Apply the direction you selected (on the plan card or the Design tab); with none selected, keep the base styling and pass the industry design direction to the design steps as advice.",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "src/styles/tokens.css",
+        "src/styles/components.css"
+      ],
+      "stepKey": "style",
+      "aiPrompt": "# Capture the style\n\n## Goal\nApply the direction you selected (on the plan card or the Design tab); with none selected, keep the base styling and pass the industry design direction to the design steps as advice.\n\n## Context\nApply the direction you selected (on the plan card or the Design tab); with none selected, keep the base styling and pass the industry design direction to the design steps as advice.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Apply the direction you selected (on the plan card or the Design tab); with none selected, keep the base styling and pass the industry design direction to the design steps as advice.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- The design tokens are in place\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_5456051f9b7b462c8ff5"
+    },
+    {
+      "id": "plan.step.review",
+      "title": "Review the prototype plan and the design",
+      "description": "Wait for the person to approve the prototype plan and the design set on the Styles page.",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [],
+      "stepKey": "review",
+      "aiPrompt": "# Review the prototype plan and the design\n\n## Goal\nWait for the person to approve the prototype plan and the design set on the Styles page.\n\n## Context\nWait for the person to approve the prototype plan and the design set on the Styles page.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Wait for the person to approve the prototype plan and the design set on the Styles page.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- The starter is in place for the Styles page\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_e66b395bd21a49ea8e82"
+    },
+    {
+      "id": "plan.step.fc_layouts",
+      "title": "Add ready-made screen layouts",
+      "description": "Copy FlowCode's ready-made layouts into src/screens/ for the coder to customise: list-cards.",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "src/screens/ListScreen.tsx",
+        ".flowcode/layouts/"
+      ],
+      "stepKey": "fc_layouts",
+      "aiPrompt": "# Add ready-made screen layouts\n\n## Goal\nCopy FlowCode's ready-made layouts into src/screens/ for the coder to customise: list-cards.\n\n## Context\nCopy FlowCode's ready-made layouts into src/screens/ for the coder to customise: list-cards.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Copy FlowCode's ready-made layouts into src/screens/ for the coder to customise: list-cards.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- list layout added\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "plan.step.fc_sections",
+      "title": "Add library sections",
+      "description": "Copy the library sections this spec calls for into src/sections/ as starting points: navbar-simple (A website: brand, page links and one main action.); hero-centered (A website's opening: its promise and main action (variant fixed for this project).); cta-banner (A website closes with one invitation",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "src/sections/NavbarSimple.tsx",
+        "src/sections/HeroCentered.tsx",
+        "src/sections/CtaBanner.tsx",
+        "src/sections/FooterSimple.tsx",
+        "src/styles/library.css",
+        ".flowcode/sections/"
+      ],
+      "stepKey": "fc_sections",
+      "aiPrompt": "# Add library sections\n\n## Goal\nCopy the library sections this spec calls for into src/sections/ as starting points: navbar-simple (A website: brand, page links and one main action.); hero-centered (A website's opening: its promise and main action (variant fixed for this project).); cta-banner (A website closes with one invitation to act.); footer-simple (A website's footer, sized to how many pages it links to.)\n\n## Context\nCopy the library sections this spec calls for into src/sections/ as starting points: navbar-simple (A website: brand, page links and one main action.); hero-centered (A website's opening: its promise and main action (variant fixed for this project).); cta-banner (A website closes with one invitation to act.); footer-simple (A website's footer, sized to how many pages it links to.)\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Copy the library sections this spec calls for into src/sections/ as starting points: navbar-simple (A website: brand, page links and one main action.); hero-centered (A website's opening: its promise and main action (variant fixed for this project).); cta-banner (A website closes with one invitation to act.); footer-simple (A website's footer, sized to how many pages it links to.)\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Library styles added\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_ddf84d7c31524fc5b656"
+    },
+    {
+      "id": "plan.step.layout",
+      "title": "App layout and navigation",
+      "description": "Build the app's structure before any feature (follow the app-layout-navigation and ux-design-principles skills): in src/App.tsx use the ready-made <AppShell> from src/components/ui (it renders the header with the product name from the spec, a <nav> to each main screen the spec describes, and a <main",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "src/App.tsx",
+        "src/screens/",
+        "src/styles/"
+      ],
+      "stepKey": "layout",
+      "aiPrompt": "# App layout and navigation\n\n## Goal\nBuild the app's structure before any feature (follow the app-layout-navigation and ux-design-principles skills): in src/App.tsx use the ready-made <AppShell> from src/components/ui (it renders the header with the product name from the spec, a <nav> to each main screen the spec describes, and a <main> showing ONE screen at a time) with useScreen() from src/lib/screens.ts for the current screen.\n\n## Context\nBuild the app's structure before any feature (follow the app-layout-navigation and ux-design-principles skills): in src/App.tsx use the ready-made <AppShell> from src/components/ui (it renders the header with the product name from the spec, a <nav> to each main screen the spec describes, and a <main> showing ONE screen at a time) with useScreen() from src/lib/screens.ts for the current screen. App takes no props (src/main.tsx renders <App />), and AppShell draws the header and nav itself, so write no header, nav or links of your own. Screens: exactly the screens the spec names, no others (no Settings, Home, Profile or Sign-in screen unless the spec asks for one; a one-screen app has one entry). Follow the spec's own layout for each screen; a layout drawn in the spec is followed exactly (order, grouping, positions). A single-screen tool (a calculator, a timer, a converter, a game) is the tool itself filling the page: no PageHeader, sections or helper text around it, and no navigation tabs (with one screen in SCREENS, AppShell shows none). The shape, with the spec's own screen names in place of the <angle-bracket> parts: const SCREENS = [{ id: \"<first-screen-id>\", label: \"<First screen name>\" }]; const SCREEN_IDS = SCREENS.map((s) => s.id); export default function App() { const [current, go] = useScreen(SCREEN_IDS); return <AppShell name=\"<Product name>\" screens={SCREENS} current={current} onNavigate={go}><FirstScreen /></AppShell>; } (with more than one screen, render the one whose id is current). Each screen starts with <PageHeader> (its one h1, a short description and its main action) and uses Section, Card, Button, Field, EmptyState and Skeleton from src/components/ui rather than new one-off markup. Create one component per screen in src/screens/ with its real title and a short, real description of what the user does there (from the spec, no placeholder wording), and a first screen that tells a new user what to do first. Style everything with the design tokens in src/styles/tokens.css. Ready-made screens from FlowCode's layouts are already in src/screens/: wire the ones the spec needs into the app shell as they are (the next step, \"Design the main screens\", replaces their sample content) and delete the ones it doesn't use.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Build the app's structure before any feature (follow the app-layout-navigation and ux-design-principles skills): in src/App.tsx use the ready-made <AppShell> from src/components/ui (it renders the header with the product name from the spec, a <nav> to each main screen the spec describes, and a <main> showing ONE screen at a time) with useScreen() from src/lib/screens.ts for the current screen. App takes no props (src/main.tsx renders <App />), and AppShell draws the header and nav itself, so write no header, nav or links of your own. Screens: exactly the screens the spec names, no others (no Settings, Home, Profile or Sign-in screen unless the spec asks for one; a one-screen app has one entry). Follow the spec's own layout for each screen; a layout drawn in the spec is followed exactly (order, grouping, positions). A single-screen tool (a calculator, a timer, a converter, a game) is the tool itself filling the page: no PageHeader, sections or helper text around it, and no navigation tabs (with one screen in SCREENS, AppShell shows none). The shape, with the spec's own screen names in place of the <angle-bracket> parts: const SCREENS = [{ id: \"<first-screen-id>\", label: \"<First screen name>\" }]; const SCREEN_IDS = SCREENS.map((s) => s.id); export default function App() { const [current, go] = useScreen(SCREEN_IDS); return <AppShell name=\"<Product name>\" screens={SCREENS} current={current} onNavigate={go}><FirstScreen /></AppShell>; } (with more than one screen, render the one whose id is current). Each screen starts with <PageHeader> (its one h1, a short description and its main action) and uses Section, Card, Button, Field, EmptyState and Skeleton from src/components/ui rather than new one-off markup. Create one component per screen in src/screens/ with its real title and a short, real description of what the user does there (from the spec, no placeholder wording), and a first screen that tells a new user what to do first. Style everything with the design tokens in src/styles/tokens.css. Ready-made screens from FlowCode's layouts are already in src/screens/: wire the ones the spec needs into the app shell as they are (the next step, \"Design the main screens\", replaces their sample content) and delete the ones it doesn't use.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- The app uses the app shell (header and navigation)\n- Typecheck passes\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_bc1b7f1a4100430d8f41"
+    },
+    {
+      "id": "plan.step.screens",
+      "title": "Design the main screens",
+      "description": "Design each main screen like a senior product designer whose work is good enough for a studio portfolio (the best of Dribbble and Behance), and still easy to use: one finished composition per screen, before any feature is added (follow the art-direction skill, then the design-system and ux skills, a",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "src/screens/",
+        "src/sim/",
+        "src/styles/"
+      ],
+      "stepKey": "screens",
+      "aiPrompt": "# Design the main screens\n\n## Goal\nDesign each main screen like a senior product designer whose work is good enough for a studio portfolio (the best of Dribbble and Behance), and still easy to use: one finished composition per screen, before any feature is added (follow the art-direction skill, then the design-system and ux skills, and the Styles page in src/styles/tokens.css).\n\n## Context\nDesign each main screen like a senior product designer whose work is good enough for a studio portfolio (the best of Dribbble and Behance), and still easy to use: one finished composition per screen, before any feature is added (follow the art-direction skill, then the design-system and ux skills, and the Styles page in src/styles/tokens.css). Start your reply with the concept in 5 lines (idea, composition, type, colour, signature moment) and build to it. For each screen in src/screens/, lay out everything the spec says the user sees and does there, the way a good product in its category does it (a calendar like a good calendar app, a store like a good store):\n- The app's frame, designed for this product: the kit's AppShell (a white bar with a tab row) is only a temporary frame and is not a design. Choose the navigation pattern the product needs (a sidebar for a tool with several sections, a branded top bar, a bottom tab bar on phones, or no navigation for a one-screen app) and either restyle AppShell through its ui-shell__* classes in src/styles/components.css or replace it with the product's own frame component in src/components/. The frame carries the brand: logo mark, colour and type from the Styles page.\n- Real imagery: use find_image for every photo the design calls for (a hero, people, places, products or food), saved into public/images with its credit; show it with real alt text and object-fit: cover. Icons from lucide-react, illustrations as inline SVG. Never a grey box or an empty image frame.\n- One page header: the screen's title and its ONE primary action (e.g. \"New event\").\n- One toolbar for the screen's controls: view switches as a segmented control or tabs, never full-width buttons; date or page navigation grouped with the current label; filters and search only when the spec asks for them.\n- The main content (list, grid, board, form) filled with realistic sample data: seed src/sim collections with createCollection (8 to 20 records with real-sounding names, dates around today) and read them with useCollection, so the first screen looks like the product in use.\n- Each action once, where people expect it: never the same button or label on every item (clicking a day or a row opens it), no helper, status or \"0 items\" text the user doesn't need, and only the account control that fits (signed in shows the user and \"Sign out\"; never \"Sign in\" next to it).\n- Accounts (when the spec has them): sign-in is a demo, with the demo account's email and password already filled in and one tap to go in (no login logic). Signed out, the app shows that sign-in screen on its own (no nav to screens that need an account); signed in, the nav lists the app's screens and the header actions hold the account and \"Sign out\". Sign in is never a nav tab.\n- Designed for this product, not a template: no marketing hero, promise or feature checklist on a task screen (sign in, settings, the main tool) unless the spec asks for one.\n- Designed empty, loading and error states, used only when there really is no data.\nLater steps add behaviour into this design, so give each feature a place (a dialog for editing, a details panel) without building its logic here. Run the app and look at each screen at desktop and phone width before you finish. Ready-made screens are already in the app: src/screens/ListScreen.tsx (Cards version); other version: .flowcode/layouts/list-rows.tsx.txt (Rows: records compared field by field (orders, requests, entries, logs): search, filters and a table). Each is a starting point, not the design: keep its building blocks, replace every value in its SAMPLE object with the spec's real content and data (then delete the \"flowcode:sample\" comment), and reshape it for this product and the screen's one job. Remove every section the spec doesn't ask for (a sign-in screen is the form, not a marketing promise or a feature checklist, unless the spec describes one), and add the spec's own sections with the same building blocks. It should look made for this app, not like a template with the blanks filled in. To switch to another version, copy its .tsx.txt file over the screen file. Delete a ready-made screen the app doesn't use. Library sections are in src/sections/ (NavbarSimple.tsx: A website: brand, page links and one main action.; HeroCentered.tsx: A website's opening: its promise and main action (variant fixed for this project).; CtaBanner.tsx: A website closes with one invitation to act.; FooterSimple.tsx: A website's footer, sized to how many pages it links to.). They are starting points, not the design: use one only where it fits the screen, replace every value in its SAMPLE object with the spec's real content (then delete the \"flowcode:sample\" comment), reshape it for this product, and delete any you don't use. Compose your own where none fits. They style themselves from src/styles/library.css, which reads the design tokens; restyle through the tokens, not by editing library.css. Every other library section is kept in .flowcode/sections/ if a screen needs one: .flowcode/sections/INDEX.md lists each with its use cases and jobs to be done, so match a screen by what the person there is trying to do. Page backgrounds are one class on a section or the page (fl-bg-soft, -mesh, -glow, -aurora, -split, -ink for gradients; fl-bg-dots, -grid, -stripes, -waves, -topo, -grain for patterns); use at most one or two where the design calls for atmosphere, never on every section.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Design each main screen like a senior product designer whose work is good enough for a studio portfolio (the best of Dribbble and Behance), and still easy to use: one finished composition per screen, before any feature is added (follow the art-direction skill, then the design-system and ux skills, and the Styles page in src/styles/tokens.css). Start your reply with the concept in 5 lines (idea, composition, type, colour, signature moment) and build to it. For each screen in src/screens/, lay out everything the spec says the user sees and does there, the way a good product in its category does it (a calendar like a good calendar app, a store like a good store):\n- The app's frame, designed for this product: the kit's AppShell (a white bar with a tab row) is only a temporary frame and is not a design. Choose the navigation pattern the product needs (a sidebar for a tool with several sections, a branded top bar, a bottom tab bar on phones, or no navigation for a one-screen app) and either restyle AppShell through its ui-shell__* classes in src/styles/components.css or replace it with the product's own frame component in src/components/. The frame carries the brand: logo mark, colour and type from the Styles page.\n- Real imagery: use find_image for every photo the design calls for (a hero, people, places, products or food), saved into public/images with its credit; show it with real alt text and object-fit: cover. Icons from lucide-react, illustrations as inline SVG. Never a grey box or an empty image frame.\n- One page header: the screen's title and its ONE primary action (e.g. \"New event\").\n- One toolbar for the screen's controls: view switches as a segmented control or tabs, never full-width buttons; date or page navigation grouped with the current label; filters and search only when the spec asks for them.\n- The main content (list, grid, board, form) filled with realistic sample data: seed src/sim collections with createCollection (8 to 20 records with real-sounding names, dates around today) and read them with useCollection, so the first screen looks like the product in use.\n- Each action once, where people expect it: never the same button or label on every item (clicking a day or a row opens it), no helper, status or \"0 items\" text the user doesn't need, and only the account control that fits (signed in shows the user and \"Sign out\"; never \"Sign in\" next to it).\n- Accounts (when the spec has them): sign-in is a demo, with the demo account's email and password already filled in and one tap to go in (no login logic). Signed out, the app shows that sign-in screen on its own (no nav to screens that need an account); signed in, the nav lists the app's screens and the header actions hold the account and \"Sign out\". Sign in is never a nav tab.\n- Designed for this product, not a template: no marketing hero, promise or feature checklist on a task screen (sign in, settings, the main tool) unless the spec asks for one.\n- Designed empty, loading and error states, used only when there really is no data.\nLater steps add behaviour into this design, so give each feature a place (a dialog for editing, a details panel) without building its logic here. Run the app and look at each screen at desktop and phone width before you finish. Ready-made screens are already in the app: src/screens/ListScreen.tsx (Cards version); other version: .flowcode/layouts/list-rows.tsx.txt (Rows: records compared field by field (orders, requests, entries, logs): search, filters and a table). Each is a starting point, not the design: keep its building blocks, replace every value in its SAMPLE object with the spec's real content and data (then delete the \"flowcode:sample\" comment), and reshape it for this product and the screen's one job. Remove every section the spec doesn't ask for (a sign-in screen is the form, not a marketing promise or a feature checklist, unless the spec describes one), and add the spec's own sections with the same building blocks. It should look made for this app, not like a template with the blanks filled in. To switch to another version, copy its .tsx.txt file over the screen file. Delete a ready-made screen the app doesn't use. Library sections are in src/sections/ (NavbarSimple.tsx: A website: brand, page links and one main action.; HeroCentered.tsx: A website's opening: its promise and main action (variant fixed for this project).; CtaBanner.tsx: A website closes with one invitation to act.; FooterSimple.tsx: A website's footer, sized to how many pages it links to.). They are starting points, not the design: use one only where it fits the screen, replace every value in its SAMPLE object with the spec's real content (then delete the \"flowcode:sample\" comment), reshape it for this product, and delete any you don't use. Compose your own where none fits. They style themselves from src/styles/library.css, which reads the design tokens; restyle through the tokens, not by editing library.css. Every other library section is kept in .flowcode/sections/ if a screen needs one: .flowcode/sections/INDEX.md lists each with its use cases and jobs to be done, so match a screen by what the person there is trying to do. Page backgrounds are one class on a section or the page (fl-bg-soft, -mesh, -glow, -aurora, -split, -ink for gradients; fl-bg-dots, -grid, -stripes, -waves, -topo, -grain for patterns); use at most one or two where the design calls for atmosphere, never on every section.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Typecheck passes\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_bc7bba5640264ae88aa0"
+    },
+    {
+      "id": "plan.requirements.home-screen-with-search",
+      "title": "Home Screen with Search",
+      "description": "The Home screen displays a search box that navigates to the Search page when submitted. Covers R13, R4.",
+      "categoryId": "spec.requirements",
+      "categoryTitle": "Requirements",
+      "priority": "high",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [
+        "R13",
+        "R4"
+      ],
+      "files": [
+        "src/screens/HomeScreen.tsx"
+      ],
+      "tests": [
+        {
+          "behaviour": "type 'flour' into the search box and submit",
+          "expect": "Search screen with flour-related products"
+        },
+        {
+          "behaviour": "click on a product from search results",
+          "expect": "Product Detail screen for that product"
+        }
+      ],
+      "aiPrompt": "# Home Screen with Search\n\n## Goal\nThe Home screen displays a search box that navigates to the Search page when submitted.\n\n## Context\nPRD section: Requirements. This task implements these requirements (quoted from the PRD in spec/):\n- R13: R1: The Home page has a search box; submitting it shows the Search page with the results.\n- R4: Searches, opens products and saves them.\nFiles: src/screens/HomeScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create a search input field on the Home screen\n2. Add an event handler for form submission\n3. Navigate to the Search screen with the search term as a parameter\n4. Display the search results on the Search screen\n5. Ensure the search box is visible and functional\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: type 'flour' into the search box and submit → shows \"Search screen with flour-related products\"\n- Test: click on a product from search results → shows \"Product Detail screen for that product\"\n- The search box appears on the Home screen\n- Submitting the search navigates to the Search page\n- Search results are displayed correctly\n- R13 is implemented: R1: The Home page has a search box; submitting it shows the Search page with the results.\n- R4 is implemented: Searches, opens products and saves them.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "stepKey": "lrc_1",
+      "taskId": "task_5384066f269849c5afff"
+    },
+    {
+      "id": "plan.main-screens.product-detail-page",
+      "title": "Product Detail Page",
+      "description": "The Product Detail page displays all required fields including name, brand, category, certification, ingredients and a Save button. Covers R8, R10, R11, R16.",
+      "categoryId": "spec.main-screens",
+      "categoryTitle": "Main screens",
+      "priority": "high",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [
+        "R8",
+        "R10",
+        "R11",
+        "R16"
+      ],
+      "files": [
+        "src/screens/ProductDetailScreen.tsx"
+      ],
+      "tests": [
+        {
+          "behaviour": "open a product detail page",
+          "expect": "Product name, brand, category, certification and ingredients displayed"
+        },
+        {
+          "behaviour": "click the Save button when not signed in",
+          "expect": "Sign-in prompt appears"
+        }
+      ],
+      "aiPrompt": "# Product Detail Page\n\n## Goal\nThe Product Detail page displays all required fields including name, brand, category, certification, ingredients and a Save button.\n\n## Context\nPRD section: Main screens. This task implements these requirements (quoted from the PRD in spec/):\n- R8: One product: name, brand, category, certification, ingredients and a Save button.\n- R10: Name, brand, category, certification, ingredients, short description\n- R11: Which stores carry it\n- R16: R4: The Product page shows the product's name, brand, category, certification and ingredients from its record.\nFiles: src/screens/ProductDetailScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create the Product Detail screen component\n2. Display product name, brand, category, certification, and ingredients\n3. Add a Save button that triggers sign-in if user is not logged in\n4. Show which stores carry the product\n5. Ensure all required fields are visible\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: open a product detail page → shows \"Product name, brand, category, certification and ingredients displayed\"\n- Test: click the Save button when not signed in → shows \"Sign-in prompt appears\"\n- Product name is displayed correctly\n- Brand information is shown\n- Category, certification and ingredients are visible\n- Save button appears on the screen\n- R8 is implemented: One product: name, brand, category, certification, ingredients and a Save button.\n- R10 is implemented: Name, brand, category, certification, ingredients, short description\n- R11 is implemented: Which stores carry it\n- R16 is implemented: R4: The Product page shows the product's name, brand, category, certification and ingredients from its record.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "stepKey": "lrc_2",
+      "taskId": "task_6e3f3cc7882442c69b7f"
+    },
+    {
+      "id": "plan.people.saved-items-functionality",
+      "title": "Saved Items Functionality",
+      "description": "Users can save products from the Product Detail page and view them on the Saved screen. Covers R5.",
+      "categoryId": "spec.people",
+      "categoryTitle": "People",
+      "priority": "high",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [
+        "R5"
+      ],
+      "files": [
+        "src/screens/SavedScreen.tsx",
+        "src/screens/ProductDetailScreen.tsx"
+      ],
+      "tests": [
+        {
+          "behaviour": "save a product from Product Detail page",
+          "expect": "Product appears on Saved screen"
+        },
+        {
+          "behaviour": "click Save button without being signed in",
+          "expect": "Sign-in prompt appears"
+        }
+      ],
+      "aiPrompt": "# Saved Items Functionality\n\n## Goal\nUsers can save products from the Product Detail page and view them on the Saved screen.\n\n## Context\nPRD section: People. This task implements these requirements (quoted from the PRD in spec/):\n- R5: Searches and opens products; saving asks them to sign in (one tap in the prototype).\nFiles: src/screens/SavedScreen.tsx, src/screens/ProductDetailScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Implement saving logic in Product Detail screen\n2. Add a Save button that stores product to user's saved items\n3. Create Saved screen to display saved products\n4. Ensure saved items persist across sessions\n5. Verify that saved items appear on the Saved screen\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: save a product from Product Detail page → shows \"Product appears on Saved screen\"\n- Test: click Save button without being signed in → shows \"Sign-in prompt appears\"\n- Save button saves product to user's list\n- Saved items appear on the Saved screen\n- Items remain saved after navigation\n- User is prompted to sign in when saving\n- R5 is implemented: Searches and opens products; saving asks them to sign in (one tap in the prototype).\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "stepKey": "lrc_3",
+      "taskId": "task_3986dadf5234486eb3c8"
+    },
+    {
+      "id": "spec.R20",
+      "title": "Non-GMO Project Verified",
+      "description": "Non-GMO Project Verified",
+      "categoryId": "spec.sample-data",
+      "categoryTitle": "Sample data",
+      "priority": "medium",
+      "executionType": "review",
+      "launchGate": false,
+      "covers": [
+        "R20"
+      ],
+      "files": [],
+      "aiPrompt": "# Non-GMO Project Verified\n\n## Goal\nEvidence for a person on whether the app meets R20.\n\n## Context\nPRD section: Sample data. Requirement R20, quoted from the PRD:\n\"Non-GMO Project Verified\"\nWhy it is not a build step: Sample data requirements are for reference only and don't require code implementation.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the code, screens or documents this requirement is about.\n2. Record what you found for each part of it, with file and line.\n3. Write the steps a person follows to confirm the rest.\n\n## Constraints\n- Report only; do not change code in this task.\n- Do not mark this item complete: a person signs it off.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Each part of the requirement has a finding: met, not met (with file and line) or needs a person.\n- The steps for a person name real screens and controls.\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "spec.R21",
+      "title": "Wheat flour, water, salt, sourdough starter",
+      "description": "Wheat flour, water, salt, sourdough starter",
+      "categoryId": "spec.sample-data",
+      "categoryTitle": "Sample data",
+      "priority": "medium",
+      "executionType": "review",
+      "launchGate": false,
+      "covers": [
+        "R21"
+      ],
+      "files": [],
+      "aiPrompt": "# Wheat flour, water, salt, sourdough starter\n\n## Goal\nEvidence for a person on whether the app meets R21.\n\n## Context\nPRD section: Sample data. Requirement R21, quoted from the PRD:\n\"Wheat flour, water, salt, sourdough starter\"\nWhy it is not a build step: Sample data requirements are for reference only and don't require code implementation.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the code, screens or documents this requirement is about.\n2. Record what you found for each part of it, with file and line.\n3. Write the steps a person follows to confirm the rest.\n\n## Constraints\n- Report only; do not change code in this task.\n- Do not mark this item complete: a person signs it off.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Each part of the requirement has a finding: met, not met (with file and line) or needs a person.\n- The steps for a person name real screens and controls.\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "spec.R22",
+      "title": "Non-GMO Project Verified",
+      "description": "Non-GMO Project Verified",
+      "categoryId": "spec.sample-data",
+      "categoryTitle": "Sample data",
+      "priority": "medium",
+      "executionType": "review",
+      "launchGate": false,
+      "covers": [
+        "R22"
+      ],
+      "files": [],
+      "aiPrompt": "# Non-GMO Project Verified\n\n## Goal\nEvidence for a person on whether the app meets R22.\n\n## Context\nPRD section: Sample data. Requirement R22, quoted from the PRD:\n\"Non-GMO Project Verified\"\nWhy it is not a build step: Sample data requirements are for reference only and don't require code implementation.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the code, screens or documents this requirement is about.\n2. Record what you found for each part of it, with file and line.\n3. Write the steps a person follows to confirm the rest.\n\n## Constraints\n- Report only; do not change code in this task.\n- Do not mark this item complete: a person signs it off.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Each part of the requirement has a finding: met, not met (with file and line) or needs a person.\n- The steps for a person name real screens and controls.\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "spec.R23",
+      "title": "Little Sprout",
+      "description": "Little Sprout",
+      "categoryId": "spec.sample-data",
+      "categoryTitle": "Sample data",
+      "priority": "medium",
+      "executionType": "review",
+      "launchGate": false,
+      "covers": [
+        "R23"
+      ],
+      "files": [],
+      "aiPrompt": "# Little Sprout\n\n## Goal\nEvidence for a person on whether the app meets R23.\n\n## Context\nPRD section: Sample data. Requirement R23, quoted from the PRD:\n\"Little Sprout\"\nWhy it is not a build step: Sample data requirements are for reference only and don't require code implementation.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the code, screens or documents this requirement is about.\n2. Record what you found for each part of it, with file and line.\n3. Write the steps a person follows to confirm the rest.\n\n## Constraints\n- Report only; do not change code in this task.\n- Do not mark this item complete: a person signs it off.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Each part of the requirement has a finding: met, not met (with file and line) or needs a person.\n- The steps for a person name real screens and controls.\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "spec.R24",
+      "title": "Black beans, corn, sunflower oil, salt",
+      "description": "Black beans, corn, sunflower oil, salt",
+      "categoryId": "spec.sample-data",
+      "categoryTitle": "Sample data",
+      "priority": "medium",
+      "executionType": "review",
+      "launchGate": false,
+      "covers": [
+        "R24"
+      ],
+      "files": [],
+      "aiPrompt": "# Black beans, corn, sunflower oil, salt\n\n## Goal\nEvidence for a person on whether the app meets R24.\n\n## Context\nPRD section: Sample data. Requirement R24, quoted from the PRD:\n\"Black beans, corn, sunflower oil, salt\"\nWhy it is not a build step: Sample data requirements are for reference only and don't require code implementation.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the code, screens or documents this requirement is about.\n2. Record what you found for each part of it, with file and line.\n3. Write the steps a person follows to confirm the rest.\n\n## Constraints\n- Report only; do not change code in this task.\n- Do not mark this item complete: a person signs it off.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Each part of the requirement has a finding: met, not met (with file and line) or needs a person.\n- The steps for a person name real screens and controls.\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "spec.R25",
+      "title": "Cultured pasteurized milk",
+      "description": "Cultured pasteurized milk",
+      "categoryId": "spec.sample-data",
+      "categoryTitle": "Sample data",
+      "priority": "medium",
+      "executionType": "review",
+      "launchGate": false,
+      "covers": [
+        "R25"
+      ],
+      "files": [],
+      "aiPrompt": "# Cultured pasteurized milk\n\n## Goal\nEvidence for a person on whether the app meets R25.\n\n## Context\nPRD section: Sample data. Requirement R25, quoted from the PRD:\n\"Cultured pasteurized milk\"\nWhy it is not a build step: Sample data requirements are for reference only and don't require code implementation.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the code, screens or documents this requirement is about.\n2. Record what you found for each part of it, with file and line.\n3. Write the steps a person follows to confirm the rest.\n\n## Constraints\n- Report only; do not change code in this task.\n- Do not mark this item complete: a person signs it off.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Each part of the requirement has a finding: met, not met (with file and line) or needs a person.\n- The steps for a person name real screens and controls.\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "plan.stores.remaining",
+      "title": "Stores: remaining requirements",
+      "description": "Every requirement below from \"Stores\" works in the app. Covers R12.",
+      "categoryId": "spec.stores",
+      "categoryTitle": "Stores",
+      "priority": "high",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [
+        "R12"
+      ],
+      "files": [],
+      "tests": [],
+      "aiPrompt": "# Stores: remaining requirements\n\n## Goal\nEvery requirement below from \"Stores\" works in the app.\n\n## Context\nPRD section: Stores. This task implements these requirements (quoted from the PRD in spec/):\n- R12: Name, ZIP code\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the screen or module each requirement below belongs to.\n2. Implement each requirement there, using the PRD's names word for word.\n3. Run the checks below and fix anything you broke.\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- R12 is implemented: Name, ZIP code\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "stepKey": "lrc_3",
+      "taskId": "task_3986dadf5234486eb3c8"
+    },
+    {
+      "id": "plan.main-screens.home-screen-implementation",
+      "title": "Home Screen Implementation",
+      "description": "Display the app's purpose, search functionality, ZIP code input, category navigation, and featured products. Covers R6.",
+      "categoryId": "spec.main-screens",
+      "categoryTitle": "Main screens",
+      "priority": "high",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [
+        "R6"
+      ],
+      "files": [
+        "src/screens/HomeScreen.tsx"
+      ],
+      "tests": [
+        {
+          "behaviour": "enter 'oat' in search box",
+          "expect": "Oat Milk Original"
+        },
+        {
+          "behaviour": "enter 'xyz123' in search box",
+          "expect": "No results found"
+        }
+      ],
+      "aiPrompt": "# Home Screen Implementation\n\n## Goal\nDisplay the app's purpose, search functionality, ZIP code input, category navigation, and featured products.\n\n## Context\nPRD section: Main screens. This task implements these requirements (quoted from the PRD in spec/):\n- R6: What Clean Cart is in one line, a search box, and a few featured products.\nFiles: src/screens/HomeScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create a Home screen component with a title line describing Clean Cart\n2. Add a search box that allows users to enter product or brand names\n3. Implement a ZIP code input field for location-based searches\n4. Include navigation links to Categories and Saved items\n5. Display featured products in a scrollable list\n6. Ensure the screen layout is responsive and user-friendly\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: enter 'oat' in search box → shows \"Oat Milk Original\"\n- Test: enter 'xyz123' in search box → shows \"No results found\"\n- The home screen shows Clean Cart's purpose in one line\n- The search box accepts text input for product or brand names\n- The ZIP code field allows numeric input with validation\n- Featured products display correctly on the screen\n- R6 is implemented: What Clean Cart is in one line, a search box, and a few featured products.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "stepKey": "lrc_4",
+      "taskId": "task_c7dfb7980ad54e9198ff"
+    },
+    {
+      "id": "plan.main-screens.search-screen-functionality",
+      "title": "Search Screen Functionality",
+      "description": "Enable searching across product names and brands with case-insensitive matching. Covers R7, R14, R15.",
+      "categoryId": "spec.main-screens",
+      "categoryTitle": "Main screens",
+      "priority": "high",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [
+        "R7",
+        "R14",
+        "R15"
+      ],
+      "files": [
+        "src/screens/SearchScreen.tsx"
+      ],
+      "tests": [
+        {
+          "behaviour": "enter 'oat' in search box",
+          "expect": "Oat Milk Original"
+        },
+        {
+          "behaviour": "enter 'XYZ123' in search box",
+          "expect": "No results found"
+        }
+      ],
+      "aiPrompt": "# Search Screen Functionality\n\n## Goal\nEnable searching across product names and brands with case-insensitive matching.\n\n## Context\nPRD section: Main screens. This task implements these requirements (quoted from the PRD in spec/):\n- R7: Results for a search across product names and brands; a clear no-results message.\n- R14: R2: Search matches product names and brands, case-insensitively (\"oat\" finds \"Oat Milk Original\").\n- R15: R3: A search with no match says so and suggests trying another word.\nFiles: src/screens/SearchScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create a Search screen component with search input field\n2. Implement search logic to match product names and brands\n3. Add case-insensitive matching for search terms\n4. Display results in a list format when search is performed\n5. Show 'No results found' message when no matches are present\n6. Include category filter options for refining searches\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: enter 'oat' in search box → shows \"Oat Milk Original\"\n- Test: enter 'XYZ123' in search box → shows \"No results found\"\n- Search term 'oat' returns products with 'Oat Milk Original'\n- Search term 'xyz123' shows 'No results found' message\n- Category filters work correctly to narrow down search results\n- Case-insensitive matching works for all search terms\n- R7 is implemented: Results for a search across product names and brands; a clear no-results message.\n- R14 is implemented: R2: Search matches product names and brands, case-insensitively (\"oat\" finds \"Oat Milk Original\").\n- R15 is implemented: R3: A search with no match says so and suggests trying another word.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "stepKey": "lrc_4",
+      "taskId": "task_c7dfb7980ad54e9198ff"
+    },
+    {
+      "id": "plan.requirements.save-product-button",
+      "title": "Save Product Button",
+      "description": "A signed-in member can save and unsave a product from its detail page. Covers R17.",
+      "categoryId": "spec.requirements",
+      "categoryTitle": "Requirements",
+      "priority": "high",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [
+        "R17"
+      ],
+      "files": [
+        "src/screens/ProductDetailScreen.tsx"
+      ],
+      "tests": [
+        {
+          "behaviour": "click Save button on Product Detail screen",
+          "expect": "product added to Saved list"
+        },
+        {
+          "behaviour": "click Save button again on same product",
+          "expect": "product removed from Saved list"
+        }
+      ],
+      "aiPrompt": "# Save Product Button\n\n## Goal\nA signed-in member can save and unsave a product from its detail page.\n\n## Context\nPRD section: Requirements. This task implements these requirements (quoted from the PRD in spec/):\n- R17: R5: The Product page has a Save button; a signed-in member's Save adds the product to Saved, and pressing it again removes it.\nFiles: src/screens/ProductDetailScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Add a Save button to the Product Detail screen\n2. Implement logic to check if the current product is saved in the store\n3. Make the Save button toggle the product's saved status when clicked\n4. Update the UI to reflect the current save state of the product\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: click Save button on Product Detail screen → shows \"product added to Saved list\"\n- Test: click Save button again on same product → shows \"product removed from Saved list\"\n- The Save button appears on the Product Detail screen\n- Clicking Save adds the product to the user's saved list\n- Clicking Save again removes the product from the saved list\n- R17 is implemented: R5: The Product page has a Save button; a signed-in member's Save adds the product to Saved, and pressing it again removes it.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "stepKey": "lrc_5",
+      "taskId": "task_78d48595f11241e2bf00"
+    },
+    {
+      "id": "plan.main-screens.saved-products-list",
+      "title": "Saved Products List",
+      "description": "The Saved screen displays all saved products with name and brand, each opening its product page. Covers R9, R18.",
+      "categoryId": "spec.main-screens",
+      "categoryTitle": "Main screens",
+      "priority": "high",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [
+        "R9",
+        "R18"
+      ],
+      "files": [
+        "src/screens/SavedScreen.tsx"
+      ],
+      "tests": [
+        {
+          "behaviour": "visit Saved screen with saved products",
+          "expect": "list of saved products with name and brand"
+        },
+        {
+          "behaviour": "click on a saved product in the list",
+          "expect": "navigate to Product Detail screen for that product"
+        }
+      ],
+      "aiPrompt": "# Saved Products List\n\n## Goal\nThe Saved screen displays all saved products with name and brand, each opening its product page.\n\n## Context\nPRD section: Main screens. This task implements these requirements (quoted from the PRD in spec/):\n- R9: The products the member saved, each opening its product page.\n- R18: R6: The Saved page lists the saved products by name and brand; each opens its Product page.\nFiles: src/screens/SavedScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create the Saved screen component\n2. Fetch the list of saved products from the store\n3. Display each saved product with name and brand\n4. Add navigation to Product Detail screen for each saved product\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: visit Saved screen with saved products → shows \"list of saved products with name and brand\"\n- Test: click on a saved product in the list → shows \"navigate to Product Detail screen for that product\"\n- Saved screen shows a list of saved products\n- Each product in the list displays its name and brand\n- Clicking on a product navigates to its Product Detail page\n- R9 is implemented: The products the member saved, each opening its product page.\n- R18 is implemented: R6: The Saved page lists the saved products by name and brand; each opens its Product page.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "stepKey": "lrc_5",
+      "taskId": "task_78d48595f11241e2bf00"
+    },
+    {
+      "id": "plan.requirements.persistent-saved-products",
+      "title": "Persistent Saved Products",
+      "description": "Saved products remain saved after page reload using browser storage. Covers R19.",
+      "categoryId": "spec.requirements",
+      "categoryTitle": "Requirements",
+      "priority": "high",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [
+        "R19"
+      ],
+      "files": [
+        "src/app/store.ts"
+      ],
+      "tests": [
+        {
+          "behaviour": "save a product and reload the page",
+          "expect": "product remains in Saved list after reload"
+        },
+        {
+          "behaviour": "close browser and reopen app",
+          "expect": "previously saved products are still in Saved list"
+        }
+      ],
+      "aiPrompt": "# Persistent Saved Products\n\n## Goal\nSaved products remain saved after page reload using browser storage.\n\n## Context\nPRD section: Requirements. This task implements these requirements (quoted from the PRD in spec/):\n- R19: R7: Saved products are still saved after the page is reloaded (kept in this browser).\nFiles: src/app/store.ts.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Modify the store to persist saved products in browser localStorage\n2. Load saved products from localStorage on app initialization\n3. Update the save logic to write to localStorage whenever the save state changes\n4. Ensure the saved products are maintained across page reloads\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: save a product and reload the page → shows \"product remains in Saved list after reload\"\n- Test: close browser and reopen app → shows \"previously saved products are still in Saved list\"\n- Products remain saved after browser refresh\n- Saved products persist between different sessions\n- The saved status is correctly restored on app load\n- R19 is implemented: R7: Saved products are still saved after the page is reloaded (kept in this browser).\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "stepKey": "lrc_5",
+      "taskId": "task_78d48595f11241e2bf00"
+    },
+    {
+      "id": "spec.R1",
+      "title": "A shopper can find a product by name or brand in a few seconds.",
+      "description": "A shopper can find a product by name or brand in a few seconds.",
+      "categoryId": "spec.goals",
+      "categoryTitle": "Goals",
+      "priority": "medium",
+      "executionType": "review",
+      "launchGate": false,
+      "covers": [
+        "R1"
+      ],
+      "files": [],
+      "aiPrompt": "# A shopper can find a product by name or brand in a few seconds.\n\n## Goal\nEvidence for a person on whether the app meets R1.\n\n## Context\nPRD section: Goals. Requirement R1, quoted from the PRD:\n\"A shopper can find a product by name or brand in a few seconds.\"\nWhy it is not a build step: \"Goals\" describes the project, not the app: a person checks it.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the code, screens or documents this requirement is about.\n2. Record what you found for each part of it, with file and line.\n3. Write the steps a person follows to confirm the rest.\n\n## Constraints\n- Report only; do not change code in this task.\n- Do not mark this item complete: a person signs it off.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Each part of the requirement has a finding: met, not met (with file and line) or needs a person.\n- The steps for a person name real screens and controls.\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "spec.R2",
+      "title": "The product page says plainly why the product qualifies (its certification) and lists its ingredients.",
+      "description": "The product page says plainly why the product qualifies (its certification) and lists its ingredients.",
+      "categoryId": "spec.goals",
+      "categoryTitle": "Goals",
+      "priority": "medium",
+      "executionType": "review",
+      "launchGate": false,
+      "covers": [
+        "R2"
+      ],
+      "files": [],
+      "aiPrompt": "# The product page says plainly why the product qualifies (its certification) and lists its ingredients.\n\n## Goal\nEvidence for a person on whether the app meets R2.\n\n## Context\nPRD section: Goals. Requirement R2, quoted from the PRD:\n\"The product page says plainly why the product qualifies (its certification) and lists its ingredients.\"\nWhy it is not a build step: \"Goals\" describes the project, not the app: a person checks it.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the code, screens or documents this requirement is about.\n2. Record what you found for each part of it, with file and line.\n3. Write the steps a person follows to confirm the rest.\n\n## Constraints\n- Report only; do not change code in this task.\n- Do not mark this item complete: a person signs it off.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Each part of the requirement has a finding: met, not met (with file and line) or needs a person.\n- The steps for a person name real screens and controls.\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "spec.R3",
+      "title": "A shopper can save a product and come back to it later on the Saved page.",
+      "description": "A shopper can save a product and come back to it later on the Saved page.",
+      "categoryId": "spec.goals",
+      "categoryTitle": "Goals",
+      "priority": "medium",
+      "executionType": "review",
+      "launchGate": false,
+      "covers": [
+        "R3"
+      ],
+      "files": [],
+      "aiPrompt": "# A shopper can save a product and come back to it later on the Saved page.\n\n## Goal\nEvidence for a person on whether the app meets R3.\n\n## Context\nPRD section: Goals. Requirement R3, quoted from the PRD:\n\"A shopper can save a product and come back to it later on the Saved page.\"\nWhy it is not a build step: \"Goals\" describes the project, not the app: a person checks it.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the code, screens or documents this requirement is about.\n2. Record what you found for each part of it, with file and line.\n3. Write the steps a person follows to confirm the rest.\n\n## Constraints\n- Report only; do not change code in this task.\n- Do not mark this item complete: a person signs it off.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Each part of the requirement has a finding: met, not met (with file and line) or needs a person.\n- The steps for a person name real screens and controls.\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n"
+    },
+    {
+      "id": "plan.step.polish",
+      "title": "Design polish",
+      "description": "Polish the whole app as one product, to the standard of a studio portfolio, without changing what it does (follow the art-direction skill and the concept the screens were designed to, then the design-system and micro-feedback skills).",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "src/screens/",
+        "src/styles/",
+        "src/components/"
+      ],
+      "stepKey": "polish",
+      "aiPrompt": "# Design polish\n\n## Goal\nPolish the whole app as one product, to the standard of a studio portfolio, without changing what it does (follow the art-direction skill and the concept the screens were designed to, then the design-system and micro-feedback skills).\n\n## Context\nPolish the whole app as one product, to the standard of a studio portfolio, without changing what it does (follow the art-direction skill and the concept the screens were designed to, then the design-system and micro-feedback skills). Open every screen at desktop and phone width and fix:\n- Imagery: a screen that would look better with a real photo (a bare hero, item cards with no picture) gets one from find_image; check every image loads and has alt text, and that CC BY photos are credited.\n- Template leftovers: generic marketing copy, feature checklists or sections the spec doesn't ask for; every screen should look made for this app.\n- Clutter the feature steps added: a control or label repeated on every item, helper or status text the user doesn't need, two controls for the same thing. Merge them into the screen's header action, toolbar or the item itself.\n- Hierarchy: one title and one primary action per screen; consistent spacing from the spacing tokens; related controls grouped; secondary settings moved out of the main view.\n- Consistency with the Styles page: colours, type, corners and surfaces only from src/styles/tokens.css; the same building block for the same job everywhere.\n- Motion and feedback: screens use ui-screen, lists ui-stagger, dialogs and new items ui-pop; every button and row has hover, press and focus states; saving shows brief feedback.\n- Sample data shows on every screen that lists something.\nKeep every accessible name and role the acceptance tests use (getByRole names), so the tests still pass; run the full test suite before you finish.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Polish the whole app as one product, to the standard of a studio portfolio, without changing what it does (follow the art-direction skill and the concept the screens were designed to, then the design-system and micro-feedback skills). Open every screen at desktop and phone width and fix:\n- Imagery: a screen that would look better with a real photo (a bare hero, item cards with no picture) gets one from find_image; check every image loads and has alt text, and that CC BY photos are credited.\n- Template leftovers: generic marketing copy, feature checklists or sections the spec doesn't ask for; every screen should look made for this app.\n- Clutter the feature steps added: a control or label repeated on every item, helper or status text the user doesn't need, two controls for the same thing. Merge them into the screen's header action, toolbar or the item itself.\n- Hierarchy: one title and one primary action per screen; consistent spacing from the spacing tokens; related controls grouped; secondary settings moved out of the main view.\n- Consistency with the Styles page: colours, type, corners and surfaces only from src/styles/tokens.css; the same building block for the same job everywhere.\n- Motion and feedback: screens use ui-screen, lists ui-stagger, dialogs and new items ui-pop; every button and row has hover, press and focus states; saving shows brief feedback.\n- Sample data shows on every screen that lists something.\nKeep every accessible name and role the acceptance tests use (getByRole names), so the tests still pass; run the full test suite before you finish.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Every acceptance test still passes\n- Typecheck passes\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_47baf9b30ef547478d64"
+    },
+    {
+      "id": "plan.step.cleanup",
+      "title": "Clean up the code",
+      "description": "Remove what the build left behind, without changing what the app does or how it looks.",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "src/"
+      ],
+      "stepKey": "cleanup",
+      "aiPrompt": "# Clean up the code\n\n## Goal\nRemove what the build left behind, without changing what the app does or how it looks.\n\n## Context\nRemove what the build left behind, without changing what the app does or how it looks. FlowCode's clean-up scan (below, with the step) lists what nothing uses:\n- files under src/ that nothing imports: confirm with search_code that nothing refers to each one, then delete it;\n- scratch files in the project root (test results, logs, dumps): delete them;\n- debug calls (console.log, console.debug, debugger): remove them;\n- CSS classes no source file uses: remove those rules, keeping any class built from parts at run time.\nChange nothing else: keep the starter kit's building blocks, every test, the tests' accessible names, and the Styles page's tokens. Run the whole test suite and the type check before you finish.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Remove what the build left behind, without changing what the app does or how it looks. FlowCode's clean-up scan (below, with the step) lists what nothing uses:\n- files under src/ that nothing imports: confirm with search_code that nothing refers to each one, then delete it;\n- scratch files in the project root (test results, logs, dumps): delete them;\n- debug calls (console.log, console.debug, debugger): remove them;\n- CSS classes no source file uses: remove those rules, keeping any class built from parts at run time.\nChange nothing else: keep the starter kit's building blocks, every test, the tests' accessible names, and the Styles page's tokens. Run the whole test suite and the type check before you finish.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Nothing unused is left (files, root scratch files, debug calls)\n- Every acceptance test still passes\n- Typecheck passes\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_cbaaf0f43ba2412ea880"
+    },
+    {
+      "id": "plan.step.m_assemble",
+      "title": "Assemble the app: wire every page and component into App.tsx",
+      "description": "Finish the app in src/App.tsx: every screen that was built is in the app shell's navigation and shown once in its main area (never the same screen twice), each component that was created is used inside its screen so nothing is left unused, and no starter or placeholder text remains.",
+      "categoryId": "foundation",
+      "categoryTitle": "Project foundation",
+      "priority": "critical",
+      "executionType": "code",
+      "launchGate": true,
+      "covers": [],
+      "files": [
+        "src/App.tsx",
+        "src/"
+      ],
+      "stepKey": "m_assemble",
+      "aiPrompt": "# Assemble the app: wire every page and component into App.tsx\n\n## Goal\nFinish the app in src/App.tsx: every screen that was built is in the app shell's navigation and shown once in its main area (never the same screen twice), each component that was created is used inside its screen so nothing is left unused, and no starter or placeholder text remains.\n\n## Context\nFinish the app in src/App.tsx: every screen that was built is in the app shell's navigation and shown once in its main area (never the same screen twice), each component that was created is used inside its screen so nothing is left unused, and no starter or placeholder text remains. The first screen must be usable with real, keyboard-reachable controls. Keep existing components; compose them rather than rewriting them.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Finish the app in src/App.tsx: every screen that was built is in the app shell's navigation and shown once in its main area (never the same screen twice), each component that was created is used inside its screen so nothing is left unused, and no starter or placeholder text remains. The first screen must be usable with real, keyboard-reachable controls. Keep existing components; compose them rather than rewriting them.\n\n## Constraints\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Every page and component is reachable from the app's entry point and the starter placeholder is gone\n- Typecheck passes\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n",
+      "taskId": "task_00808e4236d64fc5af54"
+    }
+  ]
+}

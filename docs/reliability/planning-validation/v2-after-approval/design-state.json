@@ -1,0 +1,130 @@
+{
+  "surfaceExceptions": [],
+  "base": {
+    "source": "starter",
+    "detail": "Base styling — no brand direction selected"
+  },
+  "selected": {
+    "appearance": {
+      "mode": "light",
+      "surface": "flat",
+      "primary": "#2f9bd3",
+      "neutral": "pure",
+      "secondary": "#be6a2a",
+      "tertiary": "#3f5d7d",
+      "fonts": {
+        "display": "Roboto",
+        "body": "Roboto"
+      },
+      "motion": {
+        "level": "balanced"
+      }
+    },
+    "sources": {
+      "primary": "you",
+      "fonts": "you",
+      "tertiary": "you",
+      "secondary": "you"
+    },
+    "version": 1,
+    "selectedAt": "2026-10-18T11:13:45.006Z",
+    "by": "you"
+  },
+  "hasApp": true,
+  "motionSupported": true,
+  "differs": [],
+  "label": "Selected, not yet applied",
+  "checks": [
+    {
+      "label": "Text on the page",
+      "fg": "#181818",
+      "bg": "#fafafa",
+      "ratio": 17.01,
+      "min": 4.5,
+      "ok": true
+    },
+    {
+      "label": "Text on cards",
+      "fg": "#181818",
+      "bg": "#ffffff",
+      "ratio": 17.76,
+      "min": 4.5,
+      "ok": true
+    },
+    {
+      "label": "Secondary text on the page",
+      "fg": "#6c6c6c",
+      "bg": "#fafafa",
+      "ratio": 5.03,
+      "min": 4.5,
+      "ok": true
+    },
+    {
+      "label": "Secondary text on cards",
+      "fg": "#6c6c6c",
+      "bg": "#ffffff",
+      "ratio": 5.25,
+      "min": 4.5,
+      "ok": true
+    },
+    {
+      "label": "Button text on the primary colour",
+      "fg": "#ffffff",
+      "bg": "#1474a2",
+      "ratio": 5.19,
+      "min": 4.5,
+      "ok": true
+    },
+    {
+      "label": "Primary colour (links, focus) on the page",
+      "fg": "#1474a2",
+      "bg": "#fafafa",
+      "ratio": 4.97,
+      "min": 3,
+      "ok": true
+    },
+    {
+      "label": "Success on cards",
+      "fg": "#17804d",
+      "bg": "#ffffff",
+      "ratio": 4.96,
+      "min": 4.5,
+      "ok": true
+    },
+    {
+      "label": "Warning on cards",
+      "fg": "#8c6402",
+      "bg": "#ffffff",
+      "ratio": 5.33,
+      "min": 4.5,
+      "ok": true
+    },
+    {
+      "label": "Error on cards",
+      "fg": "#a64b4c",
+      "bg": "#ffffff",
+      "ratio": 5.63,
+      "min": 4.5,
+      "ok": true
+    },
+    {
+      "label": "Error text on its alert",
+      "fg": "#a64b4c",
+      "bg": "#fff4f3",
+      "ratio": 5.22,
+      "min": 4.5,
+      "ok": true
+    },
+    {
+      "label": "Text on the secondary colour",
+      "fg": "#ffffff",
+      "bg": "#a7550b",
+      "ratio": 5.32,
+      "min": 4.5,
+      "ok": true
+    }
+  ],
+  "prd": {
+    "colors": []
+  }
+}

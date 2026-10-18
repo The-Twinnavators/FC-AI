@@ -10,7 +10,7 @@
  */
 import { providersOf, relationsOf, type Capability, type PieceContext } from "@flowcode/contracts";
 
-export type PageType = "list" | "detail" | "form" | "dashboard" | "review" | "settings" | "flow" | "conversation" | "booking" | "marketing" | "other";
+export type PageType = "home" | "list" | "detail" | "form" | "dashboard" | "review" | "settings" | "flow" | "conversation" | "booking" | "marketing" | "other";
 
 export interface PageTypeRule {
   label: string;
@@ -28,6 +28,9 @@ export interface PageTypeRule {
 const APP_AVOID = ["marketing heroes, pricing, testimonials, logo clouds or newsletter sign-ups", "a second search bar when the app already has one"];
 
 export const PAGE_TYPES: Record<PageType, PageTypeRule> = {
+  // An app's own front page (Clean Cart planning validation: a product-discovery Home typed "marketing" got a hero, a
+  // call-to-action banner and a footer, and lost its storefront part as "not for a marketing page").
+  home: { label: "App home", job: "start using the product: what it is in a line, search, featured things to open, and the way back to what they saved", context: "app", needs: [["results"]], states: ["loading", "nothing featured yet", "error"], phone: "the search first, featured items as cards below", avoid: ["a marketing funnel: hero banner with sign-up actions, call-to-action banner, pricing, testimonials, logo clouds, newsletter sign-up or a marketing footer", "a second search bar when the app already has one"] },
   list: { label: "List", job: "find, compare and open one of many things", context: "app", needs: [["results"]], states: ["loading", "nothing yet (first use)", "no matches for the search or filters", "error"], phone: "filters fold into a sheet or a disclosure; rows become cards, no sideways scrolling", avoid: APP_AVOID },
   detail: { label: "Detail", job: "understand one thing and act on it", context: "app", needs: [["detail", "history", "media", "compare"]], states: ["loading", "not found", "error"], phone: "one column; the main action stays in reach", avoid: APP_AVOID },
   form: { label: "Form", job: "create or change structured information", context: "app", needs: [["form", "upload", "date entry", "time entry"]], states: ["empty", "invalid field", "saving", "saved", "error"], phone: "one column; labels above fields; the submit button stays visible", avoid: APP_AVOID },
@@ -43,10 +46,14 @@ export const PAGE_TYPES: Record<PageType, PageTypeRule> = {
 
 export const PAGE_TYPE_IDS = Object.keys(PAGE_TYPES) as PageType[];
 
-/** The planner's choice when it gave one, else a guess from the page's name and purpose. */
-export function pageTypeOf(given: unknown, name: string, purpose: string, detail = false): PageType {
+/**
+ * The planner's choice when it gave one, else a guess from the page's name and purpose. In an app (`app`), a page is never
+ * a marketing page: its front page is the app home, whatever the planner called it.
+ */
+export function pageTypeOf(given: unknown, name: string, purpose: string, detail = false, app = false): PageType {
   const g = String(given ?? "").toLowerCase().trim();
-  if ((PAGE_TYPE_IDS as string[]).includes(g)) return g as PageType;
+  if (app && (g === "marketing" || (!(PAGE_TYPE_IDS as string[]).includes(g) && /\b(home|landing|start)\b/i.test(name)))) return "home";
+  if ((PAGE_TYPE_IDS as string[]).includes(g) && !(g === "home" && !app)) return g as PageType;
   if (detail) return "detail";
   const t = `${name} ${purpose}`.toLowerCase();
   if (/\b(book|booking|appointment|reserve|reservation)\b/.test(t)) return "booking";

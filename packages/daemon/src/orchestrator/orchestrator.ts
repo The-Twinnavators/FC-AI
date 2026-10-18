@@ -67,11 +67,14 @@ import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
 import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
-import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
+import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, dropFunnel, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
+import { applyScope, dataOwners, isSupportingData, planDirectives, planScope, planScopeKey, scopeNote, withOwners, type PlanScope } from "./planScope.js";
+import { planChecks, planChecksKey } from "./planChecks.js";
+import { lookStatus, withLookStatus } from "./lookStatus.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
 import { screenPickGuidance, screenPicks } from "./screenPicks.js";
-import { EXPERIENCE_SCHEMA, EXPERIENCE_SYSTEM, JOURNEY_TESTS, coverageKey, isCrossCutting, journeyTestObjective, releaseBoundary, requirementIdMapper, coverageMatrix, experienceKey, experienceNote, experienceRequest, parseExperienceMap, scopeDecisions, scopeKey, type ExperienceMap } from "./experienceMap.js";
+import { EXPERIENCE_SCHEMA, EXPERIENCE_SYSTEM, JOURNEY_TESTS, coverageKey, isCrossCutting, journeyTestObjective, releaseBoundary, requirementIdMapper, coverageMatrix, ensureSaveJourney, experienceKey, experienceNote, experienceRequest, parseExperienceMap, scopeDecisions, scopeKey, SUPPORTING_DATA, type ExperienceMap } from "./experienceMap.js";
 import { followUpFinished, needsHumanReview, openReview, type ReviewDeps } from "../quality/humanReview.js";
 import { compositionKey, entryFor, lockedButMissing, sectionNamedBy, manifestFromBriefs, manifestNote, recordChange, recordEntry, verifyManifest, type CompositionManifest } from "./compositionManifest.js";
 import type { CompositionIssue } from "./pageTypes.js";
@@ -97,7 +100,7 @@ import { lookGuidance, visualDirection, type BuildLook } from "./starterIdentity
 import { designTemplate, LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { extractRequirements, referencePath, summarizeReference, type Requirement } from "../quality/spec.js";
 import { attachApproval, recordPlanVersion } from "./planReview.js";
-import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchItems, groupSteps, parseBatch, planBatches, planKey, runPlanKey, runtimeItems, stepsFromGroups, uniqueIds, type LrcPlan, type PlanItem } from "../quality/lrcPlan.js";
+import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchItems, groupSteps, requirementItem, parseBatch, planBatches, planKey, runPlanKey, runtimeItems, stepsFromGroups, uniqueIds, type LrcPlan, type PlanItem } from "../quality/lrcPlan.js";
 import { promptConfigFor } from "../quality/taskPrompt.js";
 import { isInterfaceStep, playbookFor } from "../knowledge/designPlaybook.js";
 import { protectedPolicyFor } from "../workspace/protectedFiles.js";
@@ -890,7 +893,7 @@ export class Orchestrator {
    * the screen as ordered sections built from its matched catalog parts. One planner call; the design steps get the
    * briefs as their target and the visual review judges against them. Without briefs the plan stands as it was.
    */
-  private async withScreenBriefs(run: Run, tasks0: PlanTask[], screens: ScreenPlan | undefined, signal: AbortSignal, scope: { requirements?: Requirement[]; items?: PlanItem[]; designScreens?: ScreenPlan } = {}): Promise<PlanTask[]> {
+  private async withScreenBriefs(run: Run, tasks0: PlanTask[], screens: ScreenPlan | undefined, signal: AbortSignal, scope: { requirements?: Requirement[]; items?: PlanItem[]; designScreens?: ScreenPlan; app?: AppModel; directives?: string } = {}): Promise<PlanTask[]> {
     if (!screens?.screens.length || !tasks0.some((t) => t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH)) return tasks0;
     const ev = { projectId: run.projectId, runId: run.id };
     const prdAll = prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []));
@@ -903,7 +906,9 @@ export class Orchestrator {
     const mapId = requirementIdMapper(all, coded.map((r) => r.id));
     // What this release leaves out: no journey or page section is planned for it.
     const boundary = scope.items ? releaseBoundary(scope.items) : "";
-    const map = await this.experienceMapFor(run, screens, prd, coded, signal, mapId, boundary);
+    const mapped = await this.experienceMapFor(run, screens, prd, coded, signal, mapId, [boundary, scope.directives].filter(Boolean).join("\n\n"));
+    // A complete app that saves things gets its complete save journey, from a stated sign-in state (experienceMap.ts).
+    const map = mapped && scope.app ? this.withSaveJourney(run, mapped, scope.app, coded, prdAll) : mapped;
     const journeys = map ? experienceNote(map) : "";
     // The coverage matrix and the scope decisions: only when the checklist placed every requirement (planChecklist).
     if (scope.items && scope.requirements?.length) {
@@ -944,13 +949,13 @@ export class Orchestrator {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, {
         messages: [
           { role: "system", content: SCREEN_BRIEF_SYSTEM },
-          { role: "user", content: untrusted("screen-brief", briefRequest(run.objective, prd, designed, manifest, [boundary, journeys].filter(Boolean).join("\n\n"))) },
+          { role: "user", content: untrusted("screen-brief", briefRequest(run.objective, prd, designed, manifest, [boundary, scope.directives, journeys].filter(Boolean).join("\n\n"))) },
         ],
         format: SCREEN_BRIEF_SCHEMA,
         timeoutMs: 180_000,
         signal,
       });
-      briefs = parseScreenBriefs(JSON.parse(extractJson(res.content)), designed, manifest, dropped, issues).map((b) => ({ ...b, acceptance: [...new Set((b.acceptance ?? []).flatMap(mapId))] }));
+      briefs = parseScreenBriefs(JSON.parse(extractJson(res.content)), designed, manifest, dropped, issues, !!scope.app).map((b) => ({ ...b, acceptance: [...new Set((b.acceptance ?? []).flatMap(mapId))] }));
     } catch (err) {
       if (signal.aborted) throw err;
     }
@@ -967,6 +972,23 @@ export class Orchestrator {
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Composition manifest: ${composition.entries.length} catalog part${composition.entries.length === 1 ? "" : "s"} across ${briefs.length} page${briefs.length === 1 ? "" : "s"}${composition.gaps.length ? `; ${composition.gaps.length} catalog gap${composition.gaps.length === 1 ? "" : "s"} (${composition.gaps.map((g) => `${g.page}: ${g.section}`).join(", ")})` : ""}`, data: { composition } });
     const note = [screenBriefNote(briefs), composition.gaps.length ? manifestNote({ entries: [], gaps: composition.gaps }) : ""].filter(Boolean).join("\n\n");
     return tasks.map((t) => (t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH ? { ...t, objective: `${t.objective}\n\n${note}` } : t));
+  }
+
+  /** The save journey, added when the planner's journeys don't already go all the way (stored with the map, and said). */
+  private withSaveJourney(run: Run, map: ExperienceMap, app: AppModel, requirements: Requirement[], prd: string): ExperienceMap {
+    const views = app.nav.flatMap((g) => g.items);
+    const label = (k: string) => views.find((v) => v.kind === k)?.label;
+    const record = label("entry") ?? label("detail");
+    const saved = label("saved");
+    if (!record || !saved) return map;
+    const e = app.lookup ? app.entities.find((x) => x.key === app.lookup!.entries) : app.entities[0];
+    const sample = prdNamedRecords(prdSampleSection(prd))[0] || (e ? String(app.seed[e.key]?.[0]?.[e.titleField] ?? "") : "") || undefined;
+    const got = ensureSaveJourney(map, { home: label("landing"), search: label("catalog"), record, saved }, requirements, app.roles, sample);
+    if (!got.added) return map;
+    this.d.store.setSetting(experienceKey(run.id), got.map);
+    const w = got.map.workflows.at(-1)!;
+    this.d.bus.emit({ type: "plan.proposed", projectId: run.projectId, runId: run.id, message: `Added the complete save journey (no planned journey went all the way): ${w.name}; starts ${w.start}; covers ${w.requirementIds.join(", ")}`, data: { experience: got.map } });
+    return got.map;
   }
 
   /**
@@ -1063,7 +1085,7 @@ export class Orchestrator {
    * navigation, from one planner call (a second, warmer one when the first isn't usable). Undefined when neither is:
    * the build then designs its main screens the usual way, and says so.
    */
-  private async decideAppModel(run: Run, requirements: Requirement[], boundary: string, signal: AbortSignal): Promise<AppModel | undefined> {
+  private async decideAppModel(run: Run, requirements: Requirement[], boundary: string, signal: AbortSignal, scope?: PlanScope): Promise<AppModel | undefined> {
     const ev = { projectId: run.projectId, runId: run.id };
     const prd = prdTextOf(this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []));
     let problems: string[] = [];
@@ -1103,6 +1125,12 @@ export class Orchestrator {
         let model = got.model;
         // Complete enough to build what was asked: records for every kind, a look-up app's entries linked to places, a
         // page for every screen the PRD names. Otherwise it isn't used (and the build stops below, saying so).
+        if (model && scope) {
+          // Held to the scope before anything reads it: the look-up model adds its whole working set by default.
+          const scoped = applyScope(model, scope, declaredScreens(prd));
+          model = scoped.model;
+          if (scoped.removed.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Left out of the app model (the scope leaves them out): ${scoped.removed.join(", ")}` });
+        }
         if (model) {
           // A screen the PRD names, covered only by a working page of its kind, becomes an explicit alias first.
           model = resolveScreenAliases(model, declaredScreens(prd));
@@ -1285,8 +1313,19 @@ export class Orchestrator {
     const filledIn: string[] = [];
     // Only feature sections go to the planner; goals, user stories, sprint plans, non-goals and open decisions are placed here.
     const bySection = placeBySection(requirements, cfg);
+    // The scope, once, for every stage below (planScope.ts): what is built, what is supporting data, what is left out,
+    // and the person's revision requests. Records and sample data are supporting data, not build steps of their own.
+    const prdText = prdTextOf(refs);
+    const scope = planScope(prdText, run.constraints);
+    const data = bySection.features.filter((r) => isSupportingData(scope, r));
+    bySection.features = bySection.features.filter((r) => !data.includes(r));
+    bySection.items.push(...data.map((r) => ({ ...requirementItem(r, "review", "supporting data: the records the app holds and shows, written into the app model", cfg), categoryId: SUPPORTING_DATA })));
+    const directives = planDirectives(scope, bySection.features);
+    this.d.store.setSetting(planScopeKey(run.id), scope);
+    this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Scope: ${scope.capabilities.map((c) => `${c.capability} ${c.status}${c.status === "deferred" ? ` (${c.source})` : ""}`).join(", ")}${scope.navigation.length ? `; navigation ${scope.navigation.join(", ")}` : ""}${data.length ? `; ${data.length} requirement${data.length === 1 ? "" : "s"} are supporting data` : ""}${scope.revisions.length ? `; ${scope.revisions.length} revision request${scope.revisions.length === 1 ? "" : "s"} go to every planning stage` : ""}`, data: { scope } });
     // A complete app: its data, roles and navigation first (the app model); its pages are the screens every step uses.
-    const app = react && run.strategy?.buildMode === "complete" ? await this.decideAppModel(run, requirements, releaseBoundary(bySection.items), signal) : undefined;
+    const app = react && run.strategy?.buildMode === "complete" ? await this.decideAppModel(run, requirements, [releaseBoundary(bySection.items), directives].filter(Boolean).join("\n\n"), signal, scope) : undefined;
+    const owners = app ? dataOwners(app) : undefined;
     const screenPlan = app ? screenPlanOf(app) : react ? await this.decideScreens(run, requirements.slice(0, 80).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 220)}`).join("\n"), signal) : undefined;
     if (app && screenPlan) this.d.store.setSetting(screenPlanKey(run.id), screenPlan);
     // A batch becomes a build step, so batching by screen makes each step one finished journey rather than one
@@ -1296,7 +1335,7 @@ export class Orchestrator {
     // Each part is planned on its own, so every part also sees the PRD's functional requirements: its tests must agree
     // with them (Calculator test 3: the numeric-accuracy part expected "Infinity" for 1 ÷ 0, against F7's message).
     const core = requirements.filter((r) => /functional requirements?|features?$/i.test(r.section) && !/non-functional/i.test(r.section)).slice(0, 30);
-    const product = `Product request (summary):\n${untrusted("request", run.objective.slice(0, 1200))}\n${app ? `The app is already written and working before any feature step: its records, store, frame and pages (lists, the create wizard, record pages with status changes by role, the dashboard). Each task adds its feature into those pages and the same store, and names the screen file it works on; it never rebuilds a working page or keeps its own copy of the data.\n${appModelNote(app)}` : `Screens are already designed by an earlier step (one component per main screen in ${react ? "src/screens/" : "src/app/"}, with sample data); each task adds its feature into that design: name the screen file it works on.`}${screenPlan ? `\n${screenPlanNote(screenPlan)}` : ""}${core.length ? `\nThe PRD's functional requirements, for consistency (other parts may plan them; your tests must agree with them):\n${untrusted("functional-requirements", core.map((r) => `${r.id}: ${r.text}`).join("\n"))}` : ""}`;
+    const product = `Product request (summary):\n${untrusted("request", run.objective.slice(0, 1200))}\n${app ? `The app is already written and working before any feature step: its records, store, frame and pages (lists, the create wizard, record pages with status changes by role, the dashboard). Each task adds its feature into those pages and the same store, and names the screen file it works on; it never rebuilds a working page or keeps its own copy of the data.\n${appModelNote(app)}` : `Screens are already designed by an earlier step (one component per main screen in ${react ? "src/screens/" : "src/app/"}, with sample data); each task adds its feature into that design: name the screen file it works on.`}${screenPlan ? `\n${screenPlanNote(screenPlan)}` : ""}${owners ? `\n${owners.note}` : ""}\n\n${directives}${core.length ? `\nThe PRD's functional requirements, for consistency (other parts may plan them; your tests must agree with them):\n${untrusted("functional-requirements", core.map((r) => `${r.id}: ${r.text}`).join("\n"))}` : ""}`;
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Writing the prototype plan from ${requirements.length} PRD requirements: ${bySection.features.length} describe features (planned in ${batches.length} part${batches.length === 1 ? "" : "s"}, ${screenPlan?.screens.length ? "one screen each" : "one section each"}) and become build steps; ${bySection.items.length} are goals, restated stories, plans, decisions or later ideas, placed for a person to check` });
     const ask = async (part: Requirement[], label: string, temperature: number) => {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
@@ -1341,7 +1380,13 @@ export class Orchestrator {
     // The checklist keeps one item per outcome (that's what gets tracked); the build does them in a few larger steps,
     // each proven by its items' acceptance tests.
     const groups = groupSteps(items, MAX_FEATURE_STEPS);
-    const features = stepsFromGroups(groups, port ? "port" : FEATURES_AFTER);
+    // Exact on-screen text in a test must come from the spec's own words or the app's records (lrcPlan.ts testKind).
+    const corpus = `${prdText}\n${app ? JSON.stringify(app.seed) : ""}`;
+    const built = stepsFromGroups(groups, port ? "port" : FEATURES_AFTER, "lrc", { corpus, ...(app ? { dataNote: "the app's records in src/app/schema.ts, through the store in src/app/store.ts" } : {}) });
+    // Every feature step reads the data owners; a step about saving names the saved-state owner (planScope.ts).
+    const owned = owners ? withOwners(built, owners, () => true) : { tasks: built, moved: [] };
+    if (owned.moved.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Steps held to the data owners: ${owned.moved.join("; ")}` });
+    const features = owned.tasks;
     const polish = polishTask([features.at(-1)?.key ?? (port ? "port" : FEATURES_AFTER)]);
     const cleanup = cleanupTask([polish.key]);
     const assemble = { ...assembleTask([cleanup.key], templateId), key: "m_assemble" };
@@ -1349,14 +1394,35 @@ export class Orchestrator {
     const plan: LrcPlan = { runId: run.id, createdAt: nowIso(), requirements, filledIn, items: uniqueIds([...runtimeItems(fixed, cfg), ...items, ...runtimeItems([polish, cleanup, assemble], cfg)]) };
     this.d.store.setSetting(planKey(run.projectId), plan);
     this.d.store.setSetting(runPlanKey(run.id), plan);
+    const look = lookStatus(this.d.store, run.projectId, run.id);
     const counts = { code: items.filter((i) => i.executionType === "code").length, tests: items.reduce((n, i) => n + (i.tests?.length ?? 0), 0), review: items.filter((i) => i.executionType !== "code" && !i.later).length, later: items.filter((i) => i.later).length };
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Prototype plan written:${counts.code} item${counts.code === 1 ? "" : "s"} to build with ${counts.tests} acceptance test${counts.tests === 1 ? "" : "s"}, in ${features.length} build step${features.length === 1 ? "" : "s"}; ${counts.review} item${counts.review === 1 ? "" : "s"} for a person to check, ${counts.later} not for this release${filledIn.length ? `. FlowCode placed ${filledIn.length} requirement${filledIn.length === 1 ? "" : "s"} the planner left out` : ""}` });
-    return {
+    const tasks = await (async () => {
+      // A complete app's working pages are the library's patterns: only its custom pages get catalog picks and briefs.
+      const design = app ? customPlanOf(app) : screenPlan;
+      let steps = [...fixed, ...features, polish, cleanup, assemble];
+      if (app) steps = completeAppTasks(steps, app);
+      // An app's frame and Home are its own: no website header, hero, call-to-action banner or footer from the PRD's wording.
+      if (app || scope.noMarketing) {
+        steps = steps.map((t) => {
+          if (t.title !== ADD_SECTIONS) return t;
+          const cut = dropFunnel(t);
+          if (cut.dropped.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Left out the marketing sections the PRD's wording matched (${cut.dropped.join(", ")}): this is an app, whose frame and Home are its own` });
+          return cut.task;
+        });
+      }
+      steps = withLookStatus(steps, look);
+      return this.withScreenBriefs(run, this.withScreenPicks(run, steps, design), screenPlan, signal, { requirements, items: plan.items, designScreens: design, app, directives });
+    })();
+    const result: ImplementationPlan = {
       goal: run.objective,
       assumptions: [
         `Built on the verified ${starter.title} in an empty workspace`,
         `The prototype plan places all ${requirements.length} PRD requirements are placed in a build step, a sign-off item or "not for this release"`,
         `${refs.length} reference file(s) are imported as data (spec/, src/content/)`,
+        scopeNote(scope, bySection.features),
+        ...(owners ? [owners.note] : []),
+        look.line,
       ],
       relevantFiles: refs.map(referencePath),
       expectedChanges: ["src/**", "spec/**", ...(refs.some((r) => r.role === "json") ? ["src/content/**"] : [])],
@@ -1364,13 +1430,14 @@ export class Orchestrator {
       riskNotes: ["Dependency installation (npm install) runs package lifecycle scripts and uses the network"],
       validationPlan: specRequiredChecks(refs, templateId),
       rollbackStrategy: "Every file change is snapshotted; restore the 'Plan approved' checkpoint to return to an empty workspace.",
-      tasks: await (async () => {
-        // A complete app's working pages are the library's patterns: only its custom pages get catalog picks and briefs.
-        const design = app ? customPlanOf(app) : screenPlan;
-        const steps = [...fixed, ...features, polish, cleanup, assemble];
-        return this.withScreenBriefs(run, this.withScreenPicks(run, app ? completeAppTasks(steps, app) : steps, design), screenPlan, signal, { requirements, items: plan.items, designScreens: design });
-      })(),
+      tasks,
     };
+    // The assembled plan checked for what a revision asks of it (planChecks.ts): stored and said, never silently passed.
+    const checks = planChecks(result, { scope, corpus, app: !!app, saves: !!app?.nav.some((g) => g.items.some((v) => v.kind === "saved")) && requirements.some((r) => /\bsav(e|ed)\b/i.test(r.text)), look });
+    this.d.store.setSetting(planChecksKey(run.id), checks);
+    const failing = checks.filter((c) => !c.ok);
+    this.d.bus.emit({ ...ev, type: "plan.proposed", level: failing.length ? "warning" : "info", message: failing.length ? `Plan checks: ${failing.length} of ${checks.length} need attention: ${failing.map((c) => `${c.label}: ${c.problems.slice(0, 2).join("; ")}`).join(" | ")}`.slice(0, 1500) : `Plan checks: all ${checks.length} pass (scope, Home, tests, save journey, data owners, Look)`, data: { checks } });
+    return result;
   }
 
   approvePlan(runId: string, by = "user", autoStart = true): Run {

@@ -74,6 +74,16 @@ export interface ConceptOffer {
 
 const piecesWaiting = (spec: DesignSpec, approved = new Set(LIBRARY_SECTIONS.map((s) => s.id))) => homePieces(spec.composition.home).filter((id) => !approved.has(id));
 
+/** A concept whose Home shows what this build leaves out (planScope.ts), said on the card rather than built quietly. */
+function outOfScope(c: DesignSpec, m: AppModel): string[] {
+  const omit = m.lookup?.omit ?? [];
+  const out: string[] = [];
+  if (omit.includes("places") && /\b(zip|near you|stores? near|where to find)\b/i.test(c.thesis)) out.push("Its Home shows places near a ZIP code, which this build leaves out");
+  if (omit.includes("categories") && /\bcategor/i.test(c.thesis)) out.push("Its Home browses by category, which this build leaves out");
+  if (omit.includes("ratings") && /\b(rating|review)/i.test(c.thesis)) out.push("Its Home shows ratings, which this build leaves out");
+  return out;
+}
+
 /** `approved`: the library pieces approved for builds (the catalog's, by default). */
 export function conceptOffer(store: Store, runId: string, planApproved: boolean, approved = new Set(LIBRARY_SECTIONS.map((s) => s.id))): ConceptOffer {
   const t0 = performance.now();
@@ -86,7 +96,7 @@ export function conceptOffer(store: Store, runId: string, planApproved: boolean,
     const waiting = [...new Set(HOME_CONCEPTS.flatMap((c) => piecesWaiting(c, approved)))];
     return { offered: false, why: `The Home designs are waiting for your approval in the Component library (${waiting.join(", ")})`, concepts: [], ...(chosen ? { chosen } : {}) };
   }
-  const concepts = usable.map((c) => ({ id: c.id, name: c.name, thesis: c.thesis, ...(c.composition.home?.design ? { design: c.composition.home.design } : {}), tokens: expectedTokens(c), fonts: [c.typography.display, c.typography.body], problems: specProblems(c) }));
+  const concepts = usable.map((c) => ({ id: c.id, name: c.name, thesis: c.thesis, ...(c.composition.home?.design ? { design: c.composition.home.design } : {}), tokens: expectedTokens(c), fonts: [c.typography.display, c.typography.body], problems: [...specProblems(c), ...outOfScope(c, model)] }));
   const landing = model.nav.flatMap((g) => g.items).find((v) => v.kind === "landing");
   const offer: ConceptOffer = { offered: !planApproved, ...(planApproved ? { why: "The plan is approved; the Home direction was settled with it" } : {}), concepts, ...(chosen ? { chosen } : {}), preview: { product: model.product, ...(landing?.purpose ? { promise: landing.purpose } : {}), data: lookupPreview(model)! } };
   const timings = store.getSetting<ConceptTimings>(conceptTimingsKey(runId), {});

@@ -26,6 +26,10 @@ export interface Workflow {
   failure: string;
   recovery: string;
   requirementIds: string[];
+  /** Who the person is when the journey starts (signed out as a visitor, signed in as a member). */
+  start?: string;
+  /** "flowcode": composed by FlowCode from the app model and the requirements (ensureSaveJourney), not the planner. */
+  by?: "flowcode";
 }
 export interface ExperienceMap {
   roles: Array<{ name: string; goals: string[] }>;
@@ -156,7 +160,10 @@ export function parseExperienceMap(raw: unknown, plan: ScreenPlan, requirementId
   };
 }
 
-export type CoverageStatus = "planned" | "no workflow" | "for a person to check" | "not in this release" | "unplaced";
+export type CoverageStatus = "planned" | "no workflow" | "for a person to check" | "supporting data" | "not in this release" | "unplaced";
+
+/** The checklist category of requirements that describe records and sample data (planScope.ts: supporting data). */
+export const SUPPORTING_DATA = "spec.supporting-data";
 export interface CoverageRow {
   requirement: string;
   text: string;
@@ -180,15 +187,16 @@ export function coverageMatrix(requirements: Requirement[], items: PlanItem[], m
     const code = its.find((i) => i.executionType === "code" && !i.later);
     const later = its.find((i) => i.later);
     const review = its.find((i) => i.executionType !== "code" && !i.later);
+    const data = its.find((i) => i.categoryId === SUPPORTING_DATA);
     const tests = its.flatMap((i) => i.tests ?? []);
-    const status: CoverageStatus = later ? "not in this release" : code ? (flows.length || everyPage || !map?.workflows.length ? "planned" : "no workflow") : review ? "for a person to check" : "unplaced";
+    const status: CoverageStatus = later ? "not in this release" : code ? (flows.length || everyPage || !map?.workflows.length ? "planned" : "no workflow") : data ? "supporting data" : review ? "for a person to check" : "unplaced";
     return {
       requirement: r.id,
       text: r.text.slice(0, 200),
       workflows: flows.map((w) => w.name),
       pages,
       behavior: tests.length ? tests.map((t) => `${t.behaviour} → ${t.expect}`).join("; ").slice(0, 300) : (code?.title ?? review?.title ?? ""),
-      verification: code ? `${tests.length ? `acceptance tests in step "${code.title}"` : `step "${code.title}"`}${flows.length ? `; journey test for ${flows.map((w) => `"${w.name}"`).join(", ")}` : everyPage ? "; checked on every page (look check, contrast, keyboard, phone width)" : ""}` : review ? "a person checks it at review" : later ? `left out: ${later.later}` : "none",
+      verification: data && !code ? "the app model holds these records and fields; checked when the app is written from it" : code ? `${tests.length ? `acceptance tests in step "${code.title}"` : `step "${code.title}"`}${flows.length ? `; journey test for ${flows.map((w) => `"${w.name}"`).join(", ")}` : everyPage ? "; checked on every page (look check, contrast, keyboard, phone width)" : ""}` : review ? "a person checks it at review" : later ? `left out: ${later.later}` : "none",
       status,
     };
   });
@@ -210,7 +218,7 @@ export const JOURNEY_TESTS = "src/acceptance/journeys.test.tsx";
 export function journeyTestObjective(map: ExperienceMap): string {
   return [
     `Then write ${JOURNEY_TESTS}: one test per user journey below, each rendering <App /> (Testing Library, userEvent) from its entry screen and doing its steps in order through the real navigation (menu links, buttons, row links), checking after each step that the screen shows its result. Where a journey opens one record from a list, check the detail screen shows that same record (its name from the list), and that Back returns to the list. Use the app's own sample data; no mocks of the app's screens.`,
-    ...map.workflows.map((w) => `- "${w.name}": starts on ${w.entry}; ${w.steps.map((s) => `${s.screen}: ${s.action} → ${s.result}`).join("; ")}${w.success ? `; success: ${w.success}` : ""}`),
+    ...map.workflows.map((w) => `- "${w.name}": starts on ${w.entry}${w.start ? ` (${w.start})` : ""}; ${w.steps.map((s) => `${s.screen}: ${s.action} → ${s.result}`).join("; ")}${w.success ? `; success: ${w.success}` : ""}`),
   ].join("\n");
 }
 
@@ -232,7 +240,7 @@ export function experienceNote(map: ExperienceMap): string {
     "User journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):",
     ...map.workflows.map((w) =>
       [
-        `## ${w.name} (${w.role || "user"}; starts on ${w.entry}${w.requirementIds.length ? `; ${w.requirementIds.join(", ")}` : ""})`,
+        `## ${w.name} (${w.role || "user"}; starts on ${w.entry}${w.start ? `, ${w.start}` : ""}${w.requirementIds.length ? `; ${w.requirementIds.join(", ")}` : ""})`,
         ...w.steps.map((s, i) => `${i + 1}. ${s.screen}: ${s.action} → ${s.result}`),
         w.success ? `Success: ${w.success}` : "",
         w.failure ? `If it goes wrong: ${w.failure}${w.recovery ? ` → ${w.recovery}` : ""}` : "",
@@ -241,4 +249,72 @@ export function experienceNote(map: ExperienceMap): string {
         .join("\n"),
     ),
   ].join("\n\n");
+}
+
+const SAVES = /\bsav(e|ed|es|ing)\b|\bbookmark|\bfavou?rite/i;
+const PERSISTS = /\b(reload\w*|refresh\w*|still (saved|there)|kept|persist\w*|remember\w*|comes? back later)\b/i;
+const UNSAVES = /\b(unsave|remove[sd]?|again removes|press(ing)? it again|toggle)\b/i;
+const SIGN_IN = /\bsign(s|ed)?[ -]?in\b|\blog(s|ged)?[ -]?in\b/i;
+
+/** The pages a save journey runs through, by the app's own labels. */
+export interface SavePages {
+  home?: string;
+  search?: string;
+  record: string;
+  saved: string;
+}
+
+/** Whether a journey goes all the way: search, the record, save, the saved page, a reload, unsave, and who starts it. */
+export function isCompleteSaveJourney(w: Workflow, p: SavePages): boolean {
+  const on = (screen: string) => w.steps.some((s) => s.screen === screen);
+  const did = (re: RegExp) => w.steps.some((s) => re.test(`${s.action} ${s.result}`));
+  return !!w.start && (!p.search || on(p.search)) && on(p.record) && on(p.saved) && did(SAVES) && did(PERSISTS) && did(UNSAVES);
+}
+
+/**
+ * The complete save journey, when the app saves things and the requirements ask for it: from the first page, search for a
+ * real record, open it, save it (a visitor is asked to sign in first; signed in, it saves), see it on the saved page,
+ * reload and still see it, then unsave it and see it gone, starting signed out when the app has visitors (Clean Cart
+ * planning validation: the planner split this into four partial journeys, none starting from a stated sign-in state,
+ * none with reload or unsave). FlowCode adds it to the map when no journey already does all of it; the planner's own
+ * journeys stay.
+ */
+export function ensureSaveJourney(map: ExperienceMap, p: SavePages, requirements: Requirement[], roles: string[], sample?: string): { map: ExperienceMap; added: boolean } {
+  const saving = requirements.filter((r) => SAVES.test(r.text));
+  if (!saving.length || map.workflows.some((w) => isCompleteSaveJourney(w, p))) return { map, added: false };
+  const visitor = roles.find((r) => /\b(visitor|guest|not signed in|signed out|anonymous)\b/i.test(r));
+  const member = roles.find((r) => r !== visitor && /\b(member|signed in|account|user|shopper|customer)\b/i.test(r)) ?? roles.find((r) => r !== visitor) ?? "the person";
+  const asksSignIn = !!visitor && requirements.some((r) => SIGN_IN.test(r.text) && SAVES.test(r.text));
+  const thing = sample ? `"${sample}"` : "a real record from the sample data";
+  const words = sample ? `part of ${thing}'s name` : "part of a real record's name";
+  const steps: WorkflowStep[] = [
+    ...(p.home && p.search ? [{ screen: p.home, action: `type ${words} into the search box and submit`, result: `${p.search} lists ${thing}` }] : []),
+    ...(p.search ? [{ screen: p.search, action: `open ${thing} from the results`, result: `${p.record} shows ${thing} and its details` }] : []),
+    ...(asksSignIn
+      ? [
+          { screen: p.record, action: "press Save while signed out", result: "the app asks the visitor to sign in; nothing is saved yet" },
+          { screen: p.record, action: "sign in (the demo account, one tap)", result: `signed in as ${member}, still on ${thing}` },
+        ]
+      : []),
+    { screen: p.record, action: "press Save", result: "the Save control shows it is saved" },
+    { screen: p.saved, action: `open ${p.saved}`, result: `${thing} is listed` },
+    { screen: p.saved, action: "reload the app (render it again: what was saved comes from this browser's storage)", result: `${thing} is still listed on ${p.saved}` },
+    { screen: p.record, action: `open ${thing} from ${p.saved} and press Save again (unsave)`, result: "the Save control shows it is not saved" },
+    { screen: p.saved, action: `open ${p.saved}`, result: `${thing} is no longer listed (the empty state when nothing else is saved)` },
+  ];
+  const covers = requirements.filter((r) => SAVES.test(r.text) || PERSISTS.test(r.text) || (UNSAVES.test(r.text) && SAVES.test(r.text)) || (asksSignIn && SIGN_IN.test(r.text)) || (p.search && /\bsearch/i.test(r.text) && /\b(home|result)/i.test(r.text)));
+  const workflow: Workflow = {
+    id: `w${map.workflows.length + 1}`,
+    name: `Save and come back: search → ${p.record} → save${asksSignIn ? " (sign in)" : ""} → ${p.saved} → reload → unsave`,
+    role: asksSignIn ? `${visitor}, then ${member}` : member,
+    entry: steps[0]!.screen,
+    start: asksSignIn ? `signed out as ${visitor}; signs in as ${member} at the Save step` : `signed in as ${member}`,
+    steps,
+    success: `${thing} is saved, survives a reload, and is gone from ${p.saved} after unsaving`,
+    failure: asksSignIn ? "the visitor's Save is lost or saves without signing in" : "the saved record is gone after a reload",
+    recovery: "sign in and press Save again",
+    requirementIds: [...new Set(covers.map((r) => r.id))],
+    by: "flowcode",
+  };
+  return { map: { ...map, workflows: [...map.workflows, workflow] }, added: true };
 }
