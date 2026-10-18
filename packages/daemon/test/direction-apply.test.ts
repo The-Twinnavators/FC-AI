@@ -102,7 +102,7 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1" || !fs.existsSync(path
     selectDraft(app.store, project.id, jail);
     const res = applySelected(app.store, project.id, jail, app.ops, { projectId: project.id, runId: "look" }, (id) => void app.snapshots.restore(id, jail));
     expect(res.ok).toBe(true);
-    expect(describeState(app.store, project.id, jail).label).toBe("Applied");
+    expect(describeState(app.store, project.id, jail).label).toBe("Applied (files updated; not verified)");
     const after = hashes(root);
     const changed = Object.keys(after).filter((p) => before[p] !== after[p]);
     expect(changed.filter((p) => !/^src\/(styles\/|main\.tsx$)/.test(p) && !p.startsWith("public/"))).toEqual([]);

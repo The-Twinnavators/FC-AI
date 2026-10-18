@@ -24,10 +24,48 @@ export interface DesignState {
   base: { source: "none" | "starter" | "legacy-default" | "unknown"; detail: string };
   draft?: { appearance: Appearance; sources: Partial<Record<keyof Appearance, DesignSource>>; updatedAt: string };
   selected?: { appearance: Appearance; sources: Partial<Record<keyof Appearance, DesignSource>>; version: number; selectedAt: string; by: "you" };
-  applied?: { appearance: Appearance; version: number; appliedAt: string; snapshotIds: string[] };
+  applied?: { appearance: Appearance; version: number; appliedAt: string; snapshotIds: string[]; verification?: ApplyVerification };
   lastFailure?: { version: number; at: string; reason: string };
   /** Surface styles the person asked for in this project (FlowCode otherwise uses Flat or Tactile only). */
   surfaceExceptions: string[];
+}
+
+/** One check's outcome after an apply. "not_run" is never a pass. */
+export type VerifyStatus = "passed" | "failed" | "not_run";
+export interface VerifyCheck {
+  kind: string;
+  status: string;
+  summary: string;
+}
+/**
+ * What applying a direction to an existing app has and hasn't shown, kept apart: the files were updated (that is what
+ * "applied" means); technical verification (typecheck, build); browser and functional verification (the preview, its
+ * screenshots, the journey through the app); and the person's visual approval, which only they give. A check that
+ * couldn't run is "not_run", not passed. A failed check doesn't undo the files: the snapshots in `applied` can.
+ */
+export interface ApplyVerification {
+  version: number;
+  at: string;
+  file: "applied";
+  technical: { status: VerifyStatus; checks: VerifyCheck[]; note?: string };
+  browser: { status: VerifyStatus; checks: VerifyCheck[]; note?: string };
+  human: "pending";
+}
+
+/** A group's status from its checks: failed if any failed or was blocked, passed only if every one passed, else not run. */
+export function groupStatus(checks: VerifyCheck[]): VerifyStatus {
+  if (checks.some((c) => c.status === "failed" || c.status === "blocked")) return "failed";
+  if (checks.length && checks.every((c) => c.status === "passed")) return "passed";
+  return "not_run";
+}
+
+/** Records what the checks after an apply showed, on the applied direction it belongs to (never on a later one). */
+export function recordVerification(store: Store, projectId: string, v: ApplyVerification, jail?: PathJail): DesignState {
+  const s = getDesignState(store, projectId, jail);
+  if (!s.applied || s.applied.version !== v.version) return s;
+  const next: DesignState = { ...s, applied: { ...s.applied, verification: v } };
+  save(store, projectId, next);
+  return next;
 }
 
 export const designStateKey = (projectId: string) => `designState:${projectId}`;
@@ -149,7 +187,13 @@ export function divergence(jail: PathJail, s: DesignState): string[] {
 export function stateLabel(s: DesignState, differs: string[]): string {
   if (s.applied && differs.length) return "The app's styles differ from the applied direction";
   if (s.applied && s.selected && s.selected.version > s.applied.version) return "A newer direction is selected, not yet applied";
-  if (s.applied) return "Applied";
+  if (s.applied) {
+    const v = s.applied.verification;
+    if (!v) return "Applied (files updated; not verified)";
+    if (v.technical.status === "failed" || v.browser.status === "failed") return "Applied (files updated); a check after it failed";
+    if (v.technical.status === "passed" && v.browser.status === "passed") return "Applied and checked; your visual approval is pending";
+    return "Applied (files updated); some checks not run";
+  }
   if (s.selected) return s.lastFailure?.version === s.selected.version ? "Selected; the last update failed" : "Selected, not yet applied";
   if (s.base.source === "legacy-default") return s.base.detail;
   if (s.base.source === "unknown") return "No brand direction selected (source of the current styles not recorded)";

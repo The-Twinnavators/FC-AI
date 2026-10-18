@@ -15,13 +15,57 @@ interface DesignStateView {
   base: { source: string; detail: string };
   draft?: { appearance: Appearance; sources: Sources; updatedAt: string };
   selected?: { appearance: Appearance; sources: Sources; version: number; selectedAt: string };
-  applied?: { appearance: Appearance; version: number; appliedAt: string };
+  applied?: { appearance: Appearance; version: number; appliedAt: string; verification?: Verification };
   lastFailure?: { version: number; at: string; reason: string };
   surfaceExceptions: string[];
   hasApp: boolean;
   differs: string[];
   label: string;
   prd?: { colors: Array<{ hex: string; name: string; use?: string }> };
+}
+
+type VerifyStatus = "passed" | "failed" | "not_run";
+interface Verification {
+  version: number;
+  at: string;
+  file: "applied";
+  technical: { status: VerifyStatus; checks: Array<{ kind: string; status: string; summary: string }>; note?: string };
+  browser: { status: VerifyStatus; checks: Array<{ kind: string; status: string; summary: string }>; note?: string };
+  human: "pending";
+}
+const STATUS_WORD: Record<VerifyStatus, string> = { passed: "Passed", failed: "Failed", not_run: "Not run" };
+const CHECK_LABEL: Record<string, string> = { typecheck: "Typecheck", build: "Build", preview_health: "Preview", screenshots: "Screenshots", functional_journey: "Journey through the app" };
+
+/** After an apply: the four things kept apart. Only the first is what "applied" means; not run is never shown as passed. */
+function ApplyResult({ v }: { v: Verification }) {
+  const row = (label: string, status: VerifyStatus, checks: Verification["technical"]["checks"], note?: string) => (
+    <li className={`ds-verify__row is-${status}`}>
+      <span className="ds-verify__k">{label}</span>
+      <span className="ds-verify__v">
+        <span aria-hidden="true">{status === "passed" ? "✓" : status === "failed" ? "✕" : "–"}</span> {STATUS_WORD[status]}
+        {checks.length ? <span className="dim"> · {checks.map((c) => `${CHECK_LABEL[c.kind] ?? c.kind} ${c.status === "not_run" ? "not run" : c.status}`).join(", ")}</span> : null}
+        {note ? <span className="dim"> · {note}</span> : null}
+        {checks.filter((c) => c.status !== "passed").map((c) => <span key={c.kind} className="ds-verify__why">{CHECK_LABEL[c.kind] ?? c.kind}: {c.summary}</span>)}
+      </span>
+    </li>
+  );
+  return (
+    <div className="ds-verify" aria-label={`After applying version ${v.version}`}>
+      <ul>
+        <li className="ds-verify__row is-passed">
+          <span className="ds-verify__k">File update</span>
+          <span className="ds-verify__v"><span aria-hidden="true">✓</span> Applied</span>
+        </li>
+        {row("Technical verification", v.technical.status, v.technical.checks, v.technical.note)}
+        {row("Browser and functional verification", v.browser.status, v.browser.checks, v.browser.note)}
+        <li className="ds-verify__row is-not_run">
+          <span className="ds-verify__k">Your visual approval</span>
+          <span className="ds-verify__v"><span aria-hidden="true">–</span> Pending: look at the app and decide</span>
+        </li>
+      </ul>
+      {v.technical.status === "failed" || v.browser.status === "failed" ? <p className="ds__warn">A failed check doesn't undo the change. To go back to the previous look, undo this apply in Changes.</p> : null}
+    </div>
+  );
 }
 
 const NEUTRALS: Array<{ id: Appearance["neutral"]; label: string }> = [
@@ -129,8 +173,9 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
       }
       if (s?.draft || saveTimer.current) await post(`/projects/${projectId}/design/select`, {});
       if (apply) {
-        const r = await post<{ ok: boolean; reason?: string; checks_rerun: Array<{ kind: string; status: string }> }>(`/projects/${projectId}/design/apply`, {});
-        setMsg(r.ok ? `Applied to the app.${r.checks_rerun.length ? ` Checks: ${r.checks_rerun.map((c) => `${c.kind} ${c.status}`).join(", ")}.` : ""} Undo it in Changes.` : `Not applied: ${r.reason}. Your draft and the previous look are kept.`);
+        setMsg("Applying, then rerunning the latest build's checks…");
+        const r = await post<{ ok: boolean; reason?: string }>(`/projects/${projectId}/design/apply`, {});
+        setMsg(r.ok ? "Files updated. What the checks showed is listed above." : `Not applied: ${r.reason}. Your draft and the previous look are kept.`);
       } else setMsg(where === "plan" ? "Selected. Approving the plan uses this direction." : "Selected. Apply it to change the app.");
       saveTimer.current = undefined;
       res.reload();
@@ -174,6 +219,7 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
         </p>
         {s.differs.length ? <p className="ds__warn">These tokens no longer match the applied direction: {s.differs.join(", ")}</p> : null}
         {s.lastFailure ? <p className="ds__warn">The last update (version {s.lastFailure.version}) failed: {s.lastFailure.reason}</p> : null}
+        {where !== "plan" && s.applied?.verification ? <ApplyResult v={s.applied.verification} /> : null}
       </header>
       <div className="ds__body">
         <div className="ds__controls">

@@ -55,7 +55,7 @@ describe.skipIf(!fs.existsSync(RECORDED))("a project's design state", () => {
     expect(res.ok).toBe(true);
     expect(tokensOf(jail.root)).toContain(`--font-display: ${appearanceTokens(MARKET)["--font-display"]};`);
     const applied = describeState(app.store, project.id, jail);
-    expect(applied.label).toBe("Applied");
+    expect(applied.label).toBe("Applied (files updated; not verified)");
     expect(applied.applied?.version).toBe(1);
     expect(applied.differs).toEqual([]);
     // Undo through the snapshots puts the previous styles back.
@@ -80,7 +80,7 @@ describe.skipIf(!fs.existsSync(RECORDED))("a project's design state", () => {
     expect(s.applied?.version).toBe(1);
     expect(s.lastFailure?.version).toBe(2);
     expect(s.draft?.appearance.primary).toBe("#123456");
-    expect(s.label).not.toBe("Applied");
+    expect(s.label).toBe("A newer direction is selected, not yet applied");
     fs.writeFileSync(path.join(jail.root, "src/styles/tokens.css"), good);
   });
 

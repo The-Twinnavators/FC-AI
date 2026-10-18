@@ -28,7 +28,7 @@ import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { DeadlinePassedError } from "../orchestrator/runDeadline.js";
 import { chooseConcept, conceptOffer } from "../orchestrator/homeConceptOffer.js";
-import { allowSurface, applySelected, describeState, discardDraft, saveDraft, selectDraft } from "../workspace/designState.js";
+import { allowSurface, applySelected, describeState, discardDraft, groupStatus, recordVerification, saveDraft, selectDraft, type ApplyVerification, type VerifyCheck } from "../workspace/designState.js";
 import { starterIdentity } from "../orchestrator/starterIdentity.js";
 import { z } from "zod";
 import * as C from "@flowcode/contracts";
@@ -905,19 +905,66 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     } catch (err) {
       throw new HttpError(409, (err as Error).message);
     }
-    const reran: Array<{ kind: string; status: string; summary: string }> = [];
-    if (res.ok && latest && !app.orchestrator.isActive(latest.id)) {
+    if (!res.ok) return { ...describeState(app.store, params.id, jail), ok: false, reason: res.reason, changed: [], checks_rerun: [] };
+    // Applied means the files were updated. What that showed is kept apart (ApplyVerification): the latest build's
+    // existing checks are rerun on the changed app - typecheck and build, then (only when those passed) its preview
+    // checks and the journey through the app. Whatever couldn't run is "not_run", never passed. A failed check doesn't
+    // undo anything: the previous look is restored from the snapshots (Undo in Changes) when the person chooses.
+    const version = res.state.applied!.version;
+    const latestCheck = (kind: string) => app.store.checks.where("run_id = ?", latest!.id).filter((x) => !x.taskId && x.kind === kind).at(-1);
+    const required = new Set<string>(latest?.strategy?.requiredChecks ?? []);
+    const technical: VerifyCheck[] = [];
+    const browser: VerifyCheck[] = [];
+    let technicalNote: string | undefined;
+    let browserNote: string | undefined;
+    if (!latest) technicalNote = browserNote = "No build has run on this project, so there are no checks to rerun";
+    else {
       for (const kind of ["typecheck", "build"] as const) {
-        if (!latest.strategy?.requiredChecks.includes(kind)) continue;
+        if (!required.has(kind)) continue;
         try {
-          const kinds = await app.verifier.rerunCheck(latest, kind);
-          for (const c of app.store.checks.where("run_id = ?", latest.id).filter((x) => !x.taskId && kinds.includes(x.kind))) reran.push({ kind: c.kind, status: c.status, summary: c.summary });
+          await app.verifier.rerunCheck(latest, kind);
+          const c = latestCheck(kind);
+          technical.push(c ? { kind, status: c.status, summary: c.summary } : { kind, status: "not_run", summary: "No result was recorded" });
         } catch (err) {
-          reran.push({ kind, status: "not_run", summary: (err as Error).message });
+          technical.push({ kind, status: "not_run", summary: (err as Error).message });
         }
       }
+      if (!technical.length) technicalNote = "The latest build doesn't require a typecheck or build";
+      const browserKinds = ["preview_health", "screenshots"].filter((k) => required.has(k));
+      if (groupStatus(technical) !== "passed") browserNote = "Not run: technical verification didn't pass";
+      else {
+        if (browserKinds.length) {
+          try {
+            await app.verifier.rerunCheck(latest, "preview_health");
+            for (const kind of browserKinds) {
+              const c = latestCheck(kind);
+              browser.push(c ? { kind, status: c.status, summary: c.summary } : { kind, status: "not_run", summary: "No result was recorded" });
+            }
+          } catch (err) {
+            for (const kind of browserKinds) browser.push({ kind, status: "not_run", summary: (err as Error).message });
+          }
+        }
+        if (required.has("functional_journey")) {
+          try {
+            const j = await app.verifier.functionalJourney(latest);
+            browser.push(j ? { kind: "functional_journey", status: j.ok ? "passed" : "failed", summary: j.summary } : { kind: "functional_journey", status: "not_run", summary: "The build has no written app model to walk through" });
+          } catch (err) {
+            browser.push({ kind: "functional_journey", status: "not_run", summary: (err as Error).message });
+          }
+        }
+        if (!browser.length) browserNote = "The latest build doesn't require preview or journey checks";
+      }
     }
-    return { ...describeState(app.store, params.id, jail), ok: res.ok, reason: res.reason, changed: res.changed, checks_rerun: reran };
+    const verification: ApplyVerification = {
+      version,
+      at: new Date().toISOString(),
+      file: "applied",
+      technical: { status: groupStatus(technical), checks: technical, ...(technicalNote ? { note: technicalNote } : {}) },
+      browser: { status: groupStatus(browser), checks: browser, ...(browserNote ? { note: browserNote } : {}) },
+      human: "pending",
+    };
+    recordVerification(app.store, params.id, verification, jail);
+    return { ...describeState(app.store, params.id, jail), ok: true, changed: res.changed, verification, checks_rerun: [...technical, ...browser], rollback: "A failed check doesn't undo the change. The previous look can be restored from this apply's snapshots (Undo in Changes)." };
   });
   // Home concepts on the plan card: what is offered (with what the live preview needs), and the person's pick.
   add("GET /runs/:id/concepts", ({ params }) => conceptOffer(app.store, params.id, !!app.store.runs.require(params.id).planApproved));
