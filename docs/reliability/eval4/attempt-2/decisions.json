@@ -1,0 +1,22 @@
+[
+  {
+    "id": "dec_mvd7vc92_hkmr",
+    "at": "2026-10-18T02:39:02.342Z",
+    "kind": "approval",
+    "actor": "user",
+    "summary": "Denied: Approve implementation plan: Clean Cart: build the slice in the attached PRD as a complete working prototype: Home, search, a product's page, save it, and see it on Saved.",
+    "projectId": "prj_19a9314928f645ed9254",
+    "runId": "run_34b696a0625c4c86bfcf",
+    "ref": "approval:apr_ed881e8922c942179fcd"
+  },
+  {
+    "id": "dec_mvd7vdvw_t5tl",
+    "at": "2026-10-18T02:39:04.460Z",
+    "kind": "recovery",
+    "actor": "flowcode",
+    "summary": "Looked into why this build stopped: no clear cause yet. See \"Why it stopped\" in Details.",
+    "projectId": "prj_19a9314928f645ed9254",
+    "runId": "run_34b696a0625c4c86bfcf",
+    "ref": "event:evt_063e09ccd8824e529a8f"
+  }
+]

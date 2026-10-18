@@ -1,0 +1,14 @@
+[
+  {
+    "id": "chk_bf8132068baf49f49cd0",
+    "runId": "run_34b696a0625c4c86bfcf",
+    "kind": "project_preflight",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "preflight:pf_b97bb6150fd642a69fd7"
+    ],
+    "summary": "incomplete; 0 scripts; preview none",
+    "updatedAt": "2026-10-18T02:23:41.127Z"
+  }
+]
