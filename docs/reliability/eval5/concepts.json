@@ -1,0 +1,834 @@
+{
+  "offered": false,
+  "why": "The plan is approved; the Home direction was settled with it",
+  "concepts": [
+    {
+      "id": "concept-bold",
+      "name": "Bold aisle",
+      "thesis": "Find it fast: the library's listings design, with a search hero, real counts as proof points, sortable listings, the stores near you and the ZIP code; flat surfaces on a light yellow ground.",
+      "design": "listings",
+      "tokens": {
+        "--surface-bg": "var(--color-surface)",
+        "--surface-border": "var(--border-width) solid var(--color-border)",
+        "--surface-shadow": "none",
+        "--surface-shadow-hover": "0 6px 20px -12px color-mix(in srgb, var(--color-text) 35%, transparent)",
+        "--surface-blur": "none",
+        "--surface-radius": "var(--radius-lg)",
+        "--control-radius": "var(--radius-md)",
+        "--control-border": "var(--border-width) solid var(--color-border-strong)",
+        "--control-shadow": "none",
+        "--control-shadow-hover": "none",
+        "--header-bg": "var(--color-surface)",
+        "--page-backdrop": "none",
+        "--page-fill": "var(--color-bg)",
+        "--heading-weight": "600",
+        "--control-bg": "var(--color-surface)",
+        "--accent-bg": "var(--color-accent)",
+        "--control-edge": "initial",
+        "--surface-edge": "initial",
+        "--control-shadow-active": "var(--control-shadow-hover)",
+        "--control-shadow-focus": "var(--focus-ring)",
+        "--well-shadow": "var(--control-shadow)",
+        "--surface-shadow-selected": "0 0 0 1px var(--color-accent)",
+        "--surface-shadow-overlay": "initial",
+        "--surface-radius-sm": "var(--radius-md)",
+        "--control-radius-sm": "var(--radius-sm)",
+        "--pill-radius": "999px",
+        "--field-radius": "min(var(--control-radius), 12px)",
+        "--edge-width": "var(--border-width)",
+        "--overlay-border": "initial",
+        "--hover-lift": "-1px",
+        "--press-scale": "0.98",
+        "--tag-tilt": "0deg",
+        "--hover-shift": "none",
+        "--press-shift": "none",
+        "--font-display": "\"Oswald\", Georgia, serif",
+        "--font-sans": "\"DM Sans\", system-ui, sans-serif",
+        "--text-sm": "0.889rem",
+        "--text-md": "1rem",
+        "--text-lg": "1.125rem",
+        "--text-xl": "1.266rem",
+        "--text-2xl": "1.424rem",
+        "--text-3xl": "1.602rem",
+        "--tracking-tight": "-0.02em",
+        "--color-bg": "#fff8dc",
+        "--color-surface": "#ffffff",
+        "--color-surface-sunken": "#fbefc0",
+        "--color-text": "#111111",
+        "--color-text-muted": "#3d3d3d",
+        "--color-border": "#e6dcb4",
+        "--color-border-strong": "#8a7f55",
+        "--color-accent": "#1d4ed8",
+        "--color-accent-hover": "#1e40af",
+        "--color-on-accent": "#ffffff",
+        "--color-focus": "#1d4ed8",
+        "--color-secondary": "#be123c",
+        "--space-1": "0.2rem",
+        "--space-2": "0.4rem",
+        "--space-3": "0.6rem",
+        "--space-4": "0.8rem",
+        "--space-5": "1.2rem",
+        "--space-6": "1.6rem",
+        "--space-7": "2.4rem",
+        "--space-8": "3.2rem",
+        "--space-9": "4.8rem",
+        "--radius-sm": "4px",
+        "--radius-md": "6px",
+        "--radius-lg": "8px",
+        "--radius-xl": "8px",
+        "--border-width": "1px",
+        "--content-max": "90rem"
+      },
+      "fonts": [
+        "Oswald",
+        "DM Sans"
+      ],
+      "problems": []
+    }
+  ],
+  "preview": {
+    "product": "Clean Cart",
+    "data": {
+      "schema": {
+        "appKey": "clean-cart",
+        "roles": [
+          "Member (signed in as a demo account)",
+          "Visitor (not signed in)"
+        ],
+        "entities": [
+          {
+            "key": "product",
+            "label": "Product",
+            "plural": "Products",
+            "titleField": "name",
+            "subtitleField": "brand",
+            "idPrefix": "PRD",
+            "fields": [
+              {
+                "key": "name",
+                "label": "Name",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "brand",
+                "label": "Brand",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "category",
+                "label": "Category",
+                "type": "select",
+                "options": [
+                  "Beverages",
+                  "Bakery",
+                  "Breakfast",
+                  "Baby",
+                  "Snacks",
+                  "Dairy"
+                ],
+                "required": true
+              },
+              {
+                "key": "certification",
+                "label": "Certification",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "ingredients",
+                "label": "Ingredients",
+                "type": "longtext",
+                "required": true
+              },
+              {
+                "key": "description",
+                "label": "Description",
+                "type": "longtext"
+              }
+            ],
+            "columns": [],
+            "filters": []
+          },
+          {
+            "key": "store",
+            "label": "Store",
+            "plural": "Stores",
+            "titleField": "name",
+            "subtitleField": "zip",
+            "idPrefix": "STR",
+            "fields": [
+              {
+                "key": "name",
+                "label": "Name",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "zip",
+                "label": "ZIP Code",
+                "type": "text",
+                "required": true
+              }
+            ],
+            "columns": [],
+            "filters": []
+          }
+        ]
+      },
+      "records": {
+        "product": [
+          {
+            "id": "PRD-1001",
+            "name": "Oat Milk Original",
+            "brand": "Willow Farms",
+            "category": "Beverages",
+            "certification": "Non-GMO Project Verified",
+            "ingredients": "Oats, water, sea salt",
+            "description": "Creamy and delicious oat milk perfect for coffee or cereal.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1002",
+              "STR-1003"
+            ]
+          },
+          {
+            "id": "PRD-1002",
+            "name": "Sourdough Country Loaf",
+            "brand": "Hearth & Grain",
+            "category": "Bakery",
+            "certification": "USDA Organic",
+            "ingredients": "Wheat flour, water, salt, sourdough starter",
+            "description": "Authentic sourdough bread with a crispy crust and soft interior.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1002",
+              "STR-1004"
+            ]
+          },
+          {
+            "id": "PRD-1003",
+            "name": "Rolled Oats",
+            "brand": "Sunrise Valley",
+            "category": "Breakfast",
+            "certification": "Non-GMO Project Verified",
+            "ingredients": "Whole grain rolled oats",
+            "description": "Perfect for oatmeal, baking, or as a healthy snack.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1003",
+              "STR-1005"
+            ]
+          },
+          {
+            "id": "PRD-1004",
+            "name": "Pear Puree",
+            "brand": "Little Sprout",
+            "category": "Baby",
+            "certification": "USDA Organic",
+            "ingredients": "Organic pears",
+            "description": "Smooth and nutritious pear puree for baby's first foods.",
+            "carriedBy": [
+              "STR-1002",
+              "STR-1004",
+              "STR-1006"
+            ]
+          },
+          {
+            "id": "PRD-1005",
+            "name": "Black Bean Chips",
+            "brand": "Mesa Crunch",
+            "category": "Snacks",
+            "certification": "Non-GMO Project Verified",
+            "ingredients": "Black beans, corn, sunflower oil, salt",
+            "description": "Crispy and flavorful chips made from black beans.",
+            "carriedBy": [
+              "STR-1003",
+              "STR-1005",
+              "STR-1007"
+            ]
+          },
+          {
+            "id": "PRD-1006",
+            "name": "Greek Yogurt Plain",
+            "brand": "Meadow Hill",
+            "category": "Dairy",
+            "certification": "USDA Organic",
+            "ingredients": "Cultured pasteurized milk",
+            "description": "Creamy and protein-rich plain Greek yogurt.",
+            "carriedBy": [
+              "STR-1004",
+              "STR-1006",
+              "STR-1008"
+            ]
+          },
+          {
+            "id": "PRD-1007",
+            "name": "Almond Milk Vanilla",
+            "brand": "Nourish Farms",
+            "category": "Beverages",
+            "certification": "Non-GMO Project Verified",
+            "ingredients": "Almonds, water, sea salt, vanilla extract",
+            "description": "Rich and creamy almond milk with a hint of vanilla.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1002",
+              "STR-1003",
+              "STR-1004"
+            ]
+          },
+          {
+            "id": "PRD-1008",
+            "name": "Whole Wheat Bread",
+            "brand": "Bread & Butter",
+            "category": "Bakery",
+            "certification": "Certified Organic",
+            "ingredients": "Whole wheat flour, water, salt, yeast",
+            "description": "Nutritious whole wheat bread with a hearty texture.",
+            "carriedBy": [
+              "STR-1002",
+              "STR-1005",
+              "STR-1006"
+            ]
+          },
+          {
+            "id": "PRD-1009",
+            "name": "Quinoa Granola",
+            "brand": "Nature's Choice",
+            "category": "Breakfast",
+            "certification": "Non-GMO Project Verified",
+            "ingredients": "Quinoa, oats, honey, almonds, sunflower oil",
+            "description": "A healthy and delicious granola packed with protein.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1003",
+              "STR-1007"
+            ]
+          },
+          {
+            "id": "PRD-1010",
+            "name": "Sweet Potato Puree",
+            "brand": "Organic Baby Foods",
+            "category": "Baby",
+            "certification": "USDA Organic",
+            "ingredients": "Organic sweet potatoes",
+            "description": "Smooth and naturally sweet puree for baby's first solids.",
+            "carriedBy": [
+              "STR-1004",
+              "STR-1005",
+              "STR-1008"
+            ]
+          },
+          {
+            "id": "PRD-1011",
+            "name": "Organic Coconut Water",
+            "brand": "Nature's Best",
+            "category": "Beverages",
+            "certification": "USDA Organic, Non-GMO Project Verified",
+            "ingredients": "Coconut water, natural flavors, citric acid",
+            "description": "Pure coconut water from young coconuts, rich in electrolytes and naturally sweet. Perfect for hydration after workouts or as a refreshing daily drink.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1002",
+              "STR-1003",
+              "STR-1004",
+              "STR-1005"
+            ]
+          },
+          {
+            "id": "PRD-1012",
+            "name": "Gluten-Free Muffin Mix",
+            "brand": "Happy Baking",
+            "category": "Bakery",
+            "certification": "Certified Gluten-Free, Vegan",
+            "ingredients": "Rice flour, tapioca starch, almond flour, organic coconut sugar, baking powder, sea salt",
+            "description": "Perfect for making fluffy, moist muffins without gluten. Great for those with celiac disease or gluten sensitivity.",
+            "carriedBy": [
+              "STR-1002",
+              "STR-1003",
+              "STR-1004",
+              "STR-1005",
+              "STR-1006"
+            ]
+          },
+          {
+            "id": "PRD-1013",
+            "name": "Steel-Cut Oats",
+            "brand": "Farm Fresh",
+            "category": "Breakfast",
+            "certification": "Organic, Non-GMO Project Verified",
+            "ingredients": "Steel-cut oats",
+            "description": "Whole grain oats that retain their natural texture and nutritional value. Ideal for making hearty breakfast porridges.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1003",
+              "STR-1005",
+              "STR-1007"
+            ]
+          },
+          {
+            "id": "PRD-1014",
+            "name": "Organic Baby Rice Cereal",
+            "brand": "Little Sprouts",
+            "category": "Baby",
+            "certification": "USDA Organic, Non-GMO Project Verified",
+            "ingredients": "Organic rice flour, organic brown rice syrup",
+            "description": "Nutritious and easy-to-digest rice cereal perfect for introducing solids to babies. Naturally sweet and gentle on little tummies.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1002",
+              "STR-1004",
+              "STR-1006"
+            ]
+          },
+          {
+            "id": "PRD-1015",
+            "name": "Dark Chocolate Protein Bars",
+            "brand": "Protein Plus",
+            "category": "Snacks",
+            "certification": "Plant-Based, Keto Friendly",
+            "ingredients": "Dark chocolate chips, pea protein powder, almonds, dates, cocoa butter",
+            "description": "High-protein snack bars with 12g of plant-based protein. Perfect for post-workout recovery or a healthy mid-day pick-me-up.",
+            "carriedBy": [
+              "STR-1003",
+              "STR-1004",
+              "STR-1005",
+              "STR-1006",
+              "STR-1007"
+            ]
+          },
+          {
+            "id": "PRD-1016",
+            "name": "Farm Fresh Whole Milk",
+            "brand": "Green Pastures",
+            "category": "Dairy",
+            "certification": "Organic, Grass-Fed",
+            "ingredients": "Whole milk from grass-fed cows",
+            "description": "Rich and creamy whole milk from pasture-raised cows. No artificial hormones or antibiotics added. Perfect for coffee, baking, or drinking straight.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1002",
+              "STR-1003",
+              "STR-1004",
+              "STR-1005"
+            ]
+          },
+          {
+            "id": "PRD-1017",
+            "name": "Vanilla Almond Butter",
+            "brand": "NutriJoy",
+            "category": "Snacks",
+            "certification": "Organic, Vegan",
+            "ingredients": "Almonds, organic vanilla extract, sea salt",
+            "description": "Smooth and creamy almond butter with natural vanilla flavor. No added sugars or preservatives. Great for toast, smoothies, or snacks.",
+            "carriedBy": [
+              "STR-1002",
+              "STR-1004",
+              "STR-1006",
+              "STR-1008"
+            ]
+          },
+          {
+            "id": "PRD-1018",
+            "name": "Organic Whole Grain Crackers",
+            "brand": "Healthy Bites",
+            "category": "Snacks",
+            "certification": "Organic, Non-GMO Project Verified",
+            "ingredients": "Whole grain oats, organic sunflower oil, sea salt",
+            "description": "Crunchy crackers made from whole grains. Low in sodium and free from artificial ingredients. Perfect for pairing with cheese or hummus.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1003",
+              "STR-1005",
+              "STR-1007"
+            ]
+          },
+          {
+            "id": "PRD-1019",
+            "name": "Organic Baby Banana Puree",
+            "brand": "Little Sprouts",
+            "category": "Baby",
+            "certification": "USDA Organic, Non-GMO Project Verified",
+            "ingredients": "Organic bananas",
+            "description": "Smooth and creamy banana puree perfect for introducing solids to babies. No added sugars or preservatives.",
+            "carriedBy": [
+              "STR-1001",
+              "STR-1002",
+              "STR-1004",
+              "STR-1006"
+            ]
+          },
+          {
+            "id": "PRD-1020",
+            "name": "Coconut Oil Cooking Spray",
+            "brand": "Pure Coconut",
+            "category": "Bakery",
+            "certification": "Organic, Non-GMO Project Verified",
+            "ingredients": "Organic coconut oil, organic sunflower oil",
+            "description": "Perfect for baking and cooking with a light coating of coconut oil. No artificial ingredients or preservatives.",
+            "carriedBy": [
+              "STR-1002",
+              "STR-1003",
+              "STR-1004",
+              "STR-1005",
+              "STR-1006"
+            ]
+          }
+        ],
+        "store": [
+          {
+            "id": "STR-1001",
+            "name": "Green Valley Market",
+            "zip": "94110",
+            "lat": 37.7293,
+            "lng": -122.4494
+          },
+          {
+            "id": "STR-1002",
+            "name": "Harvest Co-op",
+            "zip": "94110",
+            "lat": 37.7533,
+            "lng": -122.3954
+          },
+          {
+            "id": "STR-1003",
+            "name": "Mission Fresh",
+            "zip": "94110",
+            "lat": 37.777300000000004,
+            "lng": -122.4074
+          },
+          {
+            "id": "STR-1004",
+            "name": "Urban Greens",
+            "zip": "94109",
+            "lat": 37.7629,
+            "lng": -122.4215
+          },
+          {
+            "id": "STR-1005",
+            "name": "Sustainable Roots",
+            "zip": "94109",
+            "lat": 37.7869,
+            "lng": -122.4335
+          },
+          {
+            "id": "STR-1006",
+            "name": "Pacific Produce",
+            "zip": "94112",
+            "lat": 37.7643,
+            "lng": -122.4468
+          },
+          {
+            "id": "STR-1007",
+            "name": "Heath & Grain Bakery",
+            "zip": "94116",
+            "lat": 37.7678,
+            "lng": -122.4153
+          },
+          {
+            "id": "STR-1008",
+            "name": "Organic Essentials",
+            "zip": "94107",
+            "lat": 37.8127,
+            "lng": -122.3997
+          }
+        ]
+      },
+      "lookupConfig": {
+        "entries": "product",
+        "places": "store",
+        "categoryField": "category",
+        "placesField": "carriedBy",
+        "areas": [
+          {
+            "zip": "94110",
+            "label": "Mission District",
+            "lat": 37.7593,
+            "lng": -122.4194
+          },
+          {
+            "zip": "94109",
+            "label": "Cow Hollow",
+            "lat": 37.7869,
+            "lng": -122.4215
+          },
+          {
+            "zip": "94112",
+            "label": "Inner Mission",
+            "lat": 37.7403,
+            "lng": -122.4228
+          },
+          {
+            "zip": "94116",
+            "label": "Pacific Heights",
+            "lat": 37.7858,
+            "lng": -122.4453
+          },
+          {
+            "zip": "94107",
+            "label": "Financial District",
+            "lat": 37.8067,
+            "lng": -122.4177
+          }
+        ],
+        "placeWord": "place",
+        "carryWord": "carries"
+      },
+      "lookupSeed": {
+        "ratings": [
+          {
+            "entryId": "PRD-1001",
+            "who": "Sarah K.",
+            "stars": 5,
+            "text": "Absolutely creamy and delicious! Perfect for my coffee.",
+            "at": "2026-03-15T10:30:00Z",
+            "helpful": 24
+          },
+          {
+            "entryId": "PRD-1002",
+            "who": "Michael T.",
+            "stars": 4,
+            "text": "Great texture and flavor. My family loves it for breakfast.",
+            "at": "2026-01-22T14:15:00Z",
+            "helpful": 18
+          },
+          {
+            "entryId": "PRD-1003",
+            "who": "Emma L.",
+            "stars": 5,
+            "text": "The best oats I've ever tasted. Sooo good in my morning smoothie!",
+            "at": "2026-02-10T09:45:00Z",
+            "helpful": 31
+          },
+          {
+            "entryId": "PRD-1004",
+            "who": "David R.",
+            "stars": 4,
+            "text": "Smooth and sweet. Perfect for baby food.",
+            "at": "2026-04-05T16:20:00Z",
+            "helpful": 12
+          },
+          {
+            "entryId": "PRD-1005",
+            "who": "Lisa P.",
+            "stars": 3,
+            "text": "Okay flavor but a bit too salty for my taste.",
+            "at": "2026-03-28T11:00:00Z",
+            "helpful": 8
+          },
+          {
+            "entryId": "PRD-1006",
+            "who": "James M.",
+            "stars": 5,
+            "text": "Creamy and tangy. My kids love this yogurt!",
+            "at": "2026-02-18T13:30:00Z",
+            "helpful": 27
+          },
+          {
+            "entryId": "PRD-1007",
+            "who": "Rachel S.",
+            "stars": 4,
+            "text": "Nice vanilla flavor but a bit too sweet for me.",
+            "at": "2026-01-30T15:45:00Z",
+            "helpful": 15
+          },
+          {
+            "entryId": "PRD-1008",
+            "who": "Thomas W.",
+            "stars": 5,
+            "text": "Perfect for sandwiches and toast. Freshly baked!",
+            "at": "2026-03-08T08:20:00Z",
+            "helpful": 22
+          },
+          {
+            "entryId": "PRD-1009",
+            "who": "Jennifer H.",
+            "stars": 4,
+            "text": "Great mix of flavors. My go-to for breakfast.",
+            "at": "2026-02-25T12:10:00Z",
+            "helpful": 19
+          },
+          {
+            "entryId": "PRD-1010",
+            "who": "Robert K.",
+            "stars": 5,
+            "text": "So creamy and sweet. Perfect for baby purees!",
+            "at": "2026-04-12T17:30:00Z",
+            "helpful": 26
+          },
+          {
+            "entryId": "PRD-1011",
+            "who": "Amanda B.",
+            "stars": 3,
+            "text": "Okay taste but not as hydrating as I expected.",
+            "at": "2026-01-15T18:45:00Z",
+            "helpful": 7
+          },
+          {
+            "entryId": "PRD-1012",
+            "who": "William G.",
+            "stars": 5,
+            "text": "So easy to make and tastes amazing!",
+            "at": "2026-03-20T10:00:00Z",
+            "helpful": 21
+          },
+          {
+            "entryId": "PRD-1013",
+            "who": "Sophia D.",
+            "stars": 4,
+            "text": "Great texture and flavor. Perfect for my morning bowl.",
+            "at": "2026-02-05T07:30:00Z",
+            "helpful": 14
+          },
+          {
+            "entryId": "PRD-1014",
+            "who": "Daniel F.",
+            "stars": 5,
+            "text": "My baby loves this cereal. So easy to digest!",
+            "at": "2026-04-01T13:20:00Z",
+            "helpful": 29
+          },
+          {
+            "entryId": "PRD-1015",
+            "who": "Olivia N.",
+            "stars": 4,
+            "text": "Good protein content but a bit too bitter for my taste.",
+            "at": "2026-03-18T16:00:00Z",
+            "helpful": 11
+          },
+          {
+            "entryId": "PRD-1016",
+            "who": "Matthew C.",
+            "stars": 5,
+            "text": "Fresh and creamy. My family's favorite milk!",
+            "at": "2026-02-28T14:30:00Z",
+            "helpful": 23
+          }
+        ],
+        "lists": [
+          {
+            "id": "LST-1001",
+            "name": "Weekly Groceries",
+            "placeId": "STR-1002",
+            "items": [
+              {
+                "entryId": "PRD-1001",
+                "qty": 2,
+                "done": false
+              },
+              {
+                "entryId": "PRD-1002",
+                "qty": 1,
+                "done": true
+              },
+              {
+                "entryId": "PRD-1003",
+                "qty": 3,
+                "done": false
+              }
+            ]
+          },
+          {
+            "id": "LST-1002",
+            "name": "Baby Food Essentials",
+            "placeId": "STR-1005",
+            "items": [
+              {
+                "entryId": "PRD-1004",
+                "qty": 2,
+                "done": true
+              },
+              {
+                "entryId": "PRD-1010",
+                "qty": 1,
+                "done": false
+              },
+              {
+                "entryId": "PRD-1019",
+                "qty": 1,
+                "done": false
+              }
+            ]
+          }
+        ],
+        "likes": {
+          "PRD-1001": 45,
+          "PRD-1002": 38,
+          "PRD-1003": 52,
+          "PRD-1006": 41,
+          "PRD-1008": 37,
+          "PRD-1010": 43,
+          "PRD-1013": 34,
+          "PRD-1014": 47,
+          "PRD-1016": 40,
+          "PRD-1019": 39
+        },
+        "saves": {
+          "PRD-1001": 28,
+          "PRD-1002": 22,
+          "PRD-1003": 31,
+          "PRD-1006": 25,
+          "PRD-1008": 20,
+          "PRD-1010": 27,
+          "PRD-1013": 19,
+          "PRD-1014": 30,
+          "PRD-1016": 24,
+          "PRD-1019": 26
+        }
+      },
+      "links": [
+        {
+          "id": "home",
+          "label": "Home",
+          "icon": "home",
+          "mobile": true
+        },
+        {
+          "id": "search",
+          "label": "Search",
+          "icon": "search",
+          "mobile": true
+        },
+        {
+          "id": "saved",
+          "label": "Saved",
+          "icon": "bookmark",
+          "mobile": true
+        },
+        {
+          "id": "categories",
+          "label": "Categories",
+          "icon": "layers"
+        },
+        {
+          "id": "lists",
+          "label": "Lists",
+          "icon": "check",
+          "mobile": true
+        },
+        {
+          "id": "store-2001",
+          "label": "Green Valley Market",
+          "icon": "pin",
+          "mobile": true
+        },
+        {
+          "id": "store-2002",
+          "label": "Harvest Co-op",
+          "icon": "pin",
+          "mobile": true
+        },
+        {
+          "id": "store-2003",
+          "label": "Mission Fresh",
+          "icon": "pin",
+          "mobile": true
+        }
+      ],
+      "product": "Clean Cart",
+      "landing": "home",
+      "saved": "saved"
+    }
+  }
+}

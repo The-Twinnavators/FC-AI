@@ -1,0 +1,253 @@
+{
+  "recordedAt": "2026-10-18T09:54:02.772Z",
+  "label": "Eval 5: a fresh run of eval 4's brief (attempt 2 was denied and cancelled, so it can't be resumed)",
+  "commit": "9a84b4232add297bd473a4556ff745b25aaa7d79",
+  "trackedChanges": [
+    " M .claude/launch.json"
+  ],
+  "daemon": {
+    "ok": true,
+    "version": "0.1.0",
+    "dataDirName": "FlowCode",
+    "providers": {
+      "ollama": {
+        "ok": true,
+        "detail": "Ollama 0.40.6 at 127.0.0.1:11434"
+      }
+    },
+    "migrations": [
+      "core_entities",
+      "knowledge_prompts_skills_search",
+      "task_dag_edges",
+      "flow_report"
+    ]
+  },
+  "activeRuns": [],
+  "prd": {
+    "path": "docs/handoff/slice/clean-cart-slice-prd.md",
+    "sha256": "cf5d0f245f07eee496f38e870e5bb7ccb9bba804d389fc4f3a97496ca590c2dd"
+  },
+  "promptsAndSkills": {
+    "file": "packages/daemon/test/fixtures/builtin-hashes.json",
+    "sha256": "f0f8beb3cc757431222af2e1f8115cf2f327d5c498d5b20b19faff03b5cd97ae"
+  },
+  "globalRoleAssignments": {
+    "retention": {
+      "snapshotsDays": 30,
+      "eventsDays": 90
+    },
+    "projectDefaults": {
+      "allowExternalResearch": true,
+      "allowHostedModels": false,
+      "maxSameFingerprintAttempts": 3,
+      "commandTimeoutMs": 300000,
+      "outputCapBytes": 2000000,
+      "extraSecretPatterns": [],
+      "modelOverrides": {},
+      "persistentApprovals": [],
+      "autonomy": "assisted"
+    },
+    "roleAssignments": {
+      "planner": {
+        "providerId": "ollama",
+        "model": "qwen3:8b",
+        "temperature": 0.1,
+        "reasoning": true
+      },
+      "coder": {
+        "providerId": "ollama",
+        "model": "qwen3:8b",
+        "temperature": 0.1,
+        "reasoning": true
+      },
+      "debugger": {
+        "providerId": "ollama",
+        "model": "qwen3:8b",
+        "temperature": 0.1,
+        "reasoning": true
+      },
+      "repository_analyst": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "researcher": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "reviewer": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "designer": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "critic": {
+        "providerId": "ollama",
+        "model": "qwen2.5vl:3b",
+        "temperature": 0.1
+      },
+      "documenter": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "security_qa": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "accessibility_qa": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "compliance_triage": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      }
+    }
+  },
+  "runtimeOptions": {
+    "fastModel": {
+      "enabled": false,
+      "model": "qwen3:8b",
+      "tries": 2
+    },
+    "rollbackBlocked": true,
+    "autoRetry": false,
+    "investigationBudget": 0,
+    "visualCritic": "off",
+    "routineThinking": false,
+    "gpuProfile": "standard",
+    "profileContext": 16384,
+    "profileSupportModel": "qwen3:8b",
+    "coderCorrections": 2
+  },
+  "modelDigests": {
+    "qwen2.5vl:3b": "79d497978752",
+    "gpt-oss:20b": "17052f91a42e",
+    "qwen3-coder:30b": "06c1097efce0",
+    "qwen3:14b": "bdbd181c33f2",
+    "llama3.1:8b": "46e0c10c039e",
+    "qwen2.5:7b": "845dbda0ea48",
+    "qwen3:8b": "500a1f067a9f",
+    "gemma2:2b": "8ccf136fdd52",
+    "nomic-embed-text:latest": "0a109f422b47",
+    "qwen2.5-coder:7b": "dae161e27b0e"
+  },
+  "run": {
+    "project": "Clean Cart slice (eval 5)",
+    "autonomy": "supervised",
+    "kind": "spec_build",
+    "buildMode": "complete",
+    "objective": "Clean Cart: build the slice in the attached PRD as a complete working prototype: Home, search, a product's page, save it, and see it on Saved.",
+    "references": [
+      "docs/handoff/slice/clean-cart-slice-prd.md"
+    ],
+    "pinnedModels": {
+      "planner": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "coder": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "debugger": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      }
+    },
+    "deadlineHours": 2
+  },
+  "differencesFromAttempt2": [
+    "Code: 9a84b42 (attempt 2 ran 68338ff). Between them: the approval pop-up fix; the design state and shared Look editor (on the plan card, the design review and the Design tab); the build applies only a selected look; Flat/Tactile defaults (Bold aisle is now Flat); applied-vs-verified results; style capture switched off; motion phases 1-2 (motion levels in the Look, motion.css, router page transitions and focus policy, catalog result continuity, starter motion parts); still screenshots in the verification path; the generated catalog no longer remounts on a category change.",
+    "Global role assignments changed since attempt 2 (planner, coder and debugger are now qwen3:8b with reasoning); this run pins attempt 2's qwen3-coder:30b at temperature 0.1 on the run itself. Support roles as recorded in globalRoleAssignments.",
+    "Same PRD (sha256 identical), same prompts and skills (builtin-hashes.json identical), same runtime options, same policy (Supervised) and deadline length (2 h).",
+    "Attempt 2 produced no app (denied at the plan), so there is no generated-app result to compare against; eval 1-3 used different code, policies or briefs."
+  ],
+  "created": {
+    "projectId": "prj_faa9e544c2344474836f",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "createdAt": "2026-10-18T09:54:02.983Z",
+    "deadline": {
+      "at": "2026-10-18T11:54:02.974Z",
+      "setAt": "2026-10-18T09:54:03.436Z",
+      "setBy": "user",
+      "reason": "Eval 5: one two-hour measured run (planning and approvals included)",
+      "extensions": []
+    },
+    "modelAssignments": {
+      "planner": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "coder": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "debugger": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "repository_analyst": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "researcher": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "reviewer": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "designer": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "critic": {
+        "providerId": "ollama",
+        "model": "qwen2.5vl:3b",
+        "temperature": 0.1
+      },
+      "documenter": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "security_qa": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "accessibility_qa": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "compliance_triage": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      }
+    },
+    "strategy": null
+  }
+}

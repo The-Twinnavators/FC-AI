@@ -1,0 +1,54 @@
+{
+  "active": true,
+  "paused": true,
+  "interruption": {
+    "recoverable": false,
+    "needsUser": true,
+    "action": "Paused by you",
+    "resumeWhen": "you press Continue",
+    "maxAttempts": 0,
+    "timeoutMs": 0,
+    "attempt": 0,
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "cause": "user_pause",
+    "by": "user",
+    "detail": "You paused it: the step in progress finishes first, then it waits.",
+    "at": "2026-10-18T10:08:17.708Z",
+    "state": "active"
+  },
+  "resumable": false,
+  "models": [
+    {
+      "role": "planner",
+      "model": "qwen3-coder:30b",
+      "providerId": "ollama",
+      "source": "chosen for this build (the cloud/local switch when it was started)",
+      "contextTokens": 8192,
+      "replyCapTokens": 4096,
+      "note": "per call; a call asking for a longer reply gets a larger window (up to 32,768 locally)"
+    },
+    {
+      "role": "coder",
+      "model": "qwen3-coder:30b",
+      "providerId": "ollama",
+      "source": "chosen for this build (the cloud/local switch when it was started)",
+      "contextTokens": 24576,
+      "replyCapTokens": 4096,
+      "note": ""
+    },
+    {
+      "role": "debugger",
+      "model": "qwen3-coder:30b",
+      "providerId": "ollama",
+      "source": "chosen for this build (the cloud/local switch when it was started)",
+      "contextTokens": 24576,
+      "replyCapTokens": 4096,
+      "note": ""
+    }
+  ],
+  "coder": {
+    "ok": true,
+    "reason": "Passed 8/8 probes on 2026-10-04"
+  },
+  "exportedAt": "2026-10-18T10:09:24.708Z"
+}

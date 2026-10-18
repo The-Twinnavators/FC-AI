@@ -1,0 +1,22 @@
+[
+  {
+    "id": "cmd_ef99ed710cee4fc5bdc7",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "taskId": "task_3a81db60803b4ff5abc1",
+    "phase": "dependencies",
+    "argv": [
+      "npm",
+      "install",
+      "--no-fund",
+      "--no-audit"
+    ],
+    "cwdRelativePath": ".",
+    "policyTier": "ask",
+    "policyReasons": [
+      "npm install installs or changes dependencies (runs lifecycle scripts, uses network)"
+    ],
+    "status": "awaiting_approval",
+    "approvalId": "apr_89228a3444924af7af91",
+    "createdAt": "2026-10-18T10:06:02.084Z"
+  }
+]

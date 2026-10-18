@@ -1,0 +1,17 @@
+[
+  {
+    "id": "art_cb4f951549af4e869b46",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "kind": "other",
+    "label": "Reference: clean-cart-slice-prd.md (prd)",
+    "mime": "text/markdown; charset=utf-8",
+    "meta": {
+      "reference": true,
+      "role": "prd",
+      "summary": "PRD with 25 requirement lines"
+    },
+    "contentRef": "cf5d0f245f07eee496f38e870e5bb7ccb9bba804d389fc4f3a97496ca590c2dd",
+    "bytes": 3115,
+    "createdAt": "2026-10-18T09:54:03.010Z"
+  }
+]

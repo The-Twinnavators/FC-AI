@@ -1,0 +1,59 @@
+[
+  {
+    "id": "chk_dd08e291bf8b4d3baad4",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "kind": "project_preflight",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "preflight:pf_abcb8c3c514f4dff8c9d"
+    ],
+    "summary": "incomplete; 0 scripts; preview none",
+    "updatedAt": "2026-10-18T09:54:03.446Z"
+  },
+  {
+    "id": "chk_8fdb2477deb94f5cadac",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "taskId": "baseline:run_7fe7e67ef0a94668b4e0",
+    "kind": "typecheck",
+    "required": true,
+    "status": "not_run",
+    "evidenceRefs": [],
+    "summary": "No typecheck script in package.json",
+    "updatedAt": "2026-10-18T10:06:01.525Z"
+  },
+  {
+    "id": "chk_dc83a96e63194bae93fc",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "taskId": "baseline:run_7fe7e67ef0a94668b4e0",
+    "kind": "lint",
+    "required": true,
+    "status": "not_run",
+    "evidenceRefs": [],
+    "summary": "No lint script in package.json",
+    "updatedAt": "2026-10-18T10:06:01.528Z"
+  },
+  {
+    "id": "chk_10191be5c4c24f758fce",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "taskId": "baseline:run_7fe7e67ef0a94668b4e0",
+    "kind": "tests",
+    "required": true,
+    "status": "not_run",
+    "evidenceRefs": [],
+    "summary": "No tests script in package.json",
+    "updatedAt": "2026-10-18T10:06:01.530Z"
+  },
+  {
+    "id": "chk_98ebd1b7ea0244c3a953",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "kind": "manifest_validation",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "preflight:pf_8dd63c604c6f4e4fbf99"
+    ],
+    "summary": "package.json parsed and validated",
+    "updatedAt": "2026-10-18T10:06:02.081Z"
+  }
+]

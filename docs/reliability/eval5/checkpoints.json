@@ -1,0 +1,37 @@
+[
+  {
+    "id": "cp_b5aec43b6e794592bb64",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "label": "Plan approved — before any change",
+    "safe": true,
+    "snapshotSeq": 8121,
+    "createdAt": "2026-10-18T10:06:01.446Z"
+  },
+  {
+    "id": "cp_5caa855c297e454585a4",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "taskId": "task_695789722793419ba688",
+    "label": "Before \"Scaffold from verified starter template\"",
+    "safe": false,
+    "snapshotSeq": 8121,
+    "createdAt": "2026-10-18T10:06:01.541Z"
+  },
+  {
+    "id": "cp_5d6d86d8773b4be4b42d",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "taskId": "task_695789722793419ba688",
+    "label": "Verified \"Scaffold from verified starter template\"",
+    "safe": true,
+    "snapshotSeq": 8167,
+    "createdAt": "2026-10-18T10:06:02.026Z"
+  },
+  {
+    "id": "cp_70020940c329423ea6b8",
+    "runId": "run_7fe7e67ef0a94668b4e0",
+    "taskId": "task_3a81db60803b4ff5abc1",
+    "label": "Before \"Install dependencies (approved)\"",
+    "safe": false,
+    "snapshotSeq": 8167,
+    "createdAt": "2026-10-18T10:06:02.036Z"
+  }
+]
