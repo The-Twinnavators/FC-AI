@@ -3837,7 +3837,8 @@ export class Orchestrator {
     const run = this.d.store.runs.get(runId);
     if (!run) return;
     const first = !getDeadline(this.d.store, runId)?.expired;
-    const inProgress = this.graph.tasks(runId).filter((t) => t.status === "running").map((t) => t.title);
+    // A step waiting on its own approval is in progress too (eval 3 sat in one for hours).
+    const inProgress = this.graph.tasks(runId).filter((t) => t.status === "running" || t.status === "awaiting_approval").map((t) => (t.status === "awaiting_approval" ? `${t.title} (waiting for approval)` : t.title));
     const waiting = this.d.store.approvals.where("run_id = ? AND status = 'pending'", runId).map((a) => `${a.kind} approval pending since ${a.createdAt}: ${a.action}`);
     const d = markExpired(this.d.store, runId, where, inProgress, waiting);
     this.pausedRuns.add(runId);
