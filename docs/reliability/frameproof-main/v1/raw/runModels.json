@@ -1,0 +1,29 @@
+[
+  {
+    "role": "planner",
+    "model": "qwen3:8b",
+    "providerId": "ollama",
+    "source": "the global role setting (Models page), set before changes were recorded",
+    "contextTokens": 8192,
+    "replyCapTokens": 4096,
+    "note": "per call; a call asking for a longer reply gets a larger window (up to 32,768 locally)"
+  },
+  {
+    "role": "coder",
+    "model": "qwen3:8b",
+    "providerId": "ollama",
+    "source": "the global role setting (Models page), set before changes were recorded",
+    "contextTokens": 24576,
+    "replyCapTokens": 4096,
+    "note": "thinking off on routine attempts"
+  },
+  {
+    "role": "debugger",
+    "model": "qwen3:8b",
+    "providerId": "ollama",
+    "source": "the global role setting (Models page), set before changes were recorded",
+    "contextTokens": 24576,
+    "replyCapTokens": 4096,
+    "note": ""
+  }
+]

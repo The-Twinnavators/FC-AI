@@ -1,0 +1,49 @@
+{
+  "recordedAt": "2026-10-18T16:40:07.976Z",
+  "label": "Frameproof built by FlowCode through the main application (normal New build workflow). Not the manually built app at Desktop/Frameproof, which is a separate artifact.",
+  "candidate": {
+    "commit": "34b0e48 (code = 491422c; later commits are docs only)",
+    "uncommitted": [
+      ".claude/launch.json (the owner's own, plus preview entries)"
+    ]
+  },
+  "mainDaemon": {
+    "port": 7457,
+    "dataDir": ".flowcode-data",
+    "dist": "packages/daemon/dist rebuilt 12:36:01 local from the candidate",
+    "pid": 22308,
+    "startedLocal": "2026-10-18 12:37:07",
+    "launcher": "scripts/dev-daemon.mjs (daemon-dev): FlowCode's own System restart did not come back under the original launcher, so it was started again with the same configuration"
+  },
+  "backup": {
+    "file": ".flowcode-backups/flowcode-20261018T163548Z.sqlite (local, not committed)",
+    "checked": "row counts match (projects 17, runs 54, tasks 374, approvals 468, events 76468, settings 3170); integrity ok"
+  },
+  "workflow": "New build dialog in the UI (5199 → 7457): description typed; Frameproof-PRD.md attached through the dialog's file input (sha256 7deea0bb7e49…, same as the owner's download); Look step left at the dialog default (Clean Minimal); name Frameproof; new folder made by FlowCode; Complete app; Local model; Supervised.",
+  "project": {
+    "id": "prj_7dc3fb8e913b4f61840f",
+    "name": "Frameproof",
+    "settings": {
+      "allowExternalResearch": true,
+      "allowHostedModels": false,
+      "maxSameFingerprintAttempts": 3,
+      "commandTimeoutMs": 300000,
+      "outputCapBytes": 2000000,
+      "extraSecretPatterns": [],
+      "modelOverrides": {},
+      "persistentApprovals": [],
+      "autonomy": "supervised"
+    },
+    "keys": [
+      "id",
+      "name",
+      "workspaceRef",
+      "projectType",
+      "createdAt",
+      "updatedAt",
+      "settings"
+    ]
+  },
+  "run": "run_b789650d36dd4323aa4b",
+  "models": "main FlowCode's configured roles: planner/coder/debugger qwen3:8b at 0.1 (the earlier evaluations pinned qwen3-coder:30b)"
+}

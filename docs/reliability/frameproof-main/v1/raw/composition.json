@@ -1,0 +1,49 @@
+{
+  "entries": [
+    {
+      "page": "My Selection",
+      "section": "Selected Photos",
+      "ref": "c.list-row",
+      "version": "base",
+      "mode": "compose",
+      "why": "Show current selection with edit options",
+      "adaptations": [],
+      "dependencies": [
+        "c.avatar.person",
+        "c.badge.status",
+        "c.button.tertiary"
+      ],
+      "pieceId": "lists-rows",
+      "appFile": "src/sections/ListsRows.tsx",
+      "by": "plan"
+    },
+    {
+      "page": "My Selection",
+      "section": "Notes",
+      "ref": "c.text-field",
+      "version": "base",
+      "mode": "compose",
+      "why": "Edit notes for each selected photo",
+      "adaptations": [],
+      "dependencies": [],
+      "pieceId": "text-fields-states",
+      "appFile": "src/sections/TextFieldsStates.tsx",
+      "by": "plan"
+    },
+    {
+      "page": "My Selection",
+      "section": "Submission",
+      "ref": "c.button",
+      "version": "base",
+      "mode": "compose",
+      "why": "Confirm final selection and submit",
+      "adaptations": [],
+      "dependencies": [],
+      "pieceId": "buttons-variants",
+      "appFile": "src/sections/ButtonsVariants.tsx",
+      "by": "plan"
+    }
+  ],
+  "gaps": [],
+  "changes": []
+}

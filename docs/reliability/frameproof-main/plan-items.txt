@@ -1,0 +1,186 @@
+
+## User and context: Gallery Screen Composition and 7 more
+ - Gallery Screen Composition | files: src/screens/GalleryScreen.tsx
+     T: view gallery header => Autumn Portrait Session
+     T: check selection progress => 30%
+     T: type 'portrait' in search => filtered results
+     T: select 'Portrait' category => filtered results
+ - Photo Detail Navigation | files: src/screens/PhotoDetailScreen.tsx
+     T: view photo detail => selected image
+     T: click previous button => previous photo
+     T: click next button => next photo
+     T: toggle selection => selection status changes
+ - Selection Management | files: src/app/store.ts,src/screens/GalleryScreen.tsx,src/screens/PhotoDetailScreen.tsx
+     T: select photo in gallery => selection count increments
+     T: deselect photo in detail => selection count decrements
+     T: navigate to gallery => selection status matches
+ - Error Handling | files: src/screens/PhotoDetailScreen.tsx
+     T: navigate to invalid photo ID => not-found message
+     T: check not-found state => Gallery link visible
+ - Gallery List and Search | files: src/screens/GalleryScreen.tsx,src/app/store.ts
+     T: Search for 'sample' in Gallery => 1 gallery record shown
+     T: Navigate to PhotoDetailScreen from gallery record => PhotoDetailScreen shows selected photo
+     T: Return to Gallery from PhotoDetailScreen => Search term remains in input field
+ - Client Selection Management | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: Select 5 photos in MySelectionScreen => Selection status shows 'Submitted
+     T: Attempt to select 6 photos => Selection count remains at 5
+     T: Edit note for selected photo => Note text updates in UI
+ - Screens and navigation: remaining requirements | files: 
+ - Client Selection State Management | files: src/app/store.ts,src/screens/MySelectionScreen.tsx
+     T: Add photo to shortlist => Photo ID appears in shortlisted list
+     T: Edit photo note => Note persists in My Selection screen
+     T: Submit selection => Timestamp is set and status becomes 'Submitted
+     T: Navigate to Gallery => Shortlisted IDs are still present
+
+## R2 — Search: Search Functionality and 10 more
+ - Search Functionality | files: src/screens/GalleryScreen.tsx,src/app/store.ts
+     T: Search 'light' => Shows 'Window Light' and 'Last Light
+     T: Search 'WINDOW' => Shows 'Window Light
+     T: Search 'mountain' => Shows no results message
+     T: Clear search => Search input is empty
+ - Category Filters | files: src/screens/GalleryScreen.tsx,src/app/store.ts
+     T: Select 'Outdoor' filter => 7 photos are shown
+     T: Select 'Studio' filter => 5 photos are shown
+     T: Change filter while editing note => Note remains unchanged
+ - Shortlist Behavior | files: src/screens/GalleryScreen.tsx,src/screens/MySelectionScreen.tsx
+     T: Add duplicate photo => No change to shortlist
+     T: Add sixth photo => No removal of existing selection
+     T: Remove photo => New selection is allowed
+     T: View selection status => Text indicates 'Draft' or 'Submitted
+ - Editing Notes | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: Edit note for photo => Note is saved and visible
+     T: Navigate away and return => Note is still present
+     T: Remove photo from shortlist => Note is retained in store
+     T: Reopen photo => Note is restored
+ - Submission Eligibility | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: Select four photos => Submit button is hidden
+     T: Select five photos => Submit button is visible
+     T: Click Submit => Confirmation dialog shows five photos and notes
+ - R2 — Search: remaining requirements | files: 
+ - R6 — Editing notes: remaining requirements | files: 
+ - Cancel Submission Preserves Changes | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: click cancel on submission confirmation dialog => selection state remains unchanged
+     T: reload page after canceling submission => selection state persists
+ - Submit Selection Locks Changes | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: submit selection => status changes to 'Submitted
+     T: try to edit shortlist after submission => edit disabled
+ - Start Over Clears Selection | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: click start over => confirmation dialog appears
+     T: cancel start over => selection state remains unchanged
+     T: confirm start over => selection state becomes empty
+ - Persist Selection State Across Reloads | files: src/app/store.ts,src/screens/MySelectionScreen.tsx
+     T: reload page after saving selection => state persists
+     T: save corrupted data => recovery to draft state
+
+## R12 — Navigation and identity: Navigate to Photo Detail Correctly and 10 more
+ - Navigate to Photo Detail Correctly | files: src/screens/PhotoDetailScreen.tsx,src/app/store.ts
+     T: navigate to photo detail route => correct photo displays
+     T: navigate back from photo detail => previous page shows
+     T: switch photos => notes are isolated
+ - Apply Editorial Contact Sheet Design | files: src/screens/GalleryScreen.tsx,src/screens/PhotoDetailScreen.tsx
+     T: view gallery screen => off-white background
+     T: view photo detail screen => near-black text
+     T: interact with primary action => muted cobalt accent
+ - Search and Filter Photos | files: src/screens/GalleryScreen.tsx,src/app/store.ts
+     T: search for 'Window Light' => one result shown
+     T: filter by Outdoor category => seven photos shown
+ - Start in Empty Draft State | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: open My Selection screen => empty draft state
+ - R10 — Start over: remaining requirements | files: 
+ - Concept: Editorial contact sheet: remaining requirements | files: 
+ - Journey A — Find and inspect: remaining requirements | files: 
+ - Manage Selection and Notes | files: src/screens/MySelectionScreen.tsx
+     T: Add note 'Please soften the background' to Golden Hour => Note appears in photo row
+     T: Reload page => Note persists in photo row
+     T: Attempt to add sixth photo => Limit explanation shown
+     T: Edit note for Golden Hour => Updated note displayed
+     T: Delete note for Golden Hour => Note removed from row
+ - Replace Selected Photos | files: src/screens/MySelectionScreen.tsx
+     T: Replace Golden Hour with new photo => New photo shown with existing note
+     T: Check selection count => Count updates to 5
+     T: Reopen replaced photo => Previously saved note remains
+ - Submit Selection | files: src/screens/MySelectionScreen.tsx
+     T: Submit with four photos => Submission blocked
+     T: Submit with five photos => Status changes to Submitted
+     T: Reload after submission => Status remains Submitted
+     T: Attempt to edit after submission => Editing disabled
+ - Reset Selection | files: src/screens/MySelectionScreen.tsx
+     T: Reset selection after submission => Draft status restored
+     T: Reload after reset => Empty draft persists
+
+## Responsive behavior: Responsive Gallery Layout and 15 more
+ - Responsive Gallery Layout | files: src/screens/GalleryScreen.tsx
+     T: Resize viewport to 390px => Adaptive grid columns
+     T: Check search control visibility => Search field is visible
+     T: Resize to desktop => Full-width grid
+     T: Scroll horizontally => No horizontal scrollbar
+     T: Check detail image fit => Image fits within container
+ - My Selection Empty State | files: src/screens/MySelectionScreen.tsx
+     T: View My Selection with no photos => Empty state shown
+     T: Tab to return button => Focus indicator visible
+     T: Click return button => Navigates to Gallery
+ - Selection Submission Controls | files: src/screens/MySelectionScreen.tsx
+     T: Select 4 photos => Shows required count feedback
+     T: Select 5 photos => Submission button enabled
+     T: Click submit with 4 photos => No submission
+     T: Tab to submit button => Focus indicator visible
+ - Accessibility Foundations | files: src/screens/GalleryScreen.tsx,src/screens/MySelectionScreen.tsx,src/screens/PhotoDetailScreen.tsx
+     T: Tab through Gallery controls => Focus indicators visible
+     T: Open modal dialog => Background interaction blocked
+     T: Resize to reduced motion => No animations
+     T: Check image alt text => Descriptive text visible
+     T: Close dialog with keyboard => Focus returns to trigger
+ - Prototype boundaries: remaining requirements | files: 
+ - R5 — Shortlist behavior: remaining requirements | files: 
+ - Photo Detail Navigation | files: src/screens/PhotoDetailScreen.tsx
+     T: View photo-01 detail => Previous button disabled
+     T: View photo-12 detail => Next button disabled
+ - Photo Detail Accessibility | files: src/screens/PhotoDetailScreen.tsx
+     T: Navigate photo detail with keyboard => All interactive elements focusable
+     T: Enable reduced-motion preference => Animations disabled
+     T: Open confirmation dialog => Background interaction disabled
+ - Photo Detail Responsive Layout | files: src/screens/PhotoDetailScreen.tsx
+     T: View photo detail on 390px viewport => No horizontal overflow
+     T: Open dialog on small screen => Content visible and accessible
+ - Screens and navigation: remaining requirements | files: 
+ - Prototype boundaries: remaining requirements | files: 
+ - R5 — Shortlist behavior: remaining requirements | files: 
+ - R7 — My Selection: remaining requirements | files: 
+ - R8 — Submission eligibility: remaining requirements | files: 
+ - My Selection composition: remaining requirements | files: 
+ - Verification and completion criteria: remaining requirements | files: 
+
+## Screens and navigation: My Selection Screen Composition and 8 more
+ - My Selection Screen Composition | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: Open My Selection with 5 photos => Title 'My Selection', status 'Draft', 5 photos shown in original order
+     T: Remove one photo from My Selection => Selection count updates to 4, note cleared
+     T: Submit selection when 5 photos are selected => Status changes to 'Submitted
+     T: View My Selection when empty => Empty state message with 'Return to Gallery' action
+ - Submission Confirmation State | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: Submit selection with 5 photos => Confirmation message 'Selection submitted' with timestamp
+     T: Try submitting again after confirmation => Submission button is disabled
+ - Accessibility and Motion | files: src/screens/MySelectionScreen.tsx,src/app/store.ts
+     T: Tab through My Selection controls => All interactive elements are focusable
+     T: Open modal confirmation dialog => Focus returns to trigger after closing
+     T: Use reduced-motion preference => No animations or transitions
+ - Responsive Design | files: src/screens/MySelectionScreen.tsx
+     T: Resize viewport to 390px => Adaptive grid columns with submission button visible
+     T: Check layout on desktop => Full-width grid without overflow
+ - User and context: remaining requirements | files: 
+ - Prototype boundaries: remaining requirements | files: 
+ - R7 — My Selection: remaining requirements | files: 
+ - Responsive Search and Image Display | files: src/screens/GalleryScreen.tsx,src/screens/PhotoDetailScreen.tsx
+     T: Use search on desktop => Search bar visible and functional
+     T: View detail image on small screen => Image fully visible without hidden navigation
+ - Accessible Dialogs on Small Screens | files: src/screens/PhotoDetailScreen.tsx,src/screens/MySelectionScreen.tsx
+     T: Open dialog on mobile => Content fully visible without scrolling
+     T: Tap action button => Action triggered without hover
+
+## Design polish
+ - Design polish | files: 
+
+## Clean up the code
+ - Clean up the code | files: 
+
+## Assemble the app: wire every page and component into App.tsx
+ - Assemble the app: wire every page and component into App.tsx | files: src/App.tsx

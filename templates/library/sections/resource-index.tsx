@@ -833,6 +833,13 @@ export function ResourceIndex({ store, entity: entityKey, title, description, on
   );
 }
 
+// flowcode:sample
+const SAMPLE = {
+  entity: "contract",
+  title: "Contracts",
+  description: "Every vendor contract, its value and where it stands. Managers approve and send back.",
+};
+
 // ── The reference sheet ──
 
 function RoleSwitch({ store }: { store: AppStore }) {
@@ -864,13 +871,6 @@ function RoleSwitch({ store }: { store: AppStore }) {
     </div>
   );
 }
-
-// flowcode:sample
-const SAMPLE = {
-  entity: "contract",
-  title: "Contracts",
-  description: "Every vendor contract, its value and where it stands. Managers approve and send back.",
-};
 
 export default function ResourceIndexSheet() {
   return (

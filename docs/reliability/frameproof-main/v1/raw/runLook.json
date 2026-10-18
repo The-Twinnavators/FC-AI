@@ -1,0 +1,7 @@
+{
+  "template": "clean-minimal",
+  "vibe": "flat",
+  "extras": [
+    "empty-states"
+  ]
+}
