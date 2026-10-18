@@ -1,0 +1,20 @@
+{
+ "plan": [
+  {
+   "name": "Gallery.",
+   "view": "gallery",
+   "label": "Gallery",
+   "kind": "list"
+  }
+ ],
+ "res": {
+  "ok": true,
+  "steps": [
+   {
+    "step": "Gallery.: opens from the top bar",
+    "ok": true,
+    "detail": "#/gallery"
+   }
+  ]
+ }
+}

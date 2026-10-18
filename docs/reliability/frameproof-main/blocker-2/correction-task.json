@@ -1,0 +1,73 @@
+{
+  "title": "Correct the generated app",
+  "objective": "The app FlowCode generated failed its functional baseline, before any design. Fix only these failures, in the files they name (the records in src/app/schema.ts, the routes and links in src/App.tsx, the screens), without redesigning or rebuilding the app:\n- Lint: failed: npm run lint failed: 635:21  error    Expected an assignment or function call and instead saw an expression                                                                                             \n- Journey: 0/1 journey steps passed; failed: Gallery.: opens from the top bar (\"Gallery\" in the top bar is disabled)\nThe whole baseline then runs again: type check, lint, build, tests, the PRD's records in the app's data, and the journey through the app in the browser.",
+  "expectedPaths": [
+    "src/app/schema.ts",
+    "src/App.tsx"
+  ],
+  "status": "blocked",
+  "attempts": 3,
+  "blocker": {
+    "reason": "The same failure twice running, so the remaining attempts were not spent on it: agent outcome: no_action (Model replied with prose only and did not invoke a tool or report a structured blocker.); attempt ended with no_action: Model replied with prose only and did not invoke a tool or report a structured blocker.",
+    "category": "verification",
+    "evidenceRefs": [],
+    "nextAction": "Review the diff and failing evidence, adjust the request or approve a revised approach, then retry the task."
+  },
+  "recovery": {
+    "corrections": 1,
+    "history": [
+      {
+        "attempt": 1,
+        "role": "coder",
+        "correction": false,
+        "cls": "guard",
+        "what": "a FlowCode guard or tool refusal",
+        "signature": "agent outcome: no_action (no progress: # edits in a row would have left - unable to parse. stopping this attempt.) | attempt ended with no_action: no progress: # edits in a row would have left - unable to parse. stopping this attempt.",
+        "summary": "agent outcome: no_action (No progress: 3 edits in a row would have left src/app/schema.ts unable to parse. Stopping this attempt.)",
+        "at": "2026-10-18T18:28:29.248Z"
+      },
+      {
+        "attempt": 2,
+        "role": "coder",
+        "correction": true,
+        "cls": "persistent",
+        "what": "a failure with no located error",
+        "signature": "agent outcome: no_action (model replied with prose only and did not invoke a tool or report a structured blocker.) | attempt ended with no_action: model replied with prose only and did not invoke a tool or report a structured blocker.",
+        "summary": "agent outcome: no_action (Model replied with prose only and did not invoke a tool or report a structured blocker.)",
+        "at": "2026-10-18T18:29:40.164Z"
+      },
+      {
+        "attempt": 3,
+        "role": "debugger",
+        "correction": false,
+        "cls": "persistent",
+        "what": "a failure with no located error",
+        "signature": "agent outcome: no_action (model replied with prose only and did not invoke a tool or report a structured blocker.) | attempt ended with no_action: model replied with prose only and did not invoke a tool or report a structured blocker.",
+        "summary": "agent outcome: no_action (Model replied with prose only and did not invoke a tool or report a structured blocker.)",
+        "at": "2026-10-18T18:44:16.209Z"
+      }
+    ],
+    "next": {
+      "role": "debugger",
+      "correction": false,
+      "label": "Debugger investigating a persistent failure",
+      "reason": "a failure with no located error: agent outcome: no_action (Model replied with prose only and did not invoke a tool or report a structured blocker.)"
+    },
+    "escalation": {
+      "at": "2026-10-18T18:29:40.164Z",
+      "cause": "not_located",
+      "attempt": 3,
+      "failed": "a failure with no located error: agent outcome: no_action (Model replied with prose only and did not invoke a tool or report a structured blocker.)",
+      "attempted": [
+        "Attempt 1 (coder): a FlowCode guard or tool refusal",
+        "Attempt 2 (coder, correction): a failure with no located error"
+      ],
+      "whyUnresolved": "It isn't a located error a correction can target (a failure with no located error).",
+      "different": [
+        "the model's reasoning on (the coder's corrections ran without it)",
+        "the diff of what the earlier attempts changed, so it doesn't repeat them",
+        "the root-cause debugging workflow (reproduce, find the cause, then edit)"
+      ]
+    }
+  }
+}

@@ -106,7 +106,7 @@ import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchIte
 import { promptConfigFor } from "../quality/taskPrompt.js";
 import { isInterfaceStep, playbookFor } from "../knowledge/designPlaybook.js";
 import { protectedPolicyFor } from "../workspace/protectedFiles.js";
-import { correctionBrief, escalationBrief, getRecovery, installedPackages, recoveryKey, routeAfterFailure, sourceNear, typeDefinitions, typeNamesIn, type FailureVerdict } from "./recoveryRouting.js";
+import { correctionBrief, escalationBrief, getRecovery, installedPackages, locatedErrorsBrief, LOCATED_NOW, recoveryKey, routeAfterFailure, sourceNear, typeDefinitions, typeNamesIn, type FailureVerdict } from "./recoveryRouting.js";
 import { capSkills, COPY_EDIT_SKILLS, designSkillIds, isCopyEdit, renderSkills, selectSkills, stackSkillIds, withPlansGiven, workflowSkillIds } from "../knowledge/skills.js";
 import { scanComponentLibrary } from "../workspace/componentLibrary.js";
 import { scanStyles } from "../workspace/styleTokens.js";
@@ -267,6 +267,25 @@ export class Orchestrator {
     this.d.store.runs.upsert(updated);
     this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: message ?? `Run ${run.status} → ${status}`, data: { from: run.status, to: status }, level: status === "failed" || status === "blocked" ? "warning" : "info" });
     return updated;
+  }
+
+  /**
+   * The located type check and lint errors this step starts with (its step baseline), in its brief with their current
+   * code, and their files in its scope; an earlier list is replaced. Frameproof main build: the correction step was told
+   * src/app/schema.ts and src/App.tsx while the failure was src/sections/RecordDetail.tsx:635, and every attempt edited
+   * schema.ts.
+   */
+  private withLocatedErrors(run: Run, task: Task, root: string): Task {
+    const b = this.d.store.getSetting<StepBaseline | null>(stepBaselineKey(task.id), null);
+    const brief = locatedErrorsBrief(root, [...(b?.typecheck?.located ?? []), ...(b?.lint?.located ?? [])]);
+    const objective = task.objective.split(`
+
+${LOCATED_NOW}`)[0]!;
+    const expectedPaths = [...new Set([...task.expectedPaths, ...(brief?.files ?? [])])];
+    if (brief) this.d.bus.emit({ type: "agent.message", projectId: run.projectId, runId: run.id, taskId: task.id, message: `"${task.title}" starts from the located errors: ${brief.files.join(", ")}`, data: { located: brief.files } });
+    return this.updateTask(task, { objective: brief ? `${objective}
+
+${brief.text}` : objective, expectedPaths });
   }
 
   private updateTask(task: Task, patch: Partial<Task>): Task {
@@ -1968,6 +1987,8 @@ export class Orchestrator {
       }
     }
     if (task.attempts === 1 || !this.d.store.getSetting(stepBaselineKey(task.id), null)) await this.d.verifier.captureStepBaseline(this.d.store.runs.require(run.id), task.id, signal).catch(() => undefined);
+    // A correction of a failed functional baseline starts (and starts over, on a retry) from the errors as they are now.
+    if (task.attempts === 1 && this.d.store.getSetting(`baselineCorrection:${task.id}`, false)) task = this.withLocatedErrors(run, task, jail.root);
     this.d.store.setSetting(`claimFailures:${task.id}`, []);
     const routedNext = task.attempts > 1 && task.role === "coder" ? getRecovery(this.d.store, task.id).next : undefined;
     this.d.bus.emit({ ...ev, type: "task.started", message: `Task started: ${task.title} (attempt ${task.attempts}${routedNext ? `, ${routedNext.label.charAt(0).toLowerCase()}${routedNext.label.slice(1)}` : ""})`, data: { role: task.role, attemptRole: this.attemptRole(task), ...(routedNext ? { correction: routedNext.correction } : {}) } });
@@ -3498,12 +3519,16 @@ export class Orchestrator {
     const NAMES: Record<string, string> = { typecheck: "Type check", lint: "Lint", build: "Build", tests: "Tests" };
     const tech = Object.entries(b.checks ?? { typecheck: b.typecheck });
     const failures = [...tech.filter(([, v]) => v !== "passed" && !v.startsWith("not applicable")).map(([k, v]) => `${NAMES[k] ?? k}: ${v}`), ...b.dataSource.map((d) => `Records: ${d}`), b.journey.ok ? "" : `Journey: ${b.journey.summary}`].filter(Boolean);
+    // Where each kind of failure is fixed: the records only for a records failure, the navigation for a journey one; a
+    // located type check or lint error's own file joins when the step starts (withLocatedErrors). Frameproof main build:
+    // a lint error in src/sections/RecordDetail.tsx was sent to src/app/schema.ts, and every attempt edited that.
+    const where = [b.dataSource.length ? "the records in src/app/schema.ts" : "", b.journey.ok ? "" : "the navigation in src/app/routes.ts and src/App.tsx, the screens"].filter(Boolean);
     const fix = {
       ...task,
       id: newId("task"),
       title: "Correct the generated app",
-      objective: `The app FlowCode generated failed its functional baseline, before any design. Fix only these failures, in the files they name (the records in src/app/schema.ts, the routes and links in src/App.tsx, the screens), without redesigning or rebuilding the app:\n${failures.map((f) => `- ${f}`).join("\n")}\nThe whole baseline then runs again: ${tech.filter(([, v]) => !v.startsWith("not applicable")).map(([k]) => (NAMES[k] ?? k).toLowerCase()).join(", ")}, the PRD's records in the app's data, and the journey through the app in the browser.`,
-      expectedPaths: ["src/app/schema.ts", "src/App.tsx"],
+      objective: `The app FlowCode generated failed its functional baseline, before any design. Fix only these failures, in the files they name${where.length ? ` (${where.join("; ")})` : ""}, without redesigning or rebuilding the app:\n${failures.map((f) => `- ${f}`).join("\n")}\nThe whole baseline then runs again: ${tech.filter(([, v]) => !v.startsWith("not applicable")).map(([k]) => (NAMES[k] ?? k).toLowerCase()).join(", ")}, the PRD's records in the app's data, and the journey through the app in the browser.`,
+      expectedPaths: [...(b.dataSource.length ? ["src/app/schema.ts"] : []), "src/App.tsx", ...(b.journey.ok ? [] : ["src/app/routes.ts"])],
       actualPaths: [],
       // Every applicable technical check of the baseline, judged as it is (no allowance for errors there at the start),
       // then the records and the journey.

@@ -632,10 +632,15 @@ function RecordView({ store, e, rec, onBack, backLabel, onOpenDraft }: { store: 
                   label: "Copy record id",
                   icon: "copy",
                   run: () => {
-                    navigator.clipboard?.writeText(rec.id).then(
+                    // No clipboard (an insecure page, an older browser): the id is shown to copy by hand.
+                    if (!navigator.clipboard) {
+                      toast(`The id is ${rec.id}.`, "neutral");
+                      return;
+                    }
+                    navigator.clipboard.writeText(rec.id).then(
                       () => toast(`Copied ${rec.id}.`, "neutral"),
                       () => toast(`Couldn't copy. The id is ${rec.id}.`, "warning"),
-                    ) ?? toast(`The id is ${rec.id}.`, "neutral");
+                    );
                   },
                 },
                 { id: "delete", label: `Delete ${e.label.toLowerCase()}`, icon: "trash", danger: true, run: () => setPending({ kind: "delete" }) },

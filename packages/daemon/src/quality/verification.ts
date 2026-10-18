@@ -9,6 +9,7 @@ import path from "node:path";
 import type { Finding, Run, Task, VerificationCheck, VerificationKind, VerificationStatus } from "@flowcode/contracts";
 import { LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { pieceFiles, sectionFile } from "../orchestrator/sectionRecipes.js";
+import { diagnosticsOf, type Diagnostic } from "../orchestrator/recoveryRouting.js";
 import type { Store } from "../db/store.js";
 import { renderSkills, selectSkills } from "../knowledge/skills.js";
 import type { EventBus } from "../events/bus.js";
@@ -405,16 +406,16 @@ export class Verifier {
   async captureStepBaseline(run: Run, taskId: string, signal?: AbortSignal): Promise<StepBaseline> {
     const now = await this.captureDiagnostics(run, signal);
     const out: StepBaseline = { at: new Date().toISOString() };
-    for (const k of ["typecheck", "lint"] as const) if (now[k]) out[k] = { passed: now[k]!.passed, errors: now[k]!.lines.map(signature) };
+    for (const k of ["typecheck", "lint"] as const) if (now[k]) out[k] = { passed: now[k]!.passed, errors: now[k]!.lines.map(signature), ...(now[k]!.located?.length ? { located: now[k]!.located } : {}) };
     this.store.setSetting(stepBaselineKey(taskId), out);
     return out;
   }
 
   /** The type check and lint as they are now: whether each passed and its error lines. Nothing is recorded. */
-  async captureDiagnostics(run: Run, signal?: AbortSignal): Promise<{ typecheck?: { passed: boolean; lines: string[] }; lint?: { passed: boolean; lines: string[] } }> {
+  async captureDiagnostics(run: Run, signal?: AbortSignal): Promise<{ typecheck?: { passed: boolean; lines: string[]; located?: Diagnostic[] }; lint?: { passed: boolean; lines: string[]; located?: Diagnostic[] } }> {
     const project = this.store.projects.require(run.projectId);
     const pf = this.projects.latestPreflight(project.id);
-    const out: { typecheck?: { passed: boolean; lines: string[] }; lint?: { passed: boolean; lines: string[] } } = {};
+    const out: { typecheck?: { passed: boolean; lines: string[]; located?: Diagnostic[] }; lint?: { passed: boolean; lines: string[]; located?: Diagnostic[] } } = {};
     if (pf && (pf.manifestValid && pf.hasNodeModules)) {
       for (const kind of ["typecheck", "lint"] as const) {
         const cls = kind;
@@ -434,7 +435,7 @@ export class Verifier {
           signal,
         });
         if (res.record.status === "succeeded") out[kind] = { passed: true, lines: [] };
-        else if (res.record.status === "failed") out[kind] = { passed: false, lines: errorLines(res.output) };
+        else if (res.record.status === "failed") out[kind] = { passed: false, lines: errorLines(res.output), located: diagnosticsOf(res.output).filter((d) => d.file) };
       }
     }
     return out;
@@ -477,7 +478,11 @@ export class Verifier {
       return this.record(run.id, kind, "not_run", `${missingTool[1].replace(/['"]/g, "")} isn't installed in this Python environment (install it to get this check)`, [`command:${r.id}`], { taskId });
     const warn = r.status === "succeeded" && /\bwarning\b/i.test(res.output) && kind === "lint";
     const status: VerificationStatus = r.status === "succeeded" ? (warn ? "passed_with_warnings" : "passed") : r.status === "blocked" || r.status === "awaiting_approval" ? "blocked" : "failed";
-    const firstErr = res.output.split("\n").find((l) => /error|fail|✖|×/i.test(l))?.trim().slice(0, 200);
+    // ESLint prints the file on a line of its own, so its first error line alone names no file (Frameproof main build:
+    // "635:21 error …" sent the correction step to other files): that file goes first, on its own line, as ESLint has it.
+    const rawErr = res.output.split("\n").find((l) => /error|fail|✖|×/i.test(l))?.trim().slice(0, 200);
+    const located = r.status === "succeeded" ? undefined : diagnosticsOf(res.output).find((d) => d.file && d.kind === "lint");
+    const firstErr = located && rawErr && !rawErr.includes(located.file!) && rawErr.startsWith(`${located.line}:`) ? `${located.file}\n${rawErr}` : rawErr;
     return this.record(run.id, kind, status, r.status === "succeeded" ? `${label} exited 0 in ${r.durationMs}ms` : `${label} ${r.status}${firstErr ? `: ${firstErr}` : ""}`, [`command:${r.id}`], { taskId });
   }
 
@@ -1258,8 +1263,8 @@ export function signature(line: string): string {
 /** A step's diagnostics when it started: each error's signature, once per occurrence (no line numbers). */
 export interface StepBaseline {
   at: string;
-  typecheck?: { passed: boolean; errors: string[] };
-  lint?: { passed: boolean; errors: string[] };
+  typecheck?: { passed: boolean; errors: string[]; located?: Diagnostic[] };
+  lint?: { passed: boolean; errors: string[]; located?: Diagnostic[] };
 }
 export const stepBaselineKey = (taskId: string) => `stepBaseline:${taskId}`;
 

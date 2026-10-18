@@ -10,7 +10,7 @@
  * Clean Cart slice eval 1: the catalog showed each PRD product twice and the Search link went nowhere; the build's own
  * checks never looked.
  */
-import type { Page } from "playwright";
+import type { Locator, Page } from "playwright";
 import { coveringView, type AppModel } from "../orchestrator/appModel.js";
 import { compositeKey } from "../orchestrator/recordIdentity.js";
 
@@ -68,6 +68,29 @@ export function journeyPlan(m: AppModel, declared: Array<{ name: string }>, name
 
 const NO_MATCH = "zzqx no such record 0417";
 
+/**
+ * The navigation control that goes to a screen: a button or link with its exact name that is a destination, not a
+ * disclosure (a menu group heading that opens or closes its group, aria-expanded) and not disabled. Frameproof main
+ * build: the frame's group "Gallery" held the item "Gallery"; the journey took the first "Gallery", the group heading
+ * (disabled while it holds the page you're on), and reported the screen's own link as disabled.
+ */
+async function navControl(page: Page, label: string): Promise<Locator | "none" | "disabled"> {
+  const all = page.getByRole("button", { name: label, exact: true }).or(page.getByRole("link", { name: label, exact: true }));
+  const n = await all.count();
+  let disabled = false;
+  for (let i = 0; i < n; i++) {
+    const el = all.nth(i);
+    if ((await el.getAttribute("aria-expanded").catch(() => null)) !== null) continue;
+    if (!(await el.isVisible().catch(() => false))) continue;
+    if ((await el.isDisabled().catch(() => false)) || (await el.getAttribute("aria-disabled").catch(() => null)) === "true") {
+      disabled = true;
+      continue;
+    }
+    return el;
+  }
+  return disabled ? "disabled" : "none";
+}
+
 export async function runJourney(page: Page, url: string, plan: JourneyPlan): Promise<{ ok: boolean; steps: JourneyStep[] }> {
   const steps: JourneyStep[] = [];
   const errors: string[] = [];
@@ -120,9 +143,9 @@ export async function runJourney(page: Page, url: string, plan: JourneyPlan): Pr
       if (!s.view) throw new Error("no working page is this screen (a placeholder doesn't count)");
       await page.goto(base, { waitUntil: "load", timeout: 30_000 });
       await page.waitForTimeout(300);
-      const link = page.getByRole("button", { name: s.label, exact: true }).or(page.getByRole("link", { name: s.label, exact: true })).first();
-      if (!(await link.count())) throw new Error(`no "${s.label}" in the top bar`);
-      if (await link.isDisabled().catch(() => false)) throw new Error(`"${s.label}" in the top bar is disabled`);
+      const link = await navControl(page, s.label);
+      if (link === "none") throw new Error(`no "${s.label}" in the top bar`);
+      if (link === "disabled") throw new Error(`"${s.label}" in the top bar is disabled`);
       await link.click();
       await page.waitForTimeout(400);
       const h = await hash();

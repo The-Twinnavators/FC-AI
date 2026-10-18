@@ -81,11 +81,38 @@ const PROVIDER = /model service|connection_refused|ECONNREFUSED|timed? ?out wait
 // lock, look check, app guard, tokens.
 const LOCATED_CHECK = /^(Look check|Design crit|Layout lock|Content check|Deliverables check|App guard|These tokens are still used|Library pieces the screens|Earlier steps' acceptance tests|This step's tests pass, but)/;
 
+/** A project file named by a tool with its absolute path (C:\…\src\x.tsx or /…/src/x.tsx), as the project path (src/x.tsx). */
+function projectPath(p: string): string | undefined {
+  const m = /(?:^|\/)((?:src|app|lib|tests?)\/.+)$/.exec(p.trim().replace(/\\/g, "/"));
+  return m?.[1];
+}
+
+/**
+ * ESLint's default (stylish) output: the file on its own line, absolute (on Windows with backslashes), then its
+ * problems as "line:col  error  message  rule". Frameproof main build: LINT_ERROR only knew relative forward-slash
+ * paths, so "src/sections/RecordDetail.tsx:635" was never located and the correction step was sent to other files.
+ */
+function stylishLintErrors(text: string): Diagnostic[] {
+  const out: Diagnostic[] = [];
+  let file: string | undefined;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trimEnd();
+    if (/^\s*(?:[A-Za-z]:)?[\\/]?[^\s:]*[\\/][^\s]*\.(?:tsx?|jsx?|mjs|cjs|vue|svelte)$/.test(line) && !/^\s+\d/.test(line)) {
+      file = projectPath(line);
+      continue;
+    }
+    const m = /^\s+(\d+):\d+\s+error\s+(.+?)(?:\s{2,}([@\w/-]+))?$/.exec(line);
+    if (m && file) out.push({ kind: "lint", file, line: Number(m[1]), text: `${file}:${m[1]} ${m[2]!.trim()}${m[3] ? ` (${m[3]})` : ""}` });
+  }
+  return out;
+}
+
 /** The located diagnostics in a failure's text: type errors with file and line, lint errors, failing tests. */
 export function diagnosticsOf(text: string): Diagnostic[] {
   const out: Diagnostic[] = [];
   for (const m of text.matchAll(TS_ERROR)) out.push({ kind: "type", file: m[1], line: Number(m[2]), text: `${m[1]}:${m[2]} ${m[3]}: ${m[4]!.trim()}` });
   for (const m of text.matchAll(LINT_ERROR)) out.push({ kind: "lint", file: m[1], line: Number(m[2]), text: `${m[1]}:${m[2]} ${m[3]!.trim()}` });
+  out.push(...stylishLintErrors(text).filter((d) => !out.some((o) => o.kind === "lint" && o.file === d.file && o.line === d.line)));
   for (const m of text.matchAll(TEST_FAIL)) {
     const names = m[1] ? m[1].split("\n").map((l) => l.replace(/^- /, "").trim()).filter(Boolean) : [m[2]!.trim()];
     for (const n of names) out.push({ kind: "test", text: n.slice(0, 240) });
@@ -251,4 +278,22 @@ export function installedPackages(root: string): string[] {
   } catch {
     return [];
   }
+}
+
+/** The heading of the located-errors part of a correction step's brief (replaced, not added to, on each fresh start). */
+export const LOCATED_NOW = "Located errors now (the actual failing file, diagnostic and its current code: fix these here):";
+
+/**
+ * The located errors a step starts with, as a part of its brief: each file:line diagnostic and the code around it as
+ * the file is now. Frameproof main build: the correction step's brief named src/app/schema.ts and src/App.tsx while the
+ * failure was src/sections/RecordDetail.tsx:635, so every attempt edited the wrong file.
+ */
+export function locatedErrorsBrief(root: string, diagnostics: Diagnostic[], max = 6): { files: string[]; text: string } | undefined {
+  const located = diagnostics.filter((d) => d.file && d.line).slice(0, max);
+  if (!located.length) return undefined;
+  const parts = located.map((d) => {
+    const near = sourceNear(root, d.file!, d.line!, 4);
+    return `- ${d.text}${near ? `\n${near}` : ""}`;
+  });
+  return { files: [...new Set(located.map((d) => d.file!))], text: `${LOCATED_NOW}\n${parts.join("\n")}` };
 }
