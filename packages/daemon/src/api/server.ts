@@ -15,8 +15,7 @@ import { setupStatus, testAndUse, useAsCoder } from "./setup.js";
 import { externalChanges, watchStops } from "../workspace/stamp.js";
 import { briefIdea } from "../orchestrator/ideaScout.js";
 import { BUILTIN_PROMPT_IDS } from "../orchestrator/prompts.js";
-import { isFinishedRun, paletteFromTokens, type PaletteConfig } from "@flowcode/contracts";
-import { designTemplate, templateTokens } from "@flowcode/contracts";
+import { isFinishedRun } from "@flowcode/contracts";
 import { execFileSync } from "node:child_process";
 import { createMobileApprovals } from "./mobile.js";
 import * as D from "../discovery/discovery.js";
@@ -42,8 +41,8 @@ import { NotFoundError } from "../db/db.js";
 import { ModelRouter } from "../models/router.js";
 import { aiEngine, checkNetwork, environment, systemHealth, toolCatalog } from "./system.js";
 import { STYLE_EDIT_RUN, editStyleToken, scanStyles, editFixedFontSize } from "../workspace/styleTokens.js";
-import { setSurfaceStyle, surfaceStyleOf } from "../workspace/surfaceStyle.js";
-import { applyComponentStyle, applyDesign, applyPalette, componentStylesOf, designComponents, paletteOf, setDesignComponents, tokenValues } from "../workspace/designStudio.js";
+import { surfaceStyleOf } from "../workspace/surfaceStyle.js";
+import { applyComponentStyle, applyDesign, componentStylesOf, designComponents, paletteOf, setDesignComponents } from "../workspace/designStudio.js";
 import { FLOWCODE_LIMITS_KEY } from "../orchestrator/stepRecovery.js";
 import { browseFolder, folderRoots } from "../workspace/folderBrowser.js";
 import { applyCapturedStyle, captureStyle } from "../workspace/styleCapture.js";
@@ -556,74 +555,33 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       throw new HttpError(400, (e as Error).message);
     }
   });
-  // Styles tab → Surface: the app's surface style (vibe), and switching it (snapshotted, so it can be undone).
+  // One governed path for the look: colours, fonts and the surface style are changed through the project's design state
+  // (draft → "Use this direction" → "Apply changes"), never written straight to the app by the older editors. The
+  // Tokens tab's single-token edit stays as the explicit advanced path (the Look then shows that the app differs).
+  const LOOK_ONLY = "Colours, fonts and the surface style are changed in Look (Design tab → the direction button): edit a draft there and apply it";
+  const SURFACE_TRAITS = new Set(Object.keys(C.vibeTokens("flat")));
+  const lookOwned = (name: string) => name.startsWith("--color-") || name.startsWith("--brand-") || name.startsWith("--neutral-") || name.startsWith("--status-") || name === "--font-display" || name === "--font-sans" || SURFACE_TRAITS.has(name);
+  // Styles tab → Surface: the app's surface style (vibe), read only here; it's changed in the Look.
   add("GET /projects/:id/styles/surface", ({ params }) => surfaceStyleOf(app.projects.jail(params.id)));
-  add("POST /projects/:id/styles/surface", ({ params, body }) => {
-    const b = parse(z.object({ vibe: z.string().max(40) }), body);
-    try {
-      return setSurfaceStyle(app.projects.jail(params.id), app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, b.vibe);
-    } catch (e) {
-      throw new HttpError(400, (e as Error).message);
-    }
+  add("POST /projects/:id/styles/surface", () => {
+    throw new HttpError(409, LOOK_ONLY);
   });
-  // Styles → the design option this app uses: one of the visual styles (picked by you, or applied by FlowCode on New
-  // build) or Custom (captured, edited by hand, or set from the PRD). Picking a style writes its colours, fonts and
-  // corners into the tokens (snapshotted, so it can be undone).
   const markCustomDesign = (projectId: string) => app.store.setSetting(`designChoice:${projectId}`, { id: "custom", by: "you", at: new Date().toISOString() });
   add("GET /projects/:id/design/choice", ({ params }) => app.store.getSetting(`designChoice:${params.id}`, { id: "custom" }));
   // Picking a style overwrites the app's own tokens, so the values it replaces are kept once - the look the person
   // or the build gave this app. "Custom" puts them back, rather than only relabelling the dropdown.
-  add("POST /projects/:id/design/choice", ({ params, body }) => {
-    const b = parse(z.object({ id: z.string().max(60) }), body);
-    const record = { id: b.id, by: "you", at: new Date().toISOString() };
-    const jail = app.projects.jail(params.id);
-    const ctx = { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) };
-    const customKey = `designCustom:${params.id}`;
-  
-    if (b.id === "custom") {
-      const own = app.store.getSetting<Record<string, string> | undefined>(customKey, undefined);
-      if (!own) return (app.store.setSetting(`designChoice:${params.id}`, record), { ...record, changed: [] });
-      try {
-        const back = applyDesign(jail, app.ops, ctx, { theme: "default", values: own });
-        const mine = app.store.getSetting<PaletteConfig | undefined>(`designCustomPalette:${params.id}`, undefined);
-        if (mine?.brand?.length) applyPalette(jail, app.ops, ctx, mine);
-        app.store.setSetting(`designChoice:${params.id}`, record);
-        return { ...record, changed: back.changed };
-      } catch (e) {
-        throw new HttpError(400, (e as Error).message);
-      }
-    }
-  
-    const t = designTemplate(b.id);
-    if (!t) throw new HttpError(400, `Unknown design style "${b.id}"`);
-    const values: Record<string, string> = {
-      ...templateTokens(t),
-      "--font-sans": t.fonts.sans, "--font-display": t.fonts.display,
-      "--radius-sm": `${t.radii[0]}px`, "--radius-md": `${t.radii[1]}px`, "--radius-lg": `${t.radii[2]}px`, "--radius-xl": `${t.radii[3]}px`,
-    };
-    // Only the app's own look is worth keeping: moving from one style to another must not record the first one as it.
-    const was = app.store.getSetting<{ id?: string }>(`designChoice:${params.id}`, { id: "custom" });
-    if ((was.id ?? "custom") === "custom" && !app.store.getSetting(customKey, undefined)) {
-      const own = tokenValues(jail, Object.keys(values));
-      if (Object.keys(own).length) app.store.setSetting(customKey, own);
-      app.store.setSetting(`designCustomPalette:${params.id}`, paletteOf(jail).config);
-    }
-    try {
-      // The Colors card reads the saved ramps, not the theme tokens, so a style that only wrote tokens left them green.
-      // Ramps first: building them also rewrites the role colours (background, text, borders) from the accent alone,
-      // which turned Soft Neutral's cream background pink. The style's own tokens are written after, so they win.
-      const ramps = applyPalette(jail, app.ops, ctx, paletteFromTokens({ "--color-accent": t.colors.accent, "--color-secondary": t.colors.secondary }));
-      const out = applyDesign(jail, app.ops, ctx, { theme: "default", values });
-      app.store.setSetting(`designChoice:${params.id}`, record);
-      return { ...record, changed: [...out.changed, ...ramps.changed] };
-    } catch (e) {
-      throw new HttpError(400, (e as Error).message);
-    }
+  // Picking one of the older visual styles writes colours and fonts straight to the app, so it's refused too: a style
+  // is chosen as a theme in the Look.
+  add("POST /projects/:id/design/choice", () => {
+    throw new HttpError(409, LOOK_ONLY);
   });
   // Styles → Design: several token values for one theme in one write (plus the web fonts to load), and the
   // building blocks picked for the app.
   add("POST /projects/:id/design", ({ params, body }) => {
     const b = parse(z.object({ theme: z.enum(["default", "dark"]), values: z.record(z.string(), z.string().max(400)), googleFonts: z.array(z.string().max(40)).max(6).optional() }), body);
+    // Colours, fonts and surface tokens belong to the Look; corners, spacing and sizes may still be set here.
+    const owned = Object.keys(b.values).filter(lookOwned);
+    if (owned.length || b.googleFonts?.length) throw new HttpError(409, `${LOOK_ONLY} (${owned.length ? owned.join(", ") : "fonts"})`);
     try {
       const out = applyDesign(app.projects.jail(params.id), app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, b);
       if (out.changed.length) markCustomDesign(params.id);
@@ -634,23 +592,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   });
   // Styles → Design → Colours: the palette (saved, or started from the app's accent) and saving it.
   add("GET /projects/:id/design/palette", ({ params }) => paletteOf(app.projects.jail(params.id)));
-  add("POST /projects/:id/design/palette", ({ params, body }) => {
-    const hex = z.string().regex(/^#?[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/);
-    const b = parse(
-      z.object({
-        brand: z.array(z.object({ hex, name: z.string().max(40).optional(), role: z.enum(["primary", "secondary", "tertiary", "accent-1", "accent-2"]) })).min(1).max(5),
-        neutral: z.enum(["brand", "warm", "cool", "pure"]).optional(),
-        status: z.object({ success: hex.optional(), warning: hex.optional(), error: hex.optional(), info: hex.optional() }).optional(),
-      }),
-      body,
-    );
-    try {
-      const out = applyPalette(app.projects.jail(params.id), app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, b);
-      if (out.changed.length) markCustomDesign(params.id);
-      return out;
-    } catch (e) {
-      throw new HttpError(400, (e as Error).message);
-    }
+  add("POST /projects/:id/design/palette", () => {
+    throw new HttpError(409, LOOK_ONLY);
   });
   // Styles → Capture a style (CSSVibes): from a website and/or images, CSS or HTML, applied as Styles edits (undoable).
   add("GET /projects/:id/design/capture", ({ params }) => ({ last: app.store.getSetting(`styleCapture:${params.id}`, null) }));

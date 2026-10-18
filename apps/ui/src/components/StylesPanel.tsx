@@ -6,7 +6,7 @@
  *  - Components: a visual style sheet of the reusable parts the app already has (CSS class families rendered with
  *    the app's own stylesheets, and its React components). Coding agents get the same list so they reuse these.
  */
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { Boxes, Layers, Palette, RefreshCw, Sparkles, Undo2, Wand2 } from "lucide-react";
 import { ExtrasPanel } from "./ExtrasPanel";
 import { DirectionEditor } from "./DirectionEditor";
@@ -66,6 +66,15 @@ export function StylesPanel({ projectId }: { projectId: string }) {
   const [view, setView] = useState<"tokens" | "surface" | "components" | "extras">("components");
   const [capturing, setCapturing] = useState(false);
   const [direction, setDirection] = useState(false);
+  // "Change in Look" from a Colors, Typography or Surface card opens the shared editor here.
+  useEffect(() => {
+    const open = () => {
+      setDirection(true);
+      requestAnimationFrame(() => document.querySelector(".ds-panel")?.scrollIntoView({ block: "start" }));
+    };
+    window.addEventListener("fc:open-look", open);
+    return () => window.removeEventListener("fc:open-look", open);
+  }, []);
   return (
     <div className="styles-wrap">
       <StylesBar projectId={projectId} />
@@ -167,6 +176,14 @@ function TokensView({ projectId }: { projectId: string }) {
 
   return (
     <div className="styles-panel">
+      {/* The advanced path, kept apart from the Look: a raw edit is written at once and the Look then shows the app differs. */}
+      <p className="notice styles-panel__advanced" role="note">
+        <strong>Advanced: direct source edit.</strong> Each change rewrites one token in the app's stylesheet straight away, outside the Look's draft and apply. For colours, fonts and the surface style, use{" "}
+        <button type="button" className="btn btn--sm btn--ghost" onClick={() => window.dispatchEvent(new CustomEvent("fc:open-look"))}>
+          Look
+        </button>
+        ; the Look then reports that the app differs from its applied direction.
+      </p>
       <div className="styles-panel__bar">
         <span className="muted" style={{ fontSize: 12.5 }}>
           {data.tokens.length - unused} tokens in use · {data.files.length} file{data.files.length === 1 ? "" : "s"}

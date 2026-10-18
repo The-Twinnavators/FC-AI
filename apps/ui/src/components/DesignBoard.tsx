@@ -31,7 +31,6 @@ import {
 import { post, useResource } from "../api";
 import { Modal } from "./Modal";
 import { ColorPicker } from "./ColorPicker";
-import { TypographyEditor } from "./TypographyEditor";
 import { componentStyleSpec, componentStylesCss, type ComponentStyleValues } from "@flowcode/contracts";
 import { StyleSheetFrame, stylesChanged, STYLES_CHANGED, type Library } from "./ComponentSheet";
 import { DesignControls, DesignComponentsBar, type ControlSection } from "./DesignStudio";
@@ -41,7 +40,8 @@ import type { PreviewTheme } from "./PreviewTheme";
 /** The kit's components (ui-…). App-only classes (.muted, .shell) and the bare input aren't components to configure. */
 const isComponent = (block: string) => /^ui-/.test(block) && !["ui-input", "ui-skip", "ui-sr-only", "ui-narrow"].includes(block);
 
-type Editor = { kind: "colours" } | { kind: "type" } | { kind: "shape" } | { kind: "block"; block: string };
+// Colours and fonts are edited in the Look (one governed path), so their cards open it rather than an editor here.
+type Editor = { kind: "shape" } | { kind: "block"; block: string };
 
 const blockLabel = (lib: Library, block: string) =>
   COMPONENT_CATALOG.find((c) => KIT_BLOCK[c.id] === block)?.label ?? block.replace(/^ui-/, "").replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
@@ -58,6 +58,7 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
     <StyleSheetFrame lib={lib} fonts={fonts} theme={theme} draft={draft} shown={only} part={part} minHeight={min} componentCss={componentCss} />
   );
   const close = () => (setEditor(undefined), setDraft({}), setComponentCss(undefined));
+  const openLook = () => window.dispatchEvent(new CustomEvent("fc:open-look"));
 
   const nav: Array<{ group: string; items: Array<{ id: string; label: string }> }> = [
     { group: "Foundations", items: [{ id: "colours", label: "Colors" }, { id: "type", label: "Typography" }, { id: "shape", label: "Shape & style" }] },
@@ -86,13 +87,15 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
 
       <div className="dboard__cards">
 
-        <DesignCard id="colours" title="Colors" group="Foundation" note="5 brand colors, 10 shades each; neutrals and status colors follow them" onConfigure={() => setEditor({ kind: "colours" })}>
+        {/* Colours, fonts and the surface style are the project's Look (DirectionEditor): changed there as a draft and applied
+            deliberately, never written straight to the app from here. */}
+        <DesignCard id="colours" title="Colors" group="Foundation" note="Set in Look: primary and neutral family, optional secondary, tertiary and status colours" onConfigure={openLook} configureLabel="Change in Look">
           <PaletteSummary projectId={projectId} theme={theme} />
         </DesignCard>
-        <DesignCard id="type" title="Typography" group="Foundation" note="Heading, body and code fonts; size, weight and line height for each level" onConfigure={() => setEditor({ kind: "type" })}>
+        <DesignCard id="type" title="Typography" group="Foundation" note="Fonts set in Look; sizes and weights are advanced source settings on the Tokens tab" onConfigure={openLook} configureLabel="Change in Look">
           {frame("type", undefined, 160)}
         </DesignCard>
-        <DesignCard id="shape" title="Shape & style" group="Foundation" note="Surface style, corners and density" onConfigure={() => setEditor({ kind: "shape" })}>
+        <DesignCard id="shape" title="Shape & style" group="Foundation" note="Corners and density here; the surface style is set in Look" onConfigure={() => setEditor({ kind: "shape" })}>
           {frame("shape", ["fl-btn", "ui-field", "fl-ctl-badge", "fl-ctl-switch", "fl-card"], 120)}
         </DesignCard>
 
@@ -110,21 +113,8 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
         ))}
       </div>
 
-      {editor?.kind === "colours" ? <ColoursEditor projectId={projectId} theme={theme} onDraft={setDraft} onClose={close} preview={frame("palette", ["fl-btn", "fl-ctl-badge", "fl-ctl-alert", "ui-field", "fl-ctl-switch"], 260)} /> : null}
-      {editor?.kind === "type" ? (
-        <TypographyEditor
-          projectId={projectId}
-          onDraft={setDraft}
-          onClose={close}
-          frame={(controls, footer) => (
-            <EditorModal title="Typography" onClose={close} footer={footer} preview={frame("type", undefined, 260)}>
-              {controls}
-            </EditorModal>
-          )}
-        />
-      ) : null}
       {editor?.kind === "shape" ? (
-        <ControlsEditor title="Shape & style" projectId={projectId} theme={theme} only={["style", "corners", "density"]} onDraft={setDraft} onClose={close} preview={frame("shape", ["fl-btn", "ui-field", "fl-ctl-badge", "fl-ctl-switch", "fl-card"], 260)} />
+        <ControlsEditor title="Shape & style" projectId={projectId} theme={theme} only={["corners", "density"]} onDraft={setDraft} onClose={close} preview={frame("shape", ["fl-btn", "ui-field", "fl-ctl-badge", "fl-ctl-switch", "fl-card"], 260)} />
       ) : null}
       {editor?.kind === "block" && componentStyleSpec(editor.block) ? (
         <ComponentEditor projectId={projectId} block={editor.block} onCss={setComponentCss} onClose={close} preview={frame("blocks", [editor.block], 260)} />
@@ -133,7 +123,7 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
           title={blockLabel(lib, editor.block)}
           projectId={projectId}
           theme={theme}
-          only={["style", "corners", "density"]}
+          only={["corners", "density"]}
           onDraft={setDraft}
           onClose={close}
           note="This part of the layout follows the shared settings below, so the app stays consistent."
@@ -144,7 +134,7 @@ export function DesignBoard({ projectId, lib, theme, fonts, used }: { projectId:
   );
 }
 
-function DesignCard({ id, title, group, note, onConfigure, children }: { id: string; title: string; group: string; note: string; onConfigure: () => void; children: React.ReactNode }) {
+function DesignCard({ id, title, group, note, onConfigure, configureLabel = "Configure", children }: { id: string; title: string; group: string; note: string; onConfigure: () => void; configureLabel?: string; children: React.ReactNode }) {
   return (
     <section className="section dcard" id={`dcard-${id}`} aria-labelledby={`dcard-${id}-title`}>
       <div className="section__head">
@@ -153,7 +143,7 @@ function DesignCard({ id, title, group, note, onConfigure, children }: { id: str
         </h4>
         <span className="label">{group}</span>
         <button type="button" className="btn btn--sm dcard__configure" data-cp={`configure-${id}`} onClick={onConfigure}>
-          <SlidersHorizontal size={13} aria-hidden="true" /> Configure
+          <SlidersHorizontal size={13} aria-hidden="true" /> {configureLabel}
         </button>
       </div>
       <div className="section__body dcard__body">
@@ -304,182 +294,8 @@ function PaletteSummary({ projectId, theme }: { projectId: string; theme: Previe
         ))}
         <span className={`palette-sum__audit is-${fails ? "bad" : "ok"}`}>{fails ? `${fails} contrast check${fails === 1 ? "" : "s"} to fix` : `All ${audit.length} contrast checks pass`}</span>
       </div>
-      {!data?.saved ? <p className="muted palette-sum__hint">Started from the app&apos;s accent color. Configure to choose your brand colors.</p> : null}
+      {!data?.saved ? <p className="muted palette-sum__hint">Started from the app&apos;s accent color. Choose brand colors in Look.</p> : null}
     </div>
-  );
-}
-
-function ColoursEditor({ projectId, theme, onDraft, onClose, preview }: { projectId: string; theme: PreviewTheme; onDraft: (v: Record<string, string>) => void; onClose: () => void; preview: React.ReactNode }) {
-  const { data } = usePalette(projectId);
-  const [cfg, setCfg] = useState<PaletteConfig>();
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string }>();
-  const [auditTheme, setAuditTheme] = useState<"light" | "dark">(theme);
-  useEffect(() => {
-    if (data && !cfg) setCfg(data.config);
-  }, [data, cfg]);
-  const palette = useMemo(() => (cfg ? buildPalette(cfg) : undefined), [cfg]);
-  // The preview follows every change before it's saved.
-  useEffect(() => {
-    if (palette) onDraft({ ...rampTokens(palette), ...roleTokens(palette, theme === "dark") });
-  }, [palette, theme, onDraft]);
-  if (!cfg || !palette) return null;
-
-  const setBrand = (i: number, patch: Partial<BrandColor>) => setCfg({ ...cfg, brand: cfg.brand.map((b, j) => (j === i ? { ...b, ...patch } : b)) });
-  const addBrand = () => {
-    // The secondary starts traced from the primary by the default harmony (the 30% of 60/30/10).
-    if (cfg.brand.length === 1 && palette.brand[0]) {
-      setCfg({ ...cfg, brand: [...cfg.brand, { hex: defaultSecondary(palette.brand[0].hex).hex, role: "secondary" }] });
-      return;
-    }
-    // Later colors start from the primary's complement, so a new color is never a copy.
-    const base = palette.brand[0]?.ramp[500] ?? "#6d28d9";
-    const h = parseInt(base.slice(1), 16);
-    const comp = `#${(0xffffff ^ h).toString(16).padStart(6, "0")}`;
-    setCfg({ ...cfg, brand: [...cfg.brand, { hex: comp, role: BRAND_ROLES[cfg.brand.length] }] });
-  };
-  const removeBrand = (i: number) => setCfg({ ...cfg, brand: cfg.brand.filter((_, j) => j !== i).map((b, j) => ({ ...b, role: BRAND_ROLES[j] })) });
-  const setStatus = (k: StatusKind, hex?: string) => setCfg({ ...cfg, status: { ...cfg.status, [k]: hex } });
-  const swatches = [
-    ...palette.brand.map((b) => ({ label: ROLE_LABEL[b.role], hex: b.hex })),
-    ...STATUS_KINDS.map((k) => ({ label: STATUS_LABEL[k], hex: palette.status[k].hex })),
-    { label: "Neutral 50", hex: palette.neutral[50] },
-    { label: "Neutral 500", hex: palette.neutral[500] },
-    { label: "Neutral 900", hex: palette.neutral[900] },
-  ];
-  const tokens = roleTokens(palette, auditTheme === "dark");
-  const audit = contrastAudit(palette, tokens);
-
-  const save = async () => {
-    setBusy(true);
-    setMsg(undefined);
-    try {
-      await post(`/projects/${projectId}/design/palette`, { ...cfg, status: Object.fromEntries(Object.entries(cfg.status ?? {}).filter(([, v]) => v)) });
-      stylesChanged();
-      onClose();
-    } catch (e) {
-      setMsg({ ok: false, text: (e as Error).message });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <EditorModal
-      title="Colors"
-      onClose={onClose}
-      preview={preview}
-      footer={
-        <>
-          {msg ? <span className="dmodal__msg">{msg.text}</span> : <span className="muted dmodal__msg">Saving updates the app&apos;s color tokens for light and dark. You can undo it.</span>}
-          <button type="button" className="btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="button" className="btn btn--primary" onClick={() => void save()} disabled={busy}>
-            {busy ? "Saving…" : "Save colors"}
-          </button>
-        </>
-      }
-    >
-      <fieldset className="studio__sec">
-        <legend>Brand colors</legend>
-        {cfg.brand.map((b, i) => {
-          const hex = normalizeHex(b.hex) ?? "#000000";
-          const p = palette.brand[i];
-          return (
-            <div key={i} className="brand-row">
-              <span className="brand-row__name">{ROLE_LABEL[b.role]}</span>
-              <ColorPicker value={hex} label={ROLE_LABEL[b.role]} swatches={swatches} onChange={(v) => setBrand(i, { hex: v })} />
-              {cfg.brand.length > 1 ? (
-                <button type="button" className="dmodal__icon-btn" onClick={() => removeBrand(i)} aria-label={`Remove ${ROLE_LABEL[b.role]}`}>
-                  <X size={14} aria-hidden="true" />
-                </button>
-              ) : null}
-              {p ? <RampRow label="" ramp={p.ramp} base={p.baseStep} /> : null}
-              {b.role === "secondary" && palette.brand[0] ? <SecondaryHarmonies primary={palette.brand[0].hex} secondary={hex} tokens={tokens} dark={auditTheme === "dark"} onPick={(v) => setBrand(i, { hex: v })} /> : null}
-            </div>
-          );
-        })}
-        {cfg.brand.length === 1 && palette.brand[0] ? (
-          <div className="brand-row">
-            <span className="brand-row__name">
-              Secondary
-              <span className="muted">not chosen yet, so FlowCode traces one from your primary</span>
-            </span>
-            <SecondaryHarmonies primary={palette.brand[0].hex} tokens={tokens} dark={auditTheme === "dark"} onPick={(v) => setCfg({ ...cfg, brand: [...cfg.brand, { hex: v, role: "secondary" }] })} />
-          </div>
-        ) : null}
-        {cfg.brand.length < MAX_BRAND_COLORS ? (
-          <button type="button" className="btn btn--sm brand-add" onClick={addBrand}>
-            <Plus size={13} aria-hidden="true" /> Add a brand color
-          </button>
-        ) : null}
-      </fieldset>
-
-      <fieldset className="studio__sec">
-        <legend>Suggested neutrals</legend>
-        <p className="dmodal__note muted">Picked to go with your brand colors. Choose a different tone if you like.</p>
-        <div className="studio__chips" role="group" aria-label="Neutral tone">
-          {(Object.keys(NEUTRAL_LABEL) as NeutralTone[]).map((t) => (
-            <button key={t} type="button" className={`studio__chip${(cfg.neutral ?? "brand") === t ? " is-on" : ""}`} aria-pressed={(cfg.neutral ?? "brand") === t} onClick={() => setCfg({ ...cfg, neutral: t })}>
-              {NEUTRAL_LABEL[t]}
-            </button>
-          ))}
-        </div>
-        <RampRow label="" ramp={palette.neutral} />
-      </fieldset>
-
-      <fieldset className="studio__sec">
-        <legend>Status colors</legend>
-        <p className="dmodal__note muted">Picked from your brand colors when one fits, otherwise made to sit with your primary. Set one to override it.</p>
-        {STATUS_KINDS.map((k) => {
-          const st = palette.status[k];
-          return (
-            <div key={k} className="brand-row">
-              <span className="brand-row__name">
-                {STATUS_LABEL[k]}
-                <span className="muted">{st.from === "brand" ? "from your brand colors" : st.from === "you" ? "set by you" : "picked to match your primary"}</span>
-              </span>
-              <span className="brand-row__tools">
-                {st.from === "you" ? (
-                  <button type="button" className="btn btn--sm btn--ghost" onClick={() => setStatus(k, undefined)}>
-                    Reset
-                  </button>
-                ) : null}
-                <ColorPicker value={st.hex} label={STATUS_LABEL[k]} swatches={swatches} onChange={(v) => setStatus(k, v)} />
-              </span>
-              <RampRow label="" ramp={st.ramp} />
-            </div>
-          );
-        })}
-      </fieldset>
-
-      <fieldset className="studio__sec">
-        <legend>Contrast</legend>
-        <div className="studio__chips" role="group" aria-label="Theme to check">
-          {(["light", "dark"] as const).map((t) => (
-            <button key={t} type="button" className={`studio__chip${auditTheme === t ? " is-on" : ""}`} aria-pressed={auditTheme === t} onClick={() => setAuditTheme(t)}>
-              {t === "light" ? "Light theme" : "Dark theme"}
-            </button>
-          ))}
-        </div>
-        <ul className="audit">
-          {audit.map((c) => (
-            <li key={c.id} className={`audit__row is-${c.pass ? "ok" : "bad"}`}>
-              <span className="audit__sample" style={{ color: c.fg, background: c.bg }} aria-hidden="true">
-                Aa
-              </span>
-              <span className="audit__label">{c.label}</span>
-              <span className="audit__ratio mono">
-                {c.ratio}:1 · {contrastLevel(c.ratio)}
-              </span>
-              {!c.pass && c.suggestion ? <span className="audit__fix">Use shade {c.suggestion.step} ({c.suggestion.hex}) → {c.suggestion.ratio}:1</span> : null}
-            </li>
-          ))}
-        </ul>
-        <p className="dmodal__note muted">The app&apos;s color roles are chosen from these shades to pass: text 4.5:1, focus rings and borders 3:1.</p>
-      </fieldset>
-    </EditorModal>
   );
 }
 
