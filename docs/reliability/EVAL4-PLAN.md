@@ -15,7 +15,7 @@ Each outcome is reported on its own. None stands in for another, and none is ave
 |---|---|---|
 | **Functional baseline** | The app written from its model works before design. | The baseline after "Write the complete app": typecheck, lint, tests (when test files exist), build, data source and the browser journey. All must pass, as in eval 3. |
 | **Design implementation** | The design steps did their scoped work in the selected direction. | Each design step is verified or blocked, and its result is shown. The concept's token and Home-layout requirements are read from the rendered app. The coder's remaining work items are each listed as done or not done. "Applied" never counts as "designed". |
-| **Final technical and behavioural verification** | The app works **after** design, not only before it. | The run's required final checks, after every step: typecheck, lint, tests, build, server start, preview health, screenshots, design QA, app wiring, the functional journey, and the final report. A check that doesn't run (for example, tests with no test files) is reported as **not run**, not as passed. |
+| **Final technical and behavioural verification** | The app works **after** design, not only before it. | Each step's own checks run at that step's boundary. The complete final suite runs **once**, after the last step, on the final post-design source: typecheck, lint, tests, build, server start, preview health, screenshots, design QA, app wiring, the functional journey, and the final report. That is how the verification phase already works; nothing is repeated or added. A check that doesn't run (for example, tests with no test files) is reported as **not run**, not as passed. |
 | **Deadline enforcement** | The absolute deadline held. | The deadline was set and verified before planning. No work started after it without a recorded extension. If it expired, the record shows when, what was running or waiting, and when work stopped. **A deadline stop means the run is incomplete. A recorded overrun is still an overrun.** |
 | **Human visual approval** | You approve the generated app's look. | **Pending until you give it.** Neither the concept's selection nor its application sets it. |
 
@@ -41,7 +41,7 @@ Pages of different kinds are meant to differ in some ways. These are intended, n
 - **Button heights:** 48px is the hero action, 40px the standard action. Both are intended.
 - **12px meta text:** this is the small step of each concept's scale. It isn't presented as an accessibility threshold either way: the muted text it uses passes WCAG AA on the page, the cards and the sunken surfaces in every concept (5.7:1 at the lowest; Bold aisle 8.8:1), and size is for you to judge at phone distance.
 
-## 3. Proposed narrow corrections (not applied, awaiting your approval)
+## 3. Narrow corrections (A and B approved and applied; C and D need no change)
 
 ### A. Saved uses the heart, which elsewhere means Like
 - **Problem:** the phone's bottom bar shows Saved with a heart. On the Product page the heart is Like and the bookmark is Save, and the save toggles are bookmarks.
