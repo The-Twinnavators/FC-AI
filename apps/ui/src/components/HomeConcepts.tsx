@@ -4,7 +4,9 @@
  * is applied until the plan is approved, and no pick keeps the default Home.
  */
 import { useEffect, useRef, useState } from "react";
+import { appearanceTokens, type Appearance } from "@flowcode/contracts";
 import { post, useResource } from "../api";
+import { DirectionEditor } from "./DirectionEditor";
 
 interface Concept {
   id: string;
@@ -23,7 +25,7 @@ interface Offer {
 }
 
 /** One concept's live preview, scaled into its slot; it gets its data from here by message once it has loaded. */
-function ConceptFrame({ runId, concept, offer }: { runId: string; concept: Concept; offer: Offer }) {
+function ConceptFrame({ runId, concept, offer, look }: { runId: string; concept: Concept; offer: Offer; look?: Appearance }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const slot = useRef<HTMLDivElement>(null);
   // The page is drawn at 1280px wide and scaled to the slot's width.
@@ -37,11 +39,17 @@ function ConceptFrame({ runId, concept, offer }: { runId: string; concept: Conce
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== location.origin || e.source !== frame.current?.contentWindow || e.data?.type !== "fl-concept-ready") return;
-      frame.current?.contentWindow?.postMessage({ type: "fl-concept", id: `${runId}-${concept.id}`, design: concept.design, tokens: concept.tokens, promise: offer.preview?.promise, data: offer.preview?.data }, location.origin);
+      frame.current?.contentWindow?.postMessage(message(), location.origin);
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [runId, concept, offer]);
+  }, [runId, concept, offer, look]);
+  // The concept is the layout; the look you're editing (if any) is drawn on it, so changing the look keeps the layout.
+  const message = () => ({ type: "fl-concept", id: `${runId}-${concept.id}`, design: concept.design, tokens: look ? appearanceTokens(look) : concept.tokens, promise: offer.preview?.promise, data: offer.preview?.data });
+  useEffect(() => {
+    frame.current?.contentWindow?.postMessage(message(), location.origin);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [look]);
   return (
     <div className="hc-frame" ref={slot}>
       <iframe ref={frame} src={`concept-preview.html?concept=${encodeURIComponent(concept.id)}`} title={`${concept.name}: Home page preview`} tabIndex={-1} loading="lazy" />
@@ -49,14 +57,13 @@ function ConceptFrame({ runId, concept, offer }: { runId: string; concept: Conce
   );
 }
 
-export function HomeConcepts({ runId }: { runId: string }) {
+export function HomeConcepts({ runId, projectId }: { runId: string; projectId: string }) {
   const offer = useResource<Offer>(`/runs/${runId}/concepts`, [runId]);
   const [picked, setPicked] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string>();
+  const [look, setLook] = useState<Appearance>();
   const o = offer.data;
-  if (!o) return null;
-  if (!o.offered) return o.why && o.concepts.length === 0 ? <p className="hc-note">Home direction: {o.why}.</p> : null;
-  const current = picked ?? o.chosen?.conceptId;
+  const current = picked ?? o?.chosen?.conceptId;
   const pick = async (id: string) => {
     setPicked(id);
     setError(undefined);
@@ -66,33 +73,40 @@ export function HomeConcepts({ runId }: { runId: string }) {
       setError((e as Error).message);
     }
   };
+  // The look is editable on every plan; the Home layouts only where concepts are offered.
   return (
     <fieldset className="hc">
-      <legend className="label">Home direction</legend>
-      <p className="hc-lede">
-        Pick how {o.preview?.product ?? "the app"}'s Home page looks, from your library's page designs, shown on this build's own products. It's applied when you approve the plan; you still review the finished app before it's visually approved. If you approve without choosing, no direction is recorded and the design requirement stays open.
-      </p>
-      <div className="hc-grid">
-        {o.concepts.map((c) => (
-          <label key={c.id} className={`hc-option${current === c.id ? " is-picked" : ""}`}>
-            <ConceptFrame runId={runId} concept={c} offer={o} />
-            <span className="hc-choice">
-              <input type="radio" name={`hc-${runId}`} checked={current === c.id} onChange={() => void pick(c.id)} />
-              <span>
-                <strong>{c.name}</strong>
-                <span className="hc-thesis">{c.thesis}</span>
-                <span className="hc-fonts">
-                  {c.fonts.join(" / ")}
-                  {c.design ? ` · ${c.design} page` : ""}
+      <legend className="label">{o?.offered ? "Look and Home page" : "Look"}</legend>
+      {/* Change the look here instead of denying the plan. Confirmed with "Use this direction"; approving the plan uses it. */}
+      <DirectionEditor projectId={projectId} where="plan" onAppearance={setLook} />
+      {o?.offered ? (
+        <>
+          <p className="hc-sub label">Home page layout</p>
+          <p className="hc-lede">
+            Pick the layout of {o.preview?.product ?? "the app"}'s Home page from your library's page designs, shown on this build's own products{look ? " in the look above" : ""}. {look ? "A layout never changes your look." : "Without a look of your own, a layout brings its own (Flat or Tactile)."} Applied when you approve the plan; you still review the finished app. If you approve without choosing, no layout is recorded and the design requirement stays open.
+          </p>
+          <div className="hc-grid">
+            {o.concepts.map((c) => (
+              <label key={c.id} className={`hc-option${current === c.id ? " is-picked" : ""}`}>
+                <ConceptFrame runId={runId} concept={c} offer={o} look={look} />
+                <span className="hc-choice">
+                  <input type="radio" name={`hc-${runId}`} checked={current === c.id} onChange={() => void pick(c.id)} />
+                  <span>
+                    <strong>{c.name}</strong>
+                    <span className="hc-thesis">{c.thesis}</span>
+                    <span className="hc-fonts">{look ? `${c.design} page, in your look` : `${c.fonts.join(" / ")}${c.design ? ` · ${c.design} page` : ""}`}</span>
+                  </span>
                 </span>
-              </span>
-            </span>
+              </label>
+            ))}
+          </div>
+          <label className="hc-default">
+            <input type="radio" name={`hc-${runId}`} checked={current === "default"} onChange={() => void pick("default")} /> Use the generic default Home layout (no concept)
           </label>
-        ))}
-      </div>
-      <label className="hc-default">
-        <input type="radio" name={`hc-${runId}`} checked={current === "default"} onChange={() => void pick("default")} /> Use the generic default Home (no concept)
-      </label>
+        </>
+      ) : o?.why && !o.concepts.length ? (
+        <p className="hc-note">Home page layouts: {o.why}.</p>
+      ) : null}
       {error ? (
         <p className="notice notice--bad" role="alert">
           {error}

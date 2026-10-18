@@ -17018,3 +17018,71 @@ body.cp-driving #copilot-panel { z-index: 80; }
   .modal-scrim:has(> .approval-modal) { padding: 8px; }
   .modal-box.approval-modal { max-height: calc(100vh - 16px); }
 }
+
+/* The look editor (DirectionEditor): one layout for the plan card, the design review and the Design tab. Plain
+   sections and dividers (it sits inside cards); the style sample is a picture of the app, drawn with its tokens. */
+.ds { display: grid; gap: 12px; min-width: 0; container: ds / inline-size; }
+.ds__head { display: grid; gap: 4px; }
+.ds__state { margin: 0; font-size: 13px; color: var(--text-0); }
+.ds__warn { margin: 0; font-size: 12.5px; color: var(--sig-warn, #c58a1a); }
+.ds__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 20px; align-items: start; }
+/* Stacks by the editor's own width (the Design tab column, a card, a phone), with the sample first. */
+@container ds (max-width: 640px) {
+  .ds__body { grid-template-columns: minmax(0, 1fr); }
+  .ds-sample { order: -1; }
+}
+.ds__controls { display: grid; gap: 12px; min-width: 0; }
+.ds-field { display: grid; gap: 6px; min-width: 0; margin: 0; padding: 0; border: 0; font-size: 12.5px; color: var(--text-1); }
+.ds-field > span:first-child, .ds-field > legend { color: var(--text-0); font-weight: 600; padding: 0; }
+.ds-src { font-weight: 400; color: var(--text-2); }
+.ds-note { margin: 0; font-size: 12px; color: var(--text-1); }
+.ds-seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.ds-seg > legend { width: 100%; margin-bottom: 6px; }
+.ds-seg label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: var(--r-2); cursor: pointer; }
+.ds-seg label.is-on { border-color: var(--accent); }
+.ds-seg input:focus-visible, .ds-check input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ds-row { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ds-status { display: grid; gap: 8px; }
+.ds-status > .ds-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; }
+.ds-check { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-1); cursor: pointer; }
+.ds-adv { display: grid; gap: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.ds-adv > summary { cursor: pointer; font-size: 12.5px; color: var(--text-0); font-weight: 600; }
+.ds-adv[open] > summary { margin-bottom: 4px; }
+.ds-checks { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 10px; font-size: 12px; }
+.ds-checks__sum { margin: 0; color: var(--text-0); font-weight: 600; }
+.ds-checks ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; color: var(--text-1); }
+.ds-checks li.is-bad { color: var(--sig-bad, #e05252); }
+.ds__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+.ds__msg { font-size: 12.5px; color: var(--text-1); }
+.ds__err { font-size: 12.5px; color: var(--sig-bad, #e05252); }
+
+/* The style sample: the app's own tokens (set inline on the figure) drawing a page, a card, the action and statuses. */
+.ds-sample { margin: 0; display: grid; gap: 6px; min-width: 0; }
+.ds-sample__label { font-size: 12px; color: var(--text-2); }
+.ds-sample__page {
+  display: grid; gap: 10px; padding: 16px; border: 1px solid var(--line-strong); border-radius: var(--r-2);
+  background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans);
+}
+.ds-sample__h { margin: 0; font-family: var(--font-display); font-weight: var(--heading-weight, 700); font-size: 20px; line-height: 1.15; color: var(--color-text); }
+.ds-sample__p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--color-text-muted); }
+.ds-sample__card {
+  display: grid; gap: 6px; padding: 12px;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, 8px), 12px); box-shadow: var(--surface-shadow, none);
+}
+.ds-sample__card-title { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--color-text); }
+.ds-sample__muted { margin: 0; font-size: 12px; color: var(--color-text-muted); }
+.ds-sample__btn {
+  justify-self: start; padding: 7px 12px; border-radius: min(var(--control-radius, 6px), 12px); font-size: 12.5px; font-weight: 600;
+  background: var(--accent-bg, var(--color-accent)); color: var(--color-on-accent); box-shadow: var(--control-shadow, none);
+}
+.ds-sample__status { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; font-weight: 600; }
+.ds-sample__status [data-k="success"] { color: var(--color-success); }
+.ds-sample__status [data-k="warning"] { color: var(--color-warning); }
+.ds-sample__status [data-k="error"] { color: var(--color-danger); }
+
+/* The Design tab's direction button and the panel it opens. */
+.ds-open { display: inline-flex; align-items: center; gap: 6px; max-width: 360px; }
+.ds-open__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-panel { margin: 0 0 16px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-2); background: var(--bg-1); }
+.hc-sub { margin: 4px 0 0; }

@@ -13,6 +13,8 @@ import { ScriptedProvider } from "../src/models/scripted.js";
 import type { ChatMessage } from "../src/models/types.js";
 import { appModelKey, type AppModel } from "../src/orchestrator/appModel.js";
 import { chooseConcept, conceptOffer, designDirectionKey, type DesignDirection } from "../src/orchestrator/homeConceptOffer.js";
+import { getDesignState, saveDraft, selectDraft } from "../src/workspace/designState.js";
+import { BASE_APPEARANCE } from "@flowcode/contracts";
 import { idealProbeSolver } from "./scripted-agents.js";
 import { makeApp, makeProject } from "./helpers.js";
 
@@ -74,6 +76,26 @@ describe("eval 4 setup: the plan waits for the person, with the concept picker",
     app.orchestrator.approvePlan(run.id, "user", false);
     expect(app.store.getSetting<DesignDirection | null>(designDirectionKey(run.id), null)).toMatchObject({ kind: "concept", conceptId: "concept-bold", visualApproval: "pending" });
     expect(app.store.getSetting<AppModel | null>(appModelKey(run.id), null)?.home?.design).toBe("listings");
+    app.orchestrator.stopWatchdog();
+  });
+
+  it("changing the look while the plan waits keeps the plan and its approval; approval settles the confirmed look, not an unconfirmed draft", async () => {
+    const { app, run } = await planned("supervised");
+    const planBefore = JSON.stringify(app.store.runs.require(run.id).plan);
+    const approval = app.store.approvals.where("run_id = ? AND status = 'pending'", run.id)[0]!;
+    saveDraft(app.store, run.projectId, { ...BASE_APPEARANCE, primary: "#1f6f43", fonts: { display: "Fraunces", body: "Work Sans" } }, { primary: "you" });
+    selectDraft(app.store, run.projectId);
+    // A further edit left unconfirmed.
+    saveDraft(app.store, run.projectId, { ...BASE_APPEARANCE, primary: "#7a3b1e" }, { primary: "you" });
+    expect(JSON.stringify(app.store.runs.require(run.id).plan)).toBe(planBefore);
+    expect(app.store.approvals.require(approval.id).status).toBe("pending");
+    expect(app.store.runs.require(run.id).status).toBe("awaiting_approval");
+    app.orchestrator.approvePlan(run.id, "user", false);
+    const d = app.store.getSetting<DesignDirection | null>(designDirectionKey(run.id), null)!;
+    expect(d.appearance).toEqual({ version: 1 });
+    expect(d.unconfirmedDraft).toBe(true);
+    expect(getDesignState(app.store, run.projectId).selected?.appearance.primary).toBe("#1f6f43");
+    expect(app.bus.list({ runId: run.id }).some((e) => /unconfirmed look edits: they aren't used/.test(e.message))).toBe(true);
     app.orchestrator.stopWatchdog();
   });
 

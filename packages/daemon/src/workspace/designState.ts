@@ -153,6 +153,7 @@ export function stateLabel(s: DesignState, differs: string[]): string {
   if (s.selected) return s.lastFailure?.version === s.selected.version ? "Selected; the last update failed" : "Selected, not yet applied";
   if (s.base.source === "legacy-default") return s.base.detail;
   if (s.base.source === "unknown") return "No brand direction selected (source of the current styles not recorded)";
+  if (s.base.source === "none") return "No brand direction selected";
   return "Base styling — no brand direction selected";
 }
 

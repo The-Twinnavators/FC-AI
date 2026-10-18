@@ -6,6 +6,7 @@ import { Icon, UnifiedDiff, ErrorNotice } from "./ui";
 import { navigate } from "../router";
 import { RobotHead, ROLE_COLOR } from "./RobotHead";
 import { HomeConcepts } from "./HomeConcepts";
+import { DirectionEditor } from "./DirectionEditor";
 
 /**
  * `savedTo`: where a saved idea goes, so the card can say so before it leaves: "project" (its project's Suggestions
@@ -184,7 +185,15 @@ export function ApprovalCard({ approval, onDecided, savedTo = "project" }: { app
           </details>
         ) : null}
         {/* The Home direction is picked here, with the plan: no separate approval. */}
-        {approval.kind === "plan" && !approval.taskId && approval.runId ? <HomeConcepts runId={approval.runId} /> : null}
+        {approval.kind === "plan" && !approval.taskId && approval.runId ? <HomeConcepts runId={approval.runId} projectId={approval.projectId} /> : null}
+        {/* The design review ("Approve the prototype plan and the design"): change the look here, applied to the app,
+            rather than denying the build. */}
+        {approval.kind === "plan" && approval.taskId ? (
+          <fieldset className="hc">
+            <legend className="label">Look</legend>
+            <DirectionEditor projectId={approval.projectId} where="review" />
+          </fieldset>
+        ) : null}
         {error ? (
           <ErrorNotice error={error} doing="record your decision" />
         ) : null}

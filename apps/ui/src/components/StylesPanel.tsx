@@ -7,10 +7,9 @@
  *    the app's own stylesheets, and its React components). Coding agents get the same list so they reuse these.
  */
 import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
-import { createPortal } from "react-dom";
 import { Boxes, Layers, Palette, RefreshCw, Sparkles, Undo2, Wand2 } from "lucide-react";
 import { ExtrasPanel } from "./ExtrasPanel";
-import { DESIGN_TEMPLATES } from "@flowcode/contracts";
+import { DirectionEditor } from "./DirectionEditor";
 import { ComponentSheet, stylesChanged, StylesBar } from "./ComponentSheet";
 import { SurfacePanel } from "./SurfacePanel";
 import { StyleCapture } from "./StyleCapture";
@@ -51,65 +50,22 @@ const keyOf = (t: Token) => `${t.file}|${t.selector}|${t.name}`;
 const HEX = /^#([0-9a-f]{6})$/i;
 
 /**
- * The design option this app uses: one of the visual styles, or Custom (captured, edited by hand, or from the PRD).
- * It records who set it (FlowCode on New build, or you). Picking a style writes its colors, fonts and corners into
- * the app's tokens, which can be undone in Changes.
+ * The project's brand direction on the Design tab: its honest state (base styling, selected, applied, differs) and
+ * the shared look editor (DirectionEditor), the same one as the plan card and the design review.
  */
-function DesignChoice({ projectId }: { projectId: string }) {
-  const choice = useResource<{ id: string; by?: "you" | "flowcode"; at?: string }>(`/projects/${projectId}/design/choice`, [projectId]);
-  const [busy, setBusy] = useState(false);
-  const [pending, setPending] = useState<string>();
-  const [msg, setMsg] = useState<string>();
-  const pick = async (id: string) => {
-    setBusy(true);
-    setPending(id);
-    setMsg(undefined);
-    try {
-      await post(`/projects/${projectId}/design/choice`, { id });
-      choice.reload();
-      stylesChanged();
-      setMsg(id === "custom" ? "Recorded as Custom." : `Applied ${DESIGN_TEMPLATES.find((t) => t.id === id)?.name}. Undo it in Changes.`);
-    } catch (e) {
-      setMsg((e as Error).message);
-    } finally {
-      setBusy(false);
-      setPending(undefined);
-    }
-  };
-  const pendingName = pending === "custom" ? "Custom" : DESIGN_TEMPLATES.find((t) => t.id === pending)?.name;
-  const by = choice.data?.by === "flowcode" ? "Set by FlowCode" : choice.data?.by === "you" ? "Set by you" : "";
+function DirectionButton({ projectId, open, onToggle }: { projectId: string; open: boolean; onToggle: () => void }) {
+  const state = useResource<{ label: string }>(`/projects/${projectId}/design/state`, [projectId, open]);
   return (
-    <label className="design-choice" title={by || "The design option this app uses"}>
-      <span className="sr-only">Design style</span>
-      <select className="select" value={choice.data?.id ?? "custom"} disabled={busy || !choice.data} onChange={(e) => void pick(e.target.value)}>
-        <option value="custom">Custom</option>
-        {DESIGN_TEMPLATES.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.name}
-          </option>
-        ))}
-      </select>
-      {msg ? <span className="design-choice__msg" role="status">{msg}</span> : by ? <span className="design-choice__by">{by}</span> : null}
-      {/* Applying a style takes a few seconds: a loading card in the middle of the page says so, and holds clicks until it lands. */}
-      {busy && pending
-        ? createPortal(
-            <div className="style-applying" role="status" aria-live="polite">
-              <div className="style-applying__card">
-                <span className="style-applying__wheel" aria-hidden="true" />
-                <p className="style-applying__title">{pending === "custom" ? "Recording Custom…" : `Applying ${pendingName ?? "the style"}…`}</p>
-                {pending === "custom" ? null : <p className="style-applying__what">Writing its colours, fonts and corners into the app</p>}
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
-    </label>
+    <button type="button" className="btn btn--sm ds-open" aria-expanded={open} onClick={onToggle} title={state.data?.label}>
+      <Palette size={14} aria-hidden="true" /> <span className="ds-open__label">{state.data?.label ?? "Brand direction"}</span>
+    </button>
   );
 }
 
 export function StylesPanel({ projectId }: { projectId: string }) {
   const [view, setView] = useState<"tokens" | "surface" | "components" | "extras">("components");
   const [capturing, setCapturing] = useState(false);
+  const [direction, setDirection] = useState(false);
   return (
     <div className="styles-wrap">
       <StylesBar projectId={projectId} />
@@ -129,12 +85,17 @@ export function StylesPanel({ projectId }: { projectId: string }) {
         </button>
       </div>
         <div className="styles-top__actions">
-          <DesignChoice projectId={projectId} />
+          <DirectionButton projectId={projectId} open={direction} onToggle={() => setDirection((d) => !d)} />
           <button type="button" className="btn btn--sm" data-cp="capture-open" data-cp-safe aria-expanded={capturing} onClick={() => setCapturing((c) => !c)}>
             <Wand2 size={14} aria-hidden="true" /> Capture a style
           </button>
         </div>
       </div>
+      {direction ? (
+        <div className="ds-panel">
+          <DirectionEditor projectId={projectId} where="tab" onAppearance={undefined} />
+        </div>
+      ) : null}
       {capturing ? <StyleCapture projectId={projectId} onClose={() => setCapturing(false)} /> : null}
       {view === "extras" ? <ExtrasPanel projectId={projectId} /> : view === "tokens" ? <TokensView projectId={projectId} /> : view === "surface" ? <SurfacePanel projectId={projectId} /> : <ComponentSheet projectId={projectId} />}
     </div>
