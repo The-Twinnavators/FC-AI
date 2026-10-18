@@ -71,6 +71,7 @@ import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEM
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, dropFunnel, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { applyScope, dataOwners, isSupportingData, planDirectives, planScope, planScopeKey, scopeNote, withOwners, type PlanScope } from "./planScope.js";
 import { hardContradictions, planChecks, planChecksKey } from "./planChecks.js";
+import { recordTableLines, sourceCoverage, sourceCoverageKey } from "../quality/sourceCoverage.js";
 import { lookStatus, withLookStatus } from "./lookStatus.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
@@ -99,7 +100,7 @@ import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
 import { lookGuidance, visualDirection, type BuildLook } from "./starterIdentity.js";
 import { designTemplate, LIBRARY_SECTIONS } from "@flowcode/contracts";
-import { extractRequirements, referencePath, summarizeReference, type Requirement } from "../quality/spec.js";
+import { extractRequirements, referencePath, requirementText, summarizeReference, type Requirement } from "../quality/spec.js";
 import { attachApproval, recordPlanVersion } from "./planReview.js";
 import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchItems, groupSteps, requirementItem, parseBatch, planBatches, planKey, runPlanKey, runtimeItems, stepsFromGroups, uniqueIds, type LrcPlan, type PlanItem } from "../quality/lrcPlan.js";
 import { promptConfigFor } from "../quality/taskPrompt.js";
@@ -796,7 +797,7 @@ export class Orchestrator {
       `The runtime has ALREADY planned these first tasks (do not repeat them): scaffold ${starter.starter.stack}, install dependencies, copy the reference files below into the workspace, and build the app layout and navigation (one screen component per main screen, shown one at a time). Your feature tasks fill those screens with real content and controls; name the screen each task works on.${screenPlan ? ` ${screenPlanNote(screenPlan)}` : ""} Each of your tasks wires its own screen into ${starter.starter.entry} itself, so the app works after every task; the final task only checks the whole app over.`,
       `Reference files (readable by the coder with read_file):\n${refLines.join("\n") || "- none"}`,
       prd ? `PRD (${prd.name}):\n${untrusted(prd.name, prd.content.slice(0, 14_000))}` : "",
-      requirements.length ? `Requirement lines extracted from the PRD:\n${requirements.slice(0, 60).map((r) => `${r.id}: ${r.text}`).join("\n")}` : "",
+      requirements.length ? `Requirement lines extracted from the PRD:\n${requirements.slice(0, 60).map((r) => `${r.id}: ${requirementText(r)}`).join("\n")}` : "",
       "Plan 3–7 FEATURE tasks, one user journey each, in dependency order (first task may depend on nothing). A task finishes one journey: the screen it needs with the spec's real content, its empty, loading and error states, its keyboard and small-screen behaviour, and the screen wired into " +
         `${starter.starter.entry} so a person can open the app and use that journey the moment the task is done. ` +
         "Do NOT plan a task for something that spans the app - no accessibility task, responsive task, analytics task or states task - and do not plan two tasks for the same screen: those requirements belong inside the journey that needs them. " +
@@ -1357,7 +1358,7 @@ export class Orchestrator {
       const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
         messages: [
           { role: "system", content: BATCH_SYSTEM },
-          { role: "user", content: `${product}\n\nRequirements (${label}):\n${untrusted("requirements", part.map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text}`).join("\n"))}` },
+          { role: "user", content: `${product}\n\nRequirements (${label}):\n${untrusted("requirements", part.map((r) => `${r.id} [${r.section || "Requirements"}]: ${requirementText(r)}`).join("\n"))}` },
         ],
         format: BATCH_SCHEMA,
         timeoutMs: 300_000,
@@ -1411,6 +1412,10 @@ export class Orchestrator {
     this.d.store.setSetting(planKey(run.projectId), plan);
     this.d.store.setSetting(runPlanKey(run.id), plan);
     const look = lookStatus(this.d.store, run.projectId, run.id, scope.look);
+    // Every substantive PRD passage traced to the plan (quality/sourceCoverage.ts), kept for the report and the checks.
+    const stepTitles = new Map(features.map((t) => [t.key, t.title]));
+    const coverage = sourceCoverage(prdText, requirements, plan.items, { recordLines: recordTableLines(prdText, prdRecordTables(prdText).map((t) => t.markdown)), stepTitle: (k) => stepTitles.get(k) });
+    this.d.store.setSetting(sourceCoverageKey(run.id), coverage);
     const counts = { code: items.filter((i) => i.executionType === "code").length, tests: items.reduce((n, i) => n + (i.tests?.length ?? 0), 0), review: items.filter((i) => i.executionType !== "code" && !i.later).length, later: items.filter((i) => i.later).length };
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Prototype plan written:${counts.code} item${counts.code === 1 ? "" : "s"} to build with ${counts.tests} acceptance test${counts.tests === 1 ? "" : "s"}, in ${features.length} build step${features.length === 1 ? "" : "s"}; ${counts.review} item${counts.review === 1 ? "" : "s"} for a person to check, ${counts.later} not for this release${filledIn.length ? `. FlowCode placed ${filledIn.length} requirement${filledIn.length === 1 ? "" : "s"} the planner left out` : ""}` });
     const tasks = await (async () => {
@@ -1434,7 +1439,8 @@ export class Orchestrator {
       goal: run.objective,
       assumptions: [
         `Built on the verified ${starter.title} in an empty workspace`,
-        `The prototype plan places all ${requirements.length} PRD requirements are placed in a build step, a sign-off item or "not for this release"`,
+        // Coverage is stated from the PRD's own passages, not only from the requirements that were extracted.
+        `${requirements.length} requirements extracted from the PRD; of its ${coverage.passages.filter((p) => p.status !== "lead-in").length} substantive passages, ${coverage.counts["in a build step"]} are in build steps, ${coverage.counts["supporting data"]} are the app's records, ${coverage.counts["for a person to check"]} are for a person to check, ${coverage.counts["not in this release"]} are not in this release${coverage.unmapped.length ? `, and ${coverage.unmapped.length} map to nothing in the plan (listed on the plan's checks)` : ", and none maps to nothing"}`,
         `${refs.length} reference file(s) are imported as data (spec/, src/content/)`,
         scopeNote(scope, bySection.features),
         ...(owners ? [owners.note] : []),
@@ -1451,7 +1457,7 @@ export class Orchestrator {
     // The assembled plan checked for what a revision asks of it (planChecks.ts): stored and said, never silently passed.
     // Structural checks (the plan is put together right) and compliance checks (it keeps what the PRD requires), on the
     // assembled plan. A hard contradiction with the PRD makes the plan high risk and not approval-ready on its card.
-    const checks = planChecks(result, { scope, corpus, app: !!app, saves: !!app?.nav.some((g) => g.items.some((v) => v.kind === "saved")) && requirements.some((r) => /\bsav(e|ed)\b/i.test(r.text)), look, ...(app ? { model: this.d.store.getSetting<AppModel | undefined>(appModelKey(run.id), app) ?? app } : {}), tables: prdRecordTables(prdText), items: plan.items, prd: prdText });
+    const checks = planChecks(result, { requirements, coverage, scope, corpus, app: !!app, saves: !!app?.nav.some((g) => g.items.some((v) => v.kind === "saved")) && requirements.some((r) => /\bsav(e|ed)\b/i.test(r.text)), look, ...(app ? { model: this.d.store.getSetting<AppModel | undefined>(appModelKey(run.id), app) ?? app } : {}), tables: prdRecordTables(prdText), items: plan.items, prd: prdText });
     this.d.store.setSetting(planChecksKey(run.id), checks);
     const failing = checks.filter((c) => !c.ok);
     const hard = hardContradictions(checks);

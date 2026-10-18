@@ -19,6 +19,8 @@ import { inPrimaryNav, type AppModel, type ModelEntity } from "./appModel.js";
 import { recordProblems, tableFor, type PrdRecordTable } from "./prdRecords.js";
 import { affirmed } from "./layoutRecipes.js";
 import type { PlanItem } from "../quality/lrcPlan.js";
+import { requirementText, type Requirement } from "../quality/spec.js";
+import type { SourceCoverage } from "../quality/sourceCoverage.js";
 
 export const planChecksKey = (runId: string) => `planChecks:${runId}`;
 
@@ -48,6 +50,9 @@ export interface PlanCheckContext {
   items?: PlanItem[];
   /** The PRD's text (to tell what it rules out from what it asks for). */
   prd?: string;
+  /** The PRD's extracted requirements (their stated limits), and where each PRD passage lands in the plan. */
+  requirements?: Requirement[];
+  coverage?: SourceCoverage;
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/["“”'‘’`]/g, "").replace(/\s+/g, " ");
@@ -265,6 +270,9 @@ function complianceChecks(plan: ImplementationPlan, ctx: PlanCheckContext): Plan
           }
         }
       }
+      // A number a test expects against the limit the PRD states (Frameproof evaluation 2: a test expected "20/500"
+      // characters for notes the PRD limits to 300).
+      for (const i of ctx.items ?? []) for (const t of i.tests ?? []) for (const p of limitContradictions(`${t.behaviour} → ${t.expect}`, ctx.requirements ?? [])) problems.push(`"${t.behaviour} → ${t.expect}": ${p}`);
       // Exact text a step requires must be in the PRD or the records.
       for (const t of plan.tasks) for (const c of t.acceptanceCriteria) if (c.check.type === "file_contains" && /^src\/acceptance\//.test(c.check.path) && !/^[\d\s.,+\-−×÷*/=%()$€£]+$/.test(c.check.text) && !corpus.includes(norm(c.check.text))) problems.push(`"${t.title}" requires "${c.check.text}" as on-screen text, which neither the PRD nor the records say`);
     }
@@ -278,6 +286,44 @@ function complianceChecks(plan: ImplementationPlan, ctx: PlanCheckContext): Plan
     if (ctx.scope.look && !/PRD's own direction/.test(lookLine) && ctx.look?.state !== "selected") problems.push(`The PRD gives a visual direction${ctx.scope.look.concept ? ` ("${ctx.scope.look.concept}")` : ""}, and the plan doesn't propose it: "${lookLine.slice(0, 160)}"`);
     for (const t of plan.tasks) for (const hex of t.objective.match(/→ the app shows "[^"]*#[0-9a-f]{3,8}\b[^"]*"/gi) ?? []) if (!corpus.includes(hex.toLowerCase())) problems.push(`"${t.title}" requires an exact colour the PRD doesn't give (${hex})`);
     add(12, "Look: the PRD's visual direction, no invented exact values", problems);
+  }
+  // 13. Source coverage: every substantive PRD passage maps to a requirement and a place in the plan.
+  if (ctx.coverage) add(13, "Source coverage: every substantive PRD passage is in the plan", ctx.coverage.unmapped.map((p) => `Line ${p.line} (${p.path.at(-1) ?? "PRD"}): "${p.text.slice(0, 140)}" isn't in the plan`));
+  return out;
+}
+
+const WORD_NUMBERS: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, twelve: 12, twenty: 20 };
+const num = (s: string) => Number(s) || WORD_NUMBERS[s.toLowerCase()] || NaN;
+const unitOf = (w: string) => w.toLowerCase().replace(/(ies)$/, "y").replace(/s$/, "");
+
+/** The limits the PRD states: "up to 300 characters", "maximum five selected photos", "exactly five". */
+export function statedLimits(reqs: Requirement[]): Array<{ value: number; unit: string; text: string }> {
+  const out: Array<{ value: number; unit: string; text: string }> = [];
+  for (const r of reqs) {
+    const t = requirementText(r);
+    for (const m of t.matchAll(/\b(?:up to|at most|maximum(?: of)?|max\.?|no more than|limit(?:ed)? to|exactly)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|twenty)\s+(?:\w+\s+)?(characters?|photos?|items?|selections?|records?|entries|words?|files?)\b/gi)) out.push({ value: num(m[1]!), unit: unitOf(m[2]!), text: t });
+  }
+  return out.filter((l) => Number.isFinite(l.value));
+}
+
+/**
+ * A test's numbers against the PRD's limits of the same unit: a "count/limit" display ("20/500") or a stated maximum
+ * ("Maximum 6 photos") that differs from the PRD's.
+ */
+export function limitContradictions(test: string, reqs: Requirement[]): string[] {
+  const limits = statedLimits(reqs);
+  const out: string[] = [];
+  const unitIn = (s: string) => (/\b(characters?|chars?|note|notes)\b/i.test(s) ? "character" : /\bphotos?|selections?|selected\b/i.test(s) ? "photo" : undefined);
+  const limitFor = (unit: string) => limits.filter((l) => l.unit === unit || (unit === "photo" && l.unit === "selection"));
+  for (const m of test.matchAll(/\b(\d+)\s*\/\s*(\d+)\b/g)) {
+    const unit = unitIn(test);
+    const want = unit ? limitFor(unit) : [];
+    if (want.length && !want.some((l) => l.value === Number(m[2]))) out.push(`expects a limit of ${m[2]} ${unit}s; the PRD says ${[...new Set(want.map((l) => l.value))].join(" or ")}`);
+  }
+  for (const m of test.matchAll(/\b(?:up to|at most|maximum(?: of)?|max\.?|limit(?:ed)? to|no more than)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|twelve|twenty)\s+(?:\w+\s+)?(characters?|photos?|items?|selections?|records?|entries|words?|files?)\b/gi)) {
+    const unit = unitOf(m[2]!);
+    const want = limitFor(unit === "selection" ? "photo" : unit);
+    if (want.length && !want.some((l) => l.value === num(m[1]!))) out.push(`says the limit is ${m[1]} ${m[2]}; the PRD says ${[...new Set(want.map((l) => l.value))].join(" or ")}`);
   }
   return out;
 }

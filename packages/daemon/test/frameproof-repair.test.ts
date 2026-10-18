@@ -216,7 +216,7 @@ describe("5–7. the assembled Frameproof plan, replayed from the planner's reco
     expect(tests).toMatch(/"Outdoor" is a photo category, not a title the search matches/);
     expect(plan.risk).toBe("high");
     expect(plan.riskNotes[0]).toBe("Not approval-ready: 1 contradiction with the PRD (Acceptance tests agree with the PRD's records)");
-    expect(plan.compliance!.filter((c) => c.kind === "compliance").map((c) => c.id)).toEqual([7, 8, 9, 10, 11, 12]);
+    expect(plan.compliance!.filter((c) => c.kind === "compliance").map((c) => c.id)).toEqual([7, 8, 9, 10, 11, 12, 13]);
   }, 120_000);
 
   it("returns no explicit requirement to the person as a decision (v1 returned 38)", async () => {

@@ -91,24 +91,51 @@ export interface Requirement {
   section: string;
   /** Backticked identifiers in the requirement (keys, file names, routes): concrete evidence to look for. */
   code: string[];
+  /** Where it is in the PRD: its first line (1-based) and the headings above it. */
+  source?: { line: number; path: string[] };
+  /** The lead-in a list item belongs to ("Keep one shared source of truth for:"), so the item keeps its meaning. */
+  context?: string;
 }
 
-/** Extracts requirement-like lines from a Markdown PRD: list items and must/should/shall sentences. */
+/** A requirement as planners and steps read it: with its lead-in when it has one. */
+export const requirementText = (r: Pick<Requirement, "text" | "context">) => (r.context ? `${r.context.replace(/:\s*$/, "")}: ${r.text}` : r.text);
+
+/**
+ * A paragraph line that says what the product must do, show, keep or not do: an obligation, a limit, an exception or a
+ * prohibition (Frameproof: "Each photo can have an optional editing note of up to 300 characters.", "Do not wrap:
+ * disable Previous on photo-01 and Next on photo-12.", "If saved data cannot be read, recover to a usable Draft state…"
+ * were paragraphs, and only list items and must/should sentences were extracted, so 51 such lines never reached the plan).
+ */
+const SUBSTANTIVE = /\b(must|should|shall|required|needs? to|has to|may|can|cannot|do not|don't|does not|never|avoid|no|not|only|exactly|at (least|most)|up to|maximum|minimum|limit|unless|except|if|when|before|after|until|while|regardless|each|every|all|any|initial|default)\b|\b(display|show|provide|use|keep|open|close|return|disable|enable|lock|unlock|recover|record|preserve|survive|persist|save|store|follow|match|contain|include|exclude|allow|permit|prevent|support|work|explain|offer|select|choose|add|remove|clear|reset|submit|confirm|cancel|restore|respect|test|check|verify|review|browse|set|sort|filter|search|find|load|link|navigate|appear)(s|es|ed|d|ing)?\b|\d|^[A-Z][\w\s/-]{2,40}:\s+\S/i;
+/** A line that only introduces the list or table after it ("Accessibility:", "Use these exact records:"). */
+const LEAD_IN = /:\s*$/;
+
+/**
+ * Extracts the PRD's requirements: list items, table rows, drawn layouts, and paragraph lines that say what the product
+ * must do (each line whole, as the author wrote it, so a sentence keeps the one beside it: "With fewer than five, explain
+ * how many more are needed. Mouse or keyboard interaction must not submit."). Each keeps its source line and headings,
+ * and a list item keeps the lead-in it belongs to. The same requirement as a paragraph or as a bullet is extracted alike.
+ */
 export function extractRequirements(md: string, max = 120): Requirement[] {
   const out: Requirement[] = [];
   let section = "";
   let inCode = false;
+  const path: Array<{ level: number; text: string }> = [];
+  let lead: string | undefined;
+  let lineNo = 0;
+  const src = () => ({ line: lineNo, path: path.map((p) => p.text) });
   // Requirement tables (| ID | Requirement | Priority |): one requirement per row. Calculator test 1: the PRD's F1–F12
   // and its non-functional requirements were tables, which were skipped, so the plan never had its core features.
   let header: string[] | undefined;
   // A layout drawn in a code block (box-drawing characters) is a requirement too: the Calculator PRD's keypad order
   // lived only in one, so the plan never had it and the keys came out in the wrong order.
   let block: string[] = [];
-  for (const raw of md.split(/\r?\n/)) {
+  for (const { raw, line: at } of logicalLines(md)) {
+    lineNo = at;
     const line = raw.trim();
     if (line.startsWith("```")) {
       if (inCode && block.some((l) => /[┌┐└┘│├┤┬┴─]|\+-{2,}\+/.test(l)))
-        out.push({ id: `R${out.length + 1}`, text: `Layout drawn in the PRD (follow it exactly: order, grouping and positions):\n${block.join("\n").slice(0, 1200)}`, section, code: [] });
+        out.push({ id: `R${out.length + 1}`, text: `Layout drawn in the PRD (follow it exactly: order, grouping and positions):\n${block.join("\n").slice(0, 1200)}`, section, code: [], source: src() });
       inCode = !inCode;
       block = [];
       continue;
@@ -129,24 +156,76 @@ export function extractRequirements(md: string, max = 120): Requirement[] {
         continue;
       }
       const text = tableRequirement(header, cells);
-      if (text) out.push({ id: `R${out.length + 1}`, text: text.slice(0, 300), section, code: [] });
+      if (text) out.push({ id: `R${out.length + 1}`, text: text.slice(0, 300), section, code: [], source: src() });
       if (out.length >= max) break;
       continue;
     }
     header = undefined;
-    const h = /^#{1,6}\s+(.*)$/.exec(line);
+    const h = /^(#{1,6})\s+(.*)$/.exec(line);
     if (h) {
-      section = h[1].replace(/[*_`]/g, "").trim();
+      section = h[2]!.replace(/[*_`]/g, "").trim();
+      while (path.length && path.at(-1)!.level >= h[1]!.length) path.pop();
+      path.push({ level: h[1]!.length, text: section });
+      lead = undefined;
       continue;
     }
     const item = /^(?:[-*+]|\d+[.)])\s+(.*)$/.exec(line)?.[1];
-    const normative = /\b(must|should|shall|required|needs? to|has to)\b/i.test(line);
-    const source = item ?? (normative ? line : "");
-    const code = [...source.matchAll(/`([^`\n]{2,60})`/g)].map((m) => m[1].trim());
-    const text = source.replace(/\*\*|__|`/g, "").trim();
-    if (text.length >= 8 && !/^\|/.test(text)) out.push({ id: `R${out.length + 1}`, text: text.slice(0, 300), section, code });
+    const clean = (s: string) => s.replace(/\*\*|__|`/g, "").trim();
+    const code = [...(item ?? line).matchAll(/`([^`\n]{2,60})`/g)].map((m) => m[1].trim());
+    if (item !== undefined) {
+      const text = clean(item);
+      if (text.length >= 8) out.push({ id: `R${out.length + 1}`, text: text.slice(0, 600), section, code, source: src(), ...(lead ? { context: lead } : {}) });
+    } else if (LEAD_IN.test(line)) {
+      // A lead-in gives its list its meaning; it is a requirement of its own only when it says something ("exactly two").
+      lead = clean(line);
+      if (lead.length >= 25 && /\b(must|should|shall|exactly|only|never|do not|don't|no|at (least|most)|maximum|minimum)\b|\d/i.test(lead.replace(/:$/, ""))) out.push({ id: `R${out.length + 1}`, text: lead.slice(0, 600), section, code, source: src() });
+    } else {
+      lead = undefined;
+      const text = clean(line);
+      // A paragraph line that says what the product must do, kept whole; a very long one in sentence groups.
+      if (text.length >= 8 && SUBSTANTIVE.test(text)) for (const part of groups(text, 600)) out.push({ id: `R${out.length + 1}`, text: part, section, code, source: src() });
+    }
     if (out.length >= max) break;
   }
+  return out.slice(0, max);
+}
+
+/**
+ * The PRD's lines with hard-wrapped sentences joined: a paragraph or list line that ends mid-sentence continues on the
+ * next plain line ("…carried by at" / "least one of them."). Each keeps the number of its first line. Code blocks,
+ * headings, tables and blank lines are never joined.
+ */
+export function logicalLines(md: string): Array<{ raw: string; line: number }> {
+  const out: Array<{ raw: string; line: number; end: number; inCode: boolean }> = [];
+  let inCode = false;
+  md.split(/\r?\n/).forEach((raw, i) => {
+    const t = raw.trim();
+    if (t.startsWith("```")) inCode = !inCode;
+    const prev = out.at(-1);
+    const plain = !inCode && t && !t.startsWith("```") && !/^(#{1,6}\s|\||(?:[-*+]|\d+[.)])\s)/.test(t);
+    const open = prev && !prev.inCode && prev.raw.trim() && !/^(#{1,6}\s|\|)/.test(prev.raw.trim()) && !/[.!?:;)\]"”]$/.test(prev.raw.trim());
+    if (plain && open && i === prev!.end + 1) {
+      prev!.raw = `${prev!.raw.trimEnd()} ${t}`;
+      prev!.end = i;
+      return;
+    }
+    out.push({ raw, line: i + 1, end: i, inCode });
+  });
+  return out.map(({ raw, line }) => ({ raw, line }));
+}
+
+/** A long line in whole sentences of at most `max` characters together (never a sentence cut in half). */
+function groups(text: string, max: number): string[] {
+  if (text.length <= max) return [text];
+  const out: string[] = [];
+  let cur = "";
+  for (const s of text.split(/(?<=[.!?])\s+/)) {
+    if (cur && cur.length + s.length + 1 > max) {
+      out.push(cur);
+      cur = s;
+    } else cur = cur ? `${cur} ${s}` : s;
+  }
+  if (cur) out.push(cur);
   return out;
 }
 

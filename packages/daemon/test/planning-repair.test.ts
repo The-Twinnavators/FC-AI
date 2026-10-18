@@ -229,7 +229,7 @@ describe("the validation run replayed through the repaired PRD planning path", (
   it("gets the same scope from the PRD alone, before any revision", async () => {
     const { app, run, plan } = await plan_(undefined);
     const checks = app.store.getSetting<Array<{ id: number; ok: boolean }>>(`planChecks:${run.id}`, []);
-    expect(checks.filter((c) => !c.ok).map((c) => c.id)).toEqual([]);
+    expect(checks.filter((c) => !c.ok).map((c) => [c.id, (c as { problems?: string[] }).problems])).toEqual([]);
     expect(plan.tasks.map((t) => t.objective).join("\n")).not.toMatch(/The person reviewed an earlier version/);
   }, 120_000);
 

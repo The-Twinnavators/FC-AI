@@ -12,7 +12,7 @@
  */
 import type { PlanTask } from "@flowcode/contracts";
 import { PROTOTYPE_CONSTRAINT } from "../orchestrator/prototype.js";
-import type { Requirement } from "./spec.js";
+import { requirementText, type Requirement } from "./spec.js";
 import { buildTaskPrompt, type PromptConfig, type Priority } from "./taskPrompt.js";
 
 export interface PlanItem {
@@ -310,7 +310,7 @@ export function parseTests(raw: unknown): AcceptanceTest[] {
  */
 export const FIT_THE_DESIGN = "Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.";
 
-const quote = (reqs: Requirement[]) => reqs.map((r) => `- ${r.id}: ${r.text}`).join("\n");
+const quote = (reqs: Requirement[]) => reqs.map((r) => `- ${r.id}: ${requirementText(r)}`).join("\n");
 
 /** A code task's prompt: the planner's parts plus the requirement lines word for word. */
 export function featurePrompt(t: BatchTask, reqs: Requirement[], section: string, cfg: PromptConfig): string {
@@ -403,7 +403,7 @@ export function requirementItem(r: Requirement, type: "review" | "manual" | "lat
     aiPrompt: buildTaskPrompt({
       title: r.text.length > 110 ? `${r.text.slice(0, 107)}…` : r.text,
       goal: `Evidence for a person on whether the app meets ${r.id}.`,
-      context: [`PRD section: ${section}. Requirement ${r.id}, quoted from the PRD:`, `"${r.text}"`, `Why it is not a build step: ${reason}.`, cfg.repoNote].join("\n"),
+      context: [`PRD section: ${section}. Requirement ${r.id}, quoted from the PRD:`, `"${requirementText(r)}"`, `Why it is not a build step: ${reason}.`, cfg.repoNote].join("\n"),
       steps: ["Find the code, screens or documents this requirement is about.", "Record what you found for each part of it, with file and line.", "Write the steps a person follows to confirm the rest."],
       constraints: ["Report only; do not change code in this task.", "Do not mark this item complete: a person signs it off."],
       acceptance: ["Each part of the requirement has a finding: met, not met (with file and line) or needs a person.", "The steps for a person name real screens and controls."],
