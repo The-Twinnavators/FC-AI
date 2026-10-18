@@ -11,6 +11,8 @@
  *      Back / Forward: return to where that page was scrolled; focus moves only if it was lost (to <main>, no scroll);
  *      same page (only the query changed, or the page said so with updateRoute: a filter, a search, a tab): nothing
  *      moves, nothing animates as a page, and Back / Forward across such steps stay on the page the same way;
+ *      another record on the same screen (product A → product B): a new page for focus and scrolling, without a
+ *      transition (an intentional instant change: the screen reads its record outside the transition's snapshot);
  *      a navigation to where you already are, or one overtaken by a newer one: no focus or scroll of its own.
  *    The new page's name is announced politely for screen readers on Back / Forward (a new page's heading is focused).
  */
@@ -123,6 +125,7 @@ function onHashChange() {
   const hash = window.location.hash;
   if (hash === latest.hash) return; // already there: nothing to do
   const previousEntry = entry;
+  const previousHash = latest.hash;
   scrollOf.set(previousEntry, window.scrollY);
   const known = readEntry();
   const declared = declaredSamePage === hash;
@@ -151,7 +154,11 @@ function onHashChange() {
     flushSync(() => listeners.forEach((l) => l()));
     settle(nav);
   };
-  if (kind === "same-page") render();
+  // Another record on the same screen (product A → product B) changes at once, without a page transition: screens read
+  // their record from the address themselves (useHashId), outside the transition's snapshot, so a slide would show the
+  // old record moving. Focus and scrolling still follow a new page.
+  const sameScreen = (h: string) => pathOf(h).split("/")[0];
+  if (kind === "same-page" || (kind === "new" && sameScreen(hash) === sameScreen(previousHash))) render();
   else transition(render, { nav: direction });
 }
 

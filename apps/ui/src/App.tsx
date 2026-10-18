@@ -37,6 +37,7 @@ const SystemView = lazy(() => import("./views/SystemView").then((m) => ({ defaul
 const AgentsView = lazy(() => import("./views/AgentsView").then((m) => ({ default: m.AgentsView })));
 const NetworkView = lazy(() => import("./views/NetworkView").then((m) => ({ default: m.NetworkView })));
 const ComponentsView = lazy(() => import("./views/ComponentsView").then((m) => ({ default: m.ComponentsView })));
+const MotionLabView = lazy(() => import("./views/MotionLabView").then((m) => ({ default: m.MotionLabView })));
 const PipelineView = lazy(() => import("./views/PipelineView").then((m) => ({ default: m.PipelineView })));
 const SearchView = lazy(() => import("./views/SearchView").then((m) => ({ default: m.SearchView })));
 const TopicsView = lazy(() => import("./views/TopicsView").then((m) => ({ default: m.TopicsView })));
@@ -212,7 +213,7 @@ export function App() {
   }, [projectId]);
 
   useEffect(() => {
-    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Topic Search", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
+    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Topic Search", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", motion: "Motion Lab", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
     document.title = `${project ? project.name : titles[section] ?? "FlowCode"} · FlowCode`;
   }, [section, project]);
 
@@ -348,6 +349,7 @@ export function App() {
         {section === "network" && <NetworkView projects={projects.data ?? []} query={route.query} />}
         {section === "pipeline" && <PipelineView />}
         {section === "components" && <ComponentsView />}
+        {section === "motion" && <MotionLabView />}
         {section === "primitives" && <PrimitivesView />}
         {section === "discover" && <DiscoverView id={route.parts[1]} />}
         {section === "flowreport" && <FlowReportView projectId={route.parts[1]} />}

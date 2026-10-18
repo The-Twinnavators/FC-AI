@@ -255,6 +255,24 @@ describe.skipIf(SKIP)("motion in a generated app", () => {
     await page.context().close();
   }, 60_000);
 
+  it("another record on the same screen (product A → product B) changes at once: no transition, focus and scroll as a new page", async () => {
+    const { page, errors, vt } = await open("catalog");
+    const ids = await page.locator(".fl-cat-card[data-key]").evaluateAll((els) => els.slice(0, 2).map((e) => (e as HTMLElement).dataset.key!));
+    await page.evaluate((id) => (location.hash = `#/product/${encodeURIComponent(id)}`), ids[0]!);
+    await settle(page);
+    const first = await page.locator("main h1").innerText();
+    await page.evaluate(() => window.scrollTo(0, 300));
+    const before = await vt();
+    await page.evaluate((id) => (location.hash = `#/product/${encodeURIComponent(id)}`), ids[1]!);
+    await settle(page);
+    expect(await vt()).toBe(before);
+    expect(await page.locator("main h1").innerText()).not.toBe(first);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    expect(await focusIsPage(page)).toBe(true);
+    expect(errors).toEqual([]);
+    await page.context().close();
+  }, 60_000);
+
   it("screenshots with animation off are deterministic", async () => {
     const a = await open("catalog", { off: true });
     const b = await open("catalog", { off: true });

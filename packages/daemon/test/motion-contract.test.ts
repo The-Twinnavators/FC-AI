@@ -1,6 +1,6 @@
 /**
- * Motion in the Look (contracts motion.ts): the three levels as tokens, Balanced equal to the starter's existing values
- * (choosing it changes nothing an app already does), stagger capped by steps and total delay at every level, and
+ * Motion in the Look (contracts motion.ts): the three levels as tokens, Balanced preserving the starter's previous timing
+ * defaults (the timings only: the motion foundation itself does change behaviour), stagger capped by steps and total delay at every level, and
  * expressive capabilities that need both the project's opt-in and an eligible page: Balanced alone, or an opt-in on an
  * app screen, never turns one on. Directions made before motion existed carry no motion tokens.
  */
@@ -13,7 +13,7 @@ const STARTER = fs.readFileSync(path.resolve(import.meta.dirname, "../../../temp
 const starterValue = (name: string) => new RegExp(`${name}:\\s*([^;]+);`).exec(STARTER)?.[1]?.trim();
 
 describe("motion levels", () => {
-  it("Balanced is the starter's own motion: every Balanced token has the value new apps already ship", () => {
+  it("Balanced preserves the previous timing defaults: every Balanced token has the value the starter already shipped", () => {
     for (const [k, v] of Object.entries(motionTokens("balanced"))) expect(starterValue(k), k).toBe(v);
   });
 

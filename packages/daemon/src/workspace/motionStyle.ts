@@ -18,6 +18,14 @@ const MOTION = "src/styles/motion.css";
 const APP_CSS = "src/styles/app.css";
 const MAIN = "src/main.tsx";
 
+/**
+ * Whether the app has FlowCode's motion foundation to apply a level to: a React app (src/main.tsx, where motion.css is
+ * imported and lib/motion.ts lives). An Angular app shares the token file's names but not the foundation, so a level
+ * isn't applied there (its tokens and its own reduced-motion rule are left as they are).
+ */
+export const motionSupported = (jail: PathJail) => fs.existsSync(path.join(jail.root, MAIN));
+export const MOTION_UNSUPPORTED = "Motion level not applied: this app isn't a React app, and FlowCode's motion foundation is React only (its own motion and reduced-motion rule are unchanged)";
+
 /** The old starter's blanket rule, as every app made before motion levels has it. */
 export const LEGACY_REDUCED_MOTION = /\n?@media \(prefers-reduced-motion: reduce\) \{\s*\*,\s*\*::before,\s*\*::after \{\s*transition-duration: 0\.01ms !important;\s*animation-duration: 0\.01ms !important;\s*\}\s*\}\n?/;
 
@@ -32,6 +40,7 @@ const read = (jail: PathJail, rel: string) => {
 export const motionStylesheet = () => fs.readFileSync(path.join(templatesRoot(), "react-vite-starter/src/styles/motion.css"), "utf8");
 
 export function setMotionStyle(jail: PathJail, ops: FileOperations, ctx: { projectId: string; runId: string }): { snapshotIds: string[]; changed: string[] } {
+  if (!motionSupported(jail)) throw new Error(MOTION_UNSUPPORTED);
   const op = { jail, projectId: ctx.projectId, runId: ctx.runId, approved: false };
   const snapshotIds: string[] = [];
   const changed: string[] = [];

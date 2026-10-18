@@ -36,7 +36,7 @@ The harness reviews the *patterns*. It isn't the builder, and it doesn't show th
   | Level | Durations | Travel | Stagger | Expressive patterns |
   |---|---|---|---|---|
   | Minimal | 100/140/180ms | 0 | none | none, even if approved; demos become click-through steps |
-  | Balanced (default) | 120/200/320ms (the starter's own) | 8px | 40ms, max 5 steps / 200ms | none by itself; an approved hero on an eligible page plays as a short rise |
+  | Balanced (default) | 120/200/320ms (the starter's previous timing defaults) | 8px | 40ms, max 5 steps / 200ms | none by itself; an approved hero on an eligible page plays as a short rise |
   | Expressive | 160/260/420ms | 16px | 50ms, max 6 steps / 300ms | none by itself; approved capabilities on eligible pages play in full |
 
 - **Reduced motion wins at every level** (OS setting): no travel, scale, parallax, autoplay or ambient movement; only fades of 90–120ms.
@@ -193,7 +193,7 @@ Phases 3–4 (optional expressive pieces, automatic motion selection) are not st
   - A short hero rise therefore needs the hero opt-in *and* an eligible page.
   - The Look editor shows the three levels. It has no expressive opt-in controls yet, because there are no expressive pieces until phase 3.
 - **Tokens:**
-  - Balanced equals the starter's existing values, so it changes nothing an app already does.
+  - Balanced preserves the starter's previous **timing defaults**. That is a claim about the timings only: applying the motion foundation to an app does change behaviour (reduced motion keeps short fades instead of erasing every transition; `motion.css` styles every native `<dialog>` and names `<main>` for page transitions; new apps get the router's page transitions and focus policy).
   - Added: `--stagger-steps`, `--stagger-max`, `--motion-level`.
   - Stagger is capped twice at every level, by steps and by total delay: Minimal 0, Balanced 5 steps / 200ms, Expressive 6 steps / 300ms.
   - `--press-scale` stays the surface style's, not motion's.
@@ -223,9 +223,9 @@ Animation off > reduced motion > level. In `src/styles/motion.css`:
 |---|---|---|
 | Control feedback | The library pieces' existing token-driven presses and transitions, sized by the level | Yes (save toggle, links, filters) |
 | Save and selection | `useSaveState` (immediate acknowledgement, spinner after 150ms, coalesced clicks, cleanup on unmount) | Hook unit-tested; the fixture's save is an instant toggle |
-| Dialogs and drawers | Native `<dialog>` with `@starting-style` and `allow-discrete` exit (`dialog`, `.fc-drawer`) | The fixture's dialogs are library popovers (their own token motion); the native pattern isn't in this app |
-| Expand and collapse | `.fc-collapse` (grid rows, inert content via `useCollapse`); `details.fc-details` where `interpolate-size` exists | Not in this app (harness only) |
-| Tabs | `.fc-tab-indicator` with `useTabIndicator` | Not in this app (harness only) |
+| Dialogs and drawers | `NativeDialog` / `Drawer` (starter `components/ui/motion-parts.tsx`): native `<dialog>` with `@starting-style` and `allow-discrete` exit | Yes, on the fixture's motion-parts page (closeout) |
+| Expand and collapse | `Disclosure` (starter): `.fc-collapse` grid rows, content inert while closed | Yes, on the fixture's motion-parts page (closeout) |
+| Tabs | `TabStrip` (starter): one moving `.fc-tab-indicator`, ARIA keyboard | Yes, on the fixture's motion-parts page (closeout) |
 | Page transitions | `lib/screens.ts`: one router listener, View Transition where supported, `::view-transition { pointer-events: none }` so presses during a transition reach the new page at once | Yes |
 | Results moving | `moveItems` / the catalog's `continuity`: FLIP with Web Animations (the new results paint first), interrupted from where items are | Yes (category, near me, sort) |
 
@@ -242,7 +242,7 @@ Animation off > reduced motion > level. In `src/styles/motion.css`:
 
 ### Tests
 
-- **Contract** (`motion-contract.test.ts`, 9): Balanced = the starter's values; level token keys; stagger caps at every level; eligibility (level alone, app screen, Minimal); old directions carry no motion tokens; a level-only change touches only motion tokens.
+- **Contract** (`motion-contract.test.ts`, 9): Balanced preserves the previous timing defaults; level token keys; stagger caps at every level; eligibility (level alone, app screen, Minimal); old directions carry no motion tokens; a level-only change touches only motion tokens.
 - **Existing apps** (`motion-apply.test.ts`, 2, on the recorded Clean Cart app):
   - nothing changes without a level;
   - applying adds motion and removes the blanket rule, with only the Look's files changed;
@@ -287,7 +287,7 @@ Chromium 153.0.8010.12, generated fixture app (`perf-2026-10-18.json`), against 
 | Desktop, Balanced | 16 / 16ms | 24 / 24ms |
 | Desktop, Expressive | 16 / 16ms | 16 / 16ms |
 | Desktop, reduced | 16 / 16ms | 16 / 16ms |
-| Phone (390×844, CPU ÷4), off | 48 / 56ms | 40 / 40ms |
+| Phone emulation (390×844, CPU ÷4), off | 48 / 56ms | 40 / 40ms |
 | Phone, Balanced | 48 / 56ms | 48 / 56ms |
 | Phone, Expressive | 48 / 56ms | 72 / 72ms |
 | Phone, reduced | 40 / 48ms | 48 / 56ms |
@@ -304,7 +304,9 @@ Chromium 153.0.8010.12, generated fixture app (`perf-2026-10-18.json`), against 
 | Phone ÷4, Expressive | 16.7 / 167ms, 4 of 195 | 33.3 / 83ms, 8 of 152 |
 | Phone ÷4, reduced | 16.7 / 150ms, 4 of 197 | 16.8 / 50ms, 7 of 159 |
 
-On the throttled phone the long page-transition frames (about 150–170ms, 4 long animation frames) are present with animation off too. They come from rendering the next page, not from motion.
+**Not phone validation:** every "phone" figure is Chromium's mobile emulation (touch, 390×844) with the CPU slowed 4×, not a real device.
+
+In that emulation the long page-transition frames (about 150–170ms, 4 long animation frames) are present with animation off too. They come from rendering the next page, not from motion.
 
 **One finding changed the design.** A View Transition for every filter press held the next paint for its snapshot: on the slowed phone, keyboard response was p75 120–144ms and frames reached 183ms, against 40ms with animation off. Results now move with FLIP (Web Animations), and page changes keep View Transitions. Expressive is still the heaviest on the slowed phone (72ms keyboard p75, results-move p95 33ms).
 
@@ -321,10 +323,10 @@ On the throttled phone the long page-transition frames (about 150–170ms, 4 lon
   - unsupported View Transitions simulated by removing the API.
 - **Not tested:** Safari, Firefox, a real phone or tablet, and assistive technology (the announcer and focus moves were checked in the DOM, not with a screen reader).
 - **Gaps:**
-  - The **Angular starter** keeps the old blanket reduced-motion rule and has no `motion.css`. Its `tokens.css` carries the new tokens, because it must equal the React starter's.
+  - **Angular has none of the React motion foundation.** Its `tokens.css` carries the motion token names only because it must equal the React starter's; it keeps the old blanket reduced-motion rule and has no `motion.css`, router or motion parts. See the framework boundary below.
   - **The fixture app doesn't exercise** tabs, the native `<dialog>` pattern or `.fc-collapse`; they're covered in the harness and by unit tests only.
-  - **The library's `useHashId`** keeps its own hash listener. A record-to-record change on the same screen (product A → B) renders outside the page transition's snapshot: correct, but it can look like a cut instead of a slide.
-  - **Screenshots in FlowCode's verifier** don't yet use `?motion=off`; only these tests do.
+  - **Same-screen record changes** (product A → B): an intentional instant change (closeout), not an unfinished transition. The screen reads its record from the address itself (`useHashId`), outside a transition's snapshot, so the router doesn't animate it; focus and scrolling behave as for a new page. A slide could come later, cosmetic only.
+  - **Screenshots in FlowCode's verifier:** done in the closeout (below).
   - **The static accessibility scan** still accepts any `prefers-reduced-motion` rule. With `motion.css` present, it no longer finds model-written CSS that moves without a reduced-motion path.
   - **Expressive opt-ins** exist as data and eligibility only, with no editor controls (phase 3).
 
@@ -333,3 +335,91 @@ On the throttled phone the long page-transition frames (about 150–170ms, 4 lon
 1. `1-balanced-product-journey-desktop.webm`: catalog, filters, sort, save, a product, Back, Lists.
 2. `2-expressive-marketing-harness-desktop.webm` and `-phone.webm`: hero, card entrances, filtering, sort and the product demo. The harness only; expressive pieces aren't in the builder.
 3. `3-reduced-product-journey-phone.webm` and `3-reduced-marketing-harness-desktop.webm`: the same, with reduced motion.
+
+## 9. Phase 2 closeout
+
+### 1. Generated-fixture coverage of tabs, native dialog/drawer and disclosure
+
+**These weren't complete in `2985b62`.** They shipped only as CSS (`dialog`/`.fc-drawer`, `.fc-collapse`, `.fc-tab-indicator`) and hooks (`useCollapse`, `useTabIndicator`). No shipped component used them: the starter's `Dialog` and `Tabs` wrap library pieces with their own motion, and there was no disclosure component.
+
+They now exist as starter components in `components/ui/motion-parts.tsx`:
+- `Disclosure`: content inert while closed;
+- `NativeDialog` and `Drawer`: the browser's modal `<dialog>`, with focus given back to the opener, including when the dialog goes away mid-animation;
+- `TabStrip`: ARIA keyboard and one moving indicator; the panel fades only when it changes.
+
+Their look is in `components.css` and their motion is in `motion.css`. The existing `Dialog` and `Tabs` are unchanged.
+
+The generated fixture app gets a page that uses these exact files (`test/fixtures/motion-check`, with the starter's components copied in, not the demo's). `motion-parts-fixture.test.ts` (17 tests) covers it at Minimal, Balanced and Expressive, with reduced motion and with animation off:
+- tabs with rapid arrow keys and Home/End, focus following, and the indicator on the selected tab;
+- disclosure: closed content unreachable by Tab, open content reachable, 7 rapid toggles ending consistent;
+- dialog and drawer: the field usable on the first frame, Tab never reaching the page behind, Escape closing and giving focus back, and Escape 20ms into the entry ×4;
+- reduced motion: 120ms fades with no travel;
+- animation off: nothing animating;
+- leaving the page mid-drawer, mid-dialog, mid-disclosure and mid-tab move: no dialog left, no modal, no animation, the page focusable.
+
+**Defect found:** animation off didn't cover a dialog's `::backdrop`, which kept fading. It's fixed in `motion.css`.
+
+**Note:** a native modal `<dialog>` lets Tab move to the browser's own controls (by design), never to the page behind. The test asserts exactly that, not a full trap.
+
+### 2. Deterministic screenshots in FlowCode's real screenshot path
+
+`quality/preview.ts` now has:
+- `stillContext`: marks `<html data-motion="off">` before any app script runs;
+- `waitForStill`: fonts loaded, no finite animation running, two frames painted;
+- `STILL`: Playwright's own animation stop and a hidden caret at capture.
+
+They're used by the screenshots check (`captureScreenshots`), the look check's pictures, and the smoke test's pictures. The smoke test's interactions keep the app's motion, and motion-enabled behaviour stays in its own tests.
+
+`motion-screenshots.test.ts` covers it: on the Expressive fixture, a picture taken right after starting a results move equals one taken after waiting, and two runs are byte-identical at all three viewports.
+
+**Defect found:** the first version set the attribute before the page's `<html>` existed, so it never took effect. It now marks it as soon as it appears.
+
+### 3. Framework boundary (Angular)
+
+**Can the Motion control be applied to Angular today? No.**
+- A Look apply on the Angular starter fails at the surface step ("doesn't use FlowCode's building blocks"), as before.
+- In `2985b62` the motion writer ran *before* that step, so a failed apply relied on snapshot restore to remove `motion.css` and to put back the blanket rule it had taken out.
+
+**Now:**
+- the surface runs first;
+- `setMotionStyle` refuses any app without `src/main.tsx`;
+- `applySelected` leaves the motion tokens out for such an app, and its result says so;
+- the editor states that the level is kept in the Look but not applied, because the foundation is React only;
+- the design state reports `motionSupported: false`.
+
+Two tests in `motion-apply.test.ts` check that an Angular apply writes no motion even with a restore that does nothing.
+
+**An Angular motion foundation would be a separately bounded patch:** `motion.css` in `angular.json` styles, the blanket rule replaced, and the router and parts as Angular equivalents. Not started.
+
+### 4. Claims, corrected
+
+- **Balanced:** preserves the previous timing defaults; applying the foundation changes behaviour (section 8).
+- **Phone figures:** Chromium mobile emulation with the CPU slowed 4×, not validated on phones.
+- **Still documented:** the Expressive filtering overhead (72ms keyboard p75 against a 40ms baseline in that emulation) and the page-rendering frame stalls.
+
+**Tracked separately:** the ~150ms page-rendering frames in the emulated slow phone are present with animation off too, so this work didn't introduce them.
+
+### 5. Same-screen product navigation
+
+**An intentional instant fallback, not an unfinished transition.**
+- The router skips the page transition when only the record on the same screen changes, and still applies new-page focus (the heading) and scrolling (top).
+- Tested in `motion-fixture-app.test.ts`: no view transition starts, the new product's heading is shown and focused, and the page scrolls to the top.
+
+### FlowCode's Motion Lab page
+
+The Motion Lab is now a page of FlowCode itself, under Intelligence, below Component library. It's built with FlowCode's own controls and tokens, with no frame and one header, and its 12 checks run there:
+- 12/12 at Minimal, Balanced and Expressive;
+- 12/12 with reduced motion;
+- 12/12 with animation off.
+
+**Defect found:** my React port's save state stopped after React's development double-mount; the shipped `useSaveState` already handled it.
+
+The published single-file review page is unchanged and separate.
+
+### Remaining gaps
+
+- **Browsers and devices:** Safari, Firefox and real phones or tablets aren't tested; all browser results are Chromium 153.
+- **Assistive technology:** focus moves and the polite route announcer were checked in the DOM only, not with NVDA, VoiceOver or JAWS.
+- **Native dialog Tab order** depends on the browser (Tab reaching the browser's own controls); untested outside Chromium.
+- **Angular** has no motion foundation (above).
+- **Recordings:** visual approval is separate from functional acceptance. The Expressive marketing recording shows the harness only; it isn't evidence of builder integration.

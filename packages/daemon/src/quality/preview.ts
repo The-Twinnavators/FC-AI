@@ -87,6 +87,46 @@ export async function checkHealth(session: BrowserSession, url: string): Promise
   }
 }
 
+/**
+ * Screenshots that must be deterministic (the screenshots check, the look check, the smoke test's pictures) are taken
+ * with animation off: the context marks <html data-motion="off"> before any of the app's scripts run (motion.css and
+ * lib/motion.ts then show everything at rest and start no transition; older apps without them are covered by the
+ * capture's own animation stop), the page is given time to become still (fonts loaded, finite animations finished,
+ * two frames painted), and Playwright stops whatever is left at capture. Motion itself is tested separately.
+ */
+export async function stillContext(session: BrowserSession, opts: Parameters<BrowserSession["browser"]["newContext"]>[0] = {}) {
+  const ctx = await session.browser.newContext({ deviceScaleFactor: 1, ...opts, reducedMotion: "reduce" });
+  await ctx.addInitScript(() => {
+    // The page's <html> may not exist yet when this runs: mark it as soon as it does (still before any app script).
+    const mark = () => {
+      if (!document.documentElement) return false;
+      document.documentElement.dataset.motion = "off";
+      return true;
+    };
+    if (!mark()) {
+      const mo = new MutationObserver(() => mark() && mo.disconnect());
+      mo.observe(document, { childList: true, subtree: true });
+    }
+  });
+  return ctx;
+}
+
+/** Waits (up to maxMs) until the page is still: fonts loaded, no finite animation running, two frames painted. */
+export async function waitForStill(page: Page, maxMs = 2000) {
+  await page
+    .evaluate(async (max) => {
+      await document.fonts?.ready;
+      const t0 = performance.now();
+      const moving = () => document.getAnimations().some((a) => a.playState === "running" && a.effect?.getComputedTiming().iterations !== Infinity);
+      while (moving() && performance.now() - t0 < max) await new Promise((r) => setTimeout(r, 50));
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    }, maxMs)
+    .catch(() => undefined);
+}
+
+/** Options for every deterministic capture: animations stopped, the text caret hidden. */
+export const STILL = { animations: "disabled", caret: "hide" } as const;
+
 export interface ScreenshotResult {
   name: string;
   width: number;
@@ -99,11 +139,12 @@ export interface ScreenshotResult {
 export async function captureScreenshots(session: BrowserSession, url: string, prepare?: (page: Page) => Promise<void>): Promise<ScreenshotResult[]> {
   const out: ScreenshotResult[] = [];
   for (const vp of VIEWPORTS) {
-    const ctx = await session.browser.newContext({ viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: 1, reducedMotion: "reduce" });
+    const ctx = await stillContext(session, { viewport: { width: vp.width, height: vp.height } });
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: "networkidle", timeout: 30_000 });
     if (prepare) await prepare(page);
     await page.waitForTimeout(300);
+    await waitForStill(page);
     const overflow = await page.evaluate(() => {
       const doc = document.documentElement;
       const over = doc.scrollWidth > window.innerWidth + 1;
@@ -117,7 +158,7 @@ export async function captureScreenshots(session: BrowserSession, url: string, p
       }
       return { over, els };
     });
-    const png = await page.screenshot({ fullPage: true });
+    const png = await page.screenshot({ fullPage: true, ...STILL });
     out.push({ name: vp.name, width: vp.width, height: vp.height, png, horizontalOverflow: overflow.over, overflowingElements: overflow.els });
     await ctx.close();
   }
@@ -229,7 +270,8 @@ export async function schedulerSmokeTest(session: BrowserSession, url: string): 
     const ok =
       (await step("empty state visible", async () => {
         await page.getByText(/no events yet/i).first().waitFor({ timeout: 5000 });
-        shots.push({ name: "empty-state", png: await page.screenshot() });
+        await waitForStill(page);
+        shots.push({ name: "empty-state", png: await page.screenshot(STILL) });
       })) &&
       (await step("create event", async () => {
         await page.getByLabel(/^title/i).fill("Dentist appointment");
@@ -239,7 +281,8 @@ export async function schedulerSmokeTest(session: BrowserSession, url: string): 
         if (await notes.count()) await notes.fill("Bring insurance card");
         await page.getByRole("button", { name: /add event/i }).click();
         await page.getByRole("list", { name: /scheduled events/i }).getByText("Dentist appointment").waitFor({ timeout: 5000 });
-        shots.push({ name: "after-create", png: await page.screenshot() });
+        await waitForStill(page);
+        shots.push({ name: "after-create", png: await page.screenshot(STILL) });
       })) &&
       (await step("list shows second event in date order", async () => {
         await page.getByLabel(/^title/i).fill("Team standup");
@@ -258,7 +301,8 @@ export async function schedulerSmokeTest(session: BrowserSession, url: string): 
         await title.fill("Dentist check-up");
         await page.getByRole("button", { name: /^save/i }).click();
         await page.getByRole("list", { name: /scheduled events/i }).getByText("Dentist check-up").waitFor({ timeout: 5000 });
-        shots.push({ name: "after-edit", png: await page.screenshot() });
+        await waitForStill(page);
+        shots.push({ name: "after-edit", png: await page.screenshot(STILL) });
       })) &&
       (await step("persistence across reload", async () => {
         await page.reload({ waitUntil: "networkidle" });
@@ -270,7 +314,8 @@ export async function schedulerSmokeTest(session: BrowserSession, url: string): 
         await page.getByRole("button", { name: /delete dentist check-up/i }).click();
         await page.getByRole("button", { name: /delete team standup/i }).click();
         await page.getByText(/no events yet/i).first().waitFor({ timeout: 5000 });
-        shots.push({ name: "after-delete", png: await page.screenshot() });
+        await waitForStill(page);
+        shots.push({ name: "after-delete", png: await page.screenshot(STILL) });
       }));
     if (ok)
       await step("deletion persisted", async () => {

@@ -281,3 +281,28 @@ textarea.ui-input {
     animation: none;
   }
 }
+
+/* ── Motion parts (components/ui/motion-parts.tsx): how they look. Their motion is in motion.css. ── */
+.ui-disclosure { border: var(--border-width, 1px) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.ui-disclosure + .ui-disclosure { margin-top: var(--space-2); }
+.ui-disclosure__toggle { all: unset; box-sizing: border-box; display: flex; width: 100%; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); font-weight: 600; cursor: pointer; border-radius: var(--radius-md); }
+.ui-disclosure__toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.ui-disclosure__chev { transition: rotate var(--duration-base) var(--ease-out); }
+.ui-disclosure.is-open .ui-disclosure__chev { rotate: 180deg; }
+.ui-disclosure__body { padding: 0 var(--space-4) var(--space-4); color: var(--color-text-muted); }
+.ui-native-dialog { border: var(--border-width, 1px) solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); color: var(--color-text); padding: var(--space-5); width: min(28rem, calc(100vw - 2rem)); }
+.ui-native-dialog::backdrop { background: rgb(15 18 30 / 0.45); }
+.ui-native-dialog--end { margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; width: min(24rem, 92vw); border-radius: 0; border-width: 0 0 0 var(--border-width, 1px); }
+.ui-native-dialog__head { display: flex; align-items: start; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
+.ui-native-dialog__head h2 { margin: 0; font-size: 1.125rem; }
+.ui-native-dialog__close { border: 0; background: none; color: var(--color-text-muted); font-size: 1.25rem; line-height: 1; cursor: pointer; padding: var(--space-1); border-radius: var(--radius-sm); }
+.ui-native-dialog__close:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.ui-native-dialog__desc { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
+.ui-native-dialog__foot { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-5); }
+.ui-tabstrip__list { position: relative; display: flex; gap: var(--space-1); border-bottom: var(--border-width, 1px) solid var(--color-border); }
+.ui-tabstrip__list [role="tab"] { border: 0; background: none; color: var(--color-text-muted); font: inherit; font-weight: 600; padding: var(--space-2) var(--space-3); cursor: pointer; transition: color var(--duration-fast) var(--ease-out); }
+.ui-tabstrip__list [role="tab"][aria-selected="true"] { color: var(--color-text); }
+.ui-tabstrip__list [role="tab"]:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.ui-tabstrip__panel { padding-top: var(--space-4); }
+.ui-tabstrip__panel.is-changed { animation: fc-panel-in var(--duration-base) var(--ease-out); }
+@keyframes fc-panel-in { from { opacity: 0; translate: 0 calc(var(--enter-distance) / 2); } }

@@ -50,7 +50,14 @@ export function motionFixtureApp(level: MotionLevel = "balanced"): string {
   walk(RECORDED, root);
   fs.symlinkSync(path.join(RECORDED, "node_modules"), path.join(root, "node_modules"), "junction");
   const put = (rel: string, content: string) => (fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true }), fs.writeFileSync(path.join(root, rel), content));
-  for (const rel of ["src/lib/motion.ts", "src/lib/motion.test.ts", "src/lib/screens.ts", "src/lib/screens.test.ts", "src/main.tsx", "src/styles/motion.css"]) put(rel, fs.readFileSync(path.join(STARTER, rel), "utf8"));
+  for (const rel of ["src/lib/motion.ts", "src/lib/motion.test.ts", "src/lib/screens.ts", "src/lib/screens.test.ts", "src/main.tsx", "src/styles/motion.css", "src/components/ui/motion-parts.tsx"]) put(rel, fs.readFileSync(path.join(STARTER, rel), "utf8"));
+  // The motion parts' look, as a new app's components.css has it (the recorded app predates them).
+  const starterCss = fs.readFileSync(path.join(STARTER, "src/styles/components.css"), "utf8");
+  fs.appendFileSync(path.join(root, "src/styles/components.css"), `\n${starterCss.slice(starterCss.indexOf("/* ── Motion parts"))}`);
+  // A page in the generated app that uses the shipped motion parts (the starter's own components, not the demo's).
+  const check = path.join(import.meta.dirname, "fixtures/motion-check");
+  put("motion-check.html", fs.readFileSync(path.join(check, "motion-check.html"), "utf8"));
+  put("src/motion-check.tsx", fs.readFileSync(path.join(check, "motion-check.tsx"), "utf8"));
   const seen = new Set<string>();
   for (const f of LOOKUP_PIECES.flatMap((id) => pieceFiles(id, seen))) put(f.rel, f.content);
   // Today's screens too, except the Home page the build's design step composed.

@@ -965,7 +965,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       human: "pending",
     };
     recordVerification(app.store, params.id, verification, jail);
-    return { ...describeState(app.store, params.id, jail), ok: true, changed: res.changed, verification, checks_rerun: [...technical, ...browser], rollback: "A failed check doesn't undo the change. The previous look can be restored from this apply's snapshots (Undo in Changes)." };
+    return { ...describeState(app.store, params.id, jail), ok: true, changed: res.changed, notes: res.notes ?? [], verification, checks_rerun: [...technical, ...browser], rollback: "A failed check doesn't undo the change. The previous look can be restored from this apply's snapshots (Undo in Changes)." };
   });
   // Home concepts on the plan card: what is offered (with what the live preview needs), and the person's pick.
   add("GET /runs/:id/concepts", ({ params }) => conceptOffer(app.store, params.id, !!app.store.runs.require(params.id).planApproved));

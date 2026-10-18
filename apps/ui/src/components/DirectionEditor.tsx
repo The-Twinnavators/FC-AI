@@ -19,6 +19,8 @@ interface DesignStateView {
   lastFailure?: { version: number; at: string; reason: string };
   surfaceExceptions: string[];
   hasApp: boolean;
+  /** False for an app without FlowCode's motion foundation (an Angular app): the level is kept but not applied. */
+  motionSupported?: boolean;
   differs: string[];
   label: string;
   prd?: { colors: Array<{ hex: string; name: string; use?: string }> };
@@ -257,6 +259,7 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
             ))}
           </fieldset>
           <p className="ds-hint dim">
+            {s.motionSupported === false ? "This app isn't a React app: FlowCode's motion foundation is React only, so the level is kept in the Look but not applied to it. " : null}
             {cur.motion ? MOTION_LABEL[cur.motion.level].detail : "Not set for this direction: the app keeps the motion it has."} People who ask their device for reduced motion get quick fades instead, at every level.
           </p>
           <div className="ds-field">

@@ -34,8 +34,9 @@ export const MOTION_LABEL: Record<MotionLevel, { name: string; detail: string }>
 };
 
 /**
- * The motion tokens per level. (How far a press scales is the surface style's --press-scale, not motion's.) Balanced keeps the starter's existing values, so choosing it changes nothing an app
- * already does. Stagger is capped twice: by steps (how many items get their own delay) and by total delay, so no item
+ * The motion tokens per level. (How far a press scales is the surface style's --press-scale, not motion's.) Balanced
+ * preserves the starter's previous timing defaults; applying motion to an existing app still changes other behaviour
+ * (reduced motion keeps short fades, page transitions and the motion stylesheet arrive). Stagger is capped twice: by steps (how many items get their own delay) and by total delay, so no item
  * waits longer than --stagger-max to start, at any level.
  */
 const LEVEL_TOKENS: Record<MotionLevel, Record<string, string>> = {

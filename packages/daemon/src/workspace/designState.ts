@@ -11,12 +11,19 @@
 import fs from "node:fs";
 import path from "node:path";
 import { DEFAULT_SURFACES, appearanceChecks, appearanceProblems, appearanceTokens, motionTokens, sameAppearance, type Appearance } from "@flowcode/contracts";
+
+/** The appearance's tokens this app takes: without the motion tokens where the app has no motion foundation. */
+function tokensFor(jail: PathJail, a: Appearance): Record<string, string> {
+  const t = appearanceTokens(a);
+  if (a.motion && !motionSupported(jail)) for (const k of Object.keys(motionTokens(a.motion.level))) delete t[k];
+  return t;
+}
 import type { Store } from "../db/store.js";
 import type { PathJail } from "../security/pathJail.js";
 import type { FileOperations } from "./operations.js";
 import { applyDesign, tokenValues } from "./designStudio.js";
 import { setSurfaceStyle } from "./surfaceStyle.js";
-import { setMotionStyle } from "./motionStyle.js";
+import { MOTION_UNSUPPORTED, motionSupported, setMotionStyle } from "./motionStyle.js";
 
 /** Where a value came from: the person, a FlowCode theme, the PRD, or a FlowCode suggestion. */
 export type DesignSource = "you" | `theme:${string}` | "prd" | "suggested" | "concept";
@@ -143,7 +150,7 @@ export function applySelected(
   ops: FileOperations,
   ctx: { projectId: string; runId: string },
   restore: (snapshotId: string) => void,
-): { state: DesignState; ok: boolean; reason?: string; changed: string[] } {
+): { state: DesignState; ok: boolean; reason?: string; changed: string[]; notes?: string[] } {
   const s = getDesignState(store, projectId, jail);
   if (!s.selected) throw new Error("No direction is selected");
   if (!hasApp(jail)) return { state: s, ok: false, reason: "This project has no app yet; the build applies the selected direction", changed: [] };
@@ -154,23 +161,32 @@ export function applySelected(
   // (and any advanced token edits since) stay exactly as they are.
   const sameExceptMotion = !!s.applied && sameAppearance({ ...s.applied.appearance, motion: undefined }, { ...want, motion: undefined });
   const motionOnly = sameExceptMotion && !sameAppearance(s.applied!.appearance, want);
+  // Motion goes only where the app has the foundation (React); elsewhere it's left out and said so, not half-applied.
+  const withMotion = !!want.motion && motionSupported(jail);
+  const notes = want.motion && !withMotion ? [MOTION_UNSUPPORTED] : [];
   try {
-    if (want.motion) {
-      const motion = setMotionStyle(jail, ops, ctx);
-      snapshots.push(...motion.snapshotIds);
-      changed.push(...motion.changed);
-    }
     if (motionOnly) {
-      const res = applyDesign(jail, ops, ctx, { theme: "default", values: want.motion ? motionTokens(want.motion.level) : {} });
-      if (res.snapshotId) snapshots.push(res.snapshotId);
-      if (res.changed.length) changed.push(TOKENS);
+      if (withMotion) {
+        const motion = setMotionStyle(jail, ops, ctx);
+        snapshots.push(...motion.snapshotIds);
+        changed.push(...motion.changed);
+        const res = applyDesign(jail, ops, ctx, { theme: "default", values: motionTokens(want.motion!.level) });
+        if (res.snapshotId) snapshots.push(res.snapshotId);
+        if (res.changed.length) changed.push(TOKENS);
+      }
     } else {
+      // The surface first: it is what refuses an app without FlowCode's building blocks, before anything else is written.
       const surface = setSurfaceStyle(jail, ops, ctx, want.surface);
       snapshots.push(...surface.snapshotIds);
       changed.push(...surface.changed);
+      if (withMotion) {
+        const motion = setMotionStyle(jail, ops, ctx);
+        snapshots.push(...motion.snapshotIds);
+        changed.push(...motion.changed);
+      }
       // The appearance's own values (a dark appearance's are dark) go on the app's main theme. A direction without a
       // motion level (made before motion existed) leaves the app's motion as it is.
-      const res = applyDesign(jail, ops, ctx, { theme: "default", values: appearanceTokens(want) });
+      const res = applyDesign(jail, ops, ctx, { theme: "default", values: tokensFor(jail, want) });
       if (res.snapshotId) snapshots.push(res.snapshotId);
       if (res.changed.length) changed.push(TOKENS);
     }
@@ -189,13 +205,13 @@ export function applySelected(
   const { lastFailure: _done, ...rest } = s;
   const next: DesignState = { ...rest, applied: { appearance: s.selected.appearance, version: s.selected.version, appliedAt: now(), snapshotIds: snapshots } };
   save(store, projectId, next);
-  return { state: next, ok: true, changed: [...new Set(changed)] };
+  return { state: next, ok: true, changed: [...new Set(changed)], ...(notes.length ? { notes } : {}) };
 }
 
 /** The app's tokens that no longer match the applied direction (edits after it, or generated code). */
 export function divergence(jail: PathJail, s: DesignState): string[] {
   if (!s.applied || !hasApp(jail)) return [];
-  const want = appearanceTokens(s.applied.appearance);
+  const want = tokensFor(jail, s.applied.appearance);
   const have = tokenValues(jail, Object.keys(want));
   const flat = (v?: string) => (v ?? "").replace(/\s+/g, " ").trim().toLowerCase();
   return Object.keys(want).filter((k) => k in have && flat(have[k]) !== flat(want[k]));
@@ -223,5 +239,5 @@ export function describeState(store: Store, projectId: string, jail?: PathJail) 
   const s = getDesignState(store, projectId, jail);
   const differs = jail ? divergence(jail, s) : [];
   const current = s.draft?.appearance ?? s.selected?.appearance;
-  return { ...s, hasApp: !!jail && hasApp(jail), differs, label: stateLabel(s, differs), checks: current ? appearanceChecks(current) : [] };
+  return { ...s, hasApp: !!jail && hasApp(jail), motionSupported: !jail || !hasApp(jail) || motionSupported(jail), differs, label: stateLabel(s, differs), checks: current ? appearanceChecks(current) : [] };
 }

@@ -14,7 +14,8 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { BASE_APPEARANCE, motionTokens, type Appearance } from "@flowcode/contracts";
 import { applySelected, saveDraft, selectDraft } from "../src/workspace/designState.js";
-import { LEGACY_REDUCED_MOTION } from "../src/workspace/motionStyle.js";
+import { LEGACY_REDUCED_MOTION, MOTION_UNSUPPORTED, setMotionStyle } from "../src/workspace/motionStyle.js";
+import { describeState } from "../src/workspace/designState.js";
 import { makeApp } from "./helpers.js";
 
 const REPO = path.resolve(import.meta.dirname, "../../..");
@@ -103,5 +104,38 @@ describe.skipIf(!fs.existsSync(RECORDED))("motion on an existing app, through th
     const differ = is.filter((l, i) => l !== was[i]).map((l) => l.trim().split(":")[0]);
     expect(differ.sort()).toEqual(Object.keys(motionTokens("expressive")).filter((k) => motionTokens("expressive")[k] !== motionTokens("balanced")[k]).sort());
     expect(now).toContain("--color-accent: #123456;");
+  });
+});
+
+describe("motion and Angular apps (the framework boundary)", () => {
+  const angularApp = () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fc-ng-"));
+    fs.cpSync(path.join(REPO, "templates/angular-starter"), root, { recursive: true });
+    return root;
+  };
+  it("the motion writer refuses an Angular app; the Look says motion isn't supported there", () => {
+    const root = angularApp();
+    const { app } = makeApp();
+    const p = app.projects.create({ name: "ng", workspacePath: root });
+    const jail = app.projects.jail(p);
+    expect(() => setMotionStyle(jail, app.ops, { projectId: p.id, runId: "x" })).toThrow(MOTION_UNSUPPORTED);
+    expect(describeState(app.store, p.id, jail).motionSupported).toBe(false);
+  });
+  it("applying a Look with a level to an Angular app writes no motion (none of it, even when the apply fails later)", () => {
+    const root = angularApp();
+    const appCss = fs.readFileSync(path.join(root, "src/styles/app.css"), "utf8");
+    const tokens = fs.readFileSync(path.join(root, "src/styles/tokens.css"), "utf8");
+    const { app } = makeApp();
+    const p = app.projects.create({ name: "ng", workspacePath: root });
+    const jail = app.projects.jail(p);
+    saveDraft(app.store, p.id, { ...LOOK, motion: { level: "expressive" } }, {}, jail);
+    selectDraft(app.store, p.id, jail);
+    // A restore that does nothing: what's left on disk is only what was written.
+    const res = applySelected(app.store, p.id, jail, app.ops, { projectId: p.id, runId: "x" }, () => undefined);
+    expect(res.ok).toBe(false);
+    expect(res.reason).toMatch(/building blocks/);
+    expect(fs.existsSync(path.join(root, "src/styles/motion.css"))).toBe(false);
+    expect(fs.readFileSync(path.join(root, "src/styles/app.css"), "utf8")).toBe(appCss);
+    expect(fs.readFileSync(path.join(root, "src/styles/tokens.css"), "utf8")).toBe(tokens);
   });
 });

@@ -16,7 +16,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Page } from "playwright";
-import type { BrowserSession } from "./preview.js";
+import { STILL, stillContext, waitForStill, type BrowserSession } from "./preview.js";
 
 export interface LookFinding {
   screen: string;
@@ -239,17 +239,23 @@ async function settled(page: Page, ms = 400): Promise<void> {
  * routes: the build's planned screens by URL id (#/id). Each one the navigation didn't reach (a detail screen kept out
  * of the menu, say) is opened by its address, and every one is also checked at phone width, not just the first.
  */
+/** A picture of the screen at rest (animation off, waited until still): deterministic, unlike the motion tests. */
+async function still(page: Page) {
+  await waitForStill(page);
+  return page.screenshot({ fullPage: false, ...STILL });
+}
+
 export async function lookCheck(session: BrowserSession, url: string, opts: { account?: DemoAccount; routes?: Array<{ name: string; id: string }> } = {}): Promise<LookResult> {
   const findings: LookFinding[] = [];
   const screens: LookResult["screens"] = [];
-  const ctx = await session.browser.newContext({ viewport: { width: 1280, height: 860 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
+  const ctx = await stillContext(session, { viewport: { width: 1280, height: 860 } });
   const page = await ctx.newPage();
   try {
     await page.goto(url, { waitUntil: "networkidle", timeout: 30_000 });
     await settled(page);
     // The signed-out screen first, then (with a demo account) the app behind it.
     for (const f of await page.evaluate(auditScreen)) findings.push({ screen: "First screen", ...f });
-    screens.push({ name: "First screen", png: await page.screenshot({ fullPage: false }) });
+    screens.push({ name: "First screen", png: await still(page) });
     const signedIn = await signInIfAsked(page, opts.account);
     const items = await navItems(page);
     const visits = [...(signedIn ? [{ name: "After sign-in", click: undefined as string | undefined }] : []), ...items.map((t) => ({ name: t, click: t as string | undefined }))];
@@ -261,7 +267,7 @@ export async function lookCheck(session: BrowserSession, url: string, opts: { ac
         await settled(page);
       }
       for (const f of await page.evaluate(auditScreen)) findings.push({ screen: v.name, ...f });
-      screens.push({ name: v.name, png: await page.screenshot({ fullPage: false }) });
+      screens.push({ name: v.name, png: await still(page) });
     }
     const base = url.replace(/#.*$/, "");
     // A page the menu doesn't reach is usually a record's detail page: open it through a link to a real record (on the
@@ -282,12 +288,12 @@ export async function lookCheck(session: BrowserSession, url: string, opts: { ac
       await page.goto(`${base}${addressOf.get(r.id) ?? `#/${r.id}`}`, { waitUntil: "networkidle", timeout: 30_000 }).catch(() => undefined);
       await settled(page);
       for (const f of await page.evaluate(auditScreen)) findings.push({ screen: r.name, ...f });
-      screens.push({ name: r.name, png: await page.screenshot({ fullPage: false }) });
+      screens.push({ name: r.name, png: await still(page) });
     }
     const appHasScreens = (await page.evaluate(() => document.querySelectorAll("main section, main h2").length)) >= 3;
     if (!items.length && appHasScreens) findings.push({ screen: "App", rule: "no-navigation", serious: false, message: "Several sections but no navigation: give the app a nav with one screen at a time." });
 
-    const phone = await session.browser.newContext({ viewport: { width: 375, height: 760 }, deviceScaleFactor: 1, reducedMotion: "reduce", isMobile: true, hasTouch: true });
+    const phone = await stillContext(session, { viewport: { width: 375, height: 760 }, isMobile: true, hasTouch: true });
     const p2 = await phone.newPage();
     await p2.goto(url, { waitUntil: "networkidle", timeout: 30_000 });
     await settled(p2, 300);

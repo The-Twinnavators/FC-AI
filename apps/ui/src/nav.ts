@@ -21,6 +21,8 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
     items: [
       { path: "/library", icon: "library", label: "Prompts & Skills" },
       { path: "/components", icon: "layers", label: "Component library" },
+      // The motion patterns, running live (a review harness, not the builder).
+      { path: "/motion", icon: "play", label: "Motion Lab" },
       { path: "/knowledge", icon: "bulb", label: "Knowledge Hub" },
       { path: "/topics", icon: "search", label: "Topic Search" },
       // What FlowCode proposes to change about how it works, from run reviews.
