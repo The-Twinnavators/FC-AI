@@ -1,0 +1,71 @@
+[
+  {
+    "screen": "My Selection",
+    "pageType": "other",
+    "who": "Demo client: Maya Chen",
+    "goal": "I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the photographer.",
+    "workflow": [
+      "Open My Selection screen",
+      "View current shortlist or empty state",
+      "If in Draft: add/remove photos, edit notes",
+      "If in Submitted: view locked selection and timestamp",
+      "Start over if needed"
+    ],
+    "firstView": "Current shortlist of selected photos with count indicator",
+    "primaryAction": "Submit selection when exactly five photos are chosen",
+    "sections": [
+      {
+        "title": "Selection Summary",
+        "purpose": "Shows current selection status and number of photos chosen",
+        "part": "p.record-detail"
+      },
+      {
+        "title": "Photo List",
+        "purpose": "Displays all selected photos in order with editing notes",
+        "part": "c.list-row"
+      },
+      {
+        "title": "Actions",
+        "purpose": "Provides options to submit or start over",
+        "part": "c.button"
+      }
+    ],
+    "navIn": [],
+    "navOut": [],
+    "states": {
+      "loading": "Shows skeleton loaders while initializing selection data",
+      "empty": "Displays empty state with call-to-action to return to Gallery",
+      "error": "Shows error alert if selection data fails to load",
+      "success": "Displays submitted confirmation with timestamp and photo list"
+    },
+    "responsive": "Stacks vertically on mobile, maintains grid layout on desktop",
+    "accessibility": "Keyboard navigation through photo list, screen reader labels for all buttons and status indicators",
+    "acceptance": [
+      "R140",
+      "R141",
+      "R142",
+      "R143",
+      "R144",
+      "R145",
+      "R146",
+      "R147",
+      "R148",
+      "R150",
+      "R151",
+      "R152",
+      "R153",
+      "R154",
+      "R155",
+      "R156",
+      "R157",
+      "R158",
+      "R159",
+      "R160",
+      "R161",
+      "R162",
+      "R163",
+      "R164",
+      "R165"
+    ]
+  }
+]

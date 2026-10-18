@@ -1,0 +1,57 @@
+{
+  "entries": [
+    {
+      "page": "My Selection",
+      "section": "Selection Summary",
+      "ref": "p.record-detail",
+      "version": "base",
+      "mode": "whole",
+      "why": "Shows current selection status and number of photos chosen",
+      "adaptations": [],
+      "dependencies": [
+        "c.button",
+        "c.tabs",
+        "c.text-field",
+        "c.select",
+        "c.modal",
+        "c.menu",
+        "p.activity-timeline"
+      ],
+      "pieceId": "record-detail",
+      "appFile": "src/sections/RecordDetail.tsx",
+      "by": "plan"
+    },
+    {
+      "page": "My Selection",
+      "section": "Photo List",
+      "ref": "c.list-row",
+      "version": "base",
+      "mode": "compose",
+      "why": "Displays all selected photos in order with editing notes",
+      "adaptations": [],
+      "dependencies": [
+        "c.avatar.person",
+        "c.badge.status",
+        "c.button.tertiary"
+      ],
+      "pieceId": "lists-rows",
+      "appFile": "src/sections/ListsRows.tsx",
+      "by": "plan"
+    },
+    {
+      "page": "My Selection",
+      "section": "Actions",
+      "ref": "c.button",
+      "version": "base",
+      "mode": "compose",
+      "why": "Provides options to submit or start over",
+      "adaptations": [],
+      "dependencies": [],
+      "pieceId": "buttons-variants",
+      "appFile": "src/sections/ButtonsVariants.tsx",
+      "by": "plan"
+    }
+  ],
+  "gaps": [],
+  "changes": []
+}

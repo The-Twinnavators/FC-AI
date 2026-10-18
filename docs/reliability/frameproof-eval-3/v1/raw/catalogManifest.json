@@ -1,0 +1,96 @@
+{
+  "screens": [
+    {
+      "screen": "My Selection",
+      "picks": [
+        {
+          "ref": "p.record-detail",
+          "id": "record-detail",
+          "name": "Record detail: status, actions by role, edit, activity",
+          "score": 10,
+          "why": "tags status"
+        },
+        {
+          "ref": "p.record-wizard",
+          "id": "record-wizard",
+          "name": "Record wizard: steps, readiness, drafts and review",
+          "score": 9,
+          "why": "tags draft"
+        }
+      ],
+      "alternates": []
+    }
+  ],
+  "shared": [
+    {
+      "ref": "c.alert",
+      "id": "alerts-states",
+      "name": "Alerts: four tones, inline, banner and toast",
+      "score": 26,
+      "why": "use case \"notifications\""
+    },
+    {
+      "ref": "c.alert.info",
+      "id": "alerts-states",
+      "name": "Alerts: four tones, inline, banner and toast info",
+      "score": 26,
+      "why": "use case \"notifications\""
+    },
+    {
+      "ref": "c.alert.success",
+      "id": "alerts-states",
+      "name": "Alerts: four tones, inline, banner and toast success",
+      "score": 26,
+      "why": "use case \"notifications\""
+    },
+    {
+      "ref": "c.alert.warning",
+      "id": "alerts-states",
+      "name": "Alerts: four tones, inline, banner and toast warning",
+      "score": 26,
+      "why": "use case \"notifications\""
+    },
+    {
+      "ref": "c.alert.danger",
+      "id": "alerts-states",
+      "name": "Alerts: four tones, inline, banner and toast danger",
+      "score": 26,
+      "why": "use case \"notifications\""
+    },
+    {
+      "ref": "c.background",
+      "id": "bg-soft",
+      "name": "Soft gradient",
+      "score": 22,
+      "why": "job \"read the page without visual clutter\""
+    },
+    {
+      "ref": "c.background.soft",
+      "id": "bg-soft",
+      "name": "Soft gradient soft",
+      "score": 22,
+      "why": "job \"read the page without visual clutter\""
+    },
+    {
+      "ref": "c.drawer",
+      "id": "panels-drawers",
+      "name": "Panels and drawers: side, bottom and inline",
+      "score": 18,
+      "why": "job \"act on a row\""
+    },
+    {
+      "ref": "c.drawer.right",
+      "id": "panels-drawers",
+      "name": "Panels and drawers: side, bottom and inline right",
+      "score": 18,
+      "why": "job \"act on a row\""
+    },
+    {
+      "ref": "c.drawer.bottom",
+      "id": "panels-drawers",
+      "name": "Panels and drawers: side, bottom and inline bottom",
+      "score": 18,
+      "why": "job \"act on a row\""
+    }
+  ]
+}

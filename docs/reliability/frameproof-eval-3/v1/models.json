@@ -1,0 +1,91 @@
+{
+  "runId": "run_05368827afde426eac8b",
+  "assigned": [
+    {
+      "role": "planner",
+      "model": "qwen3-coder:30b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "coder",
+      "model": "qwen3-coder:30b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "debugger",
+      "model": "qwen3-coder:30b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "repository_analyst",
+      "model": "qwen3:14b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "researcher",
+      "model": "qwen3:14b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "reviewer",
+      "model": "qwen3:14b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "designer",
+      "model": "qwen3:14b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "critic",
+      "model": "qwen2.5vl:3b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "documenter",
+      "model": "qwen3:14b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "security_qa",
+      "model": "qwen3:14b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "accessibility_qa",
+      "model": "qwen3:14b",
+      "providerId": "ollama",
+      "hosted": false
+    },
+    {
+      "role": "compliance_triage",
+      "model": "qwen3:14b",
+      "providerId": "ollama",
+      "hosted": false
+    }
+  ],
+  "used": [
+    {
+      "role": "planner",
+      "model": "qwen3-coder:30b",
+      "providerId": "ollama",
+      "hosted": false,
+      "calls": 14,
+      "imageCalls": 0,
+      "unknownCalls": 0,
+      "steps": []
+    }
+  ],
+  "summary": "Everything ran on this computer. Nothing was sent to a cloud provider.",
+  "leftThisComputer": false
+}

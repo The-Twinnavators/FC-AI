@@ -1,0 +1,3023 @@
+{
+  "passages": [
+    {
+      "line": 4,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "1. Product goal"
+      ],
+      "text": "Build a complete working prototype that lets a photography client review a gallery, shortlist photos, leave notes, and submit a final selection.",
+      "kind": "paragraph",
+      "requirements": [
+        "R1"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 6,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "1. Product goal"
+      ],
+      "text": "The app should feel like a polished photography product, not an admin dashboard or marketing website.",
+      "kind": "paragraph",
+      "requirements": [
+        "R2"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 8,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "1. Product goal"
+      ],
+      "text": "Primary journey: Gallery → photo detail → shortlist → review selection → submit.",
+      "kind": "paragraph",
+      "requirements": [
+        "R3"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 11,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "2. Prototype boundaries"
+      ],
+      "text": "Responsive, local-first web app.",
+      "kind": "item",
+      "requirements": [
+        "R4"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 12,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "2. Prototype boundaries"
+      ],
+      "text": "Bundled sample data and browser storage.",
+      "kind": "item",
+      "requirements": [
+        "R5"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 13,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "2. Prototype boundaries"
+      ],
+      "text": "No backend, authentication provider, external API, or real submission.",
+      "kind": "item",
+      "requirements": [
+        "R6"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 14,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "2. Prototype boundaries"
+      ],
+      "text": "Client is already signed in as a demo user.",
+      "kind": "item",
+      "requirements": [
+        "R7"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 15,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "2. Prototype boundaries"
+      ],
+      "text": "Changes persist after page reload in the same browser.",
+      "kind": "item",
+      "requirements": [
+        "R8"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 16,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "2. Prototype boundaries"
+      ],
+      "text": "Use the existing starter, component library, and dependencies. Add no packages.",
+      "kind": "item",
+      "requirements": [
+        "R9"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 17,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "2. Prototype boundaries"
+      ],
+      "text": "No network connection necessary for the core workflow after the app and bundled assets have loaded.",
+      "kind": "item",
+      "requirements": [
+        "R10"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 20,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "3. User and context"
+      ],
+      "text": "Demo client: Maya Chen.",
+      "kind": "item",
+      "requirements": [
+        "R11"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 21,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "3. User and context"
+      ],
+      "text": "Gallery: Autumn Portrait Session.",
+      "kind": "item",
+      "requirements": [
+        "R12"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 22,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "3. User and context"
+      ],
+      "text": "Photographer: Rowan Studio.",
+      "kind": "item",
+      "requirements": [
+        "R13"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 23,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "3. User and context"
+      ],
+      "text": "Gallery contains 12 photos.",
+      "kind": "item",
+      "requirements": [
+        "R14"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 24,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "3. User and context"
+      ],
+      "text": "Client must choose exactly five photos before submitting.",
+      "kind": "item",
+      "requirements": [
+        "R15"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 25,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "3. User and context"
+      ],
+      "text": "One user role: client.",
+      "kind": "item",
+      "requirements": [
+        "R16"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 27,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "3. User and context"
+      ],
+      "text": "User need: “I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the photographer.”",
+      "kind": "paragraph",
+      "requirements": [
+        "R17"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 30,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "4. Screens and navigation"
+      ],
+      "text": "Primary navigation has exactly two destinations:",
+      "kind": "paragraph",
+      "requirements": [
+        "R18"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 31,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "4. Screens and navigation"
+      ],
+      "text": "Gallery.",
+      "kind": "item",
+      "requirements": [
+        "R19"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 32,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "4. Screens and navigation"
+      ],
+      "text": "My Selection, with the current shortlist count.",
+      "kind": "item",
+      "requirements": [
+        "R20"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 34,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "4. Screens and navigation"
+      ],
+      "text": "Photo detail opens from a photo card; it is not a primary navigation destination.",
+      "kind": "paragraph",
+      "requirements": [
+        "R21"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 35,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "4. Screens and navigation"
+      ],
+      "text": "Submission confirmation is a state of My Selection, not another navigation link.",
+      "kind": "paragraph",
+      "requirements": [
+        "R22"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more"
+      ]
+    },
+    {
+      "line": 36,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "4. Screens and navigation"
+      ],
+      "text": "Initial screen: Gallery.",
+      "kind": "paragraph",
+      "requirements": [
+        "R23"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 37,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "4. Screens and navigation"
+      ],
+      "text": "Do not add a marketing landing page, pricing page, photographer dashboard, or account settings.",
+      "kind": "paragraph",
+      "requirements": [
+        "R24"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 43,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Gallery"
+      ],
+      "text": "| ID | gallery-autumn |",
+      "kind": "row",
+      "requirements": [
+        "R25"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 44,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Gallery"
+      ],
+      "text": "| Title | Autumn Portrait Session |",
+      "kind": "row",
+      "requirements": [
+        "R26"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 45,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Gallery"
+      ],
+      "text": "| Photographer | Rowan Studio |",
+      "kind": "row",
+      "requirements": [
+        "R27"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 46,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Gallery"
+      ],
+      "text": "| Client | Maya Chen |",
+      "kind": "row",
+      "requirements": [
+        "R28"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 47,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Gallery"
+      ],
+      "text": "| Required selection count | 5 |",
+      "kind": "row",
+      "requirements": [
+        "R29"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 50,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "Each photo has a stable ID, title, category, orientation, image source, and descriptive alt text.",
+      "kind": "paragraph",
+      "requirements": [
+        "R30"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 52,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "Use these exact records:",
+      "kind": "lead-in",
+      "requirements": [],
+      "status": "lead-in",
+      "steps": []
+    },
+    {
+      "line": 56,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-01 | Golden Hour | Outdoor | Portrait |",
+      "kind": "row",
+      "requirements": [
+        "R31"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 57,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-02 | Window Light | Studio | Portrait |",
+      "kind": "row",
+      "requirements": [
+        "R32"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 58,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-03 | Walking Together | Outdoor | Landscape |",
+      "kind": "row",
+      "requirements": [
+        "R33"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 59,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-04 | Quiet Smile | Studio | Portrait |",
+      "kind": "row",
+      "requirements": [
+        "R34"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 60,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-05 | Garden Steps | Outdoor | Landscape |",
+      "kind": "row",
+      "requirements": [
+        "R35"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 61,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-06 | Soft Shadows | Studio | Portrait |",
+      "kind": "row",
+      "requirements": [
+        "R36"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 62,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-07 | Autumn Path | Outdoor | Portrait |",
+      "kind": "row",
+      "requirements": [
+        "R37"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 63,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-08 | Looking Back | Outdoor | Landscape |",
+      "kind": "row",
+      "requirements": [
+        "R38"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 64,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-09 | Linen Backdrop | Studio | Portrait |",
+      "kind": "row",
+      "requirements": [
+        "R39"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 65,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-10 | Under the Oak | Outdoor | Landscape |",
+      "kind": "row",
+      "requirements": [
+        "R40"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 66,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-11 | Candid Laugh | Studio | Landscape |",
+      "kind": "row",
+      "requirements": [
+        "R41"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 67,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "| photo-12 | Last Light | Outdoor | Portrait |",
+      "kind": "row",
+      "requirements": [
+        "R42"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 69,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Photo records"
+      ],
+      "text": "Use distinct, appropriate bundled photographs when available. Do not rely on remote image URLs at runtime. If suitable assets are unavailable, use distinct local placeholder images with clear photo titles. Do not use broken images or add dependencies to obtain imagery.",
+      "kind": "paragraph",
+      "requirements": [
+        "R43"
+      ],
+      "status": "supporting data",
+      "steps": []
+    },
+    {
+      "line": 72,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Client selection state"
+      ],
+      "text": "Keep one shared source of truth for:",
+      "kind": "lead-in",
+      "requirements": [],
+      "status": "lead-in",
+      "steps": []
+    },
+    {
+      "line": 73,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Client selection state"
+      ],
+      "text": "Shortlisted photo IDs.",
+      "kind": "item",
+      "requirements": [
+        "R44"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 74,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Client selection state"
+      ],
+      "text": "Editing note per photo.",
+      "kind": "item",
+      "requirements": [
+        "R45"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 75,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Client selection state"
+      ],
+      "text": "Selection status: Draft or Submitted.",
+      "kind": "item",
+      "requirements": [
+        "R46"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 76,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Client selection state"
+      ],
+      "text": "Submission timestamp, when submitted.",
+      "kind": "item",
+      "requirements": [
+        "R47"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 78,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "5. Data model and sample content",
+        "Client selection state"
+      ],
+      "text": "Do not create separate copies of selection state in different screens.",
+      "kind": "paragraph",
+      "requirements": [
+        "R48"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 82,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R1 — Gallery overview"
+      ],
+      "text": "Display gallery title, photographer, a concise instruction to choose five photos, current selection count, and all 12 photos initially in a responsive grid.",
+      "kind": "paragraph",
+      "requirements": [
+        "R49"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 83,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R1 — Gallery overview"
+      ],
+      "text": "The main content is the photography, not statistics or explanatory cards.",
+      "kind": "paragraph",
+      "requirements": [
+        "R50"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 86,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R2 — Search"
+      ],
+      "text": "Search matches photo titles case-insensitively.",
+      "kind": "paragraph",
+      "requirements": [
+        "R51"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 87,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R2 — Search"
+      ],
+      "text": "`light` returns Window Light and Last Light, not Golden Hour.",
+      "kind": "item",
+      "requirements": [
+        "R52"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 88,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R2 — Search"
+      ],
+      "text": "`WINDOW` returns Window Light.",
+      "kind": "item",
+      "requirements": [
+        "R53"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 89,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R2 — Search"
+      ],
+      "text": "`mountain` produces no results.",
+      "kind": "item",
+      "requirements": [
+        "R54"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 90,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R2 — Search"
+      ],
+      "text": "No-results state offers a clear way to clear search.",
+      "kind": "item",
+      "requirements": [
+        "R55"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 91,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R2 — Search"
+      ],
+      "text": "Search and category filtering work together.",
+      "kind": "item",
+      "requirements": [
+        "R56"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 94,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R3 — Category filters"
+      ],
+      "text": "Provide All, Outdoor, and Studio filters.",
+      "kind": "paragraph",
+      "requirements": [
+        "R57"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 95,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R3 — Category filters"
+      ],
+      "text": "Outdoor contains seven records; Studio contains five.",
+      "kind": "paragraph",
+      "requirements": [
+        "R58"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 96,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R3 — Category filters"
+      ],
+      "text": "Changing search or category does not alter shortlist or notes.",
+      "kind": "paragraph",
+      "requirements": [
+        "R59"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 99,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R4 — Photo detail"
+      ],
+      "text": "Display selected image, title, category, Add to selection / Remove from selection control, editing-notes field, Previous and Next controls, and a way back to Gallery.",
+      "kind": "paragraph",
+      "requirements": [
+        "R60"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 100,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R4 — Photo detail"
+      ],
+      "text": "Previous and Next follow the full 12-photo sample-data order regardless of Gallery filters.",
+      "kind": "paragraph",
+      "requirements": [
+        "R61"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 101,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R4 — Photo detail"
+      ],
+      "text": "Do not wrap: disable Previous on photo-01 and Next on photo-12.",
+      "kind": "paragraph",
+      "requirements": [
+        "R62"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 102,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R4 — Photo detail"
+      ],
+      "text": "Returning to Gallery preserves search and category state.",
+      "kind": "paragraph",
+      "requirements": [
+        "R63"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 105,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R5 — Shortlist behavior"
+      ],
+      "text": "Client can add and remove photos from Gallery, photo detail, and My Selection.",
+      "kind": "paragraph",
+      "requirements": [
+        "R64"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 106,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R5 — Shortlist behavior"
+      ],
+      "text": "No duplicate selections.",
+      "kind": "item",
+      "requirements": [
+        "R65"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 107,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R5 — Shortlist behavior"
+      ],
+      "text": "Count updates everywhere.",
+      "kind": "item",
+      "requirements": [
+        "R66"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 108,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R5 — Shortlist behavior"
+      ],
+      "text": "Maximum five selected photos.",
+      "kind": "item",
+      "requirements": [
+        "R67"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 109,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R5 — Shortlist behavior"
+      ],
+      "text": "Attempting to add a sixth does not remove or replace an existing selection.",
+      "kind": "item",
+      "requirements": [
+        "R68"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 110,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R5 — Shortlist behavior"
+      ],
+      "text": "Explain the limit through accessible feedback.",
+      "kind": "item",
+      "requirements": [
+        "R69"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 111,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R5 — Shortlist behavior"
+      ],
+      "text": "Removing a photo permits another to be added.",
+      "kind": "item",
+      "requirements": [
+        "R70"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 112,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R5 — Shortlist behavior"
+      ],
+      "text": "Selection status must not rely on color alone.",
+      "kind": "item",
+      "requirements": [
+        "R71"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 115,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R6 — Editing notes"
+      ],
+      "text": "Each photo can have an optional editing note of up to 300 characters.",
+      "kind": "paragraph",
+      "requirements": [
+        "R72"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 116,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R6 — Editing notes"
+      ],
+      "text": "Save locally without a separate Save button.",
+      "kind": "item",
+      "requirements": [
+        "R73"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 117,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R6 — Editing notes"
+      ],
+      "text": "Show a character count.",
+      "kind": "item",
+      "requirements": [
+        "R74"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 118,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R6 — Editing notes"
+      ],
+      "text": "Notes remain attached when a photo is removed from the shortlist.",
+      "kind": "item",
+      "requirements": [
+        "R75"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 119,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R6 — Editing notes"
+      ],
+      "text": "Reopening a photo restores its note.",
+      "kind": "item",
+      "requirements": [
+        "R76"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 120,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R6 — Editing notes"
+      ],
+      "text": "Submission includes notes for selected photos only.",
+      "kind": "item",
+      "requirements": [
+        "R77"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 123,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R7 — My Selection"
+      ],
+      "text": "Before submission, display selected photos in original sample-data order, their titles and notes, controls to open or remove a photo, selection progress, and Submit selection action.",
+      "kind": "paragraph",
+      "requirements": [
+        "R78"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more"
+      ]
+    },
+    {
+      "line": 124,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R7 — My Selection"
+      ],
+      "text": "When empty, show an empty state with a return-to-Gallery action.",
+      "kind": "paragraph",
+      "requirements": [
+        "R79"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 127,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R8 — Submission eligibility"
+      ],
+      "text": "Submission is available only with exactly five selected photos.",
+      "kind": "paragraph",
+      "requirements": [
+        "R80"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 128,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R8 — Submission eligibility"
+      ],
+      "text": "With fewer than five, explain how many more are needed. Mouse or keyboard interaction must not submit.",
+      "kind": "paragraph",
+      "requirements": [
+        "R81"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 129,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R8 — Submission eligibility"
+      ],
+      "text": "At five, Submit selection opens a confirmation dialog summarizing the five photos, their notes, and that submission will lock the selection.",
+      "kind": "paragraph",
+      "requirements": [
+        "R82"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 130,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R8 — Submission eligibility"
+      ],
+      "text": "Cancel returns to editable selection without losing changes.",
+      "kind": "paragraph",
+      "requirements": [
+        "R83"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 133,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R9 — Submitted state"
+      ],
+      "text": "Confirming submission sets Submitted status, records a timestamp, shows confirmation and the five submitted photos, and locks shortlist changes and editing notes across the app.",
+      "kind": "paragraph",
+      "requirements": [
+        "R84"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 134,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R9 — Submitted state"
+      ],
+      "text": "Client may still browse Gallery and photo detail.",
+      "kind": "paragraph",
+      "requirements": [
+        "R85"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 135,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R9 — Submitted state"
+      ],
+      "text": "Do not send email, make external requests, or imply a real photographer received the submission.",
+      "kind": "paragraph",
+      "requirements": [
+        "R86"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 138,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R10 — Start over"
+      ],
+      "text": "After submission, provide Start over with a confirmation dialog explaining that it clears selected photos, all notes, submission status, and timestamp.",
+      "kind": "paragraph",
+      "requirements": [
+        "R87"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 139,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R10 — Start over"
+      ],
+      "text": "Cancel preserves everything. Confirm returns to empty Draft state.",
+      "kind": "paragraph",
+      "requirements": [
+        "R88"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 140,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R10 — Start over"
+      ],
+      "text": "Do not clear unrelated browser storage.",
+      "kind": "paragraph",
+      "requirements": [
+        "R89"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 143,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R11 — Persistence"
+      ],
+      "text": "Shortlist, notes, status, and timestamp survive a full reload.",
+      "kind": "paragraph",
+      "requirements": [
+        "R90"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 144,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R11 — Persistence"
+      ],
+      "text": "Reloading after submission must not unlock selection.",
+      "kind": "paragraph",
+      "requirements": [
+        "R91"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 145,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R11 — Persistence"
+      ],
+      "text": "Use a namespaced storage key.",
+      "kind": "paragraph",
+      "requirements": [
+        "R92"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 146,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R11 — Persistence"
+      ],
+      "text": "If saved data cannot be read, recover to a usable Draft state and show a concise notice instead of crashing.",
+      "kind": "paragraph",
+      "requirements": [
+        "R93"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 149,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R12 — Navigation and identity"
+      ],
+      "text": "Directly opening a valid photo route displays that record.",
+      "kind": "item",
+      "requirements": [
+        "R94"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 150,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R12 — Navigation and identity"
+      ],
+      "text": "Unknown photo ID shows a useful not-found state with a Gallery link.",
+      "kind": "item",
+      "requirements": [
+        "R95"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 151,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R12 — Navigation and identity"
+      ],
+      "text": "Browser Back and Forward work.",
+      "kind": "item",
+      "requirements": [
+        "R96"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 152,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R12 — Navigation and identity"
+      ],
+      "text": "Photo opened from grid is the same record displayed in detail.",
+      "kind": "item",
+      "requirements": [
+        "R97"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 153,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "6. Functional requirements",
+        "R12 — Navigation and identity"
+      ],
+      "text": "Switching photos must not carry one photo’s note into another.",
+      "kind": "item",
+      "requirements": [
+        "R98"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R5 — Shortlist behavior: Shortlist Management and Validation and 5 more"
+      ]
+    },
+    {
+      "line": 157,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Concept: Editorial contact sheet"
+      ],
+      "text": "Warm off-white background.",
+      "kind": "item",
+      "requirements": [
+        "R99"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 158,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Concept: Editorial contact sheet"
+      ],
+      "text": "Near-black text.",
+      "kind": "item",
+      "requirements": [
+        "R100"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 159,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Concept: Editorial contact sheet"
+      ],
+      "text": "Muted cobalt accent for primary actions and selected states.",
+      "kind": "item",
+      "requirements": [
+        "R101"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 160,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Concept: Editorial contact sheet"
+      ],
+      "text": "Fine borders and restrained corner rounding.",
+      "kind": "item",
+      "requirements": [
+        "R102"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 161,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Concept: Editorial contact sheet"
+      ],
+      "text": "Generous whitespace and clear typographic hierarchy.",
+      "kind": "item",
+      "requirements": [
+        "R103"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 162,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Concept: Editorial contact sheet"
+      ],
+      "text": "Minimal chrome around photography.",
+      "kind": "item",
+      "requirements": [
+        "R104"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 164,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Concept: Editorial contact sheet"
+      ],
+      "text": "Use available fonts and assets. Add no font package.",
+      "kind": "paragraph",
+      "requirements": [
+        "R105"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 165,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Concept: Editorial contact sheet"
+      ],
+      "text": "Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, and excessive badges or repeated instructions.",
+      "kind": "paragraph",
+      "requirements": [
+        "R106"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 168,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Gallery composition"
+      ],
+      "text": "Compact product header and primary navigation.",
+      "kind": "item",
+      "requirements": [
+        "R107"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 169,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Gallery composition"
+      ],
+      "text": "Gallery title, photographer, and selection progress.",
+      "kind": "item",
+      "requirements": [
+        "R108"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 170,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Gallery composition"
+      ],
+      "text": "Search and category controls.",
+      "kind": "item",
+      "requirements": [
+        "R109"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 171,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "Gallery composition"
+      ],
+      "text": "Photo grid.",
+      "kind": "item",
+      "requirements": [
+        "R110"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 174,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "My Selection composition"
+      ],
+      "text": "Title and selection status.",
+      "kind": "item",
+      "requirements": [
+        "R111"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more"
+      ]
+    },
+    {
+      "line": 175,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "My Selection composition"
+      ],
+      "text": "Selected photos and notes, or empty state.",
+      "kind": "item",
+      "requirements": [
+        "R112"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 176,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "My Selection composition"
+      ],
+      "text": "Selection progress and submission action.",
+      "kind": "item",
+      "requirements": [
+        "R113"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more"
+      ]
+    },
+    {
+      "line": 178,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "7. Visual direction",
+        "My Selection composition"
+      ],
+      "text": "At phone width, keep submission easy to find without obscuring content.",
+      "kind": "paragraph",
+      "requirements": [
+        "R114"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 181,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Use Balanced functional motion through the existing motion foundation.",
+      "kind": "paragraph",
+      "requirements": [
+        "R115"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 182,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Appropriate uses: selection feedback, confirmation dialogs, restrained photo-detail transitions, and filter-result continuity.",
+      "kind": "paragraph",
+      "requirements": [
+        "R116"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 184,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Expressive features are off: no parallax, ambient backgrounds, autoplay, smooth-scroll package, or long/blocking entrance sequence.",
+      "kind": "paragraph",
+      "requirements": [
+        "R117"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 185,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Respect reduced-motion preferences. Animation-off must leave all content and controls usable.",
+      "kind": "paragraph",
+      "requirements": [
+        "R118"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 187,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Accessibility:",
+      "kind": "lead-in",
+      "requirements": [],
+      "status": "lead-in",
+      "steps": []
+    },
+    {
+      "line": 188,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Keyboard access to every action.",
+      "kind": "item",
+      "requirements": [
+        "R119"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 189,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Visible focus indicators and descriptive control names.",
+      "kind": "item",
+      "requirements": [
+        "R120"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 190,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Modal confirmation dialogs prevent interaction with background page content.",
+      "kind": "item",
+      "requirements": [
+        "R121"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 191,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Closing dialogs returns focus to the trigger when it still exists.",
+      "kind": "item",
+      "requirements": [
+        "R122"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 192,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Selection feedback available to assistive technology.",
+      "kind": "item",
+      "requirements": [
+        "R123"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 193,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "Appropriate image alt text.",
+      "kind": "item",
+      "requirements": [
+        "R124"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 194,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "8. Motion and accessibility"
+      ],
+      "text": "No hover-only controls or information.",
+      "kind": "item",
+      "requirements": [
+        "R125"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 197,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "9. Responsive behavior"
+      ],
+      "text": "Test desktop and a 390px-wide phone viewport.",
+      "kind": "paragraph",
+      "requirements": [
+        "R126"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 198,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "9. Responsive behavior"
+      ],
+      "text": "No horizontal page overflow.",
+      "kind": "item",
+      "requirements": [
+        "R127"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 199,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "9. Responsive behavior"
+      ],
+      "text": "Adaptive grid columns.",
+      "kind": "item",
+      "requirements": [
+        "R128"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 200,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "9. Responsive behavior"
+      ],
+      "text": "Usable search and filters.",
+      "kind": "item",
+      "requirements": [
+        "R129"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 201,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "9. Responsive behavior"
+      ],
+      "text": "Detail images fit without hiding navigation or actions.",
+      "kind": "item",
+      "requirements": [
+        "R130"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 202,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "9. Responsive behavior"
+      ],
+      "text": "Accessible dialog content on small screens.",
+      "kind": "item",
+      "requirements": [
+        "R131"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 203,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "9. Responsive behavior"
+      ],
+      "text": "All actions available without hover.",
+      "kind": "item",
+      "requirements": [
+        "R132"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more",
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 207,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey A — Find and inspect"
+      ],
+      "text": "Open Gallery.",
+      "kind": "item",
+      "requirements": [
+        "R133"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 208,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey A — Find and inspect"
+      ],
+      "text": "Search `WINDOW`.",
+      "kind": "item",
+      "requirements": [
+        "R134"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 209,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey A — Find and inspect"
+      ],
+      "text": "Confirm Window Light is the only result.",
+      "kind": "item",
+      "requirements": [
+        "R135"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 210,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey A — Find and inspect"
+      ],
+      "text": "Open it and confirm title, category, and image match.",
+      "kind": "item",
+      "requirements": [
+        "R136"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 211,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey A — Find and inspect"
+      ],
+      "text": "Return to Gallery and confirm search remains.",
+      "kind": "item",
+      "requirements": [
+        "R137"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "User and context: Gallery Screen Implementation and 5 more"
+      ]
+    },
+    {
+      "line": 212,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey A — Find and inspect"
+      ],
+      "text": "Clear search and select Outdoor.",
+      "kind": "item",
+      "requirements": [
+        "R138"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 213,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey A — Find and inspect"
+      ],
+      "text": "Confirm seven photos appear.",
+      "kind": "item",
+      "requirements": [
+        "R139"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 216,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey B — Select, annotate, and persist"
+      ],
+      "text": "Begin in an empty Draft state.",
+      "kind": "item",
+      "requirements": [
+        "R140"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 217,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey B — Select, annotate, and persist"
+      ],
+      "text": "Open Golden Hour and add it.",
+      "kind": "item",
+      "requirements": [
+        "R141"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 218,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey B — Select, annotate, and persist"
+      ],
+      "text": "Add note: “Please soften the background.”",
+      "kind": "item",
+      "requirements": [
+        "R142"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 219,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey B — Select, annotate, and persist"
+      ],
+      "text": "Add four other photos.",
+      "kind": "item",
+      "requirements": [
+        "R143"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 220,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey B — Select, annotate, and persist"
+      ],
+      "text": "Attempt to add a sixth.",
+      "kind": "item",
+      "requirements": [
+        "R144"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 221,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey B — Select, annotate, and persist"
+      ],
+      "text": "Confirm original five remain and limit is explained.",
+      "kind": "item",
+      "requirements": [
+        "R145"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 222,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey B — Select, annotate, and persist"
+      ],
+      "text": "Open My Selection and confirm the same five records and note.",
+      "kind": "item",
+      "requirements": [
+        "R146"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "R7 — My Selection: My Selection Screen and 4 more"
+      ]
+    },
+    {
+      "line": 223,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey B — Select, annotate, and persist"
+      ],
+      "text": "Reload and confirm selection and note persist.",
+      "kind": "item",
+      "requirements": [
+        "R147"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 226,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey C — Remove and replace"
+      ],
+      "text": "Begin with five selected photos.",
+      "kind": "item",
+      "requirements": [
+        "R148"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 227,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey C — Remove and replace"
+      ],
+      "text": "Remove one from My Selection.",
+      "kind": "item",
+      "requirements": [
+        "R149"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 228,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey C — Remove and replace"
+      ],
+      "text": "Confirm count changes everywhere.",
+      "kind": "item",
+      "requirements": [
+        "R150"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 229,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey C — Remove and replace"
+      ],
+      "text": "Add a different photo.",
+      "kind": "item",
+      "requirements": [
+        "R151"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 230,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey C — Remove and replace"
+      ],
+      "text": "Confirm correct five in sample-data order.",
+      "kind": "item",
+      "requirements": [
+        "R152"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 231,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey C — Remove and replace"
+      ],
+      "text": "Reopen removed photo and confirm any previously saved note remains.",
+      "kind": "item",
+      "requirements": [
+        "R153"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 234,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey D — Submit and lock"
+      ],
+      "text": "With fewer than five, confirm submission cannot proceed.",
+      "kind": "item",
+      "requirements": [
+        "R154"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 235,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey D — Submit and lock"
+      ],
+      "text": "Select exactly five.",
+      "kind": "item",
+      "requirements": [
+        "R155"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 236,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey D — Submit and lock"
+      ],
+      "text": "Open submission dialog, cancel, and confirm nothing changes.",
+      "kind": "item",
+      "requirements": [
+        "R156"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 237,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey D — Submit and lock"
+      ],
+      "text": "Open it again and confirm.",
+      "kind": "item",
+      "requirements": [
+        "R157"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 238,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey D — Submit and lock"
+      ],
+      "text": "Verify Submitted status, timestamp, and correct five photos.",
+      "kind": "item",
+      "requirements": [
+        "R158"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 239,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey D — Submit and lock"
+      ],
+      "text": "Verify shortlist and note editing are locked across screens.",
+      "kind": "item",
+      "requirements": [
+        "R159"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 240,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey D — Submit and lock"
+      ],
+      "text": "Reload and confirm submitted state remains locked.",
+      "kind": "item",
+      "requirements": [
+        "R160"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 243,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey E — Start over"
+      ],
+      "text": "Begin in Submitted state.",
+      "kind": "item",
+      "requirements": [
+        "R161"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 244,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey E — Start over"
+      ],
+      "text": "Open Start over and cancel; confirm all submitted data remains.",
+      "kind": "item",
+      "requirements": [
+        "R162"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 245,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey E — Start over"
+      ],
+      "text": "Open Start over again and confirm.",
+      "kind": "item",
+      "requirements": [
+        "R163"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 246,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey E — Start over"
+      ],
+      "text": "Verify empty Draft selection and cleared notes.",
+      "kind": "item",
+      "requirements": [
+        "R164"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 247,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "10. Acceptance journeys",
+        "Journey E — Start over"
+      ],
+      "text": "Reload and confirm reset persists.",
+      "kind": "item",
+      "requirements": [
+        "R165"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Journey A — Find and inspect: Photo Search and Filtering and 8 more"
+      ]
+    },
+    {
+      "line": 250,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "11. Verification and completion criteria"
+      ],
+      "text": "All five journeys work through the actual app.",
+      "kind": "item",
+      "requirements": [
+        "R166"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 251,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "11. Verification and completion criteria"
+      ],
+      "text": "Typecheck, lint, tests, and production build pass.",
+      "kind": "item",
+      "requirements": [
+        "R167"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 252,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "11. Verification and completion criteria"
+      ],
+      "text": "Desktop and phone layouts reviewed.",
+      "kind": "item",
+      "requirements": [
+        "R168"
+      ],
+      "status": "in a build step",
+      "steps": [
+        "Motion and accessibility: Responsive Design and Accessibility and 11 more"
+      ]
+    },
+    {
+      "line": 253,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "11. Verification and completion criteria"
+      ],
+      "text": "No broken images, dead controls, or uncaught console errors.",
+      "kind": "item",
+      "requirements": [
+        "R169"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 254,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "11. Verification and completion criteria"
+      ],
+      "text": "Reduced motion and animation-off checked.",
+      "kind": "item",
+      "requirements": [
+        "R170"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 255,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "11. Verification and completion criteria"
+      ],
+      "text": "Tests verify behavior and real sample records, not internal component names or invented status text.",
+      "kind": "item",
+      "requirements": [
+        "R171"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 256,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "11. Verification and completion criteria"
+      ],
+      "text": "Explicitly report unmet requirements and untested platforms.",
+      "kind": "item",
+      "requirements": [
+        "R172"
+      ],
+      "status": "for a person to check",
+      "steps": []
+    },
+    {
+      "line": 259,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Do not implement:",
+      "kind": "lead-in",
+      "requirements": [],
+      "status": "lead-in",
+      "steps": []
+    },
+    {
+      "line": 260,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Photographer or administrator roles.",
+      "kind": "item",
+      "requirements": [
+        "R173"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 261,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Multiple galleries.",
+      "kind": "item",
+      "requirements": [
+        "R174"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 262,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Photo upload or download.",
+      "kind": "item",
+      "requirements": [
+        "R175"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 263,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Image editing, cropping, or zoom tools.",
+      "kind": "item",
+      "requirements": [
+        "R176"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 264,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Payments or real authentication.",
+      "kind": "item",
+      "requirements": [
+        "R177"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 265,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Email or notifications.",
+      "kind": "item",
+      "requirements": [
+        "R178"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 266,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Public sharing.",
+      "kind": "item",
+      "requirements": [
+        "R179"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 267,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Ratings or social comments.",
+      "kind": "item",
+      "requirements": [
+        "R180"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 268,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "AI features.",
+      "kind": "item",
+      "requirements": [
+        "R181"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 269,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Backend services or cloud synchronization.",
+      "kind": "item",
+      "requirements": [
+        "R182"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 270,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Marketing pages.",
+      "kind": "item",
+      "requirements": [
+        "R183"
+      ],
+      "status": "not in this release",
+      "steps": []
+    },
+    {
+      "line": 271,
+      "path": [
+        "Frameproof — Client Photo Proofing Prototype",
+        "12. Out of scope"
+      ],
+      "text": "Additional navigation destinations.",
+      "kind": "item",
+      "requirements": [
+        "R184"
+      ],
+      "status": "not in this release",
+      "steps": []
+    }
+  ],
+  "unmapped": [],
+  "counts": {
+    "in a build step": 118,
+    "for a person to check": 35,
+    "not in this release": 12,
+    "supporting data": 19,
+    "lead-in": 4,
+    "unmapped": 0
+  }
+}

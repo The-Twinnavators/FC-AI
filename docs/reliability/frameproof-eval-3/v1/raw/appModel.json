@@ -1,0 +1,282 @@
+{
+  "product": "Frameproof",
+  "roles": [
+    "client"
+  ],
+  "entities": [
+    {
+      "key": "gallery",
+      "label": "Gallery",
+      "plural": "Galleries",
+      "titleField": "title",
+      "subtitleField": "photographer",
+      "idPrefix": "GAL",
+      "fields": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "photographer",
+          "label": "Photographer",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "client",
+          "label": "Client",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "requiredSelectionCount",
+          "label": "Required Selection Count",
+          "type": "number",
+          "required": true,
+          "min": 1,
+          "max": 12
+        }
+      ],
+      "statusField": "status",
+      "statuses": [
+        {
+          "key": "active",
+          "label": "Active",
+          "tone": "success"
+        },
+        {
+          "key": "submitted",
+          "label": "Submitted",
+          "tone": "info"
+        }
+      ],
+      "columns": [],
+      "filters": []
+    },
+    {
+      "key": "photo",
+      "label": "Photo",
+      "plural": "Photos",
+      "titleField": "title",
+      "subtitleField": "category",
+      "idPrefix": "PHO",
+      "fields": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "orientation",
+          "label": "Orientation",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "imageSource",
+          "label": "Image Source",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "altText",
+          "label": "Alt Text",
+          "type": "longtext",
+          "required": true
+        }
+      ],
+      "statusField": "status",
+      "statuses": [
+        {
+          "key": "draft",
+          "label": "Draft",
+          "tone": "neutral"
+        },
+        {
+          "key": "selected",
+          "label": "Selected",
+          "tone": "success"
+        },
+        {
+          "key": "submitted",
+          "label": "Submitted",
+          "tone": "info"
+        }
+      ],
+      "columns": [],
+      "filters": []
+    }
+  ],
+  "seed": {
+    "gallery": [
+      {
+        "id": "gallery-autumn",
+        "title": "Autumn Portrait Session",
+        "photographer": "Rowan Studio",
+        "client": "Maya Chen",
+        "requiredSelectionCount": 5,
+        "status": "active"
+      }
+    ],
+    "photo": [
+      {
+        "id": "photo-01",
+        "title": "Golden Hour",
+        "category": "Outdoor",
+        "orientation": "Portrait",
+        "imageSource": "/images/golden-hour.jpg",
+        "altText": "A person standing in a field during golden hour with warm sunlight casting long shadows and creating a serene atmosphere",
+        "status": "selected"
+      },
+      {
+        "id": "photo-02",
+        "title": "Window Light",
+        "category": "Studio",
+        "orientation": "Portrait",
+        "imageSource": "/images/window-light.jpg",
+        "altText": "A portrait of a woman with soft light streaming through a window creating gentle highlights on her face",
+        "status": "draft"
+      },
+      {
+        "id": "photo-03",
+        "title": "Walking Together",
+        "category": "Outdoor",
+        "orientation": "Landscape",
+        "imageSource": "/images/walking-together.jpg",
+        "altText": "Two people walking hand in hand through a park with trees and sunlight filtering through the branches",
+        "status": "submitted"
+      },
+      {
+        "id": "photo-04",
+        "title": "Quiet Smile",
+        "category": "Studio",
+        "orientation": "Portrait",
+        "imageSource": "/images/quiet-smile.jpg",
+        "altText": "A candid portrait of a person with a gentle, thoughtful smile captured in a studio setting",
+        "status": "selected"
+      },
+      {
+        "id": "photo-05",
+        "title": "Garden Steps",
+        "category": "Outdoor",
+        "orientation": "Landscape",
+        "imageSource": "/images/garden-steps.jpg",
+        "altText": "A scenic view of stone steps leading through a blooming garden with vibrant flowers and greenery",
+        "status": "draft"
+      },
+      {
+        "id": "photo-06",
+        "title": "Soft Shadows",
+        "category": "Studio",
+        "orientation": "Portrait",
+        "imageSource": "/images/soft-shadows.jpg",
+        "altText": "A portrait with soft, diffused lighting creating gentle shadows that add depth and dimension to the subject's face",
+        "status": "submitted"
+      },
+      {
+        "id": "photo-07",
+        "title": "Autumn Path",
+        "category": "Outdoor",
+        "orientation": "Portrait",
+        "imageSource": "/images/autumn-path.jpg",
+        "altText": "A person walking along a path covered with fallen autumn leaves, creating a warm and cozy atmosphere",
+        "status": "selected"
+      },
+      {
+        "id": "photo-08",
+        "title": "Looking Back",
+        "category": "Outdoor",
+        "orientation": "Landscape",
+        "imageSource": "/images/looking-back.jpg",
+        "altText": "A scenic landscape view with a person looking back over their shoulder at a beautiful sunset",
+        "status": "draft"
+      },
+      {
+        "id": "photo-09",
+        "title": "Linen Backdrop",
+        "category": "Studio",
+        "orientation": "Portrait",
+        "imageSource": "/images/linen-backdrop.jpg",
+        "altText": "A professional portrait with a soft linen textured backdrop that adds elegance and sophistication to the image",
+        "status": "submitted"
+      },
+      {
+        "id": "photo-10",
+        "title": "Under the Oak",
+        "category": "Outdoor",
+        "orientation": "Landscape",
+        "imageSource": "/images/under-the-oak.jpg",
+        "altText": "A peaceful outdoor scene with a large oak tree providing shade and creating natural frames for the composition",
+        "status": "selected"
+      },
+      {
+        "id": "photo-11",
+        "title": "Candid Laugh",
+        "category": "Studio",
+        "orientation": "Landscape",
+        "imageSource": "/images/candid-laugh.jpg",
+        "altText": "A spontaneous moment of joy captured in a studio setting with soft lighting and a warm backdrop",
+        "status": "selected"
+      },
+      {
+        "id": "photo-12",
+        "title": "Last Light",
+        "category": "Outdoor",
+        "orientation": "Portrait",
+        "imageSource": "/images/last-light.jpg",
+        "altText": "A serene outdoor scene captured during the golden hour with warm ambient lighting and natural shadows",
+        "status": "submitted"
+      }
+    ]
+  },
+  "nav": [
+    {
+      "label": "Gallery",
+      "items": [
+        {
+          "id": "gallery",
+          "label": "Gallery",
+          "kind": "list",
+          "entity": "photo"
+        },
+        {
+          "id": "my-selection",
+          "label": "My Selection",
+          "kind": "custom",
+          "purpose": "My Selection: the client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted)"
+        },
+        {
+          "id": "photo-detail",
+          "label": "Photo detail",
+          "kind": "detail",
+          "entity": "photo"
+        }
+      ]
+    }
+  ],
+  "primaryNav": [
+    "Gallery",
+    "My Selection"
+  ]
+}
