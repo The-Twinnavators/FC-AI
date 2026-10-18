@@ -13,6 +13,10 @@ import { STYLE_VIBES, vibeTokens } from "./styleVibes.js";
 import { buildPalette, contrastRatio, normalizeHex, roleTokens, type BrandColor, type NeutralTone, type StatusKind } from "./palette.js";
 
 /** The surfaces FlowCode suggests and starts from. Others need the person's explicit request for the project. */
+/** Style capture (a website, or attached images, CSS or HTML) stays off until it has consent and address/destination
+ * protections; every entry point refuses with this, and captures already made are kept. */
+export const STYLE_CAPTURE_OFF = "Style capture is turned off until it asks for consent and protects which addresses it may open. Captures already made are kept.";
+
 export const DEFAULT_SURFACES = ["flat", "skeuomorphism"] as const;
 
 export interface TypePair {

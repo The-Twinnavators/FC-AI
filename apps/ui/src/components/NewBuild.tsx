@@ -6,7 +6,7 @@
 import { SetupCard } from "./SetupCard";
 import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { NEW_BUILD_PRD_KEY } from "./PrdTemplates";
-import { AUTONOMY_LEVELS, DESIGN_TEMPLATES, scoreRequest, suggestName, type ReferenceFile } from "@flowcode/contracts";
+import { AUTONOMY_LEVELS, DESIGN_TEMPLATES, STYLE_CAPTURE_OFF, scoreRequest, suggestName, type ReferenceFile } from "@flowcode/contracts";
 
 /** D3: the choices of the last build started here, offered (never applied on their own) for the next one. */
 const LAST_KEY = "flowcode.lastBuildSettings";
@@ -133,7 +133,6 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
   const [extras, setExtras] = useState<string[]>([]);
   // Surface style: follows the chosen template's suggestion until the user picks one.
   const [vibe, setVibe] = useState<string>();
-  const [styleUrl, setStyleUrl] = useState("");
   // Extras the attached PRD already asks for start ticked (each once, so unticking sticks).
   const offered = useRef(new Set<string>());
   useEffect(() => {
@@ -230,7 +229,7 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
         coder,
         ...(refs.some((r) => r.role === "prd") ? { buildMode } : {}),
         references: refs.map(({ name: n, role, content }) => ({ name: n, role, content })),
-        look: { template: prdSetsLook(refs) ? undefined : template, extras, vibe: vibe ?? suggestedVibe(refs, prdSetsLook(refs) ? undefined : template), styleUrl: styleUrl.trim() || undefined },
+        look: { template: prdSetsLook(refs) ? undefined : template, extras, vibe: vibe ?? suggestedVibe(refs, prdSetsLook(refs) ? undefined : template), },
       });
       try {
         localStorage.setItem(LAST_KEY, JSON.stringify({ project: autoName.trim() || "your last build", template, extras, vibe, autonomy, coder, at: new Date().toISOString() } satisfies LastSettings));
@@ -416,8 +415,8 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
           <div data-guide="newbuild.look">
             <label className="nb__styleurl">
               <span className="label">Take the style from a website</span>
-              <input className="input" data-cp="nb-style-url" type="url" inputMode="url" placeholder="https://example.com (optional)" value={styleUrl} onChange={(e) => setStyleUrl(e.target.value)} />
-              <span className="muted">Its colors, fonts, corners and surfaces become your starting design. You can change all of it on the Design tab before the build starts.</span>
+              <input className="input" data-cp="nb-style-url" type="url" inputMode="url" placeholder="https://example.com" value="" disabled aria-describedby="nb-style-url-off" />
+              <span className="muted" id="nb-style-url-off">{STYLE_CAPTURE_OFF}</span>
             </label>
             <LookStep refs={refs} template={template} onTemplate={setTemplate} extras={extras} onExtras={setExtras} vibe={vibe ?? suggestedVibe(refs, prdSetsLook(refs) ? undefined : template)} onVibe={setVibe} />
           </div>

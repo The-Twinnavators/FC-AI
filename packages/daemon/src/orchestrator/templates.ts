@@ -302,7 +302,8 @@ for (const t of Object.values(TEMPLATES)) t.runtimeSteps[IMPORT_REFS] = importRe
 export const CAPTURE_STYLE = "Capture the style";
 
 /** Whether a build has something to capture a style from: a website, or attached images, CSS or HTML. */
-export const hasStyleSources = (refs: ReferenceFile[], look?: BuildLook) => !!look?.styleUrl || refs.some((r) => r.role === "image" || r.role === "css" || r.role === "html");
+// A website is never a source while style capture is off (STYLE_CAPTURE_OFF), even for a build recorded before then.
+export const hasStyleSources = (refs: ReferenceFile[], _look?: BuildLook) => refs.some((r) => r.role === "image" || r.role === "css" || r.role === "html");
 
 /**
  * Runtime step (CSSVibes style capture): the website and the attached images, CSS and HTML become the app's colours,
@@ -324,7 +325,7 @@ export async function captureStyleStep({ deps, run, task, jail, signal, onChange
   const look = deps.store.getSetting<BuildLook | undefined>(`runLook:${run.id}`, undefined);
   const files = refs.filter((r): r is ReferenceFile & { role: "image" | "html" | "css" } => r.role === "image" || r.role === "html" || r.role === "css");
   const vision = run.modelAssignments.critic ?? run.modelAssignments.planner;
-  const { style, notes } = await captureStyle({ router: deps.router, launchBrowser: () => BrowserSession.launch(run.id, deps.processes) }, { url: look?.styleUrl, files, vision }, { projectId: run.projectId, runId: run.id, signal });
+  const { style, notes } = await captureStyle({ router: deps.router, launchBrowser: () => BrowserSession.launch(run.id, deps.processes) }, { url: undefined, files, vision }, { projectId: run.projectId, runId: run.id, signal });
   if (signal.aborted) return { kind: "cancelled" };
   // The product's design direction, from the PRD and the request: applied when nothing was captured, advice otherwise.
   const prdText = refs.filter((r) => r.role === "prd" || r.role === "text").map((r) => r.content).join("\n").slice(0, 60_000);

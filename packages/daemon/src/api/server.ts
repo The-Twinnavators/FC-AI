@@ -558,6 +558,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   // One governed path for the look: colours, fonts and the surface style are changed through the project's design state
   // (draft → "Use this direction" → "Apply changes"), never written straight to the app by the older editors. The
   // Tokens tab's single-token edit stays as the explicit advanced path (the Look then shows that the app differs).
+  const STYLE_CAPTURE_DISABLED = true;
   const LOOK_ONLY = "Colours, fonts and the surface style are changed in Look (Design tab → the direction button): edit a draft there and apply it";
   const SURFACE_TRAITS = new Set(Object.keys(C.vibeTokens("flat")));
   const lookOwned = (name: string) => name.startsWith("--color-") || name.startsWith("--brand-") || name.startsWith("--neutral-") || name.startsWith("--status-") || name === "--font-display" || name === "--font-sans" || SURFACE_TRAITS.has(name);
@@ -598,6 +599,9 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   // Styles → Capture a style (CSSVibes): from a website and/or images, CSS or HTML, applied as Styles edits (undoable).
   add("GET /projects/:id/design/capture", ({ params }) => ({ last: app.store.getSetting(`styleCapture:${params.id}`, null) }));
   add("POST /projects/:id/design/capture", async ({ params, body }) => {
+    // Deferred: no consent step and no private-address/destination protection yet, and it writes colours and fonts
+    // outside the Look. Refused before anything is read or opened; the last capture (GET above) is kept.
+    if (STYLE_CAPTURE_DISABLED) throw new HttpError(403, C.STYLE_CAPTURE_OFF);
     const b = parse(
       z.object({
         url: z.string().url().max(500).refine((u) => /^https?:\/\//i.test(u), "Use an http or https address").optional(),
@@ -784,6 +788,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       }),
       body,
     );
+    if (b.look?.styleUrl) throw new HttpError(403, C.STYLE_CAPTURE_OFF);
     const total = b.references.reduce((n, r) => n + r.content.length, 0);
     if (total > 6_000_000) throw new HttpError(413, "References are larger than 6 MB in total");
     const cloud = b.coder === "cloud" ? cloudCoder() : undefined;

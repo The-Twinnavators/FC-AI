@@ -12,7 +12,7 @@ import { ExtrasPanel } from "./ExtrasPanel";
 import { DirectionEditor } from "./DirectionEditor";
 import { ComponentSheet, stylesChanged, StylesBar } from "./ComponentSheet";
 import { SurfacePanel } from "./SurfacePanel";
-import { StyleCapture } from "./StyleCapture";
+import { STYLE_CAPTURE_OFF } from "@flowcode/contracts";
 import { post, useResource } from "../api";
 import { Empty } from "./ui";
 import { SkeletonBlock } from "./motion";
@@ -64,7 +64,6 @@ function DirectionButton({ projectId, open, onToggle }: { projectId: string; ope
 
 export function StylesPanel({ projectId }: { projectId: string }) {
   const [view, setView] = useState<"tokens" | "surface" | "components" | "extras">("components");
-  const [capturing, setCapturing] = useState(false);
   const [direction, setDirection] = useState(false);
   // "Change in Look" from a Colors, Typography or Surface card opens the shared editor here.
   useEffect(() => {
@@ -95,9 +94,10 @@ export function StylesPanel({ projectId }: { projectId: string }) {
       </div>
         <div className="styles-top__actions">
           <DirectionButton projectId={projectId} open={direction} onToggle={() => setDirection((d) => !d)} />
-          <button type="button" className="btn btn--sm" data-cp="capture-open" data-cp-safe aria-expanded={capturing} onClick={() => setCapturing((c) => !c)}>
+          <button type="button" className="btn btn--sm" data-cp="capture-open" disabled aria-describedby="capture-off" title={STYLE_CAPTURE_OFF}>
             <Wand2 size={14} aria-hidden="true" /> Capture a style
           </button>
+          <span id="capture-off" className="sr-only">{STYLE_CAPTURE_OFF}</span>
         </div>
       </div>
       {direction ? (
@@ -105,7 +105,7 @@ export function StylesPanel({ projectId }: { projectId: string }) {
           <DirectionEditor projectId={projectId} where="tab" onAppearance={undefined} />
         </div>
       ) : null}
-      {capturing ? <StyleCapture projectId={projectId} onClose={() => setCapturing(false)} /> : null}
+      <p className="muted styles-capture-off">{STYLE_CAPTURE_OFF}</p>
       {view === "extras" ? <ExtrasPanel projectId={projectId} /> : view === "tokens" ? <TokensView projectId={projectId} /> : view === "surface" ? <SurfacePanel projectId={projectId} /> : <ComponentSheet projectId={projectId} />}
     </div>
   );
