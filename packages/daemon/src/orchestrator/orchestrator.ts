@@ -96,6 +96,7 @@ import { salvagePlan } from "./planSalvage.js";
 import { lookGuidance, visualDirection, type BuildLook } from "./starterIdentity.js";
 import { designTemplate, LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { extractRequirements, referencePath, summarizeReference, type Requirement } from "../quality/spec.js";
+import { attachApproval, recordPlanVersion } from "./planReview.js";
 import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchItems, groupSteps, parseBatch, planBatches, planKey, runPlanKey, runtimeItems, stepsFromGroups, uniqueIds, type LrcPlan, type PlanItem } from "../quality/lrcPlan.js";
 import { promptConfigFor } from "../quality/taskPrompt.js";
 import { isInterfaceStep, playbookFor } from "../knowledge/designPlaybook.js";
@@ -646,24 +647,29 @@ export class Orchestrator {
       plan = { ...plan, risk: "medium", riskNotes: [...plan.riskNotes, "Raised to medium by runtime: touches protected files or dependencies"] };
       run = this.d.store.runs.upsert({ ...this.d.store.runs.require(runId), plan });
     }
+    // Every proposed plan is a version of this build's plan (Request changes makes the next one); its approval names it.
+    const version = recordPlanVersion(this.d, runId, plan);
     // FR-A2: medium/high-risk plans need approval unless the project's autonomy level covers them.
     const level = project.settings.autonomy;
     const autoReason = plan.scopeDecisions?.length ? undefined : autoApprovalReason(level, { kind: "plan", risk: plan.risk, action: plan.goal, affected: plan.expectedChanges });
     if (autoReason) {
       return this.approvePlan(runId, `auto-approved by ${level} policy: ${autoReason}`);
     }
-    this.d.approvals.request({
+    const planApproval = this.d.approvals.request({
+      planVersion: version.version,
+      planHash: version.hash,
       projectId: project.id,
       runId,
       kind: "plan",
-      action: `Approve implementation plan: ${plan.goal}`,
+      action: `Approve implementation plan${version.version > 1 ? ` (version ${version.version})` : ""}: ${plan.goal}`,
       reason: `${plan.tasks.length} tasks; risk ${plan.risk}${plan.riskNotes.length ? ` (${plan.riskNotes.join("; ")})` : ""}${plan.scopeDecisions?.length ? `; ${plan.scopeDecisions.length} scope decision${plan.scopeDecisions.length === 1 ? "" : "s"} for you` : ""}`,
       affected: plan.expectedChanges,
       risk: plan.risk,
       detail: renderPlan(plan),
       consequencesOfDenial: "Nothing is changed. You can edit the request and re-plan.",
     });
-    this.d.bus.emit({ type: "phase.completed", projectId: project.id, runId, message: "Planning complete; awaiting plan approval", data: { phase: "planning" } });
+    attachApproval(this.d, runId, version.version, planApproval.id);
+    this.d.bus.emit({ type: "phase.completed", projectId: project.id, runId, message: `Planning complete; awaiting approval of plan version ${version.version}`, data: { phase: "planning", planVersion: version.version } });
     return this.setStatus(runId, "awaiting_approval", "Plan ready for review");
   }
 

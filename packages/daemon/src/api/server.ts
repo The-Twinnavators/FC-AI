@@ -37,6 +37,7 @@ import { listTree, readFile, searchWorkspace, gitStatus } from "../workspace/fil
 import { repositoryMap, renderRepositoryMap } from "../knowledge/skills.js";
 import { redact } from "../security/redaction.js";
 import { PolicyError } from "../security/pathJail.js";
+import { PlanReviewError, approvePlanVersion, pendingPlanApproval, planApprovalKey, planVersions, requestPlanChanges } from "../orchestrator/planReview.js";
 import { NotFoundError } from "../db/db.js";
 import { ModelRouter } from "../models/router.js";
 import { aiEngine, checkNetwork, environment, systemHealth, toolCatalog } from "./system.js";
@@ -809,7 +810,16 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     const b = parse(z.object({ description: z.string().max(20_000), roles: z.array(z.string()).default([]) }), body);
     return { ...C.scoreRequest(b.description, b.roles), suggestedName: C.suggestName(b.description) };
   });
-  add(R.approvePlan, ({ params }) => app.orchestrator.approvePlan(params.id));
+  // Approving a plan goes through the same checks as the approvals path: the version, the gate and the look reviewed.
+  add(R.approvePlan, ({ params, body }) => {
+    const a = pendingPlanApproval(app, params.id);
+    if (!a) throw new HttpError(409, "No plan is waiting for your approval in this build.");
+    return decideApproval(a.id, parse(C.ApprovalDecisionInput, { decision: "once", ...(body ?? {}) }));
+  });
+  // Request changes to the plan waiting for approval (before any step starts): a new version, a fresh approval.
+  add("POST /runs/:id/plan/request-changes", ({ params, body }) => requestPlanChanges(app, params.id, parse(z.object({ request: z.string().trim().min(3).max(8000), planVersion: z.number().int().positive(), planHash: z.string().max(80) }), body)));
+  // The build's plan versions (old ones kept with the request that replaced them), and what an approval bound to.
+  add("GET /runs/:id/plan/versions", ({ params }) => ({ versions: planVersions(app, params.id), approval: app.store.getSetting(planApprovalKey(params.id), null), pendingApprovalId: pendingPlanApproval(app, params.id)?.id ?? null }));
   add(R.startRun, ({ params }) => app.orchestrator.start(params.id));
   // Cancelling always records why (the builder sends "you stopped it"; scripts and FlowCode itself say what they did).
   add(R.cancelRun, ({ params, body }) => app.orchestrator.cancel(params.id, parse(z.object({ reason: z.string().max(500).optional() }), body ?? {}).reason));
@@ -851,7 +861,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     secondary: z.string().max(20).optional(),
     tertiary: z.string().max(20).optional(),
     gradient: z.boolean().optional(),
-    status: z.record(z.enum(["success", "warning", "error", "info"]), z.string().max(20)).optional(),
+    // Any of the four may be set on its own (a record keyed by an enum requires every key in zod 4).
+    status: z.partialRecord(z.enum(["success", "warning", "error", "info"]), z.string().max(20)).optional(),
     fonts: z.object({ display: z.string().max(60), body: z.string().max(60) }),
     motion: z.object({ level: z.enum(C.MOTION_LEVELS), expressive: z.array(z.enum(C.EXPRESSIVE_FEATURES)).max(6).optional() }).optional(),
   });
@@ -1198,12 +1209,25 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     const a = app.store.approvals.require(id);
     // Approval binds to the exact action the person reviewed: a changed or already-decided action is refused.
     if (b.action !== undefined && b.action !== a.action) throw new HttpError(409, "This approval's action changed since you looked at it. Review it again.");
+    // A decision meant for one gate never decides another (a late press landing on the next card, say).
+    if (b.kind !== undefined && b.kind !== a.kind) throw new PlanReviewError(`This decision was meant for a ${b.kind} approval, not this ${a.kind} approval.`, "wrong_gate");
+    // A superseded plan version explains itself (which version replaced it).
+    if (a.status === "superseded" && a.kind === "plan") approvePlanVersion(app, a, b);
     if (a.status !== "pending") throw new HttpError(409, `This approval was already ${a.status}.`);
-    try {
-      logDecision(app, { kind: "approval", actor: "user", summary: `${b.decision === "deny" ? "Denied" : b.decision === "project" ? "Approved for this project" : "Approved once"}: ${a.action.slice(0, 200)}`, ...(b.note ? { reason: b.note.slice(0, 300) } : {}), projectId: a.projectId, ...(a.runId ? { runId: a.runId } : {}), ref: `approval:${a.id}` });
-    } catch {
-      // Never blocks the decision.
+    const log = (summary: string) => {
+      try {
+        logDecision(app, { kind: "approval", actor: "user", summary, ...(b.note ? { reason: b.note.slice(0, 300) } : {}), projectId: a.projectId, ...(a.runId ? { runId: a.runId } : {}), ref: `approval:${a.id}` });
+      } catch {
+        // Never blocks the decision.
+      }
+    };
+    // A plan approval is checked (version, gate, look) before anything is recorded as approved.
+    if (a.kind === "plan" && !a.taskId && b.decision !== "deny") {
+      const bound = approvePlanVersion(app, a, b);
+      log(`Approved plan version ${bound.planVersion} (${bound.look.version ? `look version ${bound.look.version}` : "base styling"}): ${a.action.slice(0, 200)}`);
+      return { ...app.store.approvals.require(a.id), bound };
     }
+    log(`${b.decision === "deny" ? "Denied" : b.decision === "project" ? "Approved for this project" : "Approved once"}: ${a.action.slice(0, 200)}`);
     // The review step's approval ("Review the prototype plan and the design"): the waiting step continues, or the
     // build stops if it's denied.
     if (a.kind === "plan" && a.taskId) {
@@ -1211,7 +1235,6 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       if (b.decision === "deny") void Promise.resolve(app.orchestrator.cancel(a.runId!, "prototype plan not approved")).catch(() => undefined);
       return decided;
     }
-    if (a.kind === "plan" && b.decision !== "deny") return app.orchestrator.approvePlan(a.runId!, "user");
     if (a.kind === "plan" && b.decision === "deny") {
       app.approvals.decide(a.id, "deny", b.note);
       return app.orchestrator.cancel(a.runId!, "plan denied");
@@ -1758,8 +1781,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       const out = await route.h({ params, query: url.searchParams, body, req, res });
       if (out !== SENT) json(res, 200, out ?? { ok: true });
     } catch (err) {
-      const status = err instanceof HttpError ? err.status : err instanceof DeadlinePassedError ? 409 : err instanceof PolicyError ? 403 : err instanceof NotFoundError ? 404 : err instanceof SyntaxError ? 400 : 500;
-      json(res, status, { error: sanitizeError(err) });
+      const status = err instanceof HttpError ? err.status : err instanceof DeadlinePassedError || err instanceof PlanReviewError ? 409 : err instanceof PolicyError ? 403 : err instanceof NotFoundError ? 404 : err instanceof SyntaxError ? 400 : 500;
+      json(res, status, { error: sanitizeError(err), ...(err instanceof PlanReviewError ? { code: err.code } : {}) });
     }
   });
   await new Promise<void>((resolve) => server.listen(opts.port ?? 0, opts.host ?? "127.0.0.1", resolve));

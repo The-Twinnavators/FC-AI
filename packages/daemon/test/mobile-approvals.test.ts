@@ -41,6 +41,13 @@ describe("phone approvals", () => {
       // Only Allow once or Deny.
       expect((await fetch(`${base}/api/approvals/${a.id}`, { method: "POST", headers: { "x-flowcode-key": key }, body: JSON.stringify({ decision: "project" }) })).status).toBe(400);
       expect((await fetch(`${base}/api/approvals/${a.id}`, { method: "POST", headers: { "x-flowcode-key": key }, body: JSON.stringify({ decision: "once" }) })).status).toBe(200);
+      // A plan is approved only on the plan card (version and look shown), never from the phone; it can be denied there.
+      const plan = app.approvals.request({ projectId: project.id, runId: run.id, kind: "plan", action: "Approve implementation plan: x", reason: "r", affected: [], risk: "medium", consequencesOfDenial: "-", planVersion: 1, planHash: "0123456789abcdef" });
+      const refused = await fetch(`${base}/api/approvals/${plan.id}`, { method: "POST", headers: { "x-flowcode-key": key }, body: JSON.stringify({ decision: "once" }) });
+      expect(refused.status).toBe(409);
+      expect(((await refused.json()) as { error: string }).error).toMatch(/plan card/);
+      expect(app.store.approvals.require(plan.id).status).toBe("pending");
+      app.approvals.decide(plan.id, "deny", "test cleanup");
       expect(decided).toEqual([{ id: a.id, decision: "once" }]);
       expect(app.approvals.pending()).toEqual([]);
       // Installs as an app: the manifest opens the page with its key; the service worker shows pushes.

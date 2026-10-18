@@ -144,7 +144,14 @@ export function createMobileApprovals(app: App, decide: (id: string, input: C.Ap
       if (req.method === "POST" && m) {
         const decision = (await readBody(req)).decision;
         if (decision !== "once" && decision !== "deny") return json(400, { error: "Choose Allow once or Deny." });
-        decide(m[1], { decision, note: "Decided from phone" });
+        // A plan is approved where its version and look are shown (the plan card in FlowCode), never from this list.
+        const target = app.store.approvals.get(m[1]);
+        if (decision === "once" && target?.kind === "plan" && !target.taskId) return json(409, { error: "Approve plans in FlowCode, on the plan card: it shows the plan version and the look the approval is bound to. You can deny it here." });
+        try {
+          decide(m[1], { decision, note: "Decided from phone" });
+        } catch (err) {
+          return json(409, { error: (err as Error).message });
+        }
         return json(200, { ok: true });
       }
       // Why a build stopped: the same troubleshooter as the desktop's "Why it's blocked" panel.

@@ -53,6 +53,8 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    /** A machine-readable reason the daemon gives for some refusals (e.g. a superseded plan version). */
+    readonly code?: string,
   ) {
     super(message);
   }
@@ -66,7 +68,7 @@ export async function api<T = unknown>(method: "GET" | "POST", path: string, bod
   });
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;
-  if (!res.ok) throw new ApiError(res.status, (data as { error?: string } | null)?.error ?? `HTTP ${res.status}`);
+  if (!res.ok) throw new ApiError(res.status, (data as { error?: string } | null)?.error ?? `HTTP ${res.status}`, (data as { code?: string } | null)?.code);
   return data as T;
 }
 

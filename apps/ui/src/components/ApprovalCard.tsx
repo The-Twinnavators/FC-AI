@@ -1,5 +1,5 @@
 /** Approval card (§14.4): exact action, reason, affected items, risk, diff, scope choices, consequences. */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { approvalForYou, type Approval } from "@flowcode/contracts";
 import { post } from "../api";
 import { Icon, UnifiedDiff, ErrorNotice } from "./ui";
@@ -7,13 +7,24 @@ import { navigate } from "../router";
 import { RobotHead, ROLE_COLOR } from "./RobotHead";
 import { HomeConcepts } from "./HomeConcepts";
 import { DirectionEditor } from "./DirectionEditor";
+import { PlanReview } from "./PlanReview";
 
 /**
  * `savedTo`: where a saved idea goes, so the card can say so before it leaves: "project" (its project's Suggestions
  * tab, from the Approvals page) or "below" (the Saved for later list on the same tab).
  */
-export function ApprovalCard({ approval, onDecided, savedTo = "project" }: { approval: Approval; onDecided?: () => void; savedTo?: "project" | "below" }) {
+/** How long a newly shown decision waits before its buttons work: a press meant for the card before can't decide it. */
+const ARM_MS = 1200;
+const GATE_LABEL: Record<string, string> = { dependency_install: "Execution permission: install dependencies", command: "Execution permission: run a command", file_operation: "Execution permission: change a file", plan: "Plan" };
+
+export function ApprovalCard({ approval, onDecided, savedTo = "project" }: { approval: Approval; onDecided?: (result?: { bound?: { planVersion: number; planHash: string; look: { version: number | null; choice: "selected" | "base" | "use-edits" | "discard-edits" } }; requested?: boolean }) => void; savedTo?: "project" | "below" }) {
   const [busy, setBusy] = useState(false);
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    setArmed(false);
+    const t = window.setTimeout(() => setArmed(true), ARM_MS);
+    return () => window.clearTimeout(t);
+  }, [approval.id]);
   // After Save for later or Dismiss: the idea card turns into a short note saying what happened, then fades away.
   const [note, setNote] = useState<{ kind: "saved" | "dismissed"; leaving: boolean }>();
   const playNote = (kind: "saved" | "dismissed") => {
@@ -29,7 +40,8 @@ export function ApprovalCard({ approval, onDecided, savedTo = "project" }: { app
     setError(undefined);
     try {
       // The exact action shown is sent back: if the record changed since, the decision is refused.
-      const res = await post<{ followUpRunId?: string }>(`/approvals/${approval.id}/decision`, { decision, action: approval.action });
+      // The gate's kind goes with the decision: one meant for another gate is refused.
+      const res = await post<{ followUpRunId?: string }>(`/approvals/${approval.id}/decision`, { decision, action: approval.action, kind: approval.kind });
       if (approval.kind === "enhancement_idea" && decision === "deny") return playNote("dismissed");
       onDecided?.();
       // An accepted idea becomes a follow-up request: go and watch it.
@@ -139,6 +151,8 @@ export function ApprovalCard({ approval, onDecided, savedTo = "project" }: { app
       </article>
     );
   }
+  // A build's plan: reviewed step by step, approved bound to its version and look, or sent back with changes.
+  if (approval.kind === "plan" && !approval.taskId && approval.runId) return <PlanReview approval={approval} onDecided={onDecided} />;
   const isDiff = approval.detail?.startsWith("===") || approval.detail?.includes("\n@@");
   const forYou = approvalForYou(approval);
   const canPersist = !!approval.persistKey && approval.kind !== "plan";
@@ -146,7 +160,7 @@ export function ApprovalCard({ approval, onDecided, savedTo = "project" }: { app
     <article className="approval reveal" aria-labelledby={`apr-${approval.id}`}>
       <header className="approval__head">
         <span className={`chip ${approval.risk === "high" ? "chip--bad" : "chip--warn"}`}>{approval.risk} risk</span>
-        <span className="label">{approval.kind.replace(/_/g, " ")}</span>
+        <span className="label">{GATE_LABEL[approval.kind] ?? approval.kind.replace(/_/g, " ")}</span>
         <span className="label" style={{ marginLeft: "auto" }}>
           awaiting decision
         </span>
@@ -199,11 +213,11 @@ export function ApprovalCard({ approval, onDecided, savedTo = "project" }: { app
         ) : null}
       </div>
       <footer className="approval__actions">
-        <button className="btn btn--primary" data-cp="approval-allow" disabled={busy} onClick={() => decide("once")}>
+        <button className="btn btn--primary" data-cp="approval-allow" disabled={busy || !armed} onClick={() => decide("once")}>
           {approval.kind === "plan" ? "Approve plan" : "Allow once"}
         </button>
         {canPersist ? (
-          <button className="btn" disabled={busy} onClick={() => decide("project")}>
+          <button className="btn" disabled={busy || !armed} onClick={() => decide("project")}>
             Allow for project
           </button>
         ) : null}
@@ -213,9 +227,14 @@ export function ApprovalCard({ approval, onDecided, savedTo = "project" }: { app
             <Icon name="checklist" size={14} /> Open the Prototype plan
           </button>
         ) : null}
-        <button className="btn btn--danger" disabled={busy} onClick={() => decide("deny")}>
+        <button className="btn btn--danger" disabled={busy || !armed} onClick={() => decide("deny")}>
           Deny
         </button>
+        {!armed ? (
+          <span className="approval__hint" role="status">
+            A new decision: read it first.
+          </span>
+        ) : null}
       </footer>
     </article>
   );

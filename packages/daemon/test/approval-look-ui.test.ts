@@ -120,7 +120,8 @@ describe.skipIf(SKIP)("the look on the real approval cards (UI)", () => {
     expect(app.store.runs.require(run.id).status).toBe("awaiting_approval");
     const page = await openRun(project.id, run.id);
     const modal = page.locator(".approval-modal");
-    // The shared editor is on the plan card, and the actions stay in view in a short window.
+    // The shared editor is on the plan card (its Look step), and the actions stay in view in a short window.
+    await modal.locator(".plan-review__steps button", { hasText: "Look and layout" }).click();
     await modal.locator("section.ds[aria-label='Look']").waitFor({ timeout: 20_000 });
     expect(await inView(page, ".approval-modal button:has-text('Approve plan')")).toBe(true);
     expect(await inView(page, ".approval-modal button:has-text('Deny')")).toBe(true);
@@ -136,6 +137,7 @@ describe.skipIf(SKIP)("the look on the real approval cards (UI)", () => {
     await page.close();
     const again = await openRun(project.id, run.id);
     const m2 = again.locator(".approval-modal");
+    await m2.locator(".plan-review__steps button", { hasText: "Look and layout" }).click();
     await m2.locator("section.ds").waitFor();
     // (The card is also in the run panel: before each copy had its own radio group, this one showed nothing checked.)
     expect(await m2.getByRole("radio", { name: /Tactile/ }).isChecked()).toBe(true);
@@ -146,7 +148,7 @@ describe.skipIf(SKIP)("the look on the real approval cards (UI)", () => {
     await m2.locator(".ds__msg", { hasText: "Approving the plan uses this direction" }).waitFor({ timeout: 10_000 });
     expect(getDesignState(app.store, project.id).selected).toMatchObject({ version: 1, appearance: { surface: "skeuomorphism" } });
     // Approve the plan by keyboard: it settles the confirmed direction (no unconfirmed edits).
-    const approve = await tabTo(again, /^Approve plan$/);
+    const approve = await tabTo(again, /^Approve plan version 1$/);
     expect(approve).toEqual({ reached: true, visible: true });
     await again.keyboard.press("Enter");
     await new Promise((r) => setTimeout(r, 1500));

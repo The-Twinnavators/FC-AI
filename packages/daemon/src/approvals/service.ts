@@ -21,6 +21,9 @@ export interface ApprovalRequest {
   detail?: string;
   consequencesOfDenial: string;
   persistKey?: string;
+  /** A plan approval's plan version and content hash (orchestrator/planReview.ts). */
+  planVersion?: number;
+  planHash?: string;
 }
 
 export class ApprovalService {
@@ -57,6 +60,7 @@ export class ApprovalService {
       consequencesOfDenial: req.consequencesOfDenial,
       status: "pending",
       persistKey: req.persistKey,
+      ...(req.planVersion !== undefined ? { planVersion: req.planVersion, planHash: req.planHash } : {}),
       createdAt: nowIso(),
     };
     this.store.approvals.upsert(approval);

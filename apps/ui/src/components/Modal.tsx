@@ -21,6 +21,8 @@ export function Modal({ onClose, labelledBy, className, children }: { onClose: (
     if (!box.current?.contains(document.activeElement)) box.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        // An open popover inside (a colour picker) closes first; the pop-up stays.
+        if (box.current?.querySelector("[data-own-escape]")) return;
         e.stopPropagation();
         close.current();
       } else if (e.key === "Tab" && box.current) {

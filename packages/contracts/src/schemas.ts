@@ -531,8 +531,12 @@ export const Approval = z.object({
   risk: RiskLevel,
   detail: z.string().optional(),
   consequencesOfDenial: z.string(),
-  status: z.enum(["pending", "approved", "denied", "expired"]),
+  /** "superseded": a plan approval replaced by a revised plan version (Request changes); it can no longer be decided. */
+  status: z.enum(["pending", "approved", "denied", "expired", "superseded"]),
   decisionScope: ApprovalScope.optional(),
+  /** A plan approval binds to one plan version and its content hash (Request changes makes a new version). */
+  planVersion: z.number().int().positive().optional(),
+  planHash: z.string().max(80).optional(),
   persistKey: z.string().optional(),
   /** An idea kept for later: still pending, listed under "Saved for later" until built or dismissed. */
   savedForLater: z.boolean().optional(),
@@ -550,6 +554,18 @@ export const ApprovalDecisionInput = z.object({
   note: z.string().max(2000).optional(),
   /** The exact action the person saw. If it no longer matches the record, the decision is refused. */
   action: z.string().max(20_000).optional(),
+  /** The kind of gate the person was deciding (a plan, a dependency install…): a decision meant for one gate never decides another. */
+  kind: z.string().max(40).optional(),
+  /** For a plan: the version and content hash the person reviewed. A superseded or changed plan is refused. */
+  planVersion: z.number().int().positive().optional(),
+  planHash: z.string().max(80).optional(),
+  /**
+   * For a plan: the look the approval binds to. `lookVersion` is the selected direction's version the person saw (0 for
+   * none). With unconfirmed edits on the Look, `look` must say what to do with them: "use-edits" (they become the
+   * selected direction, then approved), "discard-edits" (approve the selected direction or base styling as shown).
+   */
+  lookVersion: z.number().int().min(0).optional(),
+  look: z.enum(["use-edits", "discard-edits"]).optional(),
 });
 export type ApprovalDecisionInput = z.infer<typeof ApprovalDecisionInput>;
 

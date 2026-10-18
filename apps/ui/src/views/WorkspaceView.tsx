@@ -17,6 +17,8 @@ import { PreviewSizes, PreviewThemeToggle, deviceWidth, storePreviewTheme, store
 import type { Approval, Checkpoint, CommandRecord, FlowEvent, KnowledgeItem, PreflightRecord, Project, Run, Snapshot, Task, VerificationCheck } from "@flowcode/contracts";
 import { artifactUrl, get, post, useEventStream, useResource } from "../api";
 import { ApprovalCard } from "../components/ApprovalCard";
+import { PlanApproved } from "../components/PlanReview";
+import { PlanStatusLine } from "../components/PlanStatusLine";
 import { SkeletonBlock } from "../components/motion";
 import { ResizeHandle, usePersistedWidth } from "../components/ResizeHandle";
 import { ProjectChat } from "../components/ProjectChat";
@@ -203,6 +205,9 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
   // Improvement ideas are suggestions, not permission requests, and stay in the Overview. Closing the modal leaves the
   // "Needs you" chip, so the plan can be read before deciding; the next pending approval then opens.
   const [approvalsDismissed, setApprovalsDismissed] = useState<string[]>([]);
+  // After a plan is approved: what was approved stays on screen until the person opens the next decision or closes it,
+  // so a late or repeated press can't land on the next gate.
+  const [planAck, setPlanAck] = useState<{ planVersion: number; planHash: string; look: { version: number | null; choice: "selected" | "base" | "use-edits" | "discard-edits" } }>();
   const blockingApproval = pendingApprovals.find((a) => a.kind !== "enhancement_idea" && !approvalsDismissed.includes(a.id));
   const changedPaths = useMemo(() => new Set(view?.snapshots.filter((s) => !s.restoredAt).map((s) => s.relativePath) ?? []), [view?.snapshots]);
   const project = projectRes.data?.project;
@@ -318,9 +323,20 @@ export function WorkspaceView({ projectId, runId, announce }: { projectId: strin
 
   return (
     <div className={`ws${wsLayout.layout.strip === "top" ? " ws--strip-top" : ""}`} style={wsLayout.style}>
-      {blockingApproval ? (
-        <Modal onClose={() => setApprovalsDismissed((d) => [...d, blockingApproval.id])} className="approval-modal" labelledBy={`apr-${blockingApproval.id}`}>
-          <ApprovalCard approval={blockingApproval} onDecided={() => runRes.reload()} />
+      {planAck ? (
+        <Modal onClose={() => (setPlanAck(undefined), blockingApproval && setApprovalsDismissed((d) => [...d, blockingApproval.id]))} className="approval-modal approval-modal--wide" labelledBy="plan-approved-h">
+          <PlanApproved bound={planAck} next={blockingApproval} onNext={() => setPlanAck(undefined)} onClose={() => (setPlanAck(undefined), blockingApproval && setApprovalsDismissed((d) => [...d, blockingApproval.id]))} />
+        </Modal>
+      ) : blockingApproval ? (
+        <Modal onClose={() => setApprovalsDismissed((d) => [...d, blockingApproval.id])} className={`approval-modal${blockingApproval.kind === "plan" && !blockingApproval.taskId ? " approval-modal--wide" : ""}`} labelledBy={`apr-${blockingApproval.id}`}>
+          <ApprovalCard
+            key={blockingApproval.id}
+            approval={blockingApproval}
+            onDecided={(r) => {
+              if (r?.bound) setPlanAck(r.bound);
+              runRes.reload();
+            }}
+          />
         </Modal>
       ) : null}
       <section className="ws__col" data-guide="ws.files" data-panel="files" style={{ order: wsLayout.orderOf("files") }} aria-label="Files and knowledge">
@@ -868,6 +884,7 @@ function RunPanel({ view, events, onChanged, onFollowUp }: { view: RunView; even
                   <Icon name="edit" size={13} /> Edit as follow-up
                 </button>
               )}
+              <PlanStatusLine runId={run.id} status={run.status} />
               {view.coder.ok ? (
                 // The coder on the same row as the edit button; its test result is in the tooltip.
                 <span className="muted run-head__coder" title={view.coder.reason}>

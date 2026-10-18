@@ -1,11 +1,24 @@
 /**
  * A color picker: the swatch opens a popover with a saturation/brightness square, a hue slider, the hex value and
  * the palette's own colors as quick picks. Dragging, arrow keys and typing a hex all work; changes are live.
+ *
+ * The popover opens fully inside the area that scrolls around it (a pop-up's body, the page): left or right of the
+ * swatch, below or above it, whichever fits, and brought into view once if the window is too short. A popover that
+ * opened partly outside a scrolling pop-up couldn't be pressed: the press landed on the backdrop and closed the pop-up.
  */
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { normalizeHex } from "@flowcode/contracts";
 
 type Hsv = { h: number; s: number; v: number };
+
+/** The nearest ancestor that scrolls (its box is what the popover must stay inside), or none for the window. */
+function scrollParent(el: HTMLElement | null): HTMLElement | null {
+  for (let p = el?.parentElement; p; p = p.parentElement) {
+    const s = getComputedStyle(p);
+    if (/(auto|scroll)/.test(s.overflowY + s.overflowX)) return p;
+  }
+  return null;
+}
 
 function hexToHsv(hex: string): Hsv {
   const n = parseInt((normalizeHex(hex) ?? "#000000").slice(1), 16);
@@ -30,7 +43,25 @@ export function ColorPicker({ value, onChange, label, swatches = [] }: { value: 
   const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(hex));
   const [text, setText] = useState(hex);
   const box = useRef<HTMLDivElement>(null);
+  const pop = useRef<HTMLDivElement>(null);
+  const [place, setPlace] = useState<{ x: "start" | "end"; y: "below" | "above" }>({ x: "start", y: "below" });
   const id = useId();
+  useLayoutEffect(() => {
+    const el = pop.current;
+    const anchor = box.current;
+    if (!open || !el || !anchor) return;
+    const sp = scrollParent(anchor);
+    const b = sp ? sp.getBoundingClientRect() : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+    const a = anchor.getBoundingClientRect();
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const x = a.left + w <= b.right ? "start" : a.right - w >= b.left ? "end" : "start";
+    const below = a.bottom + 8 + h <= b.bottom;
+    const above = a.top - 8 - h >= b.top;
+    setPlace({ x, y: below || !above ? "below" : "above" });
+    // Still not fully visible (a short window): scroll it into view once, now, before anything is pressed.
+    requestAnimationFrame(() => pop.current?.scrollIntoView({ block: "nearest", inline: "nearest" }));
+  }, [open]);
 
   // Follow outside changes (another control, a palette pick) without losing the hue of grays while dragging.
   useEffect(() => {
@@ -90,7 +121,7 @@ export function ColorPicker({ value, onChange, label, swatches = [] }: { value: 
       <button type="button" className="cpick__swatch" style={{ background: hex }} aria-label={`${label}: ${hex}. Open the color picker`} aria-expanded={open} aria-controls={id} onClick={() => setOpen((o) => !o)} />
       <input className="input mono cpick__hex" value={text} aria-label={`${label} hex value`} maxLength={7} onChange={(e) => typed(e.target.value)} onBlur={() => setText(hex)} />
       {open ? (
-        <div className="cpick__pop" id={id} role="dialog" aria-label={`${label} color picker`}>
+        <div ref={pop} className="cpick__pop" data-own-escape data-x={place.x} data-y={place.y} id={id} role="dialog" aria-label={`${label} color picker`}>
           <div
             className="cpick__sv"
             style={{ background: `hsl(${hsv.h} 100% 50%)` }}
