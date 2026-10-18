@@ -1,6 +1,7 @@
 /** Where a notification leads: a route, optionally the run's Overview, with a short label for the link. */
 export type AnnounceLink = { href?: string; overview?: boolean; linkLabel?: string };
 import { AboutView } from "./views/AboutView";
+import { WalkthroughView } from "./views/WalkthroughView";
 import { JournalView } from "./views/JournalView";
 import { ApprovalsView } from "./views/ApprovalsView";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -341,6 +342,7 @@ export function App() {
         {section === "settings" && <SettingsView projects={projects.data ?? []} />}
         {section === "guide" && <GuideView />}
         {section === "about" && <AboutView />}
+        {section === "walkthrough" && <WalkthroughView />}
         {section === "system" && <SystemView key={route.parts[1] ?? "health"} tab={route.parts[1] as never} />}
         {section === "agents" && <AgentsView />}
         {section === "approvals" && <ApprovalsView projects={projects.data ?? []} projectsLoaded={!!projects.data} />}

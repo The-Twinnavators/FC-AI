@@ -9,6 +9,8 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
       { path: "/discover", icon: "write", label: "Create PRD" },
       // Everything waiting on you, and the decision log.
       { path: "/approvals", icon: "thumbsUp", label: "Approvals" },
+      // The end-to-end experience, told with the Frameproof build (real parts labelled; the rest says what it is).
+      { path: "/walkthrough", icon: "play", label: "Walkthrough" },
     ],
   },
   {
