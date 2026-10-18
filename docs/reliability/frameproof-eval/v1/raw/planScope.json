@@ -1,0 +1,53 @@
+{
+  "capabilities": [
+    {
+      "capability": "categories",
+      "status": "in scope",
+      "source": "prd",
+      "quote": "Category filters"
+    },
+    {
+      "capability": "places",
+      "status": "not requested",
+      "source": "not asked for"
+    },
+    {
+      "capability": "lists",
+      "status": "not requested",
+      "source": "not asked for"
+    },
+    {
+      "capability": "ratings",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "- Ratings or social comments."
+    },
+    {
+      "capability": "comments",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "- Ratings or social comments."
+    },
+    {
+      "capability": "sharing",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "- Public sharing."
+    },
+    {
+      "capability": "likes",
+      "status": "in scope",
+      "source": "prd",
+      "quote": "like"
+    }
+  ],
+  "revisions": [],
+  "noMarketing": false,
+  "navigation": [],
+  "dataSections": [
+    "data model and sample content",
+    "gallery",
+    "photo records"
+  ],
+  "conflicts": []
+}

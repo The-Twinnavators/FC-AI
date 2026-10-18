@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "label": "Scope: required behaviour, supporting data and left-out capabilities agree in every step",
+    "ok": true,
+    "problems": []
+  },
+  {
+    "id": 2,
+    "label": "Home: a product-discovery page, no marketing funnel",
+    "ok": true,
+    "problems": []
+  },
+  {
+    "id": 3,
+    "label": "Tests: what a person sees, not internal names or placeholder phrases",
+    "ok": true,
+    "problems": []
+  },
+  {
+    "id": 4,
+    "label": "Save journey: complete, with its starting sign-in state",
+    "ok": true,
+    "problems": []
+  },
+  {
+    "id": 5,
+    "label": "Data owners: one for records, one for saved state",
+    "ok": true,
+    "problems": []
+  },
+  {
+    "id": 6,
+    "label": "Look: stated as selected, proposed or none; no implied design approval",
+    "ok": true,
+    "problems": []
+  }
+]

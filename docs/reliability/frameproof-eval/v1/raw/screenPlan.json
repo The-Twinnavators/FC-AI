@@ -1,0 +1,47 @@
+{
+  "product": "Frameproof",
+  "screens": [
+    {
+      "id": "gallery-list",
+      "label": "Gallery",
+      "component": "GalleryListScreen",
+      "file": "src/screens/GalleryListScreen.tsx",
+      "purpose": "Gallery: the every record, to find and act on"
+    },
+    {
+      "id": "my-selection",
+      "label": "My Selection",
+      "component": "MySelectionScreen",
+      "file": "src/screens/MySelectionScreen.tsx",
+      "purpose": "My Selection: the every record, to find and act on"
+    },
+    {
+      "id": "new-gallery",
+      "label": "New gallery",
+      "component": "NewGalleryScreen",
+      "file": "src/screens/NewGalleryScreen.tsx",
+      "purpose": "New gallery: the step-by-step form for a new record"
+    },
+    {
+      "id": "gallery-detail",
+      "label": "Gallery detail",
+      "component": "GalleryDetailScreen",
+      "file": "src/screens/GalleryDetailScreen.tsx",
+      "purpose": "Gallery detail: the one record, its status and history"
+    },
+    {
+      "id": "new-photo",
+      "label": "New photo",
+      "component": "NewPhotoScreen",
+      "file": "src/screens/NewPhotoScreen.tsx",
+      "purpose": "New photo: the step-by-step form for a new record"
+    },
+    {
+      "id": "photo-detail",
+      "label": "Photo detail",
+      "component": "PhotoDetailScreen",
+      "file": "src/screens/PhotoDetailScreen.tsx",
+      "purpose": "Photo detail: the one record, its status and history"
+    }
+  ]
+}

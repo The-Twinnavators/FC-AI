@@ -1,0 +1,3493 @@
+[
+  {
+    "id": "evt_a8cc0ddccf2049c9b45f",
+    "type": "run.created",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Run created: Frameproof: build the attached PRD as a complete working prototype.",
+    "data": {
+      "kind": "spec_build"
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:03.845Z",
+    "seq": 1
+  },
+  {
+    "id": "evt_6cbfa8fe87574db78c21",
+    "type": "preflight.started",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Preflight started for Frameproof",
+    "data": {},
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:03.847Z",
+    "seq": 2
+  },
+  {
+    "id": "evt_36ca20e4e9d7438a823d",
+    "type": "preflight.blocked",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Preflight blocked: workspace is empty or incomplete",
+    "data": {
+      "preflightId": "pf_ffb0a6e3ee874ac1ab2f",
+      "projectType": "incomplete",
+      "allowedChecks": []
+    },
+    "level": "warning",
+    "createdAt": "2026-10-18T12:54:03.852Z",
+    "seq": 3
+  },
+  {
+    "id": "evt_143c60f1290b41f895ea",
+    "type": "phase.started",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Phase: preflight & planning",
+    "data": {
+      "phase": "planning"
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:03.863Z",
+    "seq": 5
+  },
+  {
+    "id": "evt_76827447d0374836b576",
+    "type": "preflight.started",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Preflight started for Frameproof",
+    "data": {},
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:03.863Z",
+    "seq": 6
+  },
+  {
+    "id": "evt_94dcbad76bd348558c59",
+    "type": "preflight.blocked",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Preflight blocked: workspace is empty or incomplete",
+    "data": {
+      "preflightId": "pf_53e7784efeda415c8fe6",
+      "projectType": "incomplete",
+      "allowedChecks": []
+    },
+    "level": "warning",
+    "createdAt": "2026-10-18T12:54:03.867Z",
+    "seq": 7
+  },
+  {
+    "id": "evt_cbf273ef99fb4b089ddb",
+    "type": "verification.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "project_preflight: passed — incomplete; 0 scripts; preview none",
+    "data": {
+      "checkId": "chk_d45b80ecfb6d49049406",
+      "kind": "project_preflight",
+      "status": "passed"
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:03.869Z",
+    "seq": 8
+  },
+  {
+    "id": "evt_e8a8d97274504d0c837a",
+    "type": "provider.checked",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Models checked. Ollama 0.40.6 at 127.0.0.1:11434: qwen3-coder:30b",
+    "data": {
+      "check": {
+        "ok": true,
+        "at": "2026-10-18T12:54:03.935Z",
+        "services": [
+          {
+            "providerId": "ollama",
+            "kind": "ollama",
+            "reachable": true,
+            "identity": "Ollama 0.40.6 at 127.0.0.1:11434",
+            "detail": "Ollama 0.40.6 at 127.0.0.1:11434",
+            "models": [
+              {
+                "model": "qwen3-coder:30b",
+                "roles": [
+                  "planner",
+                  "coder",
+                  "debugger"
+                ],
+                "status": "available",
+                "digest": "06c1097efce0"
+              }
+            ],
+            "uncertain": [
+              "Which Ollama process answered can't be confirmed (a Docker and a desktop Ollama can share the port); the version, address and model digests identify it."
+            ]
+          }
+        ],
+        "problems": []
+      }
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:03.936Z",
+    "seq": 9
+  },
+  {
+    "id": "evt_4d711121d2224e5caca0",
+    "type": "model.selection",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Models for this build: planner qwen3-coder:30b (ollama; 8k context, replies up to 4096 tokens; from chosen for this build (the cloud/local switch when it was started)); coder qwen3-coder:30b (ollama; 24k context, replies up to 4096 tokens; from chosen for this build (the cloud/local switch when it was started)); debugger qwen3-coder:30b (ollama; 24k context, replies up to 4096 tokens; from chosen for this build (the cloud/local switch when it was started))",
+    "data": {
+      "models": [
+        {
+          "role": "planner",
+          "model": "qwen3-coder:30b",
+          "providerId": "ollama",
+          "source": "chosen for this build (the cloud/local switch when it was started)",
+          "contextTokens": 8192,
+          "replyCapTokens": 4096,
+          "note": "per call; a call asking for a longer reply gets a larger window (up to 32,768 locally)"
+        },
+        {
+          "role": "coder",
+          "model": "qwen3-coder:30b",
+          "providerId": "ollama",
+          "source": "chosen for this build (the cloud/local switch when it was started)",
+          "contextTokens": 24576,
+          "replyCapTokens": 4096,
+          "note": ""
+        },
+        {
+          "role": "debugger",
+          "model": "qwen3-coder:30b",
+          "providerId": "ollama",
+          "source": "chosen for this build (the cloud/local switch when it was started)",
+          "contextTokens": 24576,
+          "replyCapTokens": 4096,
+          "note": ""
+        }
+      ]
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:04.211Z",
+    "seq": 10
+  },
+  {
+    "id": "evt_52f23ea6e4144db9a388",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Scope: categories in scope, places not requested, lists not requested, ratings deferred (prd non-goals), comments deferred (prd non-goals), sharing deferred (prd non-goals), likes in scope; 17 requirements are supporting data",
+    "data": {
+      "scope": {
+        "capabilities": [
+          {
+            "capability": "categories",
+            "status": "in scope",
+            "source": "prd",
+            "quote": "Category filters"
+          },
+          {
+            "capability": "places",
+            "status": "not requested",
+            "source": "not asked for"
+          },
+          {
+            "capability": "lists",
+            "status": "not requested",
+            "source": "not asked for"
+          },
+          {
+            "capability": "ratings",
+            "status": "deferred",
+            "source": "prd non-goals",
+            "quote": "- Ratings or social comments."
+          },
+          {
+            "capability": "comments",
+            "status": "deferred",
+            "source": "prd non-goals",
+            "quote": "- Ratings or social comments."
+          },
+          {
+            "capability": "sharing",
+            "status": "deferred",
+            "source": "prd non-goals",
+            "quote": "- Public sharing."
+          },
+          {
+            "capability": "likes",
+            "status": "in scope",
+            "source": "prd",
+            "quote": "like"
+          }
+        ],
+        "revisions": [],
+        "noMarketing": false,
+        "navigation": [],
+        "dataSections": [
+          "data model and sample content",
+          "gallery",
+          "photo records"
+        ],
+        "conflicts": []
+      }
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:04.281Z",
+    "seq": 11
+  },
+  {
+    "id": "evt_cb41261393f244759316",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:04.283Z",
+    "seq": 12
+  },
+  {
+    "id": "evt_2485b210c746487ab5fd",
+    "type": "model.failed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner model error (out_of_memory): Error: Ollama /api/chat HTTP 500: {\"error\":\"an error was encountered while running the model: CUDA error\"}",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "kind": "out_of_memory",
+      "causes": [
+        "Error: Ollama /api/chat HTTP 500: {\"error\":\"an error was encountered while running the model: CUDA error\"}"
+      ],
+      "retry": true
+    },
+    "level": "warning",
+    "createdAt": "2026-10-18T12:54:21.293Z",
+    "seq": 13
+  },
+  {
+    "id": "evt_b20b002bcbce496a85aa",
+    "type": "model.retry_scheduled",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Retrying qwen3-coder:30b in 3000ms after out_of_memory",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 1,
+      "delay": 3000,
+      "kind": "out_of_memory"
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:21.299Z",
+    "seq": 14
+  },
+  {
+    "id": "evt_7f4a910e827b4309bdc1",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b (retry 1)",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 1,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:54:24.325Z",
+    "seq": 15
+  },
+  {
+    "id": "evt_ae2e631f757849ab9670",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 55225ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 55225,
+      "usage": {
+        "promptTokens": 5554,
+        "completionTokens": 1189
+      },
+      "timing": {
+        "loadMs": 19187,
+        "promptMs": 5886,
+        "generateMs": 30098
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 22727,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:55:19.552Z",
+    "seq": 16
+  },
+  {
+    "id": "evt_3964c019466040939191",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:55:19.562Z",
+    "seq": 17
+  },
+  {
+    "id": "evt_dd7034a091764061ab6e",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 12538ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 12538,
+      "usage": {
+        "promptTokens": 125,
+        "completionTokens": 547
+      },
+      "timing": {
+        "loadMs": 5,
+        "promptMs": 431,
+        "generateMs": 11854
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 455,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:55:32.102Z",
+    "seq": 18
+  },
+  {
+    "id": "evt_99acdb2c3fc146a8bca7",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:55:32.111Z",
+    "seq": 19
+  },
+  {
+    "id": "evt_5c2dc137489945488b0e",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 5169ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 5169,
+      "usage": {
+        "promptTokens": 187,
+        "completionTokens": 226
+      },
+      "timing": {
+        "loadMs": 5,
+        "promptMs": 390,
+        "generateMs": 4736
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 800,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:55:37.282Z",
+    "seq": 20
+  },
+  {
+    "id": "evt_ad4acd3d041349d38323",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:55:37.286Z",
+    "seq": 21
+  },
+  {
+    "id": "evt_eb6399d218b44e28b891",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 20248ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 20248,
+      "usage": {
+        "promptTokens": 155,
+        "completionTokens": 931
+      },
+      "timing": {
+        "loadMs": 6,
+        "promptMs": 339,
+        "generateMs": 19874
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 566,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:55:57.536Z",
+    "seq": 22
+  },
+  {
+    "id": "evt_b63204fffe404c1c8b2f",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:55:57.541Z",
+    "seq": 23
+  },
+  {
+    "id": "evt_918d6609d9474bbf94b6",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 8959ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 8959,
+      "usage": {
+        "promptTokens": 214,
+        "completionTokens": 395
+      },
+      "timing": {
+        "loadMs": 6,
+        "promptMs": 404,
+        "generateMs": 8504
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 832,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:56:06.502Z",
+    "seq": 24
+  },
+  {
+    "id": "evt_995e3fb474f44c3fa8cd",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "The app model in 5 bounded planner replies: the structure, 2 sets of sample records",
+    "data": {},
+    "level": "info",
+    "createdAt": "2026-10-18T12:56:06.510Z",
+    "seq": 25
+  },
+  {
+    "id": "evt_6f9899cc51e04f5383bd",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "The app model: Frameproof, Galleries (5 fields, 14 sample records), Photos (7 fields, 14 sample records); roles client; 6 destinations, 6 working pages",
+    "data": {
+      "appModel": {
+        "product": "Frameproof",
+        "roles": [
+          "client"
+        ],
+        "entities": [
+          {
+            "key": "gallery",
+            "label": "Gallery",
+            "plural": "Galleries",
+            "titleField": "title",
+            "subtitleField": "photographer",
+            "idPrefix": "GAL",
+            "fields": [
+              {
+                "key": "id",
+                "label": "ID",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "title",
+                "label": "Title",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "photographer",
+                "label": "Photographer",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "client",
+                "label": "Client",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "requiredSelectionCount",
+                "label": "Required Selection Count",
+                "type": "number",
+                "required": true,
+                "min": 1,
+                "max": 12
+              }
+            ],
+            "columns": [],
+            "filters": []
+          },
+          {
+            "key": "photo",
+            "label": "Photo",
+            "plural": "Photos",
+            "titleField": "title",
+            "subtitleField": "category",
+            "idPrefix": "PHO",
+            "fields": [
+              {
+                "key": "id",
+                "label": "ID",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "title",
+                "label": "Title",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "category",
+                "label": "Category",
+                "type": "select",
+                "options": [
+                  "[object Object]",
+                  "[object Object]"
+                ],
+                "required": true
+              },
+              {
+                "key": "orientation",
+                "label": "Orientation",
+                "type": "select",
+                "options": [
+                  "[object Object]",
+                  "[object Object]"
+                ],
+                "required": true
+              },
+              {
+                "key": "imageSource",
+                "label": "Image Source",
+                "type": "text",
+                "required": true
+              },
+              {
+                "key": "altText",
+                "label": "Alt Text",
+                "type": "longtext",
+                "required": true
+              },
+              {
+                "key": "editingNote",
+                "label": "Editing Note",
+                "type": "longtext"
+              }
+            ],
+            "columns": [],
+            "filters": []
+          }
+        ],
+        "seed": {
+          "gallery": [
+            {
+              "id": "gal-001",
+              "title": "Spring Blossom Collection",
+              "photographer": "Maya Chen",
+              "client": "Greenwood Gardens",
+              "requiredSelectionCount": 8
+            },
+            {
+              "id": "gal-002",
+              "title": "Urban Architecture Series",
+              "photographer": "David Rodriguez",
+              "client": "Metropolitan Design Co.",
+              "requiredSelectionCount": 12
+            },
+            {
+              "id": "gal-003",
+              "title": "Coastal Retreats",
+              "photographer": "Sophie Laurent",
+              "client": "Seaside Properties Inc.",
+              "requiredSelectionCount": 10
+            },
+            {
+              "id": "gal-004",
+              "title": "Vintage Automotive Showcase",
+              "photographer": "James Mitchell",
+              "client": "Classic Car Club",
+              "requiredSelectionCount": 15
+            },
+            {
+              "id": "gal-005",
+              "title": "Mountain Adventure Portfolio",
+              "photographer": "Elena Petrov",
+              "client": "Alpine Outfitters",
+              "requiredSelectionCount": 9
+            },
+            {
+              "id": "gal-006",
+              "title": "Culinary Arts Collection",
+              "photographer": "Marcus Johnson",
+              "client": "Gourmet Society",
+              "requiredSelectionCount": 11
+            },
+            {
+              "id": "gal-007",
+              "title": "Historic District Preservation",
+              "photographer": "Amanda Foster",
+              "client": "Heritage Trust Foundation",
+              "requiredSelectionCount": 13
+            },
+            {
+              "id": "gal-008",
+              "title": "Wildlife Conservation Series",
+              "photographer": "Thomas Wright",
+              "client": "Nature Conservancy",
+              "requiredSelectionCount": 7
+            },
+            {
+              "id": "gal-009",
+              "title": "Corporate Office Spaces",
+              "photographer": "Lisa Park",
+              "client": "Global Business Solutions",
+              "requiredSelectionCount": 14
+            },
+            {
+              "id": "gal-010",
+              "title": "Cultural Heritage Exhibition",
+              "photographer": "Robert Kim",
+              "client": "Museum of Modern Art",
+              "requiredSelectionCount": 16
+            },
+            {
+              "id": "gallery-11",
+              "title": "Spring Blossom Collection",
+              "photographer": "Maya Chen",
+              "client": "Floral Design Studio",
+              "requiredSelectionCount": 8
+            },
+            {
+              "id": "gallery-12",
+              "title": "Urban Architecture Series",
+              "photographer": "David Rodriguez",
+              "client": "Metropolitan Planning Authority",
+              "requiredSelectionCount": 12
+            },
+            {
+              "id": "gallery-13",
+              "title": "Coastal Retreats",
+              "photographer": "Sophie Laurent",
+              "client": "Seaside Vacation Resorts Inc",
+              "requiredSelectionCount": 10
+            },
+            {
+              "id": "gallery-14",
+              "title": "Vintage Automotive Showcase",
+              "photographer": "James Mitchell",
+              "client": "Classic Car Enthusiasts Association",
+              "requiredSelectionCount": 15
+            }
+          ],
+          "photo": [
+            {
+              "id": "photo_001",
+              "title": "Mountain Sunrise",
+              "category": "landscape",
+              "orientation": "landscape",
+              "imageSource": "https://example.com/images/mountain-sunrise.jpg",
+              "altText": "Golden sunrise over snow-capped mountains with blue sky and white clouds",
+              "editingNote": "Added slight contrast enhancement and color saturation boost"
+            },
+            {
+              "id": "photo_002",
+              "title": "Urban Street Art",
+              "category": "urban",
+              "orientation": "portrait",
+              "imageSource": "https://example.com/images/street-art.jpg",
+              "altText": "Colorful graffiti mural on brick wall with people walking in foreground",
+              "editingNote": "Enhanced shadows and adjusted exposure for better detail in dark areas"
+            },
+            {
+              "id": "photo_003",
+              "title": "Coastal Cliff Walk",
+              "category": "landscape",
+              "orientation": "landscape",
+              "imageSource": "https://example.com/images/cliff-walk.jpg",
+              "altText": "Person walking along rocky coastline with ocean waves and dramatic sky",
+              "editingNote": "Increased clarity and reduced haze for better coastal atmosphere"
+            },
+            {
+              "id": "photo_004",
+              "title": "Coffee Shop Interior",
+              "category": "urban",
+              "orientation": "portrait",
+              "imageSource": "https://example.com/images/coffee-shop.jpg",
+              "altText": "Cozy coffee shop interior with wooden tables, steam from coffee maker, and warm lighting",
+              "editingNote": "Adjusted white balance and added warmth to enhance cozy atmosphere"
+            },
+            {
+              "id": "photo_005",
+              "title": "Autumn Forest Path",
+              "category": "landscape",
+              "orientation": "landscape",
+              "imageSource": "https://example.com/images/autumn-forest.jpg",
+              "altText": "Fall foliage path with golden leaves and sunlight filtering through trees",
+              "editingNote": "Enhanced color vibrancy and adjusted highlights for better leaf detail"
+            },
+            {
+              "id": "photo_006",
+              "title": "Night City Lights",
+              "category": "urban",
+              "orientation": "landscape",
+              "imageSource": "https://example.com/images/city-lights.jpg",
+              "altText": "City skyline illuminated at night with lights reflecting on water surface",
+              "editingNote": "Added slight glow effect and adjusted contrast for better light trails"
+            },
+            {
+              "id": "photo_007",
+              "title": "Desert Dunes",
+              "category": "landscape",
+              "orientation": "landscape",
+              "imageSource": "https://example.com/images/desert-dunes.jpg",
+              "altText": "Golden sand dunes under blue sky with dramatic shadows and texture",
+              "editingNote": "Enhanced tonal range and adjusted exposure for better sand detail"
+            },
+            {
+              "id": "photo_008",
+              "title": "Market Produce Stall",
+              "category": "urban",
+              "orientation": "portrait",
+              "imageSource": "https://example.com/images/market-produce.jpg",
+              "altText": "Colorful fruits and vegetables displayed on wooden stall in bustling market",
+              "editingNote": "Improved color accuracy and adjusted lighting for better produce freshness"
+            },
+            {
+              "id": "photo_009",
+              "title": "Winter Mountain Lake",
+              "category": "landscape",
+              "orientation": "landscape",
+              "imageSource": "https://example.com/images/winter-lake.jpg",
+              "altText": "Frozen lake surrounded by snow-covered mountains with clear blue sky",
+              "editingNote": "Enhanced ice texture and adjusted contrast for better winter atmosphere"
+            },
+            {
+              "id": "photo_010",
+              "title": "Street Food Vendor",
+              "category": "urban",
+              "orientation": "portrait",
+              "imageSource": "https://example.com/images/street-food.jpg",
+              "altText": "Food vendor preparing traditional dishes with colorful ingredients and customers waiting",
+              "editingNote": "Added warmth to food colors and adjusted exposure for better cooking details"
+            },
+            {
+              "id": "photo-11",
+              "title": "Sunset Over the Bay",
+              "category": "landscape",
+              "orientation": "landscape",
+              "imageSource": "https://example.com/sunset-bay.jpg",
+              "altText": "Golden sunset reflecting on calm bay waters with silhouette of distant islands",
+              "editingNote": "Enhanced contrast and saturation to bring out the warm orange tones in the sky"
+            },
+            {
+              "id": "photo-12",
+              "title": "Vintage Typewriter",
+              "category": "still-life",
+              "orientation": "portrait",
+              "imageSource": "https://example.com/vintage-typewriter.jpg",
+              "altText": "Antique manual typewriter with worn leather case sitting on wooden desk",
+              "editingNote": "Added slight vignette effect to draw attention to the typewriter keys and focus"
+            },
+            {
+              "id": "photo-13",
+              "title": "Street Musician",
+              "category": "portrait",
+              "orientation": "portrait",
+              "imageSource": "https://example.com/street-musician.jpg",
+              "altText": "Young street performer playing guitar with crowd of passersby gathered around",
+              "editingNote": "Adjusted exposure to highlight the musician's face while maintaining ambient street lighting"
+            },
+            {
+              "id": "photo-14",
+              "title": "Morning Coffee Ritual",
+              "category": "still-life",
+              "orientation": "landscape",
+              "imageSource": "https://example.com/morning-coffee.jpg",
+              "altText": "Steam rising from ceramic mug with coffee beans and sugar on rustic wooden table",
+              "editingNote": "Enhanced the warm tones in the coffee and added subtle grain to create vintage feel"
+            }
+          ]
+        },
+        "nav": [
+          {
+            "label": "Gallery",
+            "items": [
+              {
+                "id": "gallery-list",
+                "label": "Gallery",
+                "kind": "list",
+                "entity": "gallery"
+              },
+              {
+                "id": "my-selection",
+                "label": "My Selection",
+                "kind": "list",
+                "entity": "photo"
+              },
+              {
+                "id": "new-gallery",
+                "label": "New gallery",
+                "kind": "create",
+                "entity": "gallery"
+              },
+              {
+                "id": "gallery-detail",
+                "label": "Gallery detail",
+                "kind": "detail",
+                "entity": "gallery"
+              },
+              {
+                "id": "new-photo",
+                "label": "New photo",
+                "kind": "create",
+                "entity": "photo"
+              },
+              {
+                "id": "photo-detail",
+                "label": "Photo detail",
+                "kind": "detail",
+                "entity": "photo"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:56:06.522Z",
+    "seq": 26
+  },
+  {
+    "id": "evt_82071a7a3d9e4f6c8662",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Writing the prototype plan from 140 PRD requirements: 110 describe features (planned in 5 parts, one screen each) and become build steps; 30 are goals, restated stories, plans, decisions or later ideas, placed for a person to check",
+    "data": {},
+    "level": "info",
+    "createdAt": "2026-10-18T12:56:06.529Z",
+    "seq": 27
+  },
+  {
+    "id": "evt_5e73eda6cb794a9197e8",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:56:06.532Z",
+    "seq": 28
+  },
+  {
+    "id": "evt_a995d2e46578458e9a26",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 34713ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 34713,
+      "usage": {
+        "promptTokens": 2492,
+        "completionTokens": 1326
+      },
+      "timing": {
+        "loadMs": 7,
+        "promptMs": 2637,
+        "generateMs": 32022
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 8891,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:56:41.246Z",
+    "seq": 29
+  },
+  {
+    "id": "evt_6f92fe767a054380a0db",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:56:41.255Z",
+    "seq": 30
+  },
+  {
+    "id": "evt_88dd513acf1c4616bd4c",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 52288ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 52288,
+      "usage": {
+        "promptTokens": 2549,
+        "completionTokens": 2236
+      },
+      "timing": {
+        "loadMs": 6,
+        "promptMs": 825,
+        "generateMs": 51426
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 9070,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:57:33.545Z",
+    "seq": 31
+  },
+  {
+    "id": "evt_ab17d7945e76494d987d",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:57:33.553Z",
+    "seq": 32
+  },
+  {
+    "id": "evt_d3ba5798e99f41c28b1c",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 33061ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 33061,
+      "usage": {
+        "promptTokens": 2626,
+        "completionTokens": 1309
+      },
+      "timing": {
+        "loadMs": 6,
+        "promptMs": 914,
+        "generateMs": 32009
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 9285,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:58:06.616Z",
+    "seq": 33
+  },
+  {
+    "id": "evt_500a1ce003ce4fcaa27d",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:58:06.623Z",
+    "seq": 34
+  },
+  {
+    "id": "evt_5e47d7d127c34bd9a405",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 104677ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 104677,
+      "usage": {
+        "promptTokens": 2420,
+        "completionTokens": 4096
+      },
+      "timing": {
+        "loadMs": 6,
+        "promptMs": 514,
+        "generateMs": 104125
+      },
+      "thinkingChars": 0,
+      "doneReason": "length",
+      "promptChars": 8766,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:59:51.302Z",
+    "seq": 35
+  },
+  {
+    "id": "evt_9c59e3b6b88844d7ba27",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Checklist part 4: the planner's answer wasn't usable (Expected ',' or ']' after array element in JSON at position 15146 (line 552 column 6)); asking again in two halves",
+    "data": {},
+    "level": "warning",
+    "createdAt": "2026-10-18T12:59:51.308Z",
+    "seq": 36
+  },
+  {
+    "id": "evt_6d33521b1c834e86a010",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T12:59:51.310Z",
+    "seq": 37
+  },
+  {
+    "id": "evt_9841207a63fb44ee8be2",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 25021ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 25021,
+      "usage": {
+        "promptTokens": 2259,
+        "completionTokens": 1002
+      },
+      "timing": {
+        "loadMs": 7,
+        "promptMs": 476,
+        "generateMs": 24364
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 8062,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:00:16.333Z",
+    "seq": 38
+  },
+  {
+    "id": "evt_c3ef997ffec04b3c85ff",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:00:16.340Z",
+    "seq": 39
+  },
+  {
+    "id": "evt_80882a2d10bf49a1a00b",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 28700ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 28700,
+      "usage": {
+        "promptTokens": 2186,
+        "completionTokens": 1154
+      },
+      "timing": {
+        "loadMs": 6,
+        "promptMs": 421,
+        "generateMs": 28249
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 7653,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:00:45.042Z",
+    "seq": 40
+  },
+  {
+    "id": "evt_8944e04a14a24042930e",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:00:45.050Z",
+    "seq": 41
+  },
+  {
+    "id": "evt_5f3f73f2eff64e5d9da1",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 31053ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 31053,
+      "usage": {
+        "promptTokens": 2460,
+        "completionTokens": 1222
+      },
+      "timing": {
+        "loadMs": 7,
+        "promptMs": 534,
+        "generateMs": 30485
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 8902,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:01:16.106Z",
+    "seq": 42
+  },
+  {
+    "id": "evt_ac1b76b9616c492dbe12",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Prototype plan written:19 items to build with 41 acceptance tests, in 5 build steps; 34 items for a person to check, 12 not for this release. FlowCode placed 6 requirements the planner left out",
+    "data": {},
+    "level": "info",
+    "createdAt": "2026-10-18T13:01:16.140Z",
+    "seq": 43
+  },
+  {
+    "id": "evt_fc06a6e0f8484811ac06",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Left out the marketing sections the PRD's wording matched (navbar-centered, hero-split, cta-banner, footer-simple): this is an app, whose frame and Home are its own",
+    "data": {},
+    "level": "info",
+    "createdAt": "2026-10-18T13:01:16.144Z",
+    "seq": 44
+  },
+  {
+    "id": "evt_d445d00d8ec14aa096d0",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Matched the PRD to the catalog: 10 parts for 0 screens, 0 next-best options",
+    "data": {
+      "catalog": {
+        "screens": [],
+        "shared": [
+          {
+            "ref": "c.alert",
+            "id": "alerts-states",
+            "name": "Alerts: four tones, inline, banner and toast",
+            "score": 26,
+            "why": "use case \"notifications\""
+          },
+          {
+            "ref": "c.alert.info",
+            "id": "alerts-states",
+            "name": "Alerts: four tones, inline, banner and toast info",
+            "score": 26,
+            "why": "use case \"notifications\""
+          },
+          {
+            "ref": "c.alert.success",
+            "id": "alerts-states",
+            "name": "Alerts: four tones, inline, banner and toast success",
+            "score": 26,
+            "why": "use case \"notifications\""
+          },
+          {
+            "ref": "c.alert.warning",
+            "id": "alerts-states",
+            "name": "Alerts: four tones, inline, banner and toast warning",
+            "score": 26,
+            "why": "use case \"notifications\""
+          },
+          {
+            "ref": "c.alert.danger",
+            "id": "alerts-states",
+            "name": "Alerts: four tones, inline, banner and toast danger",
+            "score": 26,
+            "why": "use case \"notifications\""
+          },
+          {
+            "ref": "c.background",
+            "id": "bg-soft",
+            "name": "Soft gradient",
+            "score": 22,
+            "why": "job \"read the page without visual clutter\""
+          },
+          {
+            "ref": "c.background.soft",
+            "id": "bg-soft",
+            "name": "Soft gradient soft",
+            "score": 22,
+            "why": "job \"read the page without visual clutter\""
+          },
+          {
+            "ref": "c.drawer",
+            "id": "panels-drawers",
+            "name": "Panels and drawers: side, bottom and inline",
+            "score": 18,
+            "why": "job \"act on a row\""
+          },
+          {
+            "ref": "c.drawer.right",
+            "id": "panels-drawers",
+            "name": "Panels and drawers: side, bottom and inline right",
+            "score": 18,
+            "why": "job \"act on a row\""
+          },
+          {
+            "ref": "c.drawer.bottom",
+            "id": "panels-drawers",
+            "name": "Panels and drawers: side, bottom and inline bottom",
+            "score": 18,
+            "why": "job \"act on a row\""
+          }
+        ]
+      }
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:01:16.287Z",
+    "seq": 45
+  },
+  {
+    "id": "evt_9129b2bf7f3244748ea8",
+    "type": "model.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner → qwen3-coder:30b",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "attempt": 0,
+      "messages": 2,
+      "tools": 0,
+      "images": false
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:01:16.292Z",
+    "seq": 46
+  },
+  {
+    "id": "evt_f44f98b98a74450da3c5",
+    "type": "model.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "planner ← qwen3-coder:30b: text response in 47956ms",
+    "data": {
+      "role": "planner",
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "think": false,
+      "durationMs": 47956,
+      "usage": {
+        "promptTokens": 3427,
+        "completionTokens": 1728
+      },
+      "timing": {
+        "loadMs": 7,
+        "promptMs": 3691,
+        "generateMs": 44139
+      },
+      "thinkingChars": 0,
+      "doneReason": "stop",
+      "promptChars": 13029,
+      "toolCalls": []
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:02:04.250Z",
+    "seq": 47
+  },
+  {
+    "id": "evt_59d7c6b2388c4453b7f4",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Experience map: 5 user journeys (Journey A — Find and inspect; Journey B — Select, annotate, and persist; Journey C — Remove and replace; Journey D — Submit and lock; Journey E — Start over); screens no journey reaches: New gallery, Gallery detail, New photo",
+    "data": {
+      "experience": {
+        "roles": [
+          {
+            "name": "Client",
+            "goals": [
+              "Review a gallery of photos from a portrait session.",
+              "Select exactly five favorite photos.",
+              "Leave editing notes on selected photos.",
+              "Submit the final selection to the photographer.",
+              "Persist selections and notes across page reloads."
+            ]
+          }
+        ],
+        "workflows": [
+          {
+            "id": "w1",
+            "name": "Journey A — Find and inspect",
+            "role": "Client",
+            "entry": "Gallery",
+            "steps": [
+              {
+                "screen": "Gallery",
+                "action": "Search for 'WINDOW'",
+                "result": "Window Light is the only result"
+              },
+              {
+                "screen": "Photo detail",
+                "action": "Open Window Light and confirm title, category, and image match",
+                "result": "Photo details are displayed correctly"
+              },
+              {
+                "screen": "Gallery",
+                "action": "Return to Gallery and confirm search remains",
+                "result": "Search term persists in input field"
+              },
+              {
+                "screen": "Gallery",
+                "action": "Clear search and select Outdoor category",
+                "result": "Seven photos appear"
+              }
+            ],
+            "success": "Client successfully finds and inspects photos using search and category filtering.",
+            "failure": "Search or filter does not work as expected.",
+            "recovery": "Clear search, re-apply filter, or refresh the page.",
+            "requirementIds": [
+              "R89",
+              "R90",
+              "R91",
+              "R92",
+              "R93",
+              "R94",
+              "R95"
+            ]
+          },
+          {
+            "id": "w2",
+            "name": "Journey B — Select, annotate, and persist",
+            "role": "Client",
+            "entry": "Gallery",
+            "steps": [
+              {
+                "screen": "Gallery",
+                "action": "Open Golden Hour photo and add it to shortlist",
+                "result": "Photo added to My Selection"
+              },
+              {
+                "screen": "Photo detail",
+                "action": "Add note: 'Please soften the background.'",
+                "result": "Note saved locally without a separate save button"
+              },
+              {
+                "screen": "Gallery",
+                "action": "Add four other photos to shortlist",
+                "result": "Five photos selected"
+              },
+              {
+                "screen": "Gallery",
+                "action": "Attempt to add a sixth photo",
+                "result": "Limit is enforced with accessible feedback"
+              },
+              {
+                "screen": "My Selection",
+                "action": "Open My Selection and confirm five records and note",
+                "result": "Selection and notes are displayed correctly"
+              },
+              {
+                "screen": "Gallery",
+                "action": "Reload the page",
+                "result": "Selection and note persist"
+              }
+            ],
+            "success": "Client successfully selects, annotates, and persists five photos.",
+            "failure": "Adding a sixth photo removes or replaces an existing selection.",
+            "recovery": "Remove one photo to make room for another.",
+            "requirementIds": [
+              "R96",
+              "R97",
+              "R98",
+              "R99",
+              "R100",
+              "R101",
+              "R102",
+              "R103"
+            ]
+          },
+          {
+            "id": "w3",
+            "name": "Journey C — Remove and replace",
+            "role": "Client",
+            "entry": "My Selection",
+            "steps": [
+              {
+                "screen": "My Selection",
+                "action": "Remove one photo from shortlist",
+                "result": "Photo removed, count updates"
+              },
+              {
+                "screen": "Gallery",
+                "action": "Add a different photo to shortlist",
+                "result": "Correct five photos in sample-data order"
+              },
+              {
+                "screen": "Photo detail",
+                "action": "Reopen removed photo and confirm note remains",
+                "result": "Note persists on the removed photo"
+              }
+            ],
+            "success": "Client successfully removes and replaces a photo in the shortlist.",
+            "failure": "Count does not update or incorrect photo order.",
+            "recovery": "Re-select photos to restore correct state.",
+            "requirementIds": [
+              "R104",
+              "R105",
+              "R106",
+              "R107",
+              "R108",
+              "R109"
+            ]
+          },
+          {
+            "id": "w4",
+            "name": "Journey D — Submit and lock",
+            "role": "Client",
+            "entry": "My Selection",
+            "steps": [
+              {
+                "screen": "My Selection",
+                "action": "Attempt to submit with fewer than five photos",
+                "result": "Submission is prevented with explanation"
+              },
+              {
+                "screen": "My Selection",
+                "action": "Select exactly five photos",
+                "result": "Five photos selected"
+              },
+              {
+                "screen": "My Selection",
+                "action": "Open submission dialog, cancel, and confirm nothing changes",
+                "result": "No submission occurs"
+              },
+              {
+                "screen": "My Selection",
+                "action": "Open submission dialog again and confirm submission",
+                "result": "Submission proceeds"
+              },
+              {
+                "screen": "My Selection",
+                "action": "Verify Submitted status, timestamp, and correct five photos",
+                "result": "Submitted state is locked"
+              },
+              {
+                "screen": "Gallery",
+                "action": "Reload the page",
+                "result": "Submitted state remains locked"
+              }
+            ],
+            "success": "Client successfully submits the selection and locks it.",
+            "failure": "Submission proceeds without required number of photos or state is not locked.",
+            "recovery": "Select correct number of photos and resubmit.",
+            "requirementIds": [
+              "R110",
+              "R111",
+              "R112",
+              "R113",
+              "R114",
+              "R115",
+              "R116"
+            ]
+          },
+          {
+            "id": "w5",
+            "name": "Journey E — Start over",
+            "role": "Client",
+            "entry": "My Selection",
+            "steps": [
+              {
+                "screen": "My Selection",
+                "action": "Open Start over and cancel, confirming all submitted data remains",
+                "result": "No changes made"
+              },
+              {
+                "screen": "My Selection",
+                "action": "Open Start over again and confirm reset",
+                "result": "Selection is cleared"
+              },
+              {
+                "screen": "Gallery",
+                "action": "Reload the page",
+                "result": "Reset persists"
+              }
+            ],
+            "success": "Client successfully resets the selection.",
+            "failure": "Reset does not clear selections or notes.",
+            "recovery": "Manually remove all selections and restart.",
+            "requirementIds": [
+              "R117",
+              "R118",
+              "R119",
+              "R120",
+              "R121"
+            ]
+          }
+        ],
+        "data": [
+          {
+            "entity": "Gallery",
+            "fields": [
+              "title",
+              "photographer",
+              "selection progress"
+            ],
+            "screens": [
+              "Gallery"
+            ]
+          },
+          {
+            "entity": "Photo",
+            "fields": [
+              "id",
+              "title",
+              "category",
+              "image",
+              "note",
+              "is selected"
+            ],
+            "screens": [
+              "Gallery",
+              "Photo detail"
+            ]
+          },
+          {
+            "entity": "Selection state",
+            "fields": [
+              "shortlisted photo IDs",
+              "editing notes per photo",
+              "selection status (Draft or Submitted)",
+              "submission timestamp"
+            ],
+            "screens": [
+              "My Selection"
+            ]
+          }
+        ],
+        "permissions": []
+      }
+    },
+    "level": "warning",
+    "createdAt": "2026-10-18T13:02:04.260Z",
+    "seq": 48
+  },
+  {
+    "id": "evt_18895b3fb1c14c60a80f",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Coverage: 140 requirements; 65 planned with a user journey, 8 for a person to check, 12 not in this release; 38 need your decision at plan approval (38 without a journey, 0 not placed)",
+    "data": {
+      "coverage": [
+        {
+          "requirement": "R1",
+          "text": "The app should feel like a polished photography product, not an admin dashboard or marketing website.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "The app should feel like a polished photography product, not an admin dashboard or marketing website.",
+          "verification": "a person checks it at review",
+          "status": "for a person to check"
+        },
+        {
+          "requirement": "R2",
+          "text": "Responsive, local-first web app.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "view the gallery list screen → 14 gallery records displayed in cards; click on a gallery card → navigation to GalleryDetailScreen",
+          "verification": "acceptance tests in step \"Gallery List Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R3",
+          "text": "Bundled sample data and browser storage.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R4",
+          "text": "No backend, authentication provider, external API, or real submission.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R5",
+          "text": "Client is already signed in as a demo user.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R6",
+          "text": "Changes persist after page reload in the same browser.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R7",
+          "text": "Use the existing starter, component library, and dependencies. Add no packages.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R8",
+          "text": "No network connection necessary for the core workflow after the app and bundled assets have loaded.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R9",
+          "text": "Demo client: Maya Chen.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R10",
+          "text": "Gallery: Autumn Portrait Session.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R11",
+          "text": "Photographer: Rowan Studio.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R12",
+          "text": "Gallery contains 12 photos.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R13",
+          "text": "Client must choose exactly five photos before submitting.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R14",
+          "text": "One user role: client.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R15",
+          "text": "Gallery.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R16",
+          "text": "My Selection, with the current shortlist count.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open My Selection screen with 5 records selected → 5 records displayed with titles, statuses and notes; open My Selection screen with no records selected → empty state message shown",
+          "verification": "acceptance tests in step \"My Selection Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R17",
+          "text": "gallery-autumn",
+          "workflows": [],
+          "pages": [],
+          "behavior": "gallery-autumn",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R18",
+          "text": "Autumn Portrait Session",
+          "workflows": [],
+          "pages": [],
+          "behavior": "Autumn Portrait Session",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R19",
+          "text": "Photographer",
+          "workflows": [],
+          "pages": [],
+          "behavior": "Photographer",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R20",
+          "text": "Maya Chen",
+          "workflows": [],
+          "pages": [],
+          "behavior": "Maya Chen",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R21",
+          "text": "Required selection count",
+          "workflows": [],
+          "pages": [],
+          "behavior": "Required selection count",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R22",
+          "text": "photo-01: Golden Hour",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-01: Golden Hour",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R23",
+          "text": "photo-02: Window Light",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-02: Window Light",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R24",
+          "text": "photo-03: Walking Together",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-03: Walking Together",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R25",
+          "text": "photo-04: Quiet Smile",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-04: Quiet Smile",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R26",
+          "text": "photo-05: Garden Steps",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-05: Garden Steps",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R27",
+          "text": "photo-06: Soft Shadows",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-06: Soft Shadows",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R28",
+          "text": "photo-07: Autumn Path",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-07: Autumn Path",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R29",
+          "text": "photo-08: Looking Back",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-08: Looking Back",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R30",
+          "text": "photo-09: Linen Backdrop",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-09: Linen Backdrop",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R31",
+          "text": "photo-10: Under the Oak",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-10: Under the Oak",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R32",
+          "text": "photo-11: Candid Laugh",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-11: Candid Laugh",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R33",
+          "text": "photo-12: Last Light",
+          "workflows": [],
+          "pages": [],
+          "behavior": "photo-12: Last Light",
+          "verification": "the app model holds these records and fields; checked when the app is written from it",
+          "status": "supporting data"
+        },
+        {
+          "requirement": "R34",
+          "text": "Shortlisted photo IDs.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open a gallery detail screen → Gallery: Autumn Portrait Session; select 5 photos and submit → Selection status changes to Submitted",
+          "verification": "acceptance tests in step \"Gallery Detail Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R35",
+          "text": "Editing note per photo.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open a gallery detail screen → Gallery: Autumn Portrait Session; select 5 photos and submit → Selection status changes to Submitted",
+          "verification": "acceptance tests in step \"Gallery Detail Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R36",
+          "text": "Selection status: Draft or Submitted.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open a gallery detail screen → Gallery: Autumn Portrait Session; select 5 photos and submit → Selection status changes to Submitted",
+          "verification": "acceptance tests in step \"Gallery Detail Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R37",
+          "text": "Submission timestamp, when submitted.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open a gallery detail screen → Gallery: Autumn Portrait Session; select 5 photos and submit → Selection status changes to Submitted",
+          "verification": "acceptance tests in step \"Gallery Detail Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R38",
+          "text": "light returns Window Light and Last Light, not Golden Hour.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open a gallery detail screen → Gallery: Autumn Portrait Session; select 5 photos and submit → Selection status changes to Submitted",
+          "verification": "acceptance tests in step \"Gallery Detail Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R39",
+          "text": "WINDOW returns Window Light.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open a gallery detail screen → Gallery: Autumn Portrait Session; select 5 photos and submit → Selection status changes to Submitted",
+          "verification": "acceptance tests in step \"Gallery Detail Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R40",
+          "text": "mountain produces no results.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open a gallery detail screen → Gallery: Autumn Portrait Session; select 5 photos and submit → Selection status changes to Submitted",
+          "verification": "acceptance tests in step \"Gallery Detail Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R41",
+          "text": "No-results state offers a clear way to clear search.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open a gallery detail screen → Gallery: Autumn Portrait Session; select 5 photos and submit → Selection status changes to Submitted",
+          "verification": "acceptance tests in step \"Gallery Detail Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R42",
+          "text": "Search and category filtering work together.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "type 'Outdoor' in search bar → photos matching Outdoor category appear; select 'Indoor' from category dropdown → only Indoor photos are shown; clear search and select 'Outdoor' → seven photos appear",
+          "verification": "acceptance tests in step \"Search and Filter Functionality\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R43",
+          "text": "No duplicate selections.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R44",
+          "text": "Count updates everywhere.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R45",
+          "text": "Maximum five selected photos.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R46",
+          "text": "Attempting to add a sixth does not remove or replace an existing selection.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R47",
+          "text": "Explain the limit through accessible feedback.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "view the gallery list screen → 14 gallery records displayed in cards; click on a gallery card → navigation to GalleryDetailScreen; open My Selection with 3 records selected → message showing '2 more needed; open My Selection with 5 records selected → submission button enabled",
+          "verification": "acceptance tests in step \"Gallery List Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R48",
+          "text": "Removing a photo permits another to be added.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R49",
+          "text": "Selection status must not rely on color alone.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "R5 — Shortlist behavior: remaining requirements",
+          "verification": "step \"R5 — Shortlist behavior: remaining requirements\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R50",
+          "text": "Save locally without a separate Save button.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R51",
+          "text": "Show a character count.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R52",
+          "text": "Notes remain attached when a photo is removed from the shortlist.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R53",
+          "text": "Reopening a photo restores its note.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R54",
+          "text": "Submission includes notes for selected photos only.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R55",
+          "text": "With fewer than five, explain how many more are needed. Mouse or keyboard interaction must not submit.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "view the gallery list screen → 14 gallery records displayed in cards; click on a gallery card → navigation to GalleryDetailScreen; open My Selection with 3 records selected → message showing '2 more needed; open My Selection with 5 records selected → submission button enabled",
+          "verification": "acceptance tests in step \"Gallery List Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R56",
+          "text": "Reloading after submission must not unlock selection.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R57",
+          "text": "Directly opening a valid photo route displays that record.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "navigate directly to photo detail URL → correct photo record is displayed; click browser back button → previous screen is shown; open photo from grid, then switch to another → no note carried over between photos",
+          "verification": "acceptance tests in step \"Navigation and Identity\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R58",
+          "text": "Unknown photo ID shows a useful not-found state with a Gallery link.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "Unknown photo ID shows a useful not-found state with a Gallery link.",
+          "verification": "a person checks it at review",
+          "status": "for a person to check"
+        },
+        {
+          "requirement": "R59",
+          "text": "Browser Back and Forward work.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "navigate directly to photo detail URL → correct photo record is displayed; click browser back button → previous screen is shown; open photo from grid, then switch to another → no note carried over between photos",
+          "verification": "acceptance tests in step \"Navigation and Identity\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R60",
+          "text": "Photo opened from grid is the same record displayed in detail.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "navigate directly to photo detail URL → correct photo record is displayed; click browser back button → previous screen is shown; open photo from grid, then switch to another → no note carried over between photos",
+          "verification": "acceptance tests in step \"Navigation and Identity\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R61",
+          "text": "Switching photos must not carry one photo’s note into another.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "select 5 photos from gallery list → selection count shows 5/5; try to select a sixth photo → no change in selection or error message; remove one photo from selection → can now add another photo",
+          "verification": "acceptance tests in step \"Photo Shortlisting with Selection Count\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R62",
+          "text": "Warm off-white background.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "inspect background color of gallery list screen → background-color: #f5f5f5; check text color in photo detail → color: #1a1a1a; verify selected state uses cobalt accent → background-color: #3a6ea5",
+          "verification": "acceptance tests in step \"Editorial Contact Sheet Design\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R63",
+          "text": "Near-black text.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "inspect background color of gallery list screen → background-color: #f5f5f5; check text color in photo detail → color: #1a1a1a; verify selected state uses cobalt accent → background-color: #3a6ea5",
+          "verification": "acceptance tests in step \"Editorial Contact Sheet Design\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R64",
+          "text": "Muted cobalt accent for primary actions and selected states.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "inspect background color of gallery list screen → background-color: #f5f5f5; check text color in photo detail → color: #1a1a1a; verify selected state uses cobalt accent → background-color: #3a6ea5",
+          "verification": "acceptance tests in step \"Editorial Contact Sheet Design\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R65",
+          "text": "Fine borders and restrained corner rounding.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "inspect background color of gallery list screen → background-color: #f5f5f5; check text color in photo detail → color: #1a1a1a; verify selected state uses cobalt accent → background-color: #3a6ea5",
+          "verification": "acceptance tests in step \"Editorial Contact Sheet Design\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R66",
+          "text": "Generous whitespace and clear typographic hierarchy.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "inspect background color of gallery list screen → background-color: #f5f5f5; check text color in photo detail → color: #1a1a1a; verify selected state uses cobalt accent → background-color: #3a6ea5",
+          "verification": "acceptance tests in step \"Editorial Contact Sheet Design\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R67",
+          "text": "Minimal chrome around photography.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "inspect background color of gallery list screen → background-color: #f5f5f5; check text color in photo detail → color: #1a1a1a; verify selected state uses cobalt accent → background-color: #3a6ea5",
+          "verification": "acceptance tests in step \"Editorial Contact Sheet Design\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R68",
+          "text": "Compact product header and primary navigation.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R69",
+          "text": "Gallery title, photographer, and selection progress.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R70",
+          "text": "Search and category controls.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R71",
+          "text": "Photo grid.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R72",
+          "text": "Title and selection status.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open My Selection screen with 5 records selected → 5 records displayed with titles, statuses and notes; open My Selection screen with no records selected → empty state message shown",
+          "verification": "acceptance tests in step \"My Selection Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R73",
+          "text": "Selected photos and notes, or empty state.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "view the My Selection screen with no selections → empty state message displayed; view the My Selection screen with selections → selected photos shown with details; open My Selection screen with 5 records selected → 5 records displayed with titles, statuses and notes; open My Selection screen with no",
+          "verification": "acceptance tests in step \"My Selection Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R74",
+          "text": "Selection progress and submission action.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open My Selection screen with 5 records selected → 5 records displayed with titles, statuses and notes; open My Selection screen with no records selected → empty state message shown",
+          "verification": "acceptance tests in step \"My Selection Screen\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R75",
+          "text": "Respect reduced-motion preferences. Animation-off must leave all content and controls usable.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "view the gallery list screen → 14 gallery records displayed in cards; click on a gallery card → navigation to GalleryDetailScreen",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R76",
+          "text": "Keyboard access to every action.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "view the gallery list screen → 14 gallery records displayed in cards; click on a gallery card → navigation to GalleryDetailScreen",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R77",
+          "text": "Visible focus indicators and descriptive control names.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "view the gallery list screen → 14 gallery records displayed in cards; click on a gallery card → navigation to GalleryDetailScreen",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R78",
+          "text": "Modal confirmation dialogs prevent interaction with background page content.",
+          "workflows": [
+            "Journey C — Remove and replace"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "view the gallery list screen → 14 gallery records displayed in cards; click on a gallery card → navigation to GalleryDetailScreen; click remove button on a selected photo → confirmation dialog appears; press keyboard key to remove a photo → confirmation dialog appears",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey C — Remove and replace\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R79",
+          "text": "Closing dialogs returns focus to the trigger when it still exists.",
+          "workflows": [
+            "Journey C — Remove and replace"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "view the gallery list screen → 14 gallery records displayed in cards; click on a gallery card → navigation to GalleryDetailScreen; click remove button on a selected photo → confirmation dialog appears; press keyboard key to remove a photo → confirmation dialog appears",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey C — Remove and replace\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R80",
+          "text": "Selection feedback available to assistive technology.",
+          "workflows": [
+            "Journey C — Remove and replace"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open gallery detail screen with screen reader active → screen reader announces all interactive elements correctly; view photo detail screen → image displays alt text from photo record; navigate using keyboard only → all controls remain accessible without hover; click remove button on a selected phot",
+          "verification": "acceptance tests in step \"Accessibility Compliance\"; journey test for \"Journey C — Remove and replace\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R81",
+          "text": "Appropriate image alt text.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open gallery detail screen with screen reader active → screen reader announces all interactive elements correctly; view photo detail screen → image displays alt text from photo record; navigate using keyboard only → all controls remain accessible without hover",
+          "verification": "acceptance tests in step \"Accessibility Compliance\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R82",
+          "text": "No hover-only controls or information.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open gallery detail screen with screen reader active → screen reader announces all interactive elements correctly; view photo detail screen → image displays alt text from photo record; navigate using keyboard only → all controls remain accessible without hover",
+          "verification": "acceptance tests in step \"Accessibility Compliance\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R83",
+          "text": "No horizontal page overflow.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "resize browser window to mobile width → no horizontal overflow occurs; view gallery list on small screen → grid columns adjust appropriately for screen size; open photo detail on mobile device → image fits without hiding navigation or actions",
+          "verification": "acceptance tests in step \"Responsive Design Implementation\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R84",
+          "text": "Adaptive grid columns.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "resize browser window to mobile width → no horizontal overflow occurs; view gallery list on small screen → grid columns adjust appropriately for screen size; open photo detail on mobile device → image fits without hiding navigation or actions",
+          "verification": "acceptance tests in step \"Responsive Design Implementation\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R85",
+          "text": "Usable search and filters.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "resize browser window to mobile width → no horizontal overflow occurs; view gallery list on small screen → grid columns adjust appropriately for screen size; open photo detail on mobile device → image fits without hiding navigation or actions",
+          "verification": "acceptance tests in step \"Responsive Design Implementation\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R86",
+          "text": "Detail images fit without hiding navigation or actions.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "resize browser window to mobile width → no horizontal overflow occurs; view gallery list on small screen → grid columns adjust appropriately for screen size; open photo detail on mobile device → image fits without hiding navigation or actions",
+          "verification": "acceptance tests in step \"Responsive Design Implementation\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R87",
+          "text": "Accessible dialog content on small screens.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "resize browser window to mobile width → no horizontal overflow occurs; view gallery list on small screen → grid columns adjust appropriately for screen size; open photo detail on mobile device → image fits without hiding navigation or actions",
+          "verification": "acceptance tests in step \"Responsive Design Implementation\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R88",
+          "text": "All actions available without hover.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "open gallery detail screen with screen reader active → screen reader announces all interactive elements correctly; view photo detail screen → image displays alt text from photo record; navigate using keyboard only → all controls remain accessible without hover",
+          "verification": "acceptance tests in step \"Accessibility Compliance\"; checked on every page (look check, contrast, keyboard, phone width)",
+          "status": "planned"
+        },
+        {
+          "requirement": "R89",
+          "text": "Open Gallery.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R90",
+          "text": "Search WINDOW.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "type 'Outdoor' in search bar → photos matching Outdoor category appear; select 'Indoor' from category dropdown → only Indoor photos are shown; clear search and select 'Outdoor' → seven photos appear",
+          "verification": "acceptance tests in step \"Search and Filter Functionality\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R91",
+          "text": "Confirm Window Light is the only result.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "type 'Outdoor' in search bar → photos matching Outdoor category appear; select 'Indoor' from category dropdown → only Indoor photos are shown; clear search and select 'Outdoor' → seven photos appear",
+          "verification": "acceptance tests in step \"Search and Filter Functionality\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R92",
+          "text": "Open it and confirm title, category, and image match.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "type 'Outdoor' in search bar → photos matching Outdoor category appear; select 'Indoor' from category dropdown → only Indoor photos are shown; clear search and select 'Outdoor' → seven photos appear",
+          "verification": "acceptance tests in step \"Search and Filter Functionality\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R93",
+          "text": "Return to Gallery and confirm search remains.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "open the gallery list screen → Gallery: Autumn Portrait Session; search for 'Window Light' → Window Light and Last Light photos are shown",
+          "verification": "acceptance tests in step \"Gallery List Screen\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R94",
+          "text": "Clear search and select Outdoor.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "type 'Outdoor' in search bar → photos matching Outdoor category appear; select 'Indoor' from category dropdown → only Indoor photos are shown; clear search and select 'Outdoor' → seven photos appear",
+          "verification": "acceptance tests in step \"Search and Filter Functionality\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R95",
+          "text": "Confirm seven photos appear.",
+          "workflows": [
+            "Journey A — Find and inspect"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "type 'Outdoor' in search bar → photos matching Outdoor category appear; select 'Indoor' from category dropdown → only Indoor photos are shown; clear search and select 'Outdoor' → seven photos appear",
+          "verification": "acceptance tests in step \"Search and Filter Functionality\"; journey test for \"Journey A — Find and inspect\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R96",
+          "text": "Begin in an empty Draft state.",
+          "workflows": [
+            "Journey B — Select, annotate, and persist"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail",
+            "My Selection"
+          ],
+          "behavior": "open Golden Hour gallery and add it → Golden Hour photo is added to the selection; add note 'Please soften the background' → Note appears next to the selected photo; attempt to add a sixth photo → Error message explaining the limit is shown",
+          "verification": "acceptance tests in step \"Gallery Selection and Note Management\"; journey test for \"Journey B — Select, annotate, and persist\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R97",
+          "text": "Open Golden Hour and add it.",
+          "workflows": [
+            "Journey B — Select, annotate, and persist"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail",
+            "My Selection"
+          ],
+          "behavior": "open Golden Hour gallery and add it → Golden Hour photo is added to the selection; add note 'Please soften the background' → Note appears next to the selected photo; attempt to add a sixth photo → Error message explaining the limit is shown",
+          "verification": "acceptance tests in step \"Gallery Selection and Note Management\"; journey test for \"Journey B — Select, annotate, and persist\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R98",
+          "text": "Add note: “Please soften the background.”",
+          "workflows": [
+            "Journey B — Select, annotate, and persist"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail",
+            "My Selection"
+          ],
+          "behavior": "open Golden Hour gallery and add it → Golden Hour photo is added to the selection; add note 'Please soften the background' → Note appears next to the selected photo; attempt to add a sixth photo → Error message explaining the limit is shown",
+          "verification": "acceptance tests in step \"Gallery Selection and Note Management\"; journey test for \"Journey B — Select, annotate, and persist\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R99",
+          "text": "Add four other photos.",
+          "workflows": [
+            "Journey B — Select, annotate, and persist"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail",
+            "My Selection"
+          ],
+          "behavior": "open Golden Hour gallery and add it → Golden Hour photo is added to the selection; add note 'Please soften the background' → Note appears next to the selected photo; attempt to add a sixth photo → Error message explaining the limit is shown",
+          "verification": "acceptance tests in step \"Gallery Selection and Note Management\"; journey test for \"Journey B — Select, annotate, and persist\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R100",
+          "text": "Attempt to add a sixth.",
+          "workflows": [
+            "Journey B — Select, annotate, and persist"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail",
+            "My Selection"
+          ],
+          "behavior": "open Golden Hour gallery and add it → Golden Hour photo is added to the selection; add note 'Please soften the background' → Note appears next to the selected photo; attempt to add a sixth photo → Error message explaining the limit is shown",
+          "verification": "acceptance tests in step \"Gallery Selection and Note Management\"; journey test for \"Journey B — Select, annotate, and persist\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R101",
+          "text": "Confirm original five remain and limit is explained.",
+          "workflows": [
+            "Journey B — Select, annotate, and persist"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail",
+            "My Selection"
+          ],
+          "behavior": "open Golden Hour gallery and add it → Golden Hour photo is added to the selection; add note 'Please soften the background' → Note appears next to the selected photo; attempt to add a sixth photo → Error message explaining the limit is shown",
+          "verification": "acceptance tests in step \"Gallery Selection and Note Management\"; journey test for \"Journey B — Select, annotate, and persist\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R102",
+          "text": "Open My Selection and confirm the same five records and note.",
+          "workflows": [
+            "Journey B — Select, annotate, and persist"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail",
+            "My Selection"
+          ],
+          "behavior": "Journey B — Select, annotate, and persist: remaining requirements",
+          "verification": "step \"Journey B — Select, annotate, and persist: remaining requirements\"; journey test for \"Journey B — Select, annotate, and persist\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R103",
+          "text": "Reload and confirm selection and note persist.",
+          "workflows": [
+            "Journey B — Select, annotate, and persist"
+          ],
+          "pages": [
+            "Gallery",
+            "Photo detail",
+            "My Selection"
+          ],
+          "behavior": "open Golden Hour gallery and add it → Golden Hour photo is added to the selection; add note 'Please soften the background' → Note appears next to the selected photo; attempt to add a sixth photo → Error message explaining the limit is shown",
+          "verification": "acceptance tests in step \"Gallery Selection and Note Management\"; journey test for \"Journey B — Select, annotate, and persist\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R104",
+          "text": "Begin with five selected photos.",
+          "workflows": [
+            "Journey C — Remove and replace"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "remove a selected photo → Selection count decreases by one; add a different photo to replace the removed one → New photo appears in the correct order with previous note preserved; verify selection count changes everywhere → Count updates across all relevant screens",
+          "verification": "acceptance tests in step \"Gallery Selection Replacement and Validation\"; journey test for \"Journey C — Remove and replace\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R105",
+          "text": "Remove one from My Selection.",
+          "workflows": [
+            "Journey C — Remove and replace"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "click remove button on a selected photo → confirmation dialog appears; press keyboard key to remove a photo → confirmation dialog appears",
+          "verification": "acceptance tests in step \"Selection Management\"; journey test for \"Journey C — Remove and replace\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R106",
+          "text": "Confirm count changes everywhere.",
+          "workflows": [
+            "Journey C — Remove and replace"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "remove a selected photo → Selection count decreases by one; add a different photo to replace the removed one → New photo appears in the correct order with previous note preserved; verify selection count changes everywhere → Count updates across all relevant screens",
+          "verification": "acceptance tests in step \"Gallery Selection Replacement and Validation\"; journey test for \"Journey C — Remove and replace\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R107",
+          "text": "Add a different photo.",
+          "workflows": [
+            "Journey C — Remove and replace"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "remove a selected photo → Selection count decreases by one; add a different photo to replace the removed one → New photo appears in the correct order with previous note preserved; verify selection count changes everywhere → Count updates across all relevant screens",
+          "verification": "acceptance tests in step \"Gallery Selection Replacement and Validation\"; journey test for \"Journey C — Remove and replace\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R108",
+          "text": "Confirm correct five in sample-data order.",
+          "workflows": [
+            "Journey C — Remove and replace"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "remove a selected photo → Selection count decreases by one; add a different photo to replace the removed one → New photo appears in the correct order with previous note preserved; verify selection count changes everywhere → Count updates across all relevant screens",
+          "verification": "acceptance tests in step \"Gallery Selection Replacement and Validation\"; journey test for \"Journey C — Remove and replace\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R109",
+          "text": "Reopen removed photo and confirm any previously saved note remains.",
+          "workflows": [
+            "Journey C — Remove and replace"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery",
+            "Photo detail"
+          ],
+          "behavior": "remove a selected photo → Selection count decreases by one; add a different photo to replace the removed one → New photo appears in the correct order with previous note preserved; verify selection count changes everywhere → Count updates across all relevant screens",
+          "verification": "acceptance tests in step \"Gallery Selection Replacement and Validation\"; journey test for \"Journey C — Remove and replace\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R110",
+          "text": "With fewer than five, confirm submission cannot proceed.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R111",
+          "text": "Select exactly five.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R112",
+          "text": "Open submission dialog, cancel, and confirm nothing changes.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R113",
+          "text": "Open it again and confirm.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R114",
+          "text": "Verify Submitted status, timestamp, and correct five photos.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R115",
+          "text": "Verify shortlist and note editing are locked across screens.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R116",
+          "text": "Reload and confirm submitted state remains locked.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R117",
+          "text": "Begin in Submitted state.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R118",
+          "text": "Open Start over and cancel; confirm all submitted data remains.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R119",
+          "text": "Open Start over again and confirm.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R120",
+          "text": "Verify empty Draft selection and cleared notes.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R121",
+          "text": "Reload and confirm reset persists.",
+          "workflows": [
+            "Journey D — Submit and lock",
+            "Journey E — Start over"
+          ],
+          "pages": [
+            "My Selection",
+            "Gallery"
+          ],
+          "behavior": "attempt to submit with fewer than five photos → Submission dialog prevents proceeding; select exactly five photos and submit → Submitted status, timestamp, and correct five photos displayed; open start over and cancel → All submitted data remains unchanged",
+          "verification": "acceptance tests in step \"Gallery Submission and Locking\"; journey test for \"Journey D — Submit and lock\", \"Journey E — Start over\"",
+          "status": "planned"
+        },
+        {
+          "requirement": "R122",
+          "text": "All five journeys work through the actual app.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "All five journeys work through the actual app.",
+          "verification": "a person checks it at review",
+          "status": "for a person to check"
+        },
+        {
+          "requirement": "R123",
+          "text": "Typecheck, lint, tests, and production build pass.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "Typecheck, lint, tests, and production build pass.",
+          "verification": "a person checks it at review",
+          "status": "for a person to check"
+        },
+        {
+          "requirement": "R124",
+          "text": "Desktop and phone layouts reviewed.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "resize browser window to mobile width → no horizontal overflow occurs; view gallery list on small screen → grid columns adjust appropriately for screen size; open photo detail on mobile device → image fits without hiding navigation or actions",
+          "verification": "acceptance tests in step \"Responsive Design Implementation\"",
+          "status": "no workflow"
+        },
+        {
+          "requirement": "R125",
+          "text": "No broken images, dead controls, or uncaught console errors.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "No broken images, dead controls, or uncaught console errors.",
+          "verification": "a person checks it at review",
+          "status": "for a person to check"
+        },
+        {
+          "requirement": "R126",
+          "text": "Reduced motion and animation-off checked.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "Reduced motion and animation-off checked.",
+          "verification": "a person checks it at review",
+          "status": "for a person to check"
+        },
+        {
+          "requirement": "R127",
+          "text": "Tests verify behavior and real sample records, not internal component names or invented status text.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "Tests verify behavior and real sample records, not internal component names or invented status text.",
+          "verification": "a person checks it at review",
+          "status": "for a person to check"
+        },
+        {
+          "requirement": "R128",
+          "text": "Explicitly report unmet requirements and untested platforms.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "Explicitly report unmet requirements and untested platforms.",
+          "verification": "a person checks it at review",
+          "status": "for a person to check"
+        },
+        {
+          "requirement": "R129",
+          "text": "Photographer or administrator roles.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R130",
+          "text": "Multiple galleries.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R131",
+          "text": "Photo upload or download.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R132",
+          "text": "Image editing, cropping, or zoom tools.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R133",
+          "text": "Payments or real authentication.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R134",
+          "text": "Email or notifications.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R135",
+          "text": "Public sharing.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R136",
+          "text": "Ratings or social comments.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R137",
+          "text": "AI features.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R138",
+          "text": "Backend services or cloud synchronization.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R139",
+          "text": "Marketing pages.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        },
+        {
+          "requirement": "R140",
+          "text": "Additional navigation destinations.",
+          "workflows": [],
+          "pages": [],
+          "behavior": "",
+          "verification": "left out: listed under \"Out of scope\"",
+          "status": "not in this release"
+        }
+      ]
+    },
+    "level": "warning",
+    "createdAt": "2026-10-18T13:02:04.268Z",
+    "seq": 49
+  },
+  {
+    "id": "evt_3c69033722da4eebbede",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Plan checks: all 6 pass (scope, Home, tests, save journey, data owners, Look)",
+    "data": {
+      "checks": [
+        {
+          "id": 1,
+          "label": "Scope: required behaviour, supporting data and left-out capabilities agree in every step",
+          "ok": true,
+          "problems": []
+        },
+        {
+          "id": 2,
+          "label": "Home: a product-discovery page, no marketing funnel",
+          "ok": true,
+          "problems": []
+        },
+        {
+          "id": 3,
+          "label": "Tests: what a person sees, not internal names or placeholder phrases",
+          "ok": true,
+          "problems": []
+        },
+        {
+          "id": 4,
+          "label": "Save journey: complete, with its starting sign-in state",
+          "ok": true,
+          "problems": []
+        },
+        {
+          "id": 5,
+          "label": "Data owners: one for records, one for saved state",
+          "ok": true,
+          "problems": []
+        },
+        {
+          "id": 6,
+          "label": "Look: stated as selected, proposed or none; no implied design approval",
+          "ok": true,
+          "problems": []
+        }
+      ]
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:02:04.276Z",
+    "seq": 50
+  },
+  {
+    "id": "evt_82fc6400f30041fb916c",
+    "type": "plan.proposed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Plan proposed (medium risk): 16 tasks — Frameproof: build the attached PRD as a complete working prototype.",
+    "data": {
+      "risk": "medium",
+      "tasks": [
+        "Scaffold from verified starter template",
+        "Install dependencies (approved)",
+        "Import spec references",
+        "Capture the style",
+        "Review the prototype plan and the design",
+        "Add library sections",
+        "Write the complete app",
+        "Design the main screens",
+        "Gallery List Screen, Gallery Detail Screen, Search and Filter Functionality",
+        "R5 — Shortlist behavior: Photo Shortlisting with Selection Count and 3 more",
+        "Journey B — Select, annotate, and persist: Gallery Selection and Note Management and 2 more",
+        "Prototype boundaries: Gallery List Screen and 3 more",
+        "Screens and navigation: My Selection Screen and 4 more",
+        "Design polish",
+        "Clean up the code",
+        "Assemble the app: wire every page and component into App.tsx"
+      ]
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:02:04.372Z",
+    "seq": 51
+  },
+  {
+    "id": "evt_db5ab0f98bf14f93806b",
+    "type": "approval.requested",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Approval needed (medium risk): Approve implementation plan: Frameproof: build the attached PRD as a complete working prototype.",
+    "data": {
+      "approvalId": "apr_24e75a0e53164b27b138",
+      "kind": "plan",
+      "risk": "medium"
+    },
+    "level": "warning",
+    "createdAt": "2026-10-18T13:02:04.390Z",
+    "seq": 52
+  },
+  {
+    "id": "evt_35bb01a79f0b41f8ad89",
+    "type": "phase.completed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Planning complete; awaiting approval of plan version 1",
+    "data": {
+      "phase": "planning",
+      "planVersion": 1
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:02:04.396Z",
+    "seq": 53
+  },
+  {
+    "id": "evt_b470a8d9777a4fb99c23",
+    "type": "run.status_changed",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Plan ready for review",
+    "data": {
+      "from": "draft",
+      "to": "awaiting_approval"
+    },
+    "level": "info",
+    "createdAt": "2026-10-18T13:02:04.402Z",
+    "seq": 54
+  },
+  {
+    "id": "evt_8ad23332bdf247ddb089",
+    "type": "run.interrupted",
+    "projectId": "prj_8da8edeb5b494b06bd33",
+    "runId": "run_ffaf429822914271b675",
+    "message": "Waiting for your approval: can't continue automatically. Plan ready for review Resumes when you approve or decline.",
+    "data": {
+      "interruption": {
+        "recoverable": false,
+        "needsUser": true,
+        "action": "Waiting for your approval: can't continue automatically",
+        "resumeWhen": "you approve or decline",
+        "maxAttempts": 0,
+        "timeoutMs": 0,
+        "attempt": 0,
+        "runId": "run_ffaf429822914271b675",
+        "cause": "approval",
+        "by": "system",
+        "detail": "Plan ready for review",
+        "at": "2026-10-18T13:02:04.405Z",
+        "state": "active"
+      }
+    },
+    "level": "warning",
+    "createdAt": "2026-10-18T13:02:04.406Z",
+    "seq": 55
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "role": "planner",
+    "model": "qwen3-coder:30b",
+    "providerId": "ollama",
+    "source": "chosen for this build (the cloud/local switch when it was started)",
+    "contextTokens": 8192,
+    "replyCapTokens": 4096,
+    "note": "per call; a call asking for a longer reply gets a larger window (up to 32,768 locally)"
+  },
+  {
+    "role": "coder",
+    "model": "qwen3-coder:30b",
+    "providerId": "ollama",
+    "source": "chosen for this build (the cloud/local switch when it was started)",
+    "contextTokens": 24576,
+    "replyCapTokens": 4096,
+    "note": ""
+  },
+  {
+    "role": "debugger",
+    "model": "qwen3-coder:30b",
+    "providerId": "ollama",
+    "source": "chosen for this build (the cloud/local switch when it was started)",
+    "contextTokens": 24576,
+    "replyCapTokens": 4096,
+    "note": ""
+  }
+]

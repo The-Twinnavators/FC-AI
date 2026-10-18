@@ -1,0 +1,386 @@
+{
+  "product": "Frameproof",
+  "roles": [
+    "client"
+  ],
+  "entities": [
+    {
+      "key": "gallery",
+      "label": "Gallery",
+      "plural": "Galleries",
+      "titleField": "title",
+      "subtitleField": "photographer",
+      "idPrefix": "GAL",
+      "fields": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "photographer",
+          "label": "Photographer",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "client",
+          "label": "Client",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "requiredSelectionCount",
+          "label": "Required Selection Count",
+          "type": "number",
+          "required": true,
+          "min": 1,
+          "max": 12
+        }
+      ],
+      "columns": [],
+      "filters": []
+    },
+    {
+      "key": "photo",
+      "label": "Photo",
+      "plural": "Photos",
+      "titleField": "title",
+      "subtitleField": "category",
+      "idPrefix": "PHO",
+      "fields": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "options": [
+            "[object Object]",
+            "[object Object]"
+          ],
+          "required": true
+        },
+        {
+          "key": "orientation",
+          "label": "Orientation",
+          "type": "select",
+          "options": [
+            "[object Object]",
+            "[object Object]"
+          ],
+          "required": true
+        },
+        {
+          "key": "imageSource",
+          "label": "Image Source",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "altText",
+          "label": "Alt Text",
+          "type": "longtext",
+          "required": true
+        },
+        {
+          "key": "editingNote",
+          "label": "Editing Note",
+          "type": "longtext"
+        }
+      ],
+      "columns": [],
+      "filters": []
+    }
+  ],
+  "seed": {
+    "gallery": [
+      {
+        "id": "gal-001",
+        "title": "Spring Blossom Collection",
+        "photographer": "Maya Chen",
+        "client": "Greenwood Gardens",
+        "requiredSelectionCount": 8
+      },
+      {
+        "id": "gal-002",
+        "title": "Urban Architecture Series",
+        "photographer": "David Rodriguez",
+        "client": "Metropolitan Design Co.",
+        "requiredSelectionCount": 12
+      },
+      {
+        "id": "gal-003",
+        "title": "Coastal Retreats",
+        "photographer": "Sophie Laurent",
+        "client": "Seaside Properties Inc.",
+        "requiredSelectionCount": 10
+      },
+      {
+        "id": "gal-004",
+        "title": "Vintage Automotive Showcase",
+        "photographer": "James Mitchell",
+        "client": "Classic Car Club",
+        "requiredSelectionCount": 15
+      },
+      {
+        "id": "gal-005",
+        "title": "Mountain Adventure Portfolio",
+        "photographer": "Elena Petrov",
+        "client": "Alpine Outfitters",
+        "requiredSelectionCount": 9
+      },
+      {
+        "id": "gal-006",
+        "title": "Culinary Arts Collection",
+        "photographer": "Marcus Johnson",
+        "client": "Gourmet Society",
+        "requiredSelectionCount": 11
+      },
+      {
+        "id": "gal-007",
+        "title": "Historic District Preservation",
+        "photographer": "Amanda Foster",
+        "client": "Heritage Trust Foundation",
+        "requiredSelectionCount": 13
+      },
+      {
+        "id": "gal-008",
+        "title": "Wildlife Conservation Series",
+        "photographer": "Thomas Wright",
+        "client": "Nature Conservancy",
+        "requiredSelectionCount": 7
+      },
+      {
+        "id": "gal-009",
+        "title": "Corporate Office Spaces",
+        "photographer": "Lisa Park",
+        "client": "Global Business Solutions",
+        "requiredSelectionCount": 14
+      },
+      {
+        "id": "gal-010",
+        "title": "Cultural Heritage Exhibition",
+        "photographer": "Robert Kim",
+        "client": "Museum of Modern Art",
+        "requiredSelectionCount": 16
+      },
+      {
+        "id": "gallery-11",
+        "title": "Spring Blossom Collection",
+        "photographer": "Maya Chen",
+        "client": "Floral Design Studio",
+        "requiredSelectionCount": 8
+      },
+      {
+        "id": "gallery-12",
+        "title": "Urban Architecture Series",
+        "photographer": "David Rodriguez",
+        "client": "Metropolitan Planning Authority",
+        "requiredSelectionCount": 12
+      },
+      {
+        "id": "gallery-13",
+        "title": "Coastal Retreats",
+        "photographer": "Sophie Laurent",
+        "client": "Seaside Vacation Resorts Inc",
+        "requiredSelectionCount": 10
+      },
+      {
+        "id": "gallery-14",
+        "title": "Vintage Automotive Showcase",
+        "photographer": "James Mitchell",
+        "client": "Classic Car Enthusiasts Association",
+        "requiredSelectionCount": 15
+      }
+    ],
+    "photo": [
+      {
+        "id": "photo_001",
+        "title": "Mountain Sunrise",
+        "category": "landscape",
+        "orientation": "landscape",
+        "imageSource": "https://example.com/images/mountain-sunrise.jpg",
+        "altText": "Golden sunrise over snow-capped mountains with blue sky and white clouds",
+        "editingNote": "Added slight contrast enhancement and color saturation boost"
+      },
+      {
+        "id": "photo_002",
+        "title": "Urban Street Art",
+        "category": "urban",
+        "orientation": "portrait",
+        "imageSource": "https://example.com/images/street-art.jpg",
+        "altText": "Colorful graffiti mural on brick wall with people walking in foreground",
+        "editingNote": "Enhanced shadows and adjusted exposure for better detail in dark areas"
+      },
+      {
+        "id": "photo_003",
+        "title": "Coastal Cliff Walk",
+        "category": "landscape",
+        "orientation": "landscape",
+        "imageSource": "https://example.com/images/cliff-walk.jpg",
+        "altText": "Person walking along rocky coastline with ocean waves and dramatic sky",
+        "editingNote": "Increased clarity and reduced haze for better coastal atmosphere"
+      },
+      {
+        "id": "photo_004",
+        "title": "Coffee Shop Interior",
+        "category": "urban",
+        "orientation": "portrait",
+        "imageSource": "https://example.com/images/coffee-shop.jpg",
+        "altText": "Cozy coffee shop interior with wooden tables, steam from coffee maker, and warm lighting",
+        "editingNote": "Adjusted white balance and added warmth to enhance cozy atmosphere"
+      },
+      {
+        "id": "photo_005",
+        "title": "Autumn Forest Path",
+        "category": "landscape",
+        "orientation": "landscape",
+        "imageSource": "https://example.com/images/autumn-forest.jpg",
+        "altText": "Fall foliage path with golden leaves and sunlight filtering through trees",
+        "editingNote": "Enhanced color vibrancy and adjusted highlights for better leaf detail"
+      },
+      {
+        "id": "photo_006",
+        "title": "Night City Lights",
+        "category": "urban",
+        "orientation": "landscape",
+        "imageSource": "https://example.com/images/city-lights.jpg",
+        "altText": "City skyline illuminated at night with lights reflecting on water surface",
+        "editingNote": "Added slight glow effect and adjusted contrast for better light trails"
+      },
+      {
+        "id": "photo_007",
+        "title": "Desert Dunes",
+        "category": "landscape",
+        "orientation": "landscape",
+        "imageSource": "https://example.com/images/desert-dunes.jpg",
+        "altText": "Golden sand dunes under blue sky with dramatic shadows and texture",
+        "editingNote": "Enhanced tonal range and adjusted exposure for better sand detail"
+      },
+      {
+        "id": "photo_008",
+        "title": "Market Produce Stall",
+        "category": "urban",
+        "orientation": "portrait",
+        "imageSource": "https://example.com/images/market-produce.jpg",
+        "altText": "Colorful fruits and vegetables displayed on wooden stall in bustling market",
+        "editingNote": "Improved color accuracy and adjusted lighting for better produce freshness"
+      },
+      {
+        "id": "photo_009",
+        "title": "Winter Mountain Lake",
+        "category": "landscape",
+        "orientation": "landscape",
+        "imageSource": "https://example.com/images/winter-lake.jpg",
+        "altText": "Frozen lake surrounded by snow-covered mountains with clear blue sky",
+        "editingNote": "Enhanced ice texture and adjusted contrast for better winter atmosphere"
+      },
+      {
+        "id": "photo_010",
+        "title": "Street Food Vendor",
+        "category": "urban",
+        "orientation": "portrait",
+        "imageSource": "https://example.com/images/street-food.jpg",
+        "altText": "Food vendor preparing traditional dishes with colorful ingredients and customers waiting",
+        "editingNote": "Added warmth to food colors and adjusted exposure for better cooking details"
+      },
+      {
+        "id": "photo-11",
+        "title": "Sunset Over the Bay",
+        "category": "landscape",
+        "orientation": "landscape",
+        "imageSource": "https://example.com/sunset-bay.jpg",
+        "altText": "Golden sunset reflecting on calm bay waters with silhouette of distant islands",
+        "editingNote": "Enhanced contrast and saturation to bring out the warm orange tones in the sky"
+      },
+      {
+        "id": "photo-12",
+        "title": "Vintage Typewriter",
+        "category": "still-life",
+        "orientation": "portrait",
+        "imageSource": "https://example.com/vintage-typewriter.jpg",
+        "altText": "Antique manual typewriter with worn leather case sitting on wooden desk",
+        "editingNote": "Added slight vignette effect to draw attention to the typewriter keys and focus"
+      },
+      {
+        "id": "photo-13",
+        "title": "Street Musician",
+        "category": "portrait",
+        "orientation": "portrait",
+        "imageSource": "https://example.com/street-musician.jpg",
+        "altText": "Young street performer playing guitar with crowd of passersby gathered around",
+        "editingNote": "Adjusted exposure to highlight the musician's face while maintaining ambient street lighting"
+      },
+      {
+        "id": "photo-14",
+        "title": "Morning Coffee Ritual",
+        "category": "still-life",
+        "orientation": "landscape",
+        "imageSource": "https://example.com/morning-coffee.jpg",
+        "altText": "Steam rising from ceramic mug with coffee beans and sugar on rustic wooden table",
+        "editingNote": "Enhanced the warm tones in the coffee and added subtle grain to create vintage feel"
+      }
+    ]
+  },
+  "nav": [
+    {
+      "label": "Gallery",
+      "items": [
+        {
+          "id": "gallery-list",
+          "label": "Gallery",
+          "kind": "list",
+          "entity": "gallery"
+        },
+        {
+          "id": "my-selection",
+          "label": "My Selection",
+          "kind": "list",
+          "entity": "photo"
+        },
+        {
+          "id": "new-gallery",
+          "label": "New gallery",
+          "kind": "create",
+          "entity": "gallery"
+        },
+        {
+          "id": "gallery-detail",
+          "label": "Gallery detail",
+          "kind": "detail",
+          "entity": "gallery"
+        },
+        {
+          "id": "new-photo",
+          "label": "New photo",
+          "kind": "create",
+          "entity": "photo"
+        },
+        {
+          "id": "photo-detail",
+          "label": "Photo detail",
+          "kind": "detail",
+          "entity": "photo"
+        }
+      ]
+    }
+  ]
+}

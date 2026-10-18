@@ -1,0 +1,15 @@
+{
+  "surfaceExceptions": [],
+  "base": {
+    "source": "none",
+    "detail": "No app yet"
+  },
+  "hasApp": false,
+  "motionSupported": true,
+  "differs": [],
+  "label": "No brand direction selected",
+  "checks": [],
+  "prd": {
+    "colors": []
+  }
+}
