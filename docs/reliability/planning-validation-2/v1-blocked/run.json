@@ -1,0 +1,97 @@
+{
+  "id": "run_00ebcbf990c7462c8a25",
+  "projectId": "prj_0c2ab67f58df4a4b8c64",
+  "objective": "Clean Cart: build the slice in the attached PRD as a complete working prototype: Home, search, a product's page, save it, and see it on Saved.",
+  "status": "blocked",
+  "strategy": {
+    "kind": "spec_build",
+    "previewStrategy": "vite_dev",
+    "requiredChecks": [
+      "project_preflight",
+      "manifest_validation",
+      "install",
+      "typecheck",
+      "lint",
+      "tests",
+      "build",
+      "server_start",
+      "preview_health",
+      "screenshots",
+      "design_qa",
+      "app_wiring",
+      "final_report"
+    ],
+    "templateId": "react-vite-scheduler",
+    "buildMode": "complete"
+  },
+  "modelAssignments": {
+    "planner": {
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "temperature": 0.1
+    },
+    "coder": {
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "temperature": 0.1
+    },
+    "debugger": {
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "temperature": 0.1
+    },
+    "repository_analyst": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "researcher": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "reviewer": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "designer": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "critic": {
+      "providerId": "ollama",
+      "model": "qwen2.5vl:3b",
+      "temperature": 0.1
+    },
+    "documenter": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "security_qa": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "accessibility_qa": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "compliance_triage": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    }
+  },
+  "statusReason": "Planning blocked: The app model for the complete app isn't usable: Only 0 sample products (20 or more make the app feel real); Only 0 sample stores (6 or more, a few in each ZIP code area); Products have no category (a select field); The look-up app's lookup section isn't usable. Resume to plan it again, or start it again as a Quick sketch (New build), which is a different, reduced deliverable: designed screens with sample content, not the working app.",
+  "planApproved": false,
+  "constraints": [],
+  "createdAt": "2026-10-18T12:41:54.895Z",
+  "attachedKnowledgeIds": [
+    "kn_5422587e092f4d088ed8"
+  ],
+  "referencePaths": []
+}

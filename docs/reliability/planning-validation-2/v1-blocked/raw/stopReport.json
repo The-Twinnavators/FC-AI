@@ -1,0 +1,56 @@
+{
+  "stamp": "blocked||Planning blocked: The app model for the complete app isn't usable: Only 0 sample products (20 or more make the app feel real); Only 0 sample stores (6 or more, a few in each ZIP code area); Products have no category (a select field); The look-up app's lookup section isn't usable. Resume to plan it again, or start it again as a Quick sketch (New build), which is a different, reduced deliverable: designed screens with sample content, not the working app.",
+  "report": {
+    "runId": "run_00ebcbf990c7462c8a25",
+    "status": "blocked",
+    "stoppedBecause": "This build is waiting for help: Planning blocked: The app model for the complete app isn't usable: Only 0 sample products (20 or more make the app feel real); Only 0 sample stores (6 or more, a few in each ZIP code area); Products have no category (a select field); The look-up app's lookup section isn't usable. Resume to plan it again, or start it again as a Quick sketch (New build), which is a different, reduced deliverable: designed screens with sample content, not the working app..",
+    "progress": {
+      "done": 0,
+      "total": 0
+    },
+    "diagnosis": {
+      "scope": "run",
+      "title": "Why this run is blocked",
+      "summary": "Planning blocked: The app model for the complete app isn't usable: Only 0 sample products (20 or more make the app feel real); Only 0 sample stores (6 or more, a few in each ZIP code area); Products h",
+      "causes": [],
+      "fixes": [],
+      "explanation": "The automated build stopped because the app doesn't have enough sample data to feel real - it needs at least 20 products and 6 stores, but has none. The products also don't have categories assigned, which is required. The lookup section in the app isn't working properly either. \n\nThe most likely cause is that the build step tried to create the app but couldn't because the required sample data wasn't provided or was incorrectly formatted.\n\nI'd pick the \"Quick sketch\" option first because it's designed for cases like this where there's insufficient content - it creates a basic version of the app with sample content instead of trying to build the full working app that requires all the data. This lets you get started quickly while still having something functional to work with.",
+      "model": "qwen3-coder:30b"
+    },
+    "research": {
+      "similarSteps": [],
+      "knowledge": [
+        {
+          "id": "skill.proposed-handle-stuck-acceptance",
+          "title": "skill.proposed-handle-stuck-acceptance",
+          "snippet": "…[apply]_patch or replace_file.\n4. If [the] issue is a [model] error, report_[blocked] and ask [for]…"
+        },
+        {
+          "id": "skill.anthropic-design-user-research",
+          "title": "skill.anthropic-design-user-research",
+          "snippet": "…[For] a [usability] test, list 3-5 realistic tasks in [the] running [app] with success criteria.\n5. [Plan]…"
+        },
+        {
+          "id": "skill.art-direction",
+          "title": "skill.art-direction",
+          "snippet": "…most [the] primary action and [the] focal point; status colours [only] [for] status. If [the] accent [appears] in…"
+        },
+        {
+          "id": "skill.executing-plans",
+          "title": "skill.executing-plans",
+          "snippet": "…[plan] is wrong (make [the] smallest change that satisfies [the] request).\n- Record every deviation in your task_[complete]…"
+        }
+      ],
+      "web": [],
+      "webSkipped": "Web search is off for this project (Project settings → Allow external research)."
+    },
+    "next": [
+      {
+        "kind": "resume",
+        "label": "Resume",
+        "detail": "Try the stuck steps again with what FlowCode has learned, keeping the finished steps."
+      }
+    ],
+    "builtAt": "2026-10-18T12:42:48.658Z"
+  }
+}

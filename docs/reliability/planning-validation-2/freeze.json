@@ -1,0 +1,270 @@
+{
+  "recordedAt": "2026-10-18T12:41:54.798Z",
+  "label": "Planning-only validation 2 of the a2b1bfa planning repair: a new run of the Clean Cart brief with the recorded revision feedback. Not a continuation of eval 5 or of the first validation.",
+  "commit": "a2b1bfad6679481ae3b28969a0480b8bb1dfbde4",
+  "trackedChanges": [
+    " M .claude/launch.json"
+  ],
+  "daemon": {
+    "port": 7462,
+    "dataDir": ".flowcode-validation-2",
+    "build": "packages/daemon/dist-v2 (a2b1bfa)",
+    "health": {
+      "ok": true,
+      "version": "0.1.0",
+      "dataDirName": "FlowCode",
+      "providers": {
+        "ollama": {
+          "ok": true,
+          "detail": "Ollama 0.40.6 at 127.0.0.1:11434"
+        }
+      },
+      "migrations": [
+        "core_entities",
+        "knowledge_prompts_skills_search",
+        "task_dag_edges",
+        "flow_report"
+      ]
+    },
+    "note": "A separate instance so eval 5's daemon (7457) and records stay untouched; eval 5 is paused there."
+  },
+  "prd": {
+    "path": "docs/handoff/slice/clean-cart-slice-prd.md",
+    "sha256": "cf5d0f245f07eee496f38e870e5bb7ccb9bba804d389fc4f3a97496ca590c2dd"
+  },
+  "promptsAndSkills": {
+    "file": "packages/daemon/test/fixtures/builtin-hashes.json",
+    "sha256": "7a440ae85704d5752fd90ddf109bff9a2c06daa7ffb9b60d61383c661b4031dd"
+  },
+  "roleAssignments": {
+    "planner": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.2
+      },
+      "configHash": "36eabea2b6d900b1"
+    },
+    "coder": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "eligibility": {
+        "eligible": false,
+        "reason": "No capability record for qwen3-coder:30b. Run the Coder capability test first."
+      },
+      "configHash": "f49d7d0e6c6c1353"
+    },
+    "debugger": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "configHash": "f49d7d0e6c6c1353"
+    },
+    "repository_analyst": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "researcher": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "reviewer": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "designer": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "critic": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen2.5vl:3b",
+        "temperature": 0.1
+      },
+      "configHash": "fde31487c3bc09b4"
+    },
+    "documenter": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "security_qa": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "accessibility_qa": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "compliance_triage": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    }
+  },
+  "runtimeOptions": {
+    "fastModel": {
+      "enabled": false,
+      "model": "qwen3:8b",
+      "tries": 2
+    },
+    "rollbackBlocked": true,
+    "autoRetry": false,
+    "investigationBudget": 0,
+    "visualCritic": "off",
+    "routineThinking": false,
+    "gpuProfile": "standard",
+    "profileContext": 16384,
+    "profileSupportModel": "qwen3:8b",
+    "coderCorrections": 2
+  },
+  "modelDigests": {
+    "qwen2.5vl:3b": "79d497978752",
+    "gpt-oss:20b": "17052f91a42e",
+    "qwen3-coder:30b": "06c1097efce0",
+    "qwen3:14b": "bdbd181c33f2",
+    "llama3.1:8b": "46e0c10c039e",
+    "qwen2.5:7b": "845dbda0ea48",
+    "qwen3:8b": "500a1f067a9f",
+    "gemma2:2b": "8ccf136fdd52",
+    "nomic-embed-text:latest": "0a109f422b47",
+    "qwen2.5-coder:7b": "dae161e27b0e"
+  },
+  "run": {
+    "project": "Clean Cart slice (planning validation 2)",
+    "autonomy": "supervised",
+    "kind": "spec_build",
+    "buildMode": "complete",
+    "objective": "Clean Cart: build the slice in the attached PRD as a complete working prototype: Home, search, a product's page, save it, and see it on Saved.",
+    "references": [
+      "docs/handoff/slice/clean-cart-slice-prd.md"
+    ],
+    "pinnedModels": {
+      "planner": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "coder": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "debugger": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      }
+    }
+  },
+  "created": {
+    "projectId": "prj_0c2ab67f58df4a4b8c64",
+    "runId": "run_00ebcbf990c7462c8a25",
+    "createdAt": "2026-10-18T12:41:54.895Z",
+    "deadline": {
+      "at": "2026-10-18T14:41:54.893Z",
+      "setAt": "2026-10-18T12:41:54.915Z",
+      "setBy": "user",
+      "reason": "Planning-only validation (no generation authorized)",
+      "extensions": []
+    },
+    "modelAssignments": {
+      "planner": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "coder": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "debugger": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "repository_analyst": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "researcher": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "reviewer": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "designer": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "critic": {
+        "providerId": "ollama",
+        "model": "qwen2.5vl:3b",
+        "temperature": 0.1
+      },
+      "documenter": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "security_qa": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "accessibility_qa": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "compliance_triage": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      }
+    }
+  }
+}

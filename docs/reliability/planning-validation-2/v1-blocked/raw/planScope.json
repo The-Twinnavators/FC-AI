@@ -1,0 +1,57 @@
+{
+  "capabilities": [
+    {
+      "capability": "categories",
+      "status": "not requested",
+      "source": "not asked for"
+    },
+    {
+      "capability": "places",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "Comments, ratings, choosing a store by ZIP code, grocery lists, real accounts and payments."
+    },
+    {
+      "capability": "lists",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "Comments, ratings, choosing a store by ZIP code, grocery lists, real accounts and payments."
+    },
+    {
+      "capability": "ratings",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "Comments, ratings, choosing a store by ZIP code, grocery lists, real accounts and payments."
+    },
+    {
+      "capability": "comments",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "Comments, ratings, choosing a store by ZIP code, grocery lists, real accounts and payments."
+    },
+    {
+      "capability": "sharing",
+      "status": "not requested",
+      "source": "not asked for"
+    },
+    {
+      "capability": "likes",
+      "status": "not requested",
+      "source": "not asked for"
+    }
+  ],
+  "revisions": [],
+  "noMarketing": false,
+  "navigation": [
+    "Home",
+    "Search",
+    "Saved"
+  ],
+  "dataSections": [
+    "records",
+    "products",
+    "stores",
+    "sample data"
+  ],
+  "conflicts": []
+}

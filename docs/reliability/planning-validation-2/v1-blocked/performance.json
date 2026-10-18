@@ -1,0 +1,120 @@
+{
+  "runId": "run_00ebcbf990c7462c8a25",
+  "status": "blocked",
+  "finished": false,
+  "startedAt": "2026-10-18T12:41:54.900Z",
+  "endedAt": "2026-10-18T12:43:21.140Z",
+  "elapsedMs": 86240,
+  "waitingMs": 0,
+  "stoppedMs": {
+    "paused": 0,
+    "maintenance": 0,
+    "queued": 0,
+    "recovering": 0,
+    "blocked": 38991,
+    "orphaned": 0
+  },
+  "recovery": {
+    "steps": 0,
+    "verified": 0,
+    "firstPass": 0,
+    "corrections": {
+      "attempts": 0,
+      "resolved": 0
+    },
+    "escalations": {
+      "total": 0,
+      "byCause": {}
+    },
+    "debuggerAttempts": 0,
+    "recoveryMs": 0,
+    "regressions": 0
+  },
+  "phases": [
+    {
+      "phase": "planning (in progress)",
+      "ms": 86224
+    }
+  ],
+  "busy": {
+    "modelMs": 46790,
+    "commandMs": 0,
+    "toolMs": 0,
+    "checkMs": 0
+  },
+  "model": {
+    "calls": 2,
+    "failed": 0,
+    "retries": 0,
+    "totalMs": 46790,
+    "hasTiming": true,
+    "loadMs": 19017,
+    "promptMs": 3988,
+    "generateMs": 23600,
+    "promptTokens": 3101,
+    "outputTokens": 875,
+    "coldLoads": 1,
+    "switches": 0,
+    "avgPromptChars": 6000,
+    "maxPromptChars": 11372,
+    "byModel": [
+      {
+        "model": "qwen3-coder:30b",
+        "roles": [
+          "planner"
+        ],
+        "calls": 2,
+        "totalMs": 46790,
+        "loadMs": 19017,
+        "promptMs": 3988,
+        "generateMs": 23600,
+        "outputTokens": 875,
+        "coldLoads": 1
+      }
+    ],
+    "tokensPerSec": 37.1
+  },
+  "commands": {
+    "count": 0,
+    "failed": 0,
+    "totalMs": 0
+  },
+  "tools": {
+    "count": 0,
+    "totalMs": 0,
+    "byName": []
+  },
+  "tasks": [],
+  "checks": [],
+  "slowest": [
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b (loaded the model first)",
+      "ms": 39449
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 7341
+    }
+  ],
+  "notes": [
+    "Most of the working time went to the AI model: 46.8s of 46.8s (100%).",
+    "Writing replies took 23.6s (50% of model time) at about 37.1 tokens per second.",
+    "Loading models into memory took 19s (41% of model time) across 1 load."
+  ],
+  "designPath": {
+    "researchMs": 0,
+    "designStepsMs": 0,
+    "designModelMs": 0,
+    "designModelCalls": 0,
+    "verificationMs": 0,
+    "planApprovalWaitMs": 0,
+    "stepApprovalWaitMs": 0,
+    "deadline": {
+      "at": "2026-10-18T14:41:54.893Z",
+      "extensions": 0,
+      "expired": false
+    }
+  }
+}
