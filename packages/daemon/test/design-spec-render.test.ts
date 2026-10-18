@@ -7,6 +7,7 @@
  * regression, not a judgement that either design is good. Needs the recorded workspace and a browser.
  */
 import fs from "node:fs";
+import { STYLE_VIBES } from "@flowcode/contracts";
 import os from "node:os";
 import path from "node:path";
 import { spawn, type ChildProcess } from "node:child_process";
@@ -90,7 +91,7 @@ async function render(spec: DesignSpec | undefined, port: number, measureAs: Des
     const { app } = makeApp();
     const project = app.projects.create({ name: `Spec ${spec.id}`, workspacePath: root });
     const t = performance.now();
-    application = applyDesignSpec(app.projects.jail(project), app.ops, { projectId: project.id, runId: "spec_regression" }, spec, { frameCss: "src/styles/components.css", screens: fs.readdirSync(path.join(root, "src/screens")).map((f) => `src/screens/${f}`) });
+    application = applyDesignSpec(app.projects.jail(project), app.ops, { projectId: project.id, runId: "spec_regression" }, spec, { frameCss: "src/styles/components.css", screens: fs.readdirSync(path.join(root, "src/screens")).map((f) => `src/screens/${f}`), allowedSurfaces: STYLE_VIBES.map((v) => v.id) });
     applyMs = performance.now() - t;
   }
   const url = await serve(root, port);

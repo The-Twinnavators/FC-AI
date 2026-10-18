@@ -11,7 +11,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { BUNDLED_FONTS, STYLE_VIBES, contrastRatio, vibeTokens } from "@flowcode/contracts";
+import { BUNDLED_FONTS, DEFAULT_SURFACES, STYLE_VIBES, contrastRatio, vibeTokens } from "@flowcode/contracts";
 import type { PathJail } from "../security/pathJail.js";
 import type { FileOperations } from "./operations.js";
 import { applyDesign } from "./designStudio.js";
@@ -100,7 +100,8 @@ const bundled = (family: string) => BUNDLED_FONTS.find((f) => f.family.toLowerCa
 const stack = (family: string) => `"${family}", ${KIND_FALLBACK[bundled(family)?.kind ?? "sans"]}`;
 
 /** What stops a spec from being applied: fonts FlowCode can't ship, colour pairs below WCAG AA, corners over 12px. */
-export function specProblems(s: DesignSpec): string[] {
+/** `allowedSurfaces`: Flat and Tactile unless the person asked for another style in this project. */
+export function specProblems(s: DesignSpec, allowedSurfaces: readonly string[] = DEFAULT_SURFACES): string[] {
   const out: string[] = [];
   for (const [role, family] of [["display", s.typography.display], ["body", s.typography.body]] as const)
     if (!bundled(family)) out.push(`${role} font "${family}" isn't one FlowCode bundles (with its licence); choose one of ${BUNDLED_FONTS.map((f) => f.family).join(", ")}`);
@@ -119,6 +120,7 @@ export function specProblems(s: DesignSpec): string[] {
   // A surface style that draws its outlines at a fixed width contradicts a different border width in the spec.
   const outline = /^(\d+)px\b/.exec(vibeTokens(s.surface.vibe)["--surface-border"] ?? "");
   if (outline && Number(outline[1]) !== s.surface.borderWidth) out.push(`the ${s.surface.vibe} surface style draws ${outline[1]}px outlines but the spec says ${s.surface.borderWidth}px borders; choose one`);
+  if (STYLE_VIBES.some((v) => v.id === s.surface.vibe) && !allowedSurfaces.includes(s.surface.vibe)) out.push(`the ${STYLE_VIBES.find((v) => v.id === s.surface.vibe)?.name} surface style is used only when the person asks for it in this project (FlowCode uses Flat or Tactile)`);
   if (!STYLE_VIBES.some((v) => v.id === s.surface.vibe)) out.push(`surface style "${s.surface.vibe}" doesn't exist; choose one of ${STYLE_VIBES.map((v) => v.id).join(", ")}`);
   return out;
 }
@@ -214,17 +216,21 @@ export function applyDesignSpec(
   ops: FileOperations,
   ctx: { projectId: string; runId: string },
   s: DesignSpec,
-  targets: { frameCss: string; screens: string[]; model?: AppModel } = { frameCss: "src/styles/components.css", screens: [] },
+  targets: { frameCss: string; screens: string[]; model?: AppModel; allowedSurfaces?: readonly string[]; layoutOnly?: boolean } = { frameCss: "src/styles/components.css", screens: [] },
 ): SpecApplication {
-  const problems = specProblems(s);
+  const problems = specProblems(s, targets.allowedSurfaces);
   if (problems.length) throw new Error(`The design spec "${s.name}" can't be applied: ${problems.join("; ")}`);
   const tokens = specTokens(s);
   const applied: string[] = [];
-  // The surface style first: it sets its own heading weight and corners, which the spec's tokens then override.
-  setSurfaceStyle(jail, ops, ctx, s.surface.vibe);
-  applied.push(`surface style: ${s.surface.vibe}`);
-  const res = applyDesign(jail, ops, ctx, { theme: "default", values: tokens });
-  if (res.changed.length) applied.push(`tokens: ${res.changed.length} changed`);
+  // layoutOnly: the person chose the look (the project's design state); the concept brings only its Home layout and
+  // never replaces their colours, fonts or surface.
+  if (!targets.layoutOnly) {
+    // The surface style first: it sets its own heading weight and corners, which the spec's tokens then override.
+    setSurfaceStyle(jail, ops, ctx, s.surface.vibe);
+    applied.push(`surface style: ${s.surface.vibe}`);
+    const res = applyDesign(jail, ops, ctx, { theme: "default", values: tokens });
+    if (res.changed.length) applied.push(`tokens: ${res.changed.length} changed`);
+  } else applied.push("look: kept (your selected direction)");
   // A token this app doesn't declare can't be set (the token writer only changes existing ones): unsupported here.
   const declared = new Set(parseCustomProperties(fs.readFileSync(path.join(jail.root, "src/styles/tokens.css"), "utf8")).map((d) => d.name));
   const missing = Object.keys(tokens).filter((n) => !declared.has(n));
@@ -260,7 +266,7 @@ export function applyDesignSpec(
     }
     applied.push(home.design ? `home: the ${home.design} page` : `home layout: ${home.hero} opening, categories as ${home.categories}, most liked as ${home.list}`);
   }
-  const requirements = specRequirements(s).map((r) =>
+  const requirements = specRequirements(s).filter((r) => !(targets.layoutOnly && r.by === "tokens")).map((r) =>
     r.by === "tokens" && r.tokens?.some((n) => missing.includes(n))
       ? { ...r, by: "unsupported" as const, missing: r.tokens.filter((n) => missing.includes(n)) }
       : r.by === "library" && !model

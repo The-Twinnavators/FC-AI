@@ -145,7 +145,7 @@ export const STYLE_VIBES: StyleVibe[] = [
   {
     id: "skeuomorphism",
     name: "Tactile",
-    description: "Gentle gradients, raised edges and real-material depth.",
+    description: "Restrained depth and material cues: soft gradients, a fine highlight and small shadows; never inflated or clay-like.",
     tokens: {
       "--surface-bg": "linear-gradient(180deg, var(--color-surface), color-mix(in srgb, var(--color-surface) 90%, var(--color-text)))",
       "--surface-border": `1px solid ${T(20)}`,
@@ -280,12 +280,15 @@ export function vibeTokens(id?: string): Record<string, string> {
   return { ...SURFACE_DEFAULTS, ...(styleVibe(id)?.tokens ?? {}) };
 }
 
-/** Default surface style suggested for each design template (the user can change it). */
+/**
+ * Default surface style suggested for each design template (the user can change it). FlowCode suggests Flat or Tactile
+ * only; another style is used when the person asks for it (by name in New build or the PRD).
+ */
 export const TEMPLATE_VIBES: Record<string, string> = {
-  midnight: "glass",
-  "neon-night": "liquid-glass",
-  "playful-pastel": "claymorphism",
-  "bold-editorial": "neobrutalism",
-  monochrome: "brutalism",
-  "nordic-calm": "neumorphism",
+  midnight: "flat",
+  "neon-night": "flat",
+  "playful-pastel": "skeuomorphism",
+  "bold-editorial": "flat",
+  monochrome: "flat",
+  "nordic-calm": "skeuomorphism",
 };

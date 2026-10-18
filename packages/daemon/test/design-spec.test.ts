@@ -4,15 +4,20 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { applyDesignSpec, specProblems, specRequirements, specTokens, type DesignSpec } from "../src/workspace/designSpec.js";
 import { makeApp, makeProject } from "./helpers.js";
+import { STYLE_VIBES } from "@flowcode/contracts";
 
 const fixture = (name: string) => JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "fixtures/design", name), "utf8")) as DesignSpec;
 const A = fixture("spec-field-notes.json");
 const B = fixture("spec-bold-aisle.json");
+/** Fixture B is neo-brutalist on purpose (a contrasting regression): used here as an explicit, recorded exception. */
+const ALL = STYLE_VIBES.map((v) => v.id);
 
 describe("a design spec", () => {
   it("the two controlled fixtures have no problems", () => {
     expect(specProblems(A)).toEqual([]);
-    expect(specProblems(B)).toEqual([]);
+    expect(specProblems(B, ALL)).toEqual([]);
+    // Without the exception, FlowCode doesn't use a neo-brutalist surface.
+    expect(specProblems(B).join(" ")).toMatch(/Neo-brutalist surface style is used only when the person asks for it/);
   });
 
   it("refuses unbundled fonts, low contrast, corners over 12px and unknown surface styles", () => {
@@ -23,7 +28,7 @@ describe("a design spec", () => {
     expect(p).toContain("corners over 12px");
     expect(p).toContain('surface style "chrome"');
     // A conflict between the surface style and the spec is reported, not silently resolved.
-    expect(specProblems({ ...B, surface: { ...B.surface, borderWidth: 1 } })).toEqual(["the neobrutalism surface style draws 3px outlines but the spec says 1px borders; choose one"]);
+    expect(specProblems({ ...B, surface: { ...B.surface, borderWidth: 1 } }, ALL)).toEqual(["the neobrutalism surface style draws 3px outlines but the spec says 1px borders; choose one"]);
   });
 
   it("gives the same tokens for the same spec, and different typography, hierarchy, density, shape and palette for different specs", () => {
@@ -55,7 +60,7 @@ describe("a design spec", () => {
       "src/components/ui/index.tsx": "export {};\n",
       "src/main.tsx": 'import "./styles/tokens.css";\nimport "./styles/components.css";\n',
     });
-    const res = applyDesignSpec(jail, app.ops, { projectId: project.id, runId: "spec_test" }, B, { frameCss: "src/styles/components.css", screens: ["src/screens/SearchScreen.tsx", "src/screens/HomeScreen.tsx"] });
+    const res = applyDesignSpec(jail, app.ops, { projectId: project.id, runId: "spec_test" }, B, { frameCss: "src/styles/components.css", screens: ["src/screens/SearchScreen.tsx", "src/screens/HomeScreen.tsx"], allowedSurfaces: ALL });
     const css = fs.readFileSync(path.join(jail.root, "src/styles/tokens.css"), "utf8");
     expect(css).toContain("--color-bg: #fff3c4;");
     expect(css).toContain('--font-display: "Oswald"');

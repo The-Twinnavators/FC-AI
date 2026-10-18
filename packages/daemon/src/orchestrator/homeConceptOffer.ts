@@ -38,6 +38,10 @@ export interface DesignDirection {
   why?: string;
   visualApproval: "pending";
   at: string;
+  /** The look settled with the plan: the project's selected direction (its version), if one was confirmed. */
+  appearance?: { version: number };
+  /** Edits on the card that weren't confirmed with "Use this direction" (they aren't used). */
+  unconfirmedDraft?: boolean;
 }
 
 export interface ConceptChoice {
@@ -123,7 +127,12 @@ export function settleConcept(store: Store, bus: EventBus, run: { id: string; pr
       : offer.concepts.length
         ? { kind: "none", outstanding: true, why: "The plan was approved without choosing a Home direction", visualApproval: "pending", at }
         : { kind: "not_offered", outstanding: true, why: offer.why ?? "No Home concepts were offered", visualApproval: "pending", at };
+  // The look: the project's confirmed direction (the plan card's "Use this direction"); a draft alone isn't used.
+  const design = store.getSetting<{ selected?: { version: number }; draft?: unknown } | null>(`designState:${run.projectId}`, null);
+  if (design?.selected) direction.appearance = { version: design.selected.version };
+  if (design?.draft) direction.unconfirmedDraft = true;
   store.setSetting(designDirectionKey(run.id), direction);
+  if (direction.unconfirmedDraft) bus.emit({ type: "plan.approved", projectId: run.projectId, runId: run.id, level: "warning", message: `The plan was approved with unconfirmed look edits: they aren't used${design?.selected ? ` (the confirmed direction, version ${design.selected.version}, is)` : ""}. Confirm them with "Use this direction" on the Design tab or in the review.`, data: { designDirection: direction } });
   if (direction.kind === "none" || direction.kind === "not_offered")
     bus.emit({ type: "plan.approved", projectId: run.projectId, runId: run.id, level: "warning", message: `No custom Home direction was selected (${direction.why}): the design requirement stays open for the design steps, and the report says so`, data: { designDirection: direction } });
   if (direction.kind === "default") bus.emit({ type: "plan.approved", projectId: run.projectId, runId: run.id, message: "Home direction: the generic default Home, chosen explicitly. Final visual approval stays pending until the generated app is reviewed", data: { designDirection: direction } });

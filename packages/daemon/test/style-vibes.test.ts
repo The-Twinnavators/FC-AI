@@ -35,7 +35,9 @@ describe("surface styles", () => {
     const id = starterIdentity([], "Planner", "Build a planner");
     expect(withVibe(id, { extras: [], vibe: "bauhaus", template: "midnight" }, "glassmorphism").vibe?.id).toBe("bauhaus");
     expect(withVibe(id, { extras: [], template: "midnight" }, "glassmorphism").vibe?.id).toBe("glass");
-    expect(withVibe(id, { extras: [], template: "playful-pastel" }, "").vibe?.id).toBe("claymorphism");
+    // FlowCode's own suggestion for a template is Flat or Tactile; a style named by the person (New build, the PRD) wins.
+    expect(withVibe(id, { extras: [], template: "playful-pastel" }, "").vibe?.id).toBe("skeuomorphism");
+    expect(withVibe(id, { extras: [], template: "midnight" }, "").vibe?.id).toBe("flat");
     expect(withVibe(id, { extras: [] }, "").vibe).toBeUndefined();
 
     const css = personalizeStarterFile("src/styles/tokens.css", tokens(), withVibe(id, { extras: [], vibe: "neobrutalism" }, ""));

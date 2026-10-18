@@ -7,7 +7,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { LIBRARY_SECTIONS, type PlanTask } from "@flowcode/contracts";
+import { DEFAULT_SURFACES, LIBRARY_SECTIONS, type PlanTask } from "@flowcode/contracts";
 import type { AgentOutcome } from "./agentLoop.js";
 import type { AppModel, ModelView } from "./appModel.js";
 import { appModelKey, appModelNote } from "./appModel.js";
@@ -18,6 +18,7 @@ import { LOOKUP_PIECES, homePieces, lookupAppSource, lookupData, lookupFile, loo
 import { pieceFiles, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
 import { DESIGN_POLISH, DESIGN_SCREENS, type RuntimeStepArgs } from "./templates.js";
 import { applyDesignSpec, type DesignSpec } from "../workspace/designSpec.js";
+import { getDesignState } from "../workspace/designState.js";
 import { conceptTimingsKey, designDirectionKey, designSpecKey, type ConceptTimings, type DesignDirection } from "./homeConceptOffer.js";
 
 /** The library pieces a complete app is built from. */
@@ -210,7 +211,9 @@ export async function appStep({ deps, run, task, jail, onChanged }: RuntimeStepA
   if (spec) {
     const t0 = performance.now();
     try {
-      const applied = applyDesignSpec(jail, deps.ops, { projectId: run.projectId, runId: run.id }, spec, { frameCss: "src/styles/components.css", screens: builtViews(model).map((v) => screenFileOf(v)), model });
+      // A look the person selected stays: the concept brings its Home layout only (designState.ts).
+      const design = getDesignState(deps.store, run.projectId, jail);
+      const applied = applyDesignSpec(jail, deps.ops, { projectId: run.projectId, runId: run.id }, spec, { frameCss: "src/styles/components.css", screens: builtViews(model).map((v) => screenFileOf(v)), model, layoutOnly: !!design.selected, allowedSurfaces: [...DEFAULT_SURFACES, ...design.surfaceExceptions] });
       const applyMs = Math.round(performance.now() - t0);
       const coderWork = applied.coderWork.map((w) => `${w.statement} (${w.files.join(", ")})`);
       deps.store.setSetting(conceptTimingsKey(run.id), { ...deps.store.getSetting<ConceptTimings>(conceptTimingsKey(run.id), {}), appliedAt: new Date().toISOString(), applyMs, coderWork });

@@ -12,6 +12,7 @@ export * from "./requestTemplates.js";
 export * from "./designTemplates.js";
 export * from "./styleVibes.js";
 export * from "./palette.js";
+export * from "./appearance.js";
 export * from "./componentStyles.js";
 export * from "./plainLanguage.js";
 export * from "./discovery.js";

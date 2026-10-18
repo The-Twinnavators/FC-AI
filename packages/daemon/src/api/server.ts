@@ -29,6 +29,8 @@ import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { DeadlinePassedError } from "../orchestrator/runDeadline.js";
 import { chooseConcept, conceptOffer } from "../orchestrator/homeConceptOffer.js";
+import { allowSurface, applySelected, describeState, discardDraft, saveDraft, selectDraft } from "../workspace/designState.js";
+import { starterIdentity } from "../orchestrator/starterIdentity.js";
 import { z } from "zod";
 import * as C from "@flowcode/contracts";
 import type { App } from "../app.js";
@@ -890,6 +892,85 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   });
   // Who paused it: the person (the default) or FlowCode/a script ("system"), so a script's pause isn't shown as yours.
   add("POST /runs/:id/pause", ({ params, body }) => app.orchestrator.pauseRun(params.id, true, parse(z.object({ by: z.enum(["user", "system"]).optional() }), body ?? {}).by ?? "user"));
+  // The project's design state (workspace/designState.ts): base, draft, selected and applied direction, what the app
+  // really renders against it, and the PRD's own branding. The same record for the plan card, the review and the tab.
+  const AppearanceBody = z.object({
+    theme: z.string().max(60).optional(),
+    mode: z.enum(["light", "dark"]),
+    surface: z.string().max(40),
+    primary: z.string().max(20),
+    neutral: z.enum(["brand", "warm", "cool", "pure"]),
+    secondary: z.string().max(20).optional(),
+    tertiary: z.string().max(20).optional(),
+    gradient: z.boolean().optional(),
+    status: z.record(z.enum(["success", "warning", "error", "info"]), z.string().max(20)).optional(),
+    fonts: z.object({ display: z.string().max(60), body: z.string().max(60) }),
+  });
+  const designJail = (id: string) => {
+    try {
+      return app.projects.jail(id);
+    } catch {
+      return undefined;
+    }
+  };
+  const prdBranding = (projectId: string) => {
+    const latest = app.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 1", projectId)[0];
+    if (!latest) return { colors: [] };
+    const refs = app.store.getSetting<C.ReferenceFile[]>(`runRefs:${latest.id}`, []);
+    return { colors: starterIdentity(refs, app.store.projects.require(projectId).name, latest.objective).colors };
+  };
+  add("GET /projects/:id/design/state", ({ params }) => ({ ...describeState(app.store, params.id, designJail(params.id)), prd: prdBranding(params.id) }));
+  add("POST /projects/:id/design/draft", ({ params, body }) => {
+    const b = parse(z.object({ appearance: AppearanceBody, sources: z.record(z.string(), z.string().max(80)).default({}) }), body);
+    try {
+      saveDraft(app.store, params.id, b.appearance, b.sources as never, designJail(params.id));
+    } catch (err) {
+      throw new HttpError(400, (err as Error).message);
+    }
+    return describeState(app.store, params.id, designJail(params.id));
+  });
+  add("POST /projects/:id/design/draft/discard", ({ params }) => (discardDraft(app.store, params.id, designJail(params.id)), describeState(app.store, params.id, designJail(params.id))));
+  add("POST /projects/:id/design/surface-exception", ({ params, body }) => {
+    const b = parse(z.object({ surface: z.string().max(40) }), body);
+    if (!C.STYLE_VIBES.some((v) => v.id === b.surface)) throw new HttpError(400, "Unknown surface style");
+    allowSurface(app.store, params.id, b.surface, designJail(params.id));
+    return describeState(app.store, params.id, designJail(params.id));
+  });
+  // "Use this direction": the draft becomes the selected direction. With no app yet, the build applies it.
+  add("POST /projects/:id/design/select", ({ params }) => {
+    try {
+      selectDraft(app.store, params.id, designJail(params.id));
+    } catch (err) {
+      throw new HttpError(409, (err as Error).message);
+    }
+    return describeState(app.store, params.id, designJail(params.id));
+  });
+  // "Apply changes" to an existing app: governed writes with snapshots, the failure kept on record if any, then the
+  // affected checks of the project's latest finished build are run again.
+  add("POST /projects/:id/design/apply", async ({ params }) => {
+    const jail = app.projects.jail(params.id);
+    const latest = app.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 1", params.id)[0];
+    if (latest && app.orchestrator.isActive(latest.id)) throw new HttpError(409, "A build is working on this project right now. Apply the change once it's paused or finished.");
+    let res: ReturnType<typeof applySelected>;
+    try {
+      res = applySelected(app.store, params.id, jail, app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) }, (id) => void app.snapshots.restore(id, jail));
+    } catch (err) {
+      throw new HttpError(409, (err as Error).message);
+    }
+    const reran: Array<{ kind: string; status: string; summary: string }> = [];
+    if (res.ok && latest && !app.orchestrator.isActive(latest.id)) {
+      for (const kind of ["typecheck", "build"] as const) {
+        if (!latest.strategy?.requiredChecks.includes(kind)) continue;
+        try {
+          const kinds = await app.verifier.rerunCheck(latest, kind);
+          for (const c of app.store.checks.where("run_id = ?", latest.id).filter((x) => !x.taskId && kinds.includes(x.kind))) reran.push({ kind: c.kind, status: c.status, summary: c.summary });
+        } catch (err) {
+          reran.push({ kind, status: "not_run", summary: (err as Error).message });
+        }
+      }
+    }
+    return { ...describeState(app.store, params.id, jail), ok: res.ok, reason: res.reason, changed: res.changed, checks_rerun: reran };
+  });
   // Home concepts on the plan card: what is offered (with what the live preview needs), and the person's pick.
   add("GET /runs/:id/concepts", ({ params }) => conceptOffer(app.store, params.id, !!app.store.runs.require(params.id).planApproved));
   add("POST /runs/:id/concept", ({ params, body }) => {

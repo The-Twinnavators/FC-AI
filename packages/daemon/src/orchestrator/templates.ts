@@ -17,6 +17,7 @@ import { layoutGuidance, layoutsTask, pickLayouts } from "./layoutRecipes.js";
 import { pickSections, sectionGuidance, sectionsTask } from "./sectionRecipes.js";
 import { brandTrio, designDirection } from "../knowledge/designDirection.js";
 import { applyCapturedStyle, captureStyle } from "../workspace/styleCapture.js";
+import { applySelected, getDesignState } from "../workspace/designState.js";
 import { BrowserSession } from "../quality/preview.js";
 
 export interface RuntimeStepArgs {
@@ -83,8 +84,9 @@ function scaffoldStep(templateId: string): (a: RuntimeStepArgs) => Promise<Agent
     const refs = deps.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []);
     const prdText = refs.filter((r) => r.role === "prd" || r.role === "text").map((r) => r.content).join("\n");
     const identity = withVibe(withTemplate(starterIdentity(refs, deps.store.projects.require(run.projectId).name, run.objective), designTemplate(look?.template)), look, `${run.objective}\n${prdText}`);
-    // The design option the app now has, shown on its Design tab: the style FlowCode applied, or Custom (the PRD's colours).
-    deps.store.setSetting(`designChoice:${run.projectId}`, { id: identity.template ? identity.template.id : "custom", by: "flowcode", at: new Date().toISOString() });
+    // A theme chosen in New build is recorded as such. With none, nothing is recorded as a choice: the starter is base
+    // styling, not a direction (the Design tab says "no brand direction selected"; designState.ts).
+    if (identity.template) deps.store.setSetting(`designChoice:${run.projectId}`, { id: identity.template.id, by: "flowcode", at: new Date().toISOString() });
     for (const rel of files) {
       if (fs.existsSync(path.join(jail.root, rel))) continue;
       const content = personalizeStarterFile(rel, fs.readFileSync(path.join(dir, rel), "utf8"), identity);
@@ -309,6 +311,16 @@ export const hasStyleSources = (refs: ReferenceFile[], look?: BuildLook) => !!lo
  */
 export async function captureStyleStep({ deps, run, task, jail, signal, onChanged }: RuntimeStepArgs): Promise<AgentOutcome> {
   const refs = deps.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []);
+  // A direction the person selected (plan card, Design tab) is the app's look: applied here through the shared design
+  // state, and nothing captured or suggested replaces it.
+  const design = getDesignState(deps.store, run.projectId, jail);
+  if (design.selected) {
+    const res = applySelected(deps.store, run.projectId, jail, deps.ops, { projectId: run.projectId, runId: run.id }, (id) => void deps.snapshots.restore(id, jail));
+    if (!res.ok) return { kind: "blocked", reason: `The selected direction couldn't be applied: ${res.reason}`, nextAction: "Fix the direction on the Design tab, then retry this step" };
+    if (res.changed.length) onChanged(res.changed);
+    deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Applied the selected direction (version ${design.selected.version}): ${design.selected.appearance.fonts.display} / ${design.selected.appearance.fonts.body}, primary ${design.selected.appearance.primary}, ${design.selected.appearance.surface} surfaces. Final visual approval stays with you.` });
+    return { kind: "complete", summary: `Applied the selected direction (version ${design.selected.version})`, changedPaths: res.changed };
+  }
   const look = deps.store.getSetting<BuildLook | undefined>(`runLook:${run.id}`, undefined);
   const files = refs.filter((r): r is ReferenceFile & { role: "image" | "html" | "css" } => r.role === "image" || r.role === "html" || r.role === "css");
   const vision = run.modelAssignments.critic ?? run.modelAssignments.planner;
@@ -329,9 +341,12 @@ export async function captureStyleStep({ deps, run, task, jail, signal, onChange
     deps.store.setSetting(`styleCapture:${run.projectId}`, { at: new Date().toISOString(), sources: [], applied: [], notes: [...notes, chosen ? `Kept the chosen ${chosen.name} style.` : "Kept the PRD's colours."], style });
     return { kind: "complete", summary: `Kept ${chosen ? `the ${chosen.name} style` : "the PRD's colours"}; the design direction is advice for the design steps.`, changedPaths: [] };
   }
+  // Nothing captured and no direction chosen: the industry direction is advice, never applied as the app's brand (every
+  // grocery app came out the same green and serif this way). The starter's base styling stays, labelled as such.
   if (!captured) {
-    style.fonts = { display: direction.fonts.heading, body: direction.fonts.body };
-    style.sources = [`the ${direction.industry.toLowerCase()} design direction`];
+    deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `No brand direction selected: the app keeps its base styling. Design direction (advice only): ${direction.industry} — ${direction.style}. Choose a direction on the Design tab, or in the review.` });
+    deps.store.setSetting(`styleCapture:${run.projectId}`, { at: new Date().toISOString(), sources: [], applied: [], notes: [...notes, "No direction selected; base styling kept."], style });
+    return { kind: "complete", summary: "No direction selected; base styling kept (the design direction is advice for the design steps).", changedPaths: [] };
   }
   // Colours captured but no fonts (an image without readable type): the direction's pairing fills in.
   else if (!style.fonts.display && !style.fonts.body) style.fonts = { display: direction.fonts.heading, body: direction.fonts.body };
@@ -437,7 +452,7 @@ export function specRuntimeTasks(refs: ReferenceFile[], templateId?: string, loo
       title: CAPTURE_STYLE,
       objective: hasStyleSources(refs, look)
         ? "Capture the colours, fonts, corners and surface style from the website and the attached images, CSS and HTML, onto the Styles page."
-        : "Set the look from the product's design direction (its industry's colour palette and Google font pairing) on the Styles page.",
+        : "Apply the direction you selected (on the plan card or the Design tab); with none selected, keep the base styling and pass the industry design direction to the design steps as advice.",
       dependsOn: ["refs"],
       expectedPaths: ["src/styles/tokens.css", "src/styles/components.css"],
       acceptanceCriteria: [{ id: "c1", description: "The design tokens are in place", check: { type: "file_exists" as const, path: "src/styles/tokens.css" } }],
