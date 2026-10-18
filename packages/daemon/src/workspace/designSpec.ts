@@ -20,7 +20,7 @@ import { parseCustomProperties } from "./styleTokens.js";
 import type { AppModel } from "../orchestrator/appModel.js";
 import { appFiles, screenFileOf } from "../orchestrator/appFiles.js";
 import { homePieces, type HomeLayout } from "../orchestrator/lookupFiles.js";
-import { pieceFiles, syncedLibraryCss } from "../orchestrator/sectionRecipes.js";
+import { pieceFiles, sectionsDir, syncedLibraryCss } from "../orchestrator/sectionRecipes.js";
 
 export type Density = "compact" | "regular" | "airy";
 export type TypeScale = "compact" | "regular" | "expressive";
@@ -239,11 +239,15 @@ export function applyDesignSpec(
     // The pieces it uses, and the catalog piece itself when the app's copy predates what they read from it (its layouts
     // and the shared useCatalog hook).
     const seen = new Set<string>();
-    const pieces = [...homePieces(home), "lookup-catalog"].flatMap((id) => pieceFiles(id, seen).map((p) => ({ path: p.rel, content: p.content, main: p.id === "lookup-catalog" })));
+    // Each refreshed only when the app's copy lacks what the new pieces use: the catalog's shared useCatalog hook, the
+    // icon set's bookmark (Save). Otherwise an existing piece is kept (it may have been reshaped for the app).
+    const pieces = [
+      ...[...homePieces(home), "lookup-catalog"].flatMap((id) => pieceFiles(id, seen).map((p) => ({ path: p.rel, content: p.content, ...(p.id === "lookup-catalog" ? { needs: "export function useCatalog" } : {}) }))),
+      { path: "src/sections/icons.tsx", content: fs.readFileSync(path.join(sectionsDir(), "sections/icons.tsx"), "utf8"), needs: "bookmark:" },
+    ];
     for (const f of [...pieces, ...files]) {
       const abs = path.join(jail.root, f.path);
-      // An existing piece is kept (it may have been reshaped for the app), except an older catalog copy, refreshed.
-      const stale = "main" in f && f.main && fs.existsSync(abs) && !fs.readFileSync(abs, "utf8").includes("export function useCatalog");
+      const stale = "needs" in f && typeof f.needs === "string" && fs.existsSync(abs) && !fs.readFileSync(abs, "utf8").includes(f.needs);
       if (f.path.startsWith("src/sections/") && fs.existsSync(abs) && !stale) continue;
       if (fs.existsSync(abs) && fs.readFileSync(abs, "utf8") === f.content) continue;
       const r = fs.existsSync(abs) ? ops.replaceContent(op, f.path, f.content) : ops.create_file(op, { path: f.path, content: f.content });

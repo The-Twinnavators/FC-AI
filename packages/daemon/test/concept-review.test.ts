@@ -123,6 +123,17 @@ describe.skipIf(!OUT || !fs.existsSync(path.join(RECORDED, "node_modules")))("co
           await page.waitForTimeout(300);
           await page.screenshot({ path: path.join(OUT!, `${spec.id}-${pg.name}-${vp.name}.png`), fullPage: true });
           (review[spec.id] as Record<string, unknown>)[`${pg.name}-${vp.name}`] = await look(page);
+          // Product-image continuity: the same product as Home, Catalog and Product show it (desktop).
+          if (vp.name === "desktop" && pg.name !== "saved") {
+            const box = await page.evaluate(([name, where]) => {
+              const el = Array.from(document.querySelectorAll("main h1, main h2, main h3, main button, main a")).find((e) => e.textContent?.trim() === name);
+              // The product's own page: its picture and title block; elsewhere: the card (or cover) that holds the name.
+              const holder = where === "product" ? (el?.closest("section, header, article") ?? el?.parentElement?.parentElement) : ["article", "li", "[class*='card']", "section"].map((sel) => el?.closest(sel)).find(Boolean);
+              const r = (holder ?? el)?.getBoundingClientRect();
+              return r ? { x: Math.max(0, r.left - 8), y: Math.max(0, r.top + scrollY - 8), width: Math.min(r.width + 16, 1200), height: Math.min(r.height + 16, 640) } : null;
+            }, [product.name as string, pg.name] as const);
+            if (box) await page.screenshot({ path: path.join(OUT!, `${spec.id}-image-${pg.name}.png`), clip: box, fullPage: true });
+          }
         }
         (review[spec.id] as Record<string, unknown>)[`errors-${vp.name}`] = errors;
         await page.close();
