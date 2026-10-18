@@ -46,6 +46,7 @@ interface Perf {
     conceptPrepareMs?: number;
     conceptApplyMs?: number;
     concept?: { offeredAt?: string; chosenAt?: string; approvedAt?: string; appliedAt?: string; coderWork?: string[] };
+    direction?: { kind: "concept" | "default" | "none" | "not_offered"; name?: string; outstanding: boolean; why?: string; visualApproval: "pending" };
     designStepsMs: number;
     designModelMs: number;
     designModelCalls: number;
@@ -58,7 +59,9 @@ interface Perf {
 
 /** The design path, phase by phase: what this run measured (not a claim about build speed). */
 function DesignPath({ d }: { d: NonNullable<Perf["designPath"]> }) {
+  const dir = d.direction;
   const rows: Array<[string, string]> = [
+    ...(dir ? ([["Home direction", dir.kind === "concept" ? `${dir.name} (selected with the plan)` : dir.kind === "default" ? "The generic default Home, chosen explicitly" : `None selected: the design requirement is still open (${dir.why})`], ["Final visual approval", "Pending: reviewed on the generated app"]] as Array<[string, string]>) : []),
     ["Research and capture steps", dur(d.researchMs)],
     ["Preparing the Home concepts", d.conceptPrepareMs === undefined ? "not offered" : dur(d.conceptPrepareMs)],
     ["Applying the chosen concept", d.conceptApplyMs === undefined ? (d.concept?.chosenAt ? "not yet" : "no concept chosen") : dur(d.conceptApplyMs)],

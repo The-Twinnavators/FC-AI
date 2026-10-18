@@ -8,7 +8,7 @@ import path from "node:path";
 import { LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { describe, expect, it } from "vitest";
 import { appModelKey, type AppModel } from "../src/orchestrator/appModel.js";
-import { chooseConcept, conceptOffer, conceptTimingsKey, designSpecKey, settleConcept, type ConceptTimings } from "../src/orchestrator/homeConceptOffer.js";
+import { chooseConcept, conceptOffer, conceptTimingsKey, designDirectionKey, designSpecKey, settleConcept, type ConceptTimings, type DesignDirection } from "../src/orchestrator/homeConceptOffer.js";
 import { runPerformance } from "../src/api/performance.js";
 import type { DesignSpec } from "../src/workspace/designSpec.js";
 import { makeApp, makeProject } from "./helpers.js";
@@ -55,8 +55,10 @@ describe("Home concepts on the plan card", () => {
     const { app, run } = lookupRun();
     expect(() => chooseConcept(app.store, app.bus, run, "concept-nope", "user", APPROVED)).toThrow(/isn't one of/);
     chooseConcept(app.store, app.bus, run, "concept-market", "user", APPROVED);
-    const spec = settleConcept(app.store, app.bus, run);
+    const spec = settleConcept(app.store, app.bus, run, APPROVED);
     expect(spec?.id).toBe("concept-market");
+    // Selected with the plan; the final visual approval is still the person's, on the generated app.
+    expect(app.store.getSetting<DesignDirection | null>(designDirectionKey(run.id), null)).toMatchObject({ kind: "concept", conceptId: "concept-market", visualApproval: "pending" });
     expect(app.store.getSetting<DesignSpec | null>(designSpecKey(run.id), null)?.id).toBe("concept-market");
     // The app is written with the concept's Home page.
     expect(app.store.getSetting<AppModel | null>(appModelKey(run.id), null)?.home?.design).toBe("storefront");
@@ -65,12 +67,29 @@ describe("Home concepts on the plan card", () => {
     expect(t.chosenAt && t.approvedAt).toBeTruthy();
   });
 
-  it("no pick keeps the default Home", () => {
+  it("the generic default is an explicit, labelled choice; approving without a choice leaves the design requirement open", () => {
+    const direction = (app: ReturnType<typeof lookupRun>["app"], id: string) => app.store.getSetting<DesignDirection | null>(designDirectionKey(id), null);
+    const a = lookupRun();
+    chooseConcept(a.app.store, a.app.bus, a.run, "default", "user", APPROVED);
+    expect(settleConcept(a.app.store, a.app.bus, a.run, APPROVED)).toBeUndefined();
+    expect(a.app.store.getSetting<AppModel | null>(appModelKey(a.run.id), null)?.home).toBeUndefined();
+    expect(direction(a.app, a.run.id)).toMatchObject({ kind: "default", outstanding: false, visualApproval: "pending" });
+    // No choice at all while concepts were offered: not read as accepting the default.
+    const b = lookupRun();
+    settleConcept(b.app.store, b.app.bus, b.run, APPROVED);
+    expect(direction(b.app, b.run.id)).toMatchObject({ kind: "none", outstanding: true, visualApproval: "pending" });
+    expect(b.app.bus.list({ runId: b.run.id }).some((e) => /No custom Home direction was selected/.test(e.message))).toBe(true);
+    // Concepts weren't offered (their pieces wait for approval): recorded with why, still open.
+    const c = lookupRun();
+    settleConcept(c.app.store, c.app.bus, c.run);
+    expect(direction(c.app, c.run.id)).toMatchObject({ kind: "not_offered", outstanding: true });
+    expect(direction(c.app, c.run.id)?.why).toMatch(/waiting for your approval/);
+  });
+
+  it("approves concepts one by one: a concept whose page is approved is offered, the others aren't", () => {
     const { app, run } = lookupRun();
-    chooseConcept(app.store, app.bus, run, null, "user", APPROVED);
-    expect(settleConcept(app.store, app.bus, run)).toBeUndefined();
-    expect(app.store.getSetting<AppModel | null>(appModelKey(run.id), null)?.home).toBeUndefined();
-    expect(app.store.getSetting(designSpecKey(run.id), null)).toBeNull();
+    const one = new Set([...LIBRARY_SECTIONS.map((s) => s.id), "lookup-home-magazine"]);
+    expect(conceptOffer(app.store, run.id, false, one).concepts.map((c) => c.id)).toEqual(["concept-editorial"]);
   });
 
   it.skipIf(!fs.existsSync(RECORDED))("writing the app applies the picked concept, times it, and tells the design steps what is left", async () => {
@@ -103,7 +122,9 @@ describe("Home concepts on the plan card", () => {
     const t = app.store.getSetting<ConceptTimings>(conceptTimingsKey(run.id), {});
     expect(t.applyMs).toBeGreaterThanOrEqual(0);
     expect(t.appliedAt).toBeTruthy();
-    expect(app.store.getSetting<string[]>(`taskFindings:${design.id}`, []).join(" ")).toMatch(/concept the person chose with the plan \(Bold aisle\), already applied/);
+    const note = app.store.getSetting<string[]>(`taskFindings:${design.id}`, []).join(" ");
+    expect(note).toContain("Selected concept applied (Bold aisle). Preserve its approved direction, complete remaining scoped work, and verify cross-screen consistency.");
+    expect(note).not.toMatch(/finished|already done|nothing else/i);
     expect(runPerformance(app, run.id).designPath.conceptApplyMs).toBe(t.applyMs);
   });
 

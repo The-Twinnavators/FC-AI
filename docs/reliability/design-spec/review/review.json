@@ -1,0 +1,754 @@
+{
+  "concept-editorial": {
+    "home-desktop": {
+      "heading": {
+        "tag": "h1",
+        "font": "\"Playfair Display\"",
+        "size": "31.984px",
+        "weight": "700"
+      },
+      "text": {
+        "font": "Literata",
+        "size": "12px"
+      },
+      "primaryButton": {
+        "radius": "2px",
+        "height": 48,
+        "bg": "rgb(122, 59, 30)",
+        "shadow": "none"
+      },
+      "field": {
+        "radius": "2px",
+        "border": "1px",
+        "height": 40
+      },
+      "card": null,
+      "page": "rgb(246, 241, 231)",
+      "topBar": {
+        "height": 66,
+        "bg": "rgb(255, 253, 248)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "catalog-desktop": {
+      "heading": {
+        "tag": "h2",
+        "font": "\"Playfair Display\"",
+        "size": "31.984px",
+        "weight": "700"
+      },
+      "text": {
+        "font": "Literata",
+        "size": "13px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 38
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "4px",
+        "border": "1px",
+        "shadow": "none"
+      },
+      "page": "rgb(246, 241, 231)",
+      "topBar": {
+        "height": 66,
+        "bg": "rgb(255, 253, 248)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "product-desktop": {
+      "heading": {
+        "tag": "h1",
+        "font": "\"Playfair Display\"",
+        "size": "45.232px",
+        "weight": "700"
+      },
+      "text": {
+        "font": "Literata",
+        "size": "12px"
+      },
+      "primaryButton": {
+        "radius": "2px",
+        "height": 40,
+        "bg": "rgb(122, 59, 30)",
+        "shadow": "none"
+      },
+      "field": {
+        "radius": "2px",
+        "border": "1px",
+        "height": 40
+      },
+      "card": null,
+      "page": "rgb(246, 241, 231)",
+      "topBar": {
+        "height": 66,
+        "bg": "rgb(255, 253, 248)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "saved-desktop": {
+      "heading": {
+        "tag": "h2",
+        "font": "\"Playfair Display\"",
+        "size": "31.984px",
+        "weight": "700"
+      },
+      "text": {
+        "font": "Literata",
+        "size": "13px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 38
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "4px",
+        "border": "1px",
+        "shadow": "none"
+      },
+      "page": "rgb(246, 241, 231)",
+      "topBar": {
+        "height": 66,
+        "bg": "rgb(255, 253, 248)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "errors-desktop": [],
+    "home-mobile": {
+      "heading": {
+        "tag": "h1",
+        "font": "\"Playfair Display\"",
+        "size": "31.984px",
+        "weight": "700"
+      },
+      "text": {
+        "font": "Literata",
+        "size": "12px"
+      },
+      "primaryButton": {
+        "radius": "2px",
+        "height": 48,
+        "bg": "rgb(122, 59, 30)",
+        "shadow": "none"
+      },
+      "field": null,
+      "card": null,
+      "page": "rgb(246, 241, 231)",
+      "topBar": {
+        "height": 107,
+        "bg": "rgb(255, 253, 248)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "catalog-mobile": {
+      "heading": {
+        "tag": "h2",
+        "font": "\"Playfair Display\"",
+        "size": "31.984px",
+        "weight": "700"
+      },
+      "text": {
+        "font": "Literata",
+        "size": "13px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 38
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "4px",
+        "border": "1px",
+        "shadow": "none"
+      },
+      "page": "rgb(246, 241, 231)",
+      "topBar": {
+        "height": 149,
+        "bg": "rgb(255, 253, 248)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "product-mobile": {
+      "heading": {
+        "tag": "h1",
+        "font": "\"Playfair Display\"",
+        "size": "45.232px",
+        "weight": "700"
+      },
+      "text": {
+        "font": "Literata",
+        "size": "12px"
+      },
+      "primaryButton": {
+        "radius": "2px",
+        "height": 40,
+        "bg": "rgb(122, 59, 30)",
+        "shadow": "none"
+      },
+      "field": {
+        "radius": "2px",
+        "border": "1px",
+        "height": 40
+      },
+      "card": null,
+      "page": "rgb(246, 241, 231)",
+      "topBar": {
+        "height": 149,
+        "bg": "rgb(255, 253, 248)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "saved-mobile": {
+      "heading": {
+        "tag": "h2",
+        "font": "\"Playfair Display\"",
+        "size": "31.984px",
+        "weight": "700"
+      },
+      "text": {
+        "font": "Literata",
+        "size": "13px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 38
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "4px",
+        "border": "1px",
+        "shadow": "none"
+      },
+      "page": "rgb(246, 241, 231)",
+      "topBar": {
+        "height": 149,
+        "bg": "rgb(255, 253, 248)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "errors-mobile": []
+  },
+  "concept-market": {
+    "home-desktop": {
+      "heading": {
+        "tag": "h1",
+        "font": "Fraunces",
+        "size": "31.248px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"Work Sans\"",
+        "size": "12px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "8px",
+        "border": "1px",
+        "height": 40
+      },
+      "card": null,
+      "page": "rgb(243, 247, 241)",
+      "topBar": {
+        "height": 60,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "catalog-desktop": {
+      "heading": {
+        "tag": "h2",
+        "font": "Fraunces",
+        "size": "25.008px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"Work Sans\"",
+        "size": "13px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 38
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "12px",
+        "border": "1px",
+        "shadow": "none"
+      },
+      "page": "rgb(243, 247, 241)",
+      "topBar": {
+        "height": 60,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "product-desktop": {
+      "heading": {
+        "tag": "h1",
+        "font": "Fraunces",
+        "size": "31.248px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"Work Sans\"",
+        "size": "12px"
+      },
+      "primaryButton": {
+        "radius": "8px",
+        "height": 40,
+        "bg": "rgb(31, 111, 67)",
+        "shadow": "none"
+      },
+      "field": {
+        "radius": "8px",
+        "border": "1px",
+        "height": 40
+      },
+      "card": null,
+      "page": "rgb(243, 247, 241)",
+      "topBar": {
+        "height": 60,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "saved-desktop": {
+      "heading": {
+        "tag": "h2",
+        "font": "Fraunces",
+        "size": "25.008px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"Work Sans\"",
+        "size": "13px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 38
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "12px",
+        "border": "1px",
+        "shadow": "none"
+      },
+      "page": "rgb(243, 247, 241)",
+      "topBar": {
+        "height": 60,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "errors-desktop": [],
+    "home-mobile": {
+      "heading": {
+        "tag": "h1",
+        "font": "Fraunces",
+        "size": "31.248px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"Work Sans\"",
+        "size": "12px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "8px",
+        "border": "1px",
+        "height": 40
+      },
+      "card": null,
+      "page": "rgb(243, 247, 241)",
+      "topBar": {
+        "height": 97,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "catalog-mobile": {
+      "heading": {
+        "tag": "h2",
+        "font": "Fraunces",
+        "size": "25.008px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"Work Sans\"",
+        "size": "13px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 38
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "12px",
+        "border": "1px",
+        "shadow": "none"
+      },
+      "page": "rgb(243, 247, 241)",
+      "topBar": {
+        "height": 137,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "product-mobile": {
+      "heading": {
+        "tag": "h1",
+        "font": "Fraunces",
+        "size": "31.248px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"Work Sans\"",
+        "size": "12px"
+      },
+      "primaryButton": {
+        "radius": "8px",
+        "height": 40,
+        "bg": "rgb(31, 111, 67)",
+        "shadow": "none"
+      },
+      "field": {
+        "radius": "8px",
+        "border": "1px",
+        "height": 40
+      },
+      "card": null,
+      "page": "rgb(243, 247, 241)",
+      "topBar": {
+        "height": 137,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "saved-mobile": {
+      "heading": {
+        "tag": "h2",
+        "font": "Fraunces",
+        "size": "25.008px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"Work Sans\"",
+        "size": "13px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 38
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "12px",
+        "border": "1px",
+        "shadow": "none"
+      },
+      "page": "rgb(243, 247, 241)",
+      "topBar": {
+        "height": 137,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "errors-mobile": []
+  },
+  "concept-bold": {
+    "home-desktop": {
+      "heading": {
+        "tag": "h1",
+        "font": "Oswald",
+        "size": "25.632px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"DM Sans\"",
+        "size": "14.224px"
+      },
+      "primaryButton": {
+        "radius": "0px",
+        "height": 48,
+        "bg": "rgb(29, 78, 216)",
+        "shadow": "rgb(17, 17, 17) 4px 4px 0px 0px"
+      },
+      "field": {
+        "radius": "0px",
+        "border": "3px",
+        "height": 40
+      },
+      "card": {
+        "cls": "fl-card",
+        "radius": "0px",
+        "border": "3px",
+        "shadow": "rgb(17, 17, 17) 6px 6px 0px 0px"
+      },
+      "page": "rgb(255, 243, 196)",
+      "topBar": {
+        "height": 60,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "catalog-desktop": {
+      "heading": {
+        "tag": "h2",
+        "font": "Oswald",
+        "size": "20.256px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"DM Sans\"",
+        "size": "14.224px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 34
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "0px",
+        "border": "3px",
+        "shadow": "rgb(17, 17, 17) 6px 6px 0px 0px"
+      },
+      "page": "rgb(255, 243, 196)",
+      "topBar": {
+        "height": 60,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "product-desktop": {
+      "heading": {
+        "tag": "h1",
+        "font": "Oswald",
+        "size": "22.784px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"DM Sans\"",
+        "size": "12px"
+      },
+      "primaryButton": {
+        "radius": "0px",
+        "height": 40,
+        "bg": "rgb(29, 78, 216)",
+        "shadow": "rgb(17, 17, 17) 4px 4px 0px 0px"
+      },
+      "field": {
+        "radius": "0px",
+        "border": "3px",
+        "height": 40
+      },
+      "card": null,
+      "page": "rgb(255, 243, 196)",
+      "topBar": {
+        "height": 60,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "saved-desktop": {
+      "heading": {
+        "tag": "h2",
+        "font": "Oswald",
+        "size": "20.256px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"DM Sans\"",
+        "size": "14.224px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 34
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "0px",
+        "border": "3px",
+        "shadow": "rgb(17, 17, 17) 6px 6px 0px 0px"
+      },
+      "page": "rgb(255, 243, 196)",
+      "topBar": {
+        "height": 60,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": false,
+      "overflowX": false
+    },
+    "errors-desktop": [],
+    "home-mobile": {
+      "heading": {
+        "tag": "h1",
+        "font": "Oswald",
+        "size": "25.632px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"DM Sans\"",
+        "size": "14.224px"
+      },
+      "primaryButton": {
+        "radius": "0px",
+        "height": 48,
+        "bg": "rgb(29, 78, 216)",
+        "shadow": "rgb(17, 17, 17) 4px 4px 0px 0px"
+      },
+      "field": {
+        "radius": "0px",
+        "border": "3px",
+        "height": 40
+      },
+      "card": {
+        "cls": "fl-card",
+        "radius": "0px",
+        "border": "3px",
+        "shadow": "rgb(17, 17, 17) 6px 6px 0px 0px"
+      },
+      "page": "rgb(255, 243, 196)",
+      "topBar": {
+        "height": 60,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "catalog-mobile": {
+      "heading": {
+        "tag": "h2",
+        "font": "Oswald",
+        "size": "20.256px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"DM Sans\"",
+        "size": "14.224px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 34
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "0px",
+        "border": "3px",
+        "shadow": "rgb(17, 17, 17) 6px 6px 0px 0px"
+      },
+      "page": "rgb(255, 243, 196)",
+      "topBar": {
+        "height": 88,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "product-mobile": {
+      "heading": {
+        "tag": "h1",
+        "font": "Oswald",
+        "size": "22.784px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"DM Sans\"",
+        "size": "12px"
+      },
+      "primaryButton": {
+        "radius": "0px",
+        "height": 40,
+        "bg": "rgb(29, 78, 216)",
+        "shadow": "rgb(17, 17, 17) 4px 4px 0px 0px"
+      },
+      "field": {
+        "radius": "0px",
+        "border": "3px",
+        "height": 40
+      },
+      "card": null,
+      "page": "rgb(255, 243, 196)",
+      "topBar": {
+        "height": 88,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "saved-mobile": {
+      "heading": {
+        "tag": "h2",
+        "font": "Oswald",
+        "size": "20.256px",
+        "weight": "600"
+      },
+      "text": {
+        "font": "\"DM Sans\"",
+        "size": "14.224px"
+      },
+      "primaryButton": null,
+      "field": {
+        "radius": "0px",
+        "border": "0px",
+        "height": 34
+      },
+      "card": {
+        "cls": "fl-cat-card",
+        "radius": "0px",
+        "border": "3px",
+        "shadow": "rgb(17, 17, 17) 6px 6px 0px 0px"
+      },
+      "page": "rgb(255, 243, 196)",
+      "topBar": {
+        "height": 88,
+        "bg": "rgb(255, 255, 255)"
+      },
+      "bottomNav": true,
+      "overflowX": false
+    },
+    "errors-mobile": []
+  }
+}

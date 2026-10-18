@@ -195,7 +195,7 @@ export function LookupHomeMagazine({ lookup, product, promise, onOpen, onCategor
                       {sub ? <p className="fl-text">{sub}</p> : <span />}
                       <div className="fl-st-mag-post__foot">
                         <span className="fl-meta">{rating(r.id)}</span>
-                        <Button variant="secondary" size={32} icon="heart" pressed={mine} aria-label={`Save ${name}`} onClick={() => lookup.toggleSave(r.id)}>
+                        <Button variant="secondary" size={32} icon="bookmark" pressed={mine} aria-label={`Save ${name}`} onClick={() => lookup.toggleSave(r.id)}>
                           Save
                         </Button>
                       </div>

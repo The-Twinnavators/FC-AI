@@ -1645,12 +1645,6 @@ select.select {
   font-size: 11.5px;
   color: var(--text-1);
 }
-.app-footer__note {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-}
 .app-footer__links {
   display: flex;
   gap: 4px;
@@ -1685,9 +1679,6 @@ select.select {
   .app-footer {
     gap: 14px;
     padding: 0 18px;
-  }
-  .app-footer__note {
-    display: none;
   }
 }
 @media (max-width: 560px) {

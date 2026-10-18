@@ -19,9 +19,30 @@ import { lookupPreview } from "./appFiles.js";
 export const conceptChoiceKey = (runId: string) => `runConcept:${runId}`;
 export const designSpecKey = (runId: string) => `runDesignSpec:${runId}`;
 export const conceptTimingsKey = (runId: string) => `conceptTimings:${runId}`;
+export const designDirectionKey = (runId: string) => `designDirection:${runId}`;
+
+/** The generic default Home, as an explicit, labelled choice (not what an unanswered card means). */
+export const DEFAULT_HOME_CHOICE = "default";
+
+/**
+ * What the plan approval settled about the Home direction. Three approvals stay separate: library approval (a piece
+ * may be offered), the plan's selection (this build uses it), and the person's final visual approval of the generated
+ * app, which is always pending here: applying a concept never marks the visual quality approved.
+ */
+export interface DesignDirection {
+  kind: "concept" | "default" | "none" | "not_offered";
+  conceptId?: string;
+  name?: string;
+  /** No custom direction was chosen: the design requirement is still open (the design steps carry it; the report says so). */
+  outstanding: boolean;
+  why?: string;
+  visualApproval: "pending";
+  at: string;
+}
 
 export interface ConceptChoice {
-  conceptId: string | null;
+  /** A concept's id, or DEFAULT_HOME_CHOICE for the generic default Home chosen explicitly. */
+  conceptId: string;
   at: string;
   by: string;
 }
@@ -69,32 +90,47 @@ export function conceptOffer(store: Store, runId: string, planApproved: boolean,
   return offer;
 }
 
-/** The person's pick (or null for the default Home), only while the plan waits for approval. */
-export function chooseConcept(store: Store, bus: EventBus, run: { id: string; projectId: string; planApproved?: boolean }, conceptId: string | null, by: string, approved?: Set<string>): ConceptChoice {
+/** The person's pick (a concept, or the generic default Home chosen explicitly), only while the plan waits for approval. */
+export function chooseConcept(store: Store, bus: EventBus, run: { id: string; projectId: string; planApproved?: boolean }, conceptId: string, by: string, approved?: Set<string>): ConceptChoice {
   if (run.planApproved) throw new Error("The plan is already approved; the Home direction was settled with it");
   const offer = conceptOffer(store, run.id, false, approved);
   if (!offer.offered) throw new Error(offer.why ?? "No Home concepts are offered for this build");
-  if (conceptId && !offer.concepts.some((c) => c.id === conceptId)) throw new Error(`"${conceptId}" isn't one of this build's Home concepts`);
+  if (conceptId !== DEFAULT_HOME_CHOICE && !offer.concepts.some((c) => c.id === conceptId)) throw new Error(`"${conceptId}" isn't one of this build's Home concepts`);
   const choice: ConceptChoice = { conceptId, at: new Date().toISOString(), by };
   store.setSetting(conceptChoiceKey(run.id), choice);
   store.setSetting(conceptTimingsKey(run.id), { ...store.getSetting<ConceptTimings>(conceptTimingsKey(run.id), {}), chosenAt: choice.at });
   const name = HOME_CONCEPTS.find((c) => c.id === conceptId)?.name;
-  bus.emit({ type: "plan.proposed", projectId: run.projectId, runId: run.id, message: conceptId ? `Home direction picked: ${name} (applied when the plan is approved)` : "Home direction: the default Home (no concept picked)", data: { concept: choice } });
+  bus.emit({ type: "plan.proposed", projectId: run.projectId, runId: run.id, message: conceptId !== DEFAULT_HOME_CHOICE ? `Home direction picked: ${name} (applied when the plan is approved)` : "Home direction picked: the generic default Home (chosen explicitly)", data: { concept: choice } });
   return choice;
 }
 
 /**
- * At plan approval: the picked concept becomes the run's design spec, and the app model records its Home layout so
- * the app is written with it. Returns the spec, or undefined when nothing was picked.
+ * At plan approval: what was settled about the Home direction is recorded (designDirectionKey). A picked concept
+ * becomes the run's design spec and the app model records its Home layout, so the app is written with it. The generic
+ * default is used only when it was chosen; approving with no choice records that no direction was selected and keeps
+ * the design requirement open. Returns the spec, or undefined when no concept was picked.
  */
-export function settleConcept(store: Store, bus: EventBus, run: { id: string; projectId: string }): DesignSpec | undefined {
+export function settleConcept(store: Store, bus: EventBus, run: { id: string; projectId: string }, approved?: Set<string>): DesignSpec | undefined {
   const choice = store.getSetting<ConceptChoice | null>(conceptChoiceKey(run.id), null);
-  const spec = choice?.conceptId ? HOME_CONCEPTS.find((c) => c.id === choice.conceptId) : undefined;
-  store.setSetting(conceptTimingsKey(run.id), { ...store.getSetting<ConceptTimings>(conceptTimingsKey(run.id), {}), approvedAt: new Date().toISOString() });
+  const spec = choice && choice.conceptId !== DEFAULT_HOME_CHOICE ? HOME_CONCEPTS.find((c) => c.id === choice.conceptId) : undefined;
+  const at = new Date().toISOString();
+  store.setSetting(conceptTimingsKey(run.id), { ...store.getSetting<ConceptTimings>(conceptTimingsKey(run.id), {}), approvedAt: at });
+  const offer = conceptOffer(store, run.id, true, approved);
+  const direction: DesignDirection = spec
+    ? { kind: "concept", conceptId: spec.id, name: spec.name, outstanding: false, visualApproval: "pending", at }
+    : choice?.conceptId === DEFAULT_HOME_CHOICE
+      ? { kind: "default", name: "the generic default Home", outstanding: false, visualApproval: "pending", at }
+      : offer.concepts.length
+        ? { kind: "none", outstanding: true, why: "The plan was approved without choosing a Home direction", visualApproval: "pending", at }
+        : { kind: "not_offered", outstanding: true, why: offer.why ?? "No Home concepts were offered", visualApproval: "pending", at };
+  store.setSetting(designDirectionKey(run.id), direction);
+  if (direction.kind === "none" || direction.kind === "not_offered")
+    bus.emit({ type: "plan.approved", projectId: run.projectId, runId: run.id, level: "warning", message: `No custom Home direction was selected (${direction.why}): the design requirement stays open for the design steps, and the report says so`, data: { designDirection: direction } });
+  if (direction.kind === "default") bus.emit({ type: "plan.approved", projectId: run.projectId, runId: run.id, message: "Home direction: the generic default Home, chosen explicitly. Final visual approval stays pending until the generated app is reviewed", data: { designDirection: direction } });
   if (!spec) return undefined;
   const model = store.getSetting<AppModel | null>(appModelKey(run.id), null);
   if (model && spec.composition.home) store.setSetting(appModelKey(run.id), { ...model, home: spec.composition.home });
   store.setSetting(designSpecKey(run.id), spec);
-  bus.emit({ type: "plan.approved", projectId: run.projectId, runId: run.id, message: `Home direction: ${spec.name} (${spec.composition.home?.design ?? "composed"} page, ${spec.typography.display} / ${spec.typography.body}, ${spec.surface.vibe} surfaces); applied when the app is written`, data: { designSpec: spec.id } });
+  bus.emit({ type: "plan.approved", projectId: run.projectId, runId: run.id, message: `Home direction: ${spec.name} (${spec.composition.home?.design ?? "composed"} page, ${spec.typography.display} / ${spec.typography.body}, ${spec.surface.vibe} surfaces); applied when the app is written. Final visual approval stays pending until the generated app is reviewed`, data: { designSpec: spec.id, designDirection: direction } });
   return spec;
 }

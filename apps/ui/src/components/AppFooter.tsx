@@ -19,9 +19,6 @@ export function AppFooter() {
           <span>Personal Intelligence</span>
         </div>
       </div>
-      <p className="app-footer__note">
-        <span className="led led--ok" aria-hidden="true" /> Runs locally — your code and models stay on this machine.
-      </p>
       <span className="app-footer__version" title={BUILD ? `Built from ${BUILD}` : undefined}>v{VERSION}{BUILD ? ` (${BUILD})` : ""} · © {new Date().getFullYear()} The Twinnovators, LLC. · In God We Trust</span>
     </footer>
   );

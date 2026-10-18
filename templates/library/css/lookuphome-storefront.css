@@ -37,7 +37,9 @@
 .fl-lhs-more { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-5); }
 
 @container fl-as (max-width: 720px) {
-  .fl-lhs-search { max-width: none; flex-basis: 100%; }
+  /* The shop's narrow header is a column: a 100% basis there is a height, which pushed the search into a second column
+     off the screen. Full width instead. */
+  .fl-lhs-search { flex: 0 0 auto; width: 100%; max-width: none; }
   .fl-lhs-more .fl-btn { width: 100%; justify-content: center; }
 }
 

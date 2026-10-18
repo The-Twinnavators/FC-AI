@@ -5,7 +5,7 @@
  */
 import { TERMINAL_RUN_STATUSES, type FlowEvent } from "@flowcode/contracts";
 import type { App } from "../app.js";
-import { conceptTimingsKey, type ConceptTimings } from "../orchestrator/homeConceptOffer.js";
+import { conceptTimingsKey, designDirectionKey, type ConceptTimings, type DesignDirection } from "../orchestrator/homeConceptOffer.js";
 import { getDeadline } from "../orchestrator/runDeadline.js";
 import { DESIGN_POLISH, DESIGN_SCREENS } from "../orchestrator/templates.js";
 
@@ -75,6 +75,8 @@ export interface RunPerformance {
     conceptPrepareMs?: number;
     conceptApplyMs?: number;
     concept?: { offeredAt?: string; chosenAt?: string; approvedAt?: string; appliedAt?: string; coderWork?: string[] };
+    /** What the plan approval settled about the Home direction; the final visual approval is separate and pending. */
+    direction?: DesignDirection;
     designStepsMs: number;
     designModelMs: number;
     designModelCalls: number;
@@ -289,7 +291,9 @@ function designPath(app: App, runId: string, taskRows: RunPerformance["tasks"], 
   }
   const c = app.store.getSetting<ConceptTimings>(conceptTimingsKey(runId), {});
   const d = getDeadline(app.store, runId);
+  const direction = app.store.getSetting<DesignDirection | null>(designDirectionKey(runId), null);
   return {
+    ...(direction ? { direction } : {}),
     researchMs: research.reduce((n, t) => n + t.elapsedMs, 0),
     ...(c.prepareMs !== undefined ? { conceptPrepareMs: c.prepareMs } : {}),
     ...(c.applyMs !== undefined ? { conceptApplyMs: c.applyMs } : {}),

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home concept review</title>
+<style>
+  :root { --bg: #f4f4f2; --fg: #1a1a1a; --muted: #555; --line: #d0d0cc; --card: #fff; --warn: #8a4b00; }
+  body { margin: 0; padding: 24px 16px 48px; background: var(--bg); color: var(--fg); font: 14px/1.5 system-ui, sans-serif; }
+  main { max-width: 1400px; margin: 0 auto; display: grid; gap: 40px; }
+  h1 { margin: 0; font-size: 22px; } h2 { margin: 0 0 4px; font-size: 18px; } h3 { margin: 16px 0 6px; font-size: 14px; }
+  p, li { max-width: 80ch; } .muted { color: var(--muted); }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px 24px; margin: 8px 0 16px; }
+  .notes div { min-width: 0; } .notes b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+  .row.mobile { grid-template-columns: repeat(4, minmax(0, 220px)); }
+  figure { margin: 0; display: grid; gap: 4px; min-width: 0; }
+  figcaption { font-size: 12px; color: var(--muted); }
+  .shot { max-height: 720px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  .shot img { display: block; width: 100%; height: auto; }
+  .issues li { margin: 4px 0; } .warn { color: var(--warn); }
+  @media (max-width: 900px) { .row, .row.mobile { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Home concepts on Clean Cart: review before library approval</h1>
+  <p class="muted">The same regenerated Clean Cart slice app (eval 1's app model and PRD records), with each concept applied, at 1440px and 390px. Home, Search/Catalog, Product and Saved (one product saved through the app). Captured by <code>packages/daemon/test/concept-review.test.ts</code>; rendered measurements in <code>review.json</code>. Full-page captures show the phone's fixed bottom bar where the screen ended, mid-page; that is the capture, not the layout. Approving a page only lets FlowCode offer it; choosing it for a build happens on the plan card; the generated app's visual approval stays yours and pending.</p>
+</header>
+
+<section>
+  <h2>Editorial · lookup-home-magazine</h2>
+  <div class="notes">
+    <div><b>User and task</b>People who browse and read before choosing (labels, makers, ratings); weak for "find one thing fast".</div>
+    <div><b>Composition</b>Masthead, a sticky side column (search, sections, most liked, saved), the most liked product as a cover story, section tiles, a feed, a browse band.</div>
+    <div><b>Typography</b>Playfair Display headings over Literata, an expressive scale; meta lines at 12px (the floor).</div>
+    <div><b>Products</b>Tinted tiles with the category icon; the cover is large; feed cards with save.</div>
+    <div><b>Mobile</b>The side column folds behind a "Sections and search" button; six section tiles stack as tall single tiles, a long scroll before the feed.</div>
+  </div>
+  <div class="row">
+    <figure><div class="shot"><img src="concept-editorial-home-desktop.png" alt="Editorial Home, desktop"></div><figcaption>Home</figcaption></figure>
+    <figure><div class="shot"><img src="concept-editorial-catalog-desktop.png" alt="Editorial Catalog, desktop"></div><figcaption>Search / Catalog</figcaption></figure>
+    <figure><div class="shot"><img src="concept-editorial-product-desktop.png" alt="Editorial Product, desktop"></div><figcaption>Product</figcaption></figure>
+    <figure><div class="shot"><img src="concept-editorial-saved-desktop.png" alt="Editorial Saved, desktop"></div><figcaption>Saved</figcaption></figure>
+  </div>
+  <h3>Mobile</h3>
+  <div class="row mobile">
+    <figure><div class="shot"><img src="concept-editorial-home-mobile.png" alt="Editorial Home, mobile"></div><figcaption>Home</figcaption></figure>
+    <figure><div class="shot"><img src="concept-editorial-catalog-mobile.png" alt="Editorial Catalog, mobile"></div><figcaption>Search / Catalog</figcaption></figure>
+    <figure><div class="shot"><img src="concept-editorial-product-mobile.png" alt="Editorial Product, mobile"></div><figcaption>Product</figcaption></figure>
+    <figure><div class="shot"><img src="concept-editorial-saved-mobile.png" alt="Editorial Saved, mobile"></div><figcaption>Saved</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>Market hall · lookup-home-storefront</h2>
+  <div class="notes">
+    <div><b>User and task</b>Shoppers scanning what's popular by category; the most familiar of the three.</div>
+    <div><b>Composition</b>A gradient promo banner with the product name and Browse everything, heading with search, category tabs over a four-column grid of the eight most liked, See all.</div>
+    <div><b>Typography</b>Fraunces headings over Work Sans, a regular scale.</div>
+    <div><b>Products</b>Drawn tiles (soft wash, large category icon), name, maker, rating, bookmark save.</div>
+    <div><b>Mobile</b>One column of eight tall cards (about 3,600px of scrolling); category tabs wrap to three rows. The side overflow found in this review is fixed.</div>
+  </div>
+  <div class="row">
+    <figure><div class="shot"><img src="concept-market-home-desktop.png" alt="Market hall Home, desktop"></div><figcaption>Home</figcaption></figure>
+    <figure><div class="shot"><img src="concept-market-catalog-desktop.png" alt="Market hall Catalog, desktop"></div><figcaption>Search / Catalog</figcaption></figure>
+    <figure><div class="shot"><img src="concept-market-product-desktop.png" alt="Market hall Product, desktop"></div><figcaption>Product</figcaption></figure>
+    <figure><div class="shot"><img src="concept-market-saved-desktop.png" alt="Market hall Saved, desktop"></div><figcaption>Saved</figcaption></figure>
+  </div>
+  <h3>Mobile</h3>
+  <div class="row mobile">
+    <figure><div class="shot"><img src="concept-market-home-mobile.png" alt="Market hall Home, mobile"></div><figcaption>Home</figcaption></figure>
+    <figure><div class="shot"><img src="concept-market-catalog-mobile.png" alt="Market hall Catalog, mobile"></div><figcaption>Search / Catalog</figcaption></figure>
+    <figure><div class="shot"><img src="concept-market-product-mobile.png" alt="Market hall Product, mobile"></div><figcaption>Product</figcaption></figure>
+    <figure><div class="shot"><img src="concept-market-saved-mobile.png" alt="Market hall Saved, mobile"></div><figcaption>Saved</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>Bold aisle · lookup-home-listings</h2>
+  <div class="notes">
+    <div><b>User and task</b>"Is it near me, and where": search by name or category, see which stores carry what. The closest fit to the PRD's job.</div>
+    <div><b>Composition</b>A search panel hero (name, category, live count), proof points with real counts, sortable listing cards, the stores, the ZIP prompt.</div>
+    <div><b>Typography</b>Oswald headings over DM Sans, a compact scale; condensed headings run small on Catalog (20px).</div>
+    <div><b>Products</b>Gradient tiles with the category icon; rating as the lead figure, likes and "At N stores" as facts; bookmark save.</div>
+    <div><b>Mobile</b>Hero fields stack; listings one per row; stores one per row; ZIP last. Neo-brutalist outlines hold at phone width.</div>
+  </div>
+  <div class="row">
+    <figure><div class="shot"><img src="concept-bold-home-desktop.png" alt="Bold aisle Home, desktop"></div><figcaption>Home</figcaption></figure>
+    <figure><div class="shot"><img src="concept-bold-catalog-desktop.png" alt="Bold aisle Catalog, desktop"></div><figcaption>Search / Catalog</figcaption></figure>
+    <figure><div class="shot"><img src="concept-bold-product-desktop.png" alt="Bold aisle Product, desktop"></div><figcaption>Product</figcaption></figure>
+    <figure><div class="shot"><img src="concept-bold-saved-desktop.png" alt="Bold aisle Saved, desktop"></div><figcaption>Saved</figcaption></figure>
+  </div>
+  <h3>Mobile</h3>
+  <div class="row mobile">
+    <figure><div class="shot"><img src="concept-bold-home-mobile.png" alt="Bold aisle Home, mobile"></div><figcaption>Home</figcaption></figure>
+    <figure><div class="shot"><img src="concept-bold-catalog-mobile.png" alt="Bold aisle Catalog, mobile"></div><figcaption>Search / Catalog</figcaption></figure>
+    <figure><div class="shot"><img src="concept-bold-product-mobile.png" alt="Bold aisle Product, mobile"></div><figcaption>Product</figcaption></figure>
+    <figure><div class="shot"><img src="concept-bold-saved-mobile.png" alt="Bold aisle Saved, mobile"></div><figcaption>Saved</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>Across the journey: what holds, what doesn't</h2>
+  <p><b>Holds on every page, in all three:</b> the heading and text families, the palette and page colour, the surface treatment (flat outlines, or the neo-brutalist outlines and hard shadows), field and button corners, the frame and its navigation. No page errors and no sideways scrolling at either width.</p>
+  <h3 class="warn">Inconsistencies (reported, not fixed here)</h3>
+  <ul class="issues">
+    <li><b>Product pictures change by page.</b> Home and Catalog draw a tile with the category icon; the Product page shows initials ("OM"). Same product, two looks.</li>
+    <li><b>Heading sizes aren't one system across page types.</b> Bold aisle: Home 25.6px, Product 22.8px, Catalog 20.3px. Editorial: Product 45px, Catalog 32px. Each page sets its own level.</li>
+    <li><b>Primary buttons differ in height:</b> 48px on Home's opening, 40px elsewhere (Editorial, Bold aisle).</li>
+    <li><b>Two ZIP prompts on Product:</b> the frame's "Find it near you" banner and the page's own "Where to find it" form. On a phone the banner takes most of the first screen on every page but Home.</li>
+    <li><b>Save iconography:</b> the frame's mobile bar shows Saved with a heart, while the save toggles are bookmarks and the heart means Like on Product. (The Home pages used a heart for Save too; fixed in this review.)</li>
+    <li><b>"Search" is highlighted on Product</b>, because the product's parent page is the catalog, which the PRD calls Search.</li>
+    <li><b>Meta lines at 12px</b> (ratings, makers) on several pages: at the readability floor.</li>
+    <li><b>Long phone scrolls:</b> Market hall's Home is one column of eight tall cards; Editorial's sections stack as six tall tiles.</li>
+  </ul>
+  <h3>Fixed during this review</h3>
+  <ul class="issues">
+    <li>Market hall, phone: the search pushed the page wider than the screen (a flex basis that became a height in the narrow column layout).</li>
+    <li>Editorial and Bold aisle: Save used the heart icon (the app's Like); now the bookmark, like the catalog. The library's icon set gained the bookmark.</li>
+  </ul>
+</section>
+</main>
+</body>
+</html>

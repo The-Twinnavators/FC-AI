@@ -18,7 +18,7 @@ interface Offer {
   offered: boolean;
   why?: string;
   concepts: Concept[];
-  chosen?: { conceptId: string | null };
+  chosen?: { conceptId: string };
   preview?: { product: string; promise?: string; data: unknown };
 }
 
@@ -51,13 +51,13 @@ function ConceptFrame({ runId, concept, offer }: { runId: string; concept: Conce
 
 export function HomeConcepts({ runId }: { runId: string }) {
   const offer = useResource<Offer>(`/runs/${runId}/concepts`, [runId]);
-  const [picked, setPicked] = useState<string | null | undefined>(undefined);
+  const [picked, setPicked] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string>();
   const o = offer.data;
   if (!o) return null;
   if (!o.offered) return o.why && o.concepts.length === 0 ? <p className="hc-note">Home direction: {o.why}.</p> : null;
-  const current = picked !== undefined ? picked : (o.chosen?.conceptId ?? null);
-  const pick = async (id: string | null) => {
+  const current = picked ?? o.chosen?.conceptId;
+  const pick = async (id: string) => {
     setPicked(id);
     setError(undefined);
     try {
@@ -70,7 +70,7 @@ export function HomeConcepts({ runId }: { runId: string }) {
     <fieldset className="hc">
       <legend className="label">Home direction</legend>
       <p className="hc-lede">
-        Pick how {o.preview?.product ?? "the app"}'s Home page looks, from your library's page designs, shown on this build's own products. It's applied when you approve the plan. Optional: without a pick, the default Home is built.
+        Pick how {o.preview?.product ?? "the app"}'s Home page looks, from your library's page designs, shown on this build's own products. It's applied when you approve the plan; you still review the finished app before it's visually approved. If you approve without choosing, no direction is recorded and the design requirement stays open.
       </p>
       <div className="hc-grid">
         {o.concepts.map((c) => (
@@ -91,7 +91,7 @@ export function HomeConcepts({ runId }: { runId: string }) {
         ))}
       </div>
       <label className="hc-default">
-        <input type="radio" name={`hc-${runId}`} checked={current === null} onChange={() => void pick(null)} /> Keep the default Home
+        <input type="radio" name={`hc-${runId}`} checked={current === "default"} onChange={() => void pick("default")} /> Use the generic default Home (no concept)
       </label>
       {error ? (
         <p className="notice notice--bad" role="alert">

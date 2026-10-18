@@ -18,7 +18,7 @@ import { LOOKUP_PIECES, homePieces, lookupAppSource, lookupData, lookupFile, loo
 import { pieceFiles, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
 import { DESIGN_POLISH, DESIGN_SCREENS, type RuntimeStepArgs } from "./templates.js";
 import { applyDesignSpec, type DesignSpec } from "../workspace/designSpec.js";
-import { conceptTimingsKey, designSpecKey, type ConceptTimings } from "./homeConceptOffer.js";
+import { conceptTimingsKey, designDirectionKey, designSpecKey, type ConceptTimings, type DesignDirection } from "./homeConceptOffer.js";
 
 /** The library pieces a complete app is built from. */
 export const APP_PIECES = ["app-frame", "resource-index", "record-wizard", "record-detail", "app-dashboard"];
@@ -215,9 +215,10 @@ export async function appStep({ deps, run, task, jail, onChanged }: RuntimeStepA
       const coderWork = applied.coderWork.map((w) => `${w.statement} (${w.files.join(", ")})`);
       deps.store.setSetting(conceptTimingsKey(run.id), { ...deps.store.getSetting<ConceptTimings>(conceptTimingsKey(run.id), {}), appliedAt: new Date().toISOString(), applyMs, coderWork });
       changed.push("src/styles/tokens.css");
-      // The design steps keep the chosen look and Home, and do only what tokens and library pages can't.
-      for (const t of deps.store.tasks.where("run_id = ?", run.id).filter((x) => x.title.startsWith(DESIGN_SCREENS) || x.title.startsWith(DESIGN_POLISH))) {
-        const note = `The Home page and the look are the concept the person chose with the plan (${spec.name}), already applied: keep src/styles/tokens.css values, the surface style, the Home screen and its library page as they are. ${coderWork.length ? `Your remaining design work: ${coderWork.join("; ")}.` : "Nothing else about the look is asked for: make the other screens sit well with it, using the same tokens."}`;
+      // The design steps keep the selected direction and still do their scoped work (applying a concept isn't the
+      // design being done, nor its visual approval).
+      for (const t of designTasks(deps, run.id)) {
+        const note = `Selected concept applied (${spec.name}). Preserve its approved direction, complete remaining scoped work, and verify cross-screen consistency. Don't restyle what the concept set (src/styles/tokens.css, the surface style, the Home page's library page); do the design requirements of your step${coderWork.length ? `, including: ${coderWork.join("; ")}` : ""}.`;
         deps.store.setSetting(`taskFindings:${t.id}`, [...deps.store.getSetting<string[]>(`taskFindings:${t.id}`, []), note]);
       }
       deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Applied the chosen Home concept "${spec.name}" in ${applyMs} ms: ${applied.applied.join("; ")}${coderWork.length ? `; left for the design steps: ${coderWork.join("; ")}` : "; nothing left for the coder beyond the checks"}`, data: { designSpec: spec.id, applyMs, requirements: applied.requirements } });
@@ -225,12 +226,23 @@ export async function appStep({ deps, run, task, jail, onChanged }: RuntimeStepA
       return { kind: "blocked", reason: `The chosen Home concept couldn't be applied: ${(err as Error).message}`, nextAction: "Retry this step" };
     }
   }
+  // No concept applied: the design steps hear what was settled (an explicit default, or no direction at all).
+  const direction = deps.store.getSetting<DesignDirection | null>(designDirectionKey(run.id), null);
+  if (!spec && direction) {
+    const note =
+      direction.kind === "default"
+        ? "The generic default Home was chosen explicitly with the plan: keep its layout, and complete your step's design requirements across every screen."
+        : `No Home direction was selected with the plan (${direction.why}). The design requirement is still open: your step carries it in full.`;
+    for (const t of designTasks(deps, run.id)) deps.store.setSetting(`taskFindings:${t.id}`, [...deps.store.getSetting<string[]>(`taskFindings:${t.id}`, []), note]);
+  }
   onChanged(changed);
   deps.store.setSetting(appWrittenKey(run.id), true);
   const built = builtViews(model);
   deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Wrote the app from its model: ${model.entities.length} kind${model.entities.length === 1 ? "" : "s"} of record with ${Object.values(model.seed).reduce((n, s) => n + s.length, 0)} sample records, the frame with ${model.nav.flatMap((g) => g.items).length} destinations, and ${built.length} working pages (${built.map((v) => `${v.label} [${v.kind}]`).join(", ")})` });
   return { kind: "complete", summary: `The app's data, store, frame and ${built.length} pages`, changedPaths: changed };
 }
+
+const designTasks = (deps: RuntimeStepArgs["deps"], runId: string) => deps.store.tasks.where("run_id = ?", runId).filter((x) => x.title.startsWith(DESIGN_SCREENS) || x.title.startsWith(DESIGN_POLISH));
 
 /** Set once the app is written: from then on every step is held to the app guard. */
 export const appWrittenKey = (runId: string) => `appWritten:${runId}`;

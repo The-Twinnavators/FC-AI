@@ -259,7 +259,7 @@ export function LookupHomeListings({ lookup, product, promise, onOpen, onCategor
                         ) : (
                           <span />
                         )}
-                        <Button variant="secondary" size={32} icon="heart" pressed={saved} aria-label={`Save ${name}`} onClick={() => lookup.toggleSave(r.id)}>
+                        <Button variant="secondary" size={32} icon="bookmark" pressed={saved} aria-label={`Save ${name}`} onClick={() => lookup.toggleSave(r.id)}>
                           {saved ? "Saved" : "Save"}
                         </Button>
                       </div>

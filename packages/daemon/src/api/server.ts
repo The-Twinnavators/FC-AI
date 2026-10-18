@@ -893,7 +893,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   // Home concepts on the plan card: what is offered (with what the live preview needs), and the person's pick.
   add("GET /runs/:id/concepts", ({ params }) => conceptOffer(app.store, params.id, !!app.store.runs.require(params.id).planApproved));
   add("POST /runs/:id/concept", ({ params, body }) => {
-    const b = parse(z.object({ conceptId: z.string().max(80).nullable() }), body);
+    // A concept's id, or "default" for the generic default Home chosen explicitly.
+    const b = parse(z.object({ conceptId: z.string().max(80) }), body);
     try {
       return chooseConcept(app.store, app.bus, app.store.runs.require(params.id), b.conceptId, "user");
     } catch (err) {
