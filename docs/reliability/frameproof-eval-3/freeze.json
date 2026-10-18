@@ -1,0 +1,280 @@
+{
+  "recordedAt": "2026-10-18T15:27:24.220Z",
+  "label": "Frameproof end-to-end evaluation 3 (candidate 491422c, end to end): a different PRD, separate from Clean Cart. Passing it says nothing about the Clean Cart failure.",
+  "commit": "491422ca8c92cd9c899946cafd528ccd556d572a",
+  "commitIncludes": [
+    "491422c Requirement extraction and source-to-plan coverage: substantive paragraph lines are requirements (whole, with source line, headings and list lead-ins; hard-wrapped sentences joined), every sub",
+    "e027f98 Frameproof evaluation 2: plan version 1 at review (records, navigation, exclusions, state owner and the PRD's Look now kept; flagged not approval-ready for contradicting tests; 51 paragraph-fo",
+    "7eaf2d1 Frameproof evaluation 2: freeze (candidate 84f648f, unchanged PRD, recorded configuration), setup and export scripts",
+    "84f648f Bounded repair after Frameproof v1 (planning-stage PRD-compliance failure): explicit PRD records survive whatever their heading (IDs, values, order, count), structured select options are read ",
+    "90ef1a4 Frameproof evaluation: plan version 1 at review, with the run export, the planner's recorded replies and the evidence review (data, navigation and Look requirements not preserved; causes trace",
+    "21a953e Frameproof evaluation: pre-run record (commit 8d0a72d, changes, limitations found offline), the PRD as supplied, configuration freeze, setup and export scripts",
+    "8d0a72d Keep the planner's planning replies per run (planningReplies:<runId>): each stage's request and reply, secrets redacted, capped, for diagnosing an unusable plan from the model's own words",
+    "8f8d4b8 Planning-only validation 2 (a2b1bfa, real planner): blocked at the app model before any plan; evidence, timing, and the rebuilt app-model request",
+    "a2b1bfa Planning-pipeline repair after the planning-only validation: one scope (PRD non-goals, revision requests, supporting data, declared navigation) reaches the app model, navigation, library picks",
+    "66c7b6b Planning-only validation of Request changes (new run, not eval 5): plan v1 and v2, the exact feedback submitted through the card, versions and approval states, timing; v2 satisfies 0 of 6 corr",
+    "0e47443 Approval-workflow repair: plan versions with Request changes before execution, approval bound to the plan version and Look, unmistakable gates, a step-based plan review, colour-draft and picke"
+  ],
+  "trackedChanges": [
+    "M .claude/launch.json"
+  ],
+  "daemon": {
+    "port": 7465,
+    "dataDir": ".flowcode-frameproof-3",
+    "build": "packages/daemon/dist-v5 (compiled from the commit above)",
+    "health": {
+      "ok": true,
+      "version": "0.1.0",
+      "dataDirName": "FlowCode",
+      "providers": {
+        "ollama": {
+          "ok": true,
+          "detail": "Ollama 0.40.6 at 127.0.0.1:11434"
+        }
+      },
+      "migrations": [
+        "core_entities",
+        "knowledge_prompts_skills_search",
+        "task_dag_edges",
+        "flow_report"
+      ]
+    }
+  },
+  "prd": {
+    "file": "docs/reliability/frameproof-eval/Frameproof-PRD.md",
+    "from": "C:/Users/JenoU/Downloads/Frameproof-PRD.md",
+    "sha256": "7deea0bb7e4920a20a29873edfb4dcec87fb70b53578f43a50568f894178794b",
+    "chars": 11627
+  },
+  "promptsAndSkills": {
+    "file": "packages/daemon/test/fixtures/builtin-hashes.json",
+    "sha256": "7a440ae85704d5752fd90ddf109bff9a2c06daa7ffb9b60d61383c661b4031dd"
+  },
+  "roleAssignments": {
+    "planner": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.2
+      },
+      "configHash": "36eabea2b6d900b1"
+    },
+    "coder": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "eligibility": {
+        "eligible": false,
+        "reason": "No capability record for qwen3-coder:30b. Run the Coder capability test first."
+      },
+      "configHash": "f49d7d0e6c6c1353"
+    },
+    "debugger": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "configHash": "f49d7d0e6c6c1353"
+    },
+    "repository_analyst": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "researcher": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "reviewer": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "designer": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "critic": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen2.5vl:3b",
+        "temperature": 0.1
+      },
+      "configHash": "fde31487c3bc09b4"
+    },
+    "documenter": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "security_qa": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "accessibility_qa": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    },
+    "compliance_triage": {
+      "assignment": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "configHash": "2660e972262a8664"
+    }
+  },
+  "runtimeOptions": {
+    "fastModel": {
+      "enabled": false,
+      "model": "qwen3:8b",
+      "tries": 2
+    },
+    "rollbackBlocked": true,
+    "autoRetry": false,
+    "investigationBudget": 0,
+    "visualCritic": "off",
+    "routineThinking": false,
+    "gpuProfile": "standard",
+    "profileContext": 16384,
+    "profileSupportModel": "qwen3:8b",
+    "coderCorrections": 2
+  },
+  "modelDigests": {
+    "qwen2.5vl:3b": "79d497978752",
+    "gpt-oss:20b": "17052f91a42e",
+    "qwen3-coder:30b": "06c1097efce0",
+    "qwen3:14b": "bdbd181c33f2",
+    "llama3.1:8b": "46e0c10c039e",
+    "qwen2.5:7b": "845dbda0ea48",
+    "qwen3:8b": "500a1f067a9f",
+    "gemma2:2b": "8ccf136fdd52",
+    "nomic-embed-text:latest": "0a109f422b47",
+    "qwen2.5-coder:7b": "dae161e27b0e"
+  },
+  "run": {
+    "project": "Frameproof (evaluation 3)",
+    "autonomy": "supervised",
+    "kind": "spec_build",
+    "buildMode": "complete",
+    "objective": "Frameproof: build the attached PRD as a complete working prototype.",
+    "references": [
+      "Frameproof-PRD.md (role prd)"
+    ],
+    "pinnedModels": {
+      "planner": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "coder": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "debugger": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      }
+    },
+    "deadline": "none",
+    "constraints": []
+  },
+  "created": {
+    "projectId": "prj_cb315e70e0b74335ada7",
+    "runId": "run_05368827afde426eac8b",
+    "createdAt": "2026-10-18T15:27:24.344Z",
+    "modelAssignments": {
+      "planner": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "coder": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "debugger": {
+        "providerId": "ollama",
+        "model": "qwen3-coder:30b",
+        "temperature": 0.1
+      },
+      "repository_analyst": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "researcher": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "reviewer": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "designer": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "critic": {
+        "providerId": "ollama",
+        "model": "qwen2.5vl:3b",
+        "temperature": 0.1
+      },
+      "documenter": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "security_qa": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "accessibility_qa": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      },
+      "compliance_triage": {
+        "providerId": "ollama",
+        "model": "qwen3:14b",
+        "temperature": 0.1
+      }
+    },
+    "constraints": []
+  }
+}
