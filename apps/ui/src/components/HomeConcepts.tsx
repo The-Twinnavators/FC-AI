@@ -3,7 +3,7 @@
  * records, to pick before approving the plan. Part of the plan approval, not another stop: picking is optional, nothing
  * is applied until the plan is approved, and no pick keeps the default Home.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { appearanceTokens, type Appearance } from "@flowcode/contracts";
 import { post, useResource } from "../api";
 import { DirectionEditor } from "./DirectionEditor";
@@ -62,6 +62,8 @@ export function HomeConcepts({ runId, projectId }: { runId: string; projectId: s
   const [picked, setPicked] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string>();
   const [look, setLook] = useState<Appearance>();
+  // Its own radio group per copy of the card (the pop-up and the run panel can both show it).
+  const group = useId();
   const o = offer.data;
   const current = picked ?? o?.chosen?.conceptId;
   const pick = async (id: string) => {
@@ -90,7 +92,7 @@ export function HomeConcepts({ runId, projectId }: { runId: string; projectId: s
               <label key={c.id} className={`hc-option${current === c.id ? " is-picked" : ""}`}>
                 <ConceptFrame runId={runId} concept={c} offer={o} look={look} />
                 <span className="hc-choice">
-                  <input type="radio" name={`hc-${runId}`} checked={current === c.id} onChange={() => void pick(c.id)} />
+                  <input type="radio" name={`hc-${group}`} checked={current === c.id} onChange={() => void pick(c.id)} />
                   <span>
                     <strong>{c.name}</strong>
                     <span className="hc-thesis">{c.thesis}</span>
@@ -101,7 +103,7 @@ export function HomeConcepts({ runId, projectId }: { runId: string; projectId: s
             ))}
           </div>
           <label className="hc-default">
-            <input type="radio" name={`hc-${runId}`} checked={current === "default"} onChange={() => void pick("default")} /> Use the generic default Home layout (no concept)
+            <input type="radio" name={`hc-${group}`} checked={current === "default"} onChange={() => void pick("default")} /> Use the generic default Home layout (no concept)
           </label>
         </>
       ) : o?.why && !o.concepts.length ? (

@@ -5,7 +5,7 @@
  * app exists, until the build applies the selected direction). Same record and tokens as the daemon
  * (workspace/designState.ts, contracts appearance.ts).
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { APPEARANCE_THEMES, BASE_APPEARANCE, STYLE_VIBES, TYPE_PAIRS, appearanceChecks, appearanceFromTheme, appearanceTokens, type Appearance, type AppearanceCheck } from "@flowcode/contracts";
 import { post, useResource } from "../api";
 import { ColorPicker } from "./ColorPicker";
@@ -129,6 +129,8 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // The card can be on screen twice (the pop-up and the run panel): each copy needs its own radio group.
+  const group = useId();
 
   // What the editor shows with no draft: the selected direction, else the PRD's primary, else FlowCode's neutral base.
   const settled = (st: DesignStateView): { a?: Appearance; sources: Sources } => {
@@ -240,7 +242,7 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
             <legend>Surface</legend>
             {surfaces.map((v) => (
               <label key={v.id} className={cur.surface === v.id ? "is-on" : ""}>
-                <input type="radio" name={`ds-surface-${projectId}-${where}`} checked={cur.surface === v.id} onChange={() => edit({ surface: v.id }, "you")} /> {v.name}
+                <input type="radio" name={`ds-surface-${group}`} checked={cur.surface === v.id} onChange={() => edit({ surface: v.id }, "you")} /> {v.name}
               </label>
             ))}
           </fieldset>
