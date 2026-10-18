@@ -14,6 +14,23 @@ import { OpenAICompatibleProvider } from "./openaiCompat.js";
 import { AnthropicProvider } from "./anthropic.js";
 import { stableStringify, sha256 } from "../util/ids.js";
 import { runtimeOptions } from "../orchestrator/runtimeOptions.js";
+import { redact } from "../security/redaction.js";
+
+/** One planner reply while a run was planned (ModelRouter.recordPlanningReply). */
+export interface PlanningReply {
+  at: string;
+  /** The first line of the stage's instructions (which planning stage asked). */
+  stage: string;
+  model: string;
+  temperature?: number;
+  request: string;
+  requestChars: number;
+  reply: string;
+  doneReason?: string;
+  durationMs: number;
+  usage?: { promptTokens?: number; completionTokens?: number };
+}
+export const planningRepliesKey = (runId: string) => `planningReplies:${runId}`;
 
 /** Roles that only read and write text: in the 8GB profile they share the coder's model. The critic (vision) doesn't. */
 const SUPPORT_TEXT_ROLES = new Set<string>(["repository_analyst", "researcher", "reviewer", "designer", "documenter", "security_qa", "accessibility_qa", "compliance_triage"]);
@@ -146,6 +163,34 @@ export class ModelRouter {
     return sha256(stableStringify({ p: a.providerId, m: a.model, t: a.temperature ?? null, c: a.contextWindow ?? null, r: a.reasoning ?? false })).slice(0, 16);
   }
 
+  /**
+   * The planner's replies while a run is planned (no step yet), kept per run with what each stage asked, so a plan that
+   * comes back unusable can be diagnosed from the model's own words (Clean Cart planning validation 2: the app model was
+   * rejected and only the parsed result survived). Secrets are redacted; each text is capped.
+   */
+  private recordPlanningReply(ctx: ModelCallContext, assignment: ModelAssignment, req: Omit<ChatRequest, "model">, res: ChatResponse) {
+    if (ctx.role !== "planner" || !ctx.runId || ctx.taskId) return;
+    const text = (v: unknown) => (typeof v === "string" ? v : JSON.stringify(v ?? ""));
+    const cap = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}… [${s.length - n} more characters not kept]` : s);
+    const system = text(req.messages.find((m) => m.role === "system")?.content);
+    const user = req.messages.filter((m) => m.role === "user").map((m) => text(m.content)).join("\n\n");
+    const key = planningRepliesKey(ctx.runId);
+    const list = this.store.getSetting<PlanningReply[]>(key, []);
+    list.push({
+      at: new Date().toISOString(),
+      stage: system.split("\n")[0]!.slice(0, 120),
+      model: assignment.model,
+      temperature: req.temperature ?? assignment.temperature,
+      request: cap(redact(user), 30_000),
+      requestChars: user.length,
+      reply: cap(redact(res.content ?? ""), 60_000),
+      doneReason: res.doneReason,
+      durationMs: res.durationMs,
+      usage: res.usage,
+    });
+    this.store.setSetting(key, list);
+  }
+
   async chat(ctx: ModelCallContext, assignment: ModelAssignment, req: Omit<ChatRequest, "model">): Promise<ChatResponse> {
     const provider = this.provider(assignment.providerId);
     if (provider.config.hosted) {
@@ -181,6 +226,7 @@ export class ModelRouter {
           // Timing and prompt size feed the Performance view: where model time goes, and how big each request was.
           data: { ...meta, durationMs: res.durationMs, usage: res.usage, timing: res.timing, thinkingChars: res.thinkingChars ?? 0, doneReason: res.doneReason, promptChars: promptSize(req), toolCalls: res.toolCalls.map((c) => c.name) },
         });
+        this.recordPlanningReply(ctx, assignment, req, res);
         return res;
       } catch (raw) {
         const err = classifyError(raw, req.signal);
