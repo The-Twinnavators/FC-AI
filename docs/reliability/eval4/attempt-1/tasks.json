@@ -1,0 +1,1192 @@
+[
+  {
+    "id": "task_e0ac2ff777da41b48403",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Scaffold from verified starter template",
+    "objective": "Copy the verified React starter template into the workspace.",
+    "status": "verified",
+    "dependsOn": [],
+    "expectedPaths": [
+      "."
+    ],
+    "actualPaths": [
+      ".flowcode/design-brief.json",
+      ".gitignore",
+      "eslint.config.js",
+      "index.html",
+      "package.json",
+      "public/favicon.svg",
+      "README.md",
+      "src/App.tsx",
+      "src/components/ui/index.tsx",
+      "src/components/ui/screen-parts.tsx",
+      "src/lib/screens.test.ts",
+      "src/lib/screens.ts",
+      "src/main.tsx",
+      "src/sections/AlertsStates.tsx",
+      "src/sections/AvatarsVariants.tsx",
+      "src/sections/BadgesStatus.tsx",
+      "src/sections/ButtonsVariants.tsx",
+      "src/sections/CardKpi.tsx",
+      "src/sections/CardsVariants.tsx",
+      "src/sections/CheckboxesRadios.tsx",
+      "src/sections/DropdownsStates.tsx",
+      "src/sections/EmptyStates.tsx",
+      "src/sections/icons.tsx",
+      "src/sections/ModalsDialogs.tsx",
+      "src/sections/PaginationVariants.tsx",
+      "src/sections/ProgressIndicators.tsx",
+      "src/sections/SkeletonLoading.tsx",
+      "src/sections/SwitchesStates.tsx",
+      "src/sections/TablesStates.tsx",
+      "src/sections/TabsVariants.tsx",
+      "src/sections/TextFieldsStates.tsx",
+      "src/sim/index.ts",
+      "src/sim/sim.test.ts",
+      "src/styles/app.css",
+      "src/styles/components.css",
+      "src/styles/library.css",
+      "src/styles/screen-parts.css",
+      "src/styles/tokens.css",
+      "src/test/setup.ts",
+      "src/vite-env.d.ts",
+      "tsconfig.json",
+      "vite.config.ts",
+      "public/fonts/inter.woff2",
+      "public/fonts/inter.LICENSE.txt",
+      "public/fonts/roboto.woff2",
+      "public/fonts/roboto.LICENSE.txt",
+      "public/fonts/source-serif-4.woff2",
+      "public/fonts/source-serif-4.LICENSE.txt",
+      "public/fonts/jetbrains-mono.woff2",
+      "public/fonts/jetbrains-mono.LICENSE.txt",
+      "src/styles/fonts.css"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "s1",
+        "description": "package.json exists",
+        "check": {
+          "type": "file_exists",
+          "path": "package.json"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "file:package.json"
+        ]
+      }
+    ],
+    "validationPlan": {
+      "kinds": []
+    },
+    "checkpointId": "cp_ca450d4f0ffa4ecf904c",
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 0,
+    "attempts": 1
+  },
+  {
+    "id": "task_115c5c3f1b824e158d7a",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Install dependencies (approved)",
+    "objective": "Install declared dependencies after user approval.",
+    "status": "verified",
+    "dependsOn": [
+      "task_e0ac2ff777da41b48403"
+    ],
+    "expectedPaths": [
+      "package-lock.json"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "d1",
+        "description": "node_modules installed",
+        "check": {
+          "type": "file_exists",
+          "path": "node_modules/react/package.json"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "file:node_modules/react/package.json"
+        ]
+      },
+      {
+        "id": "d2",
+        "description": "Starter typechecks",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "command:cmd_3bfebc23491040199184"
+        ]
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "install"
+      ]
+    },
+    "checkpointId": "cp_63ab221b672144e1bce0",
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 1,
+    "attempts": 1
+  },
+  {
+    "id": "task_eeb17b09b8544bb4ba68",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Import spec references",
+    "objective": "Place the supplied PRD, HTML, CSS and JSON files in the workspace for the agents to read.",
+    "status": "verified",
+    "dependsOn": [
+      "task_115c5c3f1b824e158d7a"
+    ],
+    "expectedPaths": [
+      "spec/",
+      "src/content/"
+    ],
+    "actualPaths": [
+      "spec/clean-cart-slice-prd.md"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "r1",
+        "description": "clean-cart-slice-prd.md imported",
+        "check": {
+          "type": "file_exists",
+          "path": "spec/clean-cart-slice-prd.md"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "file:spec/clean-cart-slice-prd.md"
+        ]
+      },
+      {
+        "id": "auto-typecheck",
+        "description": "The project still type-checks after this task",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "command:cmd_69fde1633dc0428898fa"
+        ]
+      }
+    ],
+    "validationPlan": {
+      "kinds": []
+    },
+    "checkpointId": "cp_8c8aec350def47d589bf",
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 2,
+    "attempts": 1
+  },
+  {
+    "id": "task_9edb333c154f47b2a3ac",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Capture the style",
+    "objective": "Set the look from the product's design direction (its industry's colour palette and Google font pairing) on the Styles page.",
+    "status": "verified",
+    "dependsOn": [
+      "task_eeb17b09b8544bb4ba68"
+    ],
+    "expectedPaths": [
+      "src/styles/tokens.css",
+      "src/styles/components.css"
+    ],
+    "actualPaths": [
+      "src/styles/tokens.css"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "c1",
+        "description": "The design tokens are in place",
+        "check": {
+          "type": "file_exists",
+          "path": "src/styles/tokens.css"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "file:src/styles/tokens.css"
+        ]
+      },
+      {
+        "id": "auto-typecheck",
+        "description": "The project still type-checks after this task",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "command:cmd_b7fb03b722bb4ec8919e"
+        ]
+      }
+    ],
+    "validationPlan": {
+      "kinds": []
+    },
+    "checkpointId": "cp_e6c0258262a9493884cf",
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 3,
+    "attempts": 1
+  },
+  {
+    "id": "task_e0892692c6e84c52aa80",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Review the prototype plan and the design",
+    "objective": "Wait for the person to approve the prototype plan and the design set on the Styles page.",
+    "status": "verified",
+    "dependsOn": [
+      "task_9edb333c154f47b2a3ac"
+    ],
+    "expectedPaths": [],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "v1",
+        "description": "The starter is in place for the Styles page",
+        "check": {
+          "type": "file_exists",
+          "path": "package.json"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "file:package.json"
+        ]
+      },
+      {
+        "id": "auto-typecheck",
+        "description": "The project still type-checks after this task",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "command:cmd_80005f64c4524ac5997b"
+        ]
+      }
+    ],
+    "validationPlan": {
+      "kinds": []
+    },
+    "checkpointId": "cp_d7ce840a77ac4721b963",
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 4,
+    "attempts": 1
+  },
+  {
+    "id": "task_186f924d285b4e0e9b42",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Add library sections",
+    "objective": "Copy the library sections this spec calls for into src/sections/ as starting points: navbar-simple (A website: brand, page links and one main action.); hero-centered (A website's opening: its promise and main action (variant fixed for this project).); cta-banner (A website closes with one invitation to act.); footer-simple (A website's footer, sized to how many pages it links to.); lookup-catalog (A starting point for the Home screen: Look-up catalog: search, categories, filters and where to find it); lookup-entry (A starting point for the Home screen: Look-up entry: details, where to find it near you, like, save, share, ratings)",
+    "status": "verified",
+    "dependsOn": [
+      "task_e0892692c6e84c52aa80"
+    ],
+    "expectedPaths": [
+      "src/sections/LookupCatalog.tsx",
+      "src/sections/LookupEntry.tsx",
+      "src/sections/NavbarSimple.tsx",
+      "src/sections/HeroCentered.tsx",
+      "src/sections/CtaBanner.tsx",
+      "src/sections/FooterSimple.tsx",
+      "src/styles/library.css",
+      ".flowcode/sections/"
+    ],
+    "actualPaths": [
+      ".flowcode/sections/INDEX.md",
+      ".flowcode/sections/navbar-simple.tsx.txt",
+      "src/sections/NavbarSimple.tsx",
+      "src/sections/TopNavVariants.tsx",
+      ".flowcode/sections/navbar-centered.tsx.txt",
+      ".flowcode/sections/hero-split.tsx.txt",
+      ".flowcode/sections/hero-centered.tsx.txt",
+      "src/sections/HeroCentered.tsx",
+      ".flowcode/sections/hero-stats.tsx.txt",
+      ".flowcode/sections/features-grid.tsx.txt",
+      ".flowcode/sections/features-alternating.tsx.txt",
+      ".flowcode/sections/features-checklist.tsx.txt",
+      ".flowcode/sections/stats-band.tsx.txt",
+      ".flowcode/sections/pricing-tiers.tsx.txt",
+      ".flowcode/sections/pricing-toggle.tsx.txt",
+      ".flowcode/sections/testimonials-cards.tsx.txt",
+      ".flowcode/sections/testimonial-feature.tsx.txt",
+      ".flowcode/sections/faq-accordion.tsx.txt",
+      ".flowcode/sections/faq-columns.tsx.txt",
+      ".flowcode/sections/cta-banner.tsx.txt",
+      "src/sections/CtaBanner.tsx",
+      ".flowcode/sections/cta-split.tsx.txt",
+      ".flowcode/sections/team-grid.tsx.txt",
+      ".flowcode/sections/contact-split.tsx.txt",
+      ".flowcode/sections/newsletter-inline.tsx.txt",
+      ".flowcode/sections/blog-cards.tsx.txt",
+      ".flowcode/sections/footer-columns.tsx.txt",
+      ".flowcode/sections/footer-simple.tsx.txt",
+      "src/sections/FooterSimple.tsx",
+      ".flowcode/sections/page-not-found.tsx.txt",
+      ".flowcode/sections/card-product-grid.tsx.txt",
+      ".flowcode/sections/card-kpi.tsx.txt",
+      ".flowcode/sections/card-profile.tsx.txt",
+      ".flowcode/sections/card-media-list.tsx.txt",
+      ".flowcode/sections/table-actions.tsx.txt",
+      ".flowcode/sections/table-plan-compare.tsx.txt",
+      ".flowcode/sections/list-stacked.tsx.txt",
+      ".flowcode/sections/form-account.tsx.txt",
+      ".flowcode/sections/form-settings.tsx.txt",
+      ".flowcode/sections/form-wizard.tsx.txt",
+      ".flowcode/sections/form-filters.tsx.txt",
+      ".flowcode/sections/bg-soft.tsx.txt",
+      ".flowcode/sections/bg-mesh.tsx.txt",
+      ".flowcode/sections/bg-glow.tsx.txt",
+      ".flowcode/sections/bg-aurora.tsx.txt",
+      ".flowcode/sections/bg-split.tsx.txt",
+      ".flowcode/sections/bg-ink.tsx.txt",
+      ".flowcode/sections/bg-dots.tsx.txt",
+      ".flowcode/sections/bg-grid.tsx.txt",
+      ".flowcode/sections/bg-stripes.tsx.txt",
+      ".flowcode/sections/bg-waves.tsx.txt",
+      ".flowcode/sections/bg-topo.tsx.txt",
+      ".flowcode/sections/bg-grain.tsx.txt",
+      ".flowcode/sections/skeleton-loading.tsx.txt",
+      ".flowcode/sections/segmented-control.tsx.txt",
+      ".flowcode/sections/data-animated-number.tsx.txt",
+      ".flowcode/sections/chart-radial-gauge.tsx.txt",
+      ".flowcode/sections/chart-area.tsx.txt",
+      ".flowcode/sections/data-diff.tsx.txt",
+      ".flowcode/sections/card-project.tsx.txt",
+      ".flowcode/sections/card-approval.tsx.txt",
+      ".flowcode/sections/hero-gradient.tsx.txt",
+      ".flowcode/sections/sidebar-app.tsx.txt",
+      ".flowcode/sections/sidebar-rail.tsx.txt",
+      ".flowcode/sections/sidebar-nested.tsx.txt",
+      ".flowcode/sections/auth-sign-in.tsx.txt",
+      ".flowcode/sections/auth-sign-up.tsx.txt",
+      ".flowcode/sections/auth-icon-reveal.tsx.txt",
+      ".flowcode/sections/auth-split.tsx.txt",
+      ".flowcode/sections/auth-forgot-password.tsx.txt",
+      ".flowcode/sections/auth-verify-code.tsx.txt",
+      ".flowcode/sections/page-server-error.tsx.txt",
+      ".flowcode/sections/page-maintenance.tsx.txt",
+      ".flowcode/sections/page-offline.tsx.txt",
+      ".flowcode/sections/cookie-consent.tsx.txt",
+      ".flowcode/sections/landing-lead.tsx.txt",
+      ".flowcode/sections/landing-sales.tsx.txt",
+      ".flowcode/sections/landing-prelaunch.tsx.txt",
+      ".flowcode/sections/landing-product.tsx.txt",
+      ".flowcode/sections/landing-product-clothing.tsx.txt",
+      ".flowcode/sections/landing-subscription.tsx.txt",
+      ".flowcode/sections/landing-click-through.tsx.txt",
+      ".flowcode/sections/home-saas.tsx.txt",
+      ".flowcode/sections/home-startup.tsx.txt",
+      ".flowcode/sections/home-mobile-app.tsx.txt",
+      ".flowcode/sections/home-personal.tsx.txt",
+      ".flowcode/sections/site-cafe.tsx.txt",
+      ".flowcode/sections/site-agency.tsx.txt",
+      ".flowcode/sections/site-photographer.tsx.txt",
+      ".flowcode/sections/site-magazine.tsx.txt",
+      ".flowcode/sections/site-real-estate.tsx.txt",
+      ".flowcode/sections/site-fitness.tsx.txt",
+      ".flowcode/sections/site-nonprofit.tsx.txt",
+      ".flowcode/sections/site-event.tsx.txt",
+      ".flowcode/sections/site-clinic.tsx.txt",
+      ".flowcode/sections/site-coming-soon.tsx.txt",
+      ".flowcode/sections/nb-landing.tsx.txt",
+      ".flowcode/sections/input-quantity.tsx.txt",
+      ".flowcode/sections/input-button-group.tsx.txt",
+      ".flowcode/sections/input-textarea.tsx.txt",
+      ".flowcode/sections/timeline-activity.tsx.txt",
+      ".flowcode/sections/details-list.tsx.txt",
+      ".flowcode/sections/stats-compare.tsx.txt",
+      ".flowcode/sections/announcement-bar.tsx.txt",
+      ".flowcode/sections/logo-cloud.tsx.txt",
+      ".flowcode/sections/poll-vote.tsx.txt",
+      ".flowcode/sections/accordion-variants.tsx.txt",
+      ".flowcode/sections/accordion-plus.tsx.txt",
+      ".flowcode/sections/shop-cart-drawer.tsx.txt",
+      ".flowcode/sections/shop-cart-page.tsx.txt",
+      ".flowcode/sections/shop-product-cards.tsx.txt",
+      ".flowcode/sections/shop-collection.tsx.txt",
+      ".flowcode/sections/shop-quick-view.tsx.txt",
+      ".flowcode/sections/app-analytics.tsx.txt",
+      ".flowcode/sections/app-storefront.tsx.txt",
+      ".flowcode/sections/app-support-inbox.tsx.txt",
+      ".flowcode/sections/app-settings.tsx.txt",
+      ".flowcode/sections/app-kanban.tsx.txt",
+      ".flowcode/sections/site-docs.tsx.txt",
+      ".flowcode/sections/home-devtool.tsx.txt",
+      ".flowcode/sections/app-ai-chat.tsx.txt",
+      ".flowcode/sections/app-admin.tsx.txt",
+      ".flowcode/sections/cards-variants.tsx.txt",
+      ".flowcode/sections/input-radio-cards.tsx.txt",
+      ".flowcode/sections/cards-sticker.tsx.txt",
+      ".flowcode/sections/panels-drawers.tsx.txt",
+      ".flowcode/sections/drawer-side.tsx.txt",
+      ".flowcode/sections/sheet-bottom.tsx.txt",
+      ".flowcode/sections/tabs-variants.tsx.txt",
+      ".flowcode/sections/tabs-folder.tsx.txt",
+      ".flowcode/sections/tabs-pills.tsx.txt",
+      ".flowcode/sections/tabs-underline.tsx.txt",
+      ".flowcode/sections/breadcrumbs-variants.tsx.txt",
+      ".flowcode/sections/breadcrumbs.tsx.txt",
+      ".flowcode/sections/pagination-variants.tsx.txt",
+      ".flowcode/sections/pagination.tsx.txt",
+      ".flowcode/sections/dropdowns-states.tsx.txt",
+      ".flowcode/sections/select-classic.tsx.txt",
+      ".flowcode/sections/input-select.tsx.txt",
+      ".flowcode/sections/sliders-states.tsx.txt",
+      ".flowcode/sections/input-range.tsx.txt",
+      ".flowcode/sections/chips-tags.tsx.txt",
+      ".flowcode/sections/file-upload-states.tsx.txt",
+      ".flowcode/sections/input-file-upload.tsx.txt",
+      ".flowcode/sections/text-fields-states.tsx.txt",
+      ".flowcode/sections/checkboxes-radios.tsx.txt",
+      ".flowcode/sections/switches-states.tsx.txt",
+      ".flowcode/sections/buttons-variants.tsx.txt",
+      ".flowcode/sections/tabs-vertical.tsx.txt",
+      ".flowcode/sections/top-nav-variants.tsx.txt",
+      ".flowcode/sections/sidebar-nav-variants.tsx.txt",
+      ".flowcode/sections/steppers-wizards.tsx.txt",
+      ".flowcode/sections/steps-progress.tsx.txt",
+      ".flowcode/sections/empty-states.tsx.txt",
+      ".flowcode/sections/empty-state.tsx.txt",
+      ".flowcode/sections/alerts-states.tsx.txt",
+      ".flowcode/sections/toast-stack.tsx.txt",
+      ".flowcode/sections/alert-inline.tsx.txt",
+      ".flowcode/sections/banner-top.tsx.txt",
+      ".flowcode/sections/tooltips-variants.tsx.txt",
+      ".flowcode/sections/tooltips.tsx.txt",
+      ".flowcode/sections/progress-indicators.tsx.txt",
+      ".flowcode/sections/progress-set.tsx.txt",
+      ".flowcode/sections/badges-status.tsx.txt",
+      ".flowcode/sections/status-badges.tsx.txt",
+      ".flowcode/sections/modals-dialogs.tsx.txt",
+      ".flowcode/sections/dialog-confirm.tsx.txt",
+      ".flowcode/sections/dialog-form.tsx.txt",
+      ".flowcode/sections/popovers-menus.tsx.txt",
+      ".flowcode/sections/dropdown-menu.tsx.txt",
+      ".flowcode/sections/focus-rings.tsx.txt",
+      ".flowcode/sections/tables-states.tsx.txt",
+      ".flowcode/sections/table-selectable.tsx.txt",
+      ".flowcode/sections/table-sortable.tsx.txt",
+      ".flowcode/sections/lists-rows.tsx.txt",
+      ".flowcode/sections/avatars-variants.tsx.txt",
+      ".flowcode/sections/avatar-group.tsx.txt",
+      ".flowcode/sections/media-frames.tsx.txt",
+      ".flowcode/sections/dividers-rules.tsx.txt",
+      ".flowcode/sections/chat-bubbles.tsx.txt",
+      ".flowcode/sections/ai-indicators.tsx.txt",
+      ".flowcode/sections/command-palette.tsx.txt",
+      ".flowcode/sections/motion-presets.tsx.txt",
+      ".flowcode/sections/date-picker.tsx.txt",
+      ".flowcode/sections/booking-calendar.tsx.txt",
+      ".flowcode/sections/time-picker.tsx.txt",
+      ".flowcode/sections/bottom-nav.tsx.txt",
+      ".flowcode/sections/fab.tsx.txt",
+      ".flowcode/sections/search-field.tsx.txt",
+      ".flowcode/sections/carousel.tsx.txt",
+      ".flowcode/sections/slideshow.tsx.txt",
+      ".flowcode/sections/app-frame.tsx.txt",
+      ".flowcode/sections/resource-index.tsx.txt",
+      ".flowcode/sections/record-wizard.tsx.txt",
+      ".flowcode/sections/record-detail.tsx.txt",
+      ".flowcode/sections/app-dashboard.tsx.txt",
+      ".flowcode/sections/shader-gradient.tsx.txt",
+      ".flowcode/sections/liquid-glass.tsx.txt",
+      ".flowcode/sections/media-player.tsx.txt",
+      ".flowcode/sections/lookup-frame.tsx.txt",
+      ".flowcode/sections/lookup-catalog.tsx.txt",
+      "src/sections/LookupCatalog.tsx",
+      "src/sections/AppData.tsx",
+      "src/sections/LookupData.tsx",
+      "src/sections/LookupSample.tsx",
+      ".flowcode/sections/lookup-entry.tsx.txt",
+      "src/sections/LookupEntry.tsx",
+      ".flowcode/sections/place-finder.tsx.txt",
+      ".flowcode/sections/list-builder.tsx.txt",
+      ".flowcode/sections/lookup-home-listings.tsx.txt"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "q1",
+        "description": "Library styles added",
+        "check": {
+          "type": "file_exists",
+          "path": "src/styles/library.css"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "file:src/styles/library.css"
+        ]
+      },
+      {
+        "id": "auto-typecheck",
+        "description": "The project still type-checks after this task",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "command:cmd_a8289bcd496b48eda4dd"
+        ]
+      }
+    ],
+    "validationPlan": {
+      "kinds": []
+    },
+    "checkpointId": "cp_4409f108971d41bc8a6d",
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 5,
+    "attempts": 1
+  },
+  {
+    "id": "task_59cd9c1cacaf4df0943f",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Write the complete app",
+    "objective": "FlowCode writes the whole app from its app model: the data and sample records, the one store, the frame with the full navigation, and a working page per destination.\nThe app: Clean Cart. Roles: Member (signed in as a demo account), Visitor (not signed in). Its data, store and navigation are written by FlowCode in src/app/ (schema.ts, store.ts) and src/App.tsx: every page reads and writes the same records through the store (src/app/store.ts), never its own copy.\n- Products (product): Name*, Brand*, Category*, Certification*, Ingredients*, Short Description; statuses ; 20 sample records.\n- Stores (store): Name*, ZIP Code*; statuses ; 8 sample records.\nNavigation: Home (Home [landing], Search [catalog], Saved [saved], Categories [categories], Lists [lists], List [mylist]); Product (Product Detail [entry]); Store (Store Finder [places]).\nA look-up app: people find product by category and search, and see which places near their ZIP code carries them (94110 Financial District, 94112 Mission District, 94114 Tenderloin, 94115 SoMa, 94116 Inner Mission, 94117 Outer Mission). Likes, saves, ratings, comments and lists live in the look-up layer (src/app/lookup.ts, from src/sections/LookupData) beside the store.",
+    "status": "attempted",
+    "dependsOn": [
+      "task_186f924d285b4e0e9b42"
+    ],
+    "expectedPaths": [
+      "src/App.tsx",
+      "src/app/",
+      "src/screens/",
+      "src/sections/",
+      "index.html"
+    ],
+    "actualPaths": [
+      "src/sections/LookupFrame.tsx",
+      "src/sections/BottomNav.tsx",
+      "src/sections/PlaceFinder.tsx",
+      "src/sections/ListBuilder.tsx",
+      "src/styles/library.css",
+      "src/app/schema.ts",
+      "src/app/store.ts",
+      "src/app/routes.ts",
+      "src/screens/HomeScreen.tsx",
+      "src/screens/SearchScreen.tsx",
+      "src/screens/SavedScreen.tsx",
+      "src/screens/CategoriesScreen.tsx",
+      "src/screens/ListsScreen.tsx",
+      "src/screens/ListScreen.tsx",
+      "src/screens/ProductDetailScreen.tsx",
+      "src/screens/StoreFinderScreen.tsx",
+      "src/app/lookup.ts",
+      "src/App.tsx",
+      "index.html"
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "l1",
+        "description": "The app uses the app frame",
+        "check": {
+          "type": "file_contains",
+          "path": "src/App.tsx",
+          "text": "<LookupFrame"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "file:src/App.tsx"
+        ]
+      },
+      {
+        "id": "l4",
+        "description": "The look-up layer is in place",
+        "check": {
+          "type": "file_exists",
+          "path": "src/app/lookup.ts"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "file:src/app/lookup.ts"
+        ]
+      },
+      {
+        "id": "l2",
+        "description": "The pages share one store",
+        "check": {
+          "type": "file_exists",
+          "path": "src/app/store.ts"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "file:src/app/store.ts"
+        ]
+      },
+      {
+        "id": "l3",
+        "description": "Typecheck passes",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "met": true,
+        "evidenceRefs": [
+          "command:cmd_b40319d3911c4ff1b16f"
+        ]
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck"
+      ]
+    },
+    "checkpointId": "cp_39d07b00ce9f4aac91c7",
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 6,
+    "attempts": 1
+  },
+  {
+    "id": "task_51e3ecb3f6774fc69744",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Design the main screens",
+    "objective": "Design the complete app like a senior product designer: it is already written and working (step \"Write the complete app\"): the app frame, one shared store in src/app/, and working pages on the library's patterns: Search [catalog] in src/screens/SearchScreen.tsx, Saved [saved] in src/screens/SavedScreen.tsx, Categories [categories] in src/screens/CategoriesScreen.tsx, Lists [lists] in src/screens/ListsScreen.tsx, List [mylist] in src/screens/ListScreen.tsx, Product Detail [entry] in src/screens/ProductDetailScreen.tsx, Store Finder [places] in src/screens/StoreFinderScreen.tsx. Search and suggestions, categories and filters, where each entry is found near the person's ZIP code, likes, saves, sharing, ratings and comments, and lists tied to a place already work across pages. Start your reply with the concept in 5 lines (idea, composition, type, colour, signature moment) and build to it.\n- Keep those pages and the frame: never rebuild, replace or wrap them in new markup, and never give a page its own copy of the data. Give them this product's look through the Styles page (src/styles/tokens.css) and the pieces' fl-* classes in src/styles/components.css, and their words through their props (title, description and the like).\n- Compose each of these pages as a finished page in its screen file, on the same data (lookup from src/app/lookup with useLookup from src/sections/LookupData for ZIP code, places, likes, saves, ratings and lists: const state = useLookup(lookup) gives the state (zip, placeId, signedIn, liked, saved, ratings, lists) and the actions are the lookup's own methods (lookup.setZip(zip), lookup.choosePlace(id), lookup.toggleSave(id), lookup.addToList(listId, entryId)), never destructured from useLookup; the parts take just lookup, e.g. <ZipPrompt lookup={lookup} />; store from src/app/store and useRecords from src/sections/AppData for the entries; the look-up pieces as parts, imported exactly so: import { CatalogSearch, CategoryIndex, LookupCatalog } from '../sections/LookupCatalog'; import { ZipPrompt, PlaceBadge, PlaceFinder } from '../sections/PlaceFinder'; import { LookupEntry, RatingsPanel, WhereToFind } from '../sections/LookupEntry'; import { ListIndex, ListBuilder } from '../sections/ListBuilder' (no other files hold them); go() from src/app/routes to open an entry): Home (src/screens/HomeScreen.tsx) [the landing page: FlowCode wrote a working start with the search, the ZIP code, the categories and the most liked; make it the product's own front page, with the PRD's promise and sections, keeping those working parts].\nRun the app and look at each page at desktop and phone width before you finish.\nThe app: Clean Cart. Roles: Member (signed in as a demo account), Visitor (not signed in). Its data, store and navigation are written by FlowCode in src/app/ (schema.ts, store.ts) and src/App.tsx: every page reads and writes the same records through the store (src/app/store.ts), never its own copy.\n- Products (product): Name*, Brand*, Category*, Certification*, Ingredients*, Short Description; statuses ; 20 sample records.\n- Stores (store): Name*, ZIP Code*; statuses ; 8 sample records.\nNavigation: Home (Home [landing], Search [catalog], Saved [saved], Categories [categories], Lists [lists], List [mylist]); Product (Product Detail [entry]); Store (Store Finder [places]).\nA look-up app: people find product by category and search, and see which places near their ZIP code carries them (94110 Financial District, 94112 Mission District, 94114 Tenderloin, 94115 SoMa, 94116 Inner Mission, 94117 Outer Mission). Likes, saves, ratings, comments and lists live in the look-up layer (src/app/lookup.ts, from src/sections/LookupData) beside the store.\n\nThe screens already render the library pieces matched to them (Home → LookupCatalog.tsx; Home → LookupEntry.tsx). They are each screen's starting structure: keep them, replace every value in their SAMPLE object with the spec's real content (then delete the SAMPLE comment), and reshape them for this screen. If a piece really doesn't fit its screen, remove it and name it with the reason in your task_complete summary (for example \"Removed FormFilters: the spec has no filters\").\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Search for Product (Shopper; starts on Home; R4, R6, R13, R14, R15)\n1. Home: Enter a search term in the search box → Navigates to Search screen with results\n2. Search: View search results → Displays matching products or no-results message\nSuccess: User sees relevant product results or a clear no-results message\n\n## View Product Details (Shopper; starts on Search; R8, R10, R16)\n1. Search: Tap on a product to view details → Navigates to Product Detail screen\n2. Product Detail: View product information (name, brand, category, certification, ingredients) → Displays full product details\nSuccess: User sees complete product information including certification and ingredients\n\n## Save Product (Shopper; starts on Product Detail; R4, R5, R17)\n1. Product Detail: Tap the Save button → If signed in, product is saved; if not signed in, prompts for sign-in\nSuccess: Product is saved to user's Saved list (if signed in) or sign-in prompt appears\n\n## View Saved Products (Shopper; starts on Home; R9, R18, R19)\n1. Home: Navigate to Saved page → Displays list of saved products\n2. Saved: View saved products by name and brand → Each product opens its Product Detail page\nSuccess: User sees all saved products with links to their details\n\nScreen briefs (locked: build every section with its part; if one truly doesn't fit, record the change with propose_layout_change and its reason, never leave it out quietly): design each screen to its brief, from the person's side. The top of the screen shows what they must see first (not a generic title over a list); the sections come in this order, each built from its catalog part (add_library_piece with the ID when it isn't in the app yet), filled with the spec's real content.\n\n## Home\nPage type: Marketing page (inform and persuade someone who isn't using the product yet). Not on this page: app data tables or admin controls.\nFor: Shopper. Goal: Find a product by name or brand in a few seconds; see featured products.\nWorkflow: 1. Enter search term in the search box 2. View featured products 3. Navigate to Saved page if needed\nFirst view (without scrolling): What Clean Cart is in one line, a search box, and a few featured products\nMain action: Search for a product or navigate to Saved\nSections, top to bottom:\n1. App Header: To show the app name and provide navigation options. [p.top-nav]\n2. What Clean Cart Is: To inform the user about the purpose of the app.\n3. Search & Categories: To allow users to search for products or browse by category. [p.lookup-catalog]\n4. Featured Products: To showcase popular or recommended items. [p.lookup-catalog.grid]\n5. Saved Products: To provide quick access to saved products.\nStates: loading: Shows skeleton loaders for featured products and search bar; empty: Displays a message indicating no saved items yet; error: Shows an error alert if data fails to load; success: Displays the home screen with all content loaded\nOn a phone: On mobile, the layout stacks vertically; search bar and categories are fully visible on top.; one column; the main call to action near the top\nAccessibility: Keyboard navigation supported for search box, buttons, and featured product cards. All interactive elements have proper labels.\nMust satisfy: R4, R6, R13, R14, R15\n\nComposition manifest (what each page is built from; keep it current: add a part with add_library_piece, naming its page and section):\n## Home\n- Saved Products: GAP. No catalog part fits: \"\"Saved products section\"\" isn't in the catalog. Composed from core components until the catalog has one.\n- What Clean Cart Is: GAP. t.app-storefront belongs on app screens, not on a marketing page page: build this section from core parts instead",
+    "status": "pending",
+    "dependsOn": [
+      "task_59cd9c1cacaf4df0943f"
+    ],
+    "expectedPaths": [
+      "src/screens/",
+      "src/styles/"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "s1",
+        "description": "Typecheck passes",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "evidenceRefs": []
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck"
+      ]
+    },
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 7,
+    "attempts": 0
+  },
+  {
+    "id": "task_d053abbe060648fd8eee",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Home Screen with Search",
+    "objective": "FIRST write the acceptance tests in src/acceptance/home-screen-with-search.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/home-screen-with-search.test.tsx\"` passes.\nTests (one `it` each):\n- enter 'wheat' in the search box and submit → the app shows \"Search results for wheat products\"\n- click on a product from search results → the app shows \"Product Detail screen\"\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (src/sim, or the data the screen imports) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# Home Screen with Search\n\n## Goal\nThe Home screen displays a search box that navigates to the Search page when submitted.\n\n## Context\nPRD section: Requirements. This task implements these requirements (quoted from the PRD in spec/):\n- R13: R1: The Home page has a search box; submitting it shows the Search page with the results.\n- R4: Searches, opens products and saves them.\nFiles: src/screens/HomeScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create a search input field on the Home screen\n2. Add functionality to submit the search and navigate to the Search screen\n3. Ensure the search results are displayed on the Search screen\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: enter 'wheat' in the search box and submit → shows \"Search results for wheat products\"\n- Test: click on a product from search results → shows \"Product Detail screen\"\n- The Home screen contains a visible search box\n- Submitting the search navigates to the Search page\n- Search results appear on the Search page\n- R13 is implemented: R1: The Home page has a search box; submitting it shows the Search page with the results.\n- R4 is implemented: Searches, opens products and saves them.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Search for Product (Shopper; starts on Home; R4, R6, R13, R14, R15)\n1. Home: Enter a search term in the search box → Navigates to Search screen with results\n2. Search: View search results → Displays matching products or no-results message\nSuccess: User sees relevant product results or a clear no-results message\n\n## View Product Details (Shopper; starts on Search; R8, R10, R16)\n1. Search: Tap on a product to view details → Navigates to Product Detail screen\n2. Product Detail: View product information (name, brand, category, certification, ingredients) → Displays full product details\nSuccess: User sees complete product information including certification and ingredients\n\n## Save Product (Shopper; starts on Product Detail; R4, R5, R17)\n1. Product Detail: Tap the Save button → If signed in, product is saved; if not signed in, prompts for sign-in\nSuccess: Product is saved to user's Saved list (if signed in) or sign-in prompt appears\n\n## View Saved Products (Shopper; starts on Home; R9, R18, R19)\n1. Home: Navigate to Saved page → Displays list of saved products\n2. Saved: View saved products by name and brand → Each product opens its Product Detail page\nSuccess: User sees all saved products with links to their details",
+    "status": "pending",
+    "dependsOn": [
+      "task_51e3ecb3f6774fc69744"
+    ],
+    "expectedPaths": [
+      "src/screens/HomeScreen.tsx",
+      "src/acceptance/home-screen-with-search.test.tsx"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "lrc_1_tf",
+        "description": "The acceptance tests are written in src/acceptance/home-screen-with-search.test.tsx",
+        "check": {
+          "type": "file_exists",
+          "path": "src/acceptance/home-screen-with-search.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_1_e0",
+        "description": "The tests check that the app shows \"Search results for wheat products\"",
+        "check": {
+          "type": "file_contains",
+          "path": "src/acceptance/home-screen-with-search.test.tsx",
+          "text": "Search results for wheat products"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_1_e1",
+        "description": "The tests check that the app shows \"Product Detail screen\"",
+        "check": {
+          "type": "file_contains",
+          "path": "src/acceptance/home-screen-with-search.test.tsx",
+          "text": "Product Detail screen"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_1_tests",
+        "description": "The acceptance tests in src/acceptance/home-screen-with-search.test.tsx pass",
+        "check": {
+          "type": "verification",
+          "kind": "tests:src/acceptance/home-screen-with-search.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_1_tc",
+        "description": "The project still type-checks after this step",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "evidenceRefs": []
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck",
+        "tests"
+      ]
+    },
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 8,
+    "attempts": 0
+  },
+  {
+    "id": "task_58c83a83402e48da958f",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Product Detail Page, Home Screen Implementation, Search Screen Implementation",
+    "objective": "FIRST write the acceptance tests in src/acceptance/product-detail-page-home-screen-implemen.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/product-detail-page-home-screen-implemen.test.tsx\"` passes.\nTests (one `it` each):\n- view product detail for wheat flour → check that Wheat flour, water, salt, sourdough starter (a description of what to verify, not text to look for)\n- click save button on product detail → the app shows \"Sign-in required message\"\n- enter 'oat' in search box → the app shows \"Oat Milk Original\"\n- enter 'xyz123' in search box → check that No results found (a description of what to verify, not text to look for)\n- enter 'oat' in search box → the app shows \"Oat Milk Original\"\n- enter 'xyz123' in search box → check that No results found (a description of what to verify, not text to look for)\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (src/sim, or the data the screen imports) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# Product Detail Page\n\n## Goal\nThe Product Detail page displays all required product information including name, brand, category, certification, ingredients, and a Save button.\n\n## Context\nPRD section: Main screens. This task implements these requirements (quoted from the PRD in spec/):\n- R5: Searches and opens products; saving asks them to sign in (one tap in the prototype).\n- R8: One product: name, brand, category, certification, ingredients and a Save button.\n- R10: Name, brand, category, certification, ingredients, short description\n- R16: R4: The Product page shows the product's name, brand, category, certification and ingredients from its record.\nFiles: src/screens/ProductDetailScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create the Product Detail screen with fields for name, brand, category, certification, and ingredients\n2. Add a Save button to the product detail page\n3. Implement functionality to save the product to user's saved list\n4. Ensure the save button prompts sign-in if user is not logged in\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: view product detail for wheat flour → shows \"Wheat flour, water, salt, sourdough starter\"\n- Test: click save button on product detail → shows \"Sign-in required message\"\n- Product Detail screen shows all required fields\n- Save button is visible and functional\n- Saving a product requires sign-in for visitors\n- R5 is implemented: Searches and opens products; saving asks them to sign in (one tap in the prototype).\n- R8 is implemented: One product: name, brand, category, certification, ingredients and a Save button.\n- R10 is implemented: Name, brand, category, certification, ingredients, short description\n- R16 is implemented: R4: The Product page shows the product's name, brand, category, certification and ingredients from its record.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# Home Screen Implementation\n\n## Goal\nDisplay the app's purpose, search functionality, ZIP code input, category navigation, and featured products.\n\n## Context\nPRD section: Main screens. This task implements these requirements (quoted from the PRD in spec/):\n- R6: What Clean Cart is in one line, a search box, and a few featured products.\nFiles: src/screens/HomeScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create a HomeScreen component with a title line describing Clean Cart\n2. Add a search box that allows users to enter keywords for product search\n3. Include a ZIP code input field for location-based searches\n4. Implement category navigation links to browse products by category\n5. Display featured products in a visually appealing section\n6. Ensure the screen is responsive and user-friendly\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: enter 'oat' in search box → shows \"Oat Milk Original\"\n- Test: enter 'xyz123' in search box → shows \"No results found\"\n- HomeScreen displays Clean Cart's purpose in one line\n- Search box accepts user input for product names and brands\n- ZIP code field allows entry of valid ZIP codes\n- Category links navigate to the Categories screen\n- R6 is implemented: What Clean Cart is in one line, a search box, and a few featured products.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# Search Screen Implementation\n\n## Goal\nEnable users to search products by name and brand, with clear no-results messaging.\n\n## Context\nPRD section: Main screens. This task implements these requirements (quoted from the PRD in spec/):\n- R7: Results for a search across product names and brands; a clear no-results message.\n- R14: R2: Search matches product names and brands, case-insensitively (\"oat\" finds \"Oat Milk Original\").\n- R15: R3: A search with no match says so and suggests trying another word.\nFiles: src/screens/SearchScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create a SearchScreen component with search input field\n2. Implement search functionality that matches product names and brands case-insensitively\n3. Display search results in a list format\n4. Show 'No results found' message when no matches are returned\n5. Add category filter to narrow down search results\n6. Ensure search results update dynamically as user types\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: enter 'oat' in search box → shows \"Oat Milk Original\"\n- Test: enter 'xyz123' in search box → shows \"No results found\"\n- Search screen shows products matching name or brand\n- Case-insensitive search works for partial matches\n- No-results message appears when search yields no matches\n- Category filtering updates search results accordingly\n- R7 is implemented: Results for a search across product names and brands; a clear no-results message.\n- R14 is implemented: R2: Search matches product names and brands, case-insensitively (\"oat\" finds \"Oat Milk Original\").\n- R15 is implemented: R3: A search with no match says so and suggests trying another word.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Search for Product (Shopper; starts on Home; R4, R6, R13, R14, R15)\n1. Home: Enter a search term in the search box → Navigates to Search screen with results\n2. Search: View search results → Displays matching products or no-results message\nSuccess: User sees relevant product results or a clear no-results message\n\n## View Product Details (Shopper; starts on Search; R8, R10, R16)\n1. Search: Tap on a product to view details → Navigates to Product Detail screen\n2. Product Detail: View product information (name, brand, category, certification, ingredients) → Displays full product details\nSuccess: User sees complete product information including certification and ingredients\n\n## Save Product (Shopper; starts on Product Detail; R4, R5, R17)\n1. Product Detail: Tap the Save button → If signed in, product is saved; if not signed in, prompts for sign-in\nSuccess: Product is saved to user's Saved list (if signed in) or sign-in prompt appears\n\n## View Saved Products (Shopper; starts on Home; R9, R18, R19)\n1. Home: Navigate to Saved page → Displays list of saved products\n2. Saved: View saved products by name and brand → Each product opens its Product Detail page\nSuccess: User sees all saved products with links to their details",
+    "status": "pending",
+    "dependsOn": [
+      "task_d053abbe060648fd8eee"
+    ],
+    "expectedPaths": [
+      "src/screens/ProductDetailScreen.tsx",
+      "src/screens/HomeScreen.tsx",
+      "src/screens/SearchScreen.tsx",
+      "src/acceptance/product-detail-page-home-screen-implemen.test.tsx"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "lrc_2_tf",
+        "description": "The acceptance tests are written in src/acceptance/product-detail-page-home-screen-implemen.test.tsx",
+        "check": {
+          "type": "file_exists",
+          "path": "src/acceptance/product-detail-page-home-screen-implemen.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_2_e0",
+        "description": "The tests check that the app shows \"Sign-in required message\"",
+        "check": {
+          "type": "file_contains",
+          "path": "src/acceptance/product-detail-page-home-screen-implemen.test.tsx",
+          "text": "Sign-in required message"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_2_e1",
+        "description": "The tests check that the app shows \"Oat Milk Original\"",
+        "check": {
+          "type": "file_contains",
+          "path": "src/acceptance/product-detail-page-home-screen-implemen.test.tsx",
+          "text": "Oat Milk Original"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_2_tests",
+        "description": "The acceptance tests in src/acceptance/product-detail-page-home-screen-implemen.test.tsx pass",
+        "check": {
+          "type": "verification",
+          "kind": "tests:src/acceptance/product-detail-page-home-screen-implemen.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_2_tc",
+        "description": "The project still type-checks after this step",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "evidenceRefs": []
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck",
+        "tests"
+      ]
+    },
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 9,
+    "attempts": 0
+  },
+  {
+    "id": "task_9a652f43e10a4249826b",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Save Product Button",
+    "objective": "FIRST write the acceptance tests in src/acceptance/save-product-button.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/save-product-button.test.tsx\"` passes.\nTests (one `it` each):\n- press Save button on Product Detail screen for a product not yet saved → the app shows \"Saved\"\n- press Saved button on Product Detail screen for a product already saved → the app shows \"Save\"\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (src/sim, or the data the screen imports) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# Save Product Button\n\n## Goal\nA signed-in member can save or unsave a product from its detail page, and the button updates to reflect the current state.\n\n## Context\nPRD section: Requirements. This task implements these requirements (quoted from the PRD in spec/):\n- R17: R5: The Product page has a Save button; a signed-in member's Save adds the product to Saved, and pressing it again removes it.\nFiles: src/screens/ProductDetailScreen.tsx, src/app/store.ts.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Add a Save button to the Product Detail screen that is enabled for signed-in members only\n2. Implement logic in the Save button to add or remove the product from the saved list in the store\n3. Update the button text to 'Save' when not saved and 'Saved' when already saved\n4. Ensure the button state reflects the current save status of the product\n5. Verify that clicking the button toggles the save status correctly\n6. Test that the button is disabled for visitors (not signed in)\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: press Save button on Product Detail screen for a product not yet saved → shows \"Saved\"\n- Test: press Saved button on Product Detail screen for a product already saved → shows \"Save\"\n- The Save button appears on the Product Detail screen for signed-in members\n- Clicking 'Save' adds the product to the saved list\n- Clicking 'Saved' removes the product from the saved list\n- The button text updates correctly based on save status\n- R17 is implemented: R5: The Product page has a Save button; a signed-in member's Save adds the product to Saved, and pressing it again removes it.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Search for Product (Shopper; starts on Home; R4, R6, R13, R14, R15)\n1. Home: Enter a search term in the search box → Navigates to Search screen with results\n2. Search: View search results → Displays matching products or no-results message\nSuccess: User sees relevant product results or a clear no-results message\n\n## View Product Details (Shopper; starts on Search; R8, R10, R16)\n1. Search: Tap on a product to view details → Navigates to Product Detail screen\n2. Product Detail: View product information (name, brand, category, certification, ingredients) → Displays full product details\nSuccess: User sees complete product information including certification and ingredients\n\n## Save Product (Shopper; starts on Product Detail; R4, R5, R17)\n1. Product Detail: Tap the Save button → If signed in, product is saved; if not signed in, prompts for sign-in\nSuccess: Product is saved to user's Saved list (if signed in) or sign-in prompt appears\n\n## View Saved Products (Shopper; starts on Home; R9, R18, R19)\n1. Home: Navigate to Saved page → Displays list of saved products\n2. Saved: View saved products by name and brand → Each product opens its Product Detail page\nSuccess: User sees all saved products with links to their details",
+    "status": "pending",
+    "dependsOn": [
+      "task_58c83a83402e48da958f"
+    ],
+    "expectedPaths": [
+      "src/screens/ProductDetailScreen.tsx",
+      "src/app/store.ts",
+      "src/acceptance/save-product-button.test.tsx"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "lrc_3_tf",
+        "description": "The acceptance tests are written in src/acceptance/save-product-button.test.tsx",
+        "check": {
+          "type": "file_exists",
+          "path": "src/acceptance/save-product-button.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_3_e0",
+        "description": "The tests check that the app shows \"Saved\"",
+        "check": {
+          "type": "file_contains",
+          "path": "src/acceptance/save-product-button.test.tsx",
+          "text": "Saved"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_3_e1",
+        "description": "The tests check that the app shows \"Save\"",
+        "check": {
+          "type": "file_contains",
+          "path": "src/acceptance/save-product-button.test.tsx",
+          "text": "Save"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_3_tests",
+        "description": "The acceptance tests in src/acceptance/save-product-button.test.tsx pass",
+        "check": {
+          "type": "verification",
+          "kind": "tests:src/acceptance/save-product-button.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_3_tc",
+        "description": "The project still type-checks after this step",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "evidenceRefs": []
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck",
+        "tests"
+      ]
+    },
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 10,
+    "attempts": 0
+  },
+  {
+    "id": "task_01c9b68b75404483976d",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Saved Products List",
+    "objective": "FIRST write the acceptance tests in src/acceptance/saved-products-list.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/saved-products-list.test.tsx\"` passes.\nTests (one `it` each):\n- navigate to Saved screen when no products are saved → check that No saved products (a description of what to verify, not text to look for)\n- navigate to Saved screen when 3 products are saved → check that 3 product entries with names and brands (a description of what to verify, not text to look for)\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (src/sim, or the data the screen imports) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# Saved Products List\n\n## Goal\nThe Saved screen lists all products saved by the member, each opening its product detail page.\n\n## Context\nPRD section: Main screens. This task implements these requirements (quoted from the PRD in spec/):\n- R9: The products the member saved, each opening its product page.\n- R18: R6: The Saved page lists the saved products by name and brand; each opens its Product page.\nFiles: src/screens/SavedScreen.tsx, src/app/store.ts.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create a Saved screen that displays a list of saved products\n2. Each item in the list should show the product name and brand\n3. Implement navigation from each saved product to its detail page\n4. Ensure the list updates when products are added or removed from saved\n5. Verify that the list persists after page reload\n6. Test that only products saved by the current member appear\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: navigate to Saved screen when no products are saved → shows \"No saved products\"\n- Test: navigate to Saved screen when 3 products are saved → shows \"3 product entries with names and brands\"\n- The Saved screen displays a list of all saved products\n- Each product in the list shows its name and brand\n- Clicking on any product opens its detail page\n- The list persists across page reloads\n- R9 is implemented: The products the member saved, each opening its product page.\n- R18 is implemented: R6: The Saved page lists the saved products by name and brand; each opens its Product page.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Search for Product (Shopper; starts on Home; R4, R6, R13, R14, R15)\n1. Home: Enter a search term in the search box → Navigates to Search screen with results\n2. Search: View search results → Displays matching products or no-results message\nSuccess: User sees relevant product results or a clear no-results message\n\n## View Product Details (Shopper; starts on Search; R8, R10, R16)\n1. Search: Tap on a product to view details → Navigates to Product Detail screen\n2. Product Detail: View product information (name, brand, category, certification, ingredients) → Displays full product details\nSuccess: User sees complete product information including certification and ingredients\n\n## Save Product (Shopper; starts on Product Detail; R4, R5, R17)\n1. Product Detail: Tap the Save button → If signed in, product is saved; if not signed in, prompts for sign-in\nSuccess: Product is saved to user's Saved list (if signed in) or sign-in prompt appears\n\n## View Saved Products (Shopper; starts on Home; R9, R18, R19)\n1. Home: Navigate to Saved page → Displays list of saved products\n2. Saved: View saved products by name and brand → Each product opens its Product Detail page\nSuccess: User sees all saved products with links to their details",
+    "status": "pending",
+    "dependsOn": [
+      "task_9a652f43e10a4249826b"
+    ],
+    "expectedPaths": [
+      "src/screens/SavedScreen.tsx",
+      "src/app/store.ts",
+      "src/acceptance/saved-products-list.test.tsx"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "lrc_4_tf",
+        "description": "The acceptance tests are written in src/acceptance/saved-products-list.test.tsx",
+        "check": {
+          "type": "file_exists",
+          "path": "src/acceptance/saved-products-list.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_4_tests",
+        "description": "The acceptance tests in src/acceptance/saved-products-list.test.tsx pass",
+        "check": {
+          "type": "verification",
+          "kind": "tests:src/acceptance/saved-products-list.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_4_tc",
+        "description": "The project still type-checks after this step",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "evidenceRefs": []
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck",
+        "tests"
+      ]
+    },
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 11,
+    "attempts": 0
+  },
+  {
+    "id": "task_7872d3f93d9745c19fa2",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Persistent Saved Products",
+    "objective": "FIRST write the acceptance tests in src/acceptance/persistent-saved-products.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/persistent-saved-products.test.tsx\"` passes.\nTests (one `it` each):\n- save a product, then refresh the page → the app shows \"product remains in Saved list\"\n- reload the app after saving multiple products → check that all saved products appear in Saved list (a description of what to verify, not text to look for)\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (src/sim, or the data the screen imports) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# Persistent Saved Products\n\n## Goal\nSaved products remain saved after the page is reloaded, using browser storage.\n\n## Context\nPRD section: Requirements. This task implements these requirements (quoted from the PRD in spec/):\n- R19: R7: Saved products are still saved after the page is reloaded (kept in this browser).\nFiles: src/app/store.ts.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Implement local storage persistence for the saved products list\n2. Ensure saved products are loaded from local storage on app initialization\n3. Verify that changes to the saved list are written to local storage\n4. Test that saved products persist across page reloads\n5. Confirm that the saved state is maintained between browser sessions\n6. Validate that the persistence works for both signed-in and visitor users\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: save a product, then refresh the page → shows \"product remains in Saved list\"\n- Test: reload the app after saving multiple products → shows \"all saved products appear in Saved list\"\n- Saved products remain in the list after a page refresh\n- Products are loaded from local storage on app start\n- Changes to saved status are immediately persisted\n- The saved state is maintained between browser sessions\n- R19 is implemented: R7: Saved products are still saved after the page is reloaded (kept in this browser).\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Search for Product (Shopper; starts on Home; R4, R6, R13, R14, R15)\n1. Home: Enter a search term in the search box → Navigates to Search screen with results\n2. Search: View search results → Displays matching products or no-results message\nSuccess: User sees relevant product results or a clear no-results message\n\n## View Product Details (Shopper; starts on Search; R8, R10, R16)\n1. Search: Tap on a product to view details → Navigates to Product Detail screen\n2. Product Detail: View product information (name, brand, category, certification, ingredients) → Displays full product details\nSuccess: User sees complete product information including certification and ingredients\n\n## Save Product (Shopper; starts on Product Detail; R4, R5, R17)\n1. Product Detail: Tap the Save button → If signed in, product is saved; if not signed in, prompts for sign-in\nSuccess: Product is saved to user's Saved list (if signed in) or sign-in prompt appears\n\n## View Saved Products (Shopper; starts on Home; R9, R18, R19)\n1. Home: Navigate to Saved page → Displays list of saved products\n2. Saved: View saved products by name and brand → Each product opens its Product Detail page\nSuccess: User sees all saved products with links to their details",
+    "status": "pending",
+    "dependsOn": [
+      "task_01c9b68b75404483976d"
+    ],
+    "expectedPaths": [
+      "src/app/store.ts",
+      "src/acceptance/persistent-saved-products.test.tsx"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "lrc_5_tf",
+        "description": "The acceptance tests are written in src/acceptance/persistent-saved-products.test.tsx",
+        "check": {
+          "type": "file_exists",
+          "path": "src/acceptance/persistent-saved-products.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_5_e0",
+        "description": "The tests check that the app shows \"product remains in Saved list\"",
+        "check": {
+          "type": "file_contains",
+          "path": "src/acceptance/persistent-saved-products.test.tsx",
+          "text": "product remains in Saved list"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_5_tests",
+        "description": "The acceptance tests in src/acceptance/persistent-saved-products.test.tsx pass",
+        "check": {
+          "type": "verification",
+          "kind": "tests:src/acceptance/persistent-saved-products.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "lrc_5_tc",
+        "description": "The project still type-checks after this step",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "evidenceRefs": []
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck",
+        "tests"
+      ]
+    },
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 12,
+    "attempts": 0
+  },
+  {
+    "id": "task_bd3e9cf3e8574016b25d",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Design polish",
+    "objective": "Polish the whole app as one product, to the standard of a studio portfolio, without changing what it does (follow the art-direction skill and the concept the screens were designed to, then the design-system and micro-feedback skills). Open every screen at desktop and phone width and fix:\n- Imagery: a screen that would look better with a real photo (a bare hero, item cards with no picture) gets one from find_image; check every image loads and has alt text, and that CC BY photos are credited.\n- Template leftovers: generic marketing copy, feature checklists or sections the spec doesn't ask for; every screen should look made for this app.\n- Clutter the feature steps added: a control or label repeated on every item, helper or status text the user doesn't need, two controls for the same thing. Merge them into the screen's header action, toolbar or the item itself.\n- Hierarchy: one title and one primary action per screen; consistent spacing from the spacing tokens; related controls grouped; secondary settings moved out of the main view.\n- Consistency with the Styles page: colours, type, corners and surfaces only from src/styles/tokens.css; the same building block for the same job everywhere.\n- Motion and feedback: screens use ui-screen, lists ui-stagger, dialogs and new items ui-pop; every button and row has hover, press and focus states; saving shows brief feedback.\n- Sample data shows on every screen that lists something.\nKeep every accessible name and role the acceptance tests use (getByRole names), so the tests still pass; run the full test suite before you finish.\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Search for Product (Shopper; starts on Home; R4, R6, R13, R14, R15)\n1. Home: Enter a search term in the search box → Navigates to Search screen with results\n2. Search: View search results → Displays matching products or no-results message\nSuccess: User sees relevant product results or a clear no-results message\n\n## View Product Details (Shopper; starts on Search; R8, R10, R16)\n1. Search: Tap on a product to view details → Navigates to Product Detail screen\n2. Product Detail: View product information (name, brand, category, certification, ingredients) → Displays full product details\nSuccess: User sees complete product information including certification and ingredients\n\n## Save Product (Shopper; starts on Product Detail; R4, R5, R17)\n1. Product Detail: Tap the Save button → If signed in, product is saved; if not signed in, prompts for sign-in\nSuccess: Product is saved to user's Saved list (if signed in) or sign-in prompt appears\n\n## View Saved Products (Shopper; starts on Home; R9, R18, R19)\n1. Home: Navigate to Saved page → Displays list of saved products\n2. Saved: View saved products by name and brand → Each product opens its Product Detail page\nSuccess: User sees all saved products with links to their details\n\nScreen briefs (locked: build every section with its part; if one truly doesn't fit, record the change with propose_layout_change and its reason, never leave it out quietly): design each screen to its brief, from the person's side. The top of the screen shows what they must see first (not a generic title over a list); the sections come in this order, each built from its catalog part (add_library_piece with the ID when it isn't in the app yet), filled with the spec's real content.\n\n## Home\nPage type: Marketing page (inform and persuade someone who isn't using the product yet). Not on this page: app data tables or admin controls.\nFor: Shopper. Goal: Find a product by name or brand in a few seconds; see featured products.\nWorkflow: 1. Enter search term in the search box 2. View featured products 3. Navigate to Saved page if needed\nFirst view (without scrolling): What Clean Cart is in one line, a search box, and a few featured products\nMain action: Search for a product or navigate to Saved\nSections, top to bottom:\n1. App Header: To show the app name and provide navigation options. [p.top-nav]\n2. What Clean Cart Is: To inform the user about the purpose of the app.\n3. Search & Categories: To allow users to search for products or browse by category. [p.lookup-catalog]\n4. Featured Products: To showcase popular or recommended items. [p.lookup-catalog.grid]\n5. Saved Products: To provide quick access to saved products.\nStates: loading: Shows skeleton loaders for featured products and search bar; empty: Displays a message indicating no saved items yet; error: Shows an error alert if data fails to load; success: Displays the home screen with all content loaded\nOn a phone: On mobile, the layout stacks vertically; search bar and categories are fully visible on top.; one column; the main call to action near the top\nAccessibility: Keyboard navigation supported for search box, buttons, and featured product cards. All interactive elements have proper labels.\nMust satisfy: R4, R6, R13, R14, R15\n\nComposition manifest (what each page is built from; keep it current: add a part with add_library_piece, naming its page and section):\n## Home\n- Saved Products: GAP. No catalog part fits: \"\"Saved products section\"\" isn't in the catalog. Composed from core components until the catalog has one.\n- What Clean Cart Is: GAP. t.app-storefront belongs on app screens, not on a marketing page page: build this section from core parts instead",
+    "status": "pending",
+    "dependsOn": [
+      "task_7872d3f93d9745c19fa2"
+    ],
+    "expectedPaths": [
+      "src/screens/",
+      "src/styles/",
+      "src/components/"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "p1",
+        "description": "Every acceptance test still passes",
+        "check": {
+          "type": "verification",
+          "kind": "tests"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "p2",
+        "description": "Typecheck passes",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "evidenceRefs": []
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck",
+        "tests"
+      ]
+    },
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 13,
+    "attempts": 0
+  },
+  {
+    "id": "task_bb479716743646508806",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Clean up the code",
+    "objective": "Remove what the build left behind, without changing what the app does or how it looks. FlowCode's clean-up scan (below, with the step) lists what nothing uses:\n- files under src/ that nothing imports: confirm with search_code that nothing refers to each one, then delete it;\n- scratch files in the project root (test results, logs, dumps): delete them;\n- debug calls (console.log, console.debug, debugger): remove them;\n- CSS classes no source file uses: remove those rules, keeping any class built from parts at run time.\nChange nothing else: keep the starter kit's building blocks, every test, the tests' accessible names, and the Styles page's tokens. Run the whole test suite and the type check before you finish.",
+    "status": "pending",
+    "dependsOn": [
+      "task_bd3e9cf3e8574016b25d"
+    ],
+    "expectedPaths": [
+      "src/"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "cu1",
+        "description": "Nothing unused is left (files, root scratch files, debug calls)",
+        "check": {
+          "type": "verification",
+          "kind": "code_cleanup"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "cu2",
+        "description": "Every acceptance test still passes",
+        "check": {
+          "type": "verification",
+          "kind": "tests"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "cu3",
+        "description": "Typecheck passes",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "evidenceRefs": []
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck",
+        "tests"
+      ]
+    },
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 14,
+    "attempts": 0
+  },
+  {
+    "id": "task_3b16e8e4d0104bd6b6a4",
+    "runId": "run_3d280f4b376f44fa877b",
+    "title": "Assemble the app: wire every page and component into App.tsx",
+    "objective": "Finish the app in src/App.tsx: every screen that was built is in the app shell's navigation and shown once in its main area (never the same screen twice), each component that was created is used inside its screen so nothing is left unused, and no starter or placeholder text remains. The first screen must be usable with real, keyboard-reachable controls. Keep existing components; compose them rather than rewriting them.\n\nThen write src/acceptance/journeys.test.tsx: one test per user journey below, each rendering <App /> (Testing Library, userEvent) from its entry screen and doing its steps in order through the real navigation (menu links, buttons, row links), checking after each step that the screen shows its result. Where a journey opens one record from a list, check the detail screen shows that same record (its name from the list), and that Back returns to the list. Use the app's own sample data; no mocks of the app's screens.\n- \"Search for Product\": starts on Home; Home: Enter a search term in the search box → Navigates to Search screen with results; Search: View search results → Displays matching products or no-results message; success: User sees relevant product results or a clear no-results message\n- \"View Product Details\": starts on Search; Search: Tap on a product to view details → Navigates to Product Detail screen; Product Detail: View product information (name, brand, category, certification, ingredients) → Displays full product details; success: User sees complete product information including certification and ingredients\n- \"Save Product\": starts on Product Detail; Product Detail: Tap the Save button → If signed in, product is saved; if not signed in, prompts for sign-in; success: Product is saved to user's Saved list (if signed in) or sign-in prompt appears\n- \"View Saved Products\": starts on Home; Home: Navigate to Saved page → Displays list of saved products; Saved: View saved products by name and brand → Each product opens its Product Detail page; success: User sees all saved products with links to their details",
+    "status": "pending",
+    "dependsOn": [
+      "task_bb479716743646508806"
+    ],
+    "expectedPaths": [
+      "src/App.tsx",
+      "src/",
+      "src/acceptance/journeys.test.tsx"
+    ],
+    "actualPaths": [],
+    "acceptanceCriteria": [
+      {
+        "id": "asm_wire",
+        "description": "Every page and component is reachable from the app's entry point and the starter placeholder is gone",
+        "check": {
+          "type": "verification",
+          "kind": "app_wiring"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "asm_tc",
+        "description": "Typecheck passes",
+        "check": {
+          "type": "verification",
+          "kind": "typecheck"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "asm_journeys_file",
+        "description": "The user-journey tests are written in src/acceptance/journeys.test.tsx",
+        "check": {
+          "type": "file_exists",
+          "path": "src/acceptance/journeys.test.tsx"
+        },
+        "evidenceRefs": []
+      },
+      {
+        "id": "asm_journeys",
+        "description": "Every user journey can be clicked through end to end (its test passes)",
+        "check": {
+          "type": "verification",
+          "kind": "tests:src/acceptance/journeys.test.tsx"
+        },
+        "evidenceRefs": []
+      }
+    ],
+    "validationPlan": {
+      "kinds": [
+        "typecheck"
+      ]
+    },
+    "specSections": [],
+    "role": "coder",
+    "ordinal": 15,
+    "attempts": 0
+  }
+]

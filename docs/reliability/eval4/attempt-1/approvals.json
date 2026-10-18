@@ -1,0 +1,41 @@
+[
+  {
+    "id": "apr_f51a74608b0340efa198",
+    "runId": "run_3d280f4b376f44fa877b",
+    "projectId": "prj_2f083343dc8242a08ee4",
+    "taskId": "task_115c5c3f1b824e158d7a",
+    "kind": "dependency_install",
+    "action": "Run `npm install --no-fund --no-audit` in .",
+    "reason": "Install the starter template's declared dependencies (and any added by the plan)",
+    "affected": [
+      "npm install --no-fund --no-audit"
+    ],
+    "risk": "high",
+    "detail": "Policy: npm install installs or changes dependencies (runs lifecycle scripts, uses network)",
+    "consequencesOfDenial": "The command will not run; the task will be blocked or must find another approach.",
+    "status": "approved",
+    "decisionScope": "once",
+    "persistKey": "npm:npm\u0001install\u0001--no-fund\u0001--no-audit",
+    "createdAt": "2026-10-18T01:52:49.581Z",
+    "resolvedAt": "2026-10-18T01:52:49.582Z"
+  },
+  {
+    "id": "apr_3dc0f7ae9da0471da4b2",
+    "runId": "run_3d280f4b376f44fa877b",
+    "projectId": "prj_2f083343dc8242a08ee4",
+    "taskId": "task_e0892692c6e84c52aa80",
+    "kind": "plan",
+    "action": "Approve the prototype plan and the design to start building",
+    "reason": "Open the Prototype plan to review each screen and feature step, the PRD requirements it covers and its acceptance tests. Set the look on the Styles page (Design, Tokens, Surface); the build uses it as it is when you approve. The look was captured from the food / grocery / restaurant design direction (colors #15803d, #166534, #d9f99d; fonts Fraunces and Work Sans); change any of it there first.",
+    "affected": [
+      "Prototype plan",
+      "src/styles/tokens.css"
+    ],
+    "risk": "medium",
+    "consequencesOfDenial": "Nothing is built; the build stops so you can change the PRD and start again.",
+    "status": "approved",
+    "decisionScope": "once",
+    "createdAt": "2026-10-18T01:53:24.361Z",
+    "resolvedAt": "2026-10-18T01:55:50.122Z"
+  }
+]

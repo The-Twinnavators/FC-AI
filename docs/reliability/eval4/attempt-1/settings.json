@@ -1,0 +1,799 @@
+{
+  "deadline": {
+    "at": "2026-10-18T03:47:49.864Z",
+    "setAt": "2026-10-18T01:47:50.093Z",
+    "setBy": "user",
+    "reason": "Eval 4: one two-hour measured run (planning and approvals included)",
+    "extensions": []
+  },
+  "designDirection": {
+    "kind": "none",
+    "outstanding": true,
+    "why": "The plan was approved without choosing a Home direction",
+    "visualApproval": "pending",
+    "at": "2026-10-18T01:52:49.009Z"
+  },
+  "conceptChoice": null,
+  "conceptTimings": {
+    "approvedAt": "2026-10-18T01:52:49.009Z"
+  },
+  "interruption": {
+    "recoverable": false,
+    "needsUser": true,
+    "action": "Stopped by you",
+    "resumeWhen": "you resume it",
+    "maxAttempts": 0,
+    "timeoutMs": 0,
+    "attempt": 0,
+    "runId": "run_3d280f4b376f44fa877b",
+    "cause": "cancelled",
+    "by": "user",
+    "detail": "Evaluation setup deviated: required human plan approval and concept selection were bypassed (cancelled by the owner)",
+    "at": "2026-10-18T02:00:31.377Z",
+    "state": "active"
+  },
+  "appModel": {
+    "product": "Clean Cart",
+    "roles": [
+      "Member (signed in as a demo account)",
+      "Visitor (not signed in)"
+    ],
+    "entities": [
+      {
+        "key": "product",
+        "label": "Product",
+        "plural": "Products",
+        "titleField": "name",
+        "subtitleField": "brand",
+        "idPrefix": "PRD",
+        "fields": [
+          {
+            "key": "name",
+            "label": "Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "brand",
+            "label": "Brand",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "category",
+            "label": "Category",
+            "type": "select",
+            "options": [
+              "Bakery",
+              "Beverages",
+              "Breakfast",
+              "Dairy",
+              "Snacks",
+              "Baby"
+            ],
+            "required": true
+          },
+          {
+            "key": "certification",
+            "label": "Certification",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "ingredients",
+            "label": "Ingredients",
+            "type": "longtext",
+            "required": true
+          },
+          {
+            "key": "description",
+            "label": "Short Description",
+            "type": "longtext"
+          }
+        ],
+        "columns": [],
+        "filters": []
+      },
+      {
+        "key": "store",
+        "label": "Store",
+        "plural": "Stores",
+        "titleField": "name",
+        "subtitleField": "zip",
+        "idPrefix": "STR",
+        "fields": [
+          {
+            "key": "name",
+            "label": "Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "zip",
+            "label": "ZIP Code",
+            "type": "text",
+            "required": true
+          }
+        ],
+        "columns": [],
+        "filters": []
+      }
+    ],
+    "seed": {
+      "product": [
+        {
+          "id": "PRD-1001",
+          "name": "Oat Milk Original",
+          "brand": "Willow Farms",
+          "category": "Beverages",
+          "certification": "Non-GMO Project Verified",
+          "ingredients": "Oats, water, sea salt",
+          "description": "Creamy oat milk perfect for coffee or cereal.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003"
+          ]
+        },
+        {
+          "id": "PRD-1002",
+          "name": "Sourdough Country Loaf",
+          "brand": "Hearth & Grain",
+          "category": "Bakery",
+          "certification": "USDA Organic",
+          "ingredients": "Wheat flour, water, salt, sourdough starter",
+          "description": "Authentic sourdough loaf with a crispy crust and airy interior.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1004"
+          ]
+        },
+        {
+          "id": "PRD-1003",
+          "name": "Rolled Oats",
+          "brand": "Sunrise Valley",
+          "category": "Breakfast",
+          "certification": "Non-GMO Project Verified",
+          "ingredients": "Whole grain rolled oats",
+          "description": "Perfect for oatmeal or baking. No added sugars.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1003",
+            "STR-1005"
+          ]
+        },
+        {
+          "id": "PRD-1004",
+          "name": "Pear Puree",
+          "brand": "Little Sprout",
+          "category": "Baby",
+          "certification": "USDA Organic",
+          "ingredients": "Organic pears",
+          "description": "Smooth, natural pear puree for baby's first solids.",
+          "carriedBy": [
+            "STR-1002",
+            "STR-1004",
+            "STR-1006"
+          ]
+        },
+        {
+          "id": "PRD-1005",
+          "name": "Black Bean Chips",
+          "brand": "Mesa Crunch",
+          "category": "Snacks",
+          "certification": "Non-GMO Project Verified",
+          "ingredients": "Black beans, corn, sunflower oil, salt",
+          "description": "Crispy, protein-packed chips with a hint of spice.",
+          "carriedBy": [
+            "STR-1003",
+            "STR-1005",
+            "STR-1007"
+          ]
+        },
+        {
+          "id": "PRD-1006",
+          "name": "Greek Yogurt Plain",
+          "brand": "Meadow Hill",
+          "category": "Dairy",
+          "certification": "USDA Organic",
+          "ingredients": "Cultured pasteurized milk",
+          "description": "Creamy, thick Greek yogurt with no added sugars.",
+          "carriedBy": [
+            "STR-1004",
+            "STR-1006",
+            "STR-1008"
+          ]
+        },
+        {
+          "id": "PRD-1007",
+          "name": "Whole Grain Bread",
+          "brand": "Nature's Best",
+          "category": "Bakery",
+          "certification": "Non-GMO Project Verified",
+          "ingredients": "Whole wheat flour, water, yeast, salt",
+          "description": "Nutritious whole grain bread with a hearty texture.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1005"
+          ]
+        },
+        {
+          "id": "PRD-1008",
+          "name": "Almond Butter",
+          "brand": "Sunset Farms",
+          "category": "Breakfast",
+          "certification": "USDA Organic",
+          "ingredients": "Organic almonds, sea salt",
+          "description": "Rich and creamy almond butter with no added oils or sugars.",
+          "carriedBy": [
+            "STR-1003",
+            "STR-1004",
+            "STR-1006"
+          ]
+        },
+        {
+          "id": "PRD-1009",
+          "name": "Coconut Water",
+          "brand": "Tropical Tap",
+          "category": "Beverages",
+          "certification": "Non-GMO Project Verified",
+          "ingredients": "Coconut water, natural flavoring",
+          "description": "Natural coconut water with electrolytes for hydration.",
+          "carriedBy": [
+            "STR-1002",
+            "STR-1005",
+            "STR-1007"
+          ]
+        },
+        {
+          "id": "PRD-1010",
+          "name": "Chia Seeds",
+          "brand": "Desert Gold",
+          "category": "Breakfast",
+          "certification": "USDA Organic",
+          "ingredients": "Organic chia seeds",
+          "description": "Nutrient-dense seeds perfect for smoothies or puddings.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1003",
+            "STR-1008"
+          ]
+        },
+        {
+          "id": "PRD-1011",
+          "name": "Organic Coconut Yogurt",
+          "brand": "Nature's Choice",
+          "category": "Dairy",
+          "certification": "USDA Organic, Non-GMO Verified",
+          "ingredients": "Coconut milk, live cultures, natural flavors, locust bean gum",
+          "description": "Creamy and delicious organic coconut yogurt with probiotics for digestive health. Perfect for those avoiding dairy or following a plant-based diet.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005",
+            "STR-1006"
+          ]
+        },
+        {
+          "id": "PRD-1012",
+          "name": "Honey Oat Granola",
+          "brand": "Morning Harvest",
+          "category": "Breakfast",
+          "certification": "Certified Gluten-Free, Non-GMO Verified",
+          "ingredients": "Oats, honey, brown sugar, sunflower oil, cinnamon, vanilla extract, sea salt",
+          "description": "Packed with wholesome oats and natural sweetness. Great for breakfast or as a healthy snack on the go.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005"
+          ]
+        },
+        {
+          "id": "PRD-1013",
+          "name": "Sparkling Apple Cider",
+          "brand": "CiderCraft",
+          "category": "Beverages",
+          "certification": "Organic, Vegan Certified",
+          "ingredients": "Apple juice concentrate, natural apple flavor, citric acid, ascorbic acid",
+          "description": "Refreshing sparkling apple cider with a hint of cinnamon. Perfect for celebrations or casual sipping.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005",
+            "STR-1006",
+            "STR-1007"
+          ]
+        },
+        {
+          "id": "PRD-1014",
+          "name": "Whole Grain Crackers",
+          "brand": "Grain Masters",
+          "category": "Snacks",
+          "certification": "Whole Grain Council Approved, Non-GMO Verified",
+          "ingredients": "Whole wheat flour, sunflower oil, salt, baking soda, natural flavoring",
+          "description": "Crunchy whole grain crackers with a satisfying texture. Great for dipping or enjoying on their own.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005",
+            "STR-1006",
+            "STR-1007",
+            "STR-1008"
+          ]
+        },
+        {
+          "id": "PRD-1015",
+          "name": "Organic Baby Rice Cereal",
+          "brand": "Pure Beginnings",
+          "category": "Baby",
+          "certification": "USDA Organic, Non-GMO Verified",
+          "ingredients": "Organic rice flour, calcium carbonate, iron phosphate, vitamin D3, vitamin B12",
+          "description": "Nutritious organic baby rice cereal fortified with essential vitamins and minerals for healthy development.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005"
+          ]
+        },
+        {
+          "id": "PRD-1016",
+          "name": "Multigrain Bread",
+          "brand": "Farm Fresh",
+          "category": "Bakery",
+          "certification": "Whole Grain Council Approved, Non-GMO Verified",
+          "ingredients": "Whole wheat flour, oats, barley flour, flax seeds, sunflower seeds, yeast, salt, water",
+          "description": "Hearty multigrain bread packed with wholesome grains and seeds. Perfect for sandwiches or enjoying with butter.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005",
+            "STR-1006"
+          ]
+        },
+        {
+          "id": "PRD-1017",
+          "name": "Cold Pressed Orange Juice",
+          "brand": "Fresh Squeezed",
+          "category": "Beverages",
+          "certification": "Organic, Vitamin C Fortified",
+          "ingredients": "Fresh oranges, ascorbic acid, natural orange flavor",
+          "description": "100% cold-pressed orange juice with no added sugars or preservatives. Rich in vitamin C and natural antioxidants.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005",
+            "STR-1006",
+            "STR-1007"
+          ]
+        },
+        {
+          "id": "PRD-1018",
+          "name": "Dark Chocolate Almond Butter",
+          "brand": "NutriDelight",
+          "category": "Snacks",
+          "certification": "Organic, Gluten-Free, Vegan Certified",
+          "ingredients": "Almonds, dark chocolate (70% cacao), coconut oil, sea salt",
+          "description": "Rich and creamy almond butter with a hint of dark chocolate. Perfect for satisfying sweet cravings.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005",
+            "STR-1006"
+          ]
+        },
+        {
+          "id": "PRD-1019",
+          "name": "Organic Whole Grain Pasta",
+          "brand": "Pasta Perfect",
+          "category": "Breakfast",
+          "certification": "USDA Organic, Non-GMO Verified",
+          "ingredients": "Whole grain durum wheat semolina, water, salt",
+          "description": "Nutritious whole grain pasta made from organic durum wheat. Great for healthy meals and family dinners.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005"
+          ]
+        },
+        {
+          "id": "PRD-1020",
+          "name": "Coconut Oil Cooking Spray",
+          "brand": "Pure Coconut",
+          "category": "Bakery",
+          "certification": "Organic, Non-GMO Verified",
+          "ingredients": "Coconut oil, natural flavoring, citric acid",
+          "description": "Convenient cooking spray made from 100% organic coconut oil. Perfect for healthy cooking and baking.",
+          "carriedBy": [
+            "STR-1001",
+            "STR-1002",
+            "STR-1003",
+            "STR-1004",
+            "STR-1005",
+            "STR-1006",
+            "STR-1007"
+          ]
+        }
+      ],
+      "store": [
+        {
+          "id": "STR-1001",
+          "name": "Green Valley Market",
+          "zip": "94110",
+          "lat": 37.7664,
+          "lng": -122.4325
+        },
+        {
+          "id": "STR-1002",
+          "name": "Harvest Co-op",
+          "zip": "94110",
+          "lat": 37.7904,
+          "lng": -122.3785
+        },
+        {
+          "id": "STR-1003",
+          "name": "Mission Fresh",
+          "zip": "94110",
+          "lat": 37.8144,
+          "lng": -122.3905
+        },
+        {
+          "id": "STR-1004",
+          "name": "Urban Greens Supermarket",
+          "zip": "94112",
+          "lat": 37.7353,
+          "lng": -122.4194
+        },
+        {
+          "id": "STR-1005",
+          "name": "Tenderloin Natural Foods",
+          "zip": "94114",
+          "lat": 37.7749,
+          "lng": -122.4314
+        },
+        {
+          "id": "STR-1006",
+          "name": "SoMa Organic Market",
+          "zip": "94115",
+          "lat": 37.8096,
+          "lng": -122.4304
+        },
+        {
+          "id": "STR-1007",
+          "name": "Inner Mission Health Foods",
+          "zip": "94116",
+          "lat": 37.7276,
+          "lng": -122.3994
+        },
+        {
+          "id": "STR-1008",
+          "name": "Outer Mission Bulk Store",
+          "zip": "94117",
+          "lat": 37.7316,
+          "lng": -122.4214
+        }
+      ]
+    },
+    "nav": [
+      {
+        "label": "Home",
+        "items": [
+          {
+            "id": "home",
+            "label": "Home",
+            "kind": "landing"
+          },
+          {
+            "id": "search",
+            "label": "Search",
+            "kind": "catalog"
+          },
+          {
+            "id": "saved",
+            "label": "Saved",
+            "kind": "saved"
+          },
+          {
+            "id": "categories",
+            "label": "Categories",
+            "kind": "categories"
+          },
+          {
+            "id": "lists",
+            "label": "Lists",
+            "kind": "lists"
+          },
+          {
+            "id": "list",
+            "label": "List",
+            "kind": "mylist"
+          }
+        ]
+      },
+      {
+        "label": "Product",
+        "items": [
+          {
+            "id": "product-detail",
+            "label": "Product Detail",
+            "kind": "entry",
+            "entity": "product"
+          }
+        ]
+      },
+      {
+        "label": "Store",
+        "items": [
+          {
+            "id": "store-finder",
+            "label": "Store Finder",
+            "kind": "places"
+          }
+        ]
+      }
+    ],
+    "lookup": {
+      "entries": "product",
+      "places": "store",
+      "categoryField": "category",
+      "placesField": "carriedBy",
+      "areas": [
+        {
+          "zip": "94110",
+          "label": "Financial District",
+          "lat": 37.7964,
+          "lng": -122.4025
+        },
+        {
+          "zip": "94112",
+          "label": "Mission District",
+          "lat": 37.7593,
+          "lng": -122.4194
+        },
+        {
+          "zip": "94114",
+          "label": "Tenderloin",
+          "lat": 37.7749,
+          "lng": -122.4194
+        },
+        {
+          "zip": "94115",
+          "label": "SoMa",
+          "lat": 37.7856,
+          "lng": -122.4064
+        },
+        {
+          "zip": "94116",
+          "label": "Inner Mission",
+          "lat": 37.7456,
+          "lng": -122.4294
+        },
+        {
+          "zip": "94117",
+          "label": "Outer Mission",
+          "lat": 37.7256,
+          "lng": -122.4394
+        }
+      ],
+      "placeWord": "place",
+      "carryWord": "carries",
+      "detailFields": [],
+      "facets": [],
+      "ratings": [
+        {
+          "entryId": "PRD-1001",
+          "who": "Alex M.",
+          "stars": 5,
+          "text": "Best oat milk I've tried! Creamy and delicious in my coffee.",
+          "at": "2026-03-15T10:30:00Z",
+          "helpful": 24
+        },
+        {
+          "entryId": "PRD-1002",
+          "who": "Sam R.",
+          "stars": 4,
+          "text": "Great sourdough loaf, but a bit dense. Still tasty though!",
+          "at": "2026-01-22T14:15:00Z",
+          "helpful": 18
+        },
+        {
+          "entryId": "PRD-1003",
+          "who": "Taylor K.",
+          "stars": 5,
+          "text": "Perfect for overnight oats. So much better than the store-bought kind.",
+          "at": "2026-02-10T09:45:00Z",
+          "helpful": 31
+        },
+        {
+          "entryId": "PRD-1004",
+          "who": "Jordan L.",
+          "stars": 4,
+          "text": "Smooth and sweet pear puree. Great for baby food.",
+          "at": "2026-04-05T16:20:00Z",
+          "helpful": 12
+        },
+        {
+          "entryId": "PRD-1005",
+          "who": "Casey P.",
+          "stars": 3,
+          "text": "Okay chips, but a bit salty. Not my favorite snack.",
+          "at": "2026-01-30T11:00:00Z",
+          "helpful": 8
+        },
+        {
+          "entryId": "PRD-1006",
+          "who": "Morgan S.",
+          "stars": 5,
+          "text": "Creamy and tangy Greek yogurt. Perfect for breakfast!",
+          "at": "2026-03-28T08:25:00Z",
+          "helpful": 27
+        },
+        {
+          "entryId": "PRD-1007",
+          "who": "Riley T.",
+          "stars": 4,
+          "text": "Good whole grain bread, but a bit dry. Still worth it!",
+          "at": "2026-02-18T13:30:00Z",
+          "helpful": 15
+        },
+        {
+          "entryId": "PRD-1008",
+          "who": "Quinn M.",
+          "stars": 5,
+          "text": "Smooth almond butter with no added sugars. Love it!",
+          "at": "2026-04-12T17:45:00Z",
+          "helpful": 35
+        },
+        {
+          "entryId": "PRD-1009",
+          "who": "Avery B.",
+          "stars": 4,
+          "text": "Refreshing coconut water. Good electrolyte content.",
+          "at": "2026-01-15T12:00:00Z",
+          "helpful": 19
+        },
+        {
+          "entryId": "PRD-1010",
+          "who": "Peyton C.",
+          "stars": 5,
+          "text": "Excellent chia seeds for smoothies and puddings!",
+          "at": "2026-03-08T07:30:00Z",
+          "helpful": 22
+        },
+        {
+          "entryId": "PRD-1011",
+          "who": "Cameron D.",
+          "stars": 4,
+          "text": "Nice organic yogurt, but a bit expensive for the quantity.",
+          "at": "2026-02-25T15:10:00Z",
+          "helpful": 11
+        },
+        {
+          "entryId": "PRD-1012",
+          "who": "Jamie W.",
+          "stars": 5,
+          "text": "Delicious granola with perfect crunch. My go-to breakfast!",
+          "at": "2026-04-01T09:00:00Z",
+          "helpful": 28
+        },
+        {
+          "entryId": "PRD-1013",
+          "who": "Logan H.",
+          "stars": 4,
+          "text": "Great sparkling cider, not too sweet. Perfect for parties!",
+          "at": "2026-01-28T18:30:00Z",
+          "helpful": 16
+        },
+        {
+          "entryId": "PRD-1014",
+          "who": "Skyler F.",
+          "stars": 3,
+          "text": "Okay crackers, but nothing special. Could be better.",
+          "at": "2026-03-20T14:00:00Z",
+          "helpful": 9
+        },
+        {
+          "entryId": "PRD-1015",
+          "who": "Reese G.",
+          "stars": 5,
+          "text": "Organic baby rice cereal is smooth and gentle on little tummies!",
+          "at": "2026-02-05T10:15:00Z",
+          "helpful": 23
+        },
+        {
+          "entryId": "PRD-1016",
+          "who": "Rowan J.",
+          "stars": 4,
+          "text": "Good multigrain bread, but a bit chewy. Still tasty!",
+          "at": "2026-01-18T13:45:00Z",
+          "helpful": 14
+        }
+      ],
+      "lists": [
+        {
+          "id": "LST-1001",
+          "name": "Weekly Groceries",
+          "placeId": "STR-1002",
+          "items": [
+            {
+              "entryId": "PRD-1001",
+              "qty": 2,
+              "done": false
+            },
+            {
+              "entryId": "PRD-1003",
+              "qty": 1,
+              "done": true
+            },
+            {
+              "entryId": "PRD-1006",
+              "qty": 3,
+              "done": false
+            },
+            {
+              "entryId": "PRD-1008",
+              "qty": 1,
+              "done": false
+            }
+          ]
+        },
+        {
+          "id": "LST-1002",
+          "name": "Baby Food Shopping",
+          "placeId": "STR-1005",
+          "items": [
+            {
+              "entryId": "PRD-1004",
+              "qty": 2,
+              "done": true
+            },
+            {
+              "entryId": "PRD-1015",
+              "qty": 1,
+              "done": false
+            }
+          ]
+        }
+      ],
+      "likes": {
+        "PRD-1001": 42,
+        "PRD-1003": 38,
+        "PRD-1006": 35,
+        "PRD-1008": 45,
+        "PRD-1010": 31,
+        "PRD-1012": 39,
+        "PRD-1015": 28,
+        "PRD-1016": 22
+      },
+      "saves": {
+        "PRD-1001": 27,
+        "PRD-1003": 33,
+        "PRD-1006": 29,
+        "PRD-1008": 36,
+        "PRD-1010": 24,
+        "PRD-1012": 31,
+        "PRD-1015": 21,
+        "PRD-1016": 18
+      }
+    }
+  }
+}

@@ -1,0 +1,202 @@
+[
+  {
+    "id": "chk_1cc256dd9c484ff9b284",
+    "runId": "run_3d280f4b376f44fa877b",
+    "kind": "project_preflight",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "preflight:pf_f828918da3b94456a4d9"
+    ],
+    "summary": "incomplete; 0 scripts; preview none",
+    "updatedAt": "2026-10-18T01:47:50.103Z"
+  },
+  {
+    "id": "chk_d99691dfbd9045709dcd",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "baseline:run_3d280f4b376f44fa877b",
+    "kind": "typecheck",
+    "required": true,
+    "status": "not_run",
+    "evidenceRefs": [],
+    "summary": "No typecheck script in package.json",
+    "updatedAt": "2026-10-18T01:52:49.037Z"
+  },
+  {
+    "id": "chk_1334ac3645fa47bcbea1",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "baseline:run_3d280f4b376f44fa877b",
+    "kind": "lint",
+    "required": true,
+    "status": "not_run",
+    "evidenceRefs": [],
+    "summary": "No lint script in package.json",
+    "updatedAt": "2026-10-18T01:52:49.040Z"
+  },
+  {
+    "id": "chk_12b618cd714d4b188ccd",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "baseline:run_3d280f4b376f44fa877b",
+    "kind": "tests",
+    "required": true,
+    "status": "not_run",
+    "evidenceRefs": [],
+    "summary": "No tests script in package.json",
+    "updatedAt": "2026-10-18T01:52:49.041Z"
+  },
+  {
+    "id": "chk_0bd1dc89f8404dad9aa7",
+    "runId": "run_3d280f4b376f44fa877b",
+    "kind": "manifest_validation",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "preflight:pf_43a4e7530c984a4ca1e3"
+    ],
+    "summary": "package.json parsed and validated",
+    "updatedAt": "2026-10-18T01:52:49.576Z"
+  },
+  {
+    "id": "chk_afb13351f7cd4b1faf0d",
+    "runId": "run_3d280f4b376f44fa877b",
+    "kind": "install",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "command:cmd_64944464e6534d35a8ef",
+      "approval:apr_f51a74608b0340efa198"
+    ],
+    "summary": "npm install succeeded (approved)",
+    "updatedAt": "2026-10-18T01:53:04.513Z"
+  },
+  {
+    "id": "chk_d8651544a5cd41208395",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_115c5c3f1b824e158d7a",
+    "kind": "typecheck",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "command:cmd_3bfebc23491040199184"
+    ],
+    "summary": "npm run typecheck exited 0 in 2487ms",
+    "updatedAt": "2026-10-18T01:53:07.014Z"
+  },
+  {
+    "id": "chk_114b91db666a4af48d89",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_eeb17b09b8544bb4ba68",
+    "kind": "typecheck",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "command:cmd_69fde1633dc0428898fa"
+    ],
+    "summary": "npm run typecheck exited 0 in 2258ms",
+    "updatedAt": "2026-10-18T01:53:14.620Z"
+  },
+  {
+    "id": "chk_d3265cf541ba4f849cad",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_9edb333c154f47b2a3ac",
+    "kind": "typecheck",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "command:cmd_b7fb03b722bb4ec8919e"
+    ],
+    "summary": "npm run typecheck exited 0 in 2461ms",
+    "updatedAt": "2026-10-18T01:53:20.736Z"
+  },
+  {
+    "id": "chk_398690e8247a432b89e8",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_e0892692c6e84c52aa80",
+    "kind": "typecheck",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "command:cmd_80005f64c4524ac5997b"
+    ],
+    "summary": "npm run typecheck exited 0 in 2409ms",
+    "updatedAt": "2026-10-18T01:55:52.545Z"
+  },
+  {
+    "id": "chk_0e74786311d74fecb261",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_186f924d285b4e0e9b42",
+    "kind": "typecheck",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "command:cmd_a8289bcd496b48eda4dd"
+    ],
+    "summary": "npm run typecheck exited 0 in 2398ms",
+    "updatedAt": "2026-10-18T01:56:00.490Z"
+  },
+  {
+    "id": "chk_1c47e3ce059c43bda243",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_59cd9c1cacaf4df0943f",
+    "kind": "typecheck",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "command:cmd_07c5924d8ab74907a2a7"
+    ],
+    "summary": "npm run typecheck exited 0 in 3475ms",
+    "updatedAt": "2026-10-18T02:00:02.770Z"
+  },
+  {
+    "id": "chk_19b7a6384a374207a54b",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_59cd9c1cacaf4df0943f",
+    "kind": "lint",
+    "required": true,
+    "status": "passed_with_warnings",
+    "evidenceRefs": [
+      "command:cmd_08e67cb193df4fcca088"
+    ],
+    "summary": "npm run lint exited 0 in 1766ms",
+    "updatedAt": "2026-10-18T02:00:04.544Z"
+  },
+  {
+    "id": "chk_99e635349e544315946c",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_59cd9c1cacaf4df0943f",
+    "kind": "build",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "command:cmd_f63d075a060645c98fe3"
+    ],
+    "summary": "npm run build exited 0 in 4719ms",
+    "updatedAt": "2026-10-18T02:00:09.273Z"
+  },
+  {
+    "id": "chk_e32d8a903b6b43bc9cd1",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_59cd9c1cacaf4df0943f",
+    "kind": "tests",
+    "required": true,
+    "status": "passed",
+    "evidenceRefs": [
+      "command:cmd_2ac14aa8a3b248df8013"
+    ],
+    "summary": "npm run test exited 0 in 2021ms",
+    "updatedAt": "2026-10-18T02:00:11.304Z"
+  },
+  {
+    "id": "chk_62f40d8b6c854dd48799",
+    "runId": "run_3d280f4b376f44fa877b",
+    "taskId": "task_59cd9c1cacaf4df0943f",
+    "kind": "functional_journey",
+    "required": true,
+    "status": "failed",
+    "evidenceRefs": [
+      "artifact:art_f68ba6e08c6c4996ab37"
+    ],
+    "summary": "11/16 journey steps passed; failed: A visitor's Save asks them to sign in (locator.innerText: Browser closed); Signing in is one tap (locator.click: locator.innerText: Browser closed); Saving \"Oat Milk Original\" puts the same record (Oat Milk Original, Willow Farms) in Saved (page.goto: locator.click: locator.innerText: Browser closed)",
+    "updatedAt": "2026-10-18T02:00:31.413Z"
+  }
+]
