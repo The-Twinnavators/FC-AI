@@ -1,0 +1,49 @@
+{
+  "entries": [
+    {
+      "page": "My Selection",
+      "section": "Selection Summary",
+      "ref": "c.badge",
+      "version": "base",
+      "mode": "compose",
+      "why": "To show the number of selected photos and submission status.",
+      "adaptations": [],
+      "dependencies": [],
+      "pieceId": "badges-status",
+      "appFile": "src/sections/BadgesStatus.tsx",
+      "by": "plan"
+    },
+    {
+      "page": "My Selection",
+      "section": "Selected Photos",
+      "ref": "c.list-row",
+      "version": "base",
+      "mode": "compose",
+      "why": "To display selected photos with notes in a list.",
+      "adaptations": [],
+      "dependencies": [
+        "c.avatar.person",
+        "c.badge.status",
+        "c.button.tertiary"
+      ],
+      "pieceId": "lists-rows",
+      "appFile": "src/sections/ListsRows.tsx",
+      "by": "plan"
+    },
+    {
+      "page": "My Selection",
+      "section": "Actions",
+      "ref": "c.button",
+      "version": "base",
+      "mode": "compose",
+      "why": "To provide submit and start over actions.",
+      "adaptations": [],
+      "dependencies": [],
+      "pieceId": "buttons-variants",
+      "appFile": "src/sections/ButtonsVariants.tsx",
+      "by": "plan"
+    }
+  ],
+  "gaps": [],
+  "changes": []
+}

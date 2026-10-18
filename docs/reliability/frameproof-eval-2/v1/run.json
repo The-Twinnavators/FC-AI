@@ -1,0 +1,853 @@
+{
+  "id": "run_5183234fc4e84cceac86",
+  "projectId": "prj_e8a2176cf74946bbb974",
+  "objective": "Frameproof: build the attached PRD as a complete working prototype.",
+  "status": "awaiting_approval",
+  "strategy": {
+    "kind": "spec_build",
+    "previewStrategy": "vite_dev",
+    "requiredChecks": [
+      "project_preflight",
+      "manifest_validation",
+      "install",
+      "typecheck",
+      "lint",
+      "tests",
+      "build",
+      "server_start",
+      "preview_health",
+      "screenshots",
+      "design_qa",
+      "app_wiring",
+      "functional_journey",
+      "final_report"
+    ],
+    "templateId": "react-vite-scheduler",
+    "buildMode": "complete"
+  },
+  "modelAssignments": {
+    "planner": {
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "temperature": 0.1
+    },
+    "coder": {
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "temperature": 0.1
+    },
+    "debugger": {
+      "providerId": "ollama",
+      "model": "qwen3-coder:30b",
+      "temperature": 0.1
+    },
+    "repository_analyst": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "researcher": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "reviewer": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "designer": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "critic": {
+      "providerId": "ollama",
+      "model": "qwen2.5vl:3b",
+      "temperature": 0.1
+    },
+    "documenter": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "security_qa": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "accessibility_qa": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    },
+    "compliance_triage": {
+      "providerId": "ollama",
+      "model": "qwen3:14b",
+      "temperature": 0.1
+    }
+  },
+  "statusReason": "Plan ready for review",
+  "plan": {
+    "goal": "Frameproof: build the attached PRD as a complete working prototype.",
+    "assumptions": [
+      "Built on the verified React + Vite + TypeScript local-first starter in an empty workspace",
+      "The prototype plan places all 140 PRD requirements are placed in a build step, a sign-off item or \"not for this release\"",
+      "1 reference file(s) are imported as data (spec/, src/content/)",
+      "Scope of this build (decided by FlowCode from the PRD and the person's requests; every step follows it):\n- Required behaviour: R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R34, R35, R36, R37, R38, R39, R40, R41, R42, R43, R44, R45, R46, R47, R48, R49, R50, R51, R52, R53, R54, R55, R56, R57, R58, R59, R60, R61, R62, R63, R64, R65, R66, R67, R68, R69, R70, R71, R72, R73, R74, R75, R76, R77, R78, R79, R80, R81, R82, R83, R84, R85, R86, R87, R88, R89, R90, R91, R92, R93, R94, R95, R96, R97, R98, R99, R100, R101, R102, R103, R104, R105, R106, R107, R108, R109, R110, R111, R112, R113, R114, R115, R116, R117, R118, R119, R120, R121, R122, R123, R124, R125, R126, R127, R128 (the PRD's requirements, each built and tested).\n- Supporting data (records the app holds and shows; no page or feature of their own): the PRD's \"data model and sample content\", \"gallery\", \"photo records\" sections.\n- Library capabilities the PRD asks for: a Categories page (browsing by category); likes.\n- Deferred (not in this release; no page, navigation link, control or test for them): ratings (the PRD's non-goals); comments (the PRD's non-goals); sharing (the PRD's non-goals).\n- Left out (the library could add them, but nothing asks for them): a store finder (choosing a place by ZIP code, where to find it nearby); lists (shopping or grocery lists).\n- Primary navigation: Gallery, My Selection (as the PRD declares). A record's own page opens from a list or a result, never from the navigation.\n- Runtime state the PRD specifies, one shared owner: Client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted).\n- No remote assets at runtime: images and data are bundled.\n- Out of scope (the PRD's words): Do not implement: Photographer or administrator roles. Multiple galleries. Photo upload or download. Image editing, cropping, or zoom tools. Payments or real authentication. Email or notifications. Public sharing. Ratings or social comments. AI features. Backend services or cloud synchronization. Marketing pages. Additional navigation destinations.",
+      "Data owners (one each; no other file keeps a copy, including src/sim or a screen's own state): Galleries, Photos records are owned by src/app/store.ts (the one store, seeded from src/app/schema.ts); what the person saved is owned by src/app/store.ts, kept in this browser so it survives a reload. The PRD's Client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted) is one shared state owned by src/app/store.ts (Do not create separate copies of selection state in different screens.): every screen reads and changes it there, and it is kept in this browser under a namespaced key so it survives a reload.",
+      "Look: no direction is selected yet. The PRD's own direction is proposed for your review: \"Editorial contact sheet\": Warm off-white background; Near-black text; Muted cobalt accent for primary actions and selected states; Fine borders and restrained corner rounding; Generous whitespace and clear typographic hierarchy; Minimal chrome around photography; Use available fonts and assets. Add no font package; Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, and excessive badges or repeated instructions; balanced motion, expressive effects off. Set it on the Styles page (exact colours and fonts are chosen there; the PRD gives none) and select it before approving to bind it; until then the build keeps the base styling and passes this direction to the design steps. Nothing about the design is approved yet."
+    ],
+    "relevantFiles": [
+      "spec/Frameproof-PRD.md"
+    ],
+    "expectedChanges": [
+      "src/**",
+      "spec/**"
+    ],
+    "risk": "high",
+    "riskNotes": [
+      "Not approval-ready: 1 contradiction with the PRD (Acceptance tests agree with the PRD's records)",
+      "Dependency installation (npm install) runs package lifecycle scripts and uses the network"
+    ],
+    "validationPlan": [
+      "project_preflight",
+      "manifest_validation",
+      "install",
+      "typecheck",
+      "lint",
+      "tests",
+      "build",
+      "server_start",
+      "preview_health",
+      "screenshots",
+      "accessibility",
+      "design_qa",
+      "app_wiring",
+      "final_report"
+    ],
+    "rollbackStrategy": "Every file change is snapshotted; restore the 'Plan approved' checkpoint to return to an empty workspace.",
+    "tasks": [
+      {
+        "key": "scaffold",
+        "title": "Scaffold from verified starter template",
+        "objective": "Copy the verified React starter template into the workspace.",
+        "dependsOn": [],
+        "expectedPaths": [
+          "."
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "s1",
+            "description": "package.json exists",
+            "check": {
+              "type": "file_exists",
+              "path": "package.json"
+            }
+          }
+        ],
+        "verification": [],
+        "role": "coder"
+      },
+      {
+        "key": "deps",
+        "title": "Install dependencies (approved)",
+        "objective": "Install declared dependencies after user approval.",
+        "dependsOn": [
+          "scaffold"
+        ],
+        "expectedPaths": [
+          "package-lock.json"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "d1",
+            "description": "node_modules installed",
+            "check": {
+              "type": "file_exists",
+              "path": "node_modules/react/package.json"
+            }
+          },
+          {
+            "id": "d2",
+            "description": "Starter typechecks",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "install"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "refs",
+        "title": "Import spec references",
+        "objective": "Place the supplied PRD, HTML, CSS and JSON files in the workspace for the agents to read.",
+        "dependsOn": [
+          "deps"
+        ],
+        "expectedPaths": [
+          "spec/",
+          "src/content/"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "r1",
+            "description": "Frameproof-PRD.md imported",
+            "check": {
+              "type": "file_exists",
+              "path": "spec/Frameproof-PRD.md"
+            }
+          }
+        ],
+        "verification": [],
+        "role": "coder"
+      },
+      {
+        "key": "style",
+        "title": "Capture the style",
+        "objective": "Keep the base styling unless a direction is selected before the plan is approved; then apply that one. Look: no direction is selected yet. The PRD's own direction is proposed for your review: \"Editorial contact sheet\": Warm off-white background; Near-black text; Muted cobalt accent for primary actions and selected states; Fine borders and restrained corner rounding; Generous whitespace and clear typographic hierarchy; Minimal chrome around photography; Use available fonts and assets. Add no font package; Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, and excessive badges or repeated instructions; balanced motion, expressive effects off. Set it on the Styles page (exact colours and fonts are chosen there; the PRD gives none) and select it before approving to bind it; until then the build keeps the base styling and passes this direction to the design steps. Nothing about the design is approved yet.",
+        "dependsOn": [
+          "refs"
+        ],
+        "expectedPaths": [
+          "src/styles/tokens.css",
+          "src/styles/components.css"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "c1",
+            "description": "The design tokens are in place",
+            "check": {
+              "type": "file_exists",
+              "path": "src/styles/tokens.css"
+            }
+          }
+        ],
+        "verification": [],
+        "role": "coder"
+      },
+      {
+        "key": "review",
+        "title": "Review the prototype plan and the design",
+        "objective": "Wait for the person to approve the prototype plan. Look: no direction is selected yet. The PRD's own direction is proposed for your review: \"Editorial contact sheet\": Warm off-white background; Near-black text; Muted cobalt accent for primary actions and selected states; Fine borders and restrained corner rounding; Generous whitespace and clear typographic hierarchy; Minimal chrome around photography; Use available fonts and assets. Add no font package; Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, and excessive badges or repeated instructions; balanced motion, expressive effects off. Set it on the Styles page (exact colours and fonts are chosen there; the PRD gives none) and select it before approving to bind it; until then the build keeps the base styling and passes this direction to the design steps. Nothing about the design is approved yet.",
+        "dependsOn": [
+          "style"
+        ],
+        "expectedPaths": [],
+        "acceptanceCriteria": [
+          {
+            "id": "v1",
+            "description": "The starter is in place for the Styles page",
+            "check": {
+              "type": "file_exists",
+              "path": "package.json"
+            }
+          }
+        ],
+        "verification": [],
+        "role": "coder"
+      },
+      {
+        "key": "fc_sections",
+        "title": "Add library sections",
+        "objective": "Keep FlowCode's component library in .flowcode/sections/ with its index, for the screens to draw on (the spec calls for no section as a starting point)",
+        "dependsOn": [
+          "review"
+        ],
+        "expectedPaths": [
+          "src/styles/library.css",
+          ".flowcode/sections/"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "q1",
+            "description": "Library styles added",
+            "check": {
+              "type": "file_exists",
+              "path": "src/styles/library.css"
+            }
+          }
+        ],
+        "verification": [],
+        "role": "coder"
+      },
+      {
+        "key": "layout",
+        "title": "Write the complete app",
+        "objective": "FlowCode writes the whole app from its app model: the data and sample records, the one store, the frame with the full navigation, and a working page per destination.\nThe app: Frameproof. Roles: client. Its data, store and navigation are written by FlowCode in src/app/ (schema.ts, store.ts) and src/App.tsx: every page reads the same records through the store (src/app/store.ts), never its own copy.\n- Galleries (gallery): ID*, Title*, Photographer*, Client*, Required Selection Count*; statuses ; 1 sample records.\n- Photos (photo): ID*, Title*, Category*, Orientation*, Image Source*, Alt Text*; statuses ; 12 sample records.\nPrimary navigation: Gallery [list], My Selection [custom].\nOpened from other pages (not in the navigation): Photo Detail [detail].",
+        "dependsOn": [
+          "fc_sections"
+        ],
+        "expectedPaths": [
+          "src/App.tsx",
+          "src/app/",
+          "src/screens/",
+          "src/sections/",
+          "index.html"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "l1",
+            "description": "The app uses the app frame",
+            "check": {
+              "type": "file_contains",
+              "path": "src/App.tsx",
+              "text": "<AppFrame"
+            }
+          },
+          {
+            "id": "l2",
+            "description": "The pages share one store",
+            "check": {
+              "type": "file_exists",
+              "path": "src/app/store.ts"
+            }
+          },
+          {
+            "id": "l3",
+            "description": "Typecheck passes",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "screens",
+        "title": "Design the main screens",
+        "objective": "Design the complete app like a senior product designer: it is already written and working (step \"Write the complete app\"): the app frame, one shared store in src/app/, and working pages on the library's patterns: Gallery [list] in src/screens/GalleryListScreen.tsx, Photo Detail [detail] in src/screens/PhotoDetailScreen.tsx. Lists, the create wizard, record pages, status changes by role, notifications and the dashboard already work across pages. Start your reply with the concept in 5 lines (idea, composition, type, colour, signature moment) and build to it.\n- Keep those pages and the frame: never rebuild, replace or wrap them in new markup, and never give a page its own copy of the data. Give them this product's look through the Styles page (src/styles/tokens.css) and the pieces' fl-* classes in src/styles/components.css, and their words through their props (title, description and the like).\n- Compose each of these pages as a finished page in its screen file, on the same records (store from src/app/store, useRecords, useActivity, StatusChip and formatValue from src/sections/AppData, go() from src/app/routes to open a record): My Selection (src/screens/MySelectionScreen.tsx): My Selection: the client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted).\nRun the app and look at each page at desktop and phone width before you finish.\nThe app: Frameproof. Roles: client. Its data, store and navigation are written by FlowCode in src/app/ (schema.ts, store.ts) and src/App.tsx: every page reads the same records through the store (src/app/store.ts), never its own copy.\n- Galleries (gallery): ID*, Title*, Photographer*, Client*, Required Selection Count*; statuses ; 1 sample records.\n- Photos (photo): ID*, Title*, Category*, Orientation*, Image Source*, Alt Text*; statuses ; 12 sample records.\nPrimary navigation: Gallery [list], My Selection [custom].\nOpened from other pages (not in the navigation): Photo Detail [detail].\n\nThe PRD's visual direction (follow it; exact colours, fonts and sizes come only from the selected Look on the Styles page, never invented): \"Editorial contact sheet\": Warm off-white background; Near-black text; Muted cobalt accent for primary actions and selected states; Fine borders and restrained corner rounding; Generous whitespace and clear typographic hierarchy; Minimal chrome around photography; Use available fonts and assets. Add no font package; Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, and excessive badges or repeated instructions; balanced motion, expressive effects off.\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Find and inspect (Client; starts on Gallery; R89, R90, R91, R92, R93, R94, R95)\n1. Gallery: Search for 'WINDOW' → Window Light is the only result\n2. Photo Detail: Open Window Light and confirm title, category, and image match → Photo details displayed correctly\n3. Gallery: Return to Gallery and confirm search remains → Search term persists in input field\n4. Gallery: Clear search and select Outdoor category → Seven photos appear\nSuccess: Client successfully found and inspected photos using search and category filtering\nIf it goes wrong: Search or category filter not working correctly → Clear search, reload page, or check browser console for errors\n\n## Select, annotate, and persist (Client; starts on Gallery; R96, R97, R98, R99, R100, R101, R102, R103)\n1. Gallery: Open Golden Hour photo and add it to shortlist → Photo added to shortlist, count updates\n2. Photo Detail: Add note: 'Please soften the background' → Note saved locally without separate save button\n3. Gallery: Add four other photos to shortlist → Five photos selected, count updates\n4. Gallery: Attempt to add a sixth photo → Limit explained through accessible feedback, original five remain\n5. My Selection: Open My Selection and confirm same five records and note → Selection and notes displayed correctly\n6. Gallery: Reload page → Selection and note persist across reload\nSuccess: Client successfully selected, annotated, and persisted photos in shortlist\nIf it goes wrong: Selection limit not enforced or notes not persisted → Remove a photo to make room, then reload page to confirm persistence\n\n## Remove and replace (Client; starts on My Selection; R104, R106, R107, R108, R109)\n1. My Selection: Remove one photo from shortlist → Photo removed, count updates everywhere\n2. Gallery: Add a different photo to replace the removed one → New photo added, correct five in sample-data order\n3. Photo Detail: Reopen removed photo and confirm note remains → Previously saved note still attached to photo\nSuccess: Client successfully replaced a photo in shortlist while preserving notes\nIf it goes wrong: Photo removal doesn't update count or note not preserved → Re-add the photo, remove it again, and verify note persists\n\n## Submit and lock (Client; starts on My Selection; R110, R111, R112, R113, R114, R115, R116)\n1. My Selection: Attempt to submit with fewer than five photos → Submission blocked, explanation shown\n2. Gallery: Select exactly five photos → Five photos selected, submission enabled\n3. My Selection: Open submission dialog and cancel → Nothing changes, selection remains intact\n4. My Selection: Open submission dialog again and confirm submission → Submitted status, timestamp, and correct five photos displayed\n5. Gallery: Verify shortlist and note editing are locked across screens → No changes possible to selection or notes\n6. My Selection: Reload page → Submitted state remains locked\nSuccess: Client successfully submitted selection and verified it's locked\nIf it goes wrong: Submission allowed with fewer than five or state not locked after reload → Select exactly five photos, then submit again, and reload to confirm lock\n\n## Start over (Client; starts on My Selection; R117, R118, R119, R120, R121)\n1. My Selection: Open Start over dialog and cancel → All submitted data remains intact\n2. My Selection: Open Start over dialog again and confirm reset → Empty Draft selection and cleared notes\n3. Gallery: Reload page → Reset persists across reload\nSuccess: Client successfully started over from submitted state\nIf it goes wrong: Reset doesn't clear selection or notes properly → Manually clear selection, reload page, and verify reset works\n\nScreen briefs (locked: build every section with its part; if one truly doesn't fit, record the change with propose_layout_change and its reason, never leave it out quietly): design each screen to its brief, from the person's side. The top of the screen shows what they must see first (not a generic title over a list); the sections come in this order, each built from its catalog part (add_library_piece with the ID when it isn't in the app yet), filled with the spec's real content.\n\n## My Selection\nPage type: Other (a job none of the types above describes). Not on this page: marketing heroes, pricing, testimonials, logo clouds or newsletter sign-ups; a second search bar when the app already has one.\nFor: Demo client: Maya Chen. User need: “I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the pho. Goal: Review shortlisted photos, edit notes, submit selection.\nWorkflow: 1. View selected photos in list with notes 2. Edit or remove photos from shortlist 3. Submit selection when ready 4. Confirm submission is locked after submission 5. Start over if needed\nFirst view (without scrolling): Shortlisted photo count and list of selected photos\nMain action: Submit selection or start over\nSections, top to bottom:\n1. Selection Summary: To show the number of selected photos and submission status. [c.badge]\n2. Selected Photos: To display selected photos with notes in a list. [c.list-row]\n3. Actions: To provide submit and start over actions. [c.button]\nStates: loading: Shows skeleton placeholders while loading selection data; empty: Displays empty state with message 'No photos selected yet'; error: Shows error alert with message 'Failed to load selection'; success: Displays selected photos and submission controls\nOn a phone: List adjusts to single column on mobile, buttons stack vertically; one column at phone width\nAccessibility: Keyboard navigation through list items and actions, screen reader labels for all interactive elements\nMust satisfy: R104, R106, R107, R108, R109, R110, R111, R112, R113, R114, R115, R116, R117, R118, R119, R120, R121",
+        "dependsOn": [
+          "layout"
+        ],
+        "expectedPaths": [
+          "src/screens/",
+          "src/styles/"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "s1",
+            "description": "Typecheck passes",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "lrc_1",
+        "title": "User and context: Gallery List Screen and 4 more",
+        "objective": "FIRST write the acceptance tests in src/acceptance/user-and-context-gallery-list-screen-and.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/user-and-context-gallery-list-screen-and.test.tsx\"` passes.\nTests (one `it` each):\n- open the gallery list screen → the app shows \"Autumn Portrait Session\"\n- search for 'light' → the app shows \"Window Light and Last Light\"\n- search for 'mountain' → check that No results found (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- select 5 photos and submit selection → check that Selection status changes to Submitted (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- add an editing note to a photo → check that Editing note is saved and displayed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- enter 'Outdoor' in search field → check that photos matching Outdoor category are displayed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- select 'Nature' from category dropdown → check that only Nature category photos appear in grid (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- clear search and select 'Outdoor' category → check that seven photos appear in grid (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Prototype boundaries: remaining requirements (R3, R4, R5, R7, R8): at least one test of what the user does and sees\n- User and context: remaining requirements (R9, R11, R14): at least one test of what the user does and sees\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (the app's records in src/app/schema.ts, through the store in src/app/store.ts) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# Gallery List Screen\n\n## Goal\nDisplay a gallery list with photo grid, search, and category controls.\n\n## Context\nPRD section: User and context. This task implements these requirements (quoted from the PRD in spec/):\n- R10: Gallery: Autumn Portrait Session.\n- R12: Gallery contains 12 photos.\n- R15: Gallery.\n- R58: Unknown photo ID shows a useful not-found state with a Gallery link.\n- R68: Compact product header and primary navigation.\n- R69: Gallery title, photographer, and selection progress.\n- R70: Search and category controls.\n- R71: Photo grid.\n- R89: Open Gallery.\n- R93: Return to Gallery and confirm search remains.\n- R38: light returns Window Light and Last Light, not Golden Hour.\n- R39: WINDOW returns Window Light.\n- R40: mountain produces no results.\n- R41: No-results state offers a clear way to clear search.\nFiles: src/screens/GalleryListScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create the GalleryListScreen component with a header showing gallery title and photographer\n2. Implement a photo grid displaying 12 sample photos from the store\n3. Add search functionality that filters photos by title, category, or orientation\n4. Include category controls to filter photos by category\n5. Show selection progress indicating how many photos have been selected\n6. Ensure the screen handles unknown photo IDs with a not-found state\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: open the gallery list screen → shows \"Autumn Portrait Session\"\n- Test: search for 'light' → shows \"Window Light and Last Light\"\n- Test: search for 'mountain' → check that No results found (an outcome, not text to look for)\n- The gallery title displays correctly as 'Autumn Portrait Session'\n- The photographer name displays as 'Rowan Studio'\n- Photo grid shows 12 sample photos\n- Search filters photos by title, category, or orientation\n- R10 is implemented: Gallery: Autumn Portrait Session.\n- R12 is implemented: Gallery contains 12 photos.\n- R15 is implemented: Gallery.\n- R58 is implemented: Unknown photo ID shows a useful not-found state with a Gallery link.\n- R68 is implemented: Compact product header and primary navigation.\n- R69 is implemented: Gallery title, photographer, and selection progress.\n- R70 is implemented: Search and category controls.\n- R71 is implemented: Photo grid.\n- R89 is implemented: Open Gallery.\n- R93 is implemented: Return to Gallery and confirm search remains.\n- R38 is implemented: light returns Window Light and Last Light, not Golden Hour.\n- R39 is implemented: WINDOW returns Window Light.\n- R40 is implemented: mountain produces no results.\n- R41 is implemented: No-results state offers a clear way to clear search.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# Client Selection State Management\n\n## Goal\nManage client's selection state including shortlisted photos, editing notes, and submission status.\n\n## Context\nPRD section: Client selection state. This task implements these requirements (quoted from the PRD in spec/):\n- R6: Changes persist after page reload in the same browser.\n- R13: Client must choose exactly five photos before submitting.\n- R34: Shortlisted photo IDs.\n- R35: Editing note per photo.\n- R36: Selection status: Draft or Submitted.\n- R37: Submission timestamp, when submitted.\nFiles: src/app/store.ts.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Add client selection state to the store with shortlisted photo IDs\n2. Implement editing note per photo in the store\n3. Add selection status (Draft or Submitted) to the store\n4. Include submission timestamp when submitted\n5. Ensure changes persist after page reload in the same browser\n6. Implement functionality to update selection state from any screen\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: select 5 photos and submit selection → shows \"Selection status changes to Submitted\"\n- Test: add an editing note to a photo → check that Editing note is saved and displayed (an outcome, not text to look for)\n- Shortlisted photo IDs are stored and retrieved correctly\n- Editing notes per photo are saved and displayed\n- Selection status updates between Draft and Submitted\n- Submission timestamp is recorded when submitted\n- R6 is implemented: Changes persist after page reload in the same browser.\n- R13 is implemented: Client must choose exactly five photos before submitting.\n- R34 is implemented: Shortlisted photo IDs.\n- R35 is implemented: Editing note per photo.\n- R36 is implemented: Selection status: Draft or Submitted.\n- R37 is implemented: Submission timestamp, when submitted.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# Prototype boundaries: remaining requirements\n\n## Goal\nEvery requirement below from \"Prototype boundaries\" works in the app.\n\n## Context\nPRD section: Prototype boundaries. This task implements these requirements (quoted from the PRD in spec/):\n- R3: Bundled sample data and browser storage.\n- R4: No backend, authentication provider, external API, or real submission.\n- R5: Client is already signed in as a demo user.\n- R7: Use the existing starter, component library, and dependencies. Add no packages.\n- R8: No network connection necessary for the core workflow after the app and bundled assets have loaded.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the screen or module each requirement below belongs to.\n2. Implement each requirement there, using the PRD's names word for word.\n3. Run the checks below and fix anything you broke.\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- R3 is implemented: Bundled sample data and browser storage.\n- R4 is implemented: No backend, authentication provider, external API, or real submission.\n- R5 is implemented: Client is already signed in as a demo user.\n- R7 is implemented: Use the existing starter, component library, and dependencies. Add no packages.\n- R8 is implemented: No network connection necessary for the core workflow after the app and bundled assets have loaded.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# User and context: remaining requirements\n\n## Goal\nEvery requirement below from \"User and context\" works in the app.\n\n## Context\nPRD section: User and context. This task implements these requirements (quoted from the PRD in spec/):\n- R9: Demo client: Maya Chen.\n- R11: Photographer: Rowan Studio.\n- R14: One user role: client.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the screen or module each requirement below belongs to.\n2. Implement each requirement there, using the PRD's names word for word.\n3. Run the checks below and fix anything you broke.\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- R9 is implemented: Demo client: Maya Chen.\n- R11 is implemented: Photographer: Rowan Studio.\n- R14 is implemented: One user role: client.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# Search and Filter Functionality\n\n## Goal\nImplement search and category filtering that work together to display relevant photo records.\n\n## Context\nPRD section: R2 — Search. This task implements these requirements (quoted from the PRD in spec/):\n- R42: Search and category filtering work together.\n- R90: Search WINDOW.\n- R91: Confirm Window Light is the only result.\n- R92: Open it and confirm title, category, and image match.\n- R94: Clear search and select Outdoor.\n- R95: Confirm seven photos appear.\nFiles: src/screens/GalleryListScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Add a search input field to the GalleryListScreen component\n2. Implement category filter dropdown with options from photo categories\n3. Combine search and category filters to update photo list in real-time\n4. Ensure filtering updates the displayed photo grid correctly\n5. Test that search and category filters work independently and together\n6. Verify that the photo grid updates immediately when filters change\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: enter 'Outdoor' in search field → check that photos matching Outdoor category are displayed (an outcome, not text to look for)\n- Test: select 'Nature' from category dropdown → check that only Nature category photos appear in grid (an outcome, not text to look for)\n- Test: clear search and select 'Outdoor' category → check that seven photos appear in grid (an outcome, not text to look for)\n- Search input field appears on GalleryListScreen\n- Category dropdown shows all available photo categories\n- Filtering by both search term and category works correctly\n- Photo grid updates instantly when filter values change\n- R42 is implemented: Search and category filtering work together.\n- R90 is implemented: Search WINDOW.\n- R91 is implemented: Confirm Window Light is the only result.\n- R92 is implemented: Open it and confirm title, category, and image match.\n- R94 is implemented: Clear search and select Outdoor.\n- R95 is implemented: Confirm seven photos appear.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nData owners (one each; no other file keeps a copy, including src/sim or a screen's own state): Galleries, Photos records are owned by src/app/store.ts (the one store, seeded from src/app/schema.ts); what the person saved is owned by src/app/store.ts, kept in this browser so it survives a reload. The PRD's Client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted) is one shared state owned by src/app/store.ts (Do not create separate copies of selection state in different screens.): every screen reads and changes it there, and it is kept in this browser under a namespaced key so it survives a reload.\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Find and inspect (Client; starts on Gallery; R89, R90, R91, R92, R93, R94, R95)\n1. Gallery: Search for 'WINDOW' → Window Light is the only result\n2. Photo Detail: Open Window Light and confirm title, category, and image match → Photo details displayed correctly\n3. Gallery: Return to Gallery and confirm search remains → Search term persists in input field\n4. Gallery: Clear search and select Outdoor category → Seven photos appear\nSuccess: Client successfully found and inspected photos using search and category filtering\nIf it goes wrong: Search or category filter not working correctly → Clear search, reload page, or check browser console for errors\n\n## Select, annotate, and persist (Client; starts on Gallery; R96, R97, R98, R99, R100, R101, R102, R103)\n1. Gallery: Open Golden Hour photo and add it to shortlist → Photo added to shortlist, count updates\n2. Photo Detail: Add note: 'Please soften the background' → Note saved locally without separate save button\n3. Gallery: Add four other photos to shortlist → Five photos selected, count updates\n4. Gallery: Attempt to add a sixth photo → Limit explained through accessible feedback, original five remain\n5. My Selection: Open My Selection and confirm same five records and note → Selection and notes displayed correctly\n6. Gallery: Reload page → Selection and note persist across reload\nSuccess: Client successfully selected, annotated, and persisted photos in shortlist\nIf it goes wrong: Selection limit not enforced or notes not persisted → Remove a photo to make room, then reload page to confirm persistence\n\n## Remove and replace (Client; starts on My Selection; R104, R106, R107, R108, R109)\n1. My Selection: Remove one photo from shortlist → Photo removed, count updates everywhere\n2. Gallery: Add a different photo to replace the removed one → New photo added, correct five in sample-data order\n3. Photo Detail: Reopen removed photo and confirm note remains → Previously saved note still attached to photo\nSuccess: Client successfully replaced a photo in shortlist while preserving notes\nIf it goes wrong: Photo removal doesn't update count or note not preserved → Re-add the photo, remove it again, and verify note persists\n\n## Submit and lock (Client; starts on My Selection; R110, R111, R112, R113, R114, R115, R116)\n1. My Selection: Attempt to submit with fewer than five photos → Submission blocked, explanation shown\n2. Gallery: Select exactly five photos → Five photos selected, submission enabled\n3. My Selection: Open submission dialog and cancel → Nothing changes, selection remains intact\n4. My Selection: Open submission dialog again and confirm submission → Submitted status, timestamp, and correct five photos displayed\n5. Gallery: Verify shortlist and note editing are locked across screens → No changes possible to selection or notes\n6. My Selection: Reload page → Submitted state remains locked\nSuccess: Client successfully submitted selection and verified it's locked\nIf it goes wrong: Submission allowed with fewer than five or state not locked after reload → Select exactly five photos, then submit again, and reload to confirm lock\n\n## Start over (Client; starts on My Selection; R117, R118, R119, R120, R121)\n1. My Selection: Open Start over dialog and cancel → All submitted data remains intact\n2. My Selection: Open Start over dialog again and confirm reset → Empty Draft selection and cleared notes\n3. Gallery: Reload page → Reset persists across reload\nSuccess: Client successfully started over from submitted state\nIf it goes wrong: Reset doesn't clear selection or notes properly → Manually clear selection, reload page, and verify reset works",
+        "dependsOn": [
+          "screens"
+        ],
+        "expectedPaths": [
+          "src/screens/GalleryListScreen.tsx",
+          "src/app/store.ts",
+          "src/acceptance/user-and-context-gallery-list-screen-and.test.tsx"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "lrc_1_tf",
+            "description": "The acceptance tests are written in src/acceptance/user-and-context-gallery-list-screen-and.test.tsx",
+            "check": {
+              "type": "file_exists",
+              "path": "src/acceptance/user-and-context-gallery-list-screen-and.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_1_e0",
+            "description": "The tests check that the app shows \"Autumn Portrait Session\"",
+            "check": {
+              "type": "file_contains",
+              "path": "src/acceptance/user-and-context-gallery-list-screen-and.test.tsx",
+              "text": "Autumn Portrait Session"
+            }
+          },
+          {
+            "id": "lrc_1_e1",
+            "description": "The tests check that the app shows \"Window Light and Last Light\"",
+            "check": {
+              "type": "file_contains",
+              "path": "src/acceptance/user-and-context-gallery-list-screen-and.test.tsx",
+              "text": "Window Light and Last Light"
+            }
+          },
+          {
+            "id": "lrc_1_tests",
+            "description": "The acceptance tests in src/acceptance/user-and-context-gallery-list-screen-and.test.tsx pass",
+            "check": {
+              "type": "verification",
+              "kind": "tests:src/acceptance/user-and-context-gallery-list-screen-and.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_1_tc",
+            "description": "The project still type-checks after this step",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck",
+          "tests"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "lrc_2",
+        "title": "R5 — Shortlist behavior: Photo Shortlisting with Selection Limits and 2 more",
+        "objective": "FIRST write the acceptance tests in src/acceptance/r5-shortlist-behavior-photo-shortlisting.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/r5-shortlist-behavior-photo-shortlisting.test.tsx\"` passes.\nTests (one `it` each):\n- select 5 photos from gallery list → check that selection count shows 5/5 (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- try to select a 6th photo → check that error message 'Maximum 5 selections allowed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- remove one selected photo → check that can now select another photo (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- open photo detail screen → check that photo title, category, and image displayed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- type 20 characters in editing note field → check that character count shows '20/500 (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- enter text in note field and navigate away → check that note content persists when returning to same photo (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- R12 — Navigation and identity: remaining requirements (R57): at least one test of what the user does and sees\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (the app's records in src/app/schema.ts, through the store in src/app/store.ts) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# Photo Shortlisting with Selection Limits\n\n## Goal\nImplement photo shortlisting functionality that prevents duplicate selections, enforces maximum five selections, and updates selection count across the UI.\n\n## Context\nPRD section: R5 — Shortlist behavior. This task implements these requirements (quoted from the PRD in spec/):\n- R43: No duplicate selections.\n- R44: Count updates everywhere.\n- R45: Maximum five selected photos.\n- R46: Attempting to add a sixth does not remove or replace an existing selection.\n- R48: Removing a photo permits another to be added.\n- R50: Save locally without a separate Save button.\n- R51: Show a character count.\n- R52: Notes remain attached when a photo is removed from the shortlist.\n- R53: Reopening a photo restores its note.\n- R54: Submission includes notes for selected photos only.\n- R56: Reloading after submission must not unlock selection.\n- R61: Switching photos must not carry one photo’s note into another.\n- R62: Warm off-white background.\n- R63: Near-black text.\n- R64: Muted cobalt accent for primary actions and selected states.\n- R65: Fine borders and restrained corner rounding.\n- R66: Generous whitespace and clear typographic hierarchy.\n- R67: Minimal chrome around photography.\nFiles: src/screens/GalleryListScreen.tsx, src/screens/PhotoDetailScreen.tsx, src/app/store.ts.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Add shortlist functionality to GalleryListScreen with visual indicators\n2. Implement logic in store.ts to track selected photo IDs and prevent duplicates\n3. Enforce maximum five selections with appropriate error messaging\n4. Update selection count display in both GalleryListScreen and MySelectionScreen\n5. Ensure removing a photo allows adding another one\n6. Verify that selection status is not determined by color alone\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: select 5 photos from gallery list → check that selection count shows 5/5 (an outcome, not text to look for)\n- Test: try to select a 6th photo → check that error message 'Maximum 5 selections allowed (an outcome, not text to look for)\n- Test: remove one selected photo → shows \"can now select another photo\"\n- Shortlist button shows visual indication when photo is selected\n- No duplicate selections are allowed\n- Maximum of five photos can be selected\n- Selection count updates in real-time across all relevant screens\n- R43 is implemented: No duplicate selections.\n- R44 is implemented: Count updates everywhere.\n- R45 is implemented: Maximum five selected photos.\n- R46 is implemented: Attempting to add a sixth does not remove or replace an existing selection.\n- R48 is implemented: Removing a photo permits another to be added.\n- R50 is implemented: Save locally without a separate Save button.\n- R51 is implemented: Show a character count.\n- R52 is implemented: Notes remain attached when a photo is removed from the shortlist.\n- R53 is implemented: Reopening a photo restores its note.\n- R54 is implemented: Submission includes notes for selected photos only.\n- R56 is implemented: Reloading after submission must not unlock selection.\n- R61 is implemented: Switching photos must not carry one photo’s note into another.\n- R62 is implemented: Warm off-white background.\n- R63 is implemented: Near-black text.\n- R64 is implemented: Muted cobalt accent for primary actions and selected states.\n- R65 is implemented: Fine borders and restrained corner rounding.\n- R66 is implemented: Generous whitespace and clear typographic hierarchy.\n- R67 is implemented: Minimal chrome around photography.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# Photo Detail View with Editing Notes\n\n## Goal\nImplement Photo Detail screen that displays photo information, allows editing notes, and persists note data locally.\n\n## Context\nPRD section: R12 — Navigation and identity. This task implements these requirements (quoted from the PRD in spec/):\n- R59: Browser Back and Forward work.\n- R60: Photo opened from grid is the same record displayed in detail.\nFiles: src/screens/PhotoDetailScreen.tsx, src/app/store.ts.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create PhotoDetailScreen component with photo details display\n2. Add editing note input field with character count indicator\n3. Implement local storage persistence for notes in store.ts\n4. Ensure notes remain attached when photo is removed from shortlist\n5. Restore note content when photo detail screen is reopened\n6. Include submission timestamp and status information\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: open photo detail screen → check that photo title, category, and image displayed (an outcome, not text to look for)\n- Test: type 20 characters in editing note field → check that character count shows '20/500 (an outcome, not text to look for)\n- Test: enter text in note field and navigate away → check that note content persists when returning to same photo (an outcome, not text to look for)\n- PhotoDetailScreen displays all photo details correctly\n- Editing note input field shows character count\n- Notes are saved locally without separate save button\n- Notes persist when photo is removed from shortlist\n- R59 is implemented: Browser Back and Forward work.\n- R60 is implemented: Photo opened from grid is the same record displayed in detail.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# R12 — Navigation and identity: remaining requirements\n\n## Goal\nEvery requirement below from \"R12 — Navigation and identity\" works in the app.\n\n## Context\nPRD section: R12 — Navigation and identity. This task implements these requirements (quoted from the PRD in spec/):\n- R57: Directly opening a valid photo route displays that record.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Find the screen or module each requirement below belongs to.\n2. Implement each requirement there, using the PRD's names word for word.\n3. Run the checks below and fix anything you broke.\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- R57 is implemented: Directly opening a valid photo route displays that record.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nData owners (one each; no other file keeps a copy, including src/sim or a screen's own state): Galleries, Photos records are owned by src/app/store.ts (the one store, seeded from src/app/schema.ts); what the person saved is owned by src/app/store.ts, kept in this browser so it survives a reload. The PRD's Client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted) is one shared state owned by src/app/store.ts (Do not create separate copies of selection state in different screens.): every screen reads and changes it there, and it is kept in this browser under a namespaced key so it survives a reload.\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Find and inspect (Client; starts on Gallery; R89, R90, R91, R92, R93, R94, R95)\n1. Gallery: Search for 'WINDOW' → Window Light is the only result\n2. Photo Detail: Open Window Light and confirm title, category, and image match → Photo details displayed correctly\n3. Gallery: Return to Gallery and confirm search remains → Search term persists in input field\n4. Gallery: Clear search and select Outdoor category → Seven photos appear\nSuccess: Client successfully found and inspected photos using search and category filtering\nIf it goes wrong: Search or category filter not working correctly → Clear search, reload page, or check browser console for errors\n\n## Select, annotate, and persist (Client; starts on Gallery; R96, R97, R98, R99, R100, R101, R102, R103)\n1. Gallery: Open Golden Hour photo and add it to shortlist → Photo added to shortlist, count updates\n2. Photo Detail: Add note: 'Please soften the background' → Note saved locally without separate save button\n3. Gallery: Add four other photos to shortlist → Five photos selected, count updates\n4. Gallery: Attempt to add a sixth photo → Limit explained through accessible feedback, original five remain\n5. My Selection: Open My Selection and confirm same five records and note → Selection and notes displayed correctly\n6. Gallery: Reload page → Selection and note persist across reload\nSuccess: Client successfully selected, annotated, and persisted photos in shortlist\nIf it goes wrong: Selection limit not enforced or notes not persisted → Remove a photo to make room, then reload page to confirm persistence\n\n## Remove and replace (Client; starts on My Selection; R104, R106, R107, R108, R109)\n1. My Selection: Remove one photo from shortlist → Photo removed, count updates everywhere\n2. Gallery: Add a different photo to replace the removed one → New photo added, correct five in sample-data order\n3. Photo Detail: Reopen removed photo and confirm note remains → Previously saved note still attached to photo\nSuccess: Client successfully replaced a photo in shortlist while preserving notes\nIf it goes wrong: Photo removal doesn't update count or note not preserved → Re-add the photo, remove it again, and verify note persists\n\n## Submit and lock (Client; starts on My Selection; R110, R111, R112, R113, R114, R115, R116)\n1. My Selection: Attempt to submit with fewer than five photos → Submission blocked, explanation shown\n2. Gallery: Select exactly five photos → Five photos selected, submission enabled\n3. My Selection: Open submission dialog and cancel → Nothing changes, selection remains intact\n4. My Selection: Open submission dialog again and confirm submission → Submitted status, timestamp, and correct five photos displayed\n5. Gallery: Verify shortlist and note editing are locked across screens → No changes possible to selection or notes\n6. My Selection: Reload page → Submitted state remains locked\nSuccess: Client successfully submitted selection and verified it's locked\nIf it goes wrong: Submission allowed with fewer than five or state not locked after reload → Select exactly five photos, then submit again, and reload to confirm lock\n\n## Start over (Client; starts on My Selection; R117, R118, R119, R120, R121)\n1. My Selection: Open Start over dialog and cancel → All submitted data remains intact\n2. My Selection: Open Start over dialog again and confirm reset → Empty Draft selection and cleared notes\n3. Gallery: Reload page → Reset persists across reload\nSuccess: Client successfully started over from submitted state\nIf it goes wrong: Reset doesn't clear selection or notes properly → Manually clear selection, reload page, and verify reset works",
+        "dependsOn": [
+          "lrc_1"
+        ],
+        "expectedPaths": [
+          "src/screens/GalleryListScreen.tsx",
+          "src/screens/PhotoDetailScreen.tsx",
+          "src/app/store.ts",
+          "src/acceptance/r5-shortlist-behavior-photo-shortlisting.test.tsx"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "lrc_2_tf",
+            "description": "The acceptance tests are written in src/acceptance/r5-shortlist-behavior-photo-shortlisting.test.tsx",
+            "check": {
+              "type": "file_exists",
+              "path": "src/acceptance/r5-shortlist-behavior-photo-shortlisting.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_2_tests",
+            "description": "The acceptance tests in src/acceptance/r5-shortlist-behavior-photo-shortlisting.test.tsx pass",
+            "check": {
+              "type": "verification",
+              "kind": "tests:src/acceptance/r5-shortlist-behavior-photo-shortlisting.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_2_tc",
+            "description": "The project still type-checks after this step",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck",
+          "tests"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "lrc_3",
+        "title": "Client Selection State Management, Photo Selection Limit Enforcement",
+        "objective": "FIRST write the acceptance tests in src/acceptance/client-selection-state-management-photo-.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/client-selection-state-management-photo-.test.tsx\"` passes.\nTests (one `it` each):\n- Open Golden Hour and add it to selection → check that Photo added to shortlist (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Add note: 'Please soften the background.' → check that Note saved for that photo (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Attempt to add a sixth photo → check that Limit message displayed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Select exactly five photos and submit → check that Selection status changes to Submitted (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Reload the app → check that Selection state persists correctly (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Try to add a sixth photo when five are already selected → check that Limit message displayed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Add five photos and attempt to add one more → check that Error message: 'Maximum 5 photos allowed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Reload the app after adding five photos → check that Five photos remain selected (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (the app's records in src/app/schema.ts, through the store in src/app/store.ts) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# Client Selection State Management\n\n## Goal\nImplement the client's selection state including shortlisted photo IDs, editing notes, selection status, and submission timestamp.\n\n## Context\nPRD section: Journey B — Select, annotate, and persist. This task implements these requirements (quoted from the PRD in spec/):\n- R96: Begin in an empty Draft state.\n- R97: Open Golden Hour and add it.\n- R98: Add note: “Please soften the background.”\n- R99: Add four other photos.\n- R100: Attempt to add a sixth.\n- R103: Reload and confirm selection and note persist.\n- R104: Begin with five selected photos.\n- R106: Confirm count changes everywhere.\n- R107: Add a different photo.\n- R108: Confirm correct five in sample-data order.\n- R109: Reopen removed photo and confirm any previously saved note remains.\n- R110: With fewer than five, confirm submission cannot proceed.\n- R111: Select exactly five.\n- R112: Open submission dialog, cancel, and confirm nothing changes.\n- R113: Open it again and confirm.\n- R114: Verify Submitted status, timestamp, and correct five photos.\n- R115: Verify shortlist and note editing are locked across screens.\n- R116: Reload and confirm submitted state remains locked.\n- R117: Begin in Submitted state.\n- R118: Open Start over and cancel; confirm all submitted data remains.\n- R119: Open Start over again and confirm.\n- R120: Verify empty Draft selection and cleared notes.\n- R121: Reload and confirm reset persists.\nFiles: src/app/store.ts, src/screens/MySelectionScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Add a shared state in store.ts for client selection with shortlisted photo IDs, editing notes, status, and submission timestamp\n2. Initialize the selection state as empty Draft in store.ts\n3. Create a function to update shortlisted photos and notes in store.ts\n4. Implement functions to submit and reset the selection state in store.ts\n5. Connect MySelectionScreen.tsx to read and modify the shared selection state\n6. Ensure the selection state persists across browser reloads using localStorage\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: Open Golden Hour and add it to selection → check that Photo added to shortlist (an outcome, not text to look for)\n- Test: Add note: 'Please soften the background.' → shows \"Note saved for that photo\"\n- Test: Attempt to add a sixth photo → check that Limit message displayed (an outcome, not text to look for)\n- Test: Select exactly five photos and submit → shows \"Selection status changes to Submitted\"\n- Test: Reload the app → shows \"Selection state persists correctly\"\n- The client selection state initializes as empty Draft\n- Shortlisted photo IDs can be added and removed\n- Editing notes are saved per photo\n- Selection status updates to Submitted when submitted\n- R96 is implemented: Begin in an empty Draft state.\n- R97 is implemented: Open Golden Hour and add it.\n- R98 is implemented: Add note: “Please soften the background.”\n- R99 is implemented: Add four other photos.\n- R100 is implemented: Attempt to add a sixth.\n- R103 is implemented: Reload and confirm selection and note persist.\n- R104 is implemented: Begin with five selected photos.\n- R106 is implemented: Confirm count changes everywhere.\n- R107 is implemented: Add a different photo.\n- R108 is implemented: Confirm correct five in sample-data order.\n- R109 is implemented: Reopen removed photo and confirm any previously saved note remains.\n- R110 is implemented: With fewer than five, confirm submission cannot proceed.\n- R111 is implemented: Select exactly five.\n- R112 is implemented: Open submission dialog, cancel, and confirm nothing changes.\n- R113 is implemented: Open it again and confirm.\n- R114 is implemented: Verify Submitted status, timestamp, and correct five photos.\n- R115 is implemented: Verify shortlist and note editing are locked across screens.\n- R116 is implemented: Reload and confirm submitted state remains locked.\n- R117 is implemented: Begin in Submitted state.\n- R118 is implemented: Open Start over and cancel; confirm all submitted data remains.\n- R119 is implemented: Open Start over again and confirm.\n- R120 is implemented: Verify empty Draft selection and cleared notes.\n- R121 is implemented: Reload and confirm reset persists.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# Photo Selection Limit Enforcement\n\n## Goal\nEnforce the required selection count limit of five photos with appropriate user feedback.\n\n## Context\nPRD section: Journey B — Select, annotate, and persist. This task implements these requirements (quoted from the PRD in spec/):\n- R101: Confirm original five remain and limit is explained.\nFiles: src/app/store.ts, src/screens/MySelectionScreen.tsx, src/screens/GalleryListScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Add logic in store.ts to track current selection count\n2. Implement validation in MySelectionScreen.tsx to prevent adding more than five photos\n3. Display appropriate error messages when limit is exceeded\n4. Update GalleryListScreen.tsx to show selection status and limit indicator\n5. Ensure the limit enforcement works across all screens\n6. Validate that the limit message explains the constraint\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: Try to add a sixth photo when five are already selected → check that Limit message displayed (an outcome, not text to look for)\n- Test: Add five photos and attempt to add one more → check that Error message: 'Maximum 5 photos allowed (an outcome, not text to look for)\n- Test: Reload the app after adding five photos → check that Five photos remain selected (an outcome, not text to look for)\n- Cannot add more than five photos to selection\n- Error message appears when trying to exceed limit\n- Limit is enforced consistently across all screens\n- Message clearly explains the selection count limit\n- R101 is implemented: Confirm original five remain and limit is explained.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nData owners (one each; no other file keeps a copy, including src/sim or a screen's own state): Galleries, Photos records are owned by src/app/store.ts (the one store, seeded from src/app/schema.ts); what the person saved is owned by src/app/store.ts, kept in this browser so it survives a reload. The PRD's Client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted) is one shared state owned by src/app/store.ts (Do not create separate copies of selection state in different screens.): every screen reads and changes it there, and it is kept in this browser under a namespaced key so it survives a reload.\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Find and inspect (Client; starts on Gallery; R89, R90, R91, R92, R93, R94, R95)\n1. Gallery: Search for 'WINDOW' → Window Light is the only result\n2. Photo Detail: Open Window Light and confirm title, category, and image match → Photo details displayed correctly\n3. Gallery: Return to Gallery and confirm search remains → Search term persists in input field\n4. Gallery: Clear search and select Outdoor category → Seven photos appear\nSuccess: Client successfully found and inspected photos using search and category filtering\nIf it goes wrong: Search or category filter not working correctly → Clear search, reload page, or check browser console for errors\n\n## Select, annotate, and persist (Client; starts on Gallery; R96, R97, R98, R99, R100, R101, R102, R103)\n1. Gallery: Open Golden Hour photo and add it to shortlist → Photo added to shortlist, count updates\n2. Photo Detail: Add note: 'Please soften the background' → Note saved locally without separate save button\n3. Gallery: Add four other photos to shortlist → Five photos selected, count updates\n4. Gallery: Attempt to add a sixth photo → Limit explained through accessible feedback, original five remain\n5. My Selection: Open My Selection and confirm same five records and note → Selection and notes displayed correctly\n6. Gallery: Reload page → Selection and note persist across reload\nSuccess: Client successfully selected, annotated, and persisted photos in shortlist\nIf it goes wrong: Selection limit not enforced or notes not persisted → Remove a photo to make room, then reload page to confirm persistence\n\n## Remove and replace (Client; starts on My Selection; R104, R106, R107, R108, R109)\n1. My Selection: Remove one photo from shortlist → Photo removed, count updates everywhere\n2. Gallery: Add a different photo to replace the removed one → New photo added, correct five in sample-data order\n3. Photo Detail: Reopen removed photo and confirm note remains → Previously saved note still attached to photo\nSuccess: Client successfully replaced a photo in shortlist while preserving notes\nIf it goes wrong: Photo removal doesn't update count or note not preserved → Re-add the photo, remove it again, and verify note persists\n\n## Submit and lock (Client; starts on My Selection; R110, R111, R112, R113, R114, R115, R116)\n1. My Selection: Attempt to submit with fewer than five photos → Submission blocked, explanation shown\n2. Gallery: Select exactly five photos → Five photos selected, submission enabled\n3. My Selection: Open submission dialog and cancel → Nothing changes, selection remains intact\n4. My Selection: Open submission dialog again and confirm submission → Submitted status, timestamp, and correct five photos displayed\n5. Gallery: Verify shortlist and note editing are locked across screens → No changes possible to selection or notes\n6. My Selection: Reload page → Submitted state remains locked\nSuccess: Client successfully submitted selection and verified it's locked\nIf it goes wrong: Submission allowed with fewer than five or state not locked after reload → Select exactly five photos, then submit again, and reload to confirm lock\n\n## Start over (Client; starts on My Selection; R117, R118, R119, R120, R121)\n1. My Selection: Open Start over dialog and cancel → All submitted data remains intact\n2. My Selection: Open Start over dialog again and confirm reset → Empty Draft selection and cleared notes\n3. Gallery: Reload page → Reset persists across reload\nSuccess: Client successfully started over from submitted state\nIf it goes wrong: Reset doesn't clear selection or notes properly → Manually clear selection, reload page, and verify reset works",
+        "dependsOn": [
+          "lrc_2"
+        ],
+        "expectedPaths": [
+          "src/app/store.ts",
+          "src/screens/MySelectionScreen.tsx",
+          "src/screens/GalleryListScreen.tsx",
+          "src/acceptance/client-selection-state-management-photo-.test.tsx"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "lrc_3_tf",
+            "description": "The acceptance tests are written in src/acceptance/client-selection-state-management-photo-.test.tsx",
+            "check": {
+              "type": "file_exists",
+              "path": "src/acceptance/client-selection-state-management-photo-.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_3_tests",
+            "description": "The acceptance tests in src/acceptance/client-selection-state-management-photo-.test.tsx pass",
+            "check": {
+              "type": "verification",
+              "kind": "tests:src/acceptance/client-selection-state-management-photo-.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_3_tc",
+            "description": "The project still type-checks after this step",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck",
+          "tests"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "lrc_4",
+        "title": "Gallery List Screen",
+        "objective": "FIRST write the acceptance tests in src/acceptance/gallery-list-screen.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/gallery-list-screen.test.tsx\"` passes.\nTests (one `it` each):\n- view gallery list screen → check that gallery records displayed with title, photographer, client, and required selecti (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- resize browser window to mobile size → check that grid columns adjust to single column layout (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (the app's records in src/app/schema.ts, through the store in src/app/store.ts) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# Gallery List Screen\n\n## Goal\nDisplay a list of galleries with title, photographer, client, and required selection count.\n\n## Context\nPRD section: Prototype boundaries. This task implements these requirements (quoted from the PRD in spec/):\n- R2: Responsive, local-first web app.\n- R47: Explain the limit through accessible feedback.\n- R55: With fewer than five, explain how many more are needed. Mouse or keyboard interaction must not submit.\n- R73: Selected photos and notes, or empty state.\n- R75: Respect reduced-motion preferences. Animation-off must leave all content and controls usable.\n- R76: Keyboard access to every action.\n- R77: Visible focus indicators and descriptive control names.\n- R78: Modal confirmation dialogs prevent interaction with background page content.\n- R79: Closing dialogs returns focus to the trigger when it still exists.\n- R80: Selection feedback available to assistive technology.\n- R81: Appropriate image alt text.\n- R82: No hover-only controls or information.\n- R83: No horizontal page overflow.\n- R84: Adaptive grid columns.\n- R85: Usable search and filters.\n- R86: Detail images fit without hiding navigation or actions.\n- R87: Accessible dialog content on small screens.\n- R88: All actions available without hover.\n- R124: Desktop and phone layouts reviewed.\nFiles: src/screens/GalleryListScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create the GalleryListScreen component that renders a list of gallery records from the store\n2. Show each gallery's title, photographer, client, and required selection count fields\n3. Implement responsive grid layout for gallery items\n4. Add search and filter functionality for galleries\n5. Ensure no horizontal overflow on all screen sizes\n6. Verify keyboard accessibility to all gallery list controls\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: view gallery list screen → check that gallery records displayed with title, photographer, client, and required selecti (an outcome, not text to look for)\n- Test: resize browser window to mobile size → check that grid columns adjust to single column layout (an outcome, not text to look for)\n- Gallery list displays all sample gallery records correctly\n- Each gallery shows title, photographer, client, and required selection count\n- Responsive grid columns adapt to screen size\n- Search and filter functionality works on all screen sizes\n- R2 is implemented: Responsive, local-first web app.\n- R47 is implemented: Explain the limit through accessible feedback.\n- R55 is implemented: With fewer than five, explain how many more are needed. Mouse or keyboard interaction must not submit.\n- R73 is implemented: Selected photos and notes, or empty state.\n- R75 is implemented: Respect reduced-motion preferences. Animation-off must leave all content and controls usable.\n- R76 is implemented: Keyboard access to every action.\n- R77 is implemented: Visible focus indicators and descriptive control names.\n- R78 is implemented: Modal confirmation dialogs prevent interaction with background page content.\n- R79 is implemented: Closing dialogs returns focus to the trigger when it still exists.\n- R80 is implemented: Selection feedback available to assistive technology.\n- R81 is implemented: Appropriate image alt text.\n- R82 is implemented: No hover-only controls or information.\n- R83 is implemented: No horizontal page overflow.\n- R84 is implemented: Adaptive grid columns.\n- R85 is implemented: Usable search and filters.\n- R86 is implemented: Detail images fit without hiding navigation or actions.\n- R87 is implemented: Accessible dialog content on small screens.\n- R88 is implemented: All actions available without hover.\n- R124 is implemented: Desktop and phone layouts reviewed.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nData owners (one each; no other file keeps a copy, including src/sim or a screen's own state): Galleries, Photos records are owned by src/app/store.ts (the one store, seeded from src/app/schema.ts); what the person saved is owned by src/app/store.ts, kept in this browser so it survives a reload. The PRD's Client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted) is one shared state owned by src/app/store.ts (Do not create separate copies of selection state in different screens.): every screen reads and changes it there, and it is kept in this browser under a namespaced key so it survives a reload.\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Find and inspect (Client; starts on Gallery; R89, R90, R91, R92, R93, R94, R95)\n1. Gallery: Search for 'WINDOW' → Window Light is the only result\n2. Photo Detail: Open Window Light and confirm title, category, and image match → Photo details displayed correctly\n3. Gallery: Return to Gallery and confirm search remains → Search term persists in input field\n4. Gallery: Clear search and select Outdoor category → Seven photos appear\nSuccess: Client successfully found and inspected photos using search and category filtering\nIf it goes wrong: Search or category filter not working correctly → Clear search, reload page, or check browser console for errors\n\n## Select, annotate, and persist (Client; starts on Gallery; R96, R97, R98, R99, R100, R101, R102, R103)\n1. Gallery: Open Golden Hour photo and add it to shortlist → Photo added to shortlist, count updates\n2. Photo Detail: Add note: 'Please soften the background' → Note saved locally without separate save button\n3. Gallery: Add four other photos to shortlist → Five photos selected, count updates\n4. Gallery: Attempt to add a sixth photo → Limit explained through accessible feedback, original five remain\n5. My Selection: Open My Selection and confirm same five records and note → Selection and notes displayed correctly\n6. Gallery: Reload page → Selection and note persist across reload\nSuccess: Client successfully selected, annotated, and persisted photos in shortlist\nIf it goes wrong: Selection limit not enforced or notes not persisted → Remove a photo to make room, then reload page to confirm persistence\n\n## Remove and replace (Client; starts on My Selection; R104, R106, R107, R108, R109)\n1. My Selection: Remove one photo from shortlist → Photo removed, count updates everywhere\n2. Gallery: Add a different photo to replace the removed one → New photo added, correct five in sample-data order\n3. Photo Detail: Reopen removed photo and confirm note remains → Previously saved note still attached to photo\nSuccess: Client successfully replaced a photo in shortlist while preserving notes\nIf it goes wrong: Photo removal doesn't update count or note not preserved → Re-add the photo, remove it again, and verify note persists\n\n## Submit and lock (Client; starts on My Selection; R110, R111, R112, R113, R114, R115, R116)\n1. My Selection: Attempt to submit with fewer than five photos → Submission blocked, explanation shown\n2. Gallery: Select exactly five photos → Five photos selected, submission enabled\n3. My Selection: Open submission dialog and cancel → Nothing changes, selection remains intact\n4. My Selection: Open submission dialog again and confirm submission → Submitted status, timestamp, and correct five photos displayed\n5. Gallery: Verify shortlist and note editing are locked across screens → No changes possible to selection or notes\n6. My Selection: Reload page → Submitted state remains locked\nSuccess: Client successfully submitted selection and verified it's locked\nIf it goes wrong: Submission allowed with fewer than five or state not locked after reload → Select exactly five photos, then submit again, and reload to confirm lock\n\n## Start over (Client; starts on My Selection; R117, R118, R119, R120, R121)\n1. My Selection: Open Start over dialog and cancel → All submitted data remains intact\n2. My Selection: Open Start over dialog again and confirm reset → Empty Draft selection and cleared notes\n3. Gallery: Reload page → Reset persists across reload\nSuccess: Client successfully started over from submitted state\nIf it goes wrong: Reset doesn't clear selection or notes properly → Manually clear selection, reload page, and verify reset works",
+        "dependsOn": [
+          "lrc_3"
+        ],
+        "expectedPaths": [
+          "src/screens/GalleryListScreen.tsx",
+          "src/acceptance/gallery-list-screen.test.tsx"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "lrc_4_tf",
+            "description": "The acceptance tests are written in src/acceptance/gallery-list-screen.test.tsx",
+            "check": {
+              "type": "file_exists",
+              "path": "src/acceptance/gallery-list-screen.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_4_tests",
+            "description": "The acceptance tests in src/acceptance/gallery-list-screen.test.tsx pass",
+            "check": {
+              "type": "verification",
+              "kind": "tests:src/acceptance/gallery-list-screen.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_4_tc",
+            "description": "The project still type-checks after this step",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck",
+          "tests"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "lrc_5",
+        "title": "Screens and navigation: My Selection Screen and 2 more",
+        "objective": "FIRST write the acceptance tests in src/acceptance/screens-and-navigation-my-selection-scre.test.tsx, then build until they pass. The step is done when `run_script \"test -- src/acceptance/screens-and-navigation-my-selection-scre.test.tsx\"` passes.\nTests (one `it` each):\n- Open My Selection screen → check that Title and selection status displayed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- View selected photos in My Selection → check that Selected photos with editing notes shown (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Check empty state of My Selection → check that Empty state message displayed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Attempt to submit with fewer than 5 photos → check that Submission button disabled with explanation (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Select 6 photos in My Selection → check that Selection limit exceeded message shown (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Select 3 photos in My Selection → check that Explanation showing 2 more photos needed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Try to submit with 4 photos selected → check that Submission prevented with validation message (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Attempt keyboard submission with insufficient selection → check that Submission prevented with validation message (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Click on photo in Gallery list → check that Navigate to Photo Detail screen (an outcome, not text: a screen or page name here says where the person is; check it by that page's own heading, record or controls, never by looking for these words)\n- View photo details in Photo Detail screen → check that Image source and alt text displayed (an outcome to verify through what the person sees: the record and its fields, what a list holds, a control's state or a dialog; not text to look for)\n- Use keyboard navigation to access photo detail → check that Photo Detail screen opens with focus on detail elements (an outcome, not text: a screen or page name here says where the person is; check it by that page's own heading, record or controls, never by looking for these words)\n- Resize browser window to mobile size → check that Photo Detail screen layout adapts to small screen (an outcome, not text: a screen or page name here says where the person is; check it by that page's own heading, record or controls, never by looking for these words)\nHow: screen behaviour renders the screen with render() from @testing-library/react and drives it with userEvent (clicks and keyboard; enter long text with user.click on the field then user.paste, because typing hundreds of characters one key at a time times out and leaves the screen behind for the next tests); logic imports the module and calls it; a file the app must ship (a manifest, a service worker, a stylesheet) is read with readFileSync(path.resolve(process.cwd(), 'src/…'), 'utf8') from node:fs and node:path, never with new URL(…, import.meta.url), which fails in the browser-like test environment. Layout, colour, size and orientation can't be measured in the test environment: check the DOM structure and the CSS rules the app ships (read src/styles/*.css with node:fs).\nFind elements the way a person sees the designed screen: getByRole with the accessible name of a control that's already there (an aria-label is fine for an icon button or a grid cell), getByText for content and messages. A test never requires visible text or controls the design doesn't need (a label on every empty item, a status line, a button repeated per item); check the state instead (the dialog opens, the item is in the list, the saved value is shown).\nWrite tests against the screen's real sample data: read it first (the app's records in src/app/schema.ts, through the store in src/app/store.ts) and use only names, categories, fields and options that exist there. A search test types part of a real item's name and expects that item, and expects an item without it to be gone; a filter test picks an option the data really has; an empty-state test first makes the list empty (search or filter for something that matches nothing, or render with no items) before expecting the empty message.\nEvery test exercises the app: never compare a value with itself or assert text you wrote into the test. Write every test out in full: never park one with it.todo, it.skip or xit (a parked test checks nothing, so the step isn't done while one is there). Don't weaken a test to make it pass: fix the app. But a test that contradicts the sample data or the requirement (it expects an item the search excludes, or a category the data doesn't have) is wrong: correct it to what the requirement means.\nBuild on what earlier steps made: list_files src first and import the existing modules (the calculation engine, the screen) instead of creating parallel ones with new names.\n\n---\n\n# My Selection Screen\n\n## Goal\nDisplay the client's photo selection with status, notes, and submission controls.\n\n## Context\nPRD section: Screens and navigation. This task implements these requirements (quoted from the PRD in spec/):\n- R16: My Selection, with the current shortlist count.\n- R72: Title and selection status.\n- R74: Selection progress and submission action.\n- R73: Selected photos and notes, or empty state.\n- R75: Respect reduced-motion preferences. Animation-off must leave all content and controls usable.\n- R76: Keyboard access to every action.\n- R77: Visible focus indicators and descriptive control names.\n- R78: Modal confirmation dialogs prevent interaction with background page content.\n- R79: Closing dialogs returns focus to the trigger when it still exists.\n- R80: Selection feedback available to assistive technology.\n- R81: Appropriate image alt text.\n- R82: No hover-only controls or information.\n- R83: No horizontal page overflow.\n- R84: Adaptive grid columns.\n- R85: Usable search and filters.\n- R86: Detail images fit without hiding navigation or actions.\n- R87: Accessible dialog content on small screens.\n- R88: All actions available without hover.\n- R124: Desktop and phone layouts reviewed.\nFiles: src/screens/MySelectionScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Create MySelectionScreen.tsx with a header showing title and selection status\n2. Add a section to display selected photos with their editing notes\n3. Implement empty state when no photos are selected\n4. Include submission action button with eligibility validation\n5. Add progress indicator showing selected count vs required count\n6. Ensure screen respects reduced-motion preferences and keyboard access\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: Open My Selection screen → check that Title and selection status displayed (an outcome, not text to look for)\n- Test: View selected photos in My Selection → check that Selected photos with editing notes shown (an outcome, not text to look for)\n- Test: Check empty state of My Selection → check that Empty state message displayed (an outcome, not text to look for)\n- Test: Attempt to submit with fewer than 5 photos → check that Submission button disabled with explanation (an outcome, not text to look for)\n- MySelectionScreen displays title and selection status correctly\n- Selected photos and notes are shown in the list\n- Empty state is displayed when no photos are selected\n- Submission button is enabled only when 5 photos are selected\n- R16 is implemented: My Selection, with the current shortlist count.\n- R72 is implemented: Title and selection status.\n- R74 is implemented: Selection progress and submission action.\n- R73 is implemented: Selected photos and notes, or empty state.\n- R75 is implemented: Respect reduced-motion preferences. Animation-off must leave all content and controls usable.\n- R76 is implemented: Keyboard access to every action.\n- R77 is implemented: Visible focus indicators and descriptive control names.\n- R78 is implemented: Modal confirmation dialogs prevent interaction with background page content.\n- R79 is implemented: Closing dialogs returns focus to the trigger when it still exists.\n- R80 is implemented: Selection feedback available to assistive technology.\n- R81 is implemented: Appropriate image alt text.\n- R82 is implemented: No hover-only controls or information.\n- R83 is implemented: No horizontal page overflow.\n- R84 is implemented: Adaptive grid columns.\n- R85 is implemented: Usable search and filters.\n- R86 is implemented: Detail images fit without hiding navigation or actions.\n- R87 is implemented: Accessible dialog content on small screens.\n- R88 is implemented: All actions available without hover.\n- R124 is implemented: Desktop and phone layouts reviewed.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# Selection Validation and Feedback\n\n## Goal\nProvide clear feedback when selection limits are exceeded or not met.\n\n## Context\nPRD section: R5 — Shortlist behavior. This task implements these requirements (quoted from the PRD in spec/):\n- R47: Explain the limit through accessible feedback.\n- R55: With fewer than five, explain how many more are needed. Mouse or keyboard interaction must not submit.\nFiles: src/screens/MySelectionScreen.tsx, src/app/store.ts.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Implement validation logic in store to track shortlist count\n2. Add accessible feedback for selection limit (5 photos)\n3. Display explanation when fewer than 5 photos are selected\n4. Prevent submission with mouse or keyboard interaction\n5. Ensure feedback is available to assistive technology\n6. Validate that reduced-motion preferences are respected\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: Select 6 photos in My Selection → check that Selection limit exceeded message shown (an outcome, not text to look for)\n- Test: Select 3 photos in My Selection → check that Explanation showing 2 more photos needed (an outcome, not text to look for)\n- Test: Try to submit with 4 photos selected → check that Submission prevented with validation message (an outcome, not text to look for)\n- Test: Attempt keyboard submission with insufficient selection → check that Submission prevented with validation message (an outcome, not text to look for)\n- Selection count is tracked and validated in store\n- Feedback message explains selection limit when exceeded\n- Explanation shows how many more photos needed when less than 5 selected\n- Submission action is prevented with mouse or keyboard interaction\n- R47 is implemented: Explain the limit through accessible feedback.\n- R55 is implemented: With fewer than five, explain how many more are needed. Mouse or keyboard interaction must not submit.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\n---\n\n# Photo Detail Screen Navigation\n\n## Goal\nAllow navigation to Photo Detail screen from Gallery list and My Selection.\n\n## Context\nPRD section: Journey B — Select, annotate, and persist. This task implements these requirements (quoted from the PRD in spec/):\n- R102: Open My Selection and confirm the same five records and note.\nFiles: src/screens/GalleryListScreen.tsx, src/screens/PhotoDetailScreen.tsx.\nStack: a React 19 + Vite + TypeScript starter (src/App.tsx, src/main.tsx, src/styles/tokens.css design tokens, ready-made building blocks in src/components/ui (AppShell, PageHeader, Section, Card, Button, Field, EmptyState, Skeleton, Stat, Badge, Notice, Dialog; styled by src/styles/components.css), src/lib/screens.ts useScreen() and useRoute()/linkTo() for screens, records and searches in the URL (#/orders/42?q=late), src/sim for simulated data kept in local storage (createCollection seeded collections, useCollection, useSavedState for single values, simulate() delays, searchItems(), resetDemoData()), motion from src/styles/components.css (screens animate in by themselves; className ui-stagger on a list, ui-pop on a value that just changed; --duration-* and --ease-* tokens), vitest with a browser page (jsdom, @testing-library/react and user-event) for src/**/*.test.ts and *.test.tsx). Read the existing code and conventions before changing anything. Use the design tokens in src/styles/tokens.css and the building blocks in src/components/ui where they exist; add no new dependencies and do not restyle unrelated code.\n\n## Steps\n1. Add photo detail link in GalleryListScreen for each photo\n2. Implement PhotoDetailScreen to display photo details\n3. Ensure photo detail screen shows image source and alt text\n4. Validate that navigation respects responsive behavior\n5. Confirm keyboard access to all navigation elements\n6. Verify focus indicators are visible on navigation controls\n\n## Constraints\n- Use names, labels, keys and routes exactly as the PRD writes them.\n- Build only these requirements; other tasks cover the rest of the PRD.\n- Use the building blocks in src/components/ui and the design tokens; no new dependencies.\n- Fit this feature into the screen's existing design: use its header action, toolbar, dialogs and the items themselves (clicking a row or a day opens it). Don't add a control or label to every item, helper or status text, or a second control for something already on screen; a requirement is met by behaviour, not by extra words on screen. Leave the building blocks in src/components/ui as they are: when a test fails around one, the cause is in the screen or the test setup (src/test/setup.ts), not the block.\n- This is a prototype: no backend, server code or real external calls; simulate data and services with src/sim, link screens and records with src/lib/screens.ts.\n- Do not touch unrelated code, data or settings.\n\n## Acceptance criteria\n- Test: Click on photo in Gallery list → check that Navigate to Photo Detail screen (an outcome, not text to look for)\n- Test: View photo details in Photo Detail screen → check that Image source and alt text displayed (an outcome, not text to look for)\n- Test: Use keyboard navigation to access photo detail → check that Photo Detail screen opens with focus on detail elements (an outcome, not text to look for)\n- Test: Resize browser window to mobile size → check that Photo Detail screen layout adapts to small screen (an outcome, not text to look for)\n- Gallery list links navigate to Photo Detail screen\n- PhotoDetailScreen displays photo details correctly\n- Image source and alt text are shown in detail view\n- Navigation is responsive across device sizes\n- R102 is implemented: Open My Selection and confirm the same five records and note.\n- npm run typecheck passes\n- npm run lint passes\n- npm test passes\n- npm run build passes\n\n## Report back\nFiles changed, evidence for each acceptance criterion (check names, command output or file and line), and anything you did not do.\n\n\nData owners (one each; no other file keeps a copy, including src/sim or a screen's own state): Galleries, Photos records are owned by src/app/store.ts (the one store, seeded from src/app/schema.ts); what the person saved is owned by src/app/store.ts, kept in this browser so it survives a reload. The PRD's Client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted) is one shared state owned by src/app/store.ts (Do not create separate copies of selection state in different screens.): every screen reads and changes it there, and it is kept in this browser under a namespaced key so it survives a reload.\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Find and inspect (Client; starts on Gallery; R89, R90, R91, R92, R93, R94, R95)\n1. Gallery: Search for 'WINDOW' → Window Light is the only result\n2. Photo Detail: Open Window Light and confirm title, category, and image match → Photo details displayed correctly\n3. Gallery: Return to Gallery and confirm search remains → Search term persists in input field\n4. Gallery: Clear search and select Outdoor category → Seven photos appear\nSuccess: Client successfully found and inspected photos using search and category filtering\nIf it goes wrong: Search or category filter not working correctly → Clear search, reload page, or check browser console for errors\n\n## Select, annotate, and persist (Client; starts on Gallery; R96, R97, R98, R99, R100, R101, R102, R103)\n1. Gallery: Open Golden Hour photo and add it to shortlist → Photo added to shortlist, count updates\n2. Photo Detail: Add note: 'Please soften the background' → Note saved locally without separate save button\n3. Gallery: Add four other photos to shortlist → Five photos selected, count updates\n4. Gallery: Attempt to add a sixth photo → Limit explained through accessible feedback, original five remain\n5. My Selection: Open My Selection and confirm same five records and note → Selection and notes displayed correctly\n6. Gallery: Reload page → Selection and note persist across reload\nSuccess: Client successfully selected, annotated, and persisted photos in shortlist\nIf it goes wrong: Selection limit not enforced or notes not persisted → Remove a photo to make room, then reload page to confirm persistence\n\n## Remove and replace (Client; starts on My Selection; R104, R106, R107, R108, R109)\n1. My Selection: Remove one photo from shortlist → Photo removed, count updates everywhere\n2. Gallery: Add a different photo to replace the removed one → New photo added, correct five in sample-data order\n3. Photo Detail: Reopen removed photo and confirm note remains → Previously saved note still attached to photo\nSuccess: Client successfully replaced a photo in shortlist while preserving notes\nIf it goes wrong: Photo removal doesn't update count or note not preserved → Re-add the photo, remove it again, and verify note persists\n\n## Submit and lock (Client; starts on My Selection; R110, R111, R112, R113, R114, R115, R116)\n1. My Selection: Attempt to submit with fewer than five photos → Submission blocked, explanation shown\n2. Gallery: Select exactly five photos → Five photos selected, submission enabled\n3. My Selection: Open submission dialog and cancel → Nothing changes, selection remains intact\n4. My Selection: Open submission dialog again and confirm submission → Submitted status, timestamp, and correct five photos displayed\n5. Gallery: Verify shortlist and note editing are locked across screens → No changes possible to selection or notes\n6. My Selection: Reload page → Submitted state remains locked\nSuccess: Client successfully submitted selection and verified it's locked\nIf it goes wrong: Submission allowed with fewer than five or state not locked after reload → Select exactly five photos, then submit again, and reload to confirm lock\n\n## Start over (Client; starts on My Selection; R117, R118, R119, R120, R121)\n1. My Selection: Open Start over dialog and cancel → All submitted data remains intact\n2. My Selection: Open Start over dialog again and confirm reset → Empty Draft selection and cleared notes\n3. Gallery: Reload page → Reset persists across reload\nSuccess: Client successfully started over from submitted state\nIf it goes wrong: Reset doesn't clear selection or notes properly → Manually clear selection, reload page, and verify reset works",
+        "dependsOn": [
+          "lrc_4"
+        ],
+        "expectedPaths": [
+          "src/screens/MySelectionScreen.tsx",
+          "src/app/store.ts",
+          "src/screens/GalleryListScreen.tsx",
+          "src/screens/PhotoDetailScreen.tsx",
+          "src/acceptance/screens-and-navigation-my-selection-scre.test.tsx"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "lrc_5_tf",
+            "description": "The acceptance tests are written in src/acceptance/screens-and-navigation-my-selection-scre.test.tsx",
+            "check": {
+              "type": "file_exists",
+              "path": "src/acceptance/screens-and-navigation-my-selection-scre.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_5_tests",
+            "description": "The acceptance tests in src/acceptance/screens-and-navigation-my-selection-scre.test.tsx pass",
+            "check": {
+              "type": "verification",
+              "kind": "tests:src/acceptance/screens-and-navigation-my-selection-scre.test.tsx"
+            }
+          },
+          {
+            "id": "lrc_5_tc",
+            "description": "The project still type-checks after this step",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck",
+          "tests"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "polish",
+        "title": "Design polish",
+        "objective": "Polish the whole app as one product, to the standard of a studio portfolio, without changing what it does (follow the art-direction skill and the concept the screens were designed to, then the design-system and micro-feedback skills). Open every screen at desktop and phone width and fix:\n- Imagery: a screen that would look better with a real photo (a bare hero, item cards with no picture) gets one from find_image; check every image loads and has alt text, and that CC BY photos are credited.\n- Template leftovers: generic marketing copy, feature checklists or sections the spec doesn't ask for; every screen should look made for this app.\n- Clutter the feature steps added: a control or label repeated on every item, helper or status text the user doesn't need, two controls for the same thing. Merge them into the screen's header action, toolbar or the item itself.\n- Hierarchy: one title and one primary action per screen; consistent spacing from the spacing tokens; related controls grouped; secondary settings moved out of the main view.\n- Consistency with the Styles page: colours, type, corners and surfaces only from src/styles/tokens.css; the same building block for the same job everywhere.\n- Motion and feedback: screens use ui-screen, lists ui-stagger, dialogs and new items ui-pop; every button and row has hover, press and focus states; saving shows brief feedback.\n- Sample data shows on every screen that lists something.\nKeep every accessible name and role the acceptance tests use (getByRole names), so the tests still pass; run the full test suite before you finish.\n\nThe PRD's visual direction (follow it; exact colours, fonts and sizes come only from the selected Look on the Styles page, never invented): \"Editorial contact sheet\": Warm off-white background; Near-black text; Muted cobalt accent for primary actions and selected states; Fine borders and restrained corner rounding; Generous whitespace and clear typographic hierarchy; Minimal chrome around photography; Use available fonts and assets. Add no font package; Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, and excessive badges or repeated instructions; balanced motion, expressive effects off.\n\nUser journeys this prototype must support end to end (the screens link so each can be completed, with the same sample data throughout):\n\n## Find and inspect (Client; starts on Gallery; R89, R90, R91, R92, R93, R94, R95)\n1. Gallery: Search for 'WINDOW' → Window Light is the only result\n2. Photo Detail: Open Window Light and confirm title, category, and image match → Photo details displayed correctly\n3. Gallery: Return to Gallery and confirm search remains → Search term persists in input field\n4. Gallery: Clear search and select Outdoor category → Seven photos appear\nSuccess: Client successfully found and inspected photos using search and category filtering\nIf it goes wrong: Search or category filter not working correctly → Clear search, reload page, or check browser console for errors\n\n## Select, annotate, and persist (Client; starts on Gallery; R96, R97, R98, R99, R100, R101, R102, R103)\n1. Gallery: Open Golden Hour photo and add it to shortlist → Photo added to shortlist, count updates\n2. Photo Detail: Add note: 'Please soften the background' → Note saved locally without separate save button\n3. Gallery: Add four other photos to shortlist → Five photos selected, count updates\n4. Gallery: Attempt to add a sixth photo → Limit explained through accessible feedback, original five remain\n5. My Selection: Open My Selection and confirm same five records and note → Selection and notes displayed correctly\n6. Gallery: Reload page → Selection and note persist across reload\nSuccess: Client successfully selected, annotated, and persisted photos in shortlist\nIf it goes wrong: Selection limit not enforced or notes not persisted → Remove a photo to make room, then reload page to confirm persistence\n\n## Remove and replace (Client; starts on My Selection; R104, R106, R107, R108, R109)\n1. My Selection: Remove one photo from shortlist → Photo removed, count updates everywhere\n2. Gallery: Add a different photo to replace the removed one → New photo added, correct five in sample-data order\n3. Photo Detail: Reopen removed photo and confirm note remains → Previously saved note still attached to photo\nSuccess: Client successfully replaced a photo in shortlist while preserving notes\nIf it goes wrong: Photo removal doesn't update count or note not preserved → Re-add the photo, remove it again, and verify note persists\n\n## Submit and lock (Client; starts on My Selection; R110, R111, R112, R113, R114, R115, R116)\n1. My Selection: Attempt to submit with fewer than five photos → Submission blocked, explanation shown\n2. Gallery: Select exactly five photos → Five photos selected, submission enabled\n3. My Selection: Open submission dialog and cancel → Nothing changes, selection remains intact\n4. My Selection: Open submission dialog again and confirm submission → Submitted status, timestamp, and correct five photos displayed\n5. Gallery: Verify shortlist and note editing are locked across screens → No changes possible to selection or notes\n6. My Selection: Reload page → Submitted state remains locked\nSuccess: Client successfully submitted selection and verified it's locked\nIf it goes wrong: Submission allowed with fewer than five or state not locked after reload → Select exactly five photos, then submit again, and reload to confirm lock\n\n## Start over (Client; starts on My Selection; R117, R118, R119, R120, R121)\n1. My Selection: Open Start over dialog and cancel → All submitted data remains intact\n2. My Selection: Open Start over dialog again and confirm reset → Empty Draft selection and cleared notes\n3. Gallery: Reload page → Reset persists across reload\nSuccess: Client successfully started over from submitted state\nIf it goes wrong: Reset doesn't clear selection or notes properly → Manually clear selection, reload page, and verify reset works\n\nScreen briefs (locked: build every section with its part; if one truly doesn't fit, record the change with propose_layout_change and its reason, never leave it out quietly): design each screen to its brief, from the person's side. The top of the screen shows what they must see first (not a generic title over a list); the sections come in this order, each built from its catalog part (add_library_piece with the ID when it isn't in the app yet), filled with the spec's real content.\n\n## My Selection\nPage type: Other (a job none of the types above describes). Not on this page: marketing heroes, pricing, testimonials, logo clouds or newsletter sign-ups; a second search bar when the app already has one.\nFor: Demo client: Maya Chen. User need: “I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the pho. Goal: Review shortlisted photos, edit notes, submit selection.\nWorkflow: 1. View selected photos in list with notes 2. Edit or remove photos from shortlist 3. Submit selection when ready 4. Confirm submission is locked after submission 5. Start over if needed\nFirst view (without scrolling): Shortlisted photo count and list of selected photos\nMain action: Submit selection or start over\nSections, top to bottom:\n1. Selection Summary: To show the number of selected photos and submission status. [c.badge]\n2. Selected Photos: To display selected photos with notes in a list. [c.list-row]\n3. Actions: To provide submit and start over actions. [c.button]\nStates: loading: Shows skeleton placeholders while loading selection data; empty: Displays empty state with message 'No photos selected yet'; error: Shows error alert with message 'Failed to load selection'; success: Displays selected photos and submission controls\nOn a phone: List adjusts to single column on mobile, buttons stack vertically; one column at phone width\nAccessibility: Keyboard navigation through list items and actions, screen reader labels for all interactive elements\nMust satisfy: R104, R106, R107, R108, R109, R110, R111, R112, R113, R114, R115, R116, R117, R118, R119, R120, R121",
+        "dependsOn": [
+          "lrc_5"
+        ],
+        "expectedPaths": [
+          "src/screens/",
+          "src/styles/",
+          "src/components/"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "p1",
+            "description": "Every acceptance test still passes",
+            "check": {
+              "type": "verification",
+              "kind": "tests"
+            }
+          },
+          {
+            "id": "p2",
+            "description": "Typecheck passes",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck",
+          "tests"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "cleanup",
+        "title": "Clean up the code",
+        "objective": "Remove what the build left behind, without changing what the app does or how it looks. FlowCode's clean-up scan (below, with the step) lists what nothing uses:\n- files under src/ that nothing imports: confirm with search_code that nothing refers to each one, then delete it;\n- scratch files in the project root (test results, logs, dumps): delete them;\n- debug calls (console.log, console.debug, debugger): remove them;\n- CSS classes no source file uses: remove those rules, keeping any class built from parts at run time.\nChange nothing else: keep the starter kit's building blocks, every test, the tests' accessible names, and the Styles page's tokens. Run the whole test suite and the type check before you finish.",
+        "dependsOn": [
+          "polish"
+        ],
+        "expectedPaths": [
+          "src/"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "cu1",
+            "description": "Nothing unused is left (files, root scratch files, debug calls)",
+            "check": {
+              "type": "verification",
+              "kind": "code_cleanup"
+            }
+          },
+          {
+            "id": "cu2",
+            "description": "Every acceptance test still passes",
+            "check": {
+              "type": "verification",
+              "kind": "tests"
+            }
+          },
+          {
+            "id": "cu3",
+            "description": "Typecheck passes",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck",
+          "tests"
+        ],
+        "role": "coder"
+      },
+      {
+        "key": "m_assemble",
+        "title": "Assemble the app: wire every page and component into App.tsx",
+        "objective": "Finish the app in src/App.tsx: every screen that was built is reachable and shown once in its main area (never the same screen twice): the main screens from the app shell's navigation, a record's own page from the list or result that opens it (never a navigation link), each component that was created is used inside its screen so nothing is left unused, and no starter or placeholder text remains. The first screen must be usable with real, keyboard-reachable controls. Keep existing components; compose them rather than rewriting them.\n\nThen write src/acceptance/journeys.test.tsx: one test per user journey below, each rendering <App /> (Testing Library, userEvent) from its entry screen and doing its steps in order through the real navigation (menu links, buttons, row links), checking after each step that the screen shows its result. Where a journey opens one record from a list, check the detail screen shows that same record (its name from the list), and that Back returns to the list. Use the app's own sample data; no mocks of the app's screens.\n- \"Find and inspect\": starts on Gallery; Gallery: Search for 'WINDOW' → Window Light is the only result; Photo Detail: Open Window Light and confirm title, category, and image match → Photo details displayed correctly; Gallery: Return to Gallery and confirm search remains → Search term persists in input field; Gallery: Clear search and select Outdoor category → Seven photos appear; success: Client successfully found and inspected photos using search and category filtering\n- \"Select, annotate, and persist\": starts on Gallery; Gallery: Open Golden Hour photo and add it to shortlist → Photo added to shortlist, count updates; Photo Detail: Add note: 'Please soften the background' → Note saved locally without separate save button; Gallery: Add four other photos to shortlist → Five photos selected, count updates; Gallery: Attempt to add a sixth photo → Limit explained through accessible feedback, original five remain; My Selection: Open My Selection and confirm same five records and note → Selection and notes displayed correctly; Gallery: Reload page → Selection and note persist across reload; success: Client successfully selected, annotated, and persisted photos in shortlist\n- \"Remove and replace\": starts on My Selection; My Selection: Remove one photo from shortlist → Photo removed, count updates everywhere; Gallery: Add a different photo to replace the removed one → New photo added, correct five in sample-data order; Photo Detail: Reopen removed photo and confirm note remains → Previously saved note still attached to photo; success: Client successfully replaced a photo in shortlist while preserving notes\n- \"Submit and lock\": starts on My Selection; My Selection: Attempt to submit with fewer than five photos → Submission blocked, explanation shown; Gallery: Select exactly five photos → Five photos selected, submission enabled; My Selection: Open submission dialog and cancel → Nothing changes, selection remains intact; My Selection: Open submission dialog again and confirm submission → Submitted status, timestamp, and correct five photos displayed; Gallery: Verify shortlist and note editing are locked across screens → No changes possible to selection or notes; My Selection: Reload page → Submitted state remains locked; success: Client successfully submitted selection and verified it's locked\n- \"Start over\": starts on My Selection; My Selection: Open Start over dialog and cancel → All submitted data remains intact; My Selection: Open Start over dialog again and confirm reset → Empty Draft selection and cleared notes; Gallery: Reload page → Reset persists across reload; success: Client successfully started over from submitted state",
+        "dependsOn": [
+          "cleanup"
+        ],
+        "expectedPaths": [
+          "src/App.tsx",
+          "src/",
+          "src/acceptance/journeys.test.tsx"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "asm_wire",
+            "description": "Every page and component is reachable from the app's entry point and the starter placeholder is gone",
+            "check": {
+              "type": "verification",
+              "kind": "app_wiring"
+            }
+          },
+          {
+            "id": "asm_tc",
+            "description": "Typecheck passes",
+            "check": {
+              "type": "verification",
+              "kind": "typecheck"
+            }
+          },
+          {
+            "id": "asm_journeys_file",
+            "description": "The user-journey tests are written in src/acceptance/journeys.test.tsx",
+            "check": {
+              "type": "file_exists",
+              "path": "src/acceptance/journeys.test.tsx"
+            }
+          },
+          {
+            "id": "asm_journeys",
+            "description": "Every user journey can be clicked through end to end (its test passes)",
+            "check": {
+              "type": "verification",
+              "kind": "tests:src/acceptance/journeys.test.tsx"
+            }
+          }
+        ],
+        "verification": [
+          "typecheck"
+        ],
+        "role": "coder"
+      }
+    ],
+    "classification": {
+      "primary": "feature_spec",
+      "label": "Feature that needs a spec",
+      "concepts": [
+        "Parallax or scroll story"
+      ],
+      "skills": [
+        "skill.scroll-motion-parallax",
+        "skill.database-backed-feature",
+        "skill.audit-accessibility",
+        "skill.ux-design-principles",
+        "skill.app-layout-navigation",
+        "skill.visual-qa-verification"
+      ],
+      "prompts": [
+        "plan-new-feature",
+        "parallax-scroll"
+      ],
+      "specNeeded": true,
+      "specAttached": true,
+      "note": "Built to the attached spec.",
+      "words": 10
+    },
+    "compliance": [
+      {
+        "id": 1,
+        "kind": "structural",
+        "hard": false,
+        "label": "Scope: required behaviour, supporting data and left-out capabilities agree in every step",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 2,
+        "kind": "structural",
+        "hard": false,
+        "label": "Home: a product-discovery page, no marketing funnel",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 3,
+        "kind": "structural",
+        "hard": false,
+        "label": "Tests: what a person sees, not internal names or placeholder phrases",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 4,
+        "kind": "structural",
+        "hard": false,
+        "label": "Save journey: complete, with its starting sign-in state",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 5,
+        "kind": "structural",
+        "hard": false,
+        "label": "Data owners: one for records, one for saved state",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 6,
+        "kind": "structural",
+        "hard": false,
+        "label": "Look: stated as selected, proposed or none; no implied design approval",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 7,
+        "kind": "compliance",
+        "hard": true,
+        "label": "Required records: the PRD's explicit records, as given",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 8,
+        "kind": "compliance",
+        "hard": true,
+        "label": "Navigation: the PRD's declared destinations only",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 9,
+        "kind": "compliance",
+        "hard": true,
+        "label": "Excluded capabilities: nothing the PRD rules out",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 10,
+        "kind": "compliance",
+        "hard": true,
+        "label": "Runtime state: the PRD's state, one shared owner",
+        "ok": true,
+        "problems": []
+      },
+      {
+        "id": 11,
+        "kind": "compliance",
+        "hard": true,
+        "label": "Acceptance tests agree with the PRD's records",
+        "ok": false,
+        "problems": [
+          "\"enter 'Outdoor' in search field → photos matching Outdoor category are displayed\": \"Outdoor\" is a photo category, not a title the search matches",
+          "\"select 'Nature' from category dropdown → only Nature category photos appear in grid\": \"Nature\" isn't one of the category options (outdoor, studio)"
+        ]
+      },
+      {
+        "id": 12,
+        "kind": "compliance",
+        "hard": true,
+        "label": "Look: the PRD's visual direction, no invented exact values",
+        "ok": true,
+        "problems": []
+      }
+    ]
+  },
+  "planApproved": false,
+  "constraints": [],
+  "createdAt": "2026-10-18T13:47:57.618Z",
+  "attachedKnowledgeIds": [
+    "kn_7334842ae7904fa49d2b"
+  ],
+  "referencePaths": []
+}

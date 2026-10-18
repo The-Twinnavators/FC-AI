@@ -1,0 +1,347 @@
+{
+  "runId": "run_5183234fc4e84cceac86",
+  "status": "awaiting_approval",
+  "finished": false,
+  "startedAt": "2026-10-18T13:47:57.621Z",
+  "endedAt": "2026-10-18T13:55:18.452Z",
+  "elapsedMs": 440831,
+  "waitingMs": 22771,
+  "stoppedMs": {
+    "paused": 0,
+    "maintenance": 0,
+    "queued": 0,
+    "recovering": 0,
+    "blocked": 0,
+    "orphaned": 0
+  },
+  "recovery": {
+    "steps": 0,
+    "verified": 0,
+    "firstPass": 0,
+    "corrections": {
+      "attempts": 0,
+      "resolved": 0
+    },
+    "escalations": {
+      "total": 0,
+      "byCause": {}
+    },
+    "debuggerAttempts": 0,
+    "recoveryMs": 0,
+    "regressions": 0
+  },
+  "phases": [
+    {
+      "phase": "planning",
+      "ms": 418042
+    }
+  ],
+  "busy": {
+    "modelMs": 417215,
+    "commandMs": 0,
+    "toolMs": 0,
+    "checkMs": 0
+  },
+  "model": {
+    "calls": 11,
+    "failed": 0,
+    "retries": 0,
+    "totalMs": 417215,
+    "hasTiming": true,
+    "loadMs": 19178,
+    "promptMs": 21311,
+    "generateMs": 375595,
+    "promptTokens": 26884,
+    "outputTokens": 14514,
+    "coldLoads": 1,
+    "switches": 0,
+    "avgPromptChars": 9402,
+    "maxPromptChars": 23438,
+    "byModel": [
+      {
+        "model": "qwen3-coder:30b",
+        "roles": [
+          "planner"
+        ],
+        "calls": 11,
+        "totalMs": 417215,
+        "loadMs": 19178,
+        "promptMs": 21311,
+        "generateMs": 375595,
+        "outputTokens": 14514,
+        "coldLoads": 1
+      }
+    ],
+    "tokensPerSec": 38.6
+  },
+  "commands": {
+    "count": 0,
+    "failed": 0,
+    "totalMs": 0
+  },
+  "tools": {
+    "count": 0,
+    "totalMs": 0,
+    "byName": []
+  },
+  "tasks": [
+    {
+      "id": "task_770830f269ab466fab54",
+      "title": "Scaffold from verified starter template",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_944ea7f9d8974fd8b59c",
+      "title": "Install dependencies (approved)",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_dfe20c3167734d63b4b3",
+      "title": "Import spec references",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_96204a39b6ef47e0aac0",
+      "title": "Capture the style",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_b8414453b7cc4f2f9dfb",
+      "title": "Review the prototype plan and the design",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_a6166e16f6394172b289",
+      "title": "Add library sections",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_446fe571171e4d95800c",
+      "title": "Write the complete app",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_499e5ea95edc4443a96f",
+      "title": "Design the main screens",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_3102495577d84042ad50",
+      "title": "User and context: Gallery List Screen and 4 more",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_ec96d68b97974999998f",
+      "title": "R5 — Shortlist behavior: Photo Shortlisting with Selection Limits and 2 more",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_152395756e544b8c99d4",
+      "title": "Client Selection State Management, Photo Selection Limit Enforcement",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_b868b463ab5847e89144",
+      "title": "Gallery List Screen",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_ad9043da76564db79f5b",
+      "title": "Screens and navigation: My Selection Screen and 2 more",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_5a44405d1fc24004a92a",
+      "title": "Design polish",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_243997402293469b8a44",
+      "title": "Clean up the code",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    },
+    {
+      "id": "task_330ded17b9414005bb2d",
+      "title": "Assemble the app: wire every page and component into App.tsx",
+      "status": "pending",
+      "attempts": 0,
+      "elapsedMs": 0,
+      "modelMs": 0,
+      "modelCalls": 0,
+      "commandMs": 0,
+      "toolCalls": 0,
+      "avgPromptChars": 0
+    }
+  ],
+  "checks": [],
+  "slowest": [
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 86599
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b (loaded the model first)",
+      "ms": 58243
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 48151
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 46001
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 44840
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 41863
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 35103
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 32886
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 17537
+    },
+    {
+      "kind": "model",
+      "label": "planner · qwen3-coder:30b",
+      "ms": 3996
+    }
+  ],
+  "notes": [
+    "Most of the working time went to the AI model: 7 min of 7 min (100%).",
+    "Writing replies took 6.3 min (90% of model time) at about 38.6 tokens per second."
+  ],
+  "designPath": {
+    "researchMs": 0,
+    "designStepsMs": 0,
+    "designModelMs": 0,
+    "designModelCalls": 0,
+    "verificationMs": 0,
+    "planApprovalWaitMs": 22791,
+    "stepApprovalWaitMs": 0
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "product": "Frameproof",
+  "screens": [
+    {
+      "id": "gallery-list",
+      "label": "Gallery",
+      "component": "GalleryListScreen",
+      "file": "src/screens/GalleryListScreen.tsx",
+      "purpose": "Gallery: the every record, to find and act on"
+    },
+    {
+      "id": "photo-detail",
+      "label": "Photo Detail",
+      "component": "PhotoDetailScreen",
+      "file": "src/screens/PhotoDetailScreen.tsx",
+      "purpose": "Photo Detail: the one record, its status and history"
+    },
+    {
+      "id": "my-selection",
+      "label": "My Selection",
+      "component": "MySelectionScreen",
+      "file": "src/screens/MySelectionScreen.tsx",
+      "purpose": "My Selection: the client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted)"
+    }
+  ]
+}

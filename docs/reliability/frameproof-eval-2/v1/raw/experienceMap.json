@@ -1,0 +1,252 @@
+{
+  "roles": [
+    {
+      "name": "Client",
+      "goals": [
+        "Compare photos from the gallery",
+        "Choose exactly five favorites",
+        "Leave editing notes on selected photos",
+        "Submit the final selection confidently"
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "id": "w1",
+      "name": "Find and inspect",
+      "role": "Client",
+      "entry": "Gallery",
+      "steps": [
+        {
+          "screen": "Gallery",
+          "action": "Search for 'WINDOW'",
+          "result": "Window Light is the only result"
+        },
+        {
+          "screen": "Photo Detail",
+          "action": "Open Window Light and confirm title, category, and image match",
+          "result": "Photo details displayed correctly"
+        },
+        {
+          "screen": "Gallery",
+          "action": "Return to Gallery and confirm search remains",
+          "result": "Search term persists in input field"
+        },
+        {
+          "screen": "Gallery",
+          "action": "Clear search and select Outdoor category",
+          "result": "Seven photos appear"
+        }
+      ],
+      "success": "Client successfully found and inspected photos using search and category filtering",
+      "failure": "Search or category filter not working correctly",
+      "recovery": "Clear search, reload page, or check browser console for errors",
+      "requirementIds": [
+        "R89",
+        "R90",
+        "R91",
+        "R92",
+        "R93",
+        "R94",
+        "R95"
+      ]
+    },
+    {
+      "id": "w2",
+      "name": "Select, annotate, and persist",
+      "role": "Client",
+      "entry": "Gallery",
+      "steps": [
+        {
+          "screen": "Gallery",
+          "action": "Open Golden Hour photo and add it to shortlist",
+          "result": "Photo added to shortlist, count updates"
+        },
+        {
+          "screen": "Photo Detail",
+          "action": "Add note: 'Please soften the background'",
+          "result": "Note saved locally without separate save button"
+        },
+        {
+          "screen": "Gallery",
+          "action": "Add four other photos to shortlist",
+          "result": "Five photos selected, count updates"
+        },
+        {
+          "screen": "Gallery",
+          "action": "Attempt to add a sixth photo",
+          "result": "Limit explained through accessible feedback, original five remain"
+        },
+        {
+          "screen": "My Selection",
+          "action": "Open My Selection and confirm same five records and note",
+          "result": "Selection and notes displayed correctly"
+        },
+        {
+          "screen": "Gallery",
+          "action": "Reload page",
+          "result": "Selection and note persist across reload"
+        }
+      ],
+      "success": "Client successfully selected, annotated, and persisted photos in shortlist",
+      "failure": "Selection limit not enforced or notes not persisted",
+      "recovery": "Remove a photo to make room, then reload page to confirm persistence",
+      "requirementIds": [
+        "R96",
+        "R97",
+        "R98",
+        "R99",
+        "R100",
+        "R101",
+        "R102",
+        "R103"
+      ]
+    },
+    {
+      "id": "w3",
+      "name": "Remove and replace",
+      "role": "Client",
+      "entry": "My Selection",
+      "steps": [
+        {
+          "screen": "My Selection",
+          "action": "Remove one photo from shortlist",
+          "result": "Photo removed, count updates everywhere"
+        },
+        {
+          "screen": "Gallery",
+          "action": "Add a different photo to replace the removed one",
+          "result": "New photo added, correct five in sample-data order"
+        },
+        {
+          "screen": "Photo Detail",
+          "action": "Reopen removed photo and confirm note remains",
+          "result": "Previously saved note still attached to photo"
+        }
+      ],
+      "success": "Client successfully replaced a photo in shortlist while preserving notes",
+      "failure": "Photo removal doesn't update count or note not preserved",
+      "recovery": "Re-add the photo, remove it again, and verify note persists",
+      "requirementIds": [
+        "R104",
+        "R106",
+        "R107",
+        "R108",
+        "R109"
+      ]
+    },
+    {
+      "id": "w4",
+      "name": "Submit and lock",
+      "role": "Client",
+      "entry": "My Selection",
+      "steps": [
+        {
+          "screen": "My Selection",
+          "action": "Attempt to submit with fewer than five photos",
+          "result": "Submission blocked, explanation shown"
+        },
+        {
+          "screen": "Gallery",
+          "action": "Select exactly five photos",
+          "result": "Five photos selected, submission enabled"
+        },
+        {
+          "screen": "My Selection",
+          "action": "Open submission dialog and cancel",
+          "result": "Nothing changes, selection remains intact"
+        },
+        {
+          "screen": "My Selection",
+          "action": "Open submission dialog again and confirm submission",
+          "result": "Submitted status, timestamp, and correct five photos displayed"
+        },
+        {
+          "screen": "Gallery",
+          "action": "Verify shortlist and note editing are locked across screens",
+          "result": "No changes possible to selection or notes"
+        },
+        {
+          "screen": "My Selection",
+          "action": "Reload page",
+          "result": "Submitted state remains locked"
+        }
+      ],
+      "success": "Client successfully submitted selection and verified it's locked",
+      "failure": "Submission allowed with fewer than five or state not locked after reload",
+      "recovery": "Select exactly five photos, then submit again, and reload to confirm lock",
+      "requirementIds": [
+        "R110",
+        "R111",
+        "R112",
+        "R113",
+        "R114",
+        "R115",
+        "R116"
+      ]
+    },
+    {
+      "id": "w5",
+      "name": "Start over",
+      "role": "Client",
+      "entry": "My Selection",
+      "steps": [
+        {
+          "screen": "My Selection",
+          "action": "Open Start over dialog and cancel",
+          "result": "All submitted data remains intact"
+        },
+        {
+          "screen": "My Selection",
+          "action": "Open Start over dialog again and confirm reset",
+          "result": "Empty Draft selection and cleared notes"
+        },
+        {
+          "screen": "Gallery",
+          "action": "Reload page",
+          "result": "Reset persists across reload"
+        }
+      ],
+      "success": "Client successfully started over from submitted state",
+      "failure": "Reset doesn't clear selection or notes properly",
+      "recovery": "Manually clear selection, reload page, and verify reset works",
+      "requirementIds": [
+        "R117",
+        "R118",
+        "R119",
+        "R120",
+        "R121"
+      ]
+    }
+  ],
+  "data": [
+    {
+      "entity": "Photo",
+      "fields": [
+        "ID",
+        "Title",
+        "Category",
+        "Image URL",
+        "Description"
+      ],
+      "screens": [
+        "Gallery",
+        "Photo Detail"
+      ]
+    },
+    {
+      "entity": "Client Selection State",
+      "fields": [
+        "Shortlisted photo IDs",
+        "Editing note per photo",
+        "Selection status: Draft or Submitted",
+        "Submission timestamp, when submitted"
+      ],
+      "screens": [
+        "Gallery",
+        "My Selection"
+      ]
+    }
+  ],
+  "permissions": []
+}

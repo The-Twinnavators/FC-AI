@@ -1,0 +1,103 @@
+{
+  "capabilities": [
+    {
+      "capability": "categories",
+      "status": "in scope",
+      "source": "prd",
+      "quote": "Category filters"
+    },
+    {
+      "capability": "places",
+      "status": "not requested",
+      "source": "not asked for"
+    },
+    {
+      "capability": "lists",
+      "status": "not requested",
+      "source": "not asked for"
+    },
+    {
+      "capability": "ratings",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "- Ratings or social comments."
+    },
+    {
+      "capability": "comments",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "- Ratings or social comments."
+    },
+    {
+      "capability": "sharing",
+      "status": "deferred",
+      "source": "prd non-goals",
+      "quote": "- Public sharing."
+    },
+    {
+      "capability": "likes",
+      "status": "in scope",
+      "source": "prd",
+      "quote": "like"
+    }
+  ],
+  "revisions": [],
+  "noMarketing": false,
+  "navigation": [
+    "Gallery",
+    "My Selection"
+  ],
+  "dataSections": [
+    "data model and sample content",
+    "gallery",
+    "photo records"
+  ],
+  "conflicts": [],
+  "outOfScope": [
+    "Do not implement:",
+    "Photographer or administrator roles.",
+    "Multiple galleries.",
+    "Photo upload or download.",
+    "Image editing, cropping, or zoom tools.",
+    "Payments or real authentication.",
+    "Email or notifications.",
+    "Public sharing.",
+    "Ratings or social comments.",
+    "AI features.",
+    "Backend services or cloud synchronization.",
+    "Marketing pages.",
+    "Additional navigation destinations."
+  ],
+  "noRemoteAssets": true,
+  "state": [
+    {
+      "name": "Client selection state",
+      "fields": [
+        "Shortlisted photo IDs",
+        "Editing note per photo",
+        "Selection status: Draft or Submitted",
+        "Submission timestamp, when submitted"
+      ],
+      "rules": [
+        "Do not create separate copies of selection state in different screens."
+      ]
+    }
+  ],
+  "look": {
+    "concept": "Editorial contact sheet",
+    "lines": [
+      "Concept: Editorial contact sheet",
+      "Warm off-white background",
+      "Near-black text",
+      "Muted cobalt accent for primary actions and selected states",
+      "Fine borders and restrained corner rounding",
+      "Generous whitespace and clear typographic hierarchy",
+      "Minimal chrome around photography",
+      "Use available fonts and assets. Add no font package",
+      "Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, and excessive badges or repeated instructions"
+    ],
+    "motion": "balanced",
+    "expressiveOff": true
+  },
+  "asked": "Frameproof — Client Photo Proofing Prototype\n\n\n1. Product goal\nBuild a complete working prototype that lets a photography client review a gallery, shortlist photos, leave notes, and submit a final selection.\n\n\n\nPrimary journey: Gallery → photo detail → shortlist → review selection → submit.\n\n\n2. Prototype boundaries\n- Responsive, local-first web app.\n- Bundled sample data and browser storage.\n\n- Client is already signed in as a demo user.\n- Changes persist after page reload in the same browser.\n- Use the existing starter, component library, and dependencies.\n\n\n\n3. User and context\n- Demo client: Maya Chen.\n- Gallery: Autumn Portrait Session.\n- Photographer: Rowan Studio.\n- Gallery contains 12 photos.\n- Client must choose exactly five photos before submitting.\n- One user role: client.\n\nUser need: “I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the photographer.”\n\n\n4. Screens and navigation\nPrimary navigation has exactly two destinations:\n1. Gallery.\n2. My Selection, with the current shortlist count.\n\nPhoto detail opens from a photo card;\n\nInitial screen: Gallery.\n\n\n\n5. Data model and sample content\n\nGallery\n| Field | Value |\n|---|---|\n| ID | gallery-autumn |\n| Title | Autumn Portrait Session |\n| Photographer | Rowan Studio |\n| Client | Maya Chen |\n| Required selection count | 5 |\n\n\nPhoto records\nEach photo has a stable ID, title, category, orientation, image source, and descriptive alt text.\n\nUse these exact records:\n\n| ID | Title | Category | Orientation |\n|---|---|---|---|\n| photo-01 | Golden Hour | Outdoor | Portrait |\n| photo-02 | Window Light | Studio | Portrait |\n| photo-03 | Walking Together | Outdoor | Landscape |\n| photo-04 | Quiet Smile | Studio | Portrait |\n| photo-05 | Garden Steps | Outdoor | Landscape |\n| photo-06 | Soft Shadows | Studio | Portrait |\n| photo-07 | Autumn Path | Outdoor | Portrait |\n| photo-08 | Looking Back | Outdoor | Landscape |\n| photo-09 | Linen Backdrop | Studio | Portrait |\n| photo-10 | Under the Oak | Outdoor | Landscape |\n| photo-11 | Candid Laugh | Studio | Landscape |\n| photo-12 | Last Light | Outdoor | Portrait |\n\nUse distinct, appropriate bundled photographs when available. If suitable assets are unavailable, use distinct local placeholder images with clear photo titles.\n\n\nClient selection state\nKeep one shared source of truth for:\n- Shortlisted photo IDs.\n- Editing note per photo.\n- Selection status: Draft or Submitted.\n- Submission timestamp, when submitted.\n\n\n\n\n6. Functional requirements\n\nR1 — Gallery overview\nDisplay gallery title, photographer, a concise instruction to choose five photos, current selection count, and all 12 photos initially in a responsive grid.\n\n\n\nR2 — Search\nSearch matches photo titles case-insensitively.\n\n- `WINDOW` returns Window Light.\n\n- No-results state offers a clear way to clear search.\n- Search and category filtering work together.\n\n\nR3 — Category filters\nProvide All, Outdoor, and Studio filters.\nOutdoor contains seven records; Studio contains five.\n\n\n\nR4 — Photo detail\nDisplay selected image, title, category, Add to selection / Remove from selection control, editing-notes field, Previous and Next controls, and a way back to Gallery.\nPrevious and Next follow the full 12-photo sample-data order regardless of Gallery filters.\n\nReturning to Gallery preserves search and category state.\n\n\nR5 — Shortlist behavior\nClient can add and remove photos from Gallery, photo detail, and My Selection.\n\n- Count updates everywhere.\n- Maximum five selected photos.\n\n- Explain the limit through accessible feedback.\n- Removing a photo permits another to be added.\n\n\n\nR6 — Editing notes\nEach photo can have an optional editing note of up to 300 characters.\n\n- Show a character count.\n- Notes remain attached when a photo is removed from the shortlist.\n- Reopening a photo restores its note.\n- Submission includes notes for selected photos only.\n\n\nR7 — My Selection\nBefore submission, display selected photos in original sample-data order, their titles and notes, controls to open or remove a photo, selection progress, and Submit selection action.\nWhen empty, show an empty state with a return-to-Gallery action.\n\n\nR8 — Submission eligibility\nSubmission is available only with exactly five selected photos.\nWith fewer than five, explain how many more are needed.\nAt five, Submit selection opens a confirmation dialog summarizing the five photos, their notes, and that submission will lock the selection.\n\n\n\nR9 — Submitted state\nConfirming submission sets Submitted status, records a timestamp, shows confirmation and the five submitted photos, and locks shortlist changes and editing notes across the app.\nClient may still browse Gallery and photo detail.\n\n\n\nR10 — Start over\nAfter submission, provide Start over with a confirmation dialog explaining that it clears selected photos, all notes, submission status, and timestamp.\nCancel preserves everything. Confirm returns to empty Draft state.\n\n\n\nR11 — Persistence\nShortlist, notes, status, and timestamp survive a full reload.\n\nUse a namespaced storage key.\n\n\n\nR12 — Navigation and identity\n- Directly opening a valid photo route displays that record.\n- Unknown photo ID shows a useful not-found state with a Gallery link.\n- Browser Back and Forward work.\n- Photo opened from grid is the same record displayed in detail.\n\n\n\n7. Visual direction\n\nConcept: Editorial contact sheet\n- Warm off-white background.\n- Near-black text.\n- Muted cobalt accent for primary actions and selected states.\n- Fine borders and restrained corner rounding.\n- Generous whitespace and clear typographic hierarchy.\n- Minimal chrome around photography.\n\nUse available fonts and assets.\n\n\n\nGallery composition\n1. Compact product header and primary navigation.\n2. Gallery title, photographer, and selection progress.\n3. Search and category controls.\n4. Photo grid.\n\n\nMy Selection composition\n1. Title and selection status.\n2. Selected photos and notes, or empty state.\n3. Selection progress and submission action.\n\n\n\n\n8. Motion and accessibility\nUse Balanced functional motion through the existing motion foundation.\nAppropriate uses: selection feedback, confirmation dialogs, restrained photo-detail transitions, and filter-result continuity.\n\n\nRespect reduced-motion preferences. Animation-off must leave all content and controls usable.\n\nAccessibility:\n- Keyboard access to every action.\n- Visible focus indicators and descriptive control names.\n- Modal confirmation dialogs prevent interaction with background page content.\n- Closing dialogs returns focus to the trigger when it still exists.\n- Selection feedback available to assistive technology.\n- Appropriate image alt text.\n\n\n\n9. Responsive behavior\nTest desktop and a 390px-wide phone viewport.\n\n- Adaptive grid columns.\n- Usable search and filters.\n\n- Accessible dialog content on small screens.\n\n\n\n10. Acceptance journeys\n\nJourney A — Find and inspect\n1. Open Gallery.\n2. Search `WINDOW`.\n3. Confirm Window Light is the only result.\n4. Open it and confirm title, category, and image match.\n5. Return to Gallery and confirm search remains.\n6. Clear search and select Outdoor.\n7. Confirm seven photos appear.\n\n\nJourney B — Select, annotate, and persist\n1. Begin in an empty Draft state.\n2. Open Golden Hour and add it.\n3. Add note: “Please soften the background.”\n4. Add four other photos.\n5. Attempt to add a sixth.\n6. Confirm original five remain and limit is explained.\n7. Open My Selection and confirm the same five records and note.\n8. Reload and confirm selection and note persist.\n\n\nJourney C — Remove and replace\n1. Begin with five selected photos.\n2. Remove one from My Selection.\n3. Confirm count changes everywhere.\n4. Add a different photo.\n5. Confirm correct five in sample-data order.\n6. Reopen removed photo and confirm any previously saved note remains.\n\n\nJourney D — Submit and lock\n1. With fewer than five, confirm submission cannot proceed.\n2. Select exactly five.\n3. Open submission dialog, cancel, and confirm nothing changes.\n4. Open it again and confirm.\n5. Verify Submitted status, timestamp, and correct five photos.\n6. Verify shortlist and note editing are locked across screens.\n7. Reload and confirm submitted state remains locked.\n\n\nJourney E — Start over\n1. Begin in Submitted state.\n2. Open Start over and cancel; confirm all submitted data remains.\n3. Open Start over again and confirm.\n4. Verify empty Draft selection and cleared notes.\n5. Reload and confirm reset persists.\n\n\n11. Verification and completion criteria\n- All five journeys work through the actual app.\n- Typecheck, lint, tests, and production build pass.\n- Desktop and phone layouts reviewed.\n\n- Reduced motion and animation-off checked.\n\n- Explicitly report unmet requirements and untested platforms.\n\n"
+}

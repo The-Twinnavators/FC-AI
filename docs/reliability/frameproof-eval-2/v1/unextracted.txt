@@ -1,0 +1,52 @@
+51 PRD sentences not among the extracted requirements:
+ - [1. Product goal] Build a complete working prototype that lets a photography client review a gallery, shortlist photos, leave notes, and submit a final selectio
+ - [1. Product goal] Primary journey: Gallery → photo detail → shortlist → review selection → submit.
+ - [3. User and context] User need: “I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the photo
+ - [4. Screens and navigation] Primary navigation has exactly two destinations:
+ - [4. Screens and navigation] Photo detail opens from a photo card; it is not a primary navigation destination.
+ - [4. Screens and navigation] Submission confirmation is a state of My Selection, not another navigation link.
+ - [4. Screens and navigation] Do not add a marketing landing page, pricing page, photographer dashboard, or account settings.
+ - [Photo records] Each photo has a stable ID, title, category, orientation, image source, and descriptive alt text.
+ - [Photo records] Use these exact records:
+ - [Photo records] Use distinct, appropriate bundled photographs when available.
+ - [Photo records] Do not rely on remote image URLs at runtime.
+ - [Photo records] If suitable assets are unavailable, use distinct local placeholder images with clear photo titles.
+ - [Photo records] Do not use broken images or add dependencies to obtain imagery.
+ - [Client selection state] Keep one shared source of truth for:
+ - [Client selection state] Do not create separate copies of selection state in different screens.
+ - [R1 — Gallery overview] Display gallery title, photographer, a concise instruction to choose five photos, current selection count, and all 12 photos initially i
+ - [R1 — Gallery overview] The main content is the photography, not statistics or explanatory cards.
+ - [R2 — Search] Search matches photo titles case-insensitively.
+ - [R3 — Category filters] Provide All, Outdoor, and Studio filters.
+ - [R3 — Category filters] Outdoor contains seven records; Studio contains five.
+ - [R3 — Category filters] Changing search or category does not alter shortlist or notes.
+ - [R4 — Photo detail] Previous and Next follow the full 12-photo sample-data order regardless of Gallery filters.
+ - [R4 — Photo detail] Do not wrap: disable Previous on photo-01 and Next on photo-12.
+ - [R4 — Photo detail] Returning to Gallery preserves search and category state.
+ - [R5 — Shortlist behavior] Client can add and remove photos from Gallery, photo detail, and My Selection.
+ - [R6 — Editing notes] Each photo can have an optional editing note of up to 300 characters.
+ - [R7 — My Selection] Before submission, display selected photos in original sample-data order, their titles and notes, controls to open or remove a photo, select
+ - [R7 — My Selection] When empty, show an empty state with a return-to-Gallery action.
+ - [R8 — Submission eligibility] Submission is available only with exactly five selected photos.
+ - [R8 — Submission eligibility] At five, Submit selection opens a confirmation dialog summarizing the five photos, their notes, and that submission will lock the 
+ - [R8 — Submission eligibility] Cancel returns to editable selection without losing changes.
+ - [R9 — Submitted state] Confirming submission sets Submitted status, records a timestamp, shows confirmation and the five submitted photos, and locks shortlist c
+ - [R9 — Submitted state] Client may still browse Gallery and photo detail.
+ - [R9 — Submitted state] Do not send email, make external requests, or imply a real photographer received the submission.
+ - [R10 — Start over] After submission, provide Start over with a confirmation dialog explaining that it clears selected photos, all notes, submission status, and 
+ - [R10 — Start over] Cancel preserves everything.
+ - [R10 — Start over] Confirm returns to empty Draft state.
+ - [R10 — Start over] Do not clear unrelated browser storage.
+ - [R11 — Persistence] Shortlist, notes, status, and timestamp survive a full reload.
+ - [R11 — Persistence] Use a namespaced storage key.
+ - [R11 — Persistence] If saved data cannot be read, recover to a usable Draft state and show a concise notice instead of crashing.
+ - [Concept: Editorial contact sheet] Use available fonts and assets.
+ - [Concept: Editorial contact sheet] Add no font package.
+ - [Concept: Editorial contact sheet] Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, 
+ - [My Selection composition] At phone width, keep submission easy to find without obscuring content.
+ - [8. Motion and accessibility] Use Balanced functional motion through the existing motion foundation.
+ - [8. Motion and accessibility] Appropriate uses: selection feedback, confirmation dialogs, restrained photo-detail transitions, and filter-result continuity.
+ - [8. Motion and accessibility] Expressive features are off: no parallax, ambient backgrounds, autoplay, smooth-scroll package, or long/blocking entrance sequence
+ - [8. Motion and accessibility] Accessibility:
+ - [9. Responsive behavior] Test desktop and a 390px-wide phone viewport.
+ - [12. Out of scope] Do not implement:

@@ -1,0 +1,101 @@
+[
+  {
+    "id": 1,
+    "label": "Scope: required behaviour, supporting data and left-out capabilities agree in every step",
+    "ok": true,
+    "problems": [],
+    "kind": "structural",
+    "hard": false
+  },
+  {
+    "id": 2,
+    "label": "Home: a product-discovery page, no marketing funnel",
+    "ok": true,
+    "problems": [],
+    "kind": "structural",
+    "hard": false
+  },
+  {
+    "id": 3,
+    "label": "Tests: what a person sees, not internal names or placeholder phrases",
+    "ok": true,
+    "problems": [],
+    "kind": "structural",
+    "hard": false
+  },
+  {
+    "id": 4,
+    "label": "Save journey: complete, with its starting sign-in state",
+    "ok": true,
+    "problems": [],
+    "kind": "structural",
+    "hard": false
+  },
+  {
+    "id": 5,
+    "label": "Data owners: one for records, one for saved state",
+    "ok": true,
+    "problems": [],
+    "kind": "structural",
+    "hard": false
+  },
+  {
+    "id": 6,
+    "label": "Look: stated as selected, proposed or none; no implied design approval",
+    "ok": true,
+    "problems": [],
+    "kind": "structural",
+    "hard": false
+  },
+  {
+    "id": 7,
+    "kind": "compliance",
+    "hard": true,
+    "label": "Required records: the PRD's explicit records, as given",
+    "ok": true,
+    "problems": []
+  },
+  {
+    "id": 8,
+    "kind": "compliance",
+    "hard": true,
+    "label": "Navigation: the PRD's declared destinations only",
+    "ok": true,
+    "problems": []
+  },
+  {
+    "id": 9,
+    "kind": "compliance",
+    "hard": true,
+    "label": "Excluded capabilities: nothing the PRD rules out",
+    "ok": true,
+    "problems": []
+  },
+  {
+    "id": 10,
+    "kind": "compliance",
+    "hard": true,
+    "label": "Runtime state: the PRD's state, one shared owner",
+    "ok": true,
+    "problems": []
+  },
+  {
+    "id": 11,
+    "kind": "compliance",
+    "hard": true,
+    "label": "Acceptance tests agree with the PRD's records",
+    "ok": false,
+    "problems": [
+      "\"enter 'Outdoor' in search field → photos matching Outdoor category are displayed\": \"Outdoor\" is a photo category, not a title the search matches",
+      "\"select 'Nature' from category dropdown → only Nature category photos appear in grid\": \"Nature\" isn't one of the category options (outdoor, studio)"
+    ]
+  },
+  {
+    "id": 12,
+    "kind": "compliance",
+    "hard": true,
+    "label": "Look: the PRD's visual direction, no invented exact values",
+    "ok": true,
+    "problems": []
+  }
+]

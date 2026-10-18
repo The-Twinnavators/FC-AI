@@ -1,0 +1,251 @@
+{
+  "product": "Frameproof",
+  "roles": [
+    "client"
+  ],
+  "entities": [
+    {
+      "key": "gallery",
+      "label": "Gallery",
+      "plural": "Galleries",
+      "titleField": "title",
+      "subtitleField": "photographer",
+      "idPrefix": "GAL",
+      "fields": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "photographer",
+          "label": "Photographer",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "client",
+          "label": "Client",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "requiredSelectionCount",
+          "label": "Required Selection Count",
+          "type": "number",
+          "required": true,
+          "min": 1,
+          "max": 12
+        }
+      ],
+      "columns": [],
+      "filters": []
+    },
+    {
+      "key": "photo",
+      "label": "Photo",
+      "plural": "Photos",
+      "titleField": "title",
+      "subtitleField": "category",
+      "idPrefix": "PHO",
+      "fields": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "options": [
+            "Outdoor",
+            "Studio"
+          ],
+          "required": true
+        },
+        {
+          "key": "orientation",
+          "label": "Orientation",
+          "type": "select",
+          "options": [
+            "Portrait",
+            "Landscape"
+          ],
+          "required": true
+        },
+        {
+          "key": "imageSource",
+          "label": "Image Source",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "altText",
+          "label": "Alt Text",
+          "type": "longtext",
+          "required": true
+        }
+      ],
+      "columns": [],
+      "filters": []
+    }
+  ],
+  "seed": {
+    "gallery": [
+      {
+        "id": "gallery-autumn",
+        "title": "Autumn Portrait Session",
+        "photographer": "Rowan Studio",
+        "client": "Maya Chen",
+        "requiredSelectionCount": 5
+      }
+    ],
+    "photo": [
+      {
+        "id": "photo-01",
+        "title": "Golden Hour",
+        "category": "Outdoor",
+        "orientation": "Portrait",
+        "imageSource": "",
+        "altText": "A portrait photograph taken during golden hour with warm, soft lighting and a natural background"
+      },
+      {
+        "id": "photo-02",
+        "title": "Window Light",
+        "category": "Studio",
+        "orientation": "Portrait",
+        "imageSource": "",
+        "altText": "A studio portrait using soft window light with even illumination and professional backdrop"
+      },
+      {
+        "id": "photo-03",
+        "title": "Walking Together",
+        "category": "Outdoor",
+        "orientation": "Landscape",
+        "imageSource": "",
+        "altText": "A landscape photograph capturing two people walking together in a natural outdoor setting"
+      },
+      {
+        "id": "photo-04",
+        "title": "Quiet Smile",
+        "category": "Studio",
+        "orientation": "Portrait",
+        "imageSource": "",
+        "altText": "A studio portrait showing a subtle, genuine smile with professional lighting setup"
+      },
+      {
+        "id": "photo-05",
+        "title": "Garden Steps",
+        "category": "Outdoor",
+        "orientation": "Landscape",
+        "imageSource": "",
+        "altText": "A landscape photograph of decorative garden steps with natural lighting and greenery"
+      },
+      {
+        "id": "photo-06",
+        "title": "Soft Shadows",
+        "category": "Studio",
+        "orientation": "Portrait",
+        "imageSource": "",
+        "altText": "A studio portrait with soft shadows creating depth and dimension in the subject's face"
+      },
+      {
+        "id": "photo-07",
+        "title": "Autumn Path",
+        "category": "Outdoor",
+        "orientation": "Portrait",
+        "imageSource": "",
+        "altText": "A portrait photograph showing a person walking along an autumn path with colorful foliage"
+      },
+      {
+        "id": "photo-08",
+        "title": "Looking Back",
+        "category": "Outdoor",
+        "orientation": "Landscape",
+        "imageSource": "",
+        "altText": "A landscape photograph of someone looking back over their shoulder in a natural outdoor environment"
+      },
+      {
+        "id": "photo-09",
+        "title": "Linen Backdrop",
+        "category": "Studio",
+        "orientation": "Portrait",
+        "imageSource": "",
+        "altText": "A studio portrait with a linen backdrop creating a clean, professional background"
+      },
+      {
+        "id": "photo-10",
+        "title": "Under the Oak",
+        "category": "Outdoor",
+        "orientation": "Landscape",
+        "imageSource": "",
+        "altText": "A landscape photograph taken under a large oak tree with dappled sunlight filtering through branches"
+      },
+      {
+        "id": "photo-11",
+        "title": "Candid Laugh",
+        "category": "Studio",
+        "orientation": "Landscape",
+        "imageSource": "",
+        "altText": "A candid laugh captured in a studio setting with soft lighting and a warm backdrop"
+      },
+      {
+        "id": "photo-12",
+        "title": "Last Light",
+        "category": "Outdoor",
+        "orientation": "Portrait",
+        "imageSource": "",
+        "altText": "A beautiful portrait captured during the golden hour with warm ambient lighting"
+      }
+    ]
+  },
+  "nav": [
+    {
+      "label": "Gallery",
+      "items": [
+        {
+          "id": "gallery-list",
+          "label": "Gallery",
+          "kind": "list",
+          "entity": "photo"
+        },
+        {
+          "id": "photo-detail",
+          "label": "Photo Detail",
+          "kind": "detail",
+          "entity": "photo"
+        }
+      ]
+    },
+    {
+      "label": "My Selection",
+      "items": [
+        {
+          "id": "my-selection",
+          "label": "My Selection",
+          "kind": "custom",
+          "purpose": "My Selection: the client selection state (Shortlisted photo IDs; Editing note per photo; Selection status: Draft or Submitted; Submission timestamp, when submitted)"
+        }
+      ]
+    }
+  ],
+  "primaryNav": [
+    "Gallery",
+    "My Selection"
+  ]
+}

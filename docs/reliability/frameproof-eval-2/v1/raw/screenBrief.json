@@ -1,0 +1,63 @@
+[
+  {
+    "screen": "My Selection",
+    "pageType": "other",
+    "who": "Demo client: Maya Chen. User need: “I want to compare my photos, choose my five favorites, leave any editing notes, and confidently send my selection to the pho",
+    "goal": "Review shortlisted photos, edit notes, submit selection.",
+    "workflow": [
+      "View selected photos in list with notes",
+      "Edit or remove photos from shortlist",
+      "Submit selection when ready",
+      "Confirm submission is locked after submission",
+      "Start over if needed"
+    ],
+    "firstView": "Shortlisted photo count and list of selected photos",
+    "primaryAction": "Submit selection or start over",
+    "sections": [
+      {
+        "title": "Selection Summary",
+        "purpose": "To show the number of selected photos and submission status.",
+        "part": "c.badge"
+      },
+      {
+        "title": "Selected Photos",
+        "purpose": "To display selected photos with notes in a list.",
+        "part": "c.list-row"
+      },
+      {
+        "title": "Actions",
+        "purpose": "To provide submit and start over actions.",
+        "part": "c.button"
+      }
+    ],
+    "navIn": [],
+    "navOut": [],
+    "states": {
+      "loading": "Shows skeleton placeholders while loading selection data",
+      "empty": "Displays empty state with message 'No photos selected yet'",
+      "error": "Shows error alert with message 'Failed to load selection'",
+      "success": "Displays selected photos and submission controls"
+    },
+    "responsive": "List adjusts to single column on mobile, buttons stack vertically",
+    "accessibility": "Keyboard navigation through list items and actions, screen reader labels for all interactive elements",
+    "acceptance": [
+      "R104",
+      "R106",
+      "R107",
+      "R108",
+      "R109",
+      "R110",
+      "R111",
+      "R112",
+      "R113",
+      "R114",
+      "R115",
+      "R116",
+      "R117",
+      "R118",
+      "R119",
+      "R120",
+      "R121"
+    ]
+  }
+]
