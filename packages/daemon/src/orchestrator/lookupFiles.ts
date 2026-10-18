@@ -144,11 +144,24 @@ export default function ${pascal(v.id)}Screen() {
   return `${p.head}\n${imports}\n${p.imports}\n\n/* Home layout: ${h.hero} opening; ${order.join(", ")}; categories as ${h.categories}; most liked as ${h.list}. */\nexport default function ${pascal(v.id)}Screen() {\n  void go;\n  return (\n    <div className="fl-lkf-stack fl-lkf-home fl-lkf-home--${h.hero}">\n      ${hero}\n${order.map((k) => `      ${parts[k]}`).join("\n")}\n    </div>\n  );\n}\n`;
 }
 
+/** The look-up layer's config and seed, as src/app/lookup.ts holds them (also what a live concept preview runs on). */
+export function lookupData(m: AppModel) {
+  const l = m.lookup!;
+  return {
+    config: { entries: l.entries, places: l.places, categoryField: l.categoryField, placesField: l.placesField, areas: l.areas, placeWord: l.placeWord, carryWord: l.carryWord },
+    seed: { ratings: l.ratings, lists: l.lists, likes: l.likes, saves: l.saves },
+  };
+}
+
+/** The frame's links, as App.tsx holds them. */
+export function lookupLinks(m: AppModel, defaultIcon: Record<string, string>) {
+  const shown = m.nav.flatMap((g) => g.items).filter((v) => v.kind !== "entry" && v.kind !== "mylist");
+  return shown.map((v) => ({ id: v.id, label: v.label, icon: v.icon ?? defaultIcon[v.kind] ?? "dot", ...(v.kind === "placeholder" ? { available: false } : {}), ...(["landing", "catalog", "places", "lists", "saved"].includes(v.kind) ? { mobile: true } : {}) }));
+}
+
 /** The look-up layer: places, availability, likes, saves, ratings and lists, beside the store. */
 export function lookupFile(m: AppModel): { path: string; content: string } {
-  const l = m.lookup!;
-  const config = { entries: l.entries, places: l.places, categoryField: l.categoryField, placesField: l.placesField, areas: l.areas, placeWord: l.placeWord, carryWord: l.carryWord };
-  const seed = { ratings: l.ratings, lists: l.lists, likes: l.likes, saves: l.saves };
+  const { config, seed } = lookupData(m);
   return {
     path: "src/app/lookup.ts",
     content: `/** The look-up layer, written by FlowCode from the app model: places near a ZIP code, which places carry what, likes, saves, ratings and lists. */\nimport { createLookup, type LookupConfig, type LookupSeed } from "../sections/LookupData";\nimport { store } from "./store";\n\nexport const config: LookupConfig = ${JSON.stringify(config, null, 2)};\n\nconst seed: LookupSeed = ${JSON.stringify(seed, null, 2)};\n\nexport const lookup = createLookup(store, config, seed);\n`,
@@ -158,8 +171,7 @@ export function lookupFile(m: AppModel): { path: string; content: string } {
 /** The look-up app's App.tsx: the frame, its places, search, ZIP code, and the page for each destination. */
 export function lookupAppSource(m: AppModel, built: ModelView[], defaultIcon: Record<string, string>): string {
   const r = routesOf(m);
-  const shown = m.nav.flatMap((g) => g.items).filter((v) => v.kind !== "entry" && v.kind !== "mylist");
-  const links = shown.map((v) => ({ id: v.id, label: v.label, icon: v.icon ?? defaultIcon[v.kind] ?? "dot", ...(v.kind === "placeholder" ? { available: false } : {}), ...(["landing", "catalog", "places", "lists", "saved"].includes(v.kind) ? { mobile: true } : {}) }));
+  const links = lookupLinks(m, defaultIcon);
   const parent: Record<string, string> = {};
   if (r.entry && r.catalog) parent[r.entry] = r.catalog;
   if (r.mylist && r.lists) parent[r.mylist] = r.lists;

@@ -5,6 +5,7 @@ import { post } from "../api";
 import { Icon, UnifiedDiff, ErrorNotice } from "./ui";
 import { navigate } from "../router";
 import { RobotHead, ROLE_COLOR } from "./RobotHead";
+import { HomeConcepts } from "./HomeConcepts";
 
 /**
  * `savedTo`: where a saved idea goes, so the card can say so before it leaves: "project" (its project's Suggestions
@@ -182,6 +183,8 @@ export function ApprovalCard({ approval, onDecided, savedTo = "project" }: { app
             )}
           </details>
         ) : null}
+        {/* The Home direction is picked here, with the plan: no separate approval. */}
+        {approval.kind === "plan" && !approval.taskId && approval.runId ? <HomeConcepts runId={approval.runId} /> : null}
         {error ? (
           <ErrorNotice error={error} doing="record your decision" />
         ) : null}

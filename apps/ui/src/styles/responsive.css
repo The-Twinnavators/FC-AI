@@ -16982,3 +16982,20 @@ body.cp-driving #copilot-panel { z-index: 80; }
 .rtime__seg--queued { background: #4bb3c7; }
 .rtime__seg--recover { background: #4b8fe0; }
 .rtime__seg--orphan { background: #c75b5b; }
+
+/* Home direction on the plan card (HomeConcepts): live previews of the build's Home concepts, picked with the plan. */
+.hc { display: grid; gap: 12px; margin: 16px 0 0; padding: 16px 0 0; border: 0; border-top: 1px solid var(--line); min-width: 0; }
+.hc > legend { padding: 0; float: left; width: 100%; }
+.hc-lede, .hc-note { margin: 0; color: var(--text-1); font-size: 13px; }
+.hc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 16px; }
+.hc-option { display: grid; gap: 8px; min-width: 0; cursor: pointer; }
+/* The preview is a picture of the page: a 1280px-wide page scaled into its slot. */
+.hc-frame { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--r-2); background: var(--bg-2); }
+.hc-frame iframe { position: absolute; inset: 0 auto auto 0; width: 1280px; height: 1600px; border: 0; transform: scale(var(--hc-scale, 0.22)); transform-origin: 0 0; pointer-events: none; }
+.hc-option.is-picked .hc-frame { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.hc-choice { display: flex; gap: 8px; align-items: flex-start; }
+.hc-choice input { margin-top: 3px; }
+.hc-choice strong { display: block; color: var(--text-0); }
+.hc-thesis, .hc-fonts { display: block; color: var(--text-1); font-size: 12px; line-height: 1.4; }
+.hc-fonts { color: var(--text-2); }
+.hc-default { display: inline-flex; gap: 8px; align-items: center; color: var(--text-1); font-size: 13px; cursor: pointer; }

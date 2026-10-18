@@ -81,6 +81,7 @@ import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenP
 import { testingGuide, testScaffold } from "./testingGuide.js";
 import { budgetSkills, charsPerToken, laterTurnFits, requestBudget } from "./requestBudget.js";
 import { stepTools } from "./toolSelection.js";
+import { settleConcept } from "./homeConceptOffer.js";
 import { DeadlinePassedError, deadlinePassed, extendDeadline, getDeadline, markExpired, markStopped, setDeadline, type RunDeadline } from "./runDeadline.js";
 import { RECOVERY_BACKOFF_MS, causeOfBlocker, getInterruption, recordInterruption, resolveInterruption, updateInterruption, type Interruption, type InterruptionCause } from "./interruptions.js";
 import { createHash } from "node:crypto";
@@ -1372,6 +1373,8 @@ export class Orchestrator {
     for (const a of this.d.store.approvals.where("run_id = ? AND status = 'pending'", runId).filter((x) => x.kind === "plan")) this.d.approvals.decide(a.id, "once", `approved by ${by}`);
     const updated = this.d.store.runs.upsert({ ...run, planApproved: true });
     this.d.bus.emit({ type: "plan.approved", projectId: run.projectId, runId, message: `Plan approved (${by})`, data: { by } });
+    // The Home concept picked on the plan card (if any) is settled with the plan: no separate approval.
+    settleConcept(this.d.store, this.d.bus, run);
     const cp = this.d.snapshots.createCheckpoint(runId, "Plan approved — before any change", true);
     this.d.store.runs.upsert({ ...updated, safeCheckpointId: cp.id });
     const status = this.setStatus(runId, "running", "Plan approved; execution starting");

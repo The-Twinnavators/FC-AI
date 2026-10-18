@@ -41,6 +41,64 @@ interface Perf {
   checks: Array<{ kind: string; status: string; approxMs: number }>;
   slowest: Array<{ kind: string; label: string; ms: number; task?: string }>;
   notes: string[];
+  designPath?: {
+    researchMs: number;
+    conceptPrepareMs?: number;
+    conceptApplyMs?: number;
+    concept?: { offeredAt?: string; chosenAt?: string; approvedAt?: string; appliedAt?: string; coderWork?: string[] };
+    designStepsMs: number;
+    designModelMs: number;
+    designModelCalls: number;
+    verificationMs: number;
+    planApprovalWaitMs: number;
+    stepApprovalWaitMs: number;
+    deadline?: { at: string; extensions: number; expired: boolean; overrunMs?: number };
+  };
+}
+
+/** The design path, phase by phase: what this run measured (not a claim about build speed). */
+function DesignPath({ d }: { d: NonNullable<Perf["designPath"]> }) {
+  const rows: Array<[string, string]> = [
+    ["Research and capture steps", dur(d.researchMs)],
+    ["Preparing the Home concepts", d.conceptPrepareMs === undefined ? "not offered" : dur(d.conceptPrepareMs)],
+    ["Applying the chosen concept", d.conceptApplyMs === undefined ? (d.concept?.chosenAt ? "not yet" : "no concept chosen") : dur(d.conceptApplyMs)],
+    ["Design steps (the coder)", `${dur(d.designStepsMs)} (model ${dur(d.designModelMs)}, ${d.designModelCalls} calls)`],
+    ["Verification", dur(d.verificationMs)],
+    ["Waiting for the plan approval (incl. picking a concept)", dur(d.planApprovalWaitMs)],
+    ["Waiting for step approvals", dur(d.stepApprovalWaitMs)],
+  ];
+  return (
+    <section className="perf-sec" aria-labelledby="perf-design">
+      <h3 id="perf-design" className="perf-sec__title">Design path</h3>
+      <p className="dim" style={{ margin: "0 0 8px" }}>Measured on this run, phase by phase. These are component measurements, not a claim that builds got faster.</p>
+      <table className="table perf-table">
+        <tbody>
+          {rows.map(([k, v]) => (
+            <tr key={k}>
+              <th scope="row">{k}</th>
+              <td className="num">{v}</td>
+            </tr>
+          ))}
+          {d.concept?.coderWork?.length ? (
+            <tr>
+              <th scope="row">Left for the coder after the concept</th>
+              <td>{d.concept.coderWork.join("; ")}</td>
+            </tr>
+          ) : null}
+          {d.deadline ? (
+            <tr>
+              <th scope="row">Deadline</th>
+              <td>
+                {new Date(d.deadline.at).toLocaleString()}
+                {d.deadline.extensions ? `, extended ${d.deadline.extensions}×` : ""}
+                {d.deadline.expired ? `, reached${d.deadline.overrunMs !== undefined ? `; stopped ${dur(d.deadline.overrunMs)} after it` : ""}` : ""}
+              </td>
+            </tr>
+          ) : null}
+        </tbody>
+      </table>
+    </section>
+  );
 }
 
 /** 950 → "0.9s", 74_000 → "1 min 14s". */
@@ -137,6 +195,8 @@ export function RunPerformance({ runId }: { runId?: string }) {
           ]}
         />
       </section>
+
+      {data.designPath ? <DesignPath d={data.designPath} /> : null}
 
       <section className="perf-sec" aria-labelledby="perf-model">
         <h3 id="perf-model" className="perf-sec__title">AI model time</h3>

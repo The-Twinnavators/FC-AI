@@ -6,6 +6,7 @@
  * person to choose a direction from; nothing here judges which is better. Needs the recorded workspace and a browser.
  */
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { spawn, type ChildProcess } from "node:child_process";
@@ -36,7 +37,7 @@ const seed = Object.fromEntries(MODEL.entities.map((e) => [e.key, mergeRecords(e
 const FIXED = resolveScreenAliases({ ...MODEL, seed }, SCREENS);
 
 /** A copy of the regenerated app (node_modules linked), as FlowCode writes it from the model. */
-function copyApp(): string {
+function copyApp(model: AppModel = FIXED): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "fc-concept-"));
   const walk = (from: string, to: string) => {
     for (const e of fs.readdirSync(from, { withFileTypes: true })) {
@@ -49,7 +50,7 @@ function copyApp(): string {
   };
   walk(RECORDED, root);
   fs.symlinkSync(path.join(RECORDED, "node_modules"), path.join(root, "node_modules"), "junction");
-  for (const f of appFiles(FIXED).filter((f) => !f.path.startsWith("src/screens/"))) (fs.mkdirSync(path.dirname(path.join(root, f.path)), { recursive: true }), fs.writeFileSync(path.join(root, f.path), f.content));
+  for (const f of appFiles(model).filter((f) => !f.path.startsWith("src/screens/"))) (fs.mkdirSync(path.dirname(path.join(root, f.path)), { recursive: true }), fs.writeFileSync(path.join(root, f.path), f.content));
   const css = syncedLibraryCss(root);
   if (css !== undefined) fs.writeFileSync(path.join(root, "src/styles/library.css"), css);
   return root;
@@ -135,5 +136,74 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1" || !fs.existsSync(path
         const differ = (Object.keys(sigs[a]!) as Array<keyof (typeof sigs)[number]>).filter((k) => sigs[a]![k] !== sigs[b]![k]);
         expect(differ.length, `${out[a]!.spec.id} vs ${out[b]!.spec.id}: ${JSON.stringify([sigs[a], sigs[b]])}`).toBeGreaterThanOrEqual(2);
       }
+  }, 600_000);
+
+  it("applying a concept keeps the app's own content and behaviour: it is the app's data in a library page, not a template", async () => {
+    // A product renamed in the app model: a template would still show its own sample content; the concept shows this.
+    const RENAMED = "Morning Oat Drink";
+    const top = FIXED.seed.product!.find((r) => r.name === "Oat Milk Original")!;
+    const model: AppModel = { ...FIXED, seed: { ...FIXED.seed, product: FIXED.seed.product!.map((r) => (r.id === top.id ? { ...r, name: RENAMED } : r)) } };
+    const hashes = (root: string) => {
+      const out: Record<string, string> = {};
+      const walk = (dir: string) => {
+        for (const e of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
+          const rel = path.posix.join(dir, e.name);
+          if (["node_modules", "dist", ".git", "public"].includes(e.name)) continue;
+          if (e.isDirectory()) walk(rel);
+          else out[rel] = createHash("sha256").update(fs.readFileSync(path.join(root, rel))).digest("hex");
+        }
+      };
+      walk(".");
+      return out;
+    };
+    // What applying a concept may change: the look (tokens, surface style), the Home screen and the frame's file, and
+    // the library pages and styles it brings. Everything else (data, store, look-up layer, routes, every other page) stays.
+    const mayChange = (p: string) => /^src\/(styles\/|sections\/)/.test(p) || ["src/screens/LandingScreen.tsx", "src/App.tsx", "src/main.tsx"].includes(p);
+    for (const [i, spec] of HOME_CONCEPTS.entries()) {
+      const root = copyApp(model);
+      const before = hashes(root);
+      const { app } = makeApp();
+      const project = app.projects.create({ name: `Keep ${spec.id}`, workspacePath: root });
+      applyDesignSpec(app.projects.jail(project), app.ops, { projectId: project.id, runId: "concept_keep" }, spec, { frameCss: "src/styles/components.css", screens: [], model });
+      const after = hashes(root);
+      const changed = Object.keys(after).filter((p) => before[p] !== after[p]);
+      expect(changed.filter((p) => !mayChange(p)), spec.id).toEqual([]);
+      expect(Object.keys(before).filter((p) => !(p in after)), `${spec.id}: nothing removed`).toEqual([]);
+      for (const p of ["src/app/schema.ts", "src/app/store.ts", "src/app/lookup.ts", "src/app/routes.ts", "src/screens/CatalogScreen.tsx", "src/screens/ProductScreen.tsx", "src/screens/SavedScreen.tsx"]) expect(after[p], `${spec.id}: ${p} kept`).toBe(before[p]);
+
+      const url = await serve(root, 5371 + i);
+      browser ??= await chromium.launch();
+      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+      const errors: string[] = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      await page.goto(url, { waitUntil: "networkidle" });
+      const main = page.locator("main").first();
+      const text = await main.innerText();
+      // The app's own content: its name, its (renamed) most liked product and its categories; none of the library
+      // page's sample content (its sample is children's books).
+      expect(text, spec.id).toContain(model.product);
+      expect(text, spec.id).toContain(RENAMED);
+      expect(text, spec.id).not.toContain("Oat Milk Original");
+      for (const c of ["Beverages", "Bakery", "Dairy"]) expect(text, `${spec.id}: ${c}`).toContain(c);
+      expect(text, spec.id).not.toMatch(/Morning Songs|Shelf Finder|libraries near/i);
+      // Its behaviour: a product on Home opens that product's own page; the Home search goes to the catalog with the
+      // words; a save control on Home is the app's own (the visitor is asked to sign in, as everywhere in the app).
+      await main.getByRole("button", { name: RENAMED, exact: true }).first().click();
+      await page.waitForTimeout(400);
+      expect(await page.evaluate(() => location.hash), spec.id).toBe(`#/product/${encodeURIComponent(top.id)}`);
+      expect(await page.locator("main").first().innerText()).toContain(RENAMED);
+      await page.goto(url, { waitUntil: "networkidle" });
+      const box = page.locator("main input[type=search]").first();
+      await box.fill("oat");
+      await box.press("Enter");
+      await page.waitForTimeout(400);
+      expect(await page.evaluate(() => location.hash), `${spec.id}: search`).toMatch(/^#\/catalog\/q(=|%3D)oat$/);
+      await page.goto(url, { waitUntil: "networkidle" });
+      const save = page.locator("main").getByRole("button", { name: /^save\b/i }).first();
+      expect(await save.count(), `${spec.id}: a save control on Home`).toBeGreaterThan(0);
+      expect(await save.getAttribute("aria-pressed"), spec.id).toBe("false");
+      expect(errors, spec.id).toEqual([]);
+      await page.close();
+    }
   }, 600_000);
 });

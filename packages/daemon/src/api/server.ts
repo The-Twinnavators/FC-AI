@@ -28,6 +28,7 @@ import fs from "node:fs";
 import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { DeadlinePassedError } from "../orchestrator/runDeadline.js";
+import { chooseConcept, conceptOffer } from "../orchestrator/homeConceptOffer.js";
 import { z } from "zod";
 import * as C from "@flowcode/contracts";
 import type { App } from "../app.js";
@@ -889,6 +890,16 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   });
   // Who paused it: the person (the default) or FlowCode/a script ("system"), so a script's pause isn't shown as yours.
   add("POST /runs/:id/pause", ({ params, body }) => app.orchestrator.pauseRun(params.id, true, parse(z.object({ by: z.enum(["user", "system"]).optional() }), body ?? {}).by ?? "user"));
+  // Home concepts on the plan card: what is offered (with what the live preview needs), and the person's pick.
+  add("GET /runs/:id/concepts", ({ params }) => conceptOffer(app.store, params.id, !!app.store.runs.require(params.id).planApproved));
+  add("POST /runs/:id/concept", ({ params, body }) => {
+    const b = parse(z.object({ conceptId: z.string().max(80).nullable() }), body);
+    try {
+      return chooseConcept(app.store, app.bus, app.store.runs.require(params.id), b.conceptId, "user");
+    } catch (err) {
+      throw new HttpError(409, (err as Error).message);
+    }
+  });
   // The run's absolute deadline: set once, then only extended explicitly (who, when and why are recorded).
   add("GET /runs/:id/deadline", ({ params }) => app.orchestrator.runDeadline(params.id) ?? null);
   add("POST /runs/:id/deadline", ({ params, body }) => {

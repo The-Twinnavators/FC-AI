@@ -5,6 +5,9 @@
  */
 import { TERMINAL_RUN_STATUSES, type FlowEvent } from "@flowcode/contracts";
 import type { App } from "../app.js";
+import { conceptTimingsKey, type ConceptTimings } from "../orchestrator/homeConceptOffer.js";
+import { getDeadline } from "../orchestrator/runDeadline.js";
+import { DESIGN_POLISH, DESIGN_SCREENS } from "../orchestrator/templates.js";
 
 export interface PerfItem {
   kind: "model" | "command" | "tool" | "check";
@@ -62,6 +65,24 @@ export interface RunPerformance {
   slowest: PerfItem[];
   /** Plain-language observations about the biggest costs. */
   notes: string[];
+  /**
+   * The design path, phase by phase, as measured on this run (component measurements, not a claim about build speed):
+   * research and capture steps, preparing the Home concepts, applying the chosen one, the coder's design steps,
+   * verification, and the waits for approval (the plan's, which includes picking a concept, and steps').
+   */
+  designPath: {
+    researchMs: number;
+    conceptPrepareMs?: number;
+    conceptApplyMs?: number;
+    concept?: { offeredAt?: string; chosenAt?: string; approvedAt?: string; appliedAt?: string; coderWork?: string[] };
+    designStepsMs: number;
+    designModelMs: number;
+    designModelCalls: number;
+    verificationMs: number;
+    planApprovalWaitMs: number;
+    stepApprovalWaitMs: number;
+    deadline?: { at: string; extensions: number; expired: boolean; overrunMs?: number };
+  };
 }
 
 // Tool calls that run commands: their time is counted under commands, not tools.
@@ -248,6 +269,38 @@ export function runPerformance(app: App, runId: string): RunPerformance {
     checks,
     slowest: slowest.sort((a, b) => b.ms - a.ms).slice(0, 10),
     notes: observations(busy, { ...model, tokensPerSec }, commands, waitingMs),
+    designPath: designPath(app, runId, taskRows, verifyMs),
+  };
+}
+
+/** The design path's phases from what the run recorded (see RunPerformance.designPath). */
+function designPath(app: App, runId: string, taskRows: RunPerformance["tasks"], verificationMs: number): RunPerformance["designPath"] {
+  const isDesign = (t: string) => t.startsWith(DESIGN_SCREENS) || t.startsWith(DESIGN_POLISH);
+  const design = taskRows.filter((t) => isDesign(t.title));
+  const research = taskRows.filter((t) => /(research|reference|capture)/i.test(t.title));
+  // Approval waits: each approval from its request to its decision (or now, while pending).
+  let planWait = 0;
+  let stepWait = 0;
+  for (const a of app.store.approvals.where("run_id = ?", runId)) {
+    if (a.kind === "enhancement_idea") continue;
+    const wait = ms(a.createdAt, a.resolvedAt ?? (a.status === "pending" ? new Date().toISOString() : a.createdAt));
+    if (a.kind === "plan" && !a.taskId) planWait += wait;
+    else stepWait += wait;
+  }
+  const c = app.store.getSetting<ConceptTimings>(conceptTimingsKey(runId), {});
+  const d = getDeadline(app.store, runId);
+  return {
+    researchMs: research.reduce((n, t) => n + t.elapsedMs, 0),
+    ...(c.prepareMs !== undefined ? { conceptPrepareMs: c.prepareMs } : {}),
+    ...(c.applyMs !== undefined ? { conceptApplyMs: c.applyMs } : {}),
+    ...(c.offeredAt ? { concept: { offeredAt: c.offeredAt, chosenAt: c.chosenAt, approvedAt: c.approvedAt, appliedAt: c.appliedAt, coderWork: c.coderWork } } : {}),
+    designStepsMs: design.reduce((n, t) => n + t.elapsedMs, 0),
+    designModelMs: design.reduce((n, t) => n + t.modelMs, 0),
+    designModelCalls: design.reduce((n, t) => n + t.modelCalls, 0),
+    verificationMs,
+    planApprovalWaitMs: planWait,
+    stepApprovalWaitMs: stepWait,
+    ...(d ? { deadline: { at: d.at, extensions: d.extensions.length, expired: !!d.expired, ...(d.expired?.overrunMs !== undefined ? { overrunMs: d.expired.overrunMs } : {}) } } : {}),
   };
 }
 

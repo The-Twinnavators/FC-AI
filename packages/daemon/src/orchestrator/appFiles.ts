@@ -14,9 +14,11 @@ import { appModelKey, appModelNote } from "./appModel.js";
 import { ADD_LAYOUTS } from "./layoutRecipes.js";
 import { APP_LAYOUT, type ScreenPlan } from "./screenPlan.js";
 import { recordUse } from "./libraryUse.js";
-import { LOOKUP_PIECES, homePieces, lookupAppSource, lookupFile, lookupScreenSource } from "./lookupFiles.js";
+import { LOOKUP_PIECES, homePieces, lookupAppSource, lookupData, lookupFile, lookupLinks, lookupScreenSource } from "./lookupFiles.js";
 import { pieceFiles, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
-import { DESIGN_SCREENS, type RuntimeStepArgs } from "./templates.js";
+import { DESIGN_POLISH, DESIGN_SCREENS, type RuntimeStepArgs } from "./templates.js";
+import { applyDesignSpec, type DesignSpec } from "../workspace/designSpec.js";
+import { conceptTimingsKey, designSpecKey, type ConceptTimings } from "./homeConceptOffer.js";
 
 /** The library pieces a complete app is built from. */
 export const APP_PIECES = ["app-frame", "resource-index", "record-wizard", "record-detail", "app-dashboard"];
@@ -81,6 +83,25 @@ function screenSource(m: AppModel, v: ModelView): string {
       // A custom page: the design and feature steps build it from its purpose, on the same store.
       return `${head}\nimport { PageHeader } from "../components/ui";\n${nav}\n\nexport default function ${name}() {\n  void store;\n  void go;\n  return (\n    <main className="fl-wrap">\n      <PageHeader title=${attr(v.label)}${v.purpose ? ` description=${attr(v.purpose)}` : ""} />\n      {/* 1. ${commentSafe(v.label)}: ${commentSafe(v.purpose ?? "this page's working content")} */}\n    </main>\n  );\n}\n`;
   }
+}
+
+/**
+ * What a live preview of a look-up app runs on: the same schema, records, look-up config and frame links its files
+ * hold (appFiles), so a Home concept is previewed on the app's own data before the app is written.
+ */
+export function lookupPreview(m: AppModel) {
+  if (!m.lookup) return undefined;
+  const r = Object.fromEntries(m.nav.flatMap((g) => g.items).map((v) => [v.kind, v.id]));
+  return {
+    schema: { appKey: m.product.toLowerCase().replace(/[^a-z0-9]+/g, "-"), roles: m.roles, entities: m.entities },
+    records: m.seed,
+    lookupConfig: lookupData(m).config,
+    lookupSeed: lookupData(m).seed,
+    links: lookupLinks(m, DEFAULT_ICON),
+    product: m.product,
+    landing: r.landing,
+    saved: r.saved,
+  };
 }
 
 /** Every file of the app's data, routes, screens and frame. */
@@ -182,6 +203,27 @@ export async function appStep({ deps, run, task, jail, onChanged }: RuntimeStepA
     const html = fs.readFileSync(indexPath, "utf8");
     const named = namedIndexHtml(html, model);
     if (named !== html && deps.ops.replaceContent(ctx, "index.html", named).ok) changed.push("index.html");
+  }
+  // The Home concept picked with the plan: its look through the tokens and surface style, its Home page from the
+  // library (already written above from the model's layout), and the rest listed for the design steps.
+  const spec = deps.store.getSetting<DesignSpec | null>(designSpecKey(run.id), null);
+  if (spec) {
+    const t0 = performance.now();
+    try {
+      const applied = applyDesignSpec(jail, deps.ops, { projectId: run.projectId, runId: run.id }, spec, { frameCss: "src/styles/components.css", screens: builtViews(model).map((v) => screenFileOf(v)), model });
+      const applyMs = Math.round(performance.now() - t0);
+      const coderWork = applied.coderWork.map((w) => `${w.statement} (${w.files.join(", ")})`);
+      deps.store.setSetting(conceptTimingsKey(run.id), { ...deps.store.getSetting<ConceptTimings>(conceptTimingsKey(run.id), {}), appliedAt: new Date().toISOString(), applyMs, coderWork });
+      changed.push("src/styles/tokens.css");
+      // The design steps keep the chosen look and Home, and do only what tokens and library pages can't.
+      for (const t of deps.store.tasks.where("run_id = ?", run.id).filter((x) => x.title.startsWith(DESIGN_SCREENS) || x.title.startsWith(DESIGN_POLISH))) {
+        const note = `The Home page and the look are the concept the person chose with the plan (${spec.name}), already applied: keep src/styles/tokens.css values, the surface style, the Home screen and its library page as they are. ${coderWork.length ? `Your remaining design work: ${coderWork.join("; ")}.` : "Nothing else about the look is asked for: make the other screens sit well with it, using the same tokens."}`;
+        deps.store.setSetting(`taskFindings:${t.id}`, [...deps.store.getSetting<string[]>(`taskFindings:${t.id}`, []), note]);
+      }
+      deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Applied the chosen Home concept "${spec.name}" in ${applyMs} ms: ${applied.applied.join("; ")}${coderWork.length ? `; left for the design steps: ${coderWork.join("; ")}` : "; nothing left for the coder beyond the checks"}`, data: { designSpec: spec.id, applyMs, requirements: applied.requirements } });
+    } catch (err) {
+      return { kind: "blocked", reason: `The chosen Home concept couldn't be applied: ${(err as Error).message}`, nextAction: "Retry this step" };
+    }
   }
   onChanged(changed);
   deps.store.setSetting(appWrittenKey(run.id), true);
