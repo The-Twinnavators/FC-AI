@@ -167,12 +167,14 @@ export function PlanReview({ approval, onDecided }: { approval: Approval; onDeci
     }
   };
 
+  // Contradictions with the PRD (planChecks.ts): the plan isn't approval-ready while they stand.
+  const contradictions = (plan?.compliance ?? []).filter((c) => c.hard && !c.ok);
   const lookLine = hasEdits ? "Unconfirmed edits: choose before approving" : look ? `Version ${look.version}: ${SURFACE(look.appearance.surface)}, ${look.appearance.primary}, ${look.appearance.fonts.display}${look.appearance.motion ? `, ${look.appearance.motion.level} motion` : ""}` : "Base styling: no brand direction selected";
   const stepState: Record<Step, string> = {
-    scope: plan ? `${plan.tasks.length} steps${plan.scopeDecisions?.length ? ` · ${plan.scopeDecisions.length} decision${plan.scopeDecisions.length === 1 ? "" : "s"}` : ""}` : "Loading…",
+    scope: plan ? `${plan.tasks.length} steps${contradictions.length ? ` · ${contradictions.length} contradict${contradictions.length === 1 ? "s" : ""} the PRD` : ""}${plan.scopeDecisions?.length ? ` · ${plan.scopeDecisions.length} decision${plan.scopeDecisions.length === 1 ? "" : "s"}` : ""}` : "Loading…",
     look: hasEdits ? "Edits not confirmed" : look ? `Look v${look.version}${conceptName ? ` · ${conceptName}` : ""}` : `Base styling${conceptName ? ` · ${conceptName}` : ""}`,
     permissions: `${approval.risk} risk${installs.length ? " · install asks separately" : ""}`,
-    review: hasEdits && !lookChoice ? "Choice needed" : "Ready",
+    review: contradictions.length ? "Not approval-ready" : hasEdits && !lookChoice ? "Choice needed" : "Ready",
   };
 
   return (
@@ -220,6 +222,49 @@ export function PlanReview({ approval, onDecided }: { approval: Approval; onDeci
           {step === "scope" ? (
             <section aria-label="Scope">
               <p className="plan-review__goal">{plan?.goal ?? approval.action}</p>
+              {contradictions.length ? (
+                <div className="notice notice--bad plan-review__block" role="alert" data-plan-contradictions={contradictions.length}>
+                  <h3>
+                    Not approval-ready: {contradictions.length} contradiction{contradictions.length === 1 ? "" : "s"} with the PRD
+                  </h3>
+                  <ul>
+                    {contradictions.map((c) => (
+                      <li key={c.id}>
+                        <strong>{c.label}</strong>
+                        <ul>
+                          {c.problems.slice(0, 6).map((p) => (
+                            <li key={p}>{p}</li>
+                          ))}
+                          {c.problems.length > 6 ? <li className="dim">and {c.problems.length - 6} more</li> : null}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                  <p>Use Request changes, or deny. Approving builds the plan with these contradictions.</p>
+                </div>
+              ) : null}
+              {plan?.compliance?.length ? (
+                <details className="plan-review__block">
+                  <summary>
+                    Checks: compliance with the PRD {plan.compliance.filter((c) => c.kind === "compliance" && c.ok).length} of {plan.compliance.filter((c) => c.kind === "compliance").length} pass · structure {plan.compliance.filter((c) => c.kind === "structural" && c.ok).length} of {plan.compliance.filter((c) => c.kind === "structural").length} pass
+                  </summary>
+                  {(["compliance", "structural"] as const).map((kind) => (
+                    <div key={kind}>
+                      <h3>{kind === "compliance" ? "Compliance with the PRD" : "Structure (how the plan is put together; not proof it meets the PRD)"}</h3>
+                      <ul>
+                        {plan.compliance!
+                          .filter((c) => c.kind === kind)
+                          .map((c) => (
+                            <li key={c.id}>
+                              {c.ok ? "Pass" : "Fails"}: {c.label}
+                              {c.problems.length ? <span className="dim"> ({c.problems.slice(0, 2).join("; ")})</span> : null}
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  ))}
+                </details>
+              ) : null}
               {version?.outcome ? (
                 <div className="plan-review__outcome" role="status">
                   <strong>
@@ -393,7 +438,7 @@ export function PlanReview({ approval, onDecided }: { approval: Approval; onDeci
       </div>
       <footer className="approval__actions plan-review__actions">
         <button className="btn btn--primary" data-cp="approval-allow" disabled={busy} onClick={() => void approve()}>
-          Approve plan version {approval.planVersion ?? 1}
+          {contradictions.length ? `Approve version ${approval.planVersion ?? 1} despite ${contradictions.length} contradiction${contradictions.length === 1 ? "" : "s"}` : `Approve plan version ${approval.planVersion ?? 1}`}
         </button>
         <button className="btn" disabled={busy} aria-expanded={asking} onClick={() => setAsking((v) => !v)}>
           <Icon name="edit" size={14} /> Request changes

@@ -38,7 +38,7 @@ const corpus = `${PRD}\n${JSON.stringify(V2.model.seed)}`;
 describe("the captured failed plan (validation version 2)", () => {
   it("fails all six plan checks, for the reasons the person gave", () => {
     const checks = planChecks(V2.plan, { scope: planScope(PRD, [REVISION]), corpus, app: true, saves: true, look: { state: "none", line: "" } });
-    expect(checks.map((c) => [c.id, c.ok])).toEqual([[1, false], [2, false], [3, false], [4, false], [5, false], [6, false]]);
+    expect(checks.filter((c) => c.kind === "structural").map((c) => [c.id, c.ok])).toEqual([[1, false], [2, false], [3, false], [4, false], [5, false], [6, false]]);
     const say = (id: number) => checks.find((c) => c.id === id)!.problems.join("\n");
     expect(say(1)).toMatch(/\[categories\] page/);
     expect(say(1)).toMatch(/\[places\] page/);
@@ -197,7 +197,9 @@ describe("the validation run replayed through the repaired PRD planning path", (
       const events = app.store.db.all<{ data: string }>("SELECT data FROM events WHERE run_id = ? AND type = 'plan.proposed' ORDER BY rowid", run.id).map((x) => (JSON.parse(x.data) as { message: string }).message);
       fs.writeFileSync(path.join(out, "replayed-plan.json"), JSON.stringify({ plan, checks, scope: app.store.getSetting(`planScope:${run.id}`, null), journeys: app.store.getSetting(experienceKey(run.id), null), briefs: app.store.getSetting(screenBriefKey(run.id), null), coverage: app.store.getSetting(`coverage:${run.id}`, null), decisions: app.store.getSetting(`scopeDecisions:${run.id}`, null), events }, null, 2));
     }
-    expect(checks.map((c) => [c.id, c.ok, c.problems])).toEqual([1, 2, 3, 4, 5, 6].map((id) => [id, true, []]));
+    expect(checks.filter((c) => (c as { kind?: string }).kind === "structural").map((c) => [c.id, c.ok, c.problems])).toEqual([1, 2, 3, 4, 5, 6].map((id) => [id, true, []]));
+    // The compliance checks on the replayed Clean Cart plan: the PRD's records, navigation, exclusions, tests, state, Look.
+    expect(checks.filter((c) => (c as { kind?: string }).kind === "compliance").filter((c) => !c.ok).map((c) => [c.id, c.problems])).toEqual([]);
     const text = plan.tasks.map((t) => `${t.title}\n${t.objective}`).join("\n");
     // 1. Scope: no Categories, Lists, List or Store Finder page; the supporting data isn't a step; the scope is stated.
     expect(text).not.toMatch(/\[(categories|places|lists|mylist)\]/);

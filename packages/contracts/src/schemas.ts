@@ -406,6 +406,13 @@ export const ImplementationPlan = z.object({
    * decision for the person at plan approval. A plan with any is never auto-approved.
    */
   scopeDecisions: z.array(z.string()).optional(),
+  /**
+   * The plan checked on its own ("structural") and against what the PRD requires ("compliance": its records, navigation,
+   * exclusions, tests, state and Look). A failed hard check is a contradiction with the PRD: the plan isn't approval-ready.
+   */
+  compliance: z
+    .array(z.object({ id: z.number(), kind: z.enum(["structural", "compliance"]), hard: z.boolean(), label: z.string(), ok: z.boolean(), problems: z.array(z.string()) }))
+    .optional(),
 });
 export type ImplementationPlan = z.infer<typeof ImplementationPlan>;
 

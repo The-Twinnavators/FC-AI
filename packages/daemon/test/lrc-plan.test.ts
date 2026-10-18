@@ -261,13 +261,13 @@ describe("a spec build plans from the checklist", () => {
     expect(app.store.getSetting<{ workflows: Array<{ name: string }> } | null>(`experienceMap:${run.id}`, null)?.workflows.map((w) => w.name)).toEqual(["Check the week"]);
     expect(feature.objective).toContain("## Check the week (Planners; starts on Calendar)");
     expect(app.store.getSetting<LrcPlan | null>(`lrcPlanRun:${run.id}`, null)?.runId).toBe(run.id);
-    // The coverage matrix: the journey names no requirement, so the coded ones have no workflow - each a decision for
-    // the person, shown on the plan, which is then never auto-approved.
+    // The coverage matrix: the journey names no requirement, but a coded requirement is proved by its step's acceptance
+    // tests, so it is planned and never returned to the person as a decision (Frameproof planning).
     const coverage = app.store.getSetting<Array<{ requirement: string; status: string }>>(`coverage:${run.id}`, []);
     expect(coverage.map((c) => c.requirement)).toEqual(plan.requirements.map((x) => x.id));
-    expect(coverage.find((c) => c.requirement === "R4")?.status).toBe("no workflow");
+    expect(coverage.find((c) => c.requirement === "R4")?.status).toBe("planned");
     const approved = app.store.runs.require(run.id);
-    expect(approved.plan?.scopeDecisions?.some((d) => d.startsWith("R4 is in the plan but no user journey covers it"))).toBe(true);
+    expect(approved.plan?.scopeDecisions ?? []).toEqual([]);
     expect(approved.status).toBe("awaiting_approval");
     // No generic steps FlowCode adds on its own.
     expect(tasks.some((t) => t.title === "States, accessibility and edge cases")).toBe(false);

@@ -16,7 +16,9 @@
  *  - The person's revision requests reach every planning stage as directives (planDirectives).
  */
 import type { Requirement } from "../quality/spec.js";
-import type { AppModel, LookupKind, ModelView } from "./appModel.js";
+import type { AppModel, LookupKind, ModelEntity, ModelView } from "./appModel.js";
+import { tableFor, type PrdRecordTable } from "./prdRecords.js";
+import { affirmed } from "./layoutRecipes.js";
 
 export type LookupCapability = "categories" | "places" | "lists" | "ratings" | "comments" | "sharing" | "likes";
 export const LOOKUP_CAPABILITIES: LookupCapability[] = ["categories", "places", "lists", "ratings", "comments", "sharing", "likes"];
@@ -60,6 +62,8 @@ const OUT_OF_SCOPE_HEADING = /\b(not in (this|the first|v1|the) ?release|out of 
 const RECORDS_HEADING = /\b(records?|data model|entities|data|fields)\b/i;
 const SAMPLE_HEADING = /\b(sample|seed|example) data\b/i;
 const NAV_HEADING = /\bnavigation\b/i;
+const STATE_HEADING = /\bstate$/i;
+const LOOK_HEADING = /^(visual (direction|design|style)|look( and feel)?|design direction|brand( direction)?|concept:.*)$/i;
 
 export const planScopeKey = (runId: string) => `planScope:${runId}`;
 
@@ -84,6 +88,31 @@ export interface PlanScope {
   dataSections: string[];
   /** A capability the PRD's in-scope text asks for but the person's revision defers: theirs to confirm. */
   conflicts: string[];
+  /** The PRD's out-of-scope lines (its non-goals), one per sentence or bullet. */
+  outOfScope: string[];
+  /** The PRD rules out remote assets at runtime (bundled data, no remote image URLs). */
+  noRemoteAssets: boolean;
+  /** Runtime state the PRD specifies ("Client selection state": its fields and rules), owned by one shared store. */
+  state: StateSpec[];
+  /** The PRD's own visual direction, when it gives one: proposed for review, never replaced by base styling silently. */
+  look?: PrdLook;
+  /** What the PRD asks for: its in-scope text without its non-goals and its "do not" sentences (layoutRecipes.affirmed). */
+  asked: string;
+}
+
+export interface StateSpec {
+  name: string;
+  fields: string[];
+  rules: string[];
+}
+export interface PrdLook {
+  /** The concept's name, when the PRD names one ("Editorial contact sheet"). */
+  concept?: string;
+  /** The direction's own lines, as the PRD writes them. */
+  lines: string[];
+  /** The motion level the PRD asks for ("balanced"), and whether it turns expressive effects off. */
+  motion?: string;
+  expressiveOff: boolean;
 }
 
 const sentences = (text: string) => text.split(/(?<=[.;!?])\s+|\n+/).map((s) => s.trim()).filter(Boolean);
@@ -131,13 +160,15 @@ export function planScope(prd: string, constraints: string[] = []): PlanScope {
     } else if (asked) capabilities.push({ capability: cap, status: "in scope", source: "prd", quote: asked[0] });
     else capabilities.push({ capability: cap, status: "not requested", source: "not asked for" });
   }
-  // The navigation the PRD declares: "three links: Home, Search, Saved", or a bulleted list under its heading.
+  // The navigation the PRD declares: "three links: Home, Search, Saved", or a bulleted or numbered list under its
+  // heading ("1. Gallery. 2. My Selection, with the current shortlist count.": Frameproof).
   const navPart = parts.find((p) => NAV_HEADING.test(plainHeading(p.heading)));
   let navigation: string[] = [];
   if (navPart) {
     const m = /\blinks?\b[^:\n]*:\s*([^\n.]+)/i.exec(navPart.body);
-    const raw = m ? m[1]!.split(/,|\band\b/) : navPart.body.split(/\n/).filter((l) => /^\s*[-*]\s+/.test(l)).map((l) => l.replace(/^\s*[-*]\s+/, "").split(/[:(—-]/)[0]!);
-    navigation = raw.map((x) => x.replace(/[*_`"]/g, "").trim()).filter((x) => x && x.length <= 30 && !/\s{2,}/.test(x));
+    const listed = navPart.body.split(/\n/).filter((l) => /^\s*([-*]|\d+[.)])\s+/.test(l)).map((l) => l.replace(/^\s*([-*]|\d+[.)])\s+/, "").split(/[:(—,]|\s-\s|\.(\s|$)/)[0]!);
+    const raw = m ? m[1]!.split(/,|\band\b/) : listed;
+    navigation = raw.map((x) => x.replace(/[*_`"]/g, "").replace(/\.$/, "").trim()).filter((x) => x && x.length <= 30 && !/\s{2,}/.test(x));
   }
   // Records and sample data: the headings themselves and the ones nested under a records heading.
   const dataSections: string[] = [];
@@ -146,12 +177,43 @@ export function planScope(prd: string, constraints: string[] = []): PlanScope {
     if (!p.heading) continue;
     const h = plainHeading(p.heading);
     if (recordsLevel && p.level <= recordsLevel) recordsLevel = 0;
+    // Runtime state is behaviour, not supporting data ("Client selection state").
+    if (STATE_HEADING.test(h)) continue;
     if (SAMPLE_HEADING.test(h) || (RECORDS_HEADING.test(h) && !/\brequirements?\b/i.test(h))) {
       dataSections.push(h.toLowerCase());
-      if (!SAMPLE_HEADING.test(h)) recordsLevel = p.level;
+      if (!SAMPLE_HEADING.test(h) && !recordsLevel) recordsLevel = p.level;
     } else if (recordsLevel && p.level > recordsLevel) dataSections.push(h.toLowerCase());
   }
-  return { capabilities, revisions, noMarketing: refusals.some((s) => MARKETING_FUNNEL.test(s)), navigation, dataSections, conflicts };
+  // Runtime state: a section headed "… state" with its fields as bullets; its other lines are rules.
+  const state: StateSpec[] = parts
+    .filter((p) => STATE_HEADING.test(plainHeading(p.heading)))
+    .map((p) => {
+      const lines = p.body.split(/\n/).map((l) => l.trim()).filter(Boolean);
+      return { name: plainHeading(p.heading), fields: lines.filter((l) => /^[-*]\s+/.test(l)).map((l) => l.replace(/^[-*]\s+/, "").replace(/\.$/, "")), rules: lines.filter((l) => !/^[-*]\s+/.test(l) && !/:$/.test(l)) };
+    })
+    .filter((x) => x.fields.length);
+  // The PRD's visual direction: its section's lines (a "Concept:" heading names it) and the motion it asks for.
+  const lookParts = parts.filter((p) => LOOK_HEADING.test(plainHeading(p.heading)));
+  const lookLines = lookParts.flatMap((p) => [/^concept:/i.test(plainHeading(p.heading)) ? plainHeading(p.heading) : "", ...p.body.split(/\n/).map((l) => l.trim().replace(/^[-*]\s+/, "").replace(/\.$/, ""))]).filter((l) => l && !/composition$/i.test(l));
+  const motionText = parts.filter((p) => /\bmotion\b/i.test(plainHeading(p.heading))).map((p) => p.body).join("\n");
+  const conceptName = lookParts.map((p) => /^concept:\s*(.+)$/i.exec(plainHeading(p.heading))?.[1]).find(Boolean);
+  const motion = /\b(subtle|balanced|expressive|none|off)\b[^.\n]*\bmotion\b|\bmotion\b[^.\n]*\b(subtle|balanced|expressive)\b/i.exec(motionText);
+  const look: PrdLook | undefined = lookLines.length
+    ? { ...(conceptName ? { concept: conceptName.trim() } : {}), lines: lookLines.slice(0, 16), ...(motion ? { motion: (motion[1] ?? motion[2])!.toLowerCase() } : {}), expressiveOff: /\bexpressive (features|effects)? ?(are )?off\b/i.test(motionText) }
+    : undefined;
+  return {
+    capabilities,
+    revisions,
+    noMarketing: refusals.some((s) => MARKETING_FUNNEL.test(s)),
+    navigation,
+    dataSections,
+    conflicts,
+    outOfScope: sentences(outText.replace(/^\s*[-*]\s+/gm, "")),
+    noRemoteAssets: /\b(do not|don't|never|no)\b[^.\n]*\bremote (image )?(urls?|assets|images)\b|\bbundled (sample data|assets|photographs|images)\b/i.test(inText),
+    state,
+    ...(look ? { look } : {}),
+    asked: affirmed(inText),
+  };
 }
 
 export const leftOut = (s: PlanScope) => s.capabilities.filter((c) => c.status !== "in scope").map((c) => c.capability);
@@ -174,6 +236,9 @@ export function scopeNote(s: PlanScope, required: Requirement[] = []): string {
     unasked.length ? `- Left out (the library could add them, but nothing asks for them): ${unasked.map((c) => CAPABILITY_LABEL[c.capability]).join("; ")}.` : "",
     s.navigation.length ? `- Primary navigation: ${s.navigation.join(", ")} (as the PRD declares). A record's own page opens from a list or a result, never from the navigation.` : "- A record's own page opens from a list or a result, never from the navigation.",
     s.noMarketing ? "- No marketing funnel: no hero banner, call-to-action banner or marketing footer." : "",
+    ...s.state.map((st) => `- Runtime state the PRD specifies, one shared owner: ${st.name} (${st.fields.join("; ")}).`),
+    s.noRemoteAssets ? "- No remote assets at runtime: images and data are bundled." : "",
+    s.outOfScope.length ? `- Out of scope (the PRD's words): ${s.outOfScope.join(" ")}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -194,10 +259,12 @@ export function planDirectives(s: PlanScope, required: Requirement[] = []): stri
  * working set by default), their sample ratings and lists dropped, what the look-up pieces leave out recorded on the
  * model (lookup.omit), the PRD's own screen purposes used, and the primary navigation recorded.
  */
-export function applyScope(m: AppModel, s: PlanScope, declared: Array<{ name: string; purpose: string }> = []): { model: AppModel; removed: string[] } {
+export function applyScope(m: AppModel, s: PlanScope, declared: Array<{ name: string; purpose: string }> = [], tables: PrdRecordTable[] = []): { model: AppModel; removed: string[]; changed: string[] } {
   const out = leftOut(s);
   const kinds = new Set(out.flatMap((c) => CAPABILITY_KINDS[c] ?? []));
   const removed: string[] = [];
+  const changed: string[] = [];
+  m = recordPages(m, s, tables, removed, changed);
   const purposeOf = (v: ModelView) => v.purpose ?? declared.find((d) => d.name.toLowerCase() === v.label.toLowerCase() || (v.kind === "landing" && /^home$/i.test(d.name)))?.purpose;
   const nav = m.nav
     .map((g) => ({
@@ -215,7 +282,80 @@ export function applyScope(m: AppModel, s: PlanScope, declared: Array<{ name: st
     }))
     .filter((g) => g.items.length);
   const lookup = m.lookup ? { ...m.lookup, omit: out, ...(out.includes("ratings") || out.includes("comments") ? { ratings: [] } : {}), ...(out.includes("lists") ? { lists: [] } : {}), ...(out.includes("likes") ? { likes: {} } : {}) } : undefined;
-  return { model: { ...m, nav, ...(lookup ? { lookup } : {}), ...(s.navigation.length ? { primaryNav: s.navigation } : {}) }, removed };
+  // No remote asset at runtime when the PRD rules it out: a record's remote URL is left empty for the build to bundle.
+  const seed = s.noRemoteAssets ? stripRemote(m.seed, changed) : m.seed;
+  return { model: { ...m, nav, seed, ...(lookup ? { lookup } : {}), ...(s.navigation.length ? { primaryNav: s.navigation } : {}) }, removed, changed };
+}
+
+const words = (t: string) => new Set(t.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !STOP.has(w)));
+const STOP = new Set(["the", "and", "for", "with", "state", "client", "user", "person", "current", "page", "screen", "view", "list", "records", "record", "data"]);
+const sing = (w: string) => w.replace(/ies$/, "y").replace(/s$/, "");
+const mentions = (text: string, e: { label: string; plural: string }) => [...words(text)].some((w) => [e.label, e.plural].some((n) => [...words(n)].some((x) => sing(x) === sing(w))));
+
+/**
+ * The app's pages held to what the PRD says about its kinds of record (Frameproof planning):
+ *  - a kind the PRD gives as one record (a Field | Value table) or rules out more of ("Multiple galleries" out of
+ *    scope) has no list, record or create page; a declared screen that listed it lists the records it holds instead
+ *    (the one kind the PRD gives as an exact table of rows);
+ *  - a create page is removed when the PRD rules out adding that kind ("Photo upload or download" out of scope);
+ *  - a declared screen named after the runtime state the PRD specifies ("My Selection" ↔ "Client selection state") is
+ *    a page of that state, not a second list of records.
+ */
+function recordPages(m: AppModel, s: PlanScope, tables: PrdRecordTable[], removed: string[], changed: string[]): AppModel {
+  if (m.lookup) return m;
+  const tableOf = (e: ModelEntity) => tableFor(e, m.entities, tables);
+  const single = new Set(m.entities.filter((e) => tableOf(e)?.shape === "fields" || s.outOfScope.some((l) => /\bmultiple\b/i.test(l) && mentions(l, e))).map((e) => e.key));
+  const noCreate = new Set(m.entities.filter((e) => single.has(e.key) || s.outOfScope.some((l) => /\b(upload\w*|creat\w*|add\w*|new|import\w*)\b/i.test(l) && mentions(l, e))).map((e) => e.key));
+  const listed = m.entities.filter((e) => !single.has(e.key) && tableOf(e)?.shape === "rows");
+  const declared = (v: ModelView) => s.navigation.some((n) => n.toLowerCase() === v.label.toLowerCase());
+  const nav = m.nav.map((g) => ({
+    ...g,
+    items: g.items.flatMap((v): ModelView[] => {
+      const e = v.entity;
+      const stateSpec = s.state.find((st) => [...words(st.name)].some((w) => words(v.label).has(w)));
+      if (declared(v) && stateSpec && v.kind !== "custom") {
+        changed.push(`${v.label}: the page of the PRD's ${stateSpec.name} (${stateSpec.fields.join("; ")}), not a list of ${e ?? "records"}`);
+        const { entity: _e, ...rest } = v;
+        return [{ ...rest, kind: "custom", purpose: v.purpose ?? `${v.label}: the ${stateSpec.name.toLowerCase()} (${stateSpec.fields.join("; ")})` }];
+      }
+      if (e && single.has(e)) {
+        if (v.kind === "list" && declared(v) && listed.length === 1) {
+          changed.push(`${v.label}: lists the ${listed[0]!.plural.toLowerCase()} (the PRD gives one ${m.entities.find((x) => x.key === e)?.label.toLowerCase()})`);
+          return [{ ...v, entity: listed[0]!.key }];
+        }
+        removed.push(v.label);
+        return [];
+      }
+      if (e && v.kind === "create" && noCreate.has(e)) {
+        removed.push(v.label);
+        return [];
+      }
+      return [v];
+    }),
+  }));
+  // A create page the PRD asks for ("Users create an event") is added when the model left it out; others never are.
+  for (const e of m.entities) {
+    if (noCreate.has(e.key) || nav.some((g) => g.items.some((v) => v.kind === "create" && v.entity === e.key))) continue;
+    const names = [e.label, e.plural].map((n) => n.toLowerCase().replace(/[^a-z0-9 ]/g, "")).join("|");
+    if (!new RegExp(`\\b(create|add|log|record|book|submit|register|enter|upload)s?\\s+(an?\\s+|new\\s+|the\\s+|their\\s+)?(new\\s+)?(${names})\\b`, "i").test(s.asked)) continue;
+    const group = nav.find((g) => g.items.some((v) => v.entity === e.key)) ?? nav[0];
+    if (!group) continue;
+    const list = group.items.findIndex((v) => v.kind === "list" && v.entity === e.key);
+    group.items.splice(list < 0 ? group.items.length : list + 1, 0, { id: `new-${e.key}`, label: `New ${e.label.toLowerCase()}`, kind: "create", entity: e.key });
+    changed.push(`New ${e.label.toLowerCase()}: a create page, because the PRD asks for one`);
+  }
+  // A kind of record now listed by a declared screen keeps one list: the declared one.
+  const lists = new Map<string, ModelView>();
+  for (const v of nav.flatMap((g) => g.items)) if (v.kind === "list" && v.entity && (!lists.has(v.entity) || declared(v))) lists.set(v.entity, v);
+  const kept = nav.map((g) => ({ ...g, items: g.items.filter((v) => !(v.kind === "list" && v.entity && lists.get(v.entity) !== v && (removed.push(v.label), true))) })).filter((g) => g.items.length);
+  return { ...m, nav: kept };
+}
+
+function stripRemote(seed: AppModel["seed"], changed: string[]): AppModel["seed"] {
+  let n = 0;
+  const out = Object.fromEntries(Object.entries(seed).map(([k, rows]) => [k, rows.map((r) => Object.fromEntries(Object.entries(r).map(([f, v]) => (typeof v === "string" && /^https?:\/\//i.test(v.trim()) ? (n++, [f, ""]) : [f, v]))))]));
+  if (n) changed.push(`${n} remote URL${n === 1 ? "" : "s"} in the sample records left empty: the PRD rules out remote assets at runtime, so the build bundles them`);
+  return out;
 }
 
 /** Who owns the app's data: one file for the records, one for what the person saved (kept after a reload). */
@@ -224,14 +364,15 @@ export interface DataOwners {
   saved: string;
   note: string;
 }
-export function dataOwners(m: AppModel): DataOwners {
+export function dataOwners(m: AppModel, s?: PlanScope): DataOwners {
   const records = "src/app/store.ts";
   const saved = m.lookup ? "src/app/lookup.ts" : records;
   const entries = m.lookup ? m.entities.find((e) => e.key === m.lookup!.entries)?.plural ?? "records" : m.entities.map((e) => e.plural).join(", ");
+  const state = (s?.state ?? []).map((st) => ` The PRD's ${st.name} (${st.fields.join("; ")}) is one shared state owned by ${records}${st.rules.length ? ` (${st.rules.join(" ")})` : ""}: every screen reads and changes it there, and it is kept in this browser under a namespaced key so it survives a reload.`).join("");
   return {
     records,
     saved,
-    note: `Data owners (one each; no other file keeps a copy, including src/sim or a screen's own state): ${entries} records are owned by ${records} (the one store, seeded from src/app/schema.ts); what the person saved is owned by ${saved}${saved === records ? "" : ", which reads the records from the store"}, kept in this browser so it survives a reload.`,
+    note: `Data owners (one each; no other file keeps a copy, including src/sim or a screen's own state): ${entries} records are owned by ${records} (the one store, seeded from src/app/schema.ts); what the person saved is owned by ${saved}${saved === records ? "" : ", which reads the records from the store"}, kept in this browser so it survives a reload.${state}`,
   };
 }
 

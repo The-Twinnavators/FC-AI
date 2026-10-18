@@ -125,6 +125,7 @@ export interface LayoutPick {
  * count; text without sections (a short request) is used as it is.
  */
 export function screenText(text: string): string {
+  text = affirmed(text);
   const sections = text.split(/\n(?=#{1,4}\s)/);
   if (sections.length < 3) return text;
   const about = /^#{1,4}\s.*\b(information architecture|main screens?|screens?|pages?|navigation|site ?map|user interface|ui|ux|layouts?|views?|user stories|features?|feature scope|functional requirements|interaction)\b/i;
@@ -134,6 +135,32 @@ export function screenText(text: string): string {
 }
 
 /** The layouts a spec or request asks for, each with the version that fits it best. */
+/**
+ * What a spec asks for, without what it rules out: its out-of-scope sections and every sentence that says not to do
+ * something (Frameproof: "Do not add a marketing landing page, pricing page…" and "Avoid … pricing, promotional CTA
+ * banners" picked the pricing tiers). Headings stay, so the sections keep their shape.
+ */
+export function affirmed(text: string): string {
+  // "No-shows" and a quoted customer's words aren't the spec saying no.
+  const NEGATED = /\b(do not|don't|does not|doesn't|must not|should not|never|avoid|without|exclude[sd]?|instead of|no|not)\b(?![-‑])/i;
+  const negated = (s: string) => NEGATED.test(s.replace(/"[^"]*"|“[^”]*”/g, '""'));
+  const OUT = /^#{1,6}\s.*\b(out of scope|non-?goals?|not in (this|the first|v1|the) ?release|not included|excluded)\b/i;
+  const out: string[] = [];
+  let skipping = 0;
+  for (const line of text.split(/\r?\n/)) {
+    const h = /^(#{1,6})\s/.exec(line);
+    if (h) {
+      if (skipping && h[1]!.length <= skipping) skipping = 0;
+      if (OUT.test(line)) skipping = h[1]!.length;
+      if (!skipping) out.push(line);
+      continue;
+    }
+    if (skipping) continue;
+    out.push(line.split(/(?<=[.;!?])\s+/).filter((s) => !negated(s)).join(" "));
+  }
+  return out.join("\n");
+}
+
 export function pickLayouts(text: string): LayoutPick[] {
   const screens = screenText(text);
   // The Welcome home is a pitch (hero, headline, tiles). Most PRDs name a "home screen" for the tool itself, and every

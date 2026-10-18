@@ -59,3 +59,14 @@ These causes are in FlowCode, not the model's structure:
 
 **Links:**
 - Review the plan: http://localhost:5199/?port=7463&token=frameproof-token&temp=1#/projects/prj_8da8edeb5b494b06bd33/runs/run_ffaf429822914271b675
+
+## Recorded outcome (owner's decision, 2026-10-18)
+
+**Result:** Frameproof plan version 1 is a **planning-stage PRD-compliance failure**.
+
+**Not done, on the owner's instruction:**
+- the plan was not approved;
+- nothing was generated;
+- the install permission was not answered.
+
+The run stays at its plan review, unchanged. The PRD, plan, model requests and replies, parsed outputs, recovery events, timing and usage are kept here and in `raw/`.

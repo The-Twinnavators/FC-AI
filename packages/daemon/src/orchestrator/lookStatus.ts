@@ -10,7 +10,8 @@ import { getDesignState } from "../workspace/designState.js";
 import type { Store } from "../db/store.js";
 import { appModelKey, type AppModel } from "./appModel.js";
 import { conceptChoiceKey, DEFAULT_HOME_CHOICE, type ConceptChoice } from "./homeConceptOffer.js";
-import { CAPTURE_STYLE, REVIEW } from "./templates.js";
+import { CAPTURE_STYLE, DESIGN_POLISH, DESIGN_SCREENS, REVIEW } from "./templates.js";
+import type { PrdLook } from "./planScope.js";
 
 export interface LookStatus {
   state: "selected" | "proposed" | "none";
@@ -18,7 +19,10 @@ export interface LookStatus {
   line: string;
 }
 
-export function lookStatus(store: Store, projectId: string, runId: string): LookStatus {
+/** The PRD's own direction in one line (its concept, its words, its motion), never with values it doesn't give. */
+export const prdLookLine = (l: PrdLook) => `${l.concept ? `"${l.concept}": ` : ""}${l.lines.filter((x) => x !== `Concept: ${l.concept}`).join("; ")}${l.motion ? `; ${l.motion} motion` : ""}${l.expressiveOff ? ", expressive effects off" : ""}`;
+
+export function lookStatus(store: Store, projectId: string, runId: string, prdLook?: PrdLook): LookStatus {
   const selected = getDesignState(store, projectId).selected;
   const model = store.getSetting<AppModel | null>(appModelKey(runId), null);
   const chosen = store.getSetting<ConceptChoice | null>(conceptChoiceKey(runId), null);
@@ -29,6 +33,13 @@ export function lookStatus(store: Store, projectId: string, runId: string): Look
     const a = selected.appearance;
     return { state: "selected", line: `Look: version ${selected.version} is selected (${a.surface} surfaces, ${a.motion?.level ?? "default"} motion).${homeLine} ${notApproval}` };
   }
+  // The PRD's own visual direction is proposed for review as the PRD writes it (Frameproof planning: "Editorial contact
+  // sheet" became "keeps the base styling" and tests of colours the PRD never gave).
+  if (prdLook)
+    return {
+      state: "proposed",
+      line: `Look: no direction is selected yet. The PRD's own direction is proposed for your review: ${prdLookLine(prdLook)}. Set it on the Styles page (exact colours and fonts are chosen there; the PRD gives none) and select it before approving to bind it; until then the build keeps the base styling and passes this direction to the design steps. Nothing about the design is approved yet.`,
+    };
   if (model?.lookup && HOME_CONCEPTS.length)
     return {
       state: "proposed",
@@ -38,8 +49,9 @@ export function lookStatus(store: Store, projectId: string, runId: string): Look
 }
 
 /** The Look steps worded as the Look stands: applying a selection only when there is one; the review approves the plan. */
-export function withLookStatus<T extends { title: string; objective: string }>(tasks: T[], look: LookStatus): T[] {
+export function withLookStatus<T extends { title: string; objective: string }>(tasks: T[], look: LookStatus, prdLook?: PrdLook): T[] {
   return tasks.map((t) => {
+    if (prdLook && (t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH)) return { ...t, objective: `${t.objective}\n\nThe PRD's visual direction (follow it; exact colours, fonts and sizes come only from the selected Look on the Styles page, never invented): ${prdLookLine(prdLook)}.` };
     if (t.title === CAPTURE_STYLE && t.objective.startsWith("Apply the direction you selected"))
       return { ...t, objective: look.state === "selected" ? "Apply the selected Look (the version the plan approval bound) to the Styles page." : `Keep the base styling unless a direction is selected before the plan is approved; then apply that one. ${look.line}` };
     if (t.title === REVIEW) return { ...t, objective: `Wait for the person to approve the prototype plan. ${look.line}` };

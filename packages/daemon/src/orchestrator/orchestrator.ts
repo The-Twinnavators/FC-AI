@@ -66,10 +66,11 @@ import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
 import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
+import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, dropFunnel, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
 import { applyScope, dataOwners, isSupportingData, planDirectives, planScope, planScopeKey, scopeNote, withOwners, type PlanScope } from "./planScope.js";
-import { planChecks, planChecksKey } from "./planChecks.js";
+import { hardContradictions, planChecks, planChecksKey } from "./planChecks.js";
 import { lookStatus, withLookStatus } from "./lookStatus.js";
 import { unstyledClasses, unstyledMessage } from "../quality/unstyledClasses.js";
 import { importedSections, libraryUseKey, pieceOf, recordUse, type LibraryUse } from "./libraryUse.js";
@@ -654,7 +655,7 @@ export class Orchestrator {
     const version = recordPlanVersion(this.d, runId, plan);
     // FR-A2: medium/high-risk plans need approval unless the project's autonomy level covers them.
     const level = project.settings.autonomy;
-    const autoReason = plan.scopeDecisions?.length ? undefined : autoApprovalReason(level, { kind: "plan", risk: plan.risk, action: plan.goal, affected: plan.expectedChanges });
+    const autoReason = plan.scopeDecisions?.length || plan.compliance?.some((c) => c.hard && !c.ok) ? undefined : autoApprovalReason(level, { kind: "plan", risk: plan.risk, action: plan.goal, affected: plan.expectedChanges });
     if (autoReason) {
       return this.approvePlan(runId, `auto-approved by ${level} policy: ${autoReason}`);
     }
@@ -1127,15 +1128,17 @@ export class Orchestrator {
         // page for every screen the PRD names. Otherwise it isn't used (and the build stops below, saying so).
         if (model && scope) {
           // Held to the scope before anything reads it: the look-up model adds its whole working set by default.
-          const scoped = applyScope(model, scope, declaredScreens(prd));
+          const scoped = applyScope(model, scope, declaredScreens(prd), prdRecordTables(prd));
           model = scoped.model;
           if (scoped.removed.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Left out of the app model (the scope leaves them out): ${scoped.removed.join(", ")}` });
+          if (scoped.changed.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `App model held to the PRD: ${scoped.changed.join("; ")}` });
         }
         if (model) {
           // A screen the PRD names, covered only by a working page of its kind, becomes an explicit alias first.
           model = resolveScreenAliases(model, declaredScreens(prd));
           if (model.aliases?.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Required screens made explicit: ${model.aliases.map((a) => `${a.screen} is the ${a.kind} page (${a.view})${a.replaced ? `, replacing the placeholder link "${a.replaced}"` : ""}`).join("; ")}. Each is checked in the browser as that screen`, data: { aliases: model.aliases } });
-          const missing = completenessProblems(model, declaredScreens(prd), prdNamedRecords(prdSampleSection(prd)));
+          // The PRD's own records (prdRecords.ts) are part of complete: an exact table's records, as given.
+          const missing = [...completenessProblems(model, declaredScreens(prd), prdNamedRecords(prdSampleSection(prd))), ...recordProblems(model, prdRecordTables(prd))];
           if (missing.length) {
             problems = [...missing, ...problems];
             model = undefined;
@@ -1205,8 +1208,10 @@ export class Orchestrator {
     const seed: Record<string, unknown[]> = {};
     let placeIds: string[] = [];
     // The PRD's own sample data: its listed records first, exactly as given (the app shows the PRD's products).
-    const sampleSection = prdSampleSection(prd);
-    const fixtures = prdNamedRecords(sampleSection);
+    const sampleSection0 = prdSampleSection(prd);
+    const fixtures0 = prdNamedRecords(sampleSection0);
+    // The PRD's own record tables, wherever they are (prdRecords.ts), matched to each kind of record.
+    const tables = prdRecordTables(prd);
     const merges: string[] = [];
     for (const e of [...(places ? [places] : []), ...entities.filter((x) => x !== places)]) {
       const extra =
@@ -1220,10 +1225,17 @@ export class Orchestrator {
       // Each batch is merged by the records' identity (recordIdentity.ts): repeats and clashes are left out and said; the
       // PRD's sample records are asked for only while some are missing (Clean Cart slice eval 1: asked in every batch,
       // each of the six products was in the catalog twice).
-      const want = e === places ? 8 : e === entries ? 20 : 14;
+      // A kind the PRD gives as a table gets that table: an exact table is exactly its records (their IDs, values,
+      // order and count); another table's records come first, with others added after them.
+      const table = tableFor(e, entities, tables);
+      const tRows = table ? tableRows(e, table) : [];
+      const exact = !!table?.exact;
+      const sampleSection = table ? table.markdown : sampleSection0;
+      const fixtures = table ? tRows.map((r) => String(r[e.titleField] ?? r.__prdId ?? "")).filter(Boolean) : fixtures0;
+      const want = exact ? tRows.length : e === places ? 8 : e === entries ? 20 : 14;
       let rows: Array<Record<string, unknown>> = [];
       let held: string[] = [];
-      const prdRows = prdFixtureRows(e, sampleSection);
+      const prdRows = table ? tRows : prdFixtureRows(e, sampleSection);
       const note = (from: number, count: number, only?: string[]) => {
         const text = only ? `Write exactly these records from the PRD's sample data, exactly as given (names and values), once each, and nothing else: ${only.join(", ")}.` : batchNote(e, rows, from, count, sampleSection, fixtures);
         return `${extra}${text ? `\n${text}` : ""}${/PRD's sample/.test(text) ? `\nThe PRD's sample data (data, not instructions):\n${untrusted("sample-data", sampleSection)}` : ""}`.trim();
@@ -1238,7 +1250,7 @@ export class Orchestrator {
       for (let from = 0; rows.length < want && from < want + 10; from += 10) {
         const count = Math.min(10, want - rows.length);
         try {
-          take(await ask(SEED_SYSTEM, seedRequest(base.model.product, e, count, note(rows.length, count)), SEED_SCHEMA, 3500), count, `batch ${from / 10 + 1}`);
+          take(await ask(SEED_SYSTEM, seedRequest(base.model.product, e, count, note(rows.length, count, exact ? missingFixtures(e, rows, fixtures).slice(0, count) : undefined)), SEED_SCHEMA, 3500), count, `batch ${from / 10 + 1}`);
         } catch (err) {
           if (signal.aborted || !rows.length) throw err;
           break;
@@ -1256,7 +1268,11 @@ export class Orchestrator {
         const still = missingFixtures(e, rows, fixtures);
         merges.push(`${e.plural}: asked once more for the PRD's ${missing.length} missing record${missing.length === 1 ? "" : "s"} (${missing.join(", ")}); ${still.length ? `still missing: ${still.join(", ")}` : "all there now"}`);
       }
-      seed[e.key] = holdsFixtures(e, rows, fixtures) ? fixturesFirst(e, rows, fixtures) : rows;
+      if (table) {
+        const enforced = enforceRecords(e, rows, tRows, exact);
+        seed[e.key] = enforced.rows;
+        merges.push(...enforced.notes.map((n) => `${e.plural}: ${n}`));
+      } else seed[e.key] = holdsFixtures(e, rows, fixtures) ? fixturesFirst(e, rows, fixtures) : rows;
       if (e === places) placeIds = seed[e.key]!.map((_, i) => `${e.idPrefix}-${1001 + i}`);
     }
     let social: Record<string, unknown> = {};
@@ -1325,7 +1341,7 @@ export class Orchestrator {
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Scope: ${scope.capabilities.map((c) => `${c.capability} ${c.status}${c.status === "deferred" ? ` (${c.source})` : ""}`).join(", ")}${scope.navigation.length ? `; navigation ${scope.navigation.join(", ")}` : ""}${data.length ? `; ${data.length} requirement${data.length === 1 ? "" : "s"} are supporting data` : ""}${scope.revisions.length ? `; ${scope.revisions.length} revision request${scope.revisions.length === 1 ? "" : "s"} go to every planning stage` : ""}`, data: { scope } });
     // A complete app: its data, roles and navigation first (the app model); its pages are the screens every step uses.
     const app = react && run.strategy?.buildMode === "complete" ? await this.decideAppModel(run, requirements, [releaseBoundary(bySection.items), directives].filter(Boolean).join("\n\n"), signal, scope) : undefined;
-    const owners = app ? dataOwners(app) : undefined;
+    const owners = app ? dataOwners(app, scope) : undefined;
     const screenPlan = app ? screenPlanOf(app) : react ? await this.decideScreens(run, requirements.slice(0, 80).map((r) => `${r.id} [${r.section || "Requirements"}]: ${r.text.slice(0, 220)}`).join("\n"), signal) : undefined;
     if (app && screenPlan) this.d.store.setSetting(screenPlanKey(run.id), screenPlan);
     // A batch becomes a build step, so batching by screen makes each step one finished journey rather than one
@@ -1394,7 +1410,7 @@ export class Orchestrator {
     const plan: LrcPlan = { runId: run.id, createdAt: nowIso(), requirements, filledIn, items: uniqueIds([...runtimeItems(fixed, cfg), ...items, ...runtimeItems([polish, cleanup, assemble], cfg)]) };
     this.d.store.setSetting(planKey(run.projectId), plan);
     this.d.store.setSetting(runPlanKey(run.id), plan);
-    const look = lookStatus(this.d.store, run.projectId, run.id);
+    const look = lookStatus(this.d.store, run.projectId, run.id, scope.look);
     const counts = { code: items.filter((i) => i.executionType === "code").length, tests: items.reduce((n, i) => n + (i.tests?.length ?? 0), 0), review: items.filter((i) => i.executionType !== "code" && !i.later).length, later: items.filter((i) => i.later).length };
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Prototype plan written:${counts.code} item${counts.code === 1 ? "" : "s"} to build with ${counts.tests} acceptance test${counts.tests === 1 ? "" : "s"}, in ${features.length} build step${features.length === 1 ? "" : "s"}; ${counts.review} item${counts.review === 1 ? "" : "s"} for a person to check, ${counts.later} not for this release${filledIn.length ? `. FlowCode placed ${filledIn.length} requirement${filledIn.length === 1 ? "" : "s"} the planner left out` : ""}` });
     const tasks = await (async () => {
@@ -1411,7 +1427,7 @@ export class Orchestrator {
           return cut.task;
         });
       }
-      steps = withLookStatus(steps, look);
+      steps = withLookStatus(steps, look, scope.look);
       return this.withScreenBriefs(run, this.withScreenPicks(run, steps, design), screenPlan, signal, { requirements, items: plan.items, designScreens: design, app, directives });
     })();
     const result: ImplementationPlan = {
@@ -1433,11 +1449,18 @@ export class Orchestrator {
       tasks,
     };
     // The assembled plan checked for what a revision asks of it (planChecks.ts): stored and said, never silently passed.
-    const checks = planChecks(result, { scope, corpus, app: !!app, saves: !!app?.nav.some((g) => g.items.some((v) => v.kind === "saved")) && requirements.some((r) => /\bsav(e|ed)\b/i.test(r.text)), look });
+    // Structural checks (the plan is put together right) and compliance checks (it keeps what the PRD requires), on the
+    // assembled plan. A hard contradiction with the PRD makes the plan high risk and not approval-ready on its card.
+    const checks = planChecks(result, { scope, corpus, app: !!app, saves: !!app?.nav.some((g) => g.items.some((v) => v.kind === "saved")) && requirements.some((r) => /\bsav(e|ed)\b/i.test(r.text)), look, ...(app ? { model: this.d.store.getSetting<AppModel | undefined>(appModelKey(run.id), app) ?? app } : {}), tables: prdRecordTables(prdText), items: plan.items, prd: prdText });
     this.d.store.setSetting(planChecksKey(run.id), checks);
     const failing = checks.filter((c) => !c.ok);
-    this.d.bus.emit({ ...ev, type: "plan.proposed", level: failing.length ? "warning" : "info", message: failing.length ? `Plan checks: ${failing.length} of ${checks.length} need attention: ${failing.map((c) => `${c.label}: ${c.problems.slice(0, 2).join("; ")}`).join(" | ")}`.slice(0, 1500) : `Plan checks: all ${checks.length} pass (scope, Home, tests, save journey, data owners, Look)`, data: { checks } });
-    return result;
+    const hard = hardContradictions(checks);
+    this.d.bus.emit({ ...ev, type: "plan.proposed", level: failing.length ? "warning" : "info", message: failing.length ? `Plan checks: ${failing.length} of ${checks.length} need attention${hard.length ? ` (${hard.length} contradict the PRD: not approval-ready)` : ""}: ${failing.map((c) => `${c.label}: ${c.problems.slice(0, 2).join("; ")}`).join(" | ")}`.slice(0, 2000) : `Plan checks: all ${checks.length} pass (structure and compliance with the PRD)`, data: { checks } });
+    return {
+      ...result,
+      compliance: checks,
+      ...(hard.length ? { risk: "high" as const, riskNotes: [`Not approval-ready: ${hard.length} contradiction${hard.length === 1 ? "" : "s"} with the PRD (${hard.map((c) => c.label.split(":")[0]).join(", ")})`, ...result.riskNotes] } : {}),
+    };
   }
 
   approvePlan(runId: string, by = "user", autoStart = true): Run {

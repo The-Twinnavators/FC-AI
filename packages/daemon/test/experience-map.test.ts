@@ -38,13 +38,14 @@ describe("the experience map", () => {
   it("builds the coverage matrix and turns the gaps into decisions for the person", () => {
     const map = parseExperienceMap({ workflows: [{ name: "Book", role: "Member", entry: "Classes", steps: [{ screen: "Classes", action: "Book", result: "Booked" }], success: "Booked", requirementIds: ["R1"] }] }, plan, ["R1", "R2", "R3", "R4"]);
     const rows = coverageMatrix(reqs, [item("a", ["R1"], { tests: [{ behaviour: "press Book", expect: "Booked" }] } as Partial<PlanItem>), item("b", ["R2"]), item("c", ["R3"], { executionType: "review" } as Partial<PlanItem>)], map);
-    expect(rows.map((r) => [r.requirement, r.status])).toEqual([["R1", "planned"], ["R2", "no workflow"], ["R3", "for a person to check"], ["R4", "unplaced"]]);
+    // A coded requirement with no journey is still planned: its step tests it (never a decision for the person).
+    expect(rows.map((r) => [r.requirement, r.status])).toEqual([["R1", "planned"], ["R2", "planned"], ["R3", "for a person to check"], ["R4", "unplaced"]]);
+    expect(rows[1]!.verification).toBe('at least one acceptance test written in step "b"');
     expect(rows[0]!.verification).toContain('journey test for "Book"');
     expect(rows[0]!.pages).toEqual(["Classes"]);
     const d = scopeDecisions(rows);
-    expect(d).toHaveLength(2);
-    expect(d[0]).toMatch(/^R2 is in the plan but no user journey covers it/);
-    expect(d[1]).toMatch(/^R4 isn't placed in the plan/);
+    expect(d).toHaveLength(1);
+    expect(d[0]).toMatch(/^R4 isn't placed in the plan/);
   });
 });
 

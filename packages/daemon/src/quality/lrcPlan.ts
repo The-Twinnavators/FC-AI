@@ -447,6 +447,10 @@ export interface TestContext {
 /** One acceptance test as the step's brief writes it: an exact text, an outcome to observe, or a page named by its internal name. */
 export function testLine(t: AcceptanceTest, ctx: TestContext = {}): string {
   const expect = t.expect.replace(/\.$/, "");
+  // A colour value the spec never gives is not a requirement (Frameproof planning: tests of #f5f5f5, #1a1a1a and #3a6ea5
+  // for a PRD that says "warm off-white" and "muted cobalt"): the test checks the selected Look instead.
+  const invented = ctx.corpus === undefined ? [] : (t.expect.match(/#[0-9a-f]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/gi) ?? []).filter((v) => !normalize(ctx.corpus!).includes(v.toLowerCase()));
+  if (invented.length) return `- ${t.behaviour} → check that it uses the selected Look's colour (an outcome; the PRD gives no exact value, so ${invented.join(", ")} is not a requirement)`;
   const kind = testKind(t, ctx.corpus);
   if (kind === "text") return `- ${t.behaviour} → the app shows "${t.expect}"`;
   if (kind === "identifier") return `- ${t.behaviour} → check that ${expect} (an outcome, not text: a screen or page name here says where the person is; check it by that page's own heading, record or controls, never by looking for these words)`;

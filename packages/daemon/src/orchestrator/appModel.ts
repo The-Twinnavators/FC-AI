@@ -202,6 +202,8 @@ export function parseAppModel(raw: unknown): { model?: AppModel; problems: strin
   if (r.shape === "website") return { problems: [], website: true };
   const lookupShape = r.shape === "lookup";
   const problems: string[] = [];
+  // A select field's option keys and values ("outdoor") → their labels ("Outdoor"), so records written with either agree.
+  const optionKeys = new Map<string, Map<string, string>>();
   const roles = arr(r.roles).map((x) => str(x, 40)).filter(Boolean).slice(0, 4);
   const entities: ModelEntity[] = [];
   for (const e0 of arr(r.entities).slice(0, 4)) {
@@ -213,7 +215,10 @@ export function parseAppModel(raw: unknown): { model?: AppModel; problems: strin
       const fk = keyOf(f.key);
       const type = FIELD_TYPES.includes(f.type as FieldType) ? (f.type as FieldType) : "text";
       if (!fk || fields.some((x) => x.key === fk)) continue;
-      const options = type === "select" ? arr(f.options).map((o) => str(o, 40)).filter(Boolean).slice(0, 12) : undefined;
+      const opts = type === "select" ? selectOptions(f.options) : undefined;
+      if (opts?.unsupported.length) problems.push(`Field "${str(f.label, 60) || fk}" of ${str(e.label) || key}: options in a shape FlowCode doesn't read (${opts.unsupported.join("; ")}); the field is plain text instead`);
+      if (opts?.keys.size) optionKeys.set(`${keyOf(e.key)}.${fk}`, opts.keys);
+      const options = opts?.labels.slice(0, 12);
       fields.push({ key: fk, label: str(f.label, 60) || fk, type: type === "select" && !options?.length ? "text" : type, ...(options?.length ? { options } : {}), ...(f.required ? { required: true } : {}), ...(typeof f.min === "number" ? { min: f.min } : {}), ...(typeof f.max === "number" ? { max: f.max } : {}), ...(f.help ? { help: str(f.help, 140) } : {}) });
     }
     if (!key || !fields.length) {
@@ -260,8 +265,12 @@ export function parseAppModel(raw: unknown): { model?: AppModel; problems: strin
   for (const e of entities) {
     const rows = arr(seedRaw[e.key]).filter((x) => x && typeof x === "object").slice(0, 40) as Array<Record<string, unknown>>;
     seed[e.key] = rows.map((row, i) => {
-      const out: Record<string, unknown> = { id: `${e.idPrefix}-${1001 + i}` };
-      for (const f of e.fields) if (row[f.key] !== undefined) out[f.key] = f.type === "money" || f.type === "number" || f.type === "percent" ? Number(row[f.key]) || 0 : f.type === "boolean" ? !!row[f.key] : row[f.key];
+      // A record the PRD gives with its own ID keeps it (prdRecords.ts); others are numbered.
+      const prdId = typeof row.__prdId === "string" && /^[\w.-]{1,60}$/.test(row.__prdId) ? row.__prdId : undefined;
+      const out: Record<string, unknown> = { id: prdId ?? `${e.idPrefix}-${1001 + i}` };
+      const keys = (k: string) => optionKeys.get(`${e.key}.${k}`);
+      for (const f of e.fields) if (row[f.key] !== undefined) out[f.key] = f.type === "money" || f.type === "number" || f.type === "percent" ? Number(row[f.key]) || 0 : f.type === "boolean" ? !!row[f.key] : f.type === "select" && keys(f.key)?.has(String(row[f.key]).toLowerCase()) ? keys(f.key)!.get(String(row[f.key]).toLowerCase()) : row[f.key];
+      if (prdId) out.id = prdId;
       if (e.statusField) out[e.statusField] = e.statuses?.some((s) => s.key === row[e.statusField!]) ? row[e.statusField] : e.statuses?.[i % e.statuses.length]?.key;
       // A look-up app's places list (place ids, kept beside the fields) and coordinates come through as they are.
       if (lookupShape) for (const k of ["lat", "lng"]) if (typeof row[k] === "number") out[k] = row[k];
@@ -312,10 +321,13 @@ export function parseAppModel(raw: unknown): { model?: AppModel; problems: strin
     nav[0]!.items.unshift(landing);
     return { model: { product: str(r.product, 60) || "App", roles: roles.length ? roles : ["Member"], entities, seed, nav: nav.filter((g) => g.items.length), lookup }, problems };
   }
-  // Every entity gets its working set even when the model forgot one: list, create and detail.
+  // Every entity gets a list and a record page even when the model forgot one. A create page is a capability the PRD
+  // asks for, never implied by a kind of record (Frameproof planning: "New photo" and "New gallery" in the navigation of
+  // an app whose PRD rules out photo upload and multiple galleries): only the model's own create pages are kept, and
+  // planScope.applyScope removes those the PRD excludes.
   for (const e of entities) {
     const all = nav.flatMap((g) => g.items);
-    const need: ViewKind[] = ["list", "create", "detail"];
+    const need: ViewKind[] = ["list", "detail"];
     for (const kind of need)
       if (!all.some((i) => i.kind === kind && i.entity === e.key)) {
         const id = kind === "list" ? kebab(e.plural) : `${kind === "create" ? "new" : ""}${kind === "create" ? "-" : ""}${kebab(e.label)}${kind === "detail" ? "-detail" : ""}`;
@@ -332,12 +344,15 @@ const OPENED_FROM_OTHERS: ViewKind[] = ["detail", "entry", "mylist"];
 /** Whether a destination is a link in the app's primary navigation (the PRD's declared links when it names them). */
 export function inPrimaryNav(m: AppModel, v: ModelView): boolean {
   if (OPENED_FROM_OTHERS.includes(v.kind)) return false;
-  // Only a look-up app's other destinations are always reachable from its pages (catalog, entry, saved); an app of
-  // records keeps its every page in the navigation.
-  if (!m.primaryNav?.length || !m.lookup) return true;
+  if (!m.primaryNav?.length) return true;
   const names = m.primaryNav.map((n) => n.toLowerCase());
-  const alias = m.aliases?.find((a) => a.view === v.id)?.screen.toLowerCase();
-  return names.includes(v.label.toLowerCase()) || (!!alias && names.includes(alias)) || (v.kind === "landing" && names.includes("home"));
+  const namesOf = (x: ModelView) => [x.label.toLowerCase(), m.aliases?.find((a) => a.view === x.id)?.screen.toLowerCase(), x.kind === "landing" ? "home" : undefined].filter(Boolean) as string[];
+  // A look-up app's other destinations are reachable from its pages (catalog, entry, saved). An app of records follows
+  // the declared navigation only when every declared destination is one of its pages (Frameproof: "exactly two
+  // destinations"); otherwise it keeps every page in the navigation rather than strand one.
+  const views = m.nav.flatMap((g) => g.items);
+  if (!m.lookup && !names.every((n) => views.some((x) => namesOf(x).includes(n)))) return true;
+  return namesOf(v).some((n) => names.includes(n));
 }
 
 /** The model as the design and build steps read it. */
@@ -649,4 +664,34 @@ export function prdNamedRecords(section: string): string[] {
     if (cells[0]) out.push(cells[0].replace(/[*_`]/g, ""));
   }
   return out;
+}
+
+/**
+ * A select field's options as the model wrote them: strings ("Outdoor"), or objects with a label and a key or value
+ * ({"key": "outdoor", "label": "Outdoor"}), or numbers. Anything else is reported, never turned into "[object Object]"
+ * (Frameproof planning: structured options became "[object Object]", and the sample records invented other categories).
+ */
+export function selectOptions(raw: unknown): { labels: string[]; keys: Map<string, string>; unsupported: string[] } {
+  const labels: string[] = [];
+  const keys = new Map<string, string>();
+  const unsupported: string[] = [];
+  for (const o of Array.isArray(raw) ? raw : []) {
+    let label = "";
+    const aliases: unknown[] = [];
+    if (typeof o === "string" || typeof o === "number") label = String(o).trim().slice(0, 40);
+    else if (o && typeof o === "object" && !Array.isArray(o)) {
+      const x = o as Record<string, unknown>;
+      const pick = [x.label, x.name, x.title, x.value, x.key, x.id].find((v) => typeof v === "string" || typeof v === "number");
+      label = pick === undefined ? "" : String(pick).trim().slice(0, 40);
+      aliases.push(x.key, x.value, x.id, x.name, x.label);
+    }
+    if (!label) {
+      unsupported.push(JSON.stringify(o)?.slice(0, 60) ?? String(o));
+      continue;
+    }
+    if (labels.includes(label)) continue;
+    labels.push(label);
+    for (const a of [label, ...aliases]) if (typeof a === "string" || typeof a === "number") keys.set(String(a).toLowerCase(), label);
+  }
+  return { labels, keys, unsupported };
 }

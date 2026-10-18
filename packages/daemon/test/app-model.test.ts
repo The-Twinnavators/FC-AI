@@ -70,11 +70,12 @@ describe("the app model", () => {
     expect(s).toHaveLength(22);
     expect(s[3]).toEqual(expect.objectContaining({ id: "TRT-1004", limit: 3000, status: "active" }));
     expect(["draft", "approval", "active", "runoff"]).toContain(s[0]!.status);
-    // Nav: kebab ids; a list with no entity becomes a placeholder; create and detail added.
+    // Nav: kebab ids; a list with no entity becomes a placeholder; a record page added. A create page is never implied by a
+    // kind of record: it comes from the model or the PRD (planScope.applyScope).
     const items = model!.nav.flatMap((g) => g.items);
     expect(items[0]).toEqual(expect.objectContaining({ id: "treaty-master", kind: "list", entity: "treaty" }));
     expect(items.find((i) => i.id === "rates")?.kind).toBe("placeholder");
-    expect(items.filter((i) => i.entity === "treaty").map((i) => i.kind).sort()).toEqual(["create", "detail", "list"]);
+    expect(items.filter((i) => i.entity === "treaty").map((i) => i.kind).sort()).toEqual(["detail", "list"]);
     expect(appModelNote(model!)).toContain("Treaties (treaty)");
   });
 

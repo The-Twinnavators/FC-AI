@@ -161,16 +161,17 @@ describe("in the app model's planning", () => {
     const { out, asked, merges } = await plan();
     const names = out.seed.product!.map((r) => String(r.name));
     expect(new Set(names).size).toBe(names.length);
-    expect(names.slice(0, 5)).toEqual(FIXTURES.filter((f) => f !== "Greek Yogurt Plain"));
+    // Every PRD record survives in the PRD's order: the one the model never wrote comes from the PRD's own table (prdRecords.ts).
+    expect(names.slice(0, 6)).toEqual(FIXTURES);
     expect(out.seed.product![0]!.id).toBe("PRD-1001");
     // Later product batches carry no PRD sample block, only what's still missing and what's written.
     const productAsks = asked.filter((u) => /Records: \d+ Products/.test(u));
     expect(productAsks[0]).toContain("The PRD's sample data (data, not instructions)");
     expect(productAsks.slice(1, -1).every((u) => !u.includes("Include the PRD's sample records") && /Still missing from the PRD's sample records.*Greek Yogurt Plain/.test(u))).toBe(true);
-    // The bounded re-ask: once, by name, recorded; no invented replacement.
+    // The bounded re-ask: once, by name, recorded; then the PRD's own values, never an invented replacement.
     expect(productAsks.at(-1)).toMatch(/Write exactly these records from the PRD's sample data.*: Greek Yogurt Plain\./);
     expect(productAsks.filter((u) => u.includes("Write exactly these records")).length).toBe(1);
-    expect(names).not.toContain("Greek Yogurt Plain");
+    expect(merges).toContain(`Products: Product "Greek Yogurt Plain" written from the PRD alone (the model's records didn't include it)`);
     expect(merges).toContain("Products: asked once more for the PRD's 1 missing record (Greek Yogurt Plain); still missing: Greek Yogurt Plain");
     expect(merges.some((m) => /^Products \(batch 2\): left out 5 repeats \(Oat Milk Original/.test(m))).toBe(true);
     expect(merges.some((m) => /^Stores \(batch 1\): left out 1 repeat \(Harvest Co-op\)/.test(m))).toBe(true);

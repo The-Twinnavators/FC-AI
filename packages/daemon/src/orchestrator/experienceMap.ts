@@ -189,14 +189,17 @@ export function coverageMatrix(requirements: Requirement[], items: PlanItem[], m
     const review = its.find((i) => i.executionType !== "code" && !i.later);
     const data = its.find((i) => i.categoryId === SUPPORTING_DATA);
     const tests = its.flatMap((i) => i.tests ?? []);
-    const status: CoverageStatus = later ? "not in this release" : code ? (flows.length || everyPage || !map?.workflows.length ? "planned" : "no workflow") : data ? "supporting data" : review ? "for a person to check" : "unplaced";
+    // A requirement the build codes is planned: its step proves it with acceptance tests (a step writes at least one for
+    // each requirement it has no test for). It is never returned to the person as a decision (Frameproof planning: 38
+    // explicit, mostly tested requirements came back as "add it to a journey?" because no journey cited their IDs).
+    const status: CoverageStatus = later ? "not in this release" : code ? "planned" : data ? "supporting data" : review ? "for a person to check" : "unplaced";
     return {
       requirement: r.id,
       text: r.text.slice(0, 200),
       workflows: flows.map((w) => w.name),
       pages,
       behavior: tests.length ? tests.map((t) => `${t.behaviour} → ${t.expect}`).join("; ").slice(0, 300) : (code?.title ?? review?.title ?? ""),
-      verification: data && !code ? "the app model holds these records and fields; checked when the app is written from it" : code ? `${tests.length ? `acceptance tests in step "${code.title}"` : `step "${code.title}"`}${flows.length ? `; journey test for ${flows.map((w) => `"${w.name}"`).join(", ")}` : everyPage ? "; checked on every page (look check, contrast, keyboard, phone width)" : ""}` : review ? "a person checks it at review" : later ? `left out: ${later.later}` : "none",
+      verification: data && !code ? "the app model holds these records and fields; checked when the app is written from it" : code ? `${tests.length ? `acceptance tests in step "${code.title}"` : `at least one acceptance test written in step "${code.title}"`}${flows.length ? `; journey test for ${flows.map((w) => `"${w.name}"`).join(", ")}` : everyPage ? "; checked on every page (look check, contrast, keyboard, phone width)" : ""}` : review ? "a person checks it at review" : later ? `left out: ${later.later}` : "none",
       status,
     };
   });
