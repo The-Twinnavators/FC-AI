@@ -101,7 +101,7 @@ function auditScreen(): Array<{ rule: string; serious: boolean; message: string 
     if (ratio < (size >= 24 ? 3 : 4.5)) low.push(`"${(el as HTMLElement).innerText.trim().slice(0, 30)}" ${ratio.toFixed(2)}:1`);
   }
   if (unsure.length) out.push({ rule: "contrast-uncertain", serious: false, message: `Contrast couldn't be measured for ${unsure.join(", ")} (text over an image or gradient, or a see-through layer): uncertain, check it by eye.` });
-  if (low.length) out.push({ rule: "low-contrast", serious: true, message: `Text below contrast minimum: ${low.join(", ")}. Use --color-text or --color-text-muted on the surface colours.` });
+  if (low.length) out.push({ rule: "low-contrast", serious: true, message: `Text below contrast minimum: ${low.join(", ")}. Use --color-text for this text: the muted colour (--color-text-muted) doesn't reach the minimum on this background.` });
 
   // Images that didn't load (a wrong path, or a hotlink that broke) look like an unfinished product.
   const broken = Array.from(document.images).filter((im) => visible(im) && im.complete && im.naturalWidth === 0);
