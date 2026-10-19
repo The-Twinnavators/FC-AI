@@ -75,6 +75,7 @@ import { UNSUITABLE, findOpenImage } from "../workspace/openImages.js";
 /** The version of what makes a record's photo suitable: photos already placed are looked at again when it changes. */
 const PICTURE_RULES = "3";
 import { FRAME_SHEET, frameCss, frameKind, refreshedFrameCss, withFrameImport } from "./frameComposer.js";
+import { CALC_ENGINE, CALC_SCREEN, CALC_SHEET, COMPOSED_CALC, engineFile, isCalculatorPrd, screenFile, sheetFile, testsFile } from "./calculatorComposer.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
@@ -2123,6 +2124,8 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     this.markPolishCheckFirst(run, task, jail);
     // A refining step's stylesheet whose muted text failed contrast: FlowCode raises it to the main text colour.
     this.repairContrast(run, task, jail);
+    // A basic calculator from its PRD: FlowCode writes it and its tests (calculatorComposer.ts).
+    this.composeCalculator(run, task, jail);
     // Composing rewrites the step's brief: the attempt works from the step as it is now, not the copy it started with
     // (Photo detail's first request was built from its old brief and was refused as too big).
     task = this.d.store.tasks.require(task.id);
@@ -2301,8 +2304,8 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // look-check rule.
     // A functional step whose acceptance tests FlowCode wrote is checked first too, at its first attempt: when the composed
     // app already does what the tests ask, no model work is needed (Frameproof: all 60 tests passed on the composed app).
-    const composedTests = !!this.d.store.getSetting(`acceptanceFrom:${task.id}`, null) || this.d.store.getSetting(`picturesComposed:${task.id}`, false) || this.d.store.getSetting(`frameComposed:${task.id}`, false) || this.d.store.getSetting(`cleanupComposed:${task.id}`, false) || this.d.store.getSetting(`polishCheckFirst:${task.id}`, false) || (/^Assemble the app/.test(task.title) && this.d.store.getSetting<boolean>(appWrittenKey(run.id), false));
-    if ((task.attempts >= 2 || onlyRead || composedTests) && (touched || (composedTests && (polishPart || /^Assemble the app/.test(task.title) || this.d.store.getSetting(`cleanupComposed:${task.id}`, false))) || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && (polishPart || task.acceptanceCriteria.some(isTaskSpecific))) {
+    const composedTests = !!this.d.store.getSetting(`acceptanceFrom:${task.id}`, null) || this.d.store.getSetting(`picturesComposed:${task.id}`, false) || this.d.store.getSetting(`frameComposed:${task.id}`, false) || this.d.store.getSetting(`cleanupComposed:${task.id}`, false) || this.d.store.getSetting(`polishCheckFirst:${task.id}`, false) || this.d.store.getSetting(`checkFirst:${task.id}`, false) || (/^Assemble the app/.test(task.title) && this.d.store.getSetting<boolean>(appWrittenKey(run.id), false));
+    if ((task.attempts >= 2 || onlyRead || composedTests) && (touched || (composedTests && (polishPart || /^Assemble the app/.test(task.title) || this.d.store.getSetting(`checkFirst:${task.id}`, false) || this.d.store.getSetting(`cleanupComposed:${task.id}`, false))) || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && (polishPart || task.acceptanceCriteria.some(isTaskSpecific))) {
       const pre = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), this.d.store.tasks.require(task.id), { signal });
       // What failed is what the attempt fixes: the brief names the failing tests.
       if (composedTests && !pre.allMet && pre.failures.length) this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), ...pre.failures.slice(0, 4).map((x) => `Failing now: ${x.slice(0, 600)}`)].slice(-12));
@@ -4743,6 +4746,41 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     this.d.store.setSetting(`taskFindings:${task.id}`, findings.filter((f) => !/Text below contrast minimum/.test(f)));
     this.updateTask(this.d.store.tasks.require(task.id), { actualPaths: [...new Set([...task.actualPaths, sheet])] });
     this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: task.id, type: "recovery.action", message: `FlowCode raised the muted text in ${sheet} to the main text colour, with no model: it fell below the contrast minimum on this screen's background. Checked now.` });
+  }
+
+  /**
+   * A basic calculator described by its PRD: FlowCode writes the engine, the screen and its stylesheet once (run level,
+   * so undoing a model attempt keeps them), and each calculator step's acceptance tests (the planner's exact-text
+   * guesses on that file go). Every step that works on the calculator is then checked first: the model only refines
+   * what fails. The calculator build: the local model wrote the keypad twice with no handlers and a placeholder hero.
+   */
+  private composeCalculator(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
+    if (task.role !== "coder" || !fs.existsSync(jail.resolve(CALC_SCREEN).abs)) return;
+    const prd = this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []).filter((r) => r.role === "prd" || r.role === "text").map((r) => r.content).join("\n");
+    if (!isCalculatorPrd(prd, run.objective)) return;
+    const testFile = testFileOf(task);
+    const mine = task.expectedPaths.some((p) => p === CALC_SCREEN || p === CALC_ENGINE || p === CALC_SHEET) || (!!testFile && /^src\/acceptance\//.test(testFile));
+    if (!mine) return;
+    const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
+    const ctx = { jail, projectId: run.projectId, runId: run.id, toolCallId: `fc_calc_${task.id}`, approved: true };
+    const write = (p: string, content: string) => (fs.existsSync(jail.resolve(p).abs) ? this.d.ops.replaceContent(ctx, p, content) : this.d.ops.create_file(ctx, { path: p, content } as never)).ok;
+    let screen = "";
+    try {
+      screen = fs.readFileSync(jail.resolve(CALC_SCREEN).abs, "utf8");
+    } catch {
+      return;
+    }
+    if (!screen.includes(COMPOSED_CALC)) {
+      const product = this.d.store.projects.require(run.projectId).name;
+      if (!write(CALC_ENGINE, engineFile()) || !write(CALC_SCREEN, screenFile(product)) || !write(CALC_SHEET, sheetFile())) return;
+      this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode composed the calculator itself, with no model: the engine (${CALC_ENGINE}: order of operations, percent, sign, backspace, clear, "Can't divide by zero", long results), the screen (${CALC_SCREEN}: display, 4-column keypad, keyboard, session history, copy) and ${CALC_SHEET}. The model refines its look next.`, data: { composed: [CALC_ENGINE, CALC_SCREEN, CALC_SHEET] } });
+    }
+    if (this.d.store.getSetting(`checkFirst:${task.id}`, false)) return;
+    // The step's tests are FlowCode's; the planner's guessed exact texts on that file go.
+    let criteria = task.acceptanceCriteria.filter((c) => !String((c.check as { kind?: string }).kind ?? "").startsWith("changed:"));
+    if (testFile && /^src\/acceptance\//.test(testFile) && write(testFile, testsFile(task.title))) criteria = criteria.filter((c) => !(c.check.type === "file_contains" && (c.check as { path?: string }).path === testFile));
+    this.d.store.setSetting(`checkFirst:${task.id}`, true);
+    this.updateTask(this.d.store.tasks.require(task.id), { acceptanceCriteria: criteria, actualPaths: [...new Set([...task.actualPaths, CALC_SCREEN, ...(testFile ? [testFile] : [])])] });
   }
 
   /** The steps a bounded run may run, while it is bounded (boundedRun.ts). */
