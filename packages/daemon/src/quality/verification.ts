@@ -155,6 +155,9 @@ export class Verifier {
       const files = list === "src" ? srcFiles() : list.split("|");
       const refs = files.flatMap((f) => [...read(f).matchAll(/["'(`]\/?(?:public\/)?(images\/[\w./-]+\.(?:jpe?g|png|webp|avif|svg))/gi)].map((m) => m[1]!));
       const real = refs.filter((r) => fs.existsSync(path.join(root, "public", r)));
+      // Pictures that come from the records: the screen renders a record's picture field, and the records point at
+      // files that exist (a composed grid shows them without naming any file itself).
+      if (!real.length && recordPicturesShown(root, files.map(read).join("\n"))) return undefined;
       return real.length ? undefined : refs.length ? `${files.join(", ")} point at images that don't exist (${refs.slice(0, 3).join(", ")})` : `none of ${files.join(", ")} shows a photo from public/images`;
     }
     if (kind.startsWith("data-seeded:")) {
@@ -1259,6 +1262,21 @@ export function isRemovalWording(description: string): boolean {
 export function errorFile(line: string): string | undefined {
   const m = /^(?:[A-Za-z]:[\\/][^(:]*?[\\/])?((?:src|app|lib|components|pages|test|tests)[\\/][^(:\s]+?\.\w+)(?:\(\d+,\d+\)|:\d+:\d+)/.exec(line.trim());
   return m ? m[1].replace(/\\/g, "/") : undefined;
+}
+
+/** Whether the source renders a record field that holds pictures existing in public/ (by the field's name). */
+function recordPicturesShown(root: string, source: string): boolean {
+  const data = readGeneratedData(root);
+  if (!data) return false;
+  for (const rows of Object.values(data.seed)) {
+    const keys = [...new Set(rows.flatMap((r) => Object.keys(r)))].filter((k) => /image|photo|picture|thumbnail/i.test(k) && !/alt/i.test(k));
+    for (const key of keys) {
+      if (!new RegExp(`["'.]${key}\\b`).test(source)) continue;
+      const files = rows.map((r) => String(r[key] ?? "").replace(/^\/+/, "")).filter(Boolean);
+      if (files.some((v) => fs.existsSync(path.join(root, "public", v)))) return true;
+    }
+  }
+  return false;
 }
 
 /**

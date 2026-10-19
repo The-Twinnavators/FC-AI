@@ -64,7 +64,8 @@ import { importFixes, typeErrorHints } from "../quality/typeHints.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
-import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, completeAppTasks, customPlanOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
+import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, builtViews, completeAppTasks, customPlanOf, screenFileOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
+import { composable, composeListScreen } from "./screenComposer.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
@@ -2059,6 +2060,9 @@ ${brief.text}` : objective, expectedPaths });
         return;
       }
     }
+    // A standard screen FlowCode composes itself before the model works on it (screenComposer.ts): part of where the
+    // step starts, so before its baseline.
+    this.composeStandardScreen(run, task, jail);
     if (task.attempts === 1 || !this.d.store.getSetting(stepBaselineKey(task.id), null)) await this.d.verifier.captureStepBaseline(this.d.store.runs.require(run.id), task.id, signal).catch(() => undefined);
     // A correction of a failed functional baseline starts (and starts over, on a retry) from the errors as they are now.
     if (task.attempts === 1 && this.d.store.getSetting(`baselineCorrection:${task.id}`, false)) task = this.withLocatedErrors(run, task, jail.root);
@@ -4149,6 +4153,46 @@ ${brief.text}` : objective, expectedPaths });
     }
     this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: paused ? "Pausing: the step in progress finishes, then the build waits until you continue" : "Continuing the build" });
     return { paused };
+  }
+
+  /**
+   * A design part for a standard screen (a list of records with pictures) that is still the screen FlowCode generated:
+   * FlowCode composes it from the app model (screenComposer.ts) before the model works on it, and the model's part is
+   * refining that. Written by FlowCode at run level, not as the step's own edits: undoing a failed model attempt goes
+   * back to the composed screen, and the step's "changed" check still asks the model for its own refinement.
+   */
+  private composeStandardScreen(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
+    if (task.role !== "coder" || this.d.store.getSetting<string>(`splitParent:${task.id}`, "") !== DESIGN_SCREENS) return;
+    const label = /^Design the (.+) screen$/.exec(task.title)?.[1];
+    const model = label ? this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null) : null;
+    const view = model ? builtViews(model).find((v) => v.label === label) : undefined;
+    if (!model || !view) return;
+    let current: string | undefined;
+    try {
+      current = fs.readFileSync(jail.resolve(screenFileOf(view)).abs, "utf8");
+    } catch {
+      return;
+    }
+    if (!composable(model, view, current)) return;
+    const composed = composeListScreen(model, view);
+    if (!composed) return;
+    const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
+    const ctx = { jail, projectId: run.projectId, runId: run.id, toolCallId: `fc_compose_${task.id}`, approved: true };
+    const written: string[] = [];
+    for (const f of composed.files) {
+      const r = fs.existsSync(jail.resolve(f.path).abs) ? this.d.ops.replaceContent(ctx, f.path, f.content) : this.d.ops.create_file(ctx, { path: f.path, content: f.content } as never);
+      if (!r.ok) {
+        this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `FlowCode didn't compose "${view.label}": ${r.message}. The model builds it from the generated screen.` });
+        return;
+      }
+      written.push(f.path);
+    }
+    const sheet = composed.files.find((f) => f.path.endsWith(".css"))?.path ?? "";
+    this.d.store.setSetting(`taskFindings:${task.id}`, [
+      ...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []),
+      `FlowCode composed this screen already (${composed.summary}) in ${written.join(" and ")}: it works and type-checks. Refine it, don't rebuild it: make ${sheet} follow the direction (spacing, type, the cards' borders and corners, the controls), keep the screen's behaviour and class names, then run the type check.`,
+    ]);
+    this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode composed "${view.label}" itself, with no model: ${composed.summary} (${written.join(", ")}). The model refines it next.`, data: { composed: written } });
   }
 
   /** The steps a bounded run may run, while it is bounded (boundedRun.ts). */
