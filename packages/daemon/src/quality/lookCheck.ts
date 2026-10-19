@@ -125,6 +125,38 @@ function auditScreen(): Array<{ rule: string; serious: boolean; message: string 
   const leaves = Array.from(main.querySelectorAll("*")).filter((el) => el.children.length === 0 && visible(el));
   const filler = tally(leaves).find(([t, n]) => n >= 6 && /^(0 |no |none\b|nothing\b|empty\b)/i.test(t));
   if (filler) out.push({ rule: "repeated-empty-text", serious: true, message: `"${filler[0].slice(0, 30)}" is shown ${filler[1]} times. Leave empty items empty instead of labelling each one.` });
+  // The same run of controls twice (the calculator's whole keypad was written out twice, one under the other).
+  {
+    const seq = controls.map(label);
+    const at = new Map<string, number>();
+    for (let i = 0; i + 8 <= seq.length; i++) {
+      const key = seq.slice(i, i + 8).join("\u0001");
+      const first = at.get(key);
+      if (first === undefined) at.set(key, i);
+      else if (i - first >= 8) {
+        out.push({ rule: "duplicated-block", serious: true, message: `The same controls appear twice on this screen ("${seq.slice(first, first + 4).join('", "')}"…). Keep one.` });
+        break;
+      }
+    }
+  }
+  // A picture drawn as a placeholder: a large local SVG with words written in it (the calculator's "Modern Design" hero,
+  // which the PRD never asked for, passed as "looks right").
+  for (const im of Array.from(document.images).filter((i) => visible(i) && i.getBoundingClientRect().width >= 200 && /\.svg(\?|$)/i.test(i.getAttribute("src") ?? ""))) {
+    try {
+      const x = new XMLHttpRequest();
+      x.open("GET", im.src, false);
+      x.send();
+      const svg = x.status === 200 ? x.responseText : "";
+      const words = [...svg.matchAll(/<text[^>]*>([^<]{2,})</g)].map((m) => m[1]!.trim());
+      // FlowCode's own stand-in for a record with no photo (recordPictures.ts) says so and is left alone.
+      if (words.length && svg.length < 20_000 && !svg.includes('data-flowcode="record-picture"')) {
+        out.push({ rule: "placeholder-art", serious: true, message: `"${im.getAttribute("src")}" is a drawn placeholder with words in it ("${words.slice(0, 2).join('", "')}"), not real content. Remove it, or use a real image or the product's own content.` });
+        break;
+      }
+    } catch {
+      /* not readable: not judged */
+    }
+  }
   const shown = controls.map(label).join(" | ").toLowerCase();
   if (/\b(sign|log) ?in\b/.test(shown) && /\b(sign|log) ?out\b/.test(shown)) out.push({ rule: "contradictory-controls", serious: true, message: "Both \"Sign in\" and \"Sign out\" are on screen. Show the one that fits whether the user is signed in." });
   // Prototype sample data (src/sim collections) that the screen says isn't there.

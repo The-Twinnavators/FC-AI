@@ -43,6 +43,26 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1")("look check rules", (
     }
   }, 60_000);
 
+  it("fails the same controls written out twice, and a drawn placeholder picture with words in it (the calculator)", async () => {
+    const keys = ["7", "8", "9", "÷", "4", "5", "6", "×", "1", "2", "3", "−"].map((k) => `<button>${k}</button>`).join("");
+    const html = page(`<div>${keys}</div><img src="/hero.svg" alt="Modern calculator" width="600" height="300"><div>${keys}</div>`);
+    const art = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300"><rect width="600" height="300" fill="#eee"/><text x="20" y="40">Calculator</text><text x="20" y="60">Modern Design</text></svg>`;
+    const mine = `<svg xmlns="http://www.w3.org/2000/svg" data-flowcode="record-picture" width="600" height="300"><text x="20" y="40">Golden Hour</text></svg>`;
+    const server = http.createServer((req, res) => (req.url?.endsWith(".svg") ? res.writeHead(200, { "content-type": "image/svg+xml" }).end(req.url.includes("mine") ? mine : art) : res.writeHead(200, { "content-type": "text/html" }).end(req.url?.includes("own") ? page(`<img src="/mine.svg" alt="Golden Hour" width="600" height="300"><p>Twelve photos from the session, pick five.</p>`) : html)));
+    await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+    const url = `http://127.0.0.1:${(server.address() as { port: number }).port}/`;
+    const session = await BrowserSession.launch("test-look-check-dup");
+    try {
+      const rules = (await lookCheck(session, url)).findings.filter((f) => f.serious).map((f) => f.rule);
+      expect(rules).toEqual(expect.arrayContaining(["duplicated-block", "placeholder-art"]));
+      // FlowCode's own stand-in for a record with no photo isn't a placeholder to remove.
+      expect((await lookCheck(session, `${url}own`)).findings.map((f) => f.rule)).not.toContain("placeholder-art");
+    } finally {
+      server.close();
+      await session.close();
+    }
+  }, 90_000);
+
   it("passes a composed screen that shows its sample data", async () => {
     const days = Array.from({ length: 14 }, (_, i) => `<button aria-label="October ${i + 1}">${i + 1}</button>`).join("");
     const sim = `<script>window.__simCounts = () => ({ "calendar-events": 3 });</script>`;

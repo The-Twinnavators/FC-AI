@@ -105,7 +105,7 @@ export function pictureSvg(title: string, orientation: PictureGap["orientation"]
   }, []) : [title];
   const size = Math.round(w / 14);
   const top = h / 2 - ((lines.length - 1) * size * 1.2) / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(title)}">
+  return `<svg xmlns="http://www.w3.org/2000/svg" data-flowcode="record-picture" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(title)}">
   <defs>
     <linearGradient id="tone" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="hsl(${hue} 16% 80%)"/>
