@@ -70,6 +70,11 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1")("frame renders and na
     await withPage(html, async (p, url) => expect(await frameRendered(p, open(p, url), ["home"], [".ui-shell__header"])).toBeUndefined());
   }, 60_000);
 
+  it("passes a one-screen app's frame, which has nowhere else to go (the calculator)", async () => {
+    const one = app("background: #0b6b3a; color: white;").replace('<a class="ui-shell__link" href="#/search">Search</a>', "");
+    await withPage(one, async (p, url) => expect(await frameRendered(p, open(p, url), ["home"], [".ui-shell__header"])).toBeUndefined());
+  }, 60_000);
+
   it("fails frame rules that match nothing visible (a hidden frame)", async () => {
     await withPage(app("display: none;"), async (p, url) => expect(await frameRendered(p, open(p, url), ["home"], [".ui-shell__header"])).toMatch(/match nothing visible on any screen/));
   }, 60_000);

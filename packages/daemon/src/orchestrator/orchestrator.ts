@@ -4562,7 +4562,7 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
           }
         : {}),
     });
-    this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode styled the app frame itself, with no model: ${FRAME_SHEET} (rail, brand, navigation, top bar, page area, in the app's tokens), imported by src/App.tsx. It is checked now; the model refines it only if needed.`, data: { composed: [FRAME_SHEET, "src/App.tsx"] } });
+    this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode styled the app frame itself, with no model: ${FRAME_SHEET} (${parts}, in the app's tokens), imported by src/App.tsx. It is checked now; the model refines it only if needed.`, data: { composed: [FRAME_SHEET, "src/App.tsx"] } });
   }
 
   /**

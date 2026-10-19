@@ -136,7 +136,16 @@ export async function frameRendered(page: Page, open: (route: string) => Promise
     // Selection" heading was clicked and "didn't change the screen").
     if ((await l.isVisible()) && (await l.getAttribute("aria-current")) !== "page" && (await l.getAttribute("aria-disabled")) !== "true" && (await l.getAttribute("aria-expanded")) === null && !(await l.isDisabled()) && ((await l.textContent()) ?? "").trim()) target = i;
   }
-  if (target < 0) return "the frame shows, but its navigation has no other destination to open";
+  if (target < 0) {
+    // A one-screen app (the calculator) has nowhere else to go: the frame shows, and that is all it can do.
+    let destinations = 0;
+    for (let i = 0; i < n; i++) {
+      const l = links.nth(i);
+      if ((await l.isVisible()) && (await l.getAttribute("aria-expanded")) === null && ((await l.textContent()) ?? "").trim()) destinations++;
+    }
+    if (destinations <= 1) return errors.length ? `the page raised errors: ${errors.slice(0, 2).join("; ")}` : undefined;
+    return "the frame shows, but its navigation has no other destination to open";
+  }
   const state = () => page.evaluate(() => ({ hash: location.hash, path: location.pathname, main: (document.querySelector("main") ?? document.body).textContent?.replace(/\s+/g, " ").slice(0, 600) ?? "" }));
   const before = await state();
   const label = ((await links.nth(target).textContent()) ?? "").trim().slice(0, 40);
