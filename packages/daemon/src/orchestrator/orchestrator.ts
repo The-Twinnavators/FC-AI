@@ -2246,6 +2246,23 @@ ${brief.text}` : objective, expectedPaths });
           this.d.bus.emit({ ...ev, type: "verification.completed", message: `Look check on "${task.title}": ${serious.length} serious, so the step isn't done yet although its tests pass`, level: "warning" });
         }
       }
+      // And the guards a finished attempt gets: tokens it left undefined, and the app taken apart. Frameproof's Gallery
+      // was declared done here with two invented tokens (--text-4xl, --text-base) the guard had just sent back.
+      if (pre.allMet && !leftovers.length && !looksWrong && !signal.aborted) {
+        const baseline = new Set(this.d.store.getSetting<string[]>(`tokensUndefined:${task.id}`, []));
+        const broken = undefinedTokens(workspaceTokenUsage(jail)).filter((t) => !baseline.has(t.name));
+        const model = task.title !== WRITE_APP && this.d.store.getSetting<boolean>(appWrittenKey(run.id), false) ? this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null) : null;
+        const taken = model ? appKept(jail.root, model) : [];
+        const guard = [
+          ...(broken.length ? [`These tokens are still used but no longer defined, so their styles break: ${broken.slice(0, 5).map((t) => `${t.name} (used ${t.uses}× in ${t.files.slice(0, 2).join(", ")})`).join("; ")}. Use tokens src/styles/tokens.css defines.`] : []),
+          ...taken.slice(0, 3).map((p) => `App guard: ${p}`),
+        ];
+        if (guard.length) {
+          looksWrong = true;
+          this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), ...guard].slice(-12));
+          this.d.bus.emit({ ...ev, type: "verification.completed", level: "warning", message: `"${task.title}" isn't done yet although its checks pass: ${guard[0]!.slice(0, 200)}` });
+        }
+      }
       if (pre.allMet && !leftovers.length && !looksWrong && !signal.aborted) {
         const safe = this.d.snapshots.createCheckpoint(run.id, `Verified "${task.title}"`, true, task.id);
         this.updateTask(this.d.store.tasks.require(task.id), { status: "verified", blocker: undefined, checkpointId: safe.id });
@@ -4205,7 +4222,10 @@ ${brief.text}` : objective, expectedPaths });
         `Refine the ${view.label} screen FlowCode composed: ${composed.summary}. Its structure and behaviour are done and checked in ${screen}.`,
         `Your part is its stylesheet, ${sheet}: make it follow the direction below (the Look's tokens and the PRD's visual direction): spacing, type sizes and weights, the cards' borders, corners and captions, the search and filter controls, and the empty state.`,
         `Use only the app's tokens (src/styles/tokens.css, as var(--…)); keep every class name the screen uses (cmp-…); change only ${sheet}. Read ${screen} with read_file if you need its markup. Then run the type check.`,
-      ].join("\n"),
+        tokenMenu(jail),
+      ]
+        .filter(Boolean)
+        .join("\n"),
       expectedPaths: [sheet],
     });
     this.d.store.setSetting(`taskFindings:${task.id}`, [`FlowCode composed this screen already (${composed.summary}) in ${written.join(" and ")}: it works and type-checks. Refine its stylesheet; don't rebuild it.`]);
@@ -4492,4 +4512,29 @@ export function supplyFromProject(root: string, needs: string[]): string | undef
 /** The model a step's coder used, for messages ("gpt-5.6-sol"). */
 function assignmentLabel(run: Run, _task: Task): string {
   return run.modelAssignments.coder?.model ?? "the cloud model";
+}
+
+/**
+ * The token names a stylesheet step can use, by group, from the app's tokens.css: a small model asked to use "only the
+ * app's tokens" invented --text-4xl and --text-base when it couldn't see the names.
+ */
+export function tokenMenu(jail: { resolve(p: string): { abs: string } }): string {
+  let css = "";
+  try {
+    css = fs.readFileSync(jail.resolve("src/styles/tokens.css").abs, "utf8");
+  } catch {
+    return "";
+  }
+  const names = [...new Set([...css.matchAll(/(--[a-z][a-z0-9-]*)\s*:/g)].map((m) => m[1]!))];
+  const group = (re: RegExp) => names.filter((n) => re.test(n));
+  const parts = [
+    ["text sizes", group(/^--text-(xs|sm|md|lg|xl|\dxl)$/)],
+    ["spacing", group(/^--space-\d+$/)],
+    ["corners", group(/^--radius-/)],
+    ["weights", group(/^--weight-/)],
+    ["fonts", group(/^--font-(sans|display|mono)$/)],
+    ["colours", group(/^--color-/).slice(0, 18)],
+  ] as Array<[string, string[]]>;
+  const lines = parts.filter(([, l]) => l.length).map(([label, l]) => `${label}: ${l.join(", ")}`);
+  return lines.length ? `The tokens tokens.css defines (use these names exactly; there are no others): ${lines.join("; ")}.` : "";
 }

@@ -287,7 +287,9 @@ export function appKept(root: string, m: AppModel): string[] {
       continue;
     }
     const onData = m.lookup ? /lookup=\{lookup\}/ : /store=\{store\}/;
-    if (pattern && !(src.includes(`<${pattern}`) && onData.test(src))) problems.push(`${file} (${v.label}) no longer uses the working ${pattern} on the app's store; it was rebuilt. Put the pattern back (you may keep content you added around it, and change its title and description props):\n${screenSource(m, v)}`);
+    // A screen FlowCode composed itself (screenComposer.ts) works on the same store without the generic pattern.
+    const composed = src.includes("Composed by FlowCode") && /useRecords\(store, /.test(src);
+    if (pattern && !composed && !(src.includes(`<${pattern}`) && onData.test(src))) problems.push(`${file} (${v.label}) no longer uses the working ${pattern} on the app's store; it was rebuilt. Put the pattern back (you may keep content you added around it, and change its title and description props):\n${screenSource(m, v)}`);
     if (src.includes("createStore(") || src.includes("createLookup(")) problems.push(`${file} (${v.label}) makes its own store: every page uses the one in src/app/store.ts (import { store } from "../app/store"), so a change on one page shows on all of them.`);
   }
   return problems;

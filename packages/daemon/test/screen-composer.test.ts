@@ -106,3 +106,23 @@ describe("a design part for a standard screen", () => {
     await app.orchestrator.cancel(run.id).catch(() => undefined);
   }, 60_000);
 });
+
+describe("the guards around a composed screen", () => {
+  it("count a composed screen as a working page, and list the tokens a stylesheet may use", async () => {
+    const os = await import("node:os");
+    const { appKept } = await import("../src/orchestrator/appFiles.js");
+    const { tokenMenu } = await import("../src/orchestrator/orchestrator.js");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fc-composed-"));
+    const c = composeListScreen(MODEL, gallery)!;
+    for (const f of c.files) {
+      fs.mkdirSync(path.dirname(path.join(root, f.path)), { recursive: true });
+      fs.writeFileSync(path.join(root, f.path), f.content);
+    }
+    expect(appKept(root, MODEL).some((p) => p.includes("GalleryScreen.tsx (Gallery) no longer uses"))).toBe(false);
+    fs.writeFileSync(path.join(root, "src/screens/GalleryScreen.tsx"), "export default function GalleryScreen() { return null; }\n");
+    expect(appKept(root, MODEL).some((p) => p.includes("GalleryScreen.tsx (Gallery) no longer uses"))).toBe(true);
+    fs.writeFileSync(path.join(root, "src/styles/tokens.css"), ":root {\n  --text-sm: 14px;\n  --text-3xl: 32px;\n  --space-1: 4px;\n  --radius-md: 6px;\n  --color-text: #111;\n}\n");
+    const menu = tokenMenu({ resolve: (p: string) => ({ abs: path.join(root, p) }) });
+    expect(menu).toBe("The tokens tokens.css defines (use these names exactly; there are no others): text sizes: --text-sm, --text-3xl; spacing: --space-1; corners: --radius-md; colours: --color-text.");
+  });
+});
