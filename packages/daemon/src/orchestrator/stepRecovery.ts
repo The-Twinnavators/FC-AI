@@ -208,9 +208,12 @@ export function buildSplit(task: Task, input: SplitPart[], newId: () => string, 
   const frameCheck = task.acceptanceCriteria.some((c) => c.check.type === "verification" && c.check.kind === "frame-designed");
   let frameAt = parts.findIndex((p) => p.files.some((f) => frameFiles(ctx).includes(f)));
   if (frameCheck && frameAt < 0) {
-    const look = parts.findIndex((p) => /\b(frame|navigation|top bar|look|styles?|tokens?|colou?rs?|theme)\b/i.test(`${p.title} ${p.objective}`));
+    // A part titled for the frame first (a screen's text can mention its navigation), else one about the look.
+    const titled = parts.findIndex((p) => /\bframe\b/i.test(p.title));
+    const look = titled >= 0 ? titled : parts.findIndex((p) => /\b(frame|navigation|top bar|look|styles?|tokens?|colou?rs?|theme)\b/i.test(`${p.title} ${p.objective}`));
     frameAt = look >= 0 ? look : parts.length - 1;
-    parts = parts.map((p, i) => (i === frameAt ? { ...p, files: [...p.files, "src/styles/components.css"] } : p));
+    // FlowCode's own parts keep their files: the frame part restyles the frame in a stylesheet of its own.
+    if (!opts.asWritten) parts = parts.map((p, i) => (i === frameAt ? { ...p, files: [...p.files, "src/styles/components.css"] } : p));
   }
   // The records check goes to the part with the app's data file, else the last part.
   const dataAt = (() => {
