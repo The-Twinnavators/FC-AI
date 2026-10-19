@@ -144,7 +144,11 @@ function auditScreen(): Array<{ rule: string; serious: boolean; message: string 
     // A screen that is still only its header: a title, a line and a button (Kids cash app: Lessons, Games and Progress
     // stayed like that for the whole build while every look check passed). Counted outside the header and navigation.
     const h1 = h1s[0];
-    const head = h1 ? (h1.closest("header, [class*='page-header'], [class*='pageheader'], [class*='PageHeader']") ?? h1.parentElement) : null;
+    // The title's own container counts as its header only when it holds little more than the title: Frameproof's Photo
+    // detail puts the title in one column with the facts, the pick and the note, and was called "only a title".
+    const parent = h1?.parentElement;
+    const small = !!parent && (parent.innerText ?? "").trim().length - ((h1 as HTMLElement | undefined)?.innerText ?? "").trim().length < 160 && parent.querySelectorAll("img, svg, input, select, textarea, li, dl, button").length <= 2;
+    const head = h1 ? (h1.closest("header, [class*='page-header'], [class*='pageheader'], [class*='PageHeader']") ?? (small ? parent : h1)) : null;
     const outside = (el: Element) => !(head && head.contains(el)) && !el.closest("nav, [role=navigation], aside, footer");
     const rest = Array.from(main.querySelectorAll("*")).filter((el) => el.children.length === 0 && visible(el) && outside(el)).map((el) => (el as HTMLElement).innerText?.trim() ?? "").join(" ").trim();
     const things = Array.from(main.querySelectorAll("img, svg, table, li, input, select, textarea, article, [class*='card'], canvas")).filter((el) => visible(el) && outside(el)).length;

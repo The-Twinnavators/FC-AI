@@ -74,6 +74,19 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1")("look check: a screen
     }
   }, 60_000);
 
+  it("leaves a record's page alone whose title shares a column with its facts and controls", async () => {
+    // Frameproof: Photo detail (title, facts, pick and note in one column) was called "only a title".
+    const html = `<html lang="en"><head><style>body{font-family:sans-serif}</style></head><body><nav><a href="#g">Gallery</a></nav><main><div class="side"><h1>Golden Hour</h1><dl><dt>Category</dt><dd>Outdoor</dd></dl><button aria-pressed="false">Add to selection</button><label>Editing note<textarea></textarea></label><button>Previous</button><button>Next</button></div></main></body></html>`;
+    const { server, url } = await serve(html);
+    const session = await BrowserSession.launch("test-look-check-record");
+    try {
+      expect((await lookCheck(session, url)).findings.map((f) => f.rule)).not.toContain("title-only");
+    } finally {
+      server.close();
+      await session.close();
+    }
+  }, 60_000);
+
   it("leaves a screen with real content alone", async () => {
     const full = stub.replace("</header></main>", "</header><ul><li>Coin match: pair each coin with its value</li><li>Shop till: give the right change</li><li>Piggy bank: save up for a toy</li></ul></main>");
     const { server, url } = await serve(full);
