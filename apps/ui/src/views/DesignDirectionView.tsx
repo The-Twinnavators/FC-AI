@@ -42,9 +42,9 @@ interface Version {
 }
 interface State {
   label: string;
-  draft?: { appearance: Appearance; sources: Sources; updatedAt: string };
-  selected?: { appearance: Appearance; sources: Sources; version: number };
-  applied?: { appearance: Appearance; version: number; appliedAt: string; verification?: { technical: { status: string; checks: Check[] }; browser: { status: string; checks: Check[]; note?: string } } };
+  draft?: { appearance: Appearance; sources: Sources; updatedAt: string; notes?: string[] };
+  selected?: { appearance: Appearance; sources: Sources; version: number; notes?: string[] };
+  applied?: { appearance: Appearance; version: number; appliedAt: string; notes?: string[]; verification?: { technical: { status: string; checks: Check[] }; browser: { status: string; checks: Check[]; note?: string } } };
   lastFailure?: { version: number; reason: string };
   hasApp: boolean;
   locks: string[];
@@ -87,6 +87,9 @@ export function DesignDirectionView({ projectId }: { projectId: string }) {
   const [reading, setReading] = useState<DirectionReading>();
   const [showing, setShowing] = useState<"draft" | "app" | number>("draft");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // The person's words the tokens can't carry (layout, order, what to leave out): kept with the direction for the build.
+  const [notes, setNotes] = useState<string[]>([]);
+  const notesRef = useRef<string[]>([]);
 
   // Start from the draft, else the chosen direction, else the applied one, else FlowCode's base with the PRD's colour.
   const inited = useRef(false);
@@ -96,6 +99,8 @@ export function DesignDirectionView({ projectId }: { projectId: string }) {
     const start = s.draft?.appearance ?? s.selected?.appearance ?? s.applied?.appearance ?? (s.prd?.colors[0] ? { ...BASE_APPEARANCE, primary: s.prd.colors[0].hex } : BASE_APPEARANCE);
     setA(start);
     setSources(s.draft?.sources ?? s.selected?.sources ?? {});
+    notesRef.current = s.draft?.notes ?? s.selected?.notes ?? s.applied?.notes ?? [];
+    setNotes(notesRef.current);
     if (s.prd?.direction) setText(s.prd.direction.split("\n").slice(0, 8).join("\n"));
   }, [s]);
   const locks = s?.locks ?? [];
@@ -107,7 +112,7 @@ export function DesignDirectionView({ projectId }: { projectId: string }) {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         saveTimer.current = undefined;
-        post(`/projects/${projectId}/design/draft`, { appearance: next, sources: nextSources })
+        post(`/projects/${projectId}/design/draft`, { appearance: next, sources: nextSources, notes: notesRef.current })
           .then(() => (setSaving("saved"), res.reload()))
           .catch((e: Error) => (setSaving("error"), setError(e.message)));
       }, 450);
@@ -195,7 +200,7 @@ export function DesignDirectionView({ projectId }: { projectId: string }) {
     if (saveTimer.current) {
       clearTimeout(saveTimer.current);
       saveTimer.current = undefined;
-      await post(`/projects/${projectId}/design/draft`, { appearance: a, sources });
+      await post(`/projects/${projectId}/design/draft`, { appearance: a, sources, notes: notesRef.current });
     }
   };
   const run = async (key: string, fn: () => Promise<string | void>) => {
@@ -216,7 +221,13 @@ export function DesignDirectionView({ projectId }: { projectId: string }) {
     const r = interpretDirection(text, a ?? BASE_APPEARANCE, locks);
     setReading(r);
     const changed = r.understood.filter((u) => u.group !== "build" && !u.locked).length;
+    // The phrases for the build step are kept with the draft (and the version it becomes), for the design build.
+    const build = r.understood.filter((u) => u.group === "build").map((u) => u.words);
+    const notesChanged = build.join("\n") !== notesRef.current.join("\n");
+    notesRef.current = build;
+    setNotes(build);
     if (changed) edit(r.appearance, "direction");
+    else if (notesChanged) save(a ?? BASE_APPEARANCE, sources);
   };
   const toggleLock = (g: LookGroup) => void run("lock", async () => void (await post(`/projects/${projectId}/design/locks`, { locks: isLocked(g) ? locks.filter((x) => x !== g) : [...locks, g] })));
   const saveVersion = () => void run("select", async () => (await flush(), await post(`/projects/${projectId}/design/select`, {}), "Saved as a version. Apply it to change the app."));
@@ -296,6 +307,7 @@ export function DesignDirectionView({ projectId }: { projectId: string }) {
                     </li>
                   ))}
                 </ul>
+                {notes.length ? <p className="dd-hint">Kept for the design build: {notes.length} note{notes.length === 1 ? "" : "s"} on layout and what to leave out. They go with this direction when you save or apply it.</p> : null}
                 {reading.unread.length ? (
                   <p className="dd-unread">
                     Not read (FlowCode's vocabulary doesn't cover these yet; set them with the controls below): {reading.unread.map((u) => `"${u}"`).join(", ")}

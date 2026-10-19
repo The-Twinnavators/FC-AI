@@ -22,6 +22,7 @@ export type InterruptionCause =
   | "internal_error" // FlowCode itself failed (one bounded retry)
   | "orphaned" // marked as working, but no FlowCode worker runs it (resumed from its checkpoint, at most twice)
   | "deadline" // the run's absolute deadline passed (only an extension the person records lets it go on)
+  | "boundary" // a bounded run reached the end of the steps the person named (boundedRun.ts)
   | "cancelled";
 
 export interface Interruption {
@@ -92,6 +93,8 @@ export function policyFor(cause: InterruptionCause): Policy {
       return { recoverable: false, needsUser: true, action: "Stopped: the run's deadline passed", resumeWhen: "you extend the deadline (the extension is recorded), then continue", maxAttempts: 0, timeoutMs: 0 };
     case "cancelled":
       return { recoverable: false, needsUser: true, action: "Stopped by you", resumeWhen: "you resume it", maxAttempts: 0, timeoutMs: 0 };
+    case "boundary":
+      return { recoverable: false, needsUser: true, action: "Stopped where you said", resumeWhen: "you name the next steps to run, or clear the limit and continue", maxAttempts: 0, timeoutMs: 0 };
   }
 }
 

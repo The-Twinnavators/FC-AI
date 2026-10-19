@@ -43,10 +43,11 @@ export class TaskGraph {
   }
 
   /** Next task whose prerequisites are all verified/skipped. */
-  next(runId: string): Task | undefined {
+  /** The next ready step; `within`: only one of these (a bounded run). */
+  next(runId: string, within?: string[]): Task | undefined {
     const tasks = this.tasks(runId);
     const status = new Map(tasks.map((t) => [t.id, t.status]));
-    return tasks.find((t) => (t.status === "pending" || t.status === "attempted") && t.dependsOn.every((d) => DONE.includes(status.get(d)!)));
+    return tasks.find((t) => (!within || within.includes(t.id)) && (t.status === "pending" || t.status === "attempted") && t.dependsOn.every((d) => DONE.includes(status.get(d)!)));
   }
 
   /** Marks every transitive dependent of a dead task as invalidated. Returns invalidated task ids. */

@@ -34,7 +34,7 @@ describe("a split part whose later turn doesn't fit", () => {
       const t = app.store.tasks.require("t1");
       return t.status === "blocked" ? t : undefined;
     }, 20_000);
-    expect(blocked.blocker?.reason).toMatch(/^"Change a" doesn't fit the coding context: a later turn needs about \d+ more tokens than agent's \d+k window leaves for it \(\d+ of \d+\)$/);
+    expect(blocked.blocker?.reason).toMatch(/^"Change a" doesn't fit the coding context: a later turn needs about \d+ more tokens than agent's \d+k window leaves for it with \d+ tokens of working headroom \(\d+ of \d+\)$/);
     expect(provider.calls.length).toBe(before);
     expect(blocked.attempts).toBe(0);
     await app.orchestrator.cancel(run.id).catch(() => undefined);

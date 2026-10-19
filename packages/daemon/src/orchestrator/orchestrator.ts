@@ -84,11 +84,14 @@ import { SCREEN_BRIEF_SCHEMA, SCREEN_BRIEF_SYSTEM, briefRequest, parseScreenBrie
 import { catalogManifestKey, catalogTriedKey, manifestBrief, manifestSummary, matchCatalog, nextBest, type CatalogManifest } from "./catalogMatch.js";
 import { APP_LAYOUT, declaredScreens, layoutOpen, layoutStep, placedKey, screenPicksKey, type Placement, parseScreenPlan, SCREENS_SCHEMA, SCREENS_SYSTEM, screenPlanKey, screenPlanNote, writesLayout, type ScreenPlan } from "./screenPlan.js";
 import { testingGuide, testScaffold } from "./testingGuide.js";
-import { budgetSkills, charsPerToken, laterTurnFits, requestBudget } from "./requestBudget.js";
+import { budgetSkills, charsPerToken, headroomTokens, laterTurnFits, openingWithin, requestBudget } from "./requestBudget.js";
 import { stepTools } from "./toolSelection.js";
 import { settleConcept } from "./homeConceptOffer.js";
 import { DeadlinePassedError, deadlinePassed, extendDeadline, getDeadline, markExpired, markStopped, setDeadline, type RunDeadline } from "./runDeadline.js";
 import { RECOVERY_BACKOFF_MS, causeOfBlocker, getInterruption, recordInterruption, resolveInterruption, updateInterruption, type Interruption, type InterruptionCause } from "./interruptions.js";
+import { boundProblem, boundaryStop, runBoundKey, type RunBound } from "./boundedRun.js";
+import { designDirectionContext } from "./designContext.js";
+import { getDesignState } from "../workspace/designState.js";
 import { createHash } from "node:crypto";
 import { toolDef } from "./agentLoop.js";
 import { catalogContract, contractText } from "./catalogContract.js";
@@ -174,6 +177,12 @@ export interface RequestMeasure {
   totalTokens: number;
   budgetTokens: number;
   laterTurn: { fits: boolean; tokens: number };
+  /** Tokens a later turn must leave free (local models), and the size optional material was fitted to. */
+  headroomTokens: number;
+  /** The fitted brief and system prompt as they would be sent (for inspection). */
+  briefText?: string;
+  systemText?: string;
+  optionalRoomChars: number;
   largestReadChars: number;
   files: string[];
   dropped: string[];
@@ -1611,13 +1620,20 @@ ${brief.text}` : objective, expectedPaths });
 
     for (;;) {
       if (signal.aborted) return;
-      this.releaseIndependentSteps(runId);
+      // A bounded run doesn't release other steps around a stuck one: the stuck step ends it (boundedRun.ts).
+      if (!this.boundOf(runId)) this.releaseIndependentSteps(runId);
       this.graph.propagateInvalidation(runId);
       if (this.pausedRuns.has(runId) && !signal.aborted) this.d.bus.emit({ type: "run.status_changed", projectId: project.id, runId, message: "Paused: the step in progress finished; Continue starts the next one" });
       while ((this.paused || this.pausedRuns.has(runId)) && !signal.aborted) await new Promise((r) => setTimeout(r, 1000));
       if (signal.aborted) return;
       if (this.deadlineStops(runId, "before the next step")) return;
-      const task = this.graph.next(runId);
+      // Bounded: only a step it named starts; the loop stops itself when none can (done, stuck or split).
+      const bound = this.boundOf(runId);
+      const task = this.graph.next(runId, bound?.taskIds);
+      if (bound) {
+        const why = boundaryStop(bound, this.graph.tasks(runId), task);
+        if (why) return this.stopAtBoundary(runId, bound, why);
+      }
       if (!task) break;
       run = this.d.store.runs.upsert({ ...this.d.store.runs.require(runId), currentTaskId: task.id });
       await this.runTask(run, task, jail, signal);
@@ -2854,7 +2870,10 @@ ${brief.text}` : objective, expectedPaths });
     // the request is full (the step's files and requirements come before it).
     const guidance: string[] = [];
     // Design steps work to the product's design direction (industry pattern, style, colour, type, anti-patterns).
-    const direction = designStep ? this.d.store.getSetting<DesignDirection | null>(`designDirection:${run.projectId}`, null) : null;
+    // The person's applied Look and notes and the PRD's visual direction come first (designContext.ts); FlowCode's own
+    // industry guess only when neither gives one.
+    const ownDirection = designStep ? designDirectionContext(getDesignState(this.d.store, project.id, jail), this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []), lean ? 1200 : 1800) : undefined;
+    const direction = designStep && !ownDirection?.fromPersonOrPrd ? this.d.store.getSetting<DesignDirection | null>(`designDirection:${run.projectId}`, null) : null;
     if (direction) guidance.push(directionBrief(direction));
     // Fix memory: a retry (or the debugger) gets the closest fixes that worked in earlier builds for this kind of failure.
     const earlier = failuresOf(this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, [])).problems;
@@ -2871,12 +2890,14 @@ ${brief.text}` : objective, expectedPaths });
     if (designStep && !/\bhero|landing|marketing|social proof\b/i.test(`${direction?.pattern ?? ""}`))
       guidance.push("Composition (FlowCode rule): the first screen is the product's main tool (search, list, board, editor), shown working with real data, not a pitch. No Hero component, eyebrow label, marketing headline or 'Browse…' call-to-action block; if the app has a separate home screen that only introduces the tool, merge it into the tool screen (keep its route and test labels). Compose each screen from the design research and direction: decide the layout yourself, then use the kit (src/components/ui) for controls such as Button, Field, chips, Card and Dialog, not for page templates.");
     // Design research (inspiration from Dribbble, Behance and real products), done once per project while it's fresh.
-    if (designStep) {
+    if (designStep && !ownDirection?.fromPersonOrPrd) {
       const research = measure ? (this.d.store.getSetting<DesignResearch | null>(researchKey(project.id), null) ?? undefined) : await designResearch(
         { store: this.d.store, bus: this.d.bus, router: this.d.router, processes: this.d.processes },
         { projectId: project.id, runId: run.id, objective: run.objective, prdText: ((p) => { try { return p ? readFile(jail, p).content.slice(0, 6000) : ""; } catch { return ""; } })(findPrd(jail, run.referencePaths)), direction, models: [...(project.settings.allowHostedModels ? [cloudCoder(this.d.router, this.d.store).ready ? cloudCoder(this.d.router, this.d.store).assignment : undefined] : []), run.modelAssignments.critic], allowed: project.settings.allowExternalResearch, signal },
       ).catch(() => undefined);
       if (research) guidance.push(designResearchBrief(research));
+    }
+    if (designStep) {
       // Saved screen specs for the screens this step touches: build to them instead of restyling from scratch.
       const specs = screenSpecBrief(this.d, project.id, `${task.title} ${task.objective} ${task.expectedPaths.join(" ")}`);
       if (specs) scan.push(specs);
@@ -3036,6 +3057,7 @@ ${brief.text}` : objective, expectedPaths });
     // react-router-dom, not installed, and spent its next turns on the type errors).
     const installed = installedPackages(jail.root);
     if (installed.length) contracts.push({ name: "Installed packages", text: `Import only these packages or the project's own files; anything else isn't installed and fails the type check: ${installed.join(", ")}` });
+    if (ownDirection) requirements.push(...ownDirection.requirements);
     const packet = buildHandoff({ run: runForPacket, task, allTasks: this.graph.tasks(run.id), files, findings, guidance, requirements, contracts, knowledge: [
       ...playbook.map((p) => ({ ...this.d.store.knowledge.require(p.id), title: p.title, content: p.content })),
       ...this.d.knowledge
@@ -3045,6 +3067,9 @@ ${brief.text}` : objective, expectedPaths });
         .slice(0, 3)
         .map((k) => ({ ...k, content: k.content.slice(0, 900) })),
     ] });
+    // The plan's note about the Look ("no direction is selected yet", the PRD's direction proposed) is superseded by the
+    // direction given above.
+    if (ownDirection?.fromPersonOrPrd) packet.acceptedDecisions = packet.acceptedDecisions.filter((d) => !/^Assumption: Look:/.test(d));
     const promptId = role === "debugger" ? "role.debugger" : "role.coder";
     // Prompts come from the versioned library (user edits take effect); immutable components are cached (§11.3).
     const spec = this.d.store.prompts.get(promptId) ?? promptById(promptId);
@@ -3205,7 +3230,23 @@ ${brief.text}` : objective, expectedPaths });
     const shownExtras = localModel && role === "coder" && !/\b(docs?|documentation|library api|sdk|framework api)\b/i.test(`${task.title} ${task.objective}`) ? [] : extraTools;
     const toolsChars = JSON.stringify([...shownTools.map(toolDef), ...shownExtras.map((t) => t.def)]).length;
     const room = reqBudget.inputChars - system.length - toolsChars;
-    const brief = fitHandoff(packet, renderTree(listTree(jail, ".", 2, lean ? 80 : 140)), (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name), Math.max(0, room));
+    // The read a later turn needs: in full, the largest own file the opening can't carry whole (too long for its line
+    // cap, or shortened to fit); a typical read (about 4,000 characters) when it carries them all whole.
+    const fullRead = (p: string) => {
+      try {
+        const lines = fs.readFileSync(jail.resolve(p).abs, "utf8").split("\n");
+        return { long: lines.length > (lean ? 260 : 400), chars: lines.reduce((n, l) => n + l.length + 7, 0) };
+      } catch {
+        return undefined; // not there yet
+      }
+    };
+    const reads = new Map(ownFiles.map((p) => [p, fullRead(p)] as const));
+    // A local model's turns keep working headroom (requestBudget.headroomTokens): optional material (extra knowledge,
+    // other files, the tree, long guidance) is fitted only up to the opening a later turn can afford with it free.
+    const headroom = lean ? headroomTokens(windowTokens) : 0;
+    const largestPlanned = Math.max(4000, ...[...reads.values()].filter((r) => r?.long).map((r) => r!.chars));
+    const optionalRoom = lean ? openingWithin(reqBudget, largestPlanned, headroom) - system.length - toolsChars : room;
+    const brief = fitHandoff(packet, renderTree(listTree(jail, ".", 2, lean ? 80 : 140)), (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name), Math.max(0, room), Math.max(0, optionalRoom));
     const total = system.length + toolsChars + brief.text.length;
     fittedBrief = brief.text;
     this.d.bus.emit({
@@ -3232,31 +3273,23 @@ ${brief.text}` : objective, expectedPaths });
     }
     // The opening fits; a later turn must too (requestBudget.laterTurnFits): reading its largest own file in full and
     // getting a diagnostic back. A step that can't is too broad and is split before it runs, not after its turns run out.
-    // The read a later turn needs: in full, the largest own file the opening carries only in part; a typical read
-    // (about 4,000 characters) when it carries them all whole. A local model's tool results are held to what this
-    // reserves (reads to it, every other result to the check result's 2,000 characters), so the turns it counts on fit.
-    let largest = 4000;
+    // The read (as above, now also counting own files the fit shortened). A local model's tool results are held to what
+    // this reserves (reads to it, every other result to the check result's 2,000 characters), and its later turn must
+    // leave the working headroom free, so the turns it counts on fit with room to spare.
+    let largest = largestPlanned;
     {
-      for (const p of ownFiles) {
-        try {
-          const lines = fs.readFileSync(jail.resolve(p).abs, "utf8").split("\n");
-          const partial = lines.length > (lean ? 260 : 400) || brief.dropped.some((d) => d.startsWith(`${p} shortened`));
-          if (partial) largest = Math.max(largest, lines.reduce((n, l) => n + l.length + 7, 0));
-        } catch {
-          /* not there yet */
-        }
-      }
-      const later = laterTurnFits(reqBudget, total, largest);
+      for (const [p, r] of reads) if (r && brief.dropped.some((d) => d.startsWith(`${p} shortened`))) largest = Math.max(largest, r.chars);
+      const later = laterTurnFits(reqBudget, total, largest, 2000, headroom);
       if (measure) {
-        measure({ task: task.title, role, model: assignment.model, windowTokens, replyTokens, charsPerToken: reqBudget.charsPerToken, inputChars: reqBudget.inputChars, systemChars: system.length, skillChars: skillFit.text.length, toolsChars, briefChars: brief.text.length, objectiveChars: task.objective.length, overflowChars: brief.overflow, overflowTokens: Math.round(brief.overflow / reqBudget.charsPerToken), totalTokens: Math.round(total / reqBudget.charsPerToken), budgetTokens: Math.round(reqBudget.inputChars / reqBudget.charsPerToken), laterTurn: { fits: later.fits, tokens: later.tokens }, largestReadChars: largest, files: packet.relevantFiles.map((f) => f.path.replace(/ \(line-numbered.*\)$/, "")), dropped: brief.dropped });
+        measure({ task: task.title, role, model: assignment.model, windowTokens, replyTokens, charsPerToken: reqBudget.charsPerToken, inputChars: reqBudget.inputChars, systemChars: system.length, skillChars: skillFit.text.length, toolsChars, briefChars: brief.text.length, objectiveChars: task.objective.length, overflowChars: brief.overflow, overflowTokens: Math.round(brief.overflow / reqBudget.charsPerToken), totalTokens: Math.round(total / reqBudget.charsPerToken), budgetTokens: Math.round(reqBudget.inputChars / reqBudget.charsPerToken), laterTurn: { fits: later.fits, tokens: later.tokens }, headroomTokens: headroom, optionalRoomChars: optionalRoom, briefText: brief.text, systemText: system, largestReadChars: largest, files: packet.relevantFiles.map((f) => f.path.replace(/ \(line-numbered.*\)$/, "")), dropped: brief.dropped });
         return { kind: "no_action", reason: "measured only" };
       }
       if (!later.fits && !this.d.store.getSetting(`splitPart:${task.id}`, false) && task.attempts === 1)
-        return { kind: "split_required", reason: `a later turn (its opening request, a full read of its largest file and a check result) needs about ${later.tokens} tokens, more than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window` };
+        return { kind: "split_required", reason: `a later turn (its opening request, a full read of its largest file and a check result) needs about ${later.tokens} tokens, more than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window leaves with ${headroom} tokens of working headroom` };
       // A part can't be split again: one whose later turn doesn't fit isn't sent to rely on trimming; it waits for the
       // person's choice, saying by how much (the split path blocks a "more tokens than" overflow).
       if (!later.fits && this.d.store.getSetting(`splitPart:${task.id}`, false))
-        return { kind: "split_required", reason: `a later turn needs about ${later.tokens - windowTokens} more tokens than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window leaves for it (${later.tokens} of ${windowTokens})` };
+        return { kind: "split_required", reason: `a later turn needs about ${later.tokens + headroom - windowTokens} more tokens than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window leaves for it with ${headroom} tokens of working headroom (${later.tokens} of ${windowTokens})` };
       if (lean) readAllowance = largest;
     }
     const result = await runAgentLoop({
@@ -3342,7 +3375,8 @@ ${brief.text}` : objective, expectedPaths });
     }
     // Resume continues the remaining work. When nothing is left but blocked tasks (and the work waiting on them),
     // continuing means trying those again: otherwise Resume would stop straight away for the same reason.
-    if (!this.graph.next(runId)) {
+    // Not in a bounded run: there a stuck step is where it stopped, and only a new command reopens it.
+    if (!this.graph.next(runId) && !this.boundOf(runId)) {
       for (const t of this.graph.tasks(runId).filter((x) => x.status === "blocked")) this.graph.reopen(runId, t.id);
     }
     this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: `Resuming at task ${this.graph.next(runId)?.title ?? "(verification)"}` });
@@ -4100,6 +4134,60 @@ ${brief.text}` : objective, expectedPaths });
     }
     this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: paused ? "Pausing: the step in progress finishes, then the build waits until you continue" : "Continuing the build" });
     return { paused };
+  }
+
+  /** The steps a bounded run may run, while it is bounded (boundedRun.ts). */
+  boundOf(runId: string): RunBound | undefined {
+    return this.d.store.getSetting<RunBound | null>(runBoundKey(runId), null) ?? undefined;
+  }
+
+  /**
+   * Runs only the named steps, then stops on its own (boundedRun.ts): the person's go for exactly these. A stuck step
+   * among them gets its tries back (as Retry does); a pause, or an earlier stop at a boundary, doesn't hold this one.
+   */
+  runBounded(runId: string, taskIds: string[], by: "user" | "system" = "user"): { run: Run; bound: RunBound } {
+    const run = this.d.store.runs.require(runId);
+    this.refuseIfExpired(runId, "run steps");
+    if (TERMINAL_RUN_STATUSES.includes(run.status) && run.status !== "failed") throw new Error(`Run is ${run.status}`);
+    if (!run.planApproved) throw new Error("Plan must be approved before execution");
+    const tasks = this.graph.tasks(runId);
+    const busy = tasks.find((t) => t.status === "running" || t.status === "awaiting_approval");
+    if (busy) throw new Error(`"${busy.title}" is running now: run named steps once it has finished (pause the build to stop after it)`);
+    const problem = boundProblem(taskIds, tasks);
+    if (problem) throw new Error(problem);
+    for (const id of taskIds) {
+      const t = this.d.store.tasks.require(id);
+      if (t.status === "blocked" || t.status === "failed" || t.status === "invalidated") this.graph.reopen(runId, id);
+    }
+    const bound: RunBound = { taskIds, titles: taskIds.map((id) => this.d.store.tasks.require(id).title), declaredAt: new Date().toISOString(), by };
+    this.d.store.setSetting(runBoundKey(runId), bound);
+    this.pausedRuns.delete(runId);
+    this.d.store.setSetting(`runPaused:${runId}`, false);
+    this.clearRecovery(runId);
+    resolveInterruption(this.d.store, this.d.bus, run.projectId, runId, `Running only ${bound.titles.map((t) => `"${t}"`).join(", ")}, then stopping`);
+    this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: `Running only ${bound.titles.map((t) => `"${t}"`).join(", ")}; the build stops on its own after them`, data: { bound } });
+    if (run.status === "failed" || run.status === "blocked") this.d.store.runs.upsert({ ...run, status: "running" });
+    if (this.active.has(runId)) return { run: this.d.store.runs.require(runId), bound };
+    return { run: this.start(runId), bound };
+  }
+
+  /** The bound is lifted: Continue runs the rest of the build again. */
+  clearBound(runId: string): { cleared: boolean } {
+    const run = this.d.store.runs.require(runId);
+    const had = !!this.boundOf(runId);
+    this.d.store.setSetting(runBoundKey(runId), null);
+    if (had) this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: "No limit on the steps any more: Continue runs the rest of the build" });
+    return { cleared: had };
+  }
+
+  /** The loop stops itself at the bound: recorded, paused (a restart keeps it), waiting for the next command. */
+  private stopAtBoundary(runId: string, bound: RunBound, reason: string) {
+    const run = this.d.store.runs.require(runId);
+    this.d.store.setSetting(runBoundKey(runId), { ...bound, stop: { at: new Date().toISOString(), reason } });
+    this.pausedRuns.add(runId);
+    this.d.store.setSetting(`runPaused:${runId}`, "system");
+    recordInterruption(this.d.store, this.d.bus, run.projectId, { runId, cause: "boundary", by: "system", detail: `It ran only ${bound.titles.map((t) => `"${t}"`).join(", ")}: ${reason}.` });
+    this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: `Stopped where you said: ${reason}. Nothing else started.`, data: { bound: { ...bound, stop: { reason } } } });
   }
 
   isRunPaused(runId: string) {

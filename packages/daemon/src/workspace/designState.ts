@@ -30,16 +30,17 @@ export type DesignSource = "you" | `theme:${string}` | "prd" | "suggested" | "co
 
 export interface DesignState {
   base: { source: "none" | "starter" | "legacy-default" | "unknown"; detail: string };
-  draft?: { appearance: Appearance; sources: Partial<Record<keyof Appearance, DesignSource>>; updatedAt: string };
-  selected?: { appearance: Appearance; sources: Partial<Record<keyof Appearance, DesignSource>>; version: number; selectedAt: string; by: "you" };
-  applied?: { appearance: Appearance; version: number; appliedAt: string; snapshotIds: string[]; verification?: ApplyVerification };
+  /** `notes`: the person's words the tokens can't carry (layout, section order, what to leave out), for the design build. */
+  draft?: { appearance: Appearance; sources: Partial<Record<keyof Appearance, DesignSource>>; updatedAt: string; notes?: string[] };
+  selected?: { appearance: Appearance; sources: Partial<Record<keyof Appearance, DesignSource>>; version: number; selectedAt: string; by: "you"; notes?: string[] };
+  applied?: { appearance: Appearance; version: number; appliedAt: string; snapshotIds: string[]; verification?: ApplyVerification; notes?: string[] };
   lastFailure?: { version: number; at: string; reason: string };
   /** Surface styles the person asked for in this project (FlowCode otherwise uses Flat or Tactile only). */
   surfaceExceptions: string[];
   /** Groups of the Look the person locked (designDirection.LOOK_GROUPS): a draft can't change them. */
   locks?: string[];
   /** Every direction the person chose, newest last (up to 30), to compare and to restore as a draft. */
-  versions?: Array<{ version: number; appearance: Appearance; sources: Partial<Record<keyof Appearance, DesignSource>>; selectedAt: string }>;
+  versions?: Array<{ version: number; appearance: Appearance; sources: Partial<Record<keyof Appearance, DesignSource>>; selectedAt: string; notes?: string[] }>;
 }
 
 /** One check's outcome after an apply. "not_run" is never a pass. */
@@ -108,14 +109,16 @@ const save = (store: Store, projectId: string, s: DesignState) => store.setSetti
 
 export type DesignSources = NonNullable<DesignState["draft"]>["sources"];
 
-export function saveDraft(store: Store, projectId: string, appearance: Appearance, sources: DesignSources, jail?: PathJail): DesignState {
+export function saveDraft(store: Store, projectId: string, appearance: Appearance, sources: DesignSources, jail?: PathJail, notes?: string[]): DesignState {
   const s = getDesignState(store, projectId, jail);
   const problems = appearanceProblems(appearance, [...DEFAULT_SURFACES, ...s.surfaceExceptions]);
   if (problems.length) throw new Error(problems.join("; "));
   // A locked group keeps what the person saw when they locked it (the current draft, else the chosen direction),
   // whatever a later draft says: the lock holds on the server too.
   const kept = withLocks(appearance, s.draft?.appearance ?? s.selected?.appearance ?? s.applied?.appearance, s.locks ?? []);
-  const next = { ...s, draft: { appearance: kept, sources, updatedAt: now() } };
+  // Notes not given: the draft keeps the ones it has (else the chosen direction's).
+  const keptNotes = notes ?? s.draft?.notes ?? s.selected?.notes ?? s.applied?.notes;
+  const next = { ...s, draft: { appearance: kept, sources, updatedAt: now(), ...(keptNotes?.length ? { notes: keptNotes } : {}) } };
   save(store, projectId, next);
   return next;
 }
@@ -139,9 +142,9 @@ export function restoreVersion(store: Store, projectId: string, version: number,
   const s = getDesignState(store, projectId, jail);
   const v =
     (s.versions ?? []).find((x) => x.version === version) ??
-    (s.selected?.version === version ? s.selected : s.applied?.version === version ? { appearance: s.applied.appearance, sources: {} } : undefined);
+    (s.selected?.version === version ? s.selected : s.applied?.version === version ? { appearance: s.applied.appearance, sources: {}, notes: s.applied.notes } : undefined);
   if (!v) throw new Error(`Version ${version} isn't in this project's saved directions`);
-  return saveDraft(store, projectId, v.appearance, v.sources, jail);
+  return saveDraft(store, projectId, v.appearance, v.sources, jail, v.notes ?? []);
 }
 
 /** The person asks for another surface style in this project (recorded; FlowCode never infers one). */
@@ -161,12 +164,13 @@ export function selectDraft(store: Store, projectId: string, jail?: PathJail): D
   const selectedAt = now();
   // The directions chosen before the history existed (the selected and the applied one) are kept before the new one.
   const versions = [...(s.versions ?? [])];
-  for (const v of [s.applied && { version: s.applied.version, appearance: s.applied.appearance, sources: {}, selectedAt: s.applied.appliedAt }, s.selected && { version: s.selected.version, appearance: s.selected.appearance, sources: s.selected.sources, selectedAt: s.selected.selectedAt }])
+  for (const v of [s.applied && { version: s.applied.version, appearance: s.applied.appearance, sources: {}, selectedAt: s.applied.appliedAt, notes: s.applied.notes }, s.selected && { version: s.selected.version, appearance: s.selected.appearance, sources: s.selected.sources, selectedAt: s.selected.selectedAt, notes: s.selected.notes }])
     if (v && !versions.some((x) => x.version === v.version)) versions.push(v);
   versions.sort((x, y) => x.version - y.version);
-  versions.push({ version, appearance: draft.appearance, sources: draft.sources, selectedAt });
+  const notes = draft.notes?.length ? { notes: draft.notes } : {};
+  versions.push({ version, appearance: draft.appearance, sources: draft.sources, selectedAt, ...notes });
   versions.splice(0, Math.max(0, versions.length - 30));
-  const next: DesignState = { ...rest, selected: { appearance: draft.appearance, sources: draft.sources, version, selectedAt, by: "you" }, versions };
+  const next: DesignState = { ...rest, selected: { appearance: draft.appearance, sources: draft.sources, version, selectedAt, by: "you", ...notes }, versions };
   save(store, projectId, next);
   return next;
 }
@@ -236,7 +240,7 @@ export function applySelected(
     return { state: next, ok: false, reason: (err as Error).message, changed: [] };
   }
   const { lastFailure: _done, ...rest } = s;
-  const next: DesignState = { ...rest, applied: { appearance: s.selected.appearance, version: s.selected.version, appliedAt: now(), snapshotIds: snapshots } };
+  const next: DesignState = { ...rest, applied: { appearance: s.selected.appearance, version: s.selected.version, appliedAt: now(), snapshotIds: snapshots, ...(s.selected.notes?.length ? { notes: s.selected.notes } : {}) } };
   save(store, projectId, next);
   return { state: next, ok: true, changed: [...new Set(changed)], ...(notes.length ? { notes } : {}) };
 }
@@ -274,7 +278,7 @@ export function describeState(store: Store, projectId: string, jail?: PathJail) 
   const current = s.draft?.appearance ?? s.selected?.appearance;
   // Directions chosen before the history was kept still show: the selected and the applied one.
   const versions = [...(s.versions ?? [])];
-  for (const v of [s.applied && { version: s.applied.version, appearance: s.applied.appearance, sources: {}, selectedAt: s.applied.appliedAt }, s.selected && { version: s.selected.version, appearance: s.selected.appearance, sources: s.selected.sources, selectedAt: s.selected.selectedAt }])
+  for (const v of [s.applied && { version: s.applied.version, appearance: s.applied.appearance, sources: {}, selectedAt: s.applied.appliedAt, notes: s.applied.notes }, s.selected && { version: s.selected.version, appearance: s.selected.appearance, sources: s.selected.sources, selectedAt: s.selected.selectedAt, notes: s.selected.notes }])
     if (v && !versions.some((x) => x.version === v.version)) versions.push(v);
   versions.sort((x, y) => x.version - y.version);
   return { ...s, versions, locks: s.locks ?? [], hasApp: !!jail && hasApp(jail), motionSupported: !jail || !hasApp(jail) || motionSupported(jail), differs, label: stateLabel(s, differs), checks: current ? appearanceChecks(current) : [] };

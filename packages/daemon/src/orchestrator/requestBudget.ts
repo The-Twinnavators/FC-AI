@@ -60,10 +60,22 @@ export function requestBudget(opts: { windowTokens: number; replyTokens: number;
  * the reply reserved. An opening that only just fits isn't enough: a step that can't read its own files and get its
  * check results back within the window is too broad for it and is split before it runs.
  */
-export function laterTurnFits(b: RequestBudget, openingChars: number, largestReadChars: number, diagnosticChars = 2000): { fits: boolean; tokens: number } {
+export function laterTurnFits(b: RequestBudget, openingChars: number, largestReadChars: number, diagnosticChars = 2000, headroom = 0): { fits: boolean; tokens: number } {
   const chars = openingChars + largestReadChars + diagnosticChars + 1400;
   const tokens = Math.ceil(chars / (b.charsPerToken * 0.8)) + b.replyTokens;
-  return { fits: tokens <= b.windowTokens, tokens };
+  return { fits: tokens + headroom <= b.windowTokens, tokens };
+}
+
+/**
+ * Working headroom a local model's later turn leaves free on purpose: a tenth of the window. Frameproof's design parts
+ * fitted with 56 tokens to spare at the opening and 223 on a later turn: the brief was filled with optional knowledge
+ * up to the budget, so any read or result a little longer than planned had nowhere to go but trimming.
+ */
+export const headroomTokens = (windowTokens: number) => Math.floor(windowTokens * 0.1);
+
+/** The largest opening (characters) whose later turn (laterTurnFits) still leaves `headroom` tokens free. */
+export function openingWithin(b: RequestBudget, largestReadChars: number, headroom: number, diagnosticChars = 2000): number {
+  return Math.max(0, Math.floor((b.windowTokens - headroom - b.replyTokens) * b.charsPerToken * 0.8) - largestReadChars - diagnosticChars - 1400);
 }
 
 /**

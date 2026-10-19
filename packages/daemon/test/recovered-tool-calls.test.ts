@@ -159,7 +159,10 @@ describe("recovered calls in a build", () => {
   it("can't bypass the partial-view guard: a recovered rewrite of a file seen only in part is refused", async () => {
     const long = Array.from({ length: 300 }, (_, i) => `export const v${i} = ${i};`).join("\n") + "\nexport const a = 1;\n";
     const rewrite = Array.from({ length: 300 }, (_, i) => `export const w${i} = ${i};`).join("\n") + "\nexport const a = 2;\n";
-    const r = await build((n) => (n === 1 ? { content: fn("replace_file", { path: "src/a.ts", content: rewrite, reason: "r" }) } : { content: fn("task_complete", { summary: "done", changedPaths: "[]" }) }), { files: { "src/a.ts": long } });
+    // The coder's first call (a 301-line own file can first send the step to the split planner, which isn't this).
+    let rewritten = false;
+    const coding = (h: Array<{ role: string; content?: unknown }>) => h.some((m) => m.role === "user" && String(m.content ?? "").startsWith("# Task: Create a"));
+    const r = await build((_n, h) => (coding(h) && !rewritten ? ((rewritten = true), { content: fn("replace_file", { path: "src/a.ts", content: rewrite, reason: "r" }) }) : { content: fn("task_complete", { summary: "done", changedPaths: "[]" }) }), { files: { "src/a.ts": long } });
     expect(r.notes.some((x) => /^tool\.completed replace_file → failed: Not applied: replace_file rewrites all of src\/a\.ts, but this attempt (has seen only part of|hasn't seen) src\/a\.ts/.test(x))).toBe(true);
     expect(fs.readFileSync(path.join(r.ws, "src/a.ts"), "utf8")).toBe(long);
   }, 90_000);

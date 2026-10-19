@@ -116,8 +116,11 @@ function shorten(excerpt: string, lines: number): string {
  * can read them); finished steps' file lists; long findings; the step's own files and the parts' contracts, shortened
  * (never left out); long constraints. The task, its checks and its cited requirements are never cut. What still
  * doesn't fit is returned as `overflow` (characters), for the caller to narrow or split the step instead of sending it.
+ * `optionalRoom`: the optional material (extra knowledge, the workspace tree, files that aren't the step's own, and
+ * general guidance beyond its first 1,500 characters) is fitted to this smaller size, leaving the rest of `room` free
+ * as working headroom; what the step needs is still fitted to `room`.
  */
-export function fitHandoff(p: HandoffPacket, workspaceTree: string, scripts: string[] | undefined, room: number): { text: string; dropped: string[]; overflow: number } {
+export function fitHandoff(p: HandoffPacket, workspaceTree: string, scripts: string[] | undefined, room: number, optionalRoom = room): { text: string; dropped: string[]; overflow: number } {
   const packet: HandoffPacket = { ...p, relevantFiles: p.relevantFiles.map((f) => ({ ...f })), knowledge: [...p.knowledge], findings: [...p.findings], guidance: [...(p.guidance ?? [])], constraints: [...p.constraints], contracts: (p.contracts ?? []).map((c) => ({ ...c })), completedTasks: p.completedTasks.map((t) => ({ ...t })) };
   let tree = workspaceTree;
   const dropped: string[] = [];
@@ -128,11 +131,27 @@ export function fitHandoff(p: HandoffPacket, workspaceTree: string, scripts: str
   };
   let text = render();
   const over = () => text.length > room;
-  while (over() && packet.knowledge.length) {
+  const overOptional = () => text.length > Math.min(room, optionalRoom);
+  while (overOptional() && packet.knowledge.length) {
     dropped.push(`knowledge "${packet.knowledge.pop()!.title}"`);
     text = render();
   }
-  if (over() && packet.guidance!.length) {
+  // Other steps' blockers, and the plan's long lists of requirement numbers (the step's own requirements are quoted in
+  // full elsewhere): optional too.
+  if (overOptional() && packet.openBlockers.length) {
+    packet.openBlockers = [];
+    dropped.push("other steps' blockers");
+    text = render();
+  }
+  if (overOptional()) {
+    const before = packet.acceptedDecisions.join("\n").length;
+    packet.acceptedDecisions = packet.acceptedDecisions.map((d) => d.replace(/\bR\d{1,3}(?:, R\d{1,3}){11,}\b/g, (list) => `${list.split(", ").length} PRD requirements (${list.split(", ")[0]}–${list.split(", ").at(-1)})`));
+    if (packet.acceptedDecisions.join("\n").length < before) {
+      dropped.push("the plan's lists of requirement numbers (counted)");
+      text = render();
+    }
+  }
+  if (overOptional() && packet.guidance!.length) {
     const before = packet.guidance!.join("\n").length;
     let budget = 1500;
     packet.guidance = packet.guidance!.flatMap((g) => {
@@ -144,7 +163,7 @@ export function fitHandoff(p: HandoffPacket, workspaceTree: string, scripts: str
     dropped.push(`design guidance shortened (${before} to ${packet.guidance.join("\n").length} characters)`);
     text = render();
   }
-  if (over()) {
+  if (overOptional()) {
     const lines = tree.split("\n");
     if (lines.length > 40) {
       tree = `${lines.slice(0, 40).join("\n")}\n… (${lines.length - 40} more; list_files shows the rest)`;
@@ -153,7 +172,7 @@ export function fitHandoff(p: HandoffPacket, workspaceTree: string, scripts: str
     }
   }
   // Files that aren't the step's own (named in findings), largest first: left out, and named.
-  while (over() && packet.relevantFiles.some((f) => !f.own)) {
+  while (overOptional() && packet.relevantFiles.some((f) => !f.own)) {
     const others = packet.relevantFiles.filter((f) => !f.own).sort((a, b) => b.excerpt.length - a.excerpt.length);
     const f = others[0]!;
     packet.relevantFiles = packet.relevantFiles.filter((x) => x !== f);

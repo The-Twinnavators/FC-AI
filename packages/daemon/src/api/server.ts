@@ -853,6 +853,18 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     return updated;
   });
   // Who paused it: the person (the default) or FlowCode/a script ("system"), so a script's pause isn't shown as yours.
+  // A bounded run: only the named steps run, then the build stops on its own (boundedRun.ts).
+  add("GET /runs/:id/run-steps", ({ params }) => app.orchestrator.boundOf(params.id) ?? null);
+  add("POST /runs/:id/run-steps", ({ params, body }) => {
+    const b = parse(z.object({ taskIds: z.array(z.string().max(80)).min(1).max(20) }), body);
+    try {
+      return app.orchestrator.runBounded(params.id, b.taskIds, "user");
+    } catch (err) {
+      if (err instanceof HttpError) throw err;
+      throw new HttpError(409, (err as Error).message);
+    }
+  });
+  add("POST /runs/:id/run-steps/clear", ({ params }) => app.orchestrator.clearBound(params.id));
   add("POST /runs/:id/pause", ({ params, body }) => app.orchestrator.pauseRun(params.id, true, parse(z.object({ by: z.enum(["user", "system"]).optional() }), body ?? {}).by ?? "user"));
   // The project's design state (workspace/designState.ts): base, draft, selected and applied direction, what the app
   // really renders against it, and the PRD's own branding. The same record for the plan card, the review and the tab.
@@ -911,9 +923,9 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     }
   });
   add("POST /projects/:id/design/draft", ({ params, body }) => {
-    const b = parse(z.object({ appearance: AppearanceBody, sources: z.record(z.string(), z.string().max(80)).default({}) }), body);
+    const b = parse(z.object({ appearance: AppearanceBody, sources: z.record(z.string(), z.string().max(80)).default({}), notes: z.array(z.string().max(400)).max(20).optional() }), body);
     try {
-      saveDraft(app.store, params.id, b.appearance, b.sources as never, designJail(params.id));
+      saveDraft(app.store, params.id, b.appearance, b.sources as never, designJail(params.id), b.notes);
     } catch (err) {
       throw new HttpError(400, (err as Error).message);
     }
