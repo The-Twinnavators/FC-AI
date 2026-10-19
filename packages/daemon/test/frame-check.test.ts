@@ -66,7 +66,7 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1")("frame renders and na
 
   it("skips a disabled control in the navigation (a one-item group's heading) and opens a real destination", async () => {
     // Frameproof: the check clicked the aria-disabled "Gallery" group heading and waited 30 seconds, on every attempt.
-    const html = app("background: #0b6b3a; color: white;").replace('<a class="ui-shell__link" href="#/home"', '<button type="button" aria-disabled="true">Gallery</button><a class="ui-shell__link" href="#/home"');
+    const html = app("background: #0b6b3a; color: white;").replace('<a class="ui-shell__link" href="#/home"', '<button type="button" aria-disabled="true">Gallery</button><button type="button" aria-expanded="true">My Selection</button><a class="ui-shell__link" href="#/home"');
     await withPage(html, async (p, url) => expect(await frameRendered(p, open(p, url), ["home"], [".ui-shell__header"])).toBeUndefined());
   }, 60_000);
 
