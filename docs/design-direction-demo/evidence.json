@@ -1,0 +1,138 @@
+{
+  "at": "2026-10-19T00:32:21.077Z",
+  "steps": [
+    {
+      "step": "page",
+      "loadMs": 514
+    },
+    {
+      "step": "preview started",
+      "ms": 1462
+    },
+    {
+      "step": "live preview turned on",
+      "bridge": true
+    },
+    {
+      "step": "1 direction read",
+      "understood": [
+        "Concept: Editorial contact sheet Changed Playfair Display + Source Sans 3 (editorial, high contrast)",
+        "Concept: Editorial contact sheet Build step layout and composition: the design build step builds this (tokens can't)",
+        "Warm off-white background Changed light mode",
+        "Warm off-white background Changed warm neutral family (off-white backgrounds, warm greys)",
+        "Near-black text Noted text stays near-black (the neutral family's darkest step)",
+        "Muted cobalt accent for primary actions and selected states Changed primary colour muted cobalt (#3d5a99)",
+        "Fine borders and restrained corner rounding Changed restrained corners (6px)",
+        "Fine borders and restrained corner rounding Changed fine 1px borders",
+        "Generous whitespace and clear typographic hierarchy Changed clear heading steps (1.25)",
+        "Generous whitespace and clear typographic hierarchy Changed spacious density",
+        "Minimal chrome around photography Build step layout and composition: the design build step builds this (tokens can't)",
+        "Use available fonts and assets Noted only FlowCode's bundled, licensed fonts (no font package added)",
+        "Add no font package Noted only FlowCode's bundled, licensed fonts (no font package added)",
+        "Avoid dashboard KPI cards, gradients as the main identity, marketing heroes, testimonials, pricing, promotional CTA banners, and excessive badges or repeated instructions Build step left out of the screens: the design build step follows this",
+        "Gallery composition Build step layout and composition: the design build step builds this (tokens can't)",
+        "Compact product header and primary navigation Build step a section of the screen, in this order: the design build step lays it out",
+        "Gallery title, photographer, and selection progress Build step a section of the screen, in this order: the design build step lays it out",
+        "Search and category controls Build step a section of the screen, in this order: the design build step lays it out",
+        "Photo grid Build step a section of the screen, in this order: the design build step lays it out",
+        "My Selection composition Build step layout and composition: the design build step builds this (tokens can't)",
+        "Title and selection status Build step a section of the screen, in this order: the design build step lays it out",
+        "Selected photos and notes, or empty state Build step a section of the screen, in this order: the design build step lays it out",
+        "Selection progress and submission action Build step a section of the screen, in this order: the design build step lays it out",
+        "At phone width Build step layout and composition: the design build step builds this (tokens can't)"
+      ],
+      "unread": "Not read (FlowCode's vocabulary doesn't cover these yet; set them with the controls below): \"keep submission easy to find without obscuring content\"",
+      "paintMs": 34
+    },
+    {
+      "step": "2-3 controls with live preview",
+      "fontMs": 23,
+      "accentMs": 22,
+      "densityMs": 23,
+      "draft": {
+        "mode": "light",
+        "surface": "flat",
+        "primary": "#7a2338",
+        "neutral": "warm",
+        "secondary": "#002450",
+        "tertiary": "#0087b3",
+        "fonts": {
+          "display": "Fraunces",
+          "body": "Source Sans 3"
+        },
+        "motion": {
+          "level": "expressive"
+        },
+        "shape": {
+          "radius": 6,
+          "density": "compact",
+          "borders": "fine"
+        },
+        "typeScale": {
+          "base": 16,
+          "ratio": 1.25
+        }
+      }
+    },
+    {
+      "step": "4 lock",
+      "understood": [
+        "Bright teal accent Locked kept as it is (colours are locked)",
+        "dark mode Locked kept as it is (colours are locked)",
+        "Square corners Changed square corners (0px)"
+      ],
+      "locks": [
+        "colors"
+      ],
+      "serverDraft": {
+        "primary": "#7a2338",
+        "mode": "light",
+        "radius": 0
+      }
+    },
+    {
+      "step": "5 apply",
+      "applyMs": 21628,
+      "applied": 3,
+      "checks": [
+        "typecheck: passed (npm run typecheck exited 0 in 2936ms)",
+        "build: passed (npm run build exited 0 in 3946ms)",
+        "preview_health: passed (HTTP 200, rendered \"Frameproof\" in 1961ms)",
+        "screenshots: passed (3 viewports (mobile 375px, tablet 768px, desktop 1280px))",
+        "functional_journey: passed (1/1 journey steps passed)",
+        "look_reached: passed (The rendered page uses the applied direction (14 values checked, colours and fonts as drawn))"
+      ]
+    },
+    {
+      "step": "6 restore",
+      "versions": [
+        2,
+        3
+      ],
+      "restored": 2,
+      "withColoursLocked": {
+        "primary": "#7a2338",
+        "display": "Roboto"
+      },
+      "unlocked": {
+        "primary": "#070817",
+        "display": "Roboto"
+      }
+    },
+    {
+      "step": "6 apply restored",
+      "applyMs": 21085,
+      "applied": 4,
+      "appearance": {
+        "primary": "#070817",
+        "display": "Roboto"
+      },
+      "look": {
+        "kind": "look_reached",
+        "status": "passed",
+        "summary": "The rendered page uses the applied direction (10 values checked, colours and fonts as drawn)"
+      }
+    }
+  ],
+  "errors": []
+}

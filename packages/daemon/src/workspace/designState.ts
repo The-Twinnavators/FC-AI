@@ -10,7 +10,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { DEFAULT_SURFACES, appearanceChecks, appearanceProblems, appearanceTokens, motionTokens, sameAppearance, type Appearance } from "@flowcode/contracts";
+import { DEFAULT_SURFACES, LOOK_GROUP_IDS, appearanceChecks, appearanceProblems, appearanceTokens, motionTokens, sameAppearance, withLocks, type Appearance } from "@flowcode/contracts";
 
 /** The appearance's tokens this app takes: without the motion tokens where the app has no motion foundation. */
 function tokensFor(jail: PathJail, a: Appearance): Record<string, string> {
@@ -36,6 +36,10 @@ export interface DesignState {
   lastFailure?: { version: number; at: string; reason: string };
   /** Surface styles the person asked for in this project (FlowCode otherwise uses Flat or Tactile only). */
   surfaceExceptions: string[];
+  /** Groups of the Look the person locked (designDirection.LOOK_GROUPS): a draft can't change them. */
+  locks?: string[];
+  /** Every direction the person chose, newest last (up to 30), to compare and to restore as a draft. */
+  versions?: Array<{ version: number; appearance: Appearance; sources: Partial<Record<keyof Appearance, DesignSource>>; selectedAt: string }>;
 }
 
 /** One check's outcome after an apply. "not_run" is never a pass. */
@@ -108,7 +112,10 @@ export function saveDraft(store: Store, projectId: string, appearance: Appearanc
   const s = getDesignState(store, projectId, jail);
   const problems = appearanceProblems(appearance, [...DEFAULT_SURFACES, ...s.surfaceExceptions]);
   if (problems.length) throw new Error(problems.join("; "));
-  const next = { ...s, draft: { appearance, sources, updatedAt: now() } };
+  // A locked group keeps what the person saw when they locked it (the current draft, else the chosen direction),
+  // whatever a later draft says: the lock holds on the server too.
+  const kept = withLocks(appearance, s.draft?.appearance ?? s.selected?.appearance ?? s.applied?.appearance, s.locks ?? []);
+  const next = { ...s, draft: { appearance: kept, sources, updatedAt: now() } };
   save(store, projectId, next);
   return next;
 }
@@ -117,6 +124,24 @@ export function discardDraft(store: Store, projectId: string, jail?: PathJail): 
   const { draft: _drop, ...rest } = getDesignState(store, projectId, jail);
   save(store, projectId, rest);
   return rest;
+}
+
+/** The groups the person locked; only known groups are kept. */
+export function setLocks(store: Store, projectId: string, locks: string[], jail?: PathJail): DesignState {
+  const s = getDesignState(store, projectId, jail);
+  const next = { ...s, locks: [...new Set(locks)].filter((l) => (LOOK_GROUP_IDS as string[]).includes(l)) };
+  save(store, projectId, next);
+  return next;
+}
+
+/** An earlier chosen direction comes back as the draft (nothing is applied by this); locked groups stay as they are. */
+export function restoreVersion(store: Store, projectId: string, version: number, jail?: PathJail): DesignState {
+  const s = getDesignState(store, projectId, jail);
+  const v =
+    (s.versions ?? []).find((x) => x.version === version) ??
+    (s.selected?.version === version ? s.selected : s.applied?.version === version ? { appearance: s.applied.appearance, sources: {} } : undefined);
+  if (!v) throw new Error(`Version ${version} isn't in this project's saved directions`);
+  return saveDraft(store, projectId, v.appearance, v.sources, jail);
 }
 
 /** The person asks for another surface style in this project (recorded; FlowCode never infers one). */
@@ -133,7 +158,15 @@ export function selectDraft(store: Store, projectId: string, jail?: PathJail): D
   if (!s.draft) throw new Error("There's no draft to use");
   const version = (s.selected?.version ?? s.applied?.version ?? 0) + 1;
   const { draft, ...rest } = s;
-  const next: DesignState = { ...rest, selected: { appearance: draft.appearance, sources: draft.sources, version, selectedAt: now(), by: "you" } };
+  const selectedAt = now();
+  // The directions chosen before the history existed (the selected and the applied one) are kept before the new one.
+  const versions = [...(s.versions ?? [])];
+  for (const v of [s.applied && { version: s.applied.version, appearance: s.applied.appearance, sources: {}, selectedAt: s.applied.appliedAt }, s.selected && { version: s.selected.version, appearance: s.selected.appearance, sources: s.selected.sources, selectedAt: s.selected.selectedAt }])
+    if (v && !versions.some((x) => x.version === v.version)) versions.push(v);
+  versions.sort((x, y) => x.version - y.version);
+  versions.push({ version, appearance: draft.appearance, sources: draft.sources, selectedAt });
+  versions.splice(0, Math.max(0, versions.length - 30));
+  const next: DesignState = { ...rest, selected: { appearance: draft.appearance, sources: draft.sources, version, selectedAt, by: "you" }, versions };
   save(store, projectId, next);
   return next;
 }
@@ -239,5 +272,10 @@ export function describeState(store: Store, projectId: string, jail?: PathJail) 
   const s = getDesignState(store, projectId, jail);
   const differs = jail ? divergence(jail, s) : [];
   const current = s.draft?.appearance ?? s.selected?.appearance;
-  return { ...s, hasApp: !!jail && hasApp(jail), motionSupported: !jail || !hasApp(jail) || motionSupported(jail), differs, label: stateLabel(s, differs), checks: current ? appearanceChecks(current) : [] };
+  // Directions chosen before the history was kept still show: the selected and the applied one.
+  const versions = [...(s.versions ?? [])];
+  for (const v of [s.applied && { version: s.applied.version, appearance: s.applied.appearance, sources: {}, selectedAt: s.applied.appliedAt }, s.selected && { version: s.selected.version, appearance: s.selected.appearance, sources: s.selected.sources, selectedAt: s.selected.selectedAt }])
+    if (v && !versions.some((x) => x.version === v.version)) versions.push(v);
+  versions.sort((x, y) => x.version - y.version);
+  return { ...s, versions, locks: s.locks ?? [], hasApp: !!jail && hasApp(jail), motionSupported: !jail || !hasApp(jail) || motionSupported(jail), differs, label: stateLabel(s, differs), checks: current ? appearanceChecks(current) : [] };
 }

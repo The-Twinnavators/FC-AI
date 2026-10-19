@@ -13,6 +13,8 @@ export * from "./designTemplates.js";
 export * from "./styleVibes.js";
 export * from "./palette.js";
 export * from "./appearance.js";
+export * from "./shape.js";
+export * from "./designDirection.js";
 export * from "./motion.js";
 export * from "./componentStyles.js";
 export * from "./plainLanguage.js";

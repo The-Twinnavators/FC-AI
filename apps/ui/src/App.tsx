@@ -2,6 +2,7 @@
 export type AnnounceLink = { href?: string; overview?: boolean; linkLabel?: string };
 import { AboutView } from "./views/AboutView";
 import { WalkthroughView } from "./views/WalkthroughView";
+import { DesignDirectionView } from "./views/DesignDirectionView";
 import { JournalView } from "./views/JournalView";
 import { ApprovalsView } from "./views/ApprovalsView";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -325,7 +326,8 @@ export function App() {
         <Suspense fallback={<PageSkeleton />}>
         <div key={section || "home"} className={`page-enter${section !== "projects" ? " page-enter--footer" : ""}`} style={{ minHeight: "100%" }}>
         {section === "" && <ProjectsView projects={projects.data} reload={projects.reload} />}
-        {section === "projects" && projectId && <WorkspaceView key={projectId} projectId={projectId} runId={runId ?? lastRun.current[projectId]} announce={announce} />}
+        {section === "projects" && projectId && route.parts[2] === "design" && <DesignDirectionView key={projectId} projectId={projectId} />}
+        {section === "projects" && projectId && route.parts[2] !== "design" && <WorkspaceView key={projectId} projectId={projectId} runId={runId ?? lastRun.current[projectId]} announce={announce} />}
         {projectSettings && projectId ? (
           <Modal className="proj-settings-modal-box" labelledBy="proj-settings-title" onClose={closeSettings}>
             <Suspense fallback={null}>

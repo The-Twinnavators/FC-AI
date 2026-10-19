@@ -105,7 +105,7 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1" || !fs.existsSync(path
     });
     expect(r.ok).toBe(true);
     expect(r.verification.technical.checks.map((c) => [c.kind, c.status])).toEqual([["typecheck", "passed"], ["build", "passed"]]);
-    expect(r.verification.browser.checks.map((c) => [c.kind, c.status])).toEqual([["preview_health", "passed"], ["screenshots", "passed"], ["functional_journey", "passed"]]);
+    expect(r.verification.browser.checks.map((c) => [c.kind, c.status])).toEqual([["preview_health", "passed"], ["screenshots", "passed"], ["functional_journey", "passed"], ["look_reached", "passed"]]);
     expect(r.verification.technical.status).toBe("passed");
     expect(r.verification.browser.status).toBe("passed");
     expect(r.verification.human).toBe("pending");

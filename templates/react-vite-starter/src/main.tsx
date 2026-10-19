@@ -14,8 +14,23 @@ const setTheme = (theme: unknown) => {
   if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
 };
 setTheme(new URLSearchParams(window.location.search).get("theme") ?? "light");
+// FlowCode's design preview: a draft Look's tokens and fonts, shown live in FlowCode's preview frame only (nothing is
+// saved; a reload shows the app's own styles).
+let previewed: string[] = [];
+const previewTokens = (tokens: Record<string, string> | null) => {
+  const s = document.documentElement.style;
+  for (const k of previewed) s.removeProperty(k);
+  previewed = [];
+  for (const [k, v] of Object.entries(tokens ?? {})) if (k.startsWith("--")) (s.setProperty(k, v), previewed.push(k));
+};
+const previewFonts = (fonts: Array<{ family: string; url: string }>) => {
+  for (const f of fonts) if (![...document.fonts].some((x) => x.family.replace(/"/g, "") === f.family)) void new FontFace(f.family, `url(${f.url})`).load().then((face) => document.fonts.add(face)).catch(() => undefined);
+};
 window.addEventListener("message", (e: MessageEvent) => {
   const d = e.data as { type?: string; theme?: unknown; off?: unknown } | null;
+  if (d && d.type === "flowcode:tokens") (previewTokens((d as { tokens?: Record<string, string> | null }).tokens ?? null), requestAnimationFrame(() => window.parent?.postMessage({ type: "flowcode:painted", id: (d as { id?: unknown }).id }, "*")));
+  if (d && d.type === "flowcode:fonts") previewFonts((d as { fonts?: Array<{ family: string; url: string }> }).fonts ?? []);
+  if (d && d.type === "flowcode:hello") window.parent?.postMessage({ type: "flowcode:ready", tokens: true }, "*");
   if (d && d.type === "flowcode:theme") setTheme(d.theme);
   if (d && d.type === "flowcode:motion") setMotionOff(d.off === true);
 });

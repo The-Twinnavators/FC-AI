@@ -28,7 +28,9 @@ import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { DeadlinePassedError } from "../orchestrator/runDeadline.js";
 import { chooseConcept, conceptOffer } from "../orchestrator/homeConceptOffer.js";
-import { allowSurface, applySelected, describeState, discardDraft, groupStatus, recordVerification, saveDraft, selectDraft, type ApplyVerification, type VerifyCheck } from "../workspace/designState.js";
+import { bridgeInstalled, installBridge } from "../workspace/previewBridge.js";
+import { lookReached } from "../quality/lookReached.js";
+import { allowSurface, applySelected, describeState, discardDraft, groupStatus, recordVerification, restoreVersion, saveDraft, selectDraft, setLocks, type ApplyVerification, type VerifyCheck } from "../workspace/designState.js";
 import { starterIdentity } from "../orchestrator/starterIdentity.js";
 import { z } from "zod";
 import * as C from "@flowcode/contracts";
@@ -693,10 +695,11 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     if (!p || !app.processes.liveForRun(`preview_${params.id}`).length) throw new HttpError(409, "Start the preview first: FlowCode looks at the running app.");
     return pointAt(app, params.id, p.url, b.size, b.x !== undefined && b.y !== undefined ? { x: b.x, y: b.y, path: b.path } : undefined);
   });
-  add("POST /projects/:id/preview/start", async ({ params }) => {
-    const existing = previews.get(params.id);
-    if (existing && app.processes.liveForRun(`preview_${params.id}`).length) return existing;
-    const project = app.store.projects.require(params.id);
+  // The project's live preview, started once and reused (the Preview tab, the design page and the check after an apply).
+  const startPreview = async (projectId: string): Promise<{ procId: string; url: string; commandId: string } | { awaitingApproval: string }> => {
+    const existing = previews.get(projectId);
+    if (existing && app.processes.liveForRun(`preview_${projectId}`).length) return existing;
+    const project = app.store.projects.require(projectId);
     const pf = app.projects.preflight(project.id);
     if (!pf.hasNodeModules) throw new HttpError(409, "Dependencies are not installed; run the build (with an approved install) first.");
     if (pf.previewStrategy === "none") throw new HttpError(409, "No preview strategy detected for this project.");
@@ -714,13 +717,14 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       overrideNoProgress: true,
       server: { readyPattern: /(Local:\s+https?:\/\/|ready in|started server on|Listening on)/i, readyTimeoutMs: 60_000 },
     });
-    if (res.record.status === "awaiting_approval") return { awaitingApproval: res.record.approvalId };
+    if (res.record.status === "awaiting_approval") return { awaitingApproval: res.record.approvalId ?? "" };
     if (!res.serverProcId) throw new HttpError(500, `Preview server did not start (${res.record.status})`);
     const entry = { procId: res.serverProcId, url: res.serverUrl ?? `http://127.0.0.1:${port}/`, commandId: res.record.id };
     previews.set(project.id, entry);
     app.bus.emit({ type: "preview.ready", projectId: project.id, message: `Live preview running at ${entry.url}`, data: { url: entry.url } });
     return entry;
-  });
+  };
+  add("POST /projects/:id/preview/start", ({ params }) => startPreview(params.id));
   // Export the prototype as a folder to host yourself (built here, copied to FlowCode's exports folder; nothing uploaded).
   add("POST /projects/:id/export", ({ params }) => exportSite(app, params.id));
   add("POST /projects/:id/preview/stop", async ({ params }) => {
@@ -865,6 +869,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     status: z.partialRecord(z.enum(["success", "warning", "error", "info"]), z.string().max(20)).optional(),
     fonts: z.object({ display: z.string().max(60), body: z.string().max(60) }),
     motion: z.object({ level: z.enum(C.MOTION_LEVELS), expressive: z.array(z.enum(C.EXPRESSIVE_FEATURES)).max(6).optional() }).optional(),
+    shape: z.object({ radius: z.number().min(0).max(C.MAX_RADIUS), density: z.enum(C.DENSITIES), borders: z.enum(C.BORDER_WEIGHTS) }).optional(),
+    typeScale: z.object({ base: z.number().min(12).max(22), ratio: z.number().min(1.05).max(1.6) }).optional(),
   });
   const designJail = (id: string) => {
     try {
@@ -877,13 +883,53 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     const latest = app.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 1", projectId)[0];
     if (!latest) return { colors: [] };
     const refs = app.store.getSetting<C.ReferenceFile[]>(`runRefs:${latest.id}`, []);
-    return { colors: starterIdentity(refs, app.store.projects.require(projectId).name, latest.objective).colors };
+    // The PRD's own words about the look (its visual / design direction section), offered as a starting direction.
+    const prd = refs.find((r) => r.role === "prd")?.content ?? "";
+    const head = /^(#{1,4})\s+.*\b(visual direction|design direction|look and feel|visual design|brand(ing)?|style guide)\b.*$/im.exec(prd);
+    let direction: string | undefined;
+    if (head) {
+      const rest = prd.slice(head.index + head[0].length);
+      const next = new RegExp(`^#{1,${head[1]!.length}}\\s`, "m").exec(rest);
+      direction = rest.slice(0, next ? next.index : undefined).replace(/^#+\s*/gm, "").replace(/^\s*[-*]\s+/gm, "").replace(/\n{2,}/g, "\n").trim().slice(0, 1500) || undefined;
+    }
+    return { colors: starterIdentity(refs, app.store.projects.require(projectId).name, latest.objective).colors, ...(direction ? { direction } : {}) };
   };
-  add("GET /projects/:id/design/state", ({ params }) => ({ ...describeState(app.store, params.id, designJail(params.id)), prd: prdBranding(params.id) }));
+  add("GET /projects/:id/design/state", ({ params }) => {
+    const jail = designJail(params.id);
+    return { ...describeState(app.store, params.id, jail), prd: prdBranding(params.id), previewBridge: !!jail && bridgeInstalled(jail) };
+  });
+  // The live design preview for an app made before it existed: one snapshotted edit of src/main.tsx (previewBridge.ts).
+  add("POST /projects/:id/design/preview-bridge", ({ params }) => {
+    const jail = app.projects.jail(params.id);
+    const latest = app.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 1", params.id)[0];
+    if (latest && app.orchestrator.isActive(latest.id)) throw new HttpError(409, "A build is working on this project right now. Turn on the live preview once it's paused or finished.");
+    try {
+      const r = installBridge(jail, app.ops, { projectId: params.id, runId: STYLE_EDIT_RUN(params.id) });
+      return { installed: true, changed: r.changed, snapshotIds: r.snapshotIds };
+    } catch (err) {
+      throw new HttpError(409, (err as Error).message);
+    }
+  });
   add("POST /projects/:id/design/draft", ({ params, body }) => {
     const b = parse(z.object({ appearance: AppearanceBody, sources: z.record(z.string(), z.string().max(80)).default({}) }), body);
     try {
       saveDraft(app.store, params.id, b.appearance, b.sources as never, designJail(params.id));
+    } catch (err) {
+      throw new HttpError(400, (err as Error).message);
+    }
+    return describeState(app.store, params.id, designJail(params.id));
+  });
+  // Locks: groups of the Look a draft can't change (enforced when a draft is saved).
+  add("POST /projects/:id/design/locks", ({ params, body }) => {
+    const b = parse(z.object({ locks: z.array(z.string().max(20)).max(10) }), body);
+    setLocks(app.store, params.id, b.locks, designJail(params.id));
+    return describeState(app.store, params.id, designJail(params.id));
+  });
+  // An earlier chosen direction back as the draft (nothing applied).
+  add("POST /projects/:id/design/restore", ({ params, body }) => {
+    const b = parse(z.object({ version: z.number().int().min(1) }), body);
+    try {
+      restoreVersion(app.store, params.id, b.version, designJail(params.id));
     } catch (err) {
       throw new HttpError(400, (err as Error).message);
     }
@@ -963,6 +1009,18 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
           } catch (err) {
             browser.push({ kind: "functional_journey", status: "not_run", summary: (err as Error).message });
           }
+        }
+        // The direction on the rendered page: the running preview's computed styles against the applied tokens.
+        // The project's live preview is started for it when it isn't running (the same preview as the Preview tab).
+        try {
+          const live = await startPreview(params.id);
+          if ("awaitingApproval" in live) browser.push({ kind: "look_reached", status: "not_run", summary: "Starting the live preview is waiting for your approval, so the rendered page wasn't checked" });
+          else {
+            const r = await lookReached(live.url, C.appearanceTokens(res.state.applied!.appearance));
+            browser.push({ kind: "look_reached", status: r.ok ? "passed" : "failed", summary: r.summary });
+          }
+        } catch (err) {
+          browser.push({ kind: "look_reached", status: "not_run", summary: `The rendered page wasn't checked: ${(err as Error).message}` });
         }
         if (!browser.length) browserNote = "The latest build doesn't require preview or journey checks";
       }

@@ -12,6 +12,7 @@ import { DESIGN_TEMPLATES, designTemplate } from "./designTemplates.js";
 import { STYLE_VIBES, vibeTokens } from "./styleVibes.js";
 import { motionProblems, motionTokens, type MotionSetting } from "./motion.js";
 import { buildPalette, contrastRatio, normalizeHex, roleTokens, type BrandColor, type NeutralTone, type StatusKind } from "./palette.js";
+import { shapeProblems, shapeTokens, typeScaleTokens, type ShapeSetting, type TypeScaleSetting } from "./shape.js";
 
 /** The surfaces FlowCode suggests and starts from. Others need the person's explicit request for the project. */
 /** Style capture (a website, or attached images, CSS or HTML) stays off until it has consent and address/destination
@@ -63,6 +64,10 @@ export interface Appearance {
    * the app's motion as it is. New directions start Balanced with no expressive capability.
    */
   motion?: MotionSetting;
+  /** Corners, density and border weight (shape.ts). Unset: the app keeps the ones it has. */
+  shape?: ShapeSetting;
+  /** Body size and heading ratio (shape.ts). Unset: the app keeps its text sizes. */
+  typeScale?: TypeScaleSetting;
 }
 
 const KIND_FALLBACK: Record<string, string> = { sans: "system-ui, sans-serif", serif: "Georgia, serif", display: "Georgia, serif", mono: "ui-monospace, monospace" };
@@ -100,6 +105,7 @@ export function appearanceProblems(a: Appearance, allowedSurfaces: readonly stri
   if (!STYLE_VIBES.some((v) => v.id === a.surface)) out.push(`surface style "${a.surface}" doesn't exist`);
   else if (!allowedSurfaces.includes(a.surface)) out.push(`the ${STYLE_VIBES.find((v) => v.id === a.surface)?.name} surface style is used only when you ask for it for this project; FlowCode starts from Flat or Tactile`);
   if (a.motion) out.push(...motionProblems(a.motion));
+  out.push(...shapeProblems(a.shape, a.typeScale));
   return out;
 }
 
@@ -120,6 +126,8 @@ export function appearanceTokens(a: Appearance): Record<string, string> {
     t["--accent-bg"] = `linear-gradient(135deg, ${roles["--color-accent"]}, ${to})`;
   }
   if (a.motion) Object.assign(t, motionTokens(a.motion.level));
+  if (a.shape) Object.assign(t, shapeTokens(a.shape));
+  if (a.typeScale) Object.assign(t, typeScaleTokens(a.typeScale.base, a.typeScale.ratio));
   return t;
 }
 

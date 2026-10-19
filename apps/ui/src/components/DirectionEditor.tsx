@@ -8,6 +8,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { APPEARANCE_THEMES, BASE_APPEARANCE, MOTION_LABEL, MOTION_LEVELS, STYLE_VIBES, TYPE_PAIRS, appearanceChecks, appearanceFromTheme, appearanceTokens, type Appearance, type AppearanceCheck } from "@flowcode/contracts";
 import { post, useResource } from "../api";
+import { navigate } from "../router";
 import { ColorPicker } from "./ColorPicker";
 
 type Sources = Partial<Record<keyof Appearance, string>>;
@@ -36,7 +37,7 @@ interface Verification {
   human: "pending";
 }
 const STATUS_WORD: Record<VerifyStatus, string> = { passed: "Passed", failed: "Failed", not_run: "Not run" };
-const CHECK_LABEL: Record<string, string> = { typecheck: "Typecheck", build: "Build", preview_health: "Preview", screenshots: "Screenshots", functional_journey: "Journey through the app" };
+const CHECK_LABEL: Record<string, string> = { typecheck: "Typecheck", build: "Build", preview_health: "Preview", screenshots: "Screenshots", functional_journey: "Journey through the app", look_reached: "Rendered page uses it" };
 
 /** After an apply: the four things kept apart. Only the first is what "applied" means; not run is never shown as passed. */
 function ApplyResult({ v }: { v: Verification }) {
@@ -220,6 +221,7 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
           <strong>{s.label}</strong>
           {s.selected ? <span className="dim"> · selected version {s.selected.version}</span> : null}
           {s.applied ? <span className="dim"> · applied version {s.applied.version}</span> : null}
+          <button type="button" className="link-btn ds__open" onClick={() => navigate(`/projects/${projectId}/design`)}>Open the full design direction, with a live preview</button>
         </p>
         {s.differs.length ? <p className="ds__warn">These tokens no longer match the applied direction: {s.differs.join(", ")}</p> : null}
         {s.lastFailure ? <p className="ds__warn">The last update (version {s.lastFailure.version}) failed: {s.lastFailure.reason}</p> : null}
