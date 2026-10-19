@@ -126,3 +126,41 @@ describe("the guards around a composed screen", () => {
     expect(menu).toBe("The tokens tokens.css defines (use these names exactly; there are no others): text sizes: --text-sm, --text-3xl; spacing: --space-1; corners: --radius-md; colours: --color-text.");
   });
 });
+
+describe("a selection workflow FlowCode composes", () => {
+  const PRD = "### R5 — Shortlist behavior\n- Maximum five selected photos.\n### R6 — Editing notes\nEach photo can have an optional editing note of up to 300 characters.\n### R8\nSubmission is available only with exactly five selected photos.";
+  const withPage = { ...MODEL, nav: [MODEL.nav[0]!, { label: "My Selection", items: [{ id: "my-selection", label: "My Selection", kind: "custom", purpose: "the client selection state (Shortlisted photo IDs; Editing note per photo)" }] }] } as unknown as AppModel;
+
+  it("is found from the app model and the PRD: what is picked, how many, the note's length", async () => {
+    const { detectSelection } = await import("../src/orchestrator/selectionComposer.js");
+    expect(detectSelection(withPage, PRD)).toEqual({ entity: "photo", noun: "photo", nouns: "photos", count: 5, noteMax: 300, page: "my-selection", list: "gallery", detail: "photo-detail", storageKey: "fl-selection:frameproof" });
+    // No selection or shortlist page: nothing to compose.
+    expect(detectSelection({ ...MODEL, nav: [MODEL.nav[0]!] } as AppModel, PRD)).toBeUndefined();
+  });
+
+  it("composes one shared selection and the screens that use it", async () => {
+    const { detectSelection, selectionStoreFile, composeDetailScreen, composeSelectionScreen } = await import("../src/orchestrator/selectionComposer.js");
+    const spec = detectSelection(withPage, PRD)!;
+    const store = selectionStoreFile(spec).content;
+    expect(store).toContain("export const SELECTION_COUNT = 5;");
+    expect(store).toContain("export const NOTE_MAX = 300;");
+    expect(store).toContain('const KEY = "fl-selection:frameproof";');
+    expect(store).toContain('if (state.status === "submitted" || state.ids.length !== SELECTION_COUNT) return false;');
+    expect(store).toContain("return { ...empty(), recovered: true };");
+    const detail = composeDetailScreen(withPage, withPage.nav[0]!.items[1]!, spec)!.files[0]!.content;
+    expect(detail).toContain("<textarea value={note} maxLength={NOTE_MAX}");
+    expect(detail).toContain("disabled={!prev}");
+    expect(detail).toContain("disabled={!next}");
+    expect(detail).toContain("Photo not found");
+    expect(detail).not.toContain("<main");
+    const page = composeSelectionScreen(withPage, withPage.nav[1]!.items[0]!, spec)!.files[0]!.content;
+    expect(page).toContain("disabled={n !== SELECTION_COUNT}");
+    expect(page).toContain('title="Submit your selection?"');
+    expect(page).toContain('title="Start over?"');
+    expect(page).toContain("records.filter((r) => sel.ids.includes(r.id))");
+    const list = composeListScreen(withPage, gallery, { selection: spec })!.files[0]!.content;
+    expect(list).toContain("aria-pressed={on}");
+    expect(list).toContain("onClick={() => setNotice(selection.toggle(r.id).message)}");
+    expect(list).toContain("kept.query = x;");
+  });
+});

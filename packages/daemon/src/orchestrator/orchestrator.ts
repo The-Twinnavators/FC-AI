@@ -65,7 +65,8 @@ import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } fr
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
 import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, builtViews, completeAppTasks, customPlanOf, screenFileOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
-import { composable, composeListScreen } from "./screenComposer.js";
+import { composable, composeListScreen, selectionListCss } from "./screenComposer.js";
+import { SELECTION_FILE, composeDetailScreen, composeSelectionScreen, detectSelection, selectionStoreFile } from "./selectionComposer.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
@@ -4207,13 +4208,50 @@ ${brief.text}` : objective, expectedPaths });
     } catch {
       return;
     }
-    if (!composable(model, view, current)) return;
-    const composed = composeListScreen(model, view);
+    // The selection workflow the app model and PRD describe (selectionComposer.ts), if any: the list picks for it, the
+    // record's page notes, the selection page submits.
+    const prd = this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []).find((r) => r.role === "prd")?.content ?? "";
+    const spec = detectSelection(model, prd);
+    const generated = current.includes("Built by FlowCode from the app model") && !current.includes("Composed by FlowCode");
+    const composed =
+      view.kind === "list"
+        ? composable(model, view, current) ? composeListScreen(model, view, { selection: spec }) : undefined
+        : view.kind === "detail"
+          ? generated ? composeDetailScreen(model, view, spec) : undefined
+          : spec && view.id === spec.page && generated ? composeSelectionScreen(model, view, spec) : undefined;
     if (!composed) return;
     const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
     const ctx = { jail, projectId: run.projectId, runId: run.id, toolCallId: `fc_compose_${task.id}`, approved: true };
     const written: string[] = [];
-    for (const f of composed.files) {
+    const files = [...composed.files];
+    // The one selection, when this screen is the first to use it.
+    if (spec && files.some((x) => x.content.includes("../app/selection")) && !fs.existsSync(jail.resolve(SELECTION_FILE).abs)) files.unshift(selectionStoreFile(spec));
+    // A list FlowCode composed before the selection existed, and no step has touched since: it gets its picks too.
+    if (spec && view.kind !== "list" && spec.list) {
+      const listView = builtViews(model).find((v) => v.id === spec.list);
+      const listFile = listView ? screenFileOf(listView) : "";
+      let listNow = "";
+      try {
+        listNow = listFile ? fs.readFileSync(jail.resolve(listFile).abs, "utf8") : "";
+      } catch {
+        listNow = "";
+      }
+      const latest = this.d.store.snapshots.where("run_id = ? ORDER BY seq DESC", run.id).find((x) => x.relativePath.replace(/\\/g, "/") === listFile && !x.restoredAt);
+      if (listView && listNow.includes("Composed by FlowCode") && !listNow.includes("../app/selection") && latest?.toolCallId?.startsWith("fc_compose_")) {
+        const upgraded = composeListScreen(model, listView, { selection: spec });
+        const tsx = upgraded?.files.find((x) => x.path === listFile);
+        if (tsx) files.push(tsx);
+        const sheet = `src/styles/${listView.id}.css`;
+        let css = "";
+        try {
+          css = fs.readFileSync(jail.resolve(sheet).abs, "utf8");
+        } catch {
+          css = "";
+        }
+        if (css && !css.includes(".cmp-pick")) files.push({ path: sheet, content: `${css.trimEnd()}\n\n${selectionListCss(listView.id)}` });
+      }
+    }
+    for (const f of files) {
       const r = fs.existsSync(jail.resolve(f.path).abs) ? this.d.ops.replaceContent(ctx, f.path, f.content) : this.d.ops.create_file(ctx, { path: f.path, content: f.content } as never);
       if (!r.ok) {
         this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `FlowCode didn't compose "${view.label}": ${r.message}. The model builds it from the generated screen.` });
