@@ -3091,6 +3091,11 @@ ${brief.text}` : objective, expectedPaths });
     const installed = installedPackages(jail.root);
     if (installed.length) contracts.push({ name: "Installed packages", text: `Import only these packages or the project's own files; anything else isn't installed and fails the type check: ${installed.join(", ")}` });
     if (ownDirection) requirements.push(...ownDirection.requirements);
+    // A stylesheet refinement sees the token names it may use (composed before the brief listed them, too).
+    if (refining) {
+      const menu = tokenMenu(jail);
+      if (menu && !task.objective.includes(menu)) requirements.push(menu);
+    }
     const packet = buildHandoff({ run: runForPacket, task, allTasks: this.graph.tasks(run.id), files, findings, guidance, requirements, contracts, knowledge: [
       ...playbook.map((p) => ({ ...this.d.store.knowledge.require(p.id), title: p.title, content: p.content })),
       ...this.d.knowledge
