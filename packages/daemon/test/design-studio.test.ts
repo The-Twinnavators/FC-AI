@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { applyComponentStyle, applyDesign, applyPalette, componentStylesOf, designBrief, designComponents, paletteOf, setDesignComponents, tokenValues } from "../src/workspace/designStudio.js";
+import { withDarkTheme } from "../src/workspace/darkTheme.js";
 import { makeApp, makeProject } from "./helpers.js";
 
 const TOKENS = `:root {\n  --color-text: #1e2421;\n  --font-sans: system-ui, sans-serif;\n  --text-md: 1rem;\n  --radius-xl: 10px;\n}\n\n@media (prefers-color-scheme: dark) {\n  :root {\n    --color-text: #ece6da;\n  }\n}\n`;
@@ -73,6 +74,24 @@ describe("design studio", () => {
     expect(css).toContain("--control-pad-md: 1.25rem;");
     expect(css).not.toContain("--not-a-control");
     expect(r.changed).toContain("--control-xl");
+  });
+
+  it("rewrites FlowCode's dark theme from a new light accent, and leaves a hand-edited one alone", () => {
+    const { app } = makeApp();
+    const start = withDarkTheme(":root {\n  --color-bg: #ffffff;\n  --color-text: #111111;\n  --color-accent: #2563eb;\n}\n");
+    const darkAccent = (css: string) => /:root\[data-theme="dark"\][\s\S]*?--color-accent: ([^;]+);/.exec(css)?.[1];
+    const { project, jail } = makeProject(app, { "src/styles/tokens.css": start });
+    const ctx = { projectId: project.id, runId: "style_test" };
+    const read = () => fs.readFileSync(path.join(jail.root, "src/styles/tokens.css"), "utf8");
+    const r = applyDesign(jail, app.ops, ctx, { theme: "default", values: { "--color-accent": "#a82fd3" } });
+    expect(r.changed).toContain("dark theme");
+    expect(darkAccent(read())).toBe(darkAccent(withDarkTheme(start.replace("#2563eb", "#a82fd3"))));
+    expect(darkAccent(read())).not.toBe(darkAccent(start));
+
+    // A dark accent set by hand stays when the light accent changes again.
+    applyDesign(jail, app.ops, ctx, { theme: "dark", values: { "--color-accent": "#ffcc00" } });
+    applyDesign(jail, app.ops, ctx, { theme: "default", values: { "--color-accent": "#19804d" } });
+    expect(darkAccent(read())).toBe("#ffcc00");
   });
 
   it("writes a component's settings as one managed CSS block, replaced on each save and undone together", () => {

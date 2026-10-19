@@ -20,6 +20,22 @@ function lightValue(css: string, name: string): string | undefined {
   return new RegExp(`${name}\\s*:\\s*([^;]+);`).exec(block)?.[1]?.trim();
 }
 
+/** The managed dark block's text, or undefined when tokens.css has none. */
+const managedBlock = (css: string): string | undefined => {
+  const a = css.indexOf(START);
+  const b = css.indexOf(END);
+  return a >= 0 && b > a ? css.slice(a, b) : undefined;
+};
+
+/**
+ * Whether the dark theme is still FlowCode's own, written from these light colours: so it can follow them when they
+ * change. A dark theme edited by hand (the Design tab's dark values) differs and is left alone.
+ */
+export function darkThemeFollows(css: string): boolean {
+  const own = managedBlock(css);
+  return own !== undefined && own === managedBlock(withDarkTheme(css));
+}
+
 /** tokens.css with its dark theme written (or rewritten) from a palette, or from its current light colours. */
 export function withDarkTheme(css: string, palette?: Palette): string {
   if (!css.includes(":root")) return css;

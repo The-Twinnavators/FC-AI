@@ -13,7 +13,7 @@ import path from "node:path";
 import type { PathJail } from "../security/pathJail.js";
 import type { FileOperations } from "./operations.js";
 import { parseCustomProperties, validTokenValue } from "./styleTokens.js";
-import { withDarkTheme } from "./darkTheme.js";
+import { darkThemeFollows, withDarkTheme } from "./darkTheme.js";
 import { uiGallery } from "./componentLibrary.js";
 import { resolveFrame } from "../quality/appFrame.js";
 import { CONFIGURABLE_BLOCKS, buildPalette, componentStyleSpec, componentStylesCss, paletteFromTokens, rampTokens, roleTokens, type ComponentStyleValues, type Palette, type PaletteConfig } from "@flowcode/contracts";
@@ -37,7 +37,17 @@ export function applyDesign(
   const abs = path.join(jail.root, TOKENS);
   if (!fs.existsSync(abs)) throw new Error("This app has no src/styles/tokens.css, so its design can't be changed here.");
   const changed: string[] = [];
-  let css = setTokenValues(fs.readFileSync(abs, "utf8"), edit.theme, edit.values, changed);
+  const before = fs.readFileSync(abs, "utf8");
+  let css = setTokenValues(before, edit.theme, edit.values, changed);
+  // A new accent or secondary in the light theme: FlowCode's dark theme is rewritten from it (it kept the starter's
+  // blue accent after the Look chose purple). A dark theme edited by hand is left alone.
+  if (edit.theme === "default" && changed.some((n) => n === "--color-accent" || n === "--color-secondary") && darkThemeFollows(before)) {
+    const withDark = withDarkTheme(css);
+    if (withDark !== css) {
+      css = withDark;
+      changed.push("dark theme");
+    }
+  }
   if (edit.googleFonts) {
     const families = [...new Set(edit.googleFonts.filter((f) => /^[A-Za-z0-9 ]{2,40}$/.test(f)))].slice(0, 4);
     const line = families.length
