@@ -16,6 +16,13 @@ function project(files: Record<string, string>) {
 }
 
 describe("importFixes", () => {
+  it("drops an import written twice (calculator layout step: Duplicate identifier 'AppShell')", () => {
+    const screen = 'import { PageHeader } from "../components/ui";\nimport { AppShell } from "../components/ui";\nimport { Button } from "../sections/ButtonsVariants";\nimport { AppShell } from "../components/ui";\n\nexport default function S() { return null; }\n';
+    const jail = project({ "src/screens/CalculatorScreen.tsx": screen });
+    const out = importFixes(jail, ["src/screens/CalculatorScreen.tsx(2,10): error TS2300: Duplicate identifier 'AppShell'.", "src/screens/CalculatorScreen.tsx(4,10): error TS2300: Duplicate identifier 'AppShell'."]);
+    expect(out.get("src/screens/CalculatorScreen.tsx")).toBe('import { PageHeader } from "../components/ui";\nimport { AppShell } from "../components/ui";\nimport { Button } from "../sections/ButtonsVariants";\n\nexport default function S() { return null; }\n');
+  });
+
   it("moves a name imported from the wrong module to the one that exports it (Calendar test 8 Field)", () => {
     const jail = project({
       "src/components/ui/index.tsx": "export function Button() { return null; }\nexport function Field() { return null; }\n",

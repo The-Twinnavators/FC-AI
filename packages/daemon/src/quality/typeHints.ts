@@ -79,6 +79,27 @@ function exporterOf(jail: PathJail, name: string): string | undefined {
  */
 export function importFixes(jail: PathJail, errors: string[], only?: (file: string) => boolean): Map<string, string> {
   const out = new Map<string, string>();
+  // The same import written twice (TS2300 "Duplicate identifier"): the later copy goes. Calculator layout step and
+  // Frameproof's Assemble: the model went round the same two errors until the attempt stopped.
+  for (const file of new Set(errors.map((l) => /^(\S+?\.[jt]sx?)\(\d+,\d+\): error TS2300:/.exec(l)?.[1]).filter((f): f is string => !!f))) {
+    if (only && !only(file)) continue;
+    let text = "";
+    try {
+      text = fs.readFileSync(path.join(jail.root, file), "utf8");
+    } catch {
+      continue;
+    }
+    const seen = new Set<string>();
+    const lines = text.split("\n");
+    const kept = lines.filter((l) => {
+      if (!/^import\s[^;]*;\s*$/.test(l.trim())) return true;
+      const key = l.trim().replace(/\s+/g, " ");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (kept.length !== lines.length) out.set(file, kept.join("\n"));
+  }
   // A module that doesn't exist ("../sections/ZipPrompt", when ZipPrompt lives in PlaceFinder.tsx; Clean Cart's Home
   // step failed three times on it): each name imported from it is moved to the file that exports it, as below.
   const missing: string[] = [];
