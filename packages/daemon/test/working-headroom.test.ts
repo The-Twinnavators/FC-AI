@@ -71,8 +71,8 @@ describe("a design step's direction", () => {
   it("is the person's applied Look, their notes and the PRD's direction, replacing FlowCode's guess", () => {
     const c = designDirectionContext(applied(["Compact product header", "Avoid dashboard KPI cards"]), [prd], 1200);
     expect(c.fromPersonOrPrd).toBe(true);
-    expect(c.requirements[0]).toBe("The Look the person applied (version 3): light mode, Flat surfaces; headings in Playfair Display, text in Source Sans 3; primary #3b5bdb, pure neutrals; corners up to 4px, comfortable density, hairline borders. These are the app's tokens in src/styles/tokens.css: style with them (var(--…)), never other colours or fonts.");
-    expect(c.requirements[1]).toBe("The person's own notes for the design build (their words; follow them):\n- Compact product header\n- Avoid dashboard KPI cards");
+    expect(c.requirements[0]).toBe("The Look the person applied (version 3): light mode, Flat surfaces; headings in Playfair Display, text in Source Sans 3; primary #3b5bdb, pure neutrals; corners up to 4px, comfortable density, hairline borders. These are the app's tokens in src/styles/tokens.css: style with them (var(--…)), never other colours or fonts. Where the PRD's direction names other colours, fonts or shapes, the Look wins.");
+    expect(c.requirements[1]).toBe("The person's own notes for the design build (their words; where they differ from the PRD's direction, follow the person):\n- Compact product header\n- Avoid dashboard KPI cards");
     expect(c.requirements[2]).toContain("Concept: Editorial contact sheet");
     expect(c.requirements[2]).not.toContain("photos");
     // Nothing applied and no PRD direction: FlowCode's own direction stays in use.

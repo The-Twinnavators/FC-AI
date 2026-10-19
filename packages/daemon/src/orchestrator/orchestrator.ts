@@ -2872,7 +2872,7 @@ ${brief.text}` : objective, expectedPaths });
     // Design steps work to the product's design direction (industry pattern, style, colour, type, anti-patterns).
     // The person's applied Look and notes and the PRD's visual direction come first (designContext.ts); FlowCode's own
     // industry guess only when neither gives one.
-    const ownDirection = designStep ? designDirectionContext(getDesignState(this.d.store, project.id, jail), this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []), lean ? 1200 : 1800) : undefined;
+    const ownDirection = designStep ? designDirectionContext(getDesignState(this.d.store, project.id, jail), this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []), lean ? 1600 : 2400, /^Design the (.+) screen$/.exec(task.title)?.[1], task.objective) : undefined;
     const direction = designStep && !ownDirection?.fromPersonOrPrd ? this.d.store.getSetting<DesignDirection | null>(`designDirection:${run.projectId}`, null) : null;
     if (direction) guidance.push(directionBrief(direction));
     // Fix memory: a retry (or the debugger) gets the closest fixes that worked in earlier builds for this kind of failure.
