@@ -68,7 +68,11 @@ export function analyzeAppWiring(jail: PathJail): AppWiring {
   const unreachableComponents = unreachable.filter((f) => !unreachablePages.includes(f));
   const app = ["src/App.tsx", "src/App.jsx"].find((a) => fs.existsSync(path.join(root, a)));
   const placeholder = app ? PLACEHOLDER.exec(fs.readFileSync(path.join(root, app), "utf8"))?.[0] : undefined;
-  const failed = !!placeholder || unreachablePages.length > 0 || (ui.length > 0 && unreachableComponents.length === ui.length);
+  // "Nothing wired" means none of the app's own components is used; the starter kit's building blocks (src/components/ui)
+  // may go unused when screens are composed from the library and their own markup (Frameproof: the kit's three files
+  // failed the check on an app whose every page works).
+  const own = ui.filter((f) => !/^src\/components\/ui\//.test(f));
+  const failed = !!placeholder || unreachablePages.length > 0 || (own.length > 0 && own.every((f) => unreachableComponents.includes(f)));
   const status = failed ? "failed" : unreachableComponents.length ? "passed_with_warnings" : "passed";
   const parts = [
     placeholder ? `${app} still shows the starter placeholder ("${placeholder}")` : "",

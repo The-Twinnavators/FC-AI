@@ -62,6 +62,10 @@ export function routeCoverage(root: string, plan: ScreenPlan): RouteCoverage {
   const app = read(root, "src/App.tsx") || read(root, "src/App.jsx");
   const list = app.match(/const SCREENS\s*=\s*\[([\s\S]*?)\];/)?.[1] ?? "";
   const ids = new Set([...list.matchAll(/id:\s*["'`]([^"'`]+)["'`]/g)].map((m) => m[1]!));
+  // An app FlowCode wrote from its model keeps its destinations in src/app/routes.ts (SCREEN_IDS), each drawn by
+  // App.tsx's VIEWS: Frameproof's three pages were reported "not in the app's navigation" for not being in a SCREENS list.
+  const routeIds = read(root, "src/app/routes.ts").match(/SCREEN_IDS\s*=\s*\[([^\]]*)\]/)?.[1] ?? "";
+  for (const m of routeIds.matchAll(/["'`]([^"'`]+)["'`]/g)) if (new RegExp(`["'\`]${m[1]!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["'\`]\\s*:`).test(app)) ids.add(m[1]!);
   const missing = plan.screens.filter((s) => !ids.has(s.id)).map((s) => s.label);
   const files = srcFiles(root);
   const unlinked = plan.screens
