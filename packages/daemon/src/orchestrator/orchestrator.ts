@@ -3004,7 +3004,10 @@ ${brief.text}` : objective, expectedPaths });
     }
     let cited = "";
     const requirements: string[] = [];
-    if (prdPath) {
+    // Refining a screen FlowCode composed: its PRD requirements are what the composition built, so the step gets the
+    // direction (below), not the screen's requirements again.
+    const refining = !!this.d.store.getSetting(`composedFrom:${task.id}`, null);
+    if (prdPath && !refining) {
       try {
         const md = readFile(jail, prdPath).content;
         // A step planned without PRD sections (follow-up builds, split parts) gets the ones its own words match.
@@ -3083,6 +3086,8 @@ ${brief.text}` : objective, expectedPaths });
     // The plan's note about the Look ("no direction is selected yet", the PRD's direction proposed) is superseded by the
     // direction given above.
     if (ownDirection?.fromPersonOrPrd) packet.acceptedDecisions = packet.acceptedDecisions.filter((d) => !/^Assumption: Look:/.test(d));
+    // A stylesheet refinement doesn't need the whole build's decisions (scope, data owners, navigation): the goal stays.
+    if (refining) packet.acceptedDecisions = packet.acceptedDecisions.filter((d) => d.startsWith("Approved plan goal"));
     const promptId = role === "debugger" ? "role.debugger" : "role.coder";
     // Prompts come from the versioned library (user edits take effect); immutable components are cached (§11.3).
     const spec = this.d.store.prompts.get(promptId) ?? promptById(promptId);
@@ -4188,10 +4193,20 @@ ${brief.text}` : objective, expectedPaths });
       written.push(f.path);
     }
     const sheet = composed.files.find((f) => f.path.endsWith(".css"))?.path ?? "";
-    this.d.store.setSetting(`taskFindings:${task.id}`, [
-      ...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []),
-      `FlowCode composed this screen already (${composed.summary}) in ${written.join(" and ")}: it works and type-checks. Refine it, don't rebuild it: make ${sheet} follow the direction (spacing, type, the cards' borders and corners, the controls), keep the screen's behaviour and class names, then run the type check.`,
-    ]);
+    const screen = screenFileOf(view);
+    // The step is now refining: its brief says so, and its own file is the stylesheet (the composed screen is read on
+    // request, not attached). The PRD's requirements for the screen are what the composition built; the direction
+    // still comes with every design step. The brief it had is kept on record.
+    this.d.store.setSetting(`composedFrom:${task.id}`, { objective: task.objective, expectedPaths: task.expectedPaths });
+    this.updateTask(this.d.store.tasks.require(task.id), {
+      objective: [
+        `Refine the ${view.label} screen FlowCode composed: ${composed.summary}. Its structure and behaviour are done and checked in ${screen}.`,
+        `Your part is its stylesheet, ${sheet}: make it follow the direction below (the Look's tokens and the PRD's visual direction): spacing, type sizes and weights, the cards' borders, corners and captions, the search and filter controls, and the empty state.`,
+        `Use only the app's tokens (src/styles/tokens.css, as var(--…)); keep every class name the screen uses (cmp-…); change only ${sheet}. Read ${screen} with read_file if you need its markup. Then run the type check.`,
+      ].join("\n"),
+      expectedPaths: [sheet],
+    });
+    this.d.store.setSetting(`taskFindings:${task.id}`, [`FlowCode composed this screen already (${composed.summary}) in ${written.join(" and ")}: it works and type-checks. Refine its stylesheet; don't rebuild it.`]);
     this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode composed "${view.label}" itself, with no model: ${composed.summary} (${written.join(", ")}). The model refines it next.`, data: { composed: written } });
   }
 
