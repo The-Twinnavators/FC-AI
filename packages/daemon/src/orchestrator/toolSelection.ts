@@ -3,7 +3,8 @@
  * The definitions cost 12,600 characters a request with all 23 coder tools (about 3,000 tokens of a 12k-16k window).
  * The controls are always there (finish, report a blocker, ask for approval), and so are reading, searching, patching,
  * creating and running the project's scripts. Tools a step isn't shown still run if it calls them (the role allows
- * them); a retry, which runs as the debugger, sees them all.
+ * them). A retry on a local model, which runs as the debugger, is shown the same set: with all of them (13,378
+ * characters) the retries of Frameproof's Gallery and the calculator's screen were too big to send.
  */
 import type { ToolName } from "@flowcode/contracts";
 

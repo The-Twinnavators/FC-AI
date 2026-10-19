@@ -64,7 +64,8 @@ export async function findOpenImage(
    */
   check?: (image: Buffer, query: string) => Promise<{ ok: boolean; reason: string }>,
 ): Promise<{ ok: boolean; message: string; paths: string[] }> {
-  const q = new URLSearchParams({ q: input.query, license: "cc0,pdm,by", page_size: "12", mature: "false" });
+  // Photographs only: scans of adverts and pages of text came back as photos for "window light portrait photography".
+  const q = new URLSearchParams({ q: input.query, license: "cc0,pdm,by", page_size: "12", mature: "false", category: "photograph" });
   if (input.orientation) q.set("aspect_ratio", input.orientation === "landscape" ? "wide" : input.orientation === "portrait" ? "tall" : "square");
   const res = await fetch(`${API}?${q}`, { headers: { "user-agent": UA, accept: "application/json" }, signal });
   if (!res.ok) return { ok: false, message: `The open image search didn't answer (HTTP ${res.status}). Try again, or use an inline SVG illustration instead.`, paths: [] };

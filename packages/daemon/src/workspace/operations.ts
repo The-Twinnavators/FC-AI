@@ -16,6 +16,7 @@ import { classifyScript } from "./preflight.js";
 import type { SnapshotService, SnapshotRow } from "./snapshots.js";
 import { ABSENT } from "./snapshots.js";
 import { newId } from "../util/ids.js";
+import { replaceWith } from "./replaceFile.js";
 import { redact } from "../security/redaction.js";
 
 export interface OpContext {
@@ -66,7 +67,7 @@ export class FileOperations {
     const tmp = `${abs}.flowcode-${process.pid}.tmp`;
     if (typeof content === "string") fs.writeFileSync(tmp, content, "utf8");
     else fs.writeFileSync(tmp, content);
-    fs.renameSync(tmp, abs);
+    replaceWith(tmp, abs);
   }
 
   /** Common guarded write path shared by every mutating op. */

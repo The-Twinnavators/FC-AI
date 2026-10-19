@@ -115,7 +115,7 @@ import { scanComponentLibrary } from "../workspace/componentLibrary.js";
 import { scanStyles } from "../workspace/styleTokens.js";
 import { alignCheckNames, foldReadOnlySteps, isTsReact, jsxInJsFiles, kitFacts, withoutBadChecks, planTooBig, snippetToName, tsTask, typesFirst, undefinedTokens, workspaceTokenUsage } from "./guards.js";
 import { findPrd, matchSections, relatesToPrd, repoInstructions, sectionIndex, sectionText } from "./prd.js";
-import { customScreenFiles, designScreenParts } from "./designParts.js";
+import { customScreenFiles, designScreenParts, missingImages } from "./designParts.js";
 import { AUTO_RETRY_MARK, runtimeOptions } from "./runtimeOptions.js";
 import type { McpManager } from "../mcp/manager.js";
 import { mcpStepTools } from "../mcp/stepTools.js";
@@ -1795,9 +1795,15 @@ ${brief.text}` : objective, expectedPaths });
         // A page that owns state (My Selection) has no pictures to show until that state exists: the whole step's
         // pictures check stays with the last part, where the list screens show them.
         const stateful = customScreenFiles(model!);
-        const pieces = buildSplit(task, byScreen, () => newId("task"), this.deliverableContext(run), { asWritten: true }).map((p) =>
-          stateful.includes(p.expectedPaths[0] ?? "") ? { ...p, acceptanceCriteria: p.acceptanceCriteria.filter((c) => !String((c.check as { kind?: string }).kind ?? "").startsWith("images-used:")) } : p,
-        );
+        // The pictures part is checked for what it is asked to do: every record has a local picture of its own.
+        const pictures = missingImages(model!);
+        const pieces = buildSplit(task, byScreen, () => newId("task"), this.deliverableContext(run), { asWritten: true })
+          .map((p) => (stateful.includes(p.expectedPaths[0] ?? "") ? { ...p, acceptanceCriteria: p.acceptanceCriteria.filter((c) => !String((c.check as { kind?: string }).kind ?? "").startsWith("images-used:")) } : p))
+          .map((p) =>
+            pictures && p.expectedPaths.includes("public/images/")
+              ? { ...p, acceptanceCriteria: [...p.acceptanceCriteria, { id: `${p.id}-images-complete`, description: `Every ${pictures.entity} record has its own local picture (${pictures.field} names a file in public/)`, check: { type: "verification" as const, kind: `images-complete:${pictures.entity}.${pictures.field}` }, evidenceRefs: [] }] }
+              : p,
+          );
         this.replaceWithParts(run, task, pieces, `"${task.title}" doesn't fit the coding context, so FlowCode split it by screen: ${pieces.map((p) => p.title.replace(/^Design the /, "")).join(", ")}`, `Split by screen into ${pieces.length} steps`);
         this.keepProvisional(run, this.d.store.tasks.require(task.id), jail, pieces);
         return true;
@@ -2340,6 +2346,9 @@ ${brief.text}` : objective, expectedPaths });
       if (/more tokens than/.test(outcome.reason)) {
         this.updateTask(task, { status: "blocked", attempts: Math.max(0, task.attempts - 1), blocker: { reason: `"${task.title}" doesn't fit the coding context: ${outcome.reason}`, category: "user", failureClass: "task_contract", evidenceRefs: [], nextAction: "Choose one: run it with the 16k coding context (Settings → Speed & recovery), split it into smaller steps, or shorten what it asks for. Then retry it." } });
         this.d.bus.emit({ ...ev, type: "task.blocked", level: "warning", message: `"${task.title}" is bigger than the 8GB profile's coding context and can't be split: it waits for your choice`, data: { failureClass: "task_contract" } });
+        // Its earlier attempt's half-finished edits go back, as for any blocked step (the Frameproof Gallery's broken
+        // edit stayed in place and blanked the app).
+        await this.undoBlockedStep(run, task.id, jail);
         return;
       }
       outcome = { kind: "no_action", reason: `Split required but the step can't be split further: ${outcome.reason}` };
@@ -3136,7 +3145,7 @@ ${brief.text}` : objective, expectedPaths });
         if (!judge) return { ok: true, reason: "" };
         const res = await this.d.router.chat({ role: "critic", projectId: project.id, runId: run.id, taskId: task.id }, { ...judge, temperature: 0 }, {
           messages: [
-            { role: "system", content: "You check stock photos before they go into an app. Answer whether the photo clearly shows the thing asked for, as its main subject, in a way that would make sense to a shopper. Reject it when the main subject is something else, a person is the main subject, or it's a figurine, a toy, text, a logo, a screenshot or a messy collage. Reply JSON only: {\"ok\": true|false, \"reason\": \"a few words\"}." },
+            { role: "system", content: `You check stock photos before they go into an app. Answer whether the photo clearly shows the thing asked for, as its main subject, in a way that would make sense to someone using the app. Reject it when the main subject is something else${/\b(portrait|person|people|man|woman|couple|family|child|model|face|smile|laugh)\b/i.test(query) ? "" : ", a person is the main subject"}, or it's a figurine, a toy, a page of text or an advertisement, a logo, a screenshot or a messy collage. Reply JSON only: {"ok": true|false, "reason": "a few words"}.` },
             { role: "user", content: `Does this photo clearly show: ${JSON.stringify(query)}?`, images: [image.toString("base64")] },
           ],
           format: { type: "object", properties: { ok: { type: "boolean" }, reason: { type: "string" } }, required: ["ok"] },
@@ -3226,7 +3235,7 @@ ${brief.text}` : objective, expectedPaths });
     // retry (the debugger) sees them all, and a tool not shown still runs if called. Clean Cart slice eval 1: 15,808
     // characters of tool definitions in a 57,344-character opening budget, most for tools a design step never uses.
     const localModel = !assignment.providerId.startsWith("hosted");
-    const shownTools = localModel && role === "coder" ? stepTools(allowedTools, task, { catalog: !!catalog, designStep: !!designStep }) : allowedTools;
+    const shownTools = localModel && (role === "coder" || role === "debugger") ? stepTools(allowedTools, task, { catalog: !!catalog, designStep: !!designStep }) : allowedTools;
     const shownExtras = localModel && role === "coder" && !/\b(docs?|documentation|library api|sdk|framework api)\b/i.test(`${task.title} ${task.objective}`) ? [] : extraTools;
     const toolsChars = JSON.stringify([...shownTools.map(toolDef), ...shownExtras.map((t) => t.def)]).length;
     const room = reqBudget.inputChars - system.length - toolsChars;
@@ -3362,6 +3371,12 @@ ${brief.text}` : objective, expectedPaths });
     // A build you stopped can be continued (its files are as it left them); one that finished or failed can't.
     if (TERMINAL_RUN_STATUSES.includes(run.status) && run.status !== "cancelled") throw new Error(`Run is ${run.status}; start an iteration run instead`);
     if (this.active.has(runId)) return run;
+    // Stopped at a bounded run's boundary: nothing runs until the person names the next steps (or clears the bound).
+    const bound = this.boundOf(runId);
+    if (bound?.stop && this.pausedRuns.has(runId)) {
+      this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: `Not resumed: the build stopped where you said (${bound.stop.reason}). Name the next steps to run, or clear the limit and continue.` });
+      return run;
+    }
     // Blocked while planning (no tasks yet): there is nothing to continue, so plan it again.
     if (run.status === "blocked" && !run.planApproved && !this.graph.tasks(runId).length) {
       this.d.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId, message: "Resuming: planning again" });

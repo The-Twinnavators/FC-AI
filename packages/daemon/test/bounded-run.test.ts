@@ -88,6 +88,11 @@ describe("a bounded run", () => {
     expect(getInterruption(s.app.store, s.run.id)).toMatchObject({ cause: "boundary", recoverable: false, needsUser: true });
     expect(s.app.orchestrator.isRunPaused(s.run.id)).toBe(true);
 
+    // Resume (not Continue) on a run stopped at its boundary starts no worker: it says why and waits.
+    s.app.orchestrator.resume(s.run.id);
+    expect(s.app.orchestrator.isActive(s.run.id)).toBe(false);
+    expect(s.app.bus.list({ runId: s.run.id, types: ["run.status_changed"] }).some((e) => e.message.startsWith("Not resumed: the build stopped where you said"))).toBe(true);
+
     // Continue: the loop runs again and stops at the same bound; nothing else starts.
     s.app.orchestrator.pauseRun(s.run.id, false);
     await waitFor(() => (!s.app.orchestrator.isActive(s.run.id) && s.app.orchestrator.isRunPaused(s.run.id) ? true : undefined), 30_000);

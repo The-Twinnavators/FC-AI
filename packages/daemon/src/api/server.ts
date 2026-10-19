@@ -981,6 +981,8 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     // checks and the journey through the app. Whatever couldn't run is "not_run", never passed. A failed check doesn't
     // undo anything: the previous look is restored from the snapshots (Undo in Changes) when the person chooses.
     const version = res.state.applied!.version;
+    // Who asked for these checks, on the build's record (Frameproof: checks ran after a boundary stop with no cause shown).
+    if (latest) app.bus.emit({ type: "run.status_changed", projectId: params.id, runId: latest.id, message: `Re-running the build's checks on the app: Look version ${version} was applied from the Design page` });
     const latestCheck = (kind: string) => app.store.checks.where("run_id = ?", latest!.id).filter((x) => !x.taskId && x.kind === kind).at(-1);
     const required = new Set<string>(latest?.strategy?.requiredChecks ?? []);
     const technical: VerifyCheck[] = [];
@@ -1096,6 +1098,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     const key = `${run.id}:${kind.data}`;
     if (rerunning.has(key)) throw new HttpError(409, "That check is already re-running");
     rerunning.add(key);
+    app.bus.emit({ type: "run.status_changed", projectId: run.projectId, runId: run.id, message: `Re-running the ${kind.data.replace(/_/g, " ")} check: asked for from its Re-run button` });
     try {
       const kinds = await app.verifier.rerunCheck(run, kind.data);
       return { rerun: kinds, checks: app.store.checks.where("run_id = ?", run.id).filter((c) => !c.taskId && kinds.includes(c.kind)) };

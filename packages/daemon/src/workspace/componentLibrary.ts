@@ -96,7 +96,7 @@ export interface ComponentLibrary {
 }
 
 const SKIP = /(^|\/)(node_modules|dist|build|out|coverage|\.git|\.next|\.flowcode[^/]*|vendor)\//;
-const MAX_CSS_BYTES = 400_000;
+const MAX_CSS_BYTES = 1_500_000;
 const cache = new Map<string, { sig: string; lib: ComponentLibrary }>();
 
 const appFiles = (jail: PathJail) => flattenFiles(jail, 8000).filter((f) => !SKIP.test(`/${f}`) && !isReferencePath(f));
@@ -147,13 +147,36 @@ ${lib.brief}` } : lib;
   const lib: ComponentLibrary = {
     components,
     primitives,
-    css: css.map((c) => `/* ${c.rel} */\n${c.text}`).join("\n").slice(0, MAX_CSS_BYTES),
+    css: previewCss(css),
     cssFiles: css.map((c) => c.rel),
     brief: "",
   };
   lib.brief = reuseBrief(lib);
   cache.set(jail.root, { sig, lib });
   return withDesign(lib);
+}
+
+/**
+ * The app's stylesheets as one sheet for the Design tab's previews: the foundations first (tokens and fonts define the
+ * variables everything else uses), then the rest in name order; over the cap, whole files are left out from the end
+ * and a file is never cut mid-rule. "This app calculator": a 380 KB library.css pushed tokens.css (last by name) past
+ * a 400 KB cut that also landed inside a rule, so every preview drew in the browser's defaults.
+ */
+export function previewCss(files: Array<{ rel: string; text: string }>, max = MAX_CSS_BYTES): string {
+  const rank = (rel: string) => (/(^|\/)tokens\.s?css$/i.test(rel) ? 0 : /(^|\/)fonts\.s?css$/i.test(rel) ? 1 : 2);
+  const ordered = [...files].sort((a, b) => rank(a.rel) - rank(b.rel) || a.rel.localeCompare(b.rel));
+  const out: string[] = [];
+  let used = 0;
+  for (const c of ordered) {
+    const part = `/* ${c.rel} */\n${c.text}`;
+    if (used + part.length + 1 > max) {
+      out.push(`/* ${c.rel} left out of the preview (${c.text.length} characters, over the ${max}-character cap) */`);
+      continue;
+    }
+    out.push(part);
+    used += part.length + 1;
+  }
+  return out.join("\n");
 }
 
 // ───────────────────────── React components ─────────────────────────

@@ -9,6 +9,7 @@ import type { Store } from "../db/store.js";
 import type { ObjectStore } from "../db/artifacts.js";
 import type { EventBus } from "../events/bus.js";
 import type { PathJail } from "../security/pathJail.js";
+import { replaceWith } from "./replaceFile.js";
 import { newId, nowIso, sha256 } from "../util/ids.js";
 
 export const ABSENT = "absent";
@@ -84,7 +85,7 @@ export class SnapshotService {
       fs.mkdirSync(path.dirname(abs), { recursive: true });
       const tmp = `${abs}.flowcode-restore.tmp`;
       fs.writeFileSync(tmp, buf);
-      fs.renameSync(tmp, abs);
+      replaceWith(tmp, abs);
     }
     const updated = { ...snap, restoredAt: nowIso() };
     this.store.snapshots.upsert(updated);

@@ -179,6 +179,12 @@ export class Verifier {
       return demos.length ? `these library pieces still show their demo content: ${demos.join(", ")}. Replace each SAMPLE with this product's real content` : undefined;
     }
     // A complete app's records, in the source FlowCode generated (quality/appData.ts).
+    if (kind.startsWith("images-complete:")) {
+      const [entity, field] = kind.slice("images-complete:".length).split(".");
+      const data = readGeneratedData(root);
+      if (!data || !entity || !field) return "the app has no generated records (src/app/schema.ts with its schema and seed)";
+      return imagesCompleteProblem(root, data.seed[entity] ?? [], entity, field);
+    }
     if (kind === "data-source") {
       const data = readGeneratedData(root);
       if (!data) return "the app has no generated records (src/app/schema.ts with its schema and seed)";
@@ -483,7 +489,11 @@ export class Verifier {
     const rawErr = res.output.split("\n").find((l) => /error|fail|✖|×/i.test(l))?.trim().slice(0, 200);
     const located = r.status === "succeeded" ? undefined : diagnosticsOf(res.output).find((d) => d.file && d.kind === "lint");
     const firstErr = located && rawErr && !rawErr.includes(located.file!) && rawErr.startsWith(`${located.line}:`) ? `${located.file}\n${rawErr}` : rawErr;
-    return this.record(run.id, kind, status, r.status === "succeeded" ? `${label} exited 0 in ${r.durationMs}ms` : `${label} ${r.status}${firstErr ? `: ${firstErr}` : ""}`, [`command:${r.id}`], { taskId });
+    // The other errors too, a few lines' worth: the first alone hid two of the Frameproof Gallery's three type errors
+    // (a missing import and props the component doesn't take) from its correction.
+    const others = r.status === "succeeded" ? [] : errorLines(res.output).filter((l) => !firstErr?.includes(l.slice(0, 120)));
+    const more = others.length ? `\n${others.slice(0, 4).map((l) => l.slice(0, 200)).join("\n")}${others.length > 4 ? `\n(and ${others.length - 4} more)` : ""}` : "";
+    return this.record(run.id, kind, status, r.status === "succeeded" ? `${label} exited 0 in ${r.durationMs}ms` : `${label} ${r.status}${firstErr ? `: ${firstErr}` : ""}${more}`, [`command:${r.id}`], { taskId });
   }
 
   /** Runs the project's test script on one test file (`npm run test -- <file>`), recorded as a tests check. */
@@ -608,7 +618,7 @@ export class Verifier {
             if (!met) failures.push(`${c.description}: ${j?.summary ?? "the run has no written app model"}`);
             break;
           }
-          if (/^(changed:|images-used:|data-seeded:|data-source$|piece-content:|frame-designed$)/.test(c.check.kind)) {
+          if (/^(changed:|images-used:|images-complete:|data-seeded:|data-source$|piece-content:|frame-designed$)/.test(c.check.kind)) {
             let why = this.deliverableProblem(c.check.kind, task, jail.root);
             // The frame: that it changed (above), then that it shows and its navigation works, in the browser.
             if (!why && c.check.kind === "frame-designed") {
@@ -1249,6 +1259,33 @@ export function isRemovalWording(description: string): boolean {
 export function errorFile(line: string): string | undefined {
   const m = /^(?:[A-Za-z]:[\\/][^(:]*?[\\/])?((?:src|app|lib|components|pages|test|tests)[\\/][^(:\s]+?\.\w+)(?:\(\d+,\d+\)|:\d+:\d+)/.exec(line.trim());
   return m ? m[1].replace(/\\/g, "/") : undefined;
+}
+
+/**
+ * Every record has a picture of its own: the field names a file that exists under public/ (never a remote address), and
+ * no two records share one. Frameproof's pictures step was marked verified with 4 of 12 records left empty: its checks
+ * were the data and the type check, not what the step was asked to do.
+ */
+export function imagesCompleteProblem(root: string, rows: Array<Record<string, unknown>>, entity: string, field: string): string | undefined {
+  if (!rows.length) return `no ${entity} records in src/app/schema.ts`;
+  const label = (r: Record<string, unknown>) => String(r.id ?? r.title ?? "?");
+  const missing: string[] = [];
+  const remote: string[] = [];
+  const seen = new Map<string, string[]>();
+  for (const r of rows) {
+    const v = String(r[field] ?? "").trim();
+    if (!v) missing.push(label(r));
+    else if (/^(https?:)?\/\//i.test(v) || /^data:/i.test(v)) remote.push(label(r));
+    else if (!fs.existsSync(path.join(root, "public", v.replace(/^\/+/, "")))) missing.push(`${label(r)} (${v} isn't in public/)`);
+    else seen.set(v, [...(seen.get(v) ?? []), label(r)]);
+  }
+  const shared = [...seen.entries()].filter(([, ids]) => ids.length > 1);
+  const out = [
+    missing.length ? `${missing.length} of ${rows.length} ${entity} records have no local picture: ${missing.slice(0, 6).join(", ")}${missing.length > 6 ? ", …" : ""}. Find one with find_image, or create a simple SVG in public/images showing the record's title, and set ${field} to it` : "",
+    remote.length ? `${remote.length} use a remote or inline address (${remote.slice(0, 4).join(", ")}): save the picture under public/images instead` : "",
+    shared.length ? `records share a picture (${shared.slice(0, 3).map(([v, ids]) => `${v}: ${ids.join(", ")}`).join("; ")}): each needs its own` : "",
+  ].filter(Boolean);
+  return out.length ? out.join("; ") : undefined;
 }
 
 export function errorLines(output: string): string[] {
