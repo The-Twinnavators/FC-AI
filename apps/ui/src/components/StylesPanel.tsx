@@ -7,12 +7,11 @@
  *    the app's own stylesheets, and its React components). Coding agents get the same list so they reuse these.
  */
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
-import { Boxes, Layers, Palette, RefreshCw, Sparkles, Undo2, Wand2 } from "lucide-react";
+import { Boxes, Layers, Palette, RefreshCw, Sparkles, Undo2 } from "lucide-react";
 import { ExtrasPanel } from "./ExtrasPanel";
 import { DirectionEditor } from "./DirectionEditor";
 import { ComponentSheet, stylesChanged, StylesBar } from "./ComponentSheet";
 import { SurfacePanel } from "./SurfacePanel";
-import { STYLE_CAPTURE_OFF } from "@flowcode/contracts";
 import { post, useResource } from "../api";
 import { Empty } from "./ui";
 import { SkeletonBlock } from "./motion";
@@ -94,10 +93,6 @@ export function StylesPanel({ projectId }: { projectId: string }) {
       </div>
         <div className="styles-top__actions">
           <DirectionButton projectId={projectId} open={direction} onToggle={() => setDirection((d) => !d)} />
-          <button type="button" className="btn btn--sm" data-cp="capture-open" disabled aria-describedby="capture-off" title={STYLE_CAPTURE_OFF}>
-            <Wand2 size={14} aria-hidden="true" /> Capture a style
-          </button>
-          <span id="capture-off" className="sr-only">{STYLE_CAPTURE_OFF}</span>
         </div>
       </div>
       {direction ? (
@@ -105,7 +100,6 @@ export function StylesPanel({ projectId }: { projectId: string }) {
           <DirectionEditor projectId={projectId} where="tab" onAppearance={undefined} />
         </div>
       ) : null}
-      <p className="muted styles-capture-off">{STYLE_CAPTURE_OFF}</p>
       {view === "extras" ? <ExtrasPanel projectId={projectId} /> : view === "tokens" ? <TokensView projectId={projectId} /> : view === "surface" ? <SurfacePanel projectId={projectId} /> : <ComponentSheet projectId={projectId} />}
     </div>
   );

@@ -6,7 +6,7 @@
 import { SetupCard } from "./SetupCard";
 import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { NEW_BUILD_PRD_KEY } from "./PrdTemplates";
-import { AUTONOMY_LEVELS, DESIGN_TEMPLATES, STYLE_CAPTURE_OFF, scoreRequest, suggestName, type ReferenceFile } from "@flowcode/contracts";
+import { AUTONOMY_LEVELS, DESIGN_TEMPLATES, scoreRequest, suggestName, type ReferenceFile } from "@flowcode/contracts";
 
 /** D3: the choices of the last build started here, offered (never applied on their own) for the next one. */
 const LAST_KEY = "flowcode.lastBuildSettings";
@@ -413,11 +413,6 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
         {show(2) ? (
         <Step n={2} title="Choose the look" tag="Optional" done hint="How the app looks and feels. FlowCode applies the style when it sets up the app and builds the extras you tick.">
           <div data-guide="newbuild.look">
-            <label className="nb__styleurl">
-              <span className="label">Take the style from a website</span>
-              <input className="input" data-cp="nb-style-url" type="url" inputMode="url" placeholder="https://example.com" value="" disabled aria-describedby="nb-style-url-off" />
-              <span className="muted" id="nb-style-url-off">{STYLE_CAPTURE_OFF}</span>
-            </label>
             <LookStep refs={refs} template={template} onTemplate={setTemplate} extras={extras} onExtras={setExtras} vibe={vibe ?? suggestedVibe(refs, prdSetsLook(refs) ? undefined : template)} onVibe={setVibe} />
           </div>
         </Step>
