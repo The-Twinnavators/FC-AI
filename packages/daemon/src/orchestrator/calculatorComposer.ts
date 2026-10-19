@@ -10,6 +10,10 @@ export const CALC_ENGINE = "src/app/calculator.ts";
 export const CALC_SCREEN = "src/screens/CalculatorScreen.tsx";
 export const CALC_SHEET = "src/styles/calculator.css";
 export const COMPOSED_CALC = "Composed by FlowCode (calculatorComposer.ts)";
+/** The composer's version, in the screen it writes: an older calculator is brought up to date before the final checks. */
+export const CALC_VERSION = "calculator v2";
+/** A calculator FlowCode composed with an older version of this composer. */
+export const outdatedCalculator = (screen: string) => screen.includes(COMPOSED_CALC) && !screen.includes(CALC_VERSION);
 
 /** Whether the PRD describes a basic calculator FlowCode can compose. */
 export function isCalculatorPrd(prd: string, objective = ""): boolean {
@@ -120,12 +124,12 @@ export const displayOf = (s: CalcState) => s.error ?? (s.entry === "" ? format(N
 `;
 
 export const screenFile = (product: string): string => `/**
- * ${product.replace(/\*\//g, "* /")}: the calculator screen, ${COMPOSED_CALC}. The display shows the running expression and the
+ * ${product.replace(/\*\//g, "* /")}: the calculator screen, ${COMPOSED_CALC} (${CALC_VERSION}). The display shows the running expression and the
  * current number (announced to screen readers); the keypad and the keyboard do the same things (digits, . + - * / Enter
  * or =, Backspace, Escape for clear, %). Results this session are listed under it, cleared when the app closes. Nothing
  * is stored or sent anywhere.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { backspace, clear, digit, displayOf, equals, expressionOf, operator, percent, start, toggleSign, type CalcState, type Op } from "../app/calculator";
 import "../styles/calculator.css";
 
@@ -151,15 +155,18 @@ export default function CalculatorScreen() {
   const [history, setHistory] = useState<Array<{ expression: string; result: string }>>([]);
   const [copied, setCopied] = useState("");
 
+  // The current state in a ref too: a key press works out the next state once, outside React's updater (which runs
+  // twice in development, and recorded every result in the history twice).
+  const current = useRef(state);
   const press = useCallback((key: Key) => {
-    setState((s) => {
-      const next = key.press(s);
-      if (key.kind === "equals" && !s.done && !next.error && s.tokens.length) {
-        const expression = \`\${expressionOf(s)} \${s.entry}\`.trim();
-        setHistory((h) => [{ expression, result: next.entry }, ...h].slice(0, 20));
-      }
-      return next;
-    });
+    const s = current.current;
+    const next = key.press(s);
+    current.current = next;
+    setState(next);
+    if (key.kind === "equals" && !s.done && !next.error && s.tokens.length) {
+      const expression = \`\${expressionOf(s)} \${s.entry}\`.trim();
+      setHistory((h) => [{ expression, result: next.entry }, ...h].slice(0, 20));
+    }
     setCopied("");
   }, []);
 
@@ -241,7 +248,7 @@ export const sheetFile = (): string => `/* The calculator, ${COMPOSED_CALC}: in 
 .calc__body { display: grid; gap: var(--space-5); grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); align-items: start; }
 @media (max-width: 720px) { .calc__body { grid-template-columns: minmax(0, 1fr); } }
 .calc__device { display: grid; gap: var(--space-3); padding: var(--space-4); border: var(--border-width, 1px) solid var(--color-border); border-radius: var(--radius-lg, var(--radius-md)); background: var(--color-surface); }
-.calc__display { display: grid; gap: var(--space-1); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-sunken); text-align: right; min-width: 0; }
+.calc__display { display: grid; align-content: end; min-height: 6rem; gap: var(--space-1); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-sunken); text-align: right; min-width: 0; }
 .calc__expression { margin: 0; min-height: 1.5em; color: var(--color-text-muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .calc__result { display: block; color: var(--color-text); font-size: var(--text-3xl, 2rem); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; line-height: 1.2; overflow-wrap: anywhere; }
 .calc__result.is-error { font-size: var(--text-lg); color: var(--color-danger, var(--color-text)); }
@@ -268,6 +275,7 @@ export const testsFile = (title: string): string => `/**
  * Acceptance tests for "${title.replace(/\*\//g, "* /")}", written by FlowCode (calculatorComposer.ts): the calculator used the way a
  * person does, by its keys and by the keyboard. When one fails, fix the app, not the test.
  */
+import { StrictMode } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -281,7 +289,12 @@ const press = async (...names: string[]) => {
 
 beforeEach(() => {
   window.location.hash = "";
-  render(<App />);
+  // As the app runs (main.tsx renders it in StrictMode).
+  render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
 });
 
 describe(${JSON.stringify(title)}, () => {
@@ -342,6 +355,7 @@ describe(${JSON.stringify(title)}, () => {
   it("lists this session's results", async () => {
     await press("2", "Add", "2", "Equals");
     expect(screen.getByRole("region", { name: "History" })).toHaveTextContent("2 + 2 = 4");
+    expect(screen.getAllByRole("listitem")).toHaveLength(1);
   });
 });
 `;

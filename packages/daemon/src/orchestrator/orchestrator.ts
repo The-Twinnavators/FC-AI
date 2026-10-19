@@ -75,7 +75,7 @@ import { UNSUITABLE, findOpenImage } from "../workspace/openImages.js";
 /** The version of what makes a record's photo suitable: photos already placed are looked at again when it changes. */
 const PICTURE_RULES = "3";
 import { FRAME_SHEET, frameCss, frameKind, refreshedFrameCss, withFrameImport } from "./frameComposer.js";
-import { CALC_ENGINE, CALC_SCREEN, CALC_SHEET, COMPOSED_CALC, engineFile, isCalculatorPrd, screenFile, sheetFile, testsFile } from "./calculatorComposer.js";
+import { CALC_ENGINE, CALC_SCREEN, CALC_SHEET, CALC_VERSION, COMPOSED_CALC, engineFile, isCalculatorPrd, outdatedCalculator, screenFile, sheetFile, testsFile } from "./calculatorComposer.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
@@ -1674,6 +1674,17 @@ ${brief.text}` : objective, expectedPaths });
         if (next && this.d.ops.replaceContent({ jail, projectId: project.id, runId, toolCallId: `fc_frame_refresh_${runId}`, approved: true }, FRAME_SHEET, next).ok) this.d.bus.emit({ type: "recovery.action", projectId: project.id, runId, message: `FlowCode brought the frame it styled (${FRAME_SHEET}) up to date with its current rules before the final checks, with no model.` });
       } catch {
         /* no FlowCode frame */
+      }
+      // A calculator FlowCode composed with an older composer: its engine, screen and stylesheet are written again.
+      try {
+        const calc = fs.readFileSync(jail.resolve(CALC_SCREEN).abs, "utf8");
+        if (outdatedCalculator(calc)) {
+          const cctx = { jail, projectId: project.id, runId, toolCallId: `fc_calc_refresh_${runId}`, approved: true };
+          const ok = [[CALC_ENGINE, engineFile()], [CALC_SCREEN, screenFile(project.name)], [CALC_SHEET, sheetFile()]].every(([p, c]) => this.d.ops.replaceContent(cctx, p!, c!).ok);
+          if (ok) this.d.bus.emit({ type: "recovery.action", projectId: project.id, runId, message: `FlowCode brought the calculator it composed up to date (${CALC_VERSION}) before the final checks, with no model.` });
+        }
+      } catch {
+        /* no FlowCode calculator */
       }
     }
     await this.d.verifier.runRequired(this.d.store.runs.require(runId), { signal, skipRuntime: anyDead });
@@ -4770,7 +4781,7 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     } catch {
       return;
     }
-    if (!screen.includes(COMPOSED_CALC)) {
+    if (!screen.includes(COMPOSED_CALC) || outdatedCalculator(screen)) {
       const product = this.d.store.projects.require(run.projectId).name;
       if (!write(CALC_ENGINE, engineFile()) || !write(CALC_SCREEN, screenFile(product)) || !write(CALC_SHEET, sheetFile())) return;
       this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode composed the calculator itself, with no model: the engine (${CALC_ENGINE}: order of operations, percent, sign, backspace, clear, "Can't divide by zero", long results), the screen (${CALC_SCREEN}: display, 4-column keypad, keyboard, session history, copy) and ${CALC_SHEET}. The model refines its look next.`, data: { composed: [CALC_ENGINE, CALC_SCREEN, CALC_SHEET] } });
