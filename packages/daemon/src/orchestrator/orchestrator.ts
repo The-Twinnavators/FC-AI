@@ -2278,7 +2278,7 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // A functional step whose acceptance tests FlowCode wrote is checked first too, at its first attempt: when the composed
     // app already does what the tests ask, no model work is needed (Frameproof: all 60 tests passed on the composed app).
     const composedTests = !!this.d.store.getSetting(`acceptanceFrom:${task.id}`, null) || this.d.store.getSetting(`picturesComposed:${task.id}`, false) || this.d.store.getSetting(`frameComposed:${task.id}`, false) || this.d.store.getSetting(`cleanupComposed:${task.id}`, false) || this.d.store.getSetting(`polishCheckFirst:${task.id}`, false);
-    if ((task.attempts >= 2 || onlyRead || composedTests) && (touched || (composedTests && polishPart) || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && (polishPart || task.acceptanceCriteria.some(isTaskSpecific))) {
+    if ((task.attempts >= 2 || onlyRead || composedTests) && (touched || (composedTests && (polishPart || this.d.store.getSetting(`cleanupComposed:${task.id}`, false))) || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && (polishPart || task.acceptanceCriteria.some(isTaskSpecific))) {
       const pre = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), this.d.store.tasks.require(task.id), { signal });
       // What failed is what the attempt fixes: the brief names the failing tests.
       if (composedTests && !pre.allMet && pre.failures.length) this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), ...pre.failures.slice(0, 4).map((x) => `Failing now: ${x.slice(0, 600)}`)].slice(-12));
@@ -4575,7 +4575,9 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
    * replaced. Debug calls and unused CSS rules are edits inside files, left to the model.
    */
   private composeCleanup(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
-    if (task.role !== "coder" || task.title !== CLEAN_UP || this.d.store.getSetting(`cleanupComposed:${task.id}`, false)) return;
+    // The step and its parts (a split clean-up is judged on its own files): each is checked first, after FlowCode's pass.
+    if (task.role !== "coder" || (task.title !== CLEAN_UP && this.d.store.getSetting<string>(`splitParent:${task.id}`, "") !== CLEAN_UP)) return;
+    this.d.store.setSetting(`cleanupComposed:${task.id}`, true);
     const scan = scanCleanup(jail);
     const gone = [...scan.unusedFiles, ...scan.strayFiles, ...scan.unusedImages];
     const ctx = { jail, projectId: run.projectId, runId: run.id, taskId: task.id, toolCallId: `fc_cleanup_${task.id}`, approved: true };
@@ -4593,7 +4595,6 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       /* no credits file */
     }
     if (!removed.length) return;
-    this.d.store.setSetting(`cleanupComposed:${task.id}`, true);
     this.updateTask(this.d.store.tasks.require(task.id), { actualPaths: [...new Set([...task.actualPaths, ...removed])] });
     this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: task.id, type: "recovery.action", message: `FlowCode removed what its clean-up scan says nothing uses, with no model: ${removed.join(", ")}. Each can be undone in Changes; the step is checked now.`, data: { removed } });
   }
