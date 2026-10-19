@@ -70,6 +70,7 @@ import { SELECTION_FILE, composeDetailScreen, composeSelectionScreen, detectSele
 import { composeAcceptanceFile } from "./acceptanceComposer.js";
 import { PICTURES_STEP, pictureGaps, pictureQueries, pictureSvg, withRecordValue } from "./recordPictures.js";
 import { findOpenImage } from "../workspace/openImages.js";
+import { FRAME_SHEET, frameCss, usesAppFrame, withFrameImport } from "./frameComposer.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
@@ -2078,6 +2079,8 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // Records still without their picture get one from FlowCode (recordPictures.ts): at the pictures step, or before
     // any later step when that step passed with some missing.
     await this.completeRecordPictures(run, task, jail, signal);
+    // The frame part of an app on the library's AppFrame starts from FlowCode's frame stylesheet (frameComposer.ts).
+    this.composeFrame(run, task, jail);
     // Composing rewrites the step's brief: the attempt works from the step as it is now, not the copy it started with
     // (Photo detail's first request was built from its old brief and was refused as too big).
     task = this.d.store.tasks.require(task.id);
@@ -2248,7 +2251,7 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // look-check rule.
     // A functional step whose acceptance tests FlowCode wrote is checked first too, at its first attempt: when the composed
     // app already does what the tests ask, no model work is needed (Frameproof: all 60 tests passed on the composed app).
-    const composedTests = !!this.d.store.getSetting(`acceptanceFrom:${task.id}`, null) || this.d.store.getSetting(`picturesComposed:${task.id}`, false);
+    const composedTests = !!this.d.store.getSetting(`acceptanceFrom:${task.id}`, null) || this.d.store.getSetting(`picturesComposed:${task.id}`, false) || this.d.store.getSetting(`frameComposed:${task.id}`, false);
     if ((task.attempts >= 2 || onlyRead || composedTests) && (touched || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && (polishPart || task.acceptanceCriteria.some(isTaskSpecific))) {
       const pre = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), this.d.store.tasks.require(task.id), { signal });
       // What failed is what the attempt fixes: the brief names the failing tests.
@@ -4447,6 +4450,46 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       this.updateTask(this.d.store.tasks.require(task.id), { actualPaths: [...new Set([...task.actualPaths, "src/app/schema.ts", ...written])] });
     }
     this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode gave ${done.length} ${found.entity.label.toLowerCase()} record${done.length === 1 ? "" : "s"} ${done.length === 1 ? "its picture" : "their pictures"} itself, with no model: ${done.join("; ")}.`, data: { composed: ["src/app/schema.ts", ...written] } });
+  }
+
+  /**
+   * The frame part of an app whose App.tsx renders the library's AppFrame: FlowCode writes the frame's stylesheet in the
+   * app's tokens (frameComposer.ts) and imports it, as the step's own edits (the frame check looks for the step's frame
+   * rules), and the step's brief becomes refining it. Frameproof: the frame part's model wrote prose for three long turns
+   * and never called a tool, twice.
+   */
+  private composeFrame(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
+    if (task.role !== "coder" || task.title !== "Design the frame" || this.d.store.getSetting(`frameComposed:${task.id}`, false)) return;
+    if (fs.existsSync(jail.resolve(FRAME_SHEET).abs)) return;
+    let app = "";
+    try {
+      app = fs.readFileSync(jail.resolve("src/App.tsx").abs, "utf8");
+    } catch {
+      return;
+    }
+    if (!usesAppFrame(app)) return;
+    const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
+    const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
+    const ctx = { jail, projectId: run.projectId, runId: run.id, taskId: task.id, toolCallId: `fc_frame_${task.id}`, approved: true };
+    const made = this.d.ops.create_file(ctx, { path: FRAME_SHEET, content: frameCss(model?.product ?? run.objective.split(":")[0] ?? "The app") } as never);
+    if (!made.ok) return;
+    const next = withFrameImport(app);
+    if (next) {
+      const r = this.d.ops.replaceContent(ctx, "src/App.tsx", next);
+      if (!r.ok) return;
+    }
+    this.d.store.setSetting(`frameComposed:${task.id}`, true);
+    this.updateTask(this.d.store.tasks.require(task.id), {
+      actualPaths: [...new Set([...task.actualPaths, FRAME_SHEET, "src/App.tsx"])],
+      objective: [
+        `Refine the app frame FlowCode styled in ${FRAME_SHEET} (AppFrame's rail, brand, navigation items, top bar and page area, imported by src/App.tsx) so it follows the direction below.`,
+        `Change only ${FRAME_SHEET}, with the app's tokens (var(--…)) and the frame's own classes (.fl-af-…); keep the navigation working. Then run the type check.`,
+        tokenMenu(jail),
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    });
+    this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode styled the app frame itself, with no model: ${FRAME_SHEET} (rail, brand, navigation, top bar, page area, in the app's tokens), imported by src/App.tsx. It is checked now; the model refines it only if needed.`, data: { composed: [FRAME_SHEET, "src/App.tsx"] } });
   }
 
   /** The steps a bounded run may run, while it is bounded (boundedRun.ts). */
