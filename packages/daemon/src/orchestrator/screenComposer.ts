@@ -254,7 +254,7 @@ export function selectionListCss(id: string): string {
 .cmp-${id} .cmp-progress { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin: 0; font-variant-numeric: tabular-nums; }
 .cmp-${id} .cmp-progress-count { font-weight: var(--weight-semibold); }
 .cmp-${id} .cmp-status { padding: var(--space-1) var(--space-3); border: var(--border-width, 1px) solid var(--color-accent); border-radius: var(--pill-radius, 999px); color: var(--color-accent); font-size: var(--text-sm); }
-.cmp-${id} .cmp-link { padding: 0; border: 0; background: none; color: var(--color-accent); font: inherit; font-size: var(--text-sm); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.cmp-${id} .cmp-link { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0; border: 0; background: none; color: var(--color-accent); font: inherit; font-size: var(--text-sm); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .cmp-${id} .cmp-link:focus-visible, .cmp-${id} .cmp-pick:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .cmp-${id} .cmp-notice { margin: 0; min-height: 1.25em; font-size: var(--text-sm); }
 .cmp-${id} .cmp-item { display: grid; gap: 0; }

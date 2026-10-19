@@ -1110,7 +1110,16 @@ export class Verifier {
       session = await BrowserSession.launch(run.id, this.processes);
       // Every planned page by its address too, so a detail page kept out of the menu is looked at, at both widths.
       const plan = this.store.getSetting<ScreenPlan | null>(`screenPlan:${run.id}`, null);
-      const result = await lookCheck(session, url, { account: demoAccount(jail.root), routes: plan?.screens.map((x) => ({ name: x.label, id: x.id })) });
+      // A record's page is looked at with a record (the first sample one), not its address alone: Frameproof's Photo
+      // detail was judged on its "Photo not found" state ("only a title so far") at every step.
+      const appModel = this.store.getSetting<AppModel | null>(appModelKey(run.id), null);
+      const records = readGeneratedData(jail.root)?.seed ?? {};
+      const withRecord = (id: string) => {
+        const view = appModel?.nav.flatMap((g) => g.items).find((v) => v.id === id);
+        const first = view?.kind === "detail" && view.entity ? records[view.entity]?.[0]?.id : undefined;
+        return first ? `${id}/${String(first)}` : id;
+      };
+      const result = await lookCheck(session, url, { account: demoAccount(jail.root), routes: plan?.screens.map((x) => ({ name: x.label, id: withRecord(x.id) })) });
       // Structure steps (App layout and its parts) wire screens into a temporary frame; the design steps that follow
       // own colour, contrast and composition. No BIO & GMO build: the layout step was blocked three times for the
       // ready-made Home layout's low-contrast eyebrow and avatar initials, which the design step redoes anyway.
