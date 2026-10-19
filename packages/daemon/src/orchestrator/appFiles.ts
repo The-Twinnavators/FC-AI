@@ -275,8 +275,13 @@ export function appKept(root: string, m: AppModel): string[] {
   const store = read("src/app/store.ts");
   if (!store?.includes("createStore(")) problems.push("src/app/store.ts, the one store every page reads and writes, is missing or no longer creates the store: put it back as FlowCode wrote it.");
   const pieceFilesOf = m.lookup ? ["LookupFrame", "LookupCatalog", "LookupEntry", "PlaceFinder", "ListBuilder", "LookupData", "AppData"] : ["AppFrame", "ResourceIndex", "RecordWizard", "RecordDetail", "AppDashboard", "AppData"];
+  // A page pattern is required while a page still uses it: screens FlowCode composed replace ResourceIndex, RecordDetail
+  // and the rest, and the clean-up removes them (Frameproof: the guard then called that "taking the app apart"). The
+  // frame and the data layer are always required.
+  const sources = [app ?? "", ...builtViews(m).map((v) => read(screenFileOf(v)) ?? "")].join("\n");
+  const needed = (piece: string) => piece === frame.tag || /Data$/.test(piece) || new RegExp(`sections/${piece}["']`).test(sources);
   for (const piece of pieceFilesOf) {
-    if (read(`src/sections/${piece}.tsx`) === undefined) problems.push(`src/sections/${piece}.tsx, a working pattern the app is built on, was deleted: add it back with add_library_piece.`);
+    if (needed(piece) && read(`src/sections/${piece}.tsx`) === undefined) problems.push(`src/sections/${piece}.tsx, a working pattern the app is built on, was deleted: add it back with add_library_piece.`);
   }
   for (const v of builtViews(m)) {
     const file = screenFileOf(v);

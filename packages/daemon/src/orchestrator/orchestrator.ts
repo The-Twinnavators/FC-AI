@@ -4578,6 +4578,13 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // The step and its parts (a split clean-up is judged on its own files): each is checked first, after FlowCode's pass.
     if (task.role !== "coder" || (task.title !== CLEAN_UP && this.d.store.getSetting<string>(`splitParent:${task.id}`, "") !== CLEAN_UP)) return;
     this.d.store.setSetting(`cleanupComposed:${task.id}`, true);
+    // A part of a split clean-up is judged by the scan on its own files, never by having changed them: there may be
+    // nothing left to remove (Frameproof: "Remove debug logs from App.tsx", with none there, rewrote App.tsx to pass).
+    if (task.title !== CLEAN_UP) {
+      const kinds = task.acceptanceCriteria.map((c) => String((c.check as { kind?: string }).kind ?? ""));
+      const criteria = [...task.acceptanceCriteria.filter((c) => !String((c.check as { kind?: string }).kind ?? "").startsWith("changed:")), ...(kinds.includes("code_cleanup") ? [] : [{ id: `${task.id}-cleanup`, description: "Nothing unused is left in this part's files", check: { type: "verification" as const, kind: "code_cleanup" }, evidenceRefs: [] }])];
+      task = this.updateTask(this.d.store.tasks.require(task.id), { acceptanceCriteria: criteria });
+    }
     const scan = scanCleanup(jail);
     const gone = [...scan.unusedFiles, ...scan.strayFiles, ...scan.unusedImages];
     const ctx = { jail, projectId: run.projectId, runId: run.id, taskId: task.id, toolCallId: `fc_cleanup_${task.id}`, approved: true };
