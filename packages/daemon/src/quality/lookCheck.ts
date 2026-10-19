@@ -118,7 +118,9 @@ function auditScreen(): Array<{ rule: string; serious: boolean; message: string 
     return [...n].sort((a, b) => b[1] - a[1]);
   };
   const controls = Array.from(main.querySelectorAll("button, a[href], [role=button]")).filter(visible).filter((el) => (el as HTMLElement).innerText.trim());
-  const [topControl] = tally(controls);
+  // A toggle (aria-pressed) holds its own item's state, like each photo's pick in a gallery a client chooses from: not
+  // an action repeated on every item (Frameproof: "Add to selection" on 12 photos was flagged).
+  const [topControl] = tally(controls.filter((el) => !el.hasAttribute("aria-pressed")));
   if (topControl && topControl[1] >= 6) out.push({ rule: "repeated-controls", serious: true, message: `"${topControl[0].slice(0, 30)}" is on ${topControl[1]} controls. Put the action once (one main button, or clicking the item opens it) instead of on every item.` });
   const leaves = Array.from(main.querySelectorAll("*")).filter((el) => el.children.length === 0 && visible(el));
   const filler = tally(leaves).find(([t, n]) => n >= 6 && /^(0 |no |none\b|nothing\b|empty\b)/i.test(t));

@@ -67,6 +67,9 @@ import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
 import { APP_STEPS, WRITE_APP, appKept, appWrittenKey, builtViews, completeAppTasks, customPlanOf, screenFileOf, screenPlanOf, unapprovedPieces } from "./appFiles.js";
 import { composable, composeListScreen, selectionListCss } from "./screenComposer.js";
 import { SELECTION_FILE, composeDetailScreen, composeSelectionScreen, detectSelection, selectionStoreFile } from "./selectionComposer.js";
+import { composeAcceptanceFile } from "./acceptanceComposer.js";
+import { PICTURES_STEP, pictureGaps, pictureQueries, pictureSvg, withRecordValue } from "./recordPictures.js";
+import { findOpenImage } from "../workspace/openImages.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
@@ -107,7 +110,7 @@ import { lookGuidance, visualDirection, type BuildLook } from "./starterIdentity
 import { designTemplate, LIBRARY_SECTIONS } from "@flowcode/contracts";
 import { extractRequirements, referencePath, requirementText, summarizeReference, type Requirement } from "../quality/spec.js";
 import { attachApproval, recordPlanVersion } from "./planReview.js";
-import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchItems, groupSteps, requirementItem, parseBatch, planBatches, planKey, runPlanKey, runtimeItems, stepsFromGroups, uniqueIds, type LrcPlan, type PlanItem } from "../quality/lrcPlan.js";
+import { BATCH_SCHEMA, BATCH_SYSTEM, MAX_FEATURE_STEPS, placeBySection, batchItems, groupSteps, requirementItem, parseBatch, planBatches, planKey, runPlanKey, runtimeItems, stepTitle, stepsFromGroups, uniqueIds, withoutInventedText, type LrcPlan, type PlanItem } from "../quality/lrcPlan.js";
 import { promptConfigFor } from "../quality/taskPrompt.js";
 import { isInterfaceStep, playbookFor } from "../knowledge/designPlaybook.js";
 import { protectedPolicyFor } from "../workspace/protectedFiles.js";
@@ -2045,7 +2048,13 @@ ${brief.text}` : objective, expectedPaths });
     // reads them (Calendar test 8: the sign-in step spent its turns on AuthScreen.js / authApi.js).
     {
       const ts = isTsReact(jail) ? tsTask(task) : undefined;
-      task = this.updateTask(task, { ...(ts ?? {}), acceptanceCriteria: withoutBadChecks(ts?.acceptanceCriteria ?? task.acceptanceCriteria), status: "running", checkpointId: cp.id, attempts: task.attempts + 1 });
+      // Words a planned test must contain only when the spec gives them as the app's text (lrcPlan.ts givenAsText): a
+      // step planned before that rule loses "the app shows Portrait" and "off-white background".
+      const prdText = this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []).find((r) => r.role === "prd")?.content;
+      const seed = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null)?.seed;
+      const checks = withoutBadChecks(ts?.acceptanceCriteria ?? task.acceptanceCriteria);
+      task = this.updateTask(task, { ...(ts ?? {}), acceptanceCriteria: prdText ? withoutInventedText(checks, `${prdText}
+${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId: cp.id, attempts: task.attempts + 1 });
     }
     // A first attempt starts its routing afresh (a retry you asked for, a reopened step).
     if (task.attempts === 1) this.d.store.setSetting(recoveryKey(task.id), { corrections: 0, history: [] });
@@ -2064,6 +2073,11 @@ ${brief.text}` : objective, expectedPaths });
     // A standard screen FlowCode composes itself before the model works on it (screenComposer.ts): part of where the
     // step starts, so before its baseline.
     this.composeStandardScreen(run, task, jail);
+    // A functional step of an app FlowCode composed gets its acceptance tests from FlowCode (acceptanceComposer.ts).
+    this.composeAcceptance(run, task, jail);
+    // Records still without their picture get one from FlowCode (recordPictures.ts): at the pictures step, or before
+    // any later step when that step passed with some missing.
+    await this.completeRecordPictures(run, task, jail, signal);
     // Composing rewrites the step's brief: the attempt works from the step as it is now, not the copy it started with
     // (Photo detail's first request was built from its old brief and was refused as too big).
     task = this.d.store.tasks.require(task.id);
@@ -2232,8 +2246,13 @@ ${brief.text}` : objective, expectedPaths });
     // Only checks about this step's own deliverable can say it's already done: the type check passing says nothing about
     // it (Clean Cart controlled build: two design parts passed this way with their work undone). Polish parts keep their
     // look-check rule.
-    if ((task.attempts >= 2 || onlyRead) && (touched || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && (polishPart || task.acceptanceCriteria.some(isTaskSpecific))) {
+    // A functional step whose acceptance tests FlowCode wrote is checked first too, at its first attempt: when the composed
+    // app already does what the tests ask, no model work is needed (Frameproof: all 60 tests passed on the composed app).
+    const composedTests = !!this.d.store.getSetting(`acceptanceFrom:${task.id}`, null) || this.d.store.getSetting(`picturesComposed:${task.id}`, false);
+    if ((task.attempts >= 2 || onlyRead || composedTests) && (touched || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && (polishPart || task.acceptanceCriteria.some(isTaskSpecific))) {
       const pre = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), this.d.store.tasks.require(task.id), { signal });
+      // What failed is what the attempt fixes: the brief names the failing tests.
+      if (composedTests && !pre.allMet && pre.failures.length) this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), ...pre.failures.slice(0, 4).map((x) => `Failing now: ${x.slice(0, 600)}`)].slice(-12));
       // The same real-content check a finished step gets: template sample text or placeholders left in the step's own
       // screens mean it isn't done, whatever the type check says.
       const ownFiles = [...new Set([...task.expectedPaths, ...task.actualPaths])].filter((p) => !p.endsWith("/") && fs.existsSync(jail.resolve(p).abs));
@@ -2982,8 +3001,12 @@ ${brief.text}` : objective, expectedPaths });
     // The step's own files, concrete (packetContext.concreteTargets): a folder in its paths becomes the bounded list of
     // files in it the step is about, and what isn't attached is said, never dropped quietly.
     const targets = concreteTargets(jail.root, task, this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? []);
-    if (targets.gaps.length) findings.push(`Files for this step: ${targets.gaps.join("; ")}.`);
-    const ownFiles = [...new Set([...targets.files, ...task.actualPaths.map((p) => p.replace(/\\/g, "/"))])];
+    // A functional step whose tests FlowCode wrote (acceptanceComposer.ts): the tests are its spec and its brief names
+    // its files. What its failing tests point to is attached; the rest is read on request (Frameproof: three composed
+    // screens attached whole left no room for a later turn).
+    const composedFix = !!this.d.store.getSetting(`acceptanceFrom:${task.id}`, null);
+    if (targets.gaps.length && !composedFix) findings.push(`Files for this step: ${targets.gaps.join("; ")}.`);
+    const ownFiles = composedFix ? [] : [...new Set([...targets.files, ...task.actualPaths.map((p) => p.replace(/\\/g, "/"))])];
     const isText = (p: string) => !p.endsWith("/") && !p.startsWith("node_modules") && !/\.(png|jpe?g|webp|gif|avif|ico|bmp|woff2?|ttf|otf|eot|mp[34]|webm|pdf|zip)$/i.test(p) && fs.existsSync(path.join(jail.root, p)) && fs.statSync(path.join(jail.root, p)).isFile();
     // Its own files are always attached (fitting shortens them, never leaves them out); files a finding names fill
     // what room is left.
@@ -3028,7 +3051,7 @@ ${brief.text}` : objective, expectedPaths });
     // Refining a screen FlowCode composed: its PRD requirements are what the composition built, so the step gets the
     // direction (below), not the screen's requirements again.
     const refining = !!this.d.store.getSetting(`composedFrom:${task.id}`, null);
-    if (prdPath && !refining) {
+    if (prdPath && !refining && !composedFix) {
       try {
         const md = readFile(jail, prdPath).content;
         // A step planned without PRD sections (follow-up builds, split parts) gets the ones its own words match.
@@ -3095,8 +3118,10 @@ ${brief.text}` : objective, expectedPaths });
     const installed = installedPackages(jail.root);
     if (installed.length) contracts.push({ name: "Installed packages", text: `Import only these packages or the project's own files; anything else isn't installed and fails the type check: ${installed.join(", ")}` });
     if (ownDirection) requirements.push(...ownDirection.requirements);
-    // A stylesheet refinement sees the token names it may use (composed before the brief listed them, too).
-    if (refining) {
+    // A stylesheet refinement sees the token names it may use (composed before the brief listed them, too), and so does
+    // any step whose own files include a stylesheet (the frame, polish): the Gallery part invented --text-4xl and
+    // --text-base when it had no list.
+    if (refining || task.expectedPaths.some((p) => /\.css$/i.test(p))) {
       const menu = tokenMenu(jail);
       if (menu && !task.objective.includes(menu)) requirements.push(menu);
     }
@@ -3144,7 +3169,7 @@ ${brief.text}` : objective, expectedPaths });
     const reuse = uiWork ? scanComponentLibrary(jail).brief : "";
     // An app with FlowCode's library gets the catalog too: the parts to assemble screens from, one line each, so the
     // agent adds a catalog piece instead of writing the markup (a build used the starter kit and nothing from it).
-    const catalog = uiWork && (role === "coder" || role === "debugger") ? this.catalogFor(run, task, jail.root) : "";
+    const catalog = uiWork && !composedFix && (role === "coder" || role === "debugger") ? this.catalogFor(run, task, jail.root) : "";
     // A step that writes acceptance tests gets how to work and a map of what the screens show (testingGuide.ts).
     const tests = writesTestsStep(task) ? testingGuide(jail.root, 7000, testFileOf(task)) : "";
     // The whole first request is budgeted in tokens (requestBudget.ts): system, skills, tool definitions, brief, room to
@@ -3290,7 +3315,19 @@ ${brief.text}` : objective, expectedPaths });
     const headroom = lean ? headroomTokens(windowTokens) : 0;
     const largestPlanned = Math.max(4000, ...[...reads.values()].filter((r) => r?.long).map((r) => r!.chars));
     const optionalRoom = lean ? openingWithin(reqBudget, largestPlanned, headroom) - system.length - toolsChars : room;
-    const brief = fitHandoff(packet, renderTree(listTree(jail, ".", 2, lean ? 80 : 140)), (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name), Math.max(0, room), Math.max(0, optionalRoom));
+    const tree = renderTree(listTree(jail, ".", 2, lean ? 80 : 140));
+    const scripts = (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name);
+    let brief = fitHandoff(packet, tree, scripts, Math.max(0, room), Math.max(0, optionalRoom));
+    // Own files the fit shortened are read in full on a later turn: the optional material (the tree, other files,
+    // knowledge) makes room for that read too, not only for a typical one (Frameproof functional steps: a 14,500-character
+    // tree fitted beside shortened screens, and every later turn ran 400–1,000 tokens over).
+    if (lean) {
+      const shortened = Math.max(0, ...[...reads].filter(([p, r]) => r && brief.dropped.some((d) => d.startsWith(`${p} shortened`))).map(([, r]) => r!.chars));
+      if (shortened > largestPlanned) {
+        const tighter = openingWithin(reqBudget, shortened, headroom) - system.length - toolsChars;
+        if (tighter < optionalRoom) brief = fitHandoff(packet, tree, scripts, Math.max(0, room), Math.max(0, tighter));
+      }
+    }
     const total = system.length + toolsChars + brief.text.length;
     fittedBrief = brief.text;
     this.d.bus.emit({
@@ -4281,6 +4318,135 @@ ${brief.text}` : objective, expectedPaths });
     });
     this.d.store.setSetting(`taskFindings:${task.id}`, [`FlowCode composed this screen already (${composed.summary}) in ${written.join(" and ")}: it works and type-checks. Refine its stylesheet; don't rebuild it.`]);
     this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode composed "${view.label}" itself, with no model: ${composed.summary} (${written.join(", ")}). The model refines it next.`, data: { composed: written } });
+  }
+
+  /**
+   * A functional step of an app whose screens FlowCode composed: FlowCode writes its acceptance tests
+   * (acceptanceComposer.ts) from the PRD's examples, the sample data and the labels it gave the controls, in place of
+   * tests the model would plan from a brief past its window (Frameproof: 37,000–66,000 characters, with checks that
+   * contradicted the PRD). The planner's exact-text checks on the test file go; the step's brief becomes "make these
+   * pass". Written at run level, so undoing a failed attempt keeps the tests.
+   */
+  private composeAcceptance(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
+    if (task.role !== "coder" || this.d.store.getSetting(`acceptanceFrom:${task.id}`, null)) return;
+    const file = testFileOf(task);
+    if (!file || !/^src\/acceptance\/[^/]+\.test\.tsx$/.test(file)) return;
+    const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
+    if (!model) return;
+    // Every screen of the app is one FlowCode composed: the tests are written against their labels.
+    const views = builtViews(model);
+    const read = (p: string) => {
+      try {
+        return fs.readFileSync(jail.resolve(p).abs, "utf8");
+      } catch {
+        return "";
+      }
+    };
+    if (!views.length || !views.every((v) => read(screenFileOf(v)).includes("Composed by FlowCode"))) return;
+    const prd = this.d.store.getSetting<ReferenceFile[]>(`runRefs:${run.id}`, []).find((r) => r.role === "prd")?.content ?? "";
+    const spec = detectSelection(model, prd);
+    // The requirements this step covers, as the plan grouped them.
+    const items = this.d.store.getSetting<{ items?: PlanItem[] } | null>(runPlanKey(run.id), null)?.items ?? [];
+    const groups = new Map<string, PlanItem[]>();
+    for (const i of items) if (i.stepKey) groups.set(i.stepKey, [...(groups.get(i.stepKey) ?? []), i]);
+    const group = [...groups.values()].find((g) => stepTitle(g) === task.title);
+    const sections = group ? group.map((i) => `${i.categoryTitle}: ${i.title}`) : [task.title];
+    const composed = composeAcceptanceFile(model, spec, prd, sections, task.title);
+    if (!composed) return;
+    const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
+    const ctx = { jail, projectId: run.projectId, runId: run.id, toolCallId: `fc_accept_${task.id}`, approved: true };
+    const r = fs.existsSync(jail.resolve(file).abs) ? this.d.ops.replaceContent(ctx, file, composed.content) : this.d.ops.create_file(ctx, { path: file, content: composed.content } as never);
+    if (!r.ok) {
+      this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `FlowCode didn't write the tests for "${task.title}": ${r.message}. The step keeps its planned tests.` });
+      return;
+    }
+    // The planner's exact-text checks on the test file go: the composed tests check the behaviour itself.
+    const dropped = task.acceptanceCriteria.filter((c) => c.check.type === "file_contains" && (c.check as { path?: string }).path === file);
+    const screens = views.map(screenFileOf);
+    this.d.store.setSetting(`acceptanceFrom:${task.id}`, { objective: task.objective, expectedPaths: task.expectedPaths, acceptanceCriteria: task.acceptanceCriteria, families: composed.families });
+    this.updateTask(this.d.store.tasks.require(task.id), {
+      objective: [
+        `FlowCode wrote this step's acceptance tests in ${file}: ${composed.count} tests of ${composed.families.join(", ")}, from the PRD's own examples and the sample data, against the screens FlowCode composed (${screens.join(", ")}${spec ? ` and ${SELECTION_FILE}` : ""}).`,
+        `Run them with run_script "test -- ${file}". When one fails, fix the app (those screens or ${spec ? SELECTION_FILE : "the store"}) so it passes; don't change the tests. Then run the type check.`,
+      ].join("\n"),
+      expectedPaths: [...screens, ...(spec ? [SELECTION_FILE] : [])],
+      actualPaths: [...new Set([...task.actualPaths, file])],
+      acceptanceCriteria: task.acceptanceCriteria.filter((c) => !dropped.includes(c)),
+    });
+    this.d.store.setSetting(`taskFindings:${task.id}`, [`FlowCode wrote the acceptance tests in ${file} (${composed.count}); fix the app, not the tests, when one fails.`]);
+    this.d.bus.emit({
+      ...ev,
+      type: "recovery.action",
+      message: `FlowCode wrote "${task.title}"'s acceptance tests itself, with no model: ${composed.count} tests (${composed.families.join(", ")}) in ${file}${dropped.length ? `. Planned exact-text checks it replaces: ${dropped.map((c) => `"${(c.check as { text?: string }).text}"`).join(", ")}` : ""}.`,
+      data: { composed: [file], families: composed.families, dropped: dropped.map((c) => c.id) },
+    });
+  }
+
+  /**
+   * Records of a list with pictures whose picture is missing get one from FlowCode (recordPictures.ts): an open photo
+   * found by the record's own words (filtered for unsuitable results), else a picture FlowCode draws with the record's
+   * title. At the pictures step itself the edits are that step's own; later (the pictures step passed with some
+   * missing) they're FlowCode's, at run level. Frameproof: the step was verified with 4 of 12 photos missing.
+   */
+  private async completeRecordPictures(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>, signal: AbortSignal) {
+    if (task.role !== "coder") return;
+    const pictures = this.graph.tasks(run.id).find((t) => t.title === PICTURES_STEP);
+    if (!pictures || (pictures.id !== task.id && pictures.status !== "verified")) return;
+    const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
+    const found = model ? pictureGaps(jail.root, model) : undefined;
+    if (!found?.gaps.length) return;
+    const project = this.d.store.projects.require(run.projectId);
+    const own = pictures.id === task.id;
+    const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
+    const ctx = { jail, projectId: run.projectId, runId: run.id, ...(own ? { taskId: task.id } : {}), toolCallId: `fc_pictures_${task.id}`, approved: true };
+    let schemaText: string;
+    try {
+      schemaText = fs.readFileSync(jail.resolve("src/app/schema.ts").abs, "utf8");
+    } catch {
+      return;
+    }
+    const done: string[] = [];
+    const written: string[] = [];
+    for (const [n, g] of found.gaps.entries()) {
+      if (signal.aborted) return;
+      let value: string | undefined;
+      let how = "";
+      if (project.settings.allowExternalResearch) {
+        for (const q of pictureQueries(g, found.kind)) {
+          const res = await findOpenImage(jail, { query: q.query, name: g.id, orientation: g.orientation, mustMatch: q.mustMatch }, signal).catch(() => undefined);
+          if (res?.ok && res.paths[0]) {
+            value = `/${res.paths[0].replace(/^public\//, "")}`;
+            how = `an open photo found for "${q.query}"`;
+            written.push(...res.paths);
+            break;
+          }
+        }
+      }
+      if (!value) {
+        const file = `public/images/${g.id}.svg`;
+        const content = pictureSvg(g.title, g.orientation, n);
+        const r = fs.existsSync(jail.resolve(file).abs) ? this.d.ops.replaceContent(ctx, file, content) : this.d.ops.create_file(ctx, { path: file, content } as never);
+        if (!r.ok) continue;
+        value = `/images/${g.id}.svg`;
+        how = project.settings.allowExternalResearch ? "drawn by FlowCode: no suitable open photo" : "drawn by FlowCode: searching online is off for this project";
+        written.push(file);
+      }
+      const next = withRecordValue(schemaText, g.id, found.field, value);
+      if (!next) continue;
+      schemaText = next;
+      done.push(`${g.title} (${how})`);
+    }
+    if (!done.length) return;
+    const r = this.d.ops.replaceContent(ctx, "src/app/schema.ts", schemaText);
+    if (!r.ok) {
+      this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `FlowCode found pictures for ${done.length} records but couldn't set them in src/app/schema.ts: ${r.message}` });
+      return;
+    }
+    if (own) {
+      this.d.store.setSetting(`picturesComposed:${task.id}`, true);
+      this.updateTask(this.d.store.tasks.require(task.id), { actualPaths: [...new Set([...task.actualPaths, "src/app/schema.ts", ...written])] });
+    }
+    this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode gave ${done.length} ${found.entity.label.toLowerCase()} record${done.length === 1 ? "" : "s"} ${done.length === 1 ? "its picture" : "their pictures"} itself, with no model: ${done.join("; ")}.`, data: { composed: ["src/app/schema.ts", ...written] } });
   }
 
   /** The steps a bounded run may run, while it is bounded (boundedRun.ts). */

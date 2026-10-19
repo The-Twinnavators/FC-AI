@@ -36,10 +36,20 @@ interface Result {
   foreign_landing_url?: string;
   width?: number;
   height?: number;
+  tags?: Array<{ name?: string }>;
 }
 
 const slugOf = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "image";
 const EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
+
+/**
+ * Results that aren't a photo of a subject, or aren't fit for a client's app, by their own title and tags. The photo
+ * check needs a model that can see; without one (the local text model) nothing was turned away, and Frameproof's
+ * portrait gallery got a 1958 camera advert, and a search for a golden-hour portrait offered a lingerie shot first.
+ */
+const UNSUITABLE = /\b(sexy|nude|naked|nudity|lingerie|bra|bikini|boudoir|erotic\w*|topless|underwear|fetish|advert\w*|poster|magazine|catalogu?e?|flyer|brochure|screenshot|logo|diagram|map|infographic|packaging)\b/i;
+const describes = (r: Result) => `${r.title ?? ""} ${(r.tags ?? []).map((t) => t.name ?? "").join(" ")}`.toLowerCase();
+const wordIn = (w: string, text: string) => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i").test(text);
 
 /** Most open first (CC0, public domain, then CC BY), then the largest. */
 const rank = (r: Result) => (r.license === "cc0" || r.license === "pdm" ? 0 : 1) * 1e9 - (r.width ?? 0) * (r.height ?? 0) / 1e3;
@@ -56,7 +66,11 @@ async function download(url: string, signal?: AbortSignal): Promise<{ bytes: Buf
 
 export async function findOpenImage(
   jail: PathJail,
-  input: { query: string; name?: string; orientation?: "landscape" | "portrait" | "square" },
+  /**
+   * mustMatch: words of which one must be in the photo's title or tags (FlowCode's own search for a record uses the
+   * record's words, so "quiet smile portrait" doesn't place a barista).
+   */
+  input: { query: string; name?: string; orientation?: "landscape" | "portrait" | "square"; mustMatch?: string[] },
   signal?: AbortSignal,
   /**
    * Looks at a candidate (Openverse's small preview) and says whether it clearly shows what was asked for. Search by
@@ -65,11 +79,23 @@ export async function findOpenImage(
   check?: (image: Buffer, query: string) => Promise<{ ok: boolean; reason: string }>,
 ): Promise<{ ok: boolean; message: string; paths: string[] }> {
   // Photographs only: scans of adverts and pages of text came back as photos for "window light portrait photography".
-  const q = new URLSearchParams({ q: input.query, license: "cc0,pdm,by", page_size: "12", mature: "false", category: "photograph" });
+  const q = new URLSearchParams({ q: input.query, license: "cc0,pdm,by", page_size: "20", mature: "false", category: "photograph" });
   if (input.orientation) q.set("aspect_ratio", input.orientation === "landscape" ? "wide" : input.orientation === "portrait" ? "tall" : "square");
   const res = await fetch(`${API}?${q}`, { headers: { "user-agent": UA, accept: "application/json" }, signal });
   if (!res.ok) return { ok: false, message: `The open image search didn't answer (HTTP ${res.status}). Try again, or use an inline SVG illustration instead.`, paths: [] };
-  const results = (((await res.json()) as { results?: Result[] }).results ?? []).filter((r) => r.url && (r.width ?? 0) >= 500).sort((a, b) => rank(a) - rank(b));
+  // A photo already in the app (credited) isn't offered again: each record gets its own.
+  let credited: ImageCredit[] = [];
+  try {
+    credited = JSON.parse(fs.readFileSync(jail.resolve(CREDITS).abs, "utf8")) as ImageCredit[];
+  } catch {
+    credited = [];
+  }
+  const used = new Set(credited.map((c) => c.source));
+  const must = (input.mustMatch ?? []).filter(Boolean);
+  const results = (((await res.json()) as { results?: Result[] }).results ?? [])
+    .filter((r) => r.url && (r.width ?? 0) >= 500 && !UNSUITABLE.test(describes(r)) && !used.has(r.foreign_landing_url ?? r.url))
+    .filter((r) => !must.length || must.some((w) => wordIn(w, describes(r))))
+    .sort((a, b) => rank(a) - rank(b));
   if (!results.length) return { ok: false, message: `No openly licensed photo found for "${input.query}". Try simpler words (e.g. "fresh vegetables market"), or draw an inline SVG illustration.`, paths: [] };
 
   const rejected: string[] = [];

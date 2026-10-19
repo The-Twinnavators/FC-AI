@@ -488,11 +488,55 @@ export function testKind(t: AcceptanceTest, corpus?: string): "text" | "outcome"
   const e = t.expect.trim();
   if (/\b[A-Z]\w*Screen\b|\bsrc\/|\[[a-z]+\]|\b(screen|page|route|view|tab)\b/i.test(e)) return "identifier";
   const numeric = /^[\d\s.,+\-−×÷*/=%()eE$€£]+$/.test(e);
-  if (corpus !== undefined && !numeric && isExactValue(e)) return normalize(corpus).includes(normalize(e)) ? (isExactTest(t) ? "text" : "outcome") : "outcome";
+  // A percentage is the app's text only when the spec says it (Frameproof planning: "selection progress 30%" for a
+  // PRD that counts "N of 5"); a calculated number ("14") needn't be in the spec.
+  if (corpus !== undefined && numeric && inventedPercent(corpus, e)) return "outcome";
+  if (corpus !== undefined && !numeric && isExactValue(e)) return givenAsText(corpus, e) ? (isExactTest(t) ? "text" : "outcome") : "outcome";
   if (DESCRIBES.test(e)) return "outcome";
   return isExactTest(t) ? "text" : "outcome";
 }
 const normalize = (s: string) => s.toLowerCase().replace(/["“”'‘’`]/g, "").replace(/\s+/g, " ");
+
+/** A percentage the spec never gives. */
+const inventedPercent = (corpus: string, e: string) => /%\s*$/.test(e) && !normalize(corpus).includes(normalize(e).trim());
+
+/** Words about how the app looks: never text it shows ("off-white background", "muted cobalt accent"). */
+const DESIGN_WORDS = /\b(background|foreground|colou?rs?|fonts?|typeface|borders?|shadows?|radius|corners?|spacing|padding|margins?|off-white|accent|palette|layout|grid|serif|sans)\b/i;
+
+/**
+ * Words the spec gives as the app's own text: a quoted phrase ("…", “…”, `…`; a record's value is quoted in the
+ * sample data), a table cell, or the value after a label ("photo-02: Window Light"). A part of one counts when it is
+ * two words or more; a single word inside a longer name doesn't. Frameproof planning: "Portrait" was required on screen
+ * because the gallery is called "Autumn Portrait Session", and "off-white background" because the visual direction
+ * says "warm off-white background".
+ */
+export function givenAsText(corpus: string, e: string): boolean {
+  const want = normalize(e).replace(/[.!]$/, "").trim();
+  if (!want) return false;
+  const spans = [
+    ...[...corpus.matchAll(/"([^"\n]{1,200})"|“([^”\n]{1,200})”|`([^`\n]{1,200})`/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? ""),
+    ...corpus.split(/\r?\n/).flatMap((l) => (/^\s*\|.*\|\s*$/.test(l) ? l.split("|").map((c) => c.trim()) : [])),
+    // A short value after a label, not a sentence.
+    ...corpus.split(/\r?\n/).map((l) => /^\s*(?:[-*]\s+)?[\w .'-]{1,40}:\s+(.+?)\s*$/.exec(l)?.[1] ?? "").filter((v) => v.split(/\s+/).length <= 6),
+  ]
+    .map((x) => normalize(x).replace(/[.!]$/, "").trim())
+    .filter(Boolean);
+  // The whole phrase as given; a part of one only when it isn't words about the look.
+  return spans.some((x) => x === want || (want.includes(" ") && !DESIGN_WORDS.test(want) && x.includes(want)));
+}
+
+/**
+ * A step planned before givenAsText: its tests needn't contain words the spec never gives as the app's text. Those
+ * checks become notes (the composed or planned tests still check the behaviour).
+ */
+export function withoutInventedText<C extends { description: string; check: object }>(criteria: C[], corpus: string): C[] {
+  return criteria.map((c) => {
+    const k = c.check as { type?: string; path?: string; text?: string };
+    if (k.type !== "file_contains" || !k.path?.startsWith("src/acceptance/") || typeof k.text !== "string") return c;
+    if ((/^[\d\s.,+\-−×÷*/=%()eE$€£]+$/.test(k.text) && !inventedPercent(corpus, k.text)) || givenAsText(corpus, k.text)) return c;
+    return { ...c, check: { type: "manual", note: `Was "the tests check that the app shows ${k.text}"; the spec doesn't give those words as the app's text, so they aren't required.` } } as C;
+  });
+}
 /** Words that describe a result rather than being the result's own text. */
 const DESCRIBES = /\b(appears?|displayed|shown|shows?|added|removed|remains?|still|navigates?|navigated|opens?|opened|prompt(ed)?|list of|visible|updated|redirect\w*|is|are|gets?|becomes?)\b/i;
 
@@ -510,7 +554,7 @@ export function isExactValue(e: string): boolean {
 }
 
 /** A short title for a step that builds several checklist items. */
-function stepTitle(group: PlanItem[]): string {
+export function stepTitle(group: PlanItem[]): string {
   if (group.length === 1) return group[0].title;
   const joined = group.map((i) => i.title).join(", ");
   return joined.length <= 80 ? joined : `${group[0].categoryTitle}: ${group[0].title} and ${group.length - 1} more`;

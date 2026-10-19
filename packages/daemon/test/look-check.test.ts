@@ -29,6 +29,20 @@ describe.skipIf(process.env.FLOWCODE_SKIP_BROWSER === "1")("look check rules", (
     }
   }, 60_000);
 
+  it("passes a toggle on every item that holds that item's own state (each photo's pick in a gallery)", async () => {
+    // Frameproof: "Add to selection" on each of 12 photos was flagged as a repeated control.
+    const cards = Array.from({ length: 12 }, (_, i) => `<div><span>Photo ${i + 1}</span><button aria-pressed="${i < 2}" aria-label="Add Photo ${i + 1} to your selection">${i < 2 ? "Selected" : "Add to selection"}</button></div>`).join("");
+    const { server, url } = await serve(page(`<p>Choose 5 photos for your selection.</p>${cards}`));
+    const session = await BrowserSession.launch("test-look-check-toggles");
+    try {
+      const rules = (await lookCheck(session, url)).findings.map((f) => f.rule);
+      expect(rules).not.toContain("repeated-controls");
+    } finally {
+      server.close();
+      await session.close();
+    }
+  }, 60_000);
+
   it("passes a composed screen that shows its sample data", async () => {
     const days = Array.from({ length: 14 }, (_, i) => `<button aria-label="October ${i + 1}">${i + 1}</button>`).join("");
     const sim = `<script>window.__simCounts = () => ({ "calendar-events": 3 });</script>`;
