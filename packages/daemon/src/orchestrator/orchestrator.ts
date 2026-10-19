@@ -4606,7 +4606,10 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       if (!sheet || (screen && !src.includes("Composed by FlowCode"))) return;
       this.d.store.setSetting(`polishCheckFirst:${task.id}`, true);
       this.d.store.setSetting(`refining:${task.id}`, true);
-      if (screen) this.updateTask(this.d.store.tasks.require(task.id), { expectedPaths: [sheet], objective: `${task.objective}\nThe screen's markup (${screen}) is FlowCode's and works: change only ${sheet}; read ${screen} with read_file if you need its class names.` });
+      // A polish part may find nothing to change (the look check judges it): "changed its own files" isn't asked of it
+      // (Frameproof: the Gallery part failed its first check on that alone and spent eight minutes on a token edit).
+      const criteria = task.acceptanceCriteria.filter((c) => !String((c.check as { kind?: string }).kind ?? "").startsWith("changed:"));
+      this.updateTask(this.d.store.tasks.require(task.id), { acceptanceCriteria: criteria, ...(screen ? { expectedPaths: [sheet], objective: `${task.objective}\nThe screen's markup (${screen}) is FlowCode's and works: change only ${sheet}; read ${screen} with read_file if you need its class names.` } : {}) });
       return;
     }
     if (task.title !== DESIGN_POLISH) return;
