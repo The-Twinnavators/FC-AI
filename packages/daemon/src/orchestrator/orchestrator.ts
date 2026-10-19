@@ -4578,9 +4578,20 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     if (task.role !== "coder" || task.title !== CLEAN_UP || this.d.store.getSetting(`cleanupComposed:${task.id}`, false)) return;
     const scan = scanCleanup(jail);
     const gone = [...scan.unusedFiles, ...scan.strayFiles, ...scan.unusedImages];
-    if (!gone.length) return;
     const ctx = { jail, projectId: run.projectId, runId: run.id, taskId: task.id, toolCallId: `fc_cleanup_${task.id}`, approved: true };
     const removed = gone.filter((p) => this.d.ops.delete_file(ctx, { path: p, reason: "FlowCode's clean-up scan: nothing uses it" } as never).ok);
+    // The photo credits match the pictures the app shows: one entry per picture that's there (the latest), none for a
+    // picture that's gone (Frameproof: replaced and removed photos kept their credits, and the scan failed on them).
+    const creditsFile = "src/content/image-credits.json";
+    try {
+      const credits = JSON.parse(fs.readFileSync(jail.resolve(creditsFile).abs, "utf8")) as Array<{ file?: string }>;
+      const latest = new Map<string, (typeof credits)[number]>();
+      for (const c of credits) if (c.file && fs.existsSync(jail.resolve(`public${c.file}`).abs)) latest.set(c.file, c);
+      const kept = [...latest.values()];
+      if (kept.length !== credits.length && this.d.ops.replaceContent(ctx, creditsFile, `${JSON.stringify(kept, null, 2)}\n`).ok) removed.push(`${credits.length - kept.length} stale photo credit${credits.length - kept.length === 1 ? "" : "s"}`);
+    } catch {
+      /* no credits file */
+    }
     if (!removed.length) return;
     this.d.store.setSetting(`cleanupComposed:${task.id}`, true);
     this.updateTask(this.d.store.tasks.require(task.id), { actualPaths: [...new Set([...task.actualPaths, ...removed])] });
