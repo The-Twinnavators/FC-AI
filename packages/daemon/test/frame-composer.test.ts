@@ -3,7 +3,7 @@
  * imported by App.tsx, which counts as frame evidence. Frameproof: the frame part's model wrote prose and no tool call.
  */
 import { describe, expect, it } from "vitest";
-import { frameCss, usesAppFrame, withFrameImport } from "../src/orchestrator/frameComposer.js";
+import { frameCss, refreshedFrameCss, usesAppFrame, withFrameImport } from "../src/orchestrator/frameComposer.js";
 import { cssRules, frameCssChanges } from "../src/quality/frameCheck.js";
 
 const APP = `import type { ComponentType } from "react";
@@ -30,5 +30,16 @@ describe("the composed frame", () => {
     const next = withFrameImport(APP)!;
     expect(next).toContain('import { store } from "./app/store";\nimport "./styles/frame.css";\n');
     expect(withFrameImport(next)).toBeUndefined();
+  });
+});
+
+describe("a composed frame brought up to date", () => {
+  it("gains the composer's newer rules, keeps the step's own, and leaves a frame that isn't FlowCode's alone", () => {
+    const old = frameCss("Frameproof").replace(".fl-af-env { color: var(--color-text); }\n", "").replace(".fl-af-top { background: var(--color-bg);", ".fl-af-top { background: var(--color-surface);");
+    const next = refreshedFrameCss(old, "Frameproof")!;
+    expect(next).toContain(".fl-af-env { color: var(--color-text); }");
+    expect(next).toContain(".fl-af-top { background: var(--color-surface);");
+    expect(refreshedFrameCss(next, "Frameproof")).toBeUndefined();
+    expect(refreshedFrameCss(".fl-af-rail { color: red; }", "Frameproof")).toBeUndefined();
   });
 });

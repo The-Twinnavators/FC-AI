@@ -99,7 +99,8 @@
 .fl-af-crumbs li[aria-current="page"] { color: var(--color-text); font-weight: var(--weight-semibold); }
 .fl-af-env {
   flex: none; padding: 1px var(--space-2); border-radius: var(--radius-sm); font: var(--weight-bold) var(--text-xs) / 1.5 var(--font-mono, var(--font-sans)); letter-spacing: var(--tracking-wide);
-  color: var(--color-warning, #b45309); background: color-mix(in srgb, var(--color-warning, #b45309) 14%, transparent); border: 1px solid color-mix(in srgb, var(--color-warning, #b45309) 35%, transparent);
+  /* The text in the main colour: a Look's warning colour on its own tint can fall below the contrast minimum (Frameproof). */
+  color: var(--color-text); background: color-mix(in srgb, var(--color-warning, #b45309) 14%, transparent); border: 1px solid color-mix(in srgb, var(--color-warning, #b45309) 35%, transparent);
 }
 .fl-af-tools { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; min-width: 0; }
 

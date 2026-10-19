@@ -19,6 +19,20 @@ export function withFrameImport(app: string): string | undefined {
   return `${app.slice(0, at)}\nimport "./styles/frame.css";${app.slice(at)}`;
 }
 
+/**
+ * A frame stylesheet FlowCode composed, with the rules its composer has since gained appended (by selector; the step's
+ * refinements stay as they are). Undefined when the file isn't FlowCode's or has every rule. Frameproof: the "PROTOTYPE"
+ * badge failed the final contrast check after the frame was composed.
+ */
+export function refreshedFrameCss(current: string, product: string): string | undefined {
+  if (!current.includes("composed by FlowCode (frameComposer.ts)")) return undefined;
+  const has = new Set([...current.matchAll(/(^|\n)([^{}\n/@][^{}]*?)\s*\{/g)].map((m) => m[2]!.trim()));
+  const missing = frameCss(product)
+    .split("\n")
+    .filter((l) => /^\.[^{]+\{.*\}$/.test(l.trim()) && !has.has(l.trim().replace(/\s*\{.*$/, "").trim()));
+  return missing.length ? `${current.trimEnd()}\n${missing.join("\n")}\n` : undefined;
+}
+
 export function frameCss(product: string): string {
   return `/**
  * ${product.replace(/\*\//g, "* /")}'s frame, composed by FlowCode (frameComposer.ts): the rail, brand, navigation, top bar and page
@@ -37,6 +51,7 @@ export function frameCss(product: string): string {
 .fl-af-top { background: var(--color-bg); border-bottom: var(--border-width, 1px) solid var(--color-border); }
 .fl-af-crumbs ol { font-size: var(--text-sm); }
 .fl-af-main { background: var(--color-bg); }
+.fl-af-env { color: var(--color-text); }
 @media (prefers-reduced-motion: reduce) { .fl-af-item, .fl-af-iconbtn { transition: none; } }
 `;
 }

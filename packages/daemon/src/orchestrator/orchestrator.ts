@@ -73,7 +73,7 @@ import { UNSUITABLE, findOpenImage } from "../workspace/openImages.js";
 
 /** The version of what makes a record's photo suitable: photos already placed are looked at again when it changes. */
 const PICTURE_RULES = "3";
-import { FRAME_SHEET, frameCss, usesAppFrame, withFrameImport } from "./frameComposer.js";
+import { FRAME_SHEET, frameCss, refreshedFrameCss, usesAppFrame, withFrameImport } from "./frameComposer.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
@@ -1659,6 +1659,19 @@ ${brief.text}` : objective, expectedPaths });
     // Verification (even when blocked, to produce evidence for the report — but downstream claims stay blocked).
     this.setStatus(runId, "verifying", "Running verification");
     this.d.bus.emit({ type: "phase.started", projectId: project.id, runId, message: "Phase: verification", data: { phase: "verification" } });
+    // A frame stylesheet FlowCode composed gets the rules its composer has gained since (frameComposer.ts), before the
+    // final checks judge it.
+    {
+      const jail = this.d.projects.jail(project.id);
+      try {
+        const current = fs.readFileSync(jail.resolve(FRAME_SHEET).abs, "utf8");
+        const model = this.d.store.getSetting<AppModel | null>(appModelKey(runId), null);
+        const next = refreshedFrameCss(current, model?.product ?? project.name);
+        if (next && this.d.ops.replaceContent({ jail, projectId: project.id, runId, toolCallId: `fc_frame_refresh_${runId}`, approved: true }, FRAME_SHEET, next).ok) this.d.bus.emit({ type: "recovery.action", projectId: project.id, runId, message: `FlowCode brought the frame it styled (${FRAME_SHEET}) up to date with its current rules before the final checks, with no model.` });
+      } catch {
+        /* no FlowCode frame */
+      }
+    }
     await this.d.verifier.runRequired(this.d.store.runs.require(runId), { signal, skipRuntime: anyDead });
     if (signal.aborted) return;
     // Every step passed but the final design check wants a screen state no step planned: add one repair step and carry
