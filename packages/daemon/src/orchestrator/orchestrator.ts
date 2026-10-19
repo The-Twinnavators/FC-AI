@@ -3075,7 +3075,7 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // Refining a screen FlowCode composed: its PRD requirements are what the composition built, so the step gets the
     // direction (below), not the screen's requirements again.
     // The frame FlowCode styled (frameComposer.ts) is refined the same way: its stylesheet is the whole of the work.
-    const refining = !!this.d.store.getSetting(`composedFrom:${task.id}`, null) || this.d.store.getSetting(`frameComposed:${task.id}`, false);
+    const refining = !!this.d.store.getSetting(`composedFrom:${task.id}`, null) || this.d.store.getSetting(`frameComposed:${task.id}`, false) || this.d.store.getSetting(`refining:${task.id}`, false);
     if (prdPath && !refining && !composedFix) {
       try {
         const md = readFile(jail, prdPath).content;
@@ -4575,7 +4575,26 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
    * checked first, its tests and the look check deciding, before any model work.
    */
   private markPolishCheckFirst(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
-    if (task.role !== "coder" || task.title !== DESIGN_POLISH || this.d.store.getSetting(`polishCheckFirst:${task.id}`, false)) return;
+    if (task.role !== "coder" || this.d.store.getSetting(`polishCheckFirst:${task.id}`, false)) return;
+    // A part of polish for a composed screen (or FlowCode's frame) is a stylesheet refinement: checked first, then its
+    // stylesheet only with a refining step's lean brief, the screen read on request (Frameproof: the screen and its
+    // stylesheet attached together left later turns 1,000–2,700 tokens over).
+    if (this.d.store.getSetting<string>(`splitParent:${task.id}`, "") === DESIGN_POLISH) {
+      const sheet = task.expectedPaths.find((p) => /\.css$/.test(p));
+      const screen = task.expectedPaths.find((p) => /\.tsx$/.test(p));
+      let src = "";
+      try {
+        src = screen ? fs.readFileSync(jail.resolve(screen).abs, "utf8") : "";
+      } catch {
+        src = "";
+      }
+      if (!sheet || (screen && !src.includes("Composed by FlowCode"))) return;
+      this.d.store.setSetting(`polishCheckFirst:${task.id}`, true);
+      this.d.store.setSetting(`refining:${task.id}`, true);
+      if (screen) this.updateTask(this.d.store.tasks.require(task.id), { expectedPaths: [sheet], objective: `${task.objective}\nThe screen's markup (${screen}) is FlowCode's and works: change only ${sheet}; read ${screen} with read_file if you need its class names.` });
+      return;
+    }
+    if (task.title !== DESIGN_POLISH) return;
     const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
     const views = model ? builtViews(model) : [];
     const composed = views.length > 0 && views.every((v) => {
