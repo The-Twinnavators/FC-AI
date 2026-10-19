@@ -62,9 +62,17 @@ export function requestBudget(opts: { windowTokens: number; replyTokens: number;
  */
 export function laterTurnFits(b: RequestBudget, openingChars: number, largestReadChars: number, diagnosticChars = 2000, headroom = 0): { fits: boolean; tokens: number } {
   const chars = openingChars + largestReadChars + diagnosticChars + 1400;
-  const tokens = Math.ceil(chars / (b.charsPerToken * 0.8)) + b.replyTokens;
+  const tokens = Math.ceil(chars / laterTurnCharsPerToken(b.charsPerToken)) + b.replyTokens;
   return { fits: tokens + headroom <= b.windowTokens, tokens };
 }
+
+/**
+ * Characters a token on a later turn: 80% of the measured rate (the opening is mostly prose, later turns carry code and
+ * stylesheets), but never denser than 3.0, which is denser than any turn measured (Clean Cart's stylesheet-heavy turns:
+ * 3.21). A rate measured on code-heavy requests is already dense: discounting it again (3.2 → 2.56) made Frameproof's
+ * composed Gallery look 2,113 tokens too big for its window.
+ */
+export const laterTurnCharsPerToken = (measured: number) => Math.min(measured, Math.max(3, measured * 0.8));
 
 /**
  * Working headroom a local model's later turn leaves free on purpose: a tenth of the window. Frameproof's design parts
@@ -75,7 +83,7 @@ export const headroomTokens = (windowTokens: number) => Math.floor(windowTokens 
 
 /** The largest opening (characters) whose later turn (laterTurnFits) still leaves `headroom` tokens free. */
 export function openingWithin(b: RequestBudget, largestReadChars: number, headroom: number, diagnosticChars = 2000): number {
-  return Math.max(0, Math.floor((b.windowTokens - headroom - b.replyTokens) * b.charsPerToken * 0.8) - largestReadChars - diagnosticChars - 1400);
+  return Math.max(0, Math.floor((b.windowTokens - headroom - b.replyTokens) * laterTurnCharsPerToken(b.charsPerToken)) - largestReadChars - diagnosticChars - 1400);
 }
 
 /**

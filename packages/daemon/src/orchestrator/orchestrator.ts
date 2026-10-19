@@ -3760,7 +3760,9 @@ ${brief.text}` : objective, expectedPaths });
     const jail = this.d.projects.jail(run.projectId);
     const restored = this.d.snapshots.restoreTask(taskId, jail);
     const task = this.d.store.tasks.require(taskId);
-    this.updateTask(task, { status: "pending", actualPaths: [], blocker: undefined });
+    // A rolled-back step starts over with its full tries, as the coder (Frameproof: kept at attempt 1, the Gallery's
+    // next run went straight to the debugger).
+    this.updateTask(task, { status: "pending", attempts: 0, actualPaths: [], blocker: undefined });
     for (const t of this.graph.tasks(runId)) if (t.dependsOn.includes(taskId) && t.status === "verified") this.updateTask(t, { status: "invalidated" });
     return { restored: restored.length };
   }

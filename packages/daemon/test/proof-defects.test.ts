@@ -93,6 +93,17 @@ describe("a pictures step's completeness check", () => {
   });
 });
 
+describe("rolling a step back", () => {
+  it("lets it start over with its full tries, as the coder", async () => {
+    const { app } = makeApp();
+    const { project } = makeProject(app, { "README.md": "# demo\n" });
+    const run = app.orchestrator.createRun({ projectId: project.id, objective: "demo", constraints: [], attachedKnowledgeIds: [] });
+    app.store.tasks.upsert({ id: "t1", runId: run.id, title: "Design the Gallery screen", objective: "o", status: "blocked", dependsOn: [], expectedPaths: [], actualPaths: [], acceptanceCriteria: [], validationPlan: { kinds: [] }, role: "coder", ordinal: 1, attempts: 1 } as unknown as Task);
+    app.orchestrator.rollbackTask(run.id, "t1");
+    expect(app.store.tasks.require("t1")).toMatchObject({ status: "pending", attempts: 0 });
+  });
+});
+
 describe("a retry on a local model", () => {
   it("is shown the step's tools, not every tool its role allows", async () => {
     const { app } = makeApp();
@@ -106,5 +117,14 @@ describe("a retry on a local model", () => {
     const debuggerReq = await app.orchestrator.measureRequest(run.id, app.store.tasks.require("t1"), "debugger");
     expect(debuggerReq!.toolsChars).toBeLessThanOrEqual(coder!.toolsChars + 400);
     expect(debuggerReq!.toolsChars).toBeLessThan(10_000);
+  });
+});
+
+describe("a later turn's estimate", () => {
+  it("discounts a prose-like rate for code, but doesn't discount an already dense rate again", async () => {
+    const { laterTurnCharsPerToken } = await import("../src/orchestrator/requestBudget.js");
+    expect(laterTurnCharsPerToken(3.8)).toBeCloseTo(3.04);
+    expect(laterTurnCharsPerToken(3.2)).toBe(3);
+    expect(laterTurnCharsPerToken(2.8)).toBe(2.8);
   });
 });
