@@ -592,3 +592,38 @@ export function typeErrorHints(jail: PathJail, raw: string[]): string[] {
     hints.push(`Fix the syntax errors (TS1…/TS17…) in ${syntaxFiles.join(", ")} first: an unclosed tag or brace causes many misleading errors after it. Re-run the type check only once the file parses, then fix the type errors.`);
   return hints;
 }
+
+/**
+ * Imports the step's own edits dropped (TS2304 "Cannot find name"), put back from the file as it was before the step:
+ * the calculator's layout step removed `import { Button } from "../sections/ButtonsVariants"` while its buttons stayed,
+ * and two files export a Button, so no single exporter could be named. Returns the new text per file.
+ */
+export function droppedImportFixes(jail: PathJail, errors: string[], before: (file: string) => string | undefined): Map<string, string> {
+  const out = new Map<string, string>();
+  const missing = new Map<string, Set<string>>();
+  for (const line of errors) {
+    const m = /^(\S+?\.[jt]sx?)\(\d+,\d+\): error TS2304: Cannot find name '(\w+)'/.exec(line);
+    if (m) missing.set(m[1]!, (missing.get(m[1]!) ?? new Set()).add(m[2]!));
+  }
+  for (const [file, names] of missing) {
+    const was = before(file);
+    if (!was) continue;
+    let text = "";
+    try {
+      text = out.get(file) ?? fs.readFileSync(path.join(jail.root, file), "utf8");
+    } catch {
+      continue;
+    }
+    const add: string[] = [];
+    for (const name of names) {
+      const line = was.split("\n").find((l) => /^import\s/.test(l.trim()) && new RegExp(`\\b${name}\\b`).test(l) && /from\s+["']/.test(l));
+      if (line && !text.includes(line.trim()) && !add.includes(line.trim())) add.push(line.trim());
+    }
+    if (!add.length) continue;
+    const imports = [...text.matchAll(/^import[^;]*;[ \t]*$/gm)];
+    const last = imports.at(-1);
+    const at = last?.index !== undefined ? last.index + last[0].length : 0;
+    out.set(file, at ? `${text.slice(0, at)}\n${add.join("\n")}${text.slice(at)}` : `${add.join("\n")}\n${text}`);
+  }
+  return out;
+}

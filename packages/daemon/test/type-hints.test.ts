@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { PathJail } from "../src/security/pathJail.js";
-import { importFixes, typeErrorHints } from "../src/quality/typeHints.js";
+import { droppedImportFixes, importFixes, typeErrorHints } from "../src/quality/typeHints.js";
 
 function project(files: Record<string, string>) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "fc-hints-"));
@@ -327,5 +327,16 @@ describe("look-up layer hints", () => {
     expect(h).toBeTruthy();
     expect(h).toContain("lookup.setZip(zip)");
     expect(h).toContain("<ZipPrompt lookup={lookup} />");
+  });
+});
+
+describe("droppedImportFixes", () => {
+  it("puts back an import the step's own edit dropped (the calculator's Button), from the file as it was", () => {
+    const before = 'import { PageHeader } from "../components/ui";\nimport { Button } from "../sections/ButtonsVariants";\n\nexport default function S() { return <Button>7</Button>; }\n';
+    const now = 'import { PageHeader } from "../components/ui";\n\nexport default function S() { return <Button>7</Button>; }\n';
+    const jail = project({ "src/screens/CalculatorScreen.tsx": now });
+    const out = droppedImportFixes(jail, ["src/screens/CalculatorScreen.tsx(3,40): error TS2304: Cannot find name 'Button'."], (f) => (f === "src/screens/CalculatorScreen.tsx" ? before : undefined));
+    expect(out.get("src/screens/CalculatorScreen.tsx")).toBe('import { PageHeader } from "../components/ui";\nimport { Button } from "../sections/ButtonsVariants";\n\nexport default function S() { return <Button>7</Button>; }\n');
+    expect(droppedImportFixes(jail, ["src/screens/CalculatorScreen.tsx(3,40): error TS2304: Cannot find name 'Button'."], () => undefined).size).toBe(0);
   });
 });

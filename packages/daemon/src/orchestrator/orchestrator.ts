@@ -60,7 +60,8 @@ import { contentProblems } from "../quality/contentCheck.js";
 import { contextForCoding } from "../models/gpuMemory.js";
 import { verticalSlices } from "./verticalSlices.js";
 import { hollowTests, missingDeliverables } from "../quality/deliverables.js";
-import { importFixes, typeErrorHints } from "../quality/typeHints.js";
+import { droppedImportFixes, importFixes, typeErrorHints } from "../quality/typeHints.js";
+import type { SnapshotRow } from "../workspace/snapshots.js";
 import { consistencyProblems, consistencySnapshot, type ConsistencySnapshot } from "../quality/consistencyCheck.js";
 import { UPGRADE_STEPS, upgradeTasks } from "./upgradeSteps.js";
 import { LAYOUT_STEPS, layoutGuidance, pickLayouts } from "./layoutRecipes.js";
@@ -2250,6 +2251,14 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       let errors = await this.d.verifier.newTypeErrors(this.d.store.runs.require(run.id), signal, task.actualPaths).catch(() => [] as string[]);
       const owns = (f: string) => [...task.expectedPaths, ...task.actualPaths].some((o) => (o.endsWith("/") ? f.startsWith(o) : o.replace(/\.(jsx?|tsx?)$/, "") === f.replace(/\.(jsx?|tsx?)$/, "")));
       const fixes = importFixes(jail, errors, owns);
+      // An import this step's own edits dropped comes back from the file as it was when the step started.
+      const firstSnap = new Map<string, SnapshotRow>();
+      for (const s of this.d.snapshots.forRun(run.id)) if (s.taskId === task.id && !s.restoredAt && !firstSnap.has(s.relativePath.replace(/\\/g, "/"))) firstSnap.set(s.relativePath.replace(/\\/g, "/"), s);
+      for (const [file, text] of droppedImportFixes(jail, errors.filter((l) => owns(/^(\S+?\.[jt]sx?)\(/.exec(l)?.[1] ?? "")), (f) => {
+        const s = firstSnap.get(f);
+        return s ? this.d.snapshots.priorContent(s) : undefined;
+      }))
+        if (!fixes.has(file)) fixes.set(file, text);
       for (const [file, text] of fixes) this.d.ops.replaceContent({ jail, projectId: project.id, runId: run.id, taskId: task.id, toolCallId: `fc_imports_${task.id}`, approved: true }, file, text);
       if (fixes.size) {
         this.d.bus.emit({ ...ev, type: "recovery.action", message: `Fixed ${fixes.size === 1 ? "an import" : "imports"} in ${[...fixes.keys()].join(", ")}: a name was imported from a file that doesn't export it` });
