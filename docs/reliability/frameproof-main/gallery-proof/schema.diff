@@ -1,0 +1,74 @@
+--- .flowcode-data/backups/20261019T024204Z/frameproof-f6873f/src/app/schema.ts	2026-10-18 14:22:52.341015300 -0400
++++ .flowcode-data/workspaces/frameproof-f6873f/src/app/schema.ts	2026-10-19 00:42:34.775113300 -0400
+@@ -135,7 +135,7 @@
+       "title": "Golden Hour",
+       "category": "Outdoor",
+       "orientation": "Portrait",
+-      "imageSource": "",
++        "imageSource": "/images/photo-01.jpg",
+       "altText": "A portrait photo of a person during golden hour lighting.",
+       "note": "Captured during the golden hour with soft, warm lighting."
+     },
+@@ -144,7 +144,7 @@
+       "title": "Window Light",
+       "category": "Studio",
+       "orientation": "Portrait",
+-      "imageSource": "",
++        "imageSource": "/images/photo-02.jpg",
+       "altText": "A portrait photo using window light as the main source.",
+       "note": "Taken in a studio with natural window light."
+     },
+@@ -153,7 +153,7 @@
+       "title": "Walking Together",
+       "category": "Outdoor",
+       "orientation": "Landscape",
+-      "imageSource": "",
++        "imageSource": "/images/photo-03.jpg",
+       "altText": "A landscape photo of two people walking together.",
+       "note": "Shot during a walk in a scenic outdoor location."
+     },
+@@ -171,7 +171,7 @@
+       "title": "Garden Steps",
+       "category": "Outdoor",
+       "orientation": "Landscape",
+-      "imageSource": "",
++        "imageSource": "/images/photo-05.jpg",
+       "altText": "A landscape photo of steps leading through a garden.",
+       "note": "Captured in a garden with a focus on the steps and surrounding flora."
+     },
+@@ -180,7 +180,7 @@
+       "title": "Soft Shadows",
+       "category": "Studio",
+       "orientation": "Portrait",
+-      "imageSource": "",
++        "imageSource": "/images/photo-06.jpg",
+       "altText": "A portrait photo with soft shadows creating a moody atmosphere.",
+       "note": "Taken in a studio with controlled lighting to create soft shadows."
+     },
+@@ -198,7 +198,7 @@
+       "title": "Looking Back",
+       "category": "Outdoor",
+       "orientation": "Landscape",
+-      "imageSource": "",
++        "imageSource": "/images/photo-08.jpg",
+       "altText": "A landscape photo of a person looking back along a path.",
+       "note": "Taken in an outdoor setting with a focus on the person and their surroundings."
+     },
+@@ -216,7 +216,7 @@
+       "title": "Under the Oak",
+       "category": "Outdoor",
+       "orientation": "Landscape",
+-      "imageSource": "",
++        "imageSource": "/images/photo-10.jpg",
+       "altText": "A landscape photo of a person sitting under an oak tree.",
+       "note": "Captured in a natural outdoor setting with a focus on the person and the tree."
+     },
+@@ -234,7 +234,7 @@
+       "title": "Last Light",
+       "category": "Outdoor",
+       "orientation": "Portrait",
+-      "imageSource": "",
++        "imageSource": "/images/photo-12.jpg",
+       "altText": "A portrait capturing the last light of day",
+       "note": "Shot during the golden hour at a scenic outdoor location."
+     }

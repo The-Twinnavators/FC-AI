@@ -1,0 +1,242 @@
+/** The app's records, written by FlowCode from the app model: what each record holds, its statuses and status changes, and the sample data. */
+import type { AppSchema, RecordData } from "../sections/AppData";
+
+export const schema: AppSchema = {
+  "appKey": "frameproof",
+  "roles": [
+    "client"
+  ],
+  "entities": [
+    {
+      "key": "gallery",
+      "label": "Gallery",
+      "plural": "Galleries",
+      "titleField": "title",
+      "subtitleField": "photographer",
+      "idPrefix": "GAL",
+      "fields": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "photographer",
+          "label": "Photographer",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "client",
+          "label": "Client",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "requiredSelectionCount",
+          "label": "Required Selection Count",
+          "type": "number",
+          "required": true,
+          "min": 1,
+          "max": 10
+        }
+      ],
+      "columns": [],
+      "filters": []
+    },
+    {
+      "key": "photo",
+      "label": "Photo",
+      "plural": "Photos",
+      "titleField": "title",
+      "subtitleField": "category",
+      "idPrefix": "PHO",
+      "fields": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "options": [
+            "Outdoor",
+            "Studio",
+            "All"
+          ],
+          "required": true
+        },
+        {
+          "key": "orientation",
+          "label": "Orientation",
+          "type": "select",
+          "options": [
+            "Portrait",
+            "Landscape"
+          ],
+          "required": true
+        },
+        {
+          "key": "imageSource",
+          "label": "Image Source",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "altText",
+          "label": "Alt Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext",
+          "max": 300
+        }
+      ],
+      "columns": [],
+      "filters": [
+        "category"
+      ]
+    }
+  ]
+};
+
+export const seed: Record<string, RecordData[]> = {
+  "gallery": [
+    {
+      "id": "gallery-autumn",
+      "title": "Autumn Portrait Session",
+      "photographer": "Rowan Studio",
+      "client": "Maya Chen",
+      "requiredSelectionCount": 5
+    }
+  ],
+  "photo": [
+    {
+      "id": "photo-01",
+      "title": "Golden Hour",
+      "category": "Outdoor",
+      "orientation": "Portrait",
+        "imageSource": "/images/photo-01.jpg",
+      "altText": "A portrait photo of a person during golden hour lighting.",
+      "note": "Captured during the golden hour with soft, warm lighting."
+    },
+    {
+      "id": "photo-02",
+      "title": "Window Light",
+      "category": "Studio",
+      "orientation": "Portrait",
+        "imageSource": "/images/photo-02.jpg",
+      "altText": "A portrait photo using window light as the main source.",
+      "note": "Taken in a studio with natural window light."
+    },
+    {
+      "id": "photo-03",
+      "title": "Walking Together",
+      "category": "Outdoor",
+      "orientation": "Landscape",
+        "imageSource": "/images/photo-03.jpg",
+      "altText": "A landscape photo of two people walking together.",
+      "note": "Shot during a walk in a scenic outdoor location."
+    },
+    {
+      "id": "photo-04",
+      "title": "Quiet Smile",
+      "category": "Studio",
+      "orientation": "Portrait",
+      "imageSource": "",
+      "altText": "A portrait photo of a person with a quiet smile.",
+      "note": "Taken in a studio with a focus on facial expression."
+    },
+    {
+      "id": "photo-05",
+      "title": "Garden Steps",
+      "category": "Outdoor",
+      "orientation": "Landscape",
+        "imageSource": "/images/photo-05.jpg",
+      "altText": "A landscape photo of steps leading through a garden.",
+      "note": "Captured in a garden with a focus on the steps and surrounding flora."
+    },
+    {
+      "id": "photo-06",
+      "title": "Soft Shadows",
+      "category": "Studio",
+      "orientation": "Portrait",
+        "imageSource": "/images/photo-06.jpg",
+      "altText": "A portrait photo with soft shadows creating a moody atmosphere.",
+      "note": "Taken in a studio with controlled lighting to create soft shadows."
+    },
+    {
+      "id": "photo-07",
+      "title": "Autumn Path",
+      "category": "Outdoor",
+      "orientation": "Portrait",
+      "imageSource": "",
+      "altText": "A portrait photo of a path surrounded by autumn leaves.",
+      "note": "Shot during autumn with a focus on the path and surrounding foliage."
+    },
+    {
+      "id": "photo-08",
+      "title": "Looking Back",
+      "category": "Outdoor",
+      "orientation": "Landscape",
+        "imageSource": "/images/photo-08.jpg",
+      "altText": "A landscape photo of a person looking back along a path.",
+      "note": "Taken in an outdoor setting with a focus on the person and their surroundings."
+    },
+    {
+      "id": "photo-09",
+      "title": "Linen Backdrop",
+      "category": "Studio",
+      "orientation": "Portrait",
+      "imageSource": "",
+      "altText": "A portrait photo with a linen backdrop for a clean, minimalist look.",
+      "note": "Shot in a studio with a linen backdrop to create a clean aesthetic."
+    },
+    {
+      "id": "photo-10",
+      "title": "Under the Oak",
+      "category": "Outdoor",
+      "orientation": "Landscape",
+        "imageSource": "/images/photo-10.jpg",
+      "altText": "A landscape photo of a person sitting under an oak tree.",
+      "note": "Captured in a natural outdoor setting with a focus on the person and the tree."
+    },
+    {
+      "id": "photo-11",
+      "title": "Candid Laugh",
+      "category": "Studio",
+      "orientation": "Landscape",
+      "imageSource": "",
+      "altText": "A candid photo of people laughing",
+      "note": "Taken during a spontaneous moment at the studio session."
+    },
+    {
+      "id": "photo-12",
+      "title": "Last Light",
+      "category": "Outdoor",
+      "orientation": "Portrait",
+        "imageSource": "/images/photo-12.jpg",
+      "altText": "A portrait capturing the last light of day",
+      "note": "Shot during the golden hour at a scenic outdoor location."
+    }
+  ]
+};

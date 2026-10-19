@@ -1,0 +1,72 @@
+### 2026-10-19T04:43:10.180Z npm run typecheck -> failed (exit 2)
+
+> flowcode-starter@0.1.0 typecheck
+> tsc --noEmit
+
+src/screens/GalleryScreen.tsx(6,10): error TS2305: Module '"../app/store"' has no exported member 'useRecords'.
+src/screens/GalleryScreen.tsx(12,39): error TS2304: Cannot find name 'useState'.
+
+
+### 2026-10-19T04:43:13.222Z npm run typecheck -> failed (exit 2)
+
+> flowcode-starter@0.1.0 typecheck
+> tsc --noEmit
+
+src/screens/GalleryScreen.tsx(11,18): error TS2554: Expected 2 arguments, but got 1.
+src/screens/GalleryScreen.tsx(12,39): error TS2304: Cannot find name 'useState'.
+
+
+### 2026-10-19T04:43:26.321Z npm run typecheck -> failed (exit 2)
+
+> flowcode-starter@0.1.0 typecheck
+> tsc --noEmit
+
+src/screens/GalleryScreen.tsx(11,18): error TS2554: Expected 2 arguments, but got 1.
+src/screens/GalleryScreen.tsx(12,39): error TS2304: Cannot find name 'useState'.
+
+
+### 2026-10-19T04:43:37.785Z npm run typecheck -> failed (exit 2)
+
+> flowcode-starter@0.1.0 typecheck
+> tsc --noEmit
+
+src/screens/GalleryScreen.tsx(11,18): error TS2554: Expected 2 arguments, but got 1.
+src/screens/GalleryScreen.tsx(12,39): error TS2304: Cannot find name 'useState'.
+src/screens/GalleryScreen.tsx(19,5): error TS2322: Type '{ store: AppStore; entity: string; title: string; onOpen: (id: string) => void; search: any; onSearchChange: any; }' is not assignable to type 'IntrinsicAttributes & ResourceIndexProps'.
+  Property 'search' does not exist on type 'IntrinsicAttributes & ResourceIndexProps'.
+
+
+### 2026-10-19T04:43:56.389Z npm run typecheck -> failed (exit 2)
+
+> flowcode-starter@0.1.0 typecheck
+> tsc --noEmit
+
+src/screens/GalleryScreen.tsx(11,18): error TS2554: Expected 2 arguments, but got 1.
+src/screens/GalleryScreen.tsx(12,39): error TS2304: Cannot find name 'useState'.
+src/screens/GalleryScreen.tsx(19,5): error TS2322: Type '{ store: AppStore; entity: string; title: string; onOpen: (id: string) => void; search: any; onSearchChange: any; }' is not assignable to type 'IntrinsicAttributes & ResourceIndexProps'.
+  Property 'search' does not exist on type 'IntrinsicAttributes & ResourceIndexProps'.
+
+
+### 2026-10-19T04:44:14.404Z npm run typecheck -> failed (exit 2)
+
+> flowcode-starter@0.1.0 typecheck
+> tsc --noEmit
+
+src/screens/GalleryScreen.tsx(11,18): error TS2554: Expected 2 arguments, but got 1.
+src/screens/GalleryScreen.tsx(12,39): error TS2304: Cannot find name 'useState'.
+src/screens/GalleryScreen.tsx(19,5): error TS2322: Type '{ store: AppStore; entity: string; title: string; onOpen: (id: string) => void; search: any; onSearchChange: any; }' is not assignable to type 'IntrinsicAttributes & ResourceIndexProps'.
+  Property 'search' does not exist on type 'IntrinsicAttributes & ResourceIndexProps'.
+
+
+### 2026-10-19T04:44:17.457Z npm run typecheck -> failed (exit 2)
+
+> flowcode-starter@0.1.0 typecheck
+> tsc --noEmit
+
+src/screens/GalleryScreen.tsx(11,18): error TS2554: Expected 2 arguments, but got 1.
+src/screens/GalleryScreen.tsx(12,39): error TS2304: Cannot find name 'useState'.
+src/screens/GalleryScreen.tsx(19,5): error TS2322: Type '{ store: AppStore; entity: string; title: string; onOpen: (id: string) => void; search: any; onSearchChange: any; }' is not assignable to type 'IntrinsicAttributes & ResourceIndexProps'.
+  Property 'search' does not exist on type 'IntrinsicAttributes & ResourceIndexProps'.
+
+
+### 2026-10-19T04:44:21.113Z npm run typecheck -> blocked (exit undefined)

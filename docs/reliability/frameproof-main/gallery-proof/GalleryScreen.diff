@@ -1,0 +1,23 @@
+--- .flowcode-data/backups/20261019T024204Z/frameproof-f6873f/src/screens/GalleryScreen.tsx	2026-10-18 14:22:52.359228200 -0400
++++ .flowcode-data/workspaces/frameproof-f6873f/src/screens/GalleryScreen.tsx	2026-10-19 00:43:37.780117700 -0400
+@@ -5,7 +5,19 @@
+ import { ResourceIndex } from "../sections/ResourceIndex";
+ import { go } from "../app/routes";
+ import { store } from "../app/store";
++import { useRecords } from "../sections/AppData";
+ 
+ export default function GalleryScreen() {
+-  return <ResourceIndex store={store} entity={"photo"} title={"Gallery"} onOpen={(id) => go("photo-detail", id)} />;
++  const photos = useRecords("photo");
++  const [searchTerm, setSearchTerm] = useState("");
++  return (
++  <ResourceIndex
++    store={store}
++    entity="photo"
++    title="Gallery"
++    onOpen={(id) => go("photo-detail", id)}
++    search={searchTerm}
++    onSearchChange={setSearchTerm}
++  />
++);
+ }

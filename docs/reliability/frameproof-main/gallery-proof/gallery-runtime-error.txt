@@ -1,0 +1,9 @@
+Rendered at http://127.0.0.1:53273/#/gallery (FlowCode's project preview), 2026-10-19 ~04:48Z, before the Undo:
+blank page; browser console:
+Uncaught TypeError: getSnapshot is not a function
+    at mountSyncExternalStore (react-dom_client.js)
+    at Object.useSyncExternalStore (react-dom_client.js)
+    at useStore (src/sections/AppData.tsx:91:10)
+    at useRecords (src/sections/AppData.tsx:96:10)
+    at GalleryScreen (src/screens/GalleryScreen.tsx:9:18)
+Cause: GalleryScreen.failed.tsx calls useRecords("photo"); useRecords(store, entity) takes the store first.

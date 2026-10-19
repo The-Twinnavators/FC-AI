@@ -1,0 +1,56 @@
+// TEMPORARY (not committed): Frameproof fit recheck through measureRequest on copies of the live store and workspace.
+// PART_IDS set: measures those live tasks as they are now. Unset: builds the per-screen parts from the blocked design
+// step (as the split will) and measures them. Writes MEASURE_OUT. No model call, nothing live touched.
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { backup, DatabaseSync } from "node:sqlite";
+import { it } from "vitest";
+import type { Task } from "@flowcode/contracts";
+import { createApp } from "../src/app.js";
+import { buildSplit } from "../src/orchestrator/stepRecovery.js";
+import { customScreenFiles, designScreenParts } from "../src/orchestrator/designParts.js";
+import { appModelKey, type AppModel } from "../src/orchestrator/appModel.js";
+import { runPlanKey } from "../src/quality/lrcPlan.js";
+
+const REPO = path.resolve(import.meta.dirname, "../../..");
+const RUN = "run_b789650d36dd4323aa4b";
+const DESIGN = "task_809f74d05cc449f0b3f0";
+
+it("rechecks the fit of the design parts on copies", async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fc-measure-"));
+  const DATA = process.env.DATA_DIR ?? ".flowcode-data";
+  const live = new DatabaseSync(path.join(REPO, DATA, "flowcode.sqlite"), { readOnly: true });
+  await backup(live, path.join(tmp, "flowcode.sqlite"));
+  live.close();
+  const ws = path.join(tmp, "workspaces", "frameproof-f6873f");
+  fs.cpSync(path.join(REPO, DATA, "workspaces/frameproof-f6873f"), ws, { recursive: true, filter: (s) => !/[\\/]node_modules([\\/]|$)/.test(s) });
+  const copy = new DatabaseSync(path.join(tmp, "flowcode.sqlite"));
+  const refs = JSON.parse((copy.prepare("select value from settings where key='workspaceRefs'").get() as { value: string }).value);
+  refs.ws_7e4df4e9500fc3e7 = ws;
+  copy.prepare("update settings set value=? where key='workspaceRefs'").run(JSON.stringify(refs));
+  copy.close();
+  const app = createApp({ dataDir: tmp });
+  let tasks: Task[];
+  if (process.env.PART_IDS) tasks = process.env.PART_IDS.split(",").map((id) => app.store.tasks.require(id));
+  else {
+    const design = app.store.tasks.require(DESIGN);
+    const model = app.store.getSetting<AppModel>(appModelKey(RUN), null as never);
+    const plan = app.store.getSetting<{ requirements: Array<{ id: string; text: string; section: string }>; items: Array<{ files?: string[]; covers?: string[] }> }>(runPlanKey(RUN), null as never);
+    const parts = designScreenParts(model, plan.requirements, plan.items.map((i) => ({ files: i.files ?? [], covers: i.covers ?? [] })), "spec/Frameproof-PRD.md")!;
+    let n = 0;
+    const stateful = customScreenFiles(model);
+    tasks = buildSplit(design, parts, () => `task_measure_screen${++n}`, {}, { asWritten: true }).map((p) => (stateful.includes(p.expectedPaths[0] ?? "") ? { ...p, acceptanceCriteria: p.acceptanceCriteria.filter((c) => !String((c.check as { kind?: string }).kind ?? "").startsWith("images-used:")) } : p));
+    for (const p of tasks) {
+      app.store.tasks.upsert({ ...p, status: "pending", attempts: 0 });
+      app.store.setSetting(`splitParent:${p.id}`, design.title);
+      app.store.setSetting(`splitPart:${p.id}`, true);
+    }
+  }
+  const results: unknown[] = [];
+  for (const p of tasks) {
+    const m = await app.orchestrator.measureRequest(RUN, app.store.tasks.require(p.id));
+    results.push({ id: p.id, title: p.title, files: p.expectedPaths, total: m?.totalTokens, budget: m?.budgetTokens, overflow: m?.overflowTokens, laterTurn: m?.laterTurn, largestRead: m?.largestReadChars, headroom: m?.headroomTokens, optionalRoom: m?.optionalRoomChars, briefText: m?.briefText, systemText: m?.systemText, window: m?.windowTokens, reply: m?.replyTokens, dropped: m?.dropped });
+  }
+  fs.writeFileSync(process.env.MEASURE_OUT!, JSON.stringify(results, null, 2));
+}, 300_000);
