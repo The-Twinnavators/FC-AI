@@ -293,7 +293,7 @@ ${
   const css = `/* ${v.label}: ${COMPOSED.toLowerCase()} (selectionComposer.ts), styled only with the app's tokens. */
 .cmp-${v.id} { display: grid; gap: var(--space-5); padding-block: var(--space-6); }
 .cmp-${v.id} .cmp-crumbs { margin: 0; }
-.cmp-${v.id} .cmp-back { padding: 0; border: 0; background: none; color: var(--color-accent); font: inherit; font-size: var(--text-sm); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.cmp-${v.id} .cmp-back { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0; border: 0; background: none; color: var(--color-accent); font: inherit; font-size: var(--text-sm); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .cmp-${v.id} .cmp-back:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .cmp-${v.id} .cmp-detail-body { display: grid; gap: var(--space-6); grid-template-columns: minmax(0, 3fr) minmax(16rem, 2fr); align-items: start; }
 .cmp-${v.id} .cmp-figure { margin: 0; background: var(--color-surface-sunken); border: var(--border-width, 1px) solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
