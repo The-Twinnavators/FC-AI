@@ -195,9 +195,11 @@ export function ownObjective(parent: string, files: string[]): string {
   return `Work on ${files.join(" and ")}${unique.length ? `: ${unique.join("; ")}` : ", as the step asks for them"}.`;
 }
 
-export function buildSplit(task: Task, input: SplitPart[], newId: () => string, ctx: DeliverableContext = {}): Task[] {
+/** `asWritten`: parts FlowCode wrote from its own plan (designParts.ts) keep their objective and exact files. */
+export function buildSplit(task: Task, input: SplitPart[], newId: () => string, ctx: DeliverableContext = {}, opts: { asWritten?: boolean } = {}): Task[] {
   // Each part's files include the ones its objective names outright, and its objective is its own, not the step's.
   let parts = input.map((p) => {
+    if (opts.asWritten) return { ...p, files: p.files.map(norm) };
     const objective = copiesParent(p.objective, task.objective) ? ownObjective(task.objective, p.files) : p.objective;
     return { ...p, objective, files: [...new Set([...p.files.map(norm), ...namedPaths(objective)])] };
   });

@@ -112,6 +112,7 @@ import { scanComponentLibrary } from "../workspace/componentLibrary.js";
 import { scanStyles } from "../workspace/styleTokens.js";
 import { alignCheckNames, foldReadOnlySteps, isTsReact, jsxInJsFiles, kitFacts, withoutBadChecks, planTooBig, snippetToName, tsTask, typesFirst, undefinedTokens, workspaceTokenUsage } from "./guards.js";
 import { findPrd, matchSections, relatesToPrd, repoInstructions, sectionIndex, sectionText } from "./prd.js";
+import { customScreenFiles, designScreenParts } from "./designParts.js";
 import { AUTO_RETRY_MARK, runtimeOptions } from "./runtimeOptions.js";
 import type { McpManager } from "../mcp/manager.js";
 import { mcpStepTools } from "../mcp/stepTools.js";
@@ -1761,6 +1762,32 @@ ${brief.text}` : objective, expectedPaths });
     const runtime = (!!run.strategy?.templateId && task.title in (TEMPLATES[run.strategy.templateId]?.runtimeSteps ?? {})) || task.title in UPGRADE_STEPS || task.title in LAYOUT_STEPS || task.title in SECTION_STEPS || task.title in APP_STEPS;
     if (runtime) return false;
     const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
+    // A complete app's design step splits by screen from FlowCode's own plan (designParts.ts), not by a model's guess.
+    if (task.title === DESIGN_SCREENS) {
+      const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
+      const plan = this.d.store.getSetting<{ requirements: Array<{ id: string; text: string; section: string }>; items: Array<{ files?: string[]; covers?: string[] }> } | null>(runPlanKey(run.id), null);
+      const byScreen = model && plan ? designScreenParts(model, plan.requirements, plan.items.map((i) => ({ files: i.files ?? [], covers: i.covers ?? [] })), findPrd(jail, run.referencePaths)) : undefined;
+      const lines = (f: string) => {
+        try {
+          return fs.readFileSync(jail.resolve(f).abs, "utf8").split("\n").length;
+        } catch {
+          return 0;
+        }
+      };
+      const bad = (byScreen ?? []).flatMap((p) => partProblems(p, task.objective, lines));
+      if (byScreen && !bad.length) {
+        // A page that owns state (My Selection) has no pictures to show until that state exists: the whole step's
+        // pictures check stays with the last part, where the list screens show them.
+        const stateful = customScreenFiles(model!);
+        const pieces = buildSplit(task, byScreen, () => newId("task"), this.deliverableContext(run), { asWritten: true }).map((p) =>
+          stateful.includes(p.expectedPaths[0] ?? "") ? { ...p, acceptanceCriteria: p.acceptanceCriteria.filter((c) => !String((c.check as { kind?: string }).kind ?? "").startsWith("images-used:")) } : p,
+        );
+        this.replaceWithParts(run, task, pieces, `"${task.title}" doesn't fit the coding context, so FlowCode split it by screen: ${pieces.map((p) => p.title.replace(/^Design the /, "")).join(", ")}`, `Split by screen into ${pieces.length} steps`);
+        this.keepProvisional(run, this.d.store.tasks.require(task.id), jail, pieces);
+        return true;
+      }
+      if (bad.length) this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `"${task.title}" wasn't split by screen: ${bad.slice(0, 2).join("; ")}` });
+    }
     const files = listTree(jail, "src", 4, 200).children ?? [];
     // The step's own files, concrete (a folder in its paths expanded): what the parts are made from.
     const targets = concreteTargets(jail.root, task, this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? []);
