@@ -28,7 +28,11 @@ const STOP = new Set("a an the of with during using as main source photo photos 
 export const contentWords = (s: string) => [...new Set(s.toLowerCase().replace(/[^a-z\s-]/g, " ").split(/\s+/).filter((w) => w.length > 2 && !STOP.has(w)))];
 
 /** The list entity with pictures, its picture field and its records without a local picture. */
-export function pictureGaps(root: string, m: AppModel): { entity: ModelEntity; field: string; gaps: PictureGap[]; kind?: string } | undefined {
+/**
+ * unsuitable: records whose picture a check turned away, replaced like missing ones. `present`: the records that have a
+ * local picture, with its file (for that check).
+ */
+export function pictureGaps(root: string, m: AppModel, unsuitable: string[] = []): { entity: ModelEntity; field: string; gaps: PictureGap[]; present: Array<PictureGap & { file: string }>; kind?: string } | undefined {
   const listView = builtViews(m).find((v) => {
     const e = m.entities.find((x) => x.key === v.entity);
     return v.kind === "list" && !!e && !!imageFieldOf(e);
@@ -42,24 +46,24 @@ export function pictureGaps(root: string, m: AppModel): { entity: ModelEntity; f
   const category = (entity.filters ?? [])[0];
   const orientationField = entity.fields.find((f) => /orientation/i.test(f.key))?.key;
   const missing = (v: string) => !v.trim() || /^(https?:)?\/\//i.test(v) || /^data:/i.test(v) || !fs.existsSync(path.join(root, "public", v.replace(/^\/+/, "")));
-  const gaps = rows
-    .filter((r) => missing(String(r[field] ?? "")))
-    .map((r) => {
-      const title = String(r[entity.titleField] ?? r.id);
-      const o = orientationField ? String(r[orientationField] ?? "").toLowerCase() : "";
-      return {
-        id: String(r.id),
-        title,
-        words: contentWords(`${title} ${alt ? String(r[alt] ?? "") : ""}`),
-        category: category ? String(r[category] ?? "") || undefined : undefined,
-        orientation: o === "portrait" || o === "landscape" || o === "square" ? (o as PictureGap["orientation"]) : undefined,
-      };
-    });
+  const gapOf = (r: Record<string, unknown>): PictureGap => {
+    const title = String(r[entity.titleField] ?? r.id);
+    const o = orientationField ? String(r[orientationField] ?? "").toLowerCase() : "";
+    return {
+      id: String(r.id),
+      title,
+      words: contentWords(`${title} ${alt ? String(r[alt] ?? "") : ""}`),
+      category: category ? String(r[category] ?? "") || undefined : undefined,
+      orientation: o === "portrait" || o === "landscape" || o === "square" ? (o as PictureGap["orientation"]) : undefined,
+    };
+  };
+  const gaps = rows.filter((r) => missing(String(r[field] ?? "")) || unsuitable.includes(String(r.id))).map(gapOf);
+  const present = rows.filter((r) => !missing(String(r[field] ?? ""))).map((r) => ({ ...gapOf(r), file: String(r[field]) }));
   // What kind of pictures the collection holds: the word its records' descriptions share most ("portrait").
   const counts = new Map<string, number>();
   if (alt) for (const r of rows) for (const w of contentWords(String(r[alt] ?? ""))) counts.set(w, (counts.get(w) ?? 0) + 1);
   const kind = [...counts.entries()].filter(([, n]) => n >= Math.max(2, rows.length / 3)).sort((a, b) => b[1] - a[1])[0]?.[0];
-  return { entity, field, gaps, kind };
+  return { entity, field, gaps, present, kind };
 }
 
 /** The searches for a record's photo, most specific first, each with the words one of which the photo must be about. */

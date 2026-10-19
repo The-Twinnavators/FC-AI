@@ -90,6 +90,12 @@ describe("records without their picture", () => {
     expect(found.gaps[0]!.words).toEqual(contentWords("Quiet Smile portrait person quiet smile"));
   });
 
+  it("include a record whose picture the photo check turned away; the ones with a picture are listed with their file", () => {
+    const found = pictureGaps(workspace(), MODEL, ["photo-01"])!;
+    expect(found.gaps.map((g) => g.id)).toEqual(["photo-01", "photo-04", "photo-07"]);
+    expect(found.present.map((p) => [p.id, p.file])).toEqual([["photo-01", "/images/photo-01.jpg"]]);
+  });
+
   it("are searched for by their own words first, then their description, then their category", () => {
     const g = pictureGaps(workspace(), MODEL)!;
     expect(pictureQueries(g.gaps[0]!, g.kind)).toEqual([

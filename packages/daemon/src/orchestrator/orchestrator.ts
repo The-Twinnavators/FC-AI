@@ -3203,23 +3203,7 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       currentProject: () => this.d.store.projects.require(project.id),
       // find_image keeps only photos that show what was searched for (the cloud model when allowed, else the local
       // vision model): word search gave a dairy brand a pizza and a drinks brand cat figurines.
-      imageCheck: async (image, query) => {
-        const cloud = project.settings.allowHostedModels ? cloudCoder(this.d.router, this.d.store) : undefined;
-        const judge = cloud?.ready ? cloud.assignment : run.modelAssignments.critic;
-        if (!judge) return { ok: true, reason: "" };
-        const res = await this.d.router.chat({ role: "critic", projectId: project.id, runId: run.id, taskId: task.id }, { ...judge, temperature: 0 }, {
-          messages: [
-            { role: "system", content: `You check stock photos before they go into an app. Answer whether the photo clearly shows the thing asked for, as its main subject, in a way that would make sense to someone using the app. Reject it when the main subject is something else${/\b(portrait|person|people|man|woman|couple|family|child|model|face|smile|laugh)\b/i.test(query) ? "" : ", a person is the main subject"}, or it's a figurine, a toy, a page of text or an advertisement, a logo, a screenshot or a messy collage. Reply JSON only: {"ok": true|false, "reason": "a few words"}.` },
-            { role: "user", content: `Does this photo clearly show: ${JSON.stringify(query)}?`, images: [image.toString("base64")] },
-          ],
-          format: { type: "object", properties: { ok: { type: "boolean" }, reason: { type: "string" } }, required: ["ok"] },
-          maxOutputTokens: 200,
-          timeoutMs: 60_000,
-          signal,
-        });
-        const j = JSON.parse(res.content.slice(res.content.indexOf("{"), res.content.lastIndexOf("}") + 1) || "{}") as { ok?: boolean; reason?: string };
-        return { ok: j.ok !== false, reason: String(j.reason ?? "") };
-      },
+      imageCheck: this.imageJudge(run, project, task.id, signal),
       run,
       task,
       jail,
@@ -4397,9 +4381,17 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     const pictures = this.graph.tasks(run.id).find((t) => t.title === PICTURES_STEP);
     if (!pictures || (pictures.id !== task.id && pictures.status !== "verified")) return;
     const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
-    const found = model ? pictureGaps(jail.root, model) : undefined;
-    if (!found?.gaps.length) return;
     const project = this.d.store.projects.require(run.projectId);
+    const check = this.imageJudge(run, project, task.id, signal);
+    // The photos already there are looked at once per run: one that isn't a contemporary photo of its record is
+    // replaced like a missing one (Frameproof: a camera advert, a palace statue, an 1890s print with its caption).
+    let unsuitable: string[] = [];
+    if (model && run.modelAssignments.critic && !this.d.store.getSetting(`picturesJudged:${run.id}`, false)) {
+      unsuitable = await this.unsuitablePictures(jail.root, model, check).catch(() => []);
+      this.d.store.setSetting(`picturesJudged:${run.id}`, true);
+    }
+    const found = model ? pictureGaps(jail.root, model, unsuitable) : undefined;
+    if (!found?.gaps.length) return;
     const own = pictures.id === task.id;
     const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
     const ctx = { jail, projectId: run.projectId, runId: run.id, ...(own ? { taskId: task.id } : {}), toolCallId: `fc_pictures_${task.id}`, approved: true };
@@ -4417,7 +4409,7 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       let how = "";
       if (project.settings.allowExternalResearch) {
         for (const q of pictureQueries(g, found.kind)) {
-          const res = await findOpenImage(jail, { query: q.query, name: g.id, orientation: g.orientation, mustMatch: q.mustMatch }, signal).catch(() => undefined);
+          const res = await findOpenImage(jail, { query: q.query, name: g.id, orientation: g.orientation, mustMatch: q.mustMatch }, signal, check).catch(() => undefined);
           if (res?.ok && res.paths[0]) {
             value = `/${res.paths[0].replace(/^public\//, "")}`;
             how = `an open photo found for "${q.query}"`;
@@ -4491,6 +4483,51 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
         .join("\n"),
     });
     this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode styled the app frame itself, with no model: ${FRAME_SHEET} (rail, brand, navigation, top bar, page area, in the app's tokens), imported by src/App.tsx. It is checked now; the model refines it only if needed.`, data: { composed: [FRAME_SHEET, "src/App.tsx"] } });
+  }
+
+  /**
+   * A photo's check before it goes into the app (find_image and FlowCode's own record pictures): the cloud model when
+   * allowed, else the run's critic (a local vision model). It keeps only a contemporary photograph of what was asked
+   * for: Frameproof's portrait gallery got a 1958 camera advert, an 1890s studio portrait with its caption printed on
+   * it, a rickshaw and a palace statue, which qwen2.5vl:3b turns away with this prompt (about a second each).
+   */
+  private imageJudge(run: Run, project: { id: string; settings: { allowHostedModels?: boolean } }, taskId: string, signal: AbortSignal) {
+    return async (image: Buffer, query: string): Promise<{ ok: boolean; reason: string }> => {
+      const cloud = project.settings.allowHostedModels ? cloudCoder(this.d.router, this.d.store) : undefined;
+      const judge = cloud?.ready ? cloud.assignment : run.modelAssignments.critic;
+      if (!judge) return { ok: true, reason: "" };
+      const res = await this.d.router.chat({ role: "critic", projectId: project.id, runId: run.id, taskId }, { ...judge, temperature: 0 }, {
+        messages: [
+          { role: "system", content: `You check stock photos before they go into a modern app. Answer whether the photo clearly shows the thing asked for, as its main subject, as a contemporary photograph someone would use in that app today. Reject it when the main subject is something else${/\b(portrait|person|people|man|woman|couple|family|child|model|face|smile|laugh)\b/i.test(query) ? "" : ", a person is the main subject"}; when it's a scan of a page, an advertisement, a poster or a document; when it has a caption or other text printed on it; when it's an old archival or historical photo (sepia, a vintage print, 19th or early 20th century); a figurine, a toy, a logo, a screenshot or a collage. Reply JSON only: {"ok": true|false, "reason": "a few words"}.` },
+          { role: "user", content: `Does this photo clearly show: ${JSON.stringify(query)}?`, images: [image.toString("base64")] },
+        ],
+        format: { type: "object", properties: { ok: { type: "boolean" }, reason: { type: "string" } }, required: ["ok"] },
+        maxOutputTokens: 200,
+        timeoutMs: 60_000,
+        signal,
+      });
+      const j = JSON.parse(res.content.slice(res.content.indexOf("{"), res.content.lastIndexOf("}") + 1) || "{}") as { ok?: boolean; reason?: string };
+      return { ok: j.ok !== false, reason: String(j.reason ?? "") };
+    };
+  }
+
+  /** Records whose photo (not a drawn SVG) the check turns away, by id. */
+  private async unsuitablePictures(root: string, model: AppModel, check: (image: Buffer, query: string) => Promise<{ ok: boolean; reason: string }>): Promise<string[]> {
+    const all = pictureGaps(root, model);
+    if (!all) return [];
+    const out: string[] = [];
+    for (const r of all.present) {
+      if (!/\.(jpe?g|png|webp)$/i.test(r.file)) continue;
+      let bytes: Buffer;
+      try {
+        bytes = fs.readFileSync(path.join(root, "public", r.file.replace(/^\/+/, "")));
+      } catch {
+        continue;
+      }
+      const verdict = await check(bytes, pictureQueries(r, all.kind)[0]?.query ?? r.title);
+      if (!verdict.ok) out.push(r.id);
+    }
+    return out;
   }
 
   /** The steps a bounded run may run, while it is bounded (boundedRun.ts). */
