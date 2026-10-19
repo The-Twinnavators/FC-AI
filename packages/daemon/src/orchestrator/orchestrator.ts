@@ -103,7 +103,7 @@ import { toolDef } from "./agentLoop.js";
 import { catalogContract, contractText } from "./catalogContract.js";
 import { concreteTargets, importedPieceContracts, navigationContract, screenRequirements, touchesNavigation } from "./packetContext.js";
 import { STYLE_FILE, contractProblems, deliverableChecks, type DeliverableContext, genericOnly, isTaskSpecific, separateMixed, testFileOf, writesTestsStep } from "./taskContract.js";
-import { FLOWCODE_LIMITS_KEY, LONG_FILE_LINES, compactPartObjective, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, partProblems, sentenceSplit, stateRepairTask } from "./stepRecovery.js";
+import { FLOWCODE_LIMITS_KEY, LONG_FILE_LINES, compactPartObjective, partTestsKind, budgetOuts, buildSplit, dropDoneParts, turnBudget, failureSignature, guardOf, guardStops, nearlyPassing, parsePartTests, parseSplit, stopAtSameWall, testTitles, type FlowCodeLimitHit, releaseIndependent, selfBlockIsWork, partProblems, sentenceSplit, stateRepairTask, type SplitPart } from "./stepRecovery.js";
 import { flattenFiles } from "../workspace/fileService.js";
 import { STATE_DETECTORS } from "../quality/designQa.js";
 import { salvagePlan } from "./planSalvage.js";
@@ -1816,6 +1816,24 @@ ${brief.text}` : objective, expectedPaths });
       }
       if (bad.length) this.d.bus.emit({ ...ev, type: "recovery.action", level: "warning", message: `"${task.title}" wasn't split by screen: ${bad.slice(0, 2).join("; ")}` });
     }
+    // Design polish of a complete app splits by screen from the app model (each screen with its stylesheet, then the
+    // frame), not by a model's guess.
+    if (task.title === DESIGN_POLISH) {
+      const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
+      const exists = (p: string) => fs.existsSync(jail.resolve(p).abs);
+      const brief = task.objective.split(/\n\s*\n/)[0]!.split("\n")[0]!;
+      const parts: SplitPart[] = (model ? builtViews(model) : [])
+        .map((v) => ({ v, files: [screenFileOf(v), `src/styles/${v.id}.css`].filter(exists) }))
+        .filter((x) => x.files.length)
+        .map(({ v, files }) => ({ title: `Polish the ${v.label} screen`, objective: `Part of Design polish, for the ${v.label} screen only (${files.join(" and ")}): ${brief} Change only these files; keep every accessible name and role the acceptance tests use, and use only the app's tokens.`, files }));
+      if (parts.length && exists(FRAME_SHEET)) parts.push({ title: "Polish the frame", objective: `Part of Design polish, for the app frame only (${FRAME_SHEET}): its rail, navigation, top bar and page area as one product with the screens. Change only ${FRAME_SHEET}, with the app's tokens; keep the navigation working.`, files: [FRAME_SHEET] });
+      if (parts.length >= 2) {
+        const pieces = buildSplit(task, parts, () => newId("task"), this.deliverableContext(run), { asWritten: true });
+        this.replaceWithParts(run, task, pieces, `"${task.title}" doesn't fit the coding context, so FlowCode split it by screen: ${pieces.map((p) => p.title.replace(/^Polish the /, "")).join(", ")}`, `Split by screen into ${pieces.length} steps`);
+        this.keepProvisional(run, this.d.store.tasks.require(task.id), jail, pieces);
+        return true;
+      }
+    }
     const files = listTree(jail, "src", 4, 200).children ?? [];
     // The step's own files, concrete (a folder in its paths expanded): what the parts are made from.
     const targets = concreteTargets(jail.root, task, this.d.store.getSetting<ScreenPlan | null>(screenPlanKey(run.id), null)?.screens ?? []);
@@ -2081,6 +2099,9 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     await this.completeRecordPictures(run, task, jail, signal);
     // The frame part of an app on the library's AppFrame starts from FlowCode's frame stylesheet (frameComposer.ts).
     this.composeFrame(run, task, jail);
+    // Clean-up: FlowCode removes what its scan says nothing uses; polish of an app FlowCode composed is checked first.
+    this.composeCleanup(run, task, jail);
+    this.markPolishCheckFirst(run, task, jail);
     // Composing rewrites the step's brief: the attempt works from the step as it is now, not the copy it started with
     // (Photo detail's first request was built from its old brief and was refused as too big).
     task = this.d.store.tasks.require(task.id);
@@ -2251,8 +2272,8 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // look-check rule.
     // A functional step whose acceptance tests FlowCode wrote is checked first too, at its first attempt: when the composed
     // app already does what the tests ask, no model work is needed (Frameproof: all 60 tests passed on the composed app).
-    const composedTests = !!this.d.store.getSetting(`acceptanceFrom:${task.id}`, null) || this.d.store.getSetting(`picturesComposed:${task.id}`, false) || this.d.store.getSetting(`frameComposed:${task.id}`, false);
-    if ((task.attempts >= 2 || onlyRead || composedTests) && (touched || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && (polishPart || task.acceptanceCriteria.some(isTaskSpecific))) {
+    const composedTests = !!this.d.store.getSetting(`acceptanceFrom:${task.id}`, null) || this.d.store.getSetting(`picturesComposed:${task.id}`, false) || this.d.store.getSetting(`frameComposed:${task.id}`, false) || this.d.store.getSetting(`cleanupComposed:${task.id}`, false) || this.d.store.getSetting(`polishCheckFirst:${task.id}`, false);
+    if ((task.attempts >= 2 || onlyRead || composedTests) && (touched || (composedTests && polishPart) || (onlyRead && !designMain && (ownCheck || kitDone || polishPart))) && (polishPart || task.acceptanceCriteria.some(isTaskSpecific))) {
       const pre = await this.d.verifier.checkCriteria(this.d.store.runs.require(run.id), this.d.store.tasks.require(task.id), { signal });
       // What failed is what the attempt fixes: the brief names the failing tests.
       if (composedTests && !pre.allMet && pre.failures.length) this.d.store.setSetting(`taskFindings:${task.id}`, [...this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []), ...pre.failures.slice(0, 4).map((x) => `Failing now: ${x.slice(0, 600)}`)].slice(-12));
@@ -4528,6 +4549,43 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       if (!verdict.ok) out.push(r.id);
     }
     return out;
+  }
+
+  /**
+   * The clean-up step: FlowCode removes what its own scan says nothing uses (files under src/ nothing imports, scratch
+   * files in the project root, pictures nothing shows), as the step's own edits (snapshotted; Undo restores them), and
+   * the step is checked at once. Frameproof: four library pieces the generated app used and the composed screens
+   * replaced. Debug calls and unused CSS rules are edits inside files, left to the model.
+   */
+  private composeCleanup(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
+    if (task.role !== "coder" || task.title !== CLEAN_UP || this.d.store.getSetting(`cleanupComposed:${task.id}`, false)) return;
+    const scan = scanCleanup(jail);
+    const gone = [...scan.unusedFiles, ...scan.strayFiles, ...scan.unusedImages];
+    if (!gone.length) return;
+    const ctx = { jail, projectId: run.projectId, runId: run.id, taskId: task.id, toolCallId: `fc_cleanup_${task.id}`, approved: true };
+    const removed = gone.filter((p) => this.d.ops.delete_file(ctx, { path: p, reason: "FlowCode's clean-up scan: nothing uses it" } as never).ok);
+    if (!removed.length) return;
+    this.d.store.setSetting(`cleanupComposed:${task.id}`, true);
+    this.updateTask(this.d.store.tasks.require(task.id), { actualPaths: [...new Set([...task.actualPaths, ...removed])] });
+    this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: task.id, type: "recovery.action", message: `FlowCode removed what its clean-up scan says nothing uses, with no model: ${removed.join(", ")}. Each can be undone in Changes; the step is checked now.`, data: { removed } });
+  }
+
+  /**
+   * Design polish of an app whose every screen FlowCode composed (and whose design parts were refined and checked):
+   * checked first, its tests and the look check deciding, before any model work.
+   */
+  private markPolishCheckFirst(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
+    if (task.role !== "coder" || task.title !== DESIGN_POLISH || this.d.store.getSetting(`polishCheckFirst:${task.id}`, false)) return;
+    const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
+    const views = model ? builtViews(model) : [];
+    const composed = views.length > 0 && views.every((v) => {
+      try {
+        return fs.readFileSync(jail.resolve(screenFileOf(v)).abs, "utf8").includes("Composed by FlowCode");
+      } catch {
+        return false;
+      }
+    });
+    if (composed) this.d.store.setSetting(`polishCheckFirst:${task.id}`, true);
   }
 
   /** The steps a bounded run may run, while it is bounded (boundedRun.ts). */

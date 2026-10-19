@@ -185,7 +185,18 @@ export function concreteTargets(root: string, task: { title: string; objective: 
     const named = names.filter((f) => at(f) >= 0).sort((a, b) => at(a) - at(b));
     const plannedHere = planned.map((s) => norm(s.file)).filter((f) => names.includes(f));
     const imported = names.filter((f) => new RegExp(`["'][./]*${dir.replace(/^src\//, "")}/${base(f)}(\\.[a-z]+)?["']|/${base(f)}\\.css["']`).test(imports));
-    const ranked = [...new Set([...named, ...plannedHere, ...imported])];
+    // The component library's stylesheet (and any file too large to have been written by hand) isn't a step's own work:
+    // the look changes through the tokens. Frameproof's Design polish took src/styles/library.css (454 KB) as its own,
+    // and no turn could read it.
+    const kit = names.filter((f) => /(^|\/)library\.css$/.test(f) || (() => {
+      try {
+        return fs.statSync(path.join(root, f)).size > 60_000;
+      } catch {
+        return false;
+      }
+    })());
+    if (kit.length) gaps.push(`${kit.join(", ")}: the component library's (or a generated) file, not this step's; change the look through the tokens in src/styles/tokens.css`);
+    const ranked = [...new Set([...named, ...plannedHere, ...imported])].filter((f) => !kit.includes(f));
     if (!ranked.length) {
       gaps.push(`${dir}/: none of its ${names.length} files is named by the step, planned as a screen or imported by the app; read the ones you need`);
       continue;
