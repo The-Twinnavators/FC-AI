@@ -100,6 +100,8 @@ describe("a design part for a standard screen", () => {
     expect(refined.objective.startsWith("Refine the Gallery screen FlowCode composed: ")).toBe(true);
     expect(refined.expectedPaths).toEqual(["src/styles/gallery.css"]);
     expect(firstBrief).not.toContain("Use these exact records");
+    // The model's first request is built from the rewritten brief, in the same run as the composition.
+    expect(firstBrief).toContain("Refine the Gallery screen FlowCode composed");
     expect(app.bus.list({ runId: run.id, types: ["recovery.action"] }).some((e) => e.message.startsWith('FlowCode composed "Gallery" itself, with no model'))).toBe(true);
     // Its writes aren't the step's own: undoing the step's edits goes back to the composed screen.
     expect(app.store.snapshots.where("task_id = ?", "t1").length).toBe(0);

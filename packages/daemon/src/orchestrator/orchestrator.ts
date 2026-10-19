@@ -2064,6 +2064,9 @@ ${brief.text}` : objective, expectedPaths });
     // A standard screen FlowCode composes itself before the model works on it (screenComposer.ts): part of where the
     // step starts, so before its baseline.
     this.composeStandardScreen(run, task, jail);
+    // Composing rewrites the step's brief: the attempt works from the step as it is now, not the copy it started with
+    // (Photo detail's first request was built from its old brief and was refused as too big).
+    task = this.d.store.tasks.require(task.id);
     if (task.attempts === 1 || !this.d.store.getSetting(stepBaselineKey(task.id), null)) await this.d.verifier.captureStepBaseline(this.d.store.runs.require(run.id), task.id, signal).catch(() => undefined);
     // A correction of a failed functional baseline starts (and starts over, on a retry) from the errors as they are now.
     if (task.attempts === 1 && this.d.store.getSetting(`baselineCorrection:${task.id}`, false)) task = this.withLocatedErrors(run, task, jail.root);
