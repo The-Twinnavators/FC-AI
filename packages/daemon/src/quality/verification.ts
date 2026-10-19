@@ -1134,11 +1134,14 @@ export class Verifier {
       if (opts.designStep) for (const f of result.findings) if (f.rule === "title-only" || f.rule === "empty-screen") f.serious = true;
       // A step scoped to a folder (or the whole app) owns every screen; one scoped to files owns the screens they are.
       const ownsAll = task.expectedPaths.some((p) => p === "." || p === "src" || p.endsWith("/") || !/\.[a-z0-9]+$/i.test(p));
-      const screenFiles = task.expectedPaths.filter((p) => /\.(tsx|jsx|vue|svelte)$/i.test(p));
+      // A screen's stylesheet (src/styles/gallery.css) is that screen's too.
+      const screenFiles = task.expectedPaths.filter((p) => /\.(tsx|jsx|vue|svelte)$/i.test(p) || /(^|\/)styles\/[^/]+\.css$/i.test(p));
       const stem = (s: string) => s.replace(/^.*[\\/]/, "").replace(/\.[a-z0-9]+$/i, "").toLowerCase().replace(/[^a-z0-9]/g, "").replace(/(screen|page|view)$/, "");
       const mine = (screen: string) => ownsAll || screenFiles.some((p) => stem(p) === stem(screen));
       for (const f of result.findings) {
-        if (f.serious && CONTENT_RULES.has(f.rule) && !mine(f.screen)) {
+        // Any problem on a screen the step may not edit, contrast included (Frameproof: the Gallery's polish part was
+        // held to Photo detail's label contrast, which only photo-detail.css could fix).
+        if (f.serious && (CONTENT_RULES.has(f.rule) || screenFiles.length > 0) && !mine(f.screen)) {
           f.serious = false;
           f.message = `${f.message} (for the step that owns this screen)`;
         }
