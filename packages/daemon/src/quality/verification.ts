@@ -152,6 +152,15 @@ export class Verifier {
     }
     if (kind.startsWith("images-used:")) {
       const list = kind.slice("images-used:".length);
+      // No photos in the app: nothing to show (a calculator). Its only picture was the model's placeholder drawing,
+      // and this check demanded the screen show it.
+      let photos: string[] = [];
+      try {
+        photos = fs.readdirSync(path.join(root, "public/images")).filter((f) => /\.(jpe?g|png|webp|avif)$/i.test(f));
+      } catch {
+        photos = [];
+      }
+      if (!photos.length) return undefined;
       const files = list === "src" ? srcFiles() : list.split("|");
       const refs = files.flatMap((f) => [...read(f).matchAll(/["'(`]\/?(?:public\/)?(images\/[\w./-]+\.(?:jpe?g|png|webp|avif|svg))/gi)].map((m) => m[1]!));
       const real = refs.filter((r) => fs.existsSync(path.join(root, "public", r)));
