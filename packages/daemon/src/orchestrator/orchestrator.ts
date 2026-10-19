@@ -2105,6 +2105,8 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // Clean-up: FlowCode removes what its scan says nothing uses; polish of an app FlowCode composed is checked first.
     this.composeCleanup(run, task, jail);
     this.markPolishCheckFirst(run, task, jail);
+    // A refining step's stylesheet whose muted text failed contrast: FlowCode raises it to the main text colour.
+    this.repairContrast(run, task, jail);
     // Composing rewrites the step's brief: the attempt works from the step as it is now, not the copy it started with
     // (Photo detail's first request was built from its old brief and was refused as too big).
     task = this.d.store.tasks.require(task.id);
@@ -4623,6 +4625,33 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       }
     });
     if (composed) this.d.store.setSetting(`polishCheckFirst:${task.id}`, true);
+  }
+
+  /**
+   * A refining step (a composed screen's stylesheet, its polish part, the frame) that failed the look check on low
+   * contrast: FlowCode changes the muted text colour in the step's own stylesheet to the main text colour, as the step's
+   * own edit, and the step is checked again. The Look stays as chosen; only where the stylesheet uses it changes.
+   * Frameproof: Photo detail's polish part fixed one rule per attempt over four attempts (muted grey on the grey page).
+   */
+  private repairContrast(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
+    if (task.role !== "coder" || !this.d.store.getSetting(`refining:${task.id}`, false)) return;
+    const findings = this.d.store.getSetting<string[]>(`taskFindings:${task.id}`, []);
+    if (!findings.some((f) => /Text below contrast minimum/.test(f))) return;
+    const sheet = task.expectedPaths.find((p) => /\.css$/i.test(p));
+    if (!sheet) return;
+    let css = "";
+    try {
+      css = fs.readFileSync(jail.resolve(sheet).abs, "utf8");
+    } catch {
+      return;
+    }
+    const next = css.replace(/color:\s*var\(--color-text-muted\)/g, "color: var(--color-text)");
+    if (next === css) return;
+    const r = this.d.ops.replaceContent({ jail, projectId: run.projectId, runId: run.id, taskId: task.id, toolCallId: `fc_contrast_${task.id}`, approved: true }, sheet, next);
+    if (!r.ok) return;
+    this.d.store.setSetting(`taskFindings:${task.id}`, findings.filter((f) => !/Text below contrast minimum/.test(f)));
+    this.updateTask(this.d.store.tasks.require(task.id), { actualPaths: [...new Set([...task.actualPaths, sheet])] });
+    this.d.bus.emit({ projectId: run.projectId, runId: run.id, taskId: task.id, type: "recovery.action", message: `FlowCode raised the muted text in ${sheet} to the main text colour, with no model: it fell below the contrast minimum on this screen's background. Checked now.` });
   }
 
   /** The steps a bounded run may run, while it is bounded (boundedRun.ts). */
