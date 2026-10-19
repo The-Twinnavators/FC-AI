@@ -226,6 +226,8 @@ export function baselineFailures(b: Omit<FunctionalBaseline, "checkpointId" | "c
 }
 
 export class Orchestrator {
+  /** Requests being built again with fewer skills to fit (task id and role). */
+  private readonly leanSkills = new Set<string>();
   private active = new Map<string, AbortController>();
   /** Recovery timers per run (unattended runs, interruptions.ts), and the runs a recovery is working on right now. */
   private recoveryTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -3205,7 +3207,9 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     const copyEdit = isCopyEdit(ownText);
     const fitting = copyEdit ? selected.filter((s) => COPY_EDIT_SKILLS.has(s.id) || s.id.startsWith("skill.proposed-")) : selected;
     // A step carrying its locked page plans gets page-composition without the planning those plans already are.
-    const skills = withPlansGiven(capSkills(fitting, stack, undefined, { design, retry: task.attempts > 1 || role === "debugger" }), /Sections, top to bottom:/.test(task.objective));
+    const allSkills = withPlansGiven(capSkills(fitting, stack, undefined, { design, retry: task.attempts > 1 || role === "debugger" }), /Sections, top to bottom:/.test(task.objective));
+    // A request whose later turn didn't fit with every skill is built again with the first (the workflow skill) only.
+    const skills = this.leanSkills.has(`${task.id}:${role}`) ? allSkills.slice(0, 1) : allSkills;
     // Interface work gets the project's reusable parts (cached until its source changes), so agents reuse them.
     // A wording-only change needs neither (isCopyEdit).
     const uiWork = !copyEdit && (skills.some((x) => x.id === "skill.avoid-ai-slop") || /\b(component|page|screen|layout|style|css|button|dialog|modal|form|card|ui)\b/i.test(`${task.title} ${task.objective}`));
@@ -3337,10 +3341,14 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       }
     };
     const reads = new Map(ownFiles.map((p) => [p, fullRead(p)] as const));
+    // A stylesheet is read in ranges (rules stand alone; a read past the allowance says where to go on): a later turn
+    // needs room for one range, not the whole sheet. The calculator's components.css (12,600 characters) put a later
+    // turn 4,600 tokens over.
+    const readFor = (p: string, chars: number) => (/.css$/i.test(p) ? Math.min(chars, 6000) : chars);
     // A local model's turns keep working headroom (requestBudget.headroomTokens): optional material (extra knowledge,
     // other files, the tree, long guidance) is fitted only up to the opening a later turn can afford with it free.
     const headroom = lean ? headroomTokens(windowTokens) : 0;
-    const largestPlanned = Math.max(4000, ...[...reads.values()].filter((r) => r?.long).map((r) => r!.chars));
+    const largestPlanned = Math.max(4000, ...[...reads].filter(([, r]) => r?.long).map(([p, r]) => readFor(p, r!.chars)));
     const optionalRoom = lean ? openingWithin(reqBudget, largestPlanned, headroom) - system.length - toolsChars : room;
     const tree = renderTree(listTree(jail, ".", 2, lean ? 80 : 140));
     const scripts = (this.d.projects.latestPreflight(project.id)?.scripts ?? []).filter((s) => !["dev", "start", "preview"].includes(s.classification)).map((s) => s.name);
@@ -3349,10 +3357,19 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // knowledge) makes room for that read too, not only for a typical one (Frameproof functional steps: a 14,500-character
     // tree fitted beside shortened screens, and every later turn ran 400–1,000 tokens over).
     if (lean) {
-      const shortened = Math.max(0, ...[...reads].filter(([p, r]) => r && brief.dropped.some((d) => d.startsWith(`${p} shortened`))).map(([, r]) => r!.chars));
+      const shortened = Math.max(0, ...[...reads].filter(([p, r]) => r && brief.dropped.some((d) => d.startsWith(`${p} shortened`))).map(([p, r]) => readFor(p, r!.chars)));
       if (shortened > largestPlanned) {
         const tighter = openingWithin(reqBudget, shortened, headroom) - system.length - toolsChars;
         if (tighter < optionalRoom) brief = fitHandoff(packet, tree, scripts, Math.max(0, room), Math.max(0, tighter));
+      }
+      // Still too full for a later turn: the step's own files go further toward their shortest (they're read in full on
+      // request), so its turns fit with the working headroom. The calculator's "Implement UI Components and States" was
+      // left 2,500 tokens over with its screen and stylesheet attached at 200 lines.
+      const readNow = Math.max(largestPlanned, ...[...reads].filter(([p, r]) => r && brief.dropped.some((d) => d.startsWith(`${p} shortened`))).map(([p, r]) => readFor(p, r!.chars)));
+      if (!laterTurnFits(reqBudget, system.length + toolsChars + brief.text.length, readNow, 2000, headroom).fits) {
+        const within = openingWithin(reqBudget, readNow, headroom) - system.length - toolsChars;
+        const tight = fitHandoff(packet, tree, scripts, Math.max(0, within), Math.max(0, Math.min(optionalRoom, within)));
+        if (tight.overflow === 0) brief = tight;
       }
     }
     const total = system.length + toolsChars + brief.text.length;
@@ -3386,8 +3403,19 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // leave the working headroom free, so the turns it counts on fit with room to spare.
     let largest = largestPlanned;
     {
-      for (const [p, r] of reads) if (r && brief.dropped.some((d) => d.startsWith(`${p} shortened`))) largest = Math.max(largest, r.chars);
+      for (const [p, r] of reads) if (r && brief.dropped.some((d) => d.startsWith(`${p} shortened`))) largest = Math.max(largest, readFor(p, r.chars));
       const later = laterTurnFits(reqBudget, total, largest, 2000, headroom);
+      // Before splitting or refusing: the same request with one skill (the calculator's "Implement UI Components and
+      // States" was 2,500 tokens over with 8,300 characters of design skills, and fits without them).
+      const leanKey = `${task.id}:${role}`;
+      if (!later.fits && lean && skills.length > 1 && !this.leanSkills.has(leanKey)) {
+        this.leanSkills.add(leanKey);
+        try {
+          return await this.agentAttempt(run, task, jail, signal, changed, role, modelOverride, measure);
+        } finally {
+          this.leanSkills.delete(leanKey);
+        }
+      }
       if (measure) {
         measure({ task: task.title, role, model: assignment.model, windowTokens, replyTokens, charsPerToken: reqBudget.charsPerToken, inputChars: reqBudget.inputChars, systemChars: system.length, skillChars: skillFit.text.length, toolsChars, briefChars: brief.text.length, objectiveChars: task.objective.length, overflowChars: brief.overflow, overflowTokens: Math.round(brief.overflow / reqBudget.charsPerToken), totalTokens: Math.round(total / reqBudget.charsPerToken), budgetTokens: Math.round(reqBudget.inputChars / reqBudget.charsPerToken), laterTurn: { fits: later.fits, tokens: later.tokens }, headroomTokens: headroom, optionalRoomChars: optionalRoom, briefText: brief.text, systemText: system, largestReadChars: largest, files: packet.relevantFiles.map((f) => f.path.replace(/ \(line-numbered.*\)$/, "")), dropped: brief.dropped });
         return { kind: "no_action", reason: "measured only" };
