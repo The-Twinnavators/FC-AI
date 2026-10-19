@@ -130,7 +130,9 @@ export async function frameRendered(page: Page, open: (route: string) => Promise
   let target = -1;
   for (let i = 0; i < n && target < 0; i++) {
     const l = links.nth(i);
-    if ((await l.isVisible()) && (await l.getAttribute("aria-current")) !== "page" && ((await l.textContent()) ?? "").trim()) target = i;
+    // Not a disabled control (a one-item group's heading is aria-disabled): clicking it waits until the timeout
+    // (Frameproof: "Gallery"'s group heading, 30 seconds, and the frame check failed on every attempt).
+    if ((await l.isVisible()) && (await l.getAttribute("aria-current")) !== "page" && (await l.getAttribute("aria-disabled")) !== "true" && !(await l.isDisabled()) && ((await l.textContent()) ?? "").trim()) target = i;
   }
   if (target < 0) return "the frame shows, but its navigation has no other destination to open";
   const state = () => page.evaluate(() => ({ hash: location.hash, path: location.pathname, main: (document.querySelector("main") ?? document.body).textContent?.replace(/\s+/g, " ").slice(0, 600) ?? "" }));

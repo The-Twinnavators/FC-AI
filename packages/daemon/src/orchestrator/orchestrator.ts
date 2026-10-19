@@ -3053,7 +3053,8 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     const requirements: string[] = [];
     // Refining a screen FlowCode composed: its PRD requirements are what the composition built, so the step gets the
     // direction (below), not the screen's requirements again.
-    const refining = !!this.d.store.getSetting(`composedFrom:${task.id}`, null);
+    // The frame FlowCode styled (frameComposer.ts) is refined the same way: its stylesheet is the whole of the work.
+    const refining = !!this.d.store.getSetting(`composedFrom:${task.id}`, null) || this.d.store.getSetting(`frameComposed:${task.id}`, false);
     if (prdPath && !refining && !composedFix) {
       try {
         const md = readFile(jail, prdPath).content;
@@ -4459,8 +4460,8 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
    * and never called a tool, twice.
    */
   private composeFrame(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
-    if (task.role !== "coder" || task.title !== "Design the frame" || this.d.store.getSetting(`frameComposed:${task.id}`, false)) return;
-    if (fs.existsSync(jail.resolve(FRAME_SHEET).abs)) return;
+    // Composed again when an undo took it away (a blocked step's edits are undone).
+    if (task.role !== "coder" || task.title !== "Design the frame" || fs.existsSync(jail.resolve(FRAME_SHEET).abs)) return;
     let app = "";
     try {
       app = fs.readFileSync(jail.resolve("src/App.tsx").abs, "utf8");
