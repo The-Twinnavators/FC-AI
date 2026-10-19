@@ -3096,7 +3096,11 @@ ${brief.text}` : objective, expectedPaths });
     }
     const pf = () => this.d.projects.latestPreflight(project.id);
     let fittedBrief = "";
+    // Set below once the request is measured: what a read may show (a local model's later-turn read allowance).
+    let readAllowance: number | undefined;
     const dispatcher = createDispatcher({
+      readChars: () => readAllowance,
+      outputChars: () => (readAllowance === undefined ? undefined : 2000),
       project,
       currentProject: () => this.d.store.projects.require(project.id),
       // find_image keeps only photos that show what was searched for (the cloud model when allowed, else the local
@@ -3228,10 +3232,11 @@ ${brief.text}` : objective, expectedPaths });
     }
     // The opening fits; a later turn must too (requestBudget.laterTurnFits): reading its largest own file in full and
     // getting a diagnostic back. A step that can't is too broad and is split before it runs, not after its turns run out.
+    // The read a later turn needs: in full, the largest own file the opening carries only in part; a typical read
+    // (about 4,000 characters) when it carries them all whole. A local model's tool results are held to what this
+    // reserves (reads to it, every other result to the check result's 2,000 characters), so the turns it counts on fit.
+    let largest = 4000;
     {
-      // The read a later turn needs: in full, the largest own file the opening carries only in part; a typical read
-      // (about 4,000 characters) when it carries them all whole.
-      let largest = 4000;
       for (const p of ownFiles) {
         try {
           const lines = fs.readFileSync(jail.resolve(p).abs, "utf8").split("\n");
@@ -3243,11 +3248,16 @@ ${brief.text}` : objective, expectedPaths });
       }
       const later = laterTurnFits(reqBudget, total, largest);
       if (measure) {
-        measure({ task: task.title, role, model: assignment.model, windowTokens, replyTokens, charsPerToken: reqBudget.charsPerToken, inputChars: reqBudget.inputChars, systemChars: system.length, skillChars: skillFit.text.length, toolsChars, briefChars: brief.text.length, objectiveChars: task.objective.length, overflowChars: brief.overflow, overflowTokens: Math.round(brief.overflow / reqBudget.charsPerToken), totalTokens: Math.round(total / reqBudget.charsPerToken), budgetTokens: Math.round(reqBudget.inputChars / reqBudget.charsPerToken), laterTurn: { fits: later.fits, tokens: later.tokens }, largestReadChars: largest, files: packet.relevantFiles.map((f) => f.path.replace(/ (line-numbered.*)$/, "")), dropped: brief.dropped });
+        measure({ task: task.title, role, model: assignment.model, windowTokens, replyTokens, charsPerToken: reqBudget.charsPerToken, inputChars: reqBudget.inputChars, systemChars: system.length, skillChars: skillFit.text.length, toolsChars, briefChars: brief.text.length, objectiveChars: task.objective.length, overflowChars: brief.overflow, overflowTokens: Math.round(brief.overflow / reqBudget.charsPerToken), totalTokens: Math.round(total / reqBudget.charsPerToken), budgetTokens: Math.round(reqBudget.inputChars / reqBudget.charsPerToken), laterTurn: { fits: later.fits, tokens: later.tokens }, largestReadChars: largest, files: packet.relevantFiles.map((f) => f.path.replace(/ \(line-numbered.*\)$/, "")), dropped: brief.dropped });
         return { kind: "no_action", reason: "measured only" };
       }
       if (!later.fits && !this.d.store.getSetting(`splitPart:${task.id}`, false) && task.attempts === 1)
         return { kind: "split_required", reason: `a later turn (its opening request, a full read of its largest file and a check result) needs about ${later.tokens} tokens, more than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window` };
+      // A part can't be split again: one whose later turn doesn't fit isn't sent to rely on trimming; it waits for the
+      // person's choice, saying by how much (the split path blocks a "more tokens than" overflow).
+      if (!later.fits && this.d.store.getSetting(`splitPart:${task.id}`, false))
+        return { kind: "split_required", reason: `a later turn needs about ${later.tokens - windowTokens} more tokens than ${assignment.model}'s ${Math.round(windowTokens / 1024)}k window leaves for it (${later.tokens} of ${windowTokens})` };
+      if (lean) readAllowance = largest;
     }
     const result = await runAgentLoop({
       router: this.d.router,
@@ -3268,6 +3278,8 @@ ${brief.text}` : objective, expectedPaths });
       // Photos need "allow external research": without it find_image always says no, and a step asked 10 times.
       allowedTools: project.settings.allowExternalResearch ? undefined : ((ROLE_TOOLS[role] ?? []) as ToolName[]).filter((t) => t !== "find_image"),
       maxTurns: turnBudget(task),
+      // A read's own header and wrapper ride on top of the read allowance (within the turn's 1,400-character margin).
+      ...(lean ? { toolResultChars: largest + 600, outputResultChars: 2000 } : {}),
       signal,
       projectId: project.id,
       runId: run.id,

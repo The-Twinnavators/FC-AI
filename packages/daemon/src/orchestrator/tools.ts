@@ -43,6 +43,11 @@ export interface DispatchContext {
   verifyClaim?: () => Promise<{ allMet: boolean; failures: string[] }>;
   /** True when `rel` was created (did not exist before) earlier in this run. */
   createdInRun?: (rel: string) => boolean;
+  /** The most a read shows, in characters (a local model's later-turn read allowance); a longer read shows the lines that
+   * fit and says how to read the rest. Unset: no limit beyond the file cap. */
+  readChars?: () => number | undefined;
+  /** The most a check's or script's output shows, in characters (the later-turn allowance for a check result). */
+  outputChars?: () => number | undefined;
   /** Files the step's packet carried whole (not shortened, not cut at the line cap), with the content sent: seen in full. */
   attachedWhole?: () => Array<{ path: string; content: string }>;
   /** Type errors added since the run started, checked right after a code edit so the agent fixes them in the same turn. */
@@ -146,6 +151,19 @@ function sourceFiles(root: string): Array<{ path: string; text: string }> {
   };
   walk(path.join(root, "src"), "src/");
   return out;
+}
+
+/** How many of `lines` fit in `max` characters (each with `prefix` more for its number), at least one. */
+export function linesWithin(lines: string[], max: number | undefined, prefix: number): number {
+  if (max === undefined) return lines.length;
+  let n = 0;
+  let used = 0;
+  for (const l of lines) {
+    used += l.length + prefix + 1;
+    if (used > max && n > 0) break;
+    n++;
+  }
+  return n;
 }
 
 export function createDispatcher(ctx: DispatchContext) {
@@ -522,13 +540,23 @@ export function createDispatcher(ctx: DispatchContext) {
           if (a.from !== undefined || a.to !== undefined) {
             const lines = f.content.split("\n");
             const from = Math.max(1, Number(a.from ?? 1));
-            const to = Math.min(lines.length, Number(a.to ?? lines.length), from + 399);
+            const asked = Math.min(lines.length, Number(a.to ?? lines.length), from + 399);
+            const to = from - 1 + linesWithin(lines.slice(from - 1, asked), ctx.readChars?.(), String(asked).length + 2);
+            const cut = to < asked ? ` Lines after ${to} didn't fit this step's context: read them next with from=${to + 1}.` : "";
             if (from > lines.length) return { ok: false, content: `${f.path} has ${lines.length} lines; line ${from} is past the end.` };
             const width = String(to).length;
             const body = lines.slice(from - 1, to).map((l, i) => `${String(from + i).padStart(width)}| ${l}`).join("\n");
             const raw = currentText(f.path);
             if (raw !== undefined) views.saw(f.path, raw, from, to);
-            return { ok: true, content: `(${f.path}, lines ${from}–${to} of ${lines.length}${f.truncated ? "+" : ""}. The "N| " at the start of each line is its number, not part of the file: leave it out of apply_patch find text, and pass the number as "line" if the text occurs more than once.)\n${untrusted(f.path, body)}` };
+            return { ok: true, content: `(${f.path}, lines ${from}–${to} of ${lines.length}${f.truncated ? "+" : ""}. The "N| " at the start of each line is its number, not part of the file: leave it out of apply_patch find text, and pass the number as "line" if the text occurs more than once.${cut})\n${untrusted(f.path, body)}` };
+          }
+          // Longer than the step's read allowance: the lines that fit, said plainly, and the rest by range.
+          const all = f.content.split("\n");
+          const shown = linesWithin(all, ctx.readChars?.(), 0);
+          if (shown < all.length) {
+            const raw = currentText(f.path);
+            if (raw !== undefined) views.saw(f.path, raw, 1, shown);
+            return { ok: true, content: `(${f.path}: lines 1–${shown} of ${all.length}${f.truncated ? "+" : ""}, as much as this step's context holds at once. Read the rest with read_file from=${shown + 1} and to.)\n${untrusted(f.path, all.slice(0, shown).join("\n"))}` };
           }
           // A whole read is a complete view of this version; a truncated one covers only the lines it showed.
           if (!f.truncated) {
@@ -678,7 +706,6 @@ export function createDispatcher(ctx: DispatchContext) {
             signal: ctx.signal,
           });
           if (res.record.status === "awaiting_approval") ctx.onAwaitingApproval(true);
-          const tail = res.output.slice(-6000);
           if (/install|add|ci\b/.test(argv.slice(1, 2).join(" ")) && res.record.status === "succeeded") ctx.refreshPreflight();
           const header = `Command ${res.record.argv.join(" ")} → ${res.record.status}${res.record.exitCode !== undefined ? ` (exit ${res.record.exitCode})` : ""}`;
           // Not rerun because it would fail the same way: say so plainly with the errors, so the agent fixes them
@@ -688,6 +715,9 @@ export function createDispatcher(ctx: DispatchContext) {
           if (res.record.status === "blocked") return { ok: false, content: `${header}\nPolicy: ${res.record.policyReasons.join("; ")}\n${res.record.outputPreview ?? ""}` };
           // A failed test run starts with every failing test and why, since the tail only holds the last few.
           const digest = res.record.status === "succeeded" ? "" : testFailureDigest(res.output);
+          // The end of the output, within the step's output allowance when it has one (the errors are at the end).
+          const room = ctx.outputChars?.();
+          const tail = res.output.slice(-(room === undefined ? 6000 : Math.max(400, Math.min(6000, room - header.length - digest.length - 400))));
           const loopNote = loopAfterTests ? `\n\n${loopAfterTests}\n${res.record.status === "timed_out" ? "That is the likely reason the tests timed out." : "Fix it even if the tests finished: the screen would freeze in the browser."}` : "";
           return { ok: res.record.status === "succeeded", content: `${header}\n${digest}${untrusted("command-output", tail)}${res.record.status === "succeeded" ? "" : hintText(res.output.split(/\r?\n/))}${loopNote}` };
         }

@@ -24,13 +24,19 @@ const previewTokens = (tokens: Record<string, string> | null) => {
   const s = document.documentElement.style;
   for (const k of previewed) s.removeProperty(k);
   previewed = [];
-  for (const [k, v] of Object.entries(tokens ?? {})) if (k.startsWith("--")) (s.setProperty(k, v), previewed.push(k));
+  for (const [k, v] of Object.entries(tokens ?? {})) if (k.startsWith("--")) {
+    s.setProperty(k, v);
+    previewed.push(k);
+  }
 };
 const previewFonts = (fonts: Array<{ family: string; url: string }>) => {
   for (const f of fonts) if (![...document.fonts].some((x) => x.family.replace(/"/g, "") === f.family)) void new FontFace(f.family, \`url(\${f.url})\`).load().then((face) => document.fonts.add(face)).catch(() => undefined);
 };
 `;
-export const BRIDGE_LINES = `  if (d && d.type === "flowcode:tokens") (previewTokens((d as { tokens?: Record<string, string> | null }).tokens ?? null), requestAnimationFrame(() => window.parent?.postMessage({ type: "flowcode:painted", id: (d as { id?: unknown }).id }, "*")));
+export const BRIDGE_LINES = `  if (d && d.type === "flowcode:tokens") {
+    previewTokens((d as { tokens?: Record<string, string> | null }).tokens ?? null);
+    requestAnimationFrame(() => window.parent?.postMessage({ type: "flowcode:painted", id: (d as { id?: unknown }).id }, "*"));
+  }
   if (d && d.type === "flowcode:fonts") previewFonts((d as { fonts?: Array<{ family: string; url: string }> }).fonts ?? []);
   if (d && d.type === "flowcode:hello") window.parent?.postMessage({ type: "flowcode:ready", tokens: true }, "*");
 `;

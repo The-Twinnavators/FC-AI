@@ -63,6 +63,8 @@ export interface AgentLoopInput {
   taskId?: string;
   /** Max chars kept per tool result in the transcript. */
   toolResultChars?: number;
+  /** Max chars kept per result of any other tool (checks, scripts, edits' diffs); unset: toolResultChars. */
+  outputResultChars?: number;
   /** Max nudges for prose-only replies before giving up. */
   maxNudges?: number;
   onTranscript?: (messages: ChatMessage[]) => void;
@@ -600,7 +602,8 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
         } catch (err) {
           xexec = { ok: false, content: `ERROR: ${(err as Error).message}` };
         }
-        const xcontent = redact(xexec.content).slice(0, maxChars) + (xexec.content.length > maxChars ? `\n[truncated ${xexec.content.length - maxChars} chars]` : "");
+        const xcap = input.outputResultChars ?? maxChars;
+        const xcontent = redact(xexec.content).slice(0, xcap) + (xexec.content.length > xcap ? `\n[truncated ${xexec.content.length - xcap} chars]` : "");
         input.store.toolCalls.upsert({ ...rec, status: xexec.ok ? "completed" : "failed", resultSummaryRedacted: xcontent.slice(0, 1000), completedAt: nowIso() });
         input.bus.emit({ projectId: input.projectId, runId: input.runId, taskId: input.taskId, type: "tool.completed", message: `${call.name} ${xexec.ok ? "→ ok" : "→ failed"}: ${xcontent.split("\n")[0].slice(0, 200)}`, data: { toolCallId: recordId, ok: xexec.ok, mcp: true }, level: xexec.ok ? "info" : "warning" });
         turnRead = true;
@@ -666,7 +669,9 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<AgentLoopResu
       // exactly, or every patch it copies from it misses (Calendar test 8: `handlePasswordReset = [REDACTED] () =>`).
       const target = (parsed.data as { path?: unknown }).path;
       const code = name === "search_code" || name === "run_script" || (typeof target === "string" && /\.(tsx?|jsx?|mjs|cjs|css|scss|html|vue|svelte)$/i.test(target));
-      const content = redact(exec.content, [], { code }).slice(0, maxChars) + (exec.content.length > maxChars ? `\n[truncated ${exec.content.length - maxChars} chars]` : "");
+      // Reads are held to the read allowance, everything else to the output allowance (the request's later-turn reserve).
+      const cap = READ_TOOLS.has(name) ? maxChars : (input.outputResultChars ?? maxChars);
+      const content = redact(exec.content, [], { code }).slice(0, cap) + (exec.content.length > cap ? `\n[truncated ${exec.content.length - cap} chars${READ_TOOLS.has(name) ? "; read the rest with read_file from and to" : ""}]` : "");
       input.store.toolCalls.upsert({ ...rec, status: exec.ok ? "completed" : "failed", resultSummaryRedacted: content.slice(0, 1000), completedAt: nowIso() });
       input.bus.emit({
         projectId: input.projectId,
