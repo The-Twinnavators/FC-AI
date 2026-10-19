@@ -82,6 +82,14 @@ describe("a step can't pass on generic checks alone", () => {
     expect(problem("images-used:src/screens/HomeLandingPageScreen.tsx")).toBeUndefined();
     fs.writeFileSync(path.join(ws, nb.rel), nb.content.replace("Make something lumpy and love it anyway.", "Food without GMOs, without reading every label."));
     expect(problem("piece-content:src/screens/HomeLandingPageScreen.tsx")).toBeUndefined();
+    // A screen that takes only a primitive from a piece (the calculator's Button from ButtonsVariants) never shows its
+    // demo, untouched SAMPLE or not; one that renders the piece itself does.
+    const bv = pieceFiles("buttons-variants")[0]!;
+    fs.writeFileSync(path.join(ws, bv.rel), bv.content);
+    fs.writeFileSync(path.join(ws, "src/screens/CalcScreen.tsx"), `import { Button } from "../sections/ButtonsVariants";\nexport default function Calc() { return <Button>7</Button>; }\n`);
+    expect(problem("piece-content:src/screens/CalcScreen.tsx")).toBeUndefined();
+    fs.writeFileSync(path.join(ws, "src/screens/CalcScreen.tsx"), `import ButtonsVariants from "../sections/ButtonsVariants";\nexport default function Calc() { return <ButtonsVariants />; }\n`);
+    expect(problem("piece-content:src/screens/CalcScreen.tsx")).toMatch(/still show their demo content/);
     // Sample data: three records isn't seeded; eight is.
     const rec = (n: number) => Array.from({ length: n }, (_, i) => `{ id: "p${i}", name: "Product ${i}" }`).join(", ");
     expect(seededRecords(`const products = createCollection("products", [${rec(3)}]);`)).toBe(3);

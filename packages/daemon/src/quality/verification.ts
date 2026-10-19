@@ -171,12 +171,25 @@ export class Verifier {
       const sampleOf = (src: string) => /\/\/ flowcode:sample\n(const SAMPLE[\s\S]*?\n\};)/.exec(src)?.[1];
       const demos: string[] = [];
       for (const screen of kind.slice("piece-content:".length).split("|")) {
-        for (const m of read(screen).matchAll(/from ["']\.\.\/sections\/(\w+)["']/g)) {
-          const rel = `src/sections/${m[1]}.tsx`;
+        for (const m of read(screen).matchAll(/import\s+([^;]*?)\s+from ["']\.\.\/sections\/(\w+)["']/g)) {
+          const rel = `src/sections/${m[2]}.tsx`;
           const piece = LIBRARY_SECTIONS.find((x) => sectionFile(x.id) === rel);
-          const mine = sampleOf(read(rel));
+          const src = read(rel);
+          const mine = sampleOf(src);
           const lib = piece ? sampleOf(pieceFiles(piece.id)[0]?.content ?? "") : undefined;
-          if (mine && lib && mine === lib) demos.push(`${rel} (${piece!.name}: "${/title: "([^"]+)"/.exec(mine)?.[1] ?? "its demo"}")`);
+          // Only what the screen takes from the piece and that shows the SAMPLE (its default export, or a named one
+          // whose body uses it): the calculator imported Button from ButtonsVariants, never its demo, and was flagged.
+          const names = m[1]!.includes("{") ? [...m[1]!.matchAll(/(\w+)(?:\s+as\s+\w+)?\s*[,}]/g)].map((x) => x[1]!) : [];
+          const usesSample = (name: string) => {
+            const at = src.search(new RegExp(`export\\s+(?:default\\s+)?(?:function|const)\\s+${name}\\b`));
+            if (at < 0) return true;
+            const rest = src.slice(at + 1);
+            const end = rest.search(/\nexport\s/);
+            // A use of SAMPLE, not its own definition (which sits between the exports).
+            return /(?<!const\s)\bSAMPLE\b/.test(end < 0 ? rest : rest.slice(0, end));
+          };
+          const showsDemo = !m[1]!.trim().startsWith("{") || names.some(usesSample);
+          if (showsDemo && mine && lib && mine === lib) demos.push(`${rel} (${piece!.name}: "${/title: "([^"]+)"/.exec(mine)?.[1] ?? "its demo"}")`);
         }
       }
       return demos.length ? `these library pieces still show their demo content: ${demos.join(", ")}. Replace each SAMPLE with this product's real content` : undefined;
