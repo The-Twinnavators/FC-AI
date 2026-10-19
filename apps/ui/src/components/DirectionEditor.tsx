@@ -10,6 +10,7 @@ import { APPEARANCE_THEMES, BASE_APPEARANCE, MOTION_LABEL, MOTION_LEVELS, STYLE_
 import { post, useResource } from "../api";
 import { navigate } from "../router";
 import { ColorPicker } from "./ColorPicker";
+import { DesignComponentsBar } from "./DesignStudio";
 
 type Sources = Partial<Record<keyof Appearance, string>>;
 interface DesignStateView {
@@ -103,11 +104,14 @@ export function StyleSample({ appearance, label }: { appearance: Appearance; lab
   );
 }
 
+/** The contrast checks, folded to one line while they all pass; open when a pair falls short. */
 function Checks({ checks }: { checks: AppearanceCheck[] }) {
   const failing = checks.filter((c) => !c.ok).length;
   return (
-    <div className="ds-checks">
-      <p className="ds-checks__sum" role="status">{failing ? `${failing} of ${checks.length} colour pairs are below their contrast target` : `All ${checks.length} colour pairs meet their contrast target`}</p>
+    <details className={`ds-checks${failing ? " is-bad" : ""}`} open={failing > 0}>
+      <summary className="ds-checks__sum" role="status">
+        <span aria-hidden="true">{failing ? "✕" : "✓"}</span> {failing ? `${failing} of ${checks.length} colour pairs are below their contrast target` : `All ${checks.length} colour pairs meet their contrast target`}
+      </summary>
       <ul>
         {checks.map((c) => (
           <li key={c.label} className={c.ok ? "is-ok" : "is-bad"}>
@@ -115,9 +119,31 @@ function Checks({ checks }: { checks: AppearanceCheck[] }) {
           </li>
         ))}
       </ul>
-    </div>
+    </details>
   );
 }
+
+/** One section of the editor: a title, what it decides, then its controls. */
+function Section({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) {
+  const id = useId();
+  return (
+    <section className="ds-sec" aria-labelledby={id}>
+      <header className="ds-sec__head">
+        <h3 id={id} className="ds-sec__title">{title}</h3>
+        <p className="ds-sec__hint">{hint}</p>
+      </header>
+      {children}
+    </section>
+  );
+}
+
+/** A theme's own colours for its tile: page, card, text and primary. */
+const THEME_COLOURS = APPEARANCE_THEMES.map((t) => {
+  const look = appearanceFromTheme(t.id);
+  const tk = look ? appearanceTokens(look) : {};
+  return { ...t, bg: tk["--color-bg"], surface: tk["--color-surface"], text: tk["--color-text"], accent: tk["--color-accent"], border: tk["--color-border"] };
+});
+const noShown = () => undefined;
 
 /**
  * `where`: "plan" (no app yet: confirm only), "review" or "tab" (the app exists: confirm and apply).
@@ -229,68 +255,60 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
       </header>
       <div className="ds__body">
         <div className="ds__controls">
-          <label className="ds-field">
-            <span>Theme</span>
-            <select className="select" value={cur.theme ?? ""} onChange={(e) => {
-              const t = e.target.value ? appearanceFromTheme(e.target.value, cur.surface) : undefined;
-              if (t) edit(t, `theme:${t.theme}`);
-              else edit({ theme: undefined }, "you");
-            }}>
-              <option value="">No theme (start from your colours)</option>
-              {APPEARANCE_THEMES.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}{t.dark ? " (dark)" : ""}</option>
+          <Section title="Starting point" hint="A theme sets colours and fonts together. Everything below can still be changed.">
+            <fieldset className="ds-tiles ds-tiles--theme">
+              <legend className="sr-only">Theme</legend>
+              <label className={`ds-tile ds-theme${!cur.theme ? " is-on" : ""}`}>
+                <input type="radio" name={`ds-theme-${group}`} checked={!cur.theme} onChange={() => edit({ theme: undefined }, "you")} />
+                <span className="ds-theme__swatch ds-theme__swatch--own" aria-hidden="true" style={{ "--t-accent": cur.primary } as React.CSSProperties}>
+                  <span className="ds-theme__dot" />
+                </span>
+                <span className="ds-tile__name">Your colours</span>
+              </label>
+              {THEME_COLOURS.map((t) => (
+                <label key={t.id} className={`ds-tile ds-theme${cur.theme === t.id ? " is-on" : ""}`}>
+                  <input type="radio" name={`ds-theme-${group}`} checked={cur.theme === t.id} onChange={() => {
+                    const look = appearanceFromTheme(t.id, cur.surface);
+                    if (look) edit(look, `theme:${look.theme}`);
+                  }} />
+                  <span className="ds-theme__swatch" aria-hidden="true" style={{ "--t-bg": t.bg, "--t-surface": t.surface, "--t-text": t.text, "--t-accent": t.accent, "--t-border": t.border } as React.CSSProperties}>
+                    <span className="ds-theme__aa">Aa</span>
+                    <span className="ds-theme__dot" />
+                    {t.dark ? <span className="ds-theme__tag">Dark</span> : null}
+                  </span>
+                  <span className="ds-tile__name">{t.name}</span>
+                </label>
               ))}
-            </select>
-          </label>
-          <fieldset className="ds-field ds-seg">
-            <legend>Surface</legend>
-            {surfaces.map((v) => (
-              <label key={v.id} className={cur.surface === v.id ? "is-on" : ""}>
-                <input type="radio" name={`ds-surface-${group}`} checked={cur.surface === v.id} onChange={() => edit({ surface: v.id }, "you")} /> {v.name}
-              </label>
-            ))}
-          </fieldset>
-          {/* How much the app moves. Reduced motion on a person's device always wins; expressive effects need their own
-              opt-in and an eligible page (homepage, marketing, portfolio), so a level alone never turns them on. */}
-          <fieldset className="ds-field ds-seg">
-            <legend>Motion</legend>
-            {MOTION_LEVELS.map((m) => (
-              <label key={m} className={cur.motion?.level === m ? "is-on" : ""} title={MOTION_LABEL[m].detail}>
-                <input type="radio" name={`ds-motion-${group}`} checked={cur.motion?.level === m} onChange={() => edit({ motion: { ...cur.motion, level: m } }, "you")} /> {MOTION_LABEL[m].name}
-              </label>
-            ))}
-          </fieldset>
-          <p className="ds-hint dim">
-            {s.motionSupported === false ? "This app isn't a React app: FlowCode's motion foundation is React only, so the level is kept in the Look but not applied to it. " : null}
-            {cur.motion ? MOTION_LABEL[cur.motion.level].detail : "Not set for this direction: the app keeps the motion it has."} People who ask their device for reduced motion get quick fades instead, at every level.
-          </p>
-          <div className="ds-field">
-            <span>Primary colour{sources.primary ? <span className="ds-src"> · from {SOURCE_LABEL(sources.primary)}</span> : null}</span>
-            <ColorPicker label="Primary colour" value={cur.primary} onChange={(hex) => edit({ primary: hex }, "you")} swatches={prdPrimary ? [{ label: `PRD: ${prdPrimary.name}`, hex: prdPrimary.hex }] : []} />
-            {prdPrimary && prdPrimary.hex.toLowerCase() !== cur.primary.toLowerCase() ? (
-              <p className="ds-note">
-                Your PRD names {prdPrimary.name} ({prdPrimary.hex}){prdPrimary.use ? ` for ${prdPrimary.use}` : ""}.{" "}
-                <button type="button" className="link-btn" onClick={() => edit({ primary: prdPrimary.hex }, "prd")}>Use the PRD's colour</button>
-              </p>
-            ) : null}
-          </div>
-          <label className="ds-field">
-            <span>Neutral family</span>
-            <select className="select" value={cur.neutral} onChange={(e) => edit({ neutral: e.target.value as Appearance["neutral"] }, "you")}>
-              {NEUTRALS.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)}
-            </select>
-          </label>
-          <label className="ds-field">
-            <span>Typography</span>
-            <select className="select" value={TYPE_PAIRS.find((p) => p.display === cur.fonts.display && p.body === cur.fonts.body)?.id ?? ""} onChange={(e) => {
-              const p = TYPE_PAIRS.find((x) => x.id === e.target.value);
-              if (p) edit({ fonts: { display: p.display, body: p.body } }, "you");
-            }}>
-              {TYPE_PAIRS.find((p) => p.display === cur.fonts.display && p.body === cur.fonts.body) ? null : <option value="">{cur.fonts.display} + {cur.fonts.body}</option>}
-              {TYPE_PAIRS.map((p) => <option key={p.id} value={p.id}>{p.label} — {p.mood}</option>)}
-            </select>
-          </label>
-          <details className="ds-adv">
+            </fieldset>
+          </Section>
+
+          <Section title="Colour" hint="The primary colour marks the main action, links and focus. The neutral family tints pages, cards and borders.">
+            <div className="ds-field">
+              <span>Primary colour{sources.primary ? <span className="ds-src"> · from {SOURCE_LABEL(sources.primary)}</span> : null}</span>
+              <ColorPicker label="Primary colour" value={cur.primary} onChange={(hex) => edit({ primary: hex }, "you")} swatches={prdPrimary ? [{ label: `PRD: ${prdPrimary.name}`, hex: prdPrimary.hex }] : []} />
+              {prdPrimary && prdPrimary.hex.toLowerCase() !== cur.primary.toLowerCase() ? (
+                <p className="ds-note">
+                  Your PRD names {prdPrimary.name} ({prdPrimary.hex}){prdPrimary.use ? ` for ${prdPrimary.use}` : ""}.{" "}
+                  <button type="button" className="link-btn" onClick={() => edit({ primary: prdPrimary.hex }, "prd")}>Use the PRD's colour</button>
+                </p>
+              ) : null}
+            </div>
+            <fieldset className="ds-field ds-tiles ds-tiles--neutral">
+              <legend>Neutral family</legend>
+              {NEUTRALS.map((n) => {
+                const tk = appearanceTokens({ ...cur, neutral: n.id });
+                return (
+                  <label key={n.id} className={`ds-tile ds-neutral${cur.neutral === n.id ? " is-on" : ""}`}>
+                    <input type="radio" name={`ds-neutral-${group}`} checked={cur.neutral === n.id} onChange={() => edit({ neutral: n.id }, "you")} />
+                    <span className="ds-neutral__ramp" aria-hidden="true">
+                      {["--color-bg", "--color-surface-sunken", "--color-border", "--color-text-muted", "--color-text"].map((k) => <span key={k} style={{ background: tk[k] }} />)}
+                    </span>
+                    <span className="ds-tile__name">{n.label}</span>
+                  </label>
+                );
+              })}
+            </fieldset>
+            <details className="ds-adv">
             <summary>More: secondary colours, gradient, status colours</summary>
             <div className="ds-field">
               <span>Secondary colour (optional)</span>
@@ -329,10 +347,73 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
                 ))}
               </div>
             </div>
-          </details>
-          <Checks checks={appearanceChecks(cur)} />
+            </details>
+          </Section>
+
+          <Section title="Type" hint="Headings use the first face, text the second.">
+            <fieldset className="ds-tiles ds-tiles--type">
+              <legend className="sr-only">Typography</legend>
+              {TYPE_PAIRS.find((p) => p.display === cur.fonts.display && p.body === cur.fonts.body) ? null : (
+                <label className="ds-tile ds-type is-on">
+                  <input type="radio" name={`ds-type-${group}`} checked readOnly />
+                  <span className="ds-type__aa" aria-hidden="true" style={{ fontFamily: `"${cur.fonts.display}", system-ui, sans-serif` }}>Aa</span>
+                  <span className="ds-tile__name">{cur.fonts.display} + {cur.fonts.body}</span>
+                  <span className="ds-tile__sub">Current</span>
+                </label>
+              )}
+              {TYPE_PAIRS.map((p) => (
+                <label key={p.id} className={`ds-tile ds-type${p.display === cur.fonts.display && p.body === cur.fonts.body ? " is-on" : ""}`}>
+                  <input type="radio" name={`ds-type-${group}`} checked={p.display === cur.fonts.display && p.body === cur.fonts.body} onChange={() => edit({ fonts: { display: p.display, body: p.body } }, "you")} />
+                  <span className="ds-type__aa" aria-hidden="true" style={{ fontFamily: `"${p.display}", system-ui, sans-serif` }}>Aa</span>
+                  <span className="ds-tile__name">{p.label}</span>
+                  <span className="ds-tile__sub">{p.mood}</span>
+                </label>
+              ))}
+            </fieldset>
+          </Section>
+
+          <Section title="Surface and motion" hint="How cards and controls are drawn, and how much the app moves.">
+            <fieldset className="ds-field ds-tiles ds-tiles--surface">
+              <legend>Surface</legend>
+              {surfaces.map((v) => (
+                <label key={v.id} className={`ds-tile ds-surface${cur.surface === v.id ? " is-on" : ""}`}>
+                  <input type="radio" name={`ds-surface-${group}`} checked={cur.surface === v.id} onChange={() => edit({ surface: v.id }, "you")} />
+                  <span className={`ds-surface__card ds-surface__card--${v.id === "flat" ? "flat" : "tactile"}`} aria-hidden="true">
+                    <span /><span />
+                  </span>
+                  <span className="ds-tile__name">{v.name}</span>
+                </label>
+              ))}
+            </fieldset>
+            {/* How much the app moves. Reduced motion on a person's device always wins; expressive effects need their own
+                opt-in and an eligible page (homepage, marketing, portfolio), so a level alone never turns them on. */}
+            <fieldset className="ds-field ds-tiles ds-tiles--motion">
+              <legend>Motion</legend>
+              {MOTION_LEVELS.map((m, i) => (
+                <label key={m} className={`ds-tile ds-motion${cur.motion?.level === m ? " is-on" : ""}`}>
+                  <input type="radio" name={`ds-motion-${group}`} checked={cur.motion?.level === m} onChange={() => edit({ motion: { ...cur.motion, level: m } }, "you")} />
+                  <span className="ds-motion__bars" aria-hidden="true">
+                    {[0, 1, 2].map((b) => <span key={b} className={b <= i ? "is-lit" : ""} />)}
+                  </span>
+                  <span className="ds-tile__name">{MOTION_LABEL[m].name}</span>
+                  <span className="ds-tile__sub">{MOTION_LABEL[m].detail}</span>
+                </label>
+              ))}
+            </fieldset>
+            <p className="ds-hint dim">
+              {s.motionSupported === false ? "This app isn't a React app: FlowCode's motion foundation is React only, so the level is kept in the Look but not applied to it. " : null}
+              {cur.motion ? null : "Not set for this direction: the app keeps the motion it has. "}People who ask their device for reduced motion get quick fades instead, at every level.
+            </p>
+          </Section>
+
+          <Section title="Components" hint="Suggest building blocks from the library. The builder is told to use these instead of writing its own.">
+            <DesignComponentsBar projectId={projectId} used={[]} onChange={noShown} />
+          </Section>
         </div>
-        <StyleSample appearance={cur} label={appExists ? "Draft preview (not applied to the app)" : "Style sample"} />
+        <aside className="ds__preview">
+          <StyleSample appearance={cur} label={appExists ? "Draft preview (not applied to the app)" : "Style sample"} />
+          <Checks checks={appearanceChecks(cur)} />
+        </aside>
       </div>
       <footer className="ds__actions">
         {appExists ? (

@@ -1,0 +1,91 @@
+/*
+ * The Look editor (DirectionEditor.tsx), organised into sections of visual choices: theme, colour, type, surface and
+ * motion, components. Each choice is a tile showing what it is (the theme's colours, the face's "Aa", the neutral's
+ * ramp), with a radio inside for the keyboard. The sample and the contrast checks stay beside the controls while
+ * they scroll. Loaded after responsive.css, whose older .ds rules this refines.
+ */
+.ds { --ds-on: var(--brand-ink, var(--text-0)); }
+.ds-seg label.is-on { border-color: var(--ds-on); }
+.ds__body { grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); gap: 28px; }
+.ds__controls { gap: 0; }
+.ds__preview { display: grid; gap: 12px; min-width: 0; position: sticky; top: 12px; }
+@container ds (max-width: 640px) {
+  .ds__preview { position: static; order: -1; }
+}
+
+/* Sections: a title, what it decides, its controls. Divided by a hairline, not boxed. */
+.ds-sec { display: grid; gap: 14px; padding: 20px 0; border-top: 1px solid var(--line); min-width: 0; }
+.ds-sec:first-child { border-top: 0; padding-top: 4px; }
+.ds-sec__head { display: grid; gap: 2px; }
+.ds-sec__title { margin: 0; font-size: 14px; font-weight: 600; color: var(--text-0); }
+.ds-sec__hint { margin: 0; font-size: 12.5px; color: var(--text-2); max-width: 60ch; }
+
+/* Tiles: one per choice, the radio kept for the keyboard and screen readers but drawn as the tile's outline. */
+.ds-tiles { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.ds-tiles > legend { padding: 0; margin-bottom: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-0); }
+.ds-tile {
+  position: relative; display: grid; gap: 6px; align-content: start; min-width: 0; padding: 8px;
+  border: 1px solid var(--line); border-radius: var(--r-3); background: var(--bg-1); cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.ds-tile:hover { border-color: var(--line-strong); background: var(--bg-hover, var(--bg-2)); }
+.ds-tile.is-on { border-color: var(--ds-on); box-shadow: inset 0 0 0 1px var(--ds-on); background: var(--brand-soft, var(--bg-2)); }
+.ds-tile > input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.ds-tile:has(> input:focus-visible) { outline: 2px solid var(--ds-on); outline-offset: 2px; }
+.ds-tile__name { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--text-0); min-width: 0; overflow-wrap: break-word; }
+.ds-tile__sub { font-size: 11.5px; line-height: 1.35; color: var(--text-2); }
+
+/* Themes: a small page in the theme's colours, its text and its primary. */
+.ds-tiles--theme { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
+.ds-theme__swatch {
+  position: relative; display: flex; align-items: flex-end; height: 52px; padding: 8px;
+  border: 1px solid var(--t-border, var(--line)); border-radius: var(--r-2);
+  background: linear-gradient(var(--t-bg, var(--bg-2)) 0 55%, var(--t-surface, var(--bg-2)) 55%);
+}
+.ds-theme__swatch--own { background: repeating-linear-gradient(135deg, var(--bg-2) 0 6px, var(--bg-1) 6px 12px); border-color: var(--line); }
+.ds-theme__aa { font-size: 16px; font-weight: 700; line-height: 1; color: var(--t-text, var(--text-0)); }
+.ds-theme__tag { position: absolute; top: 6px; right: 6px; padding: 0 5px; border-radius: 999px; background: var(--t-surface); color: var(--t-text); font-size: 10px; font-weight: 600; line-height: 16px; }
+.ds-theme__dot { position: absolute; right: 8px; bottom: 8px; width: 14px; height: 14px; border-radius: 999px; background: var(--t-accent); }
+
+/* Neutral families: each one's ramp, page to text. */
+.ds-tiles--neutral { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@container ds (max-width: 520px) { .ds-tiles--neutral { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ds-neutral__ramp { display: grid; grid-template-columns: repeat(5, 1fr); height: 22px; border-radius: var(--r-1); overflow: hidden; border: 1px solid var(--line); }
+
+/* Type pairs: the heading face's "Aa", its name and mood. */
+.ds-tiles--type { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.ds-type__aa { font-size: 28px; line-height: 1.1; font-weight: 600; color: var(--text-0); }
+
+/* Surfaces: a card drawn flat (a border) or tactile (raised, with a pressed well). */
+.ds-tiles--surface { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ds-surface__card { display: grid; gap: 6px; height: 52px; padding: 8px; border-radius: var(--r-2); background: var(--bg-2); }
+.ds-surface__card > span { border-radius: var(--r-1); }
+.ds-surface__card > span:first-child { width: 60%; height: 8px; background: var(--text-2); opacity: 0.6; }
+.ds-surface__card > span:last-child { width: 44px; height: 16px; }
+.ds-surface__card--flat { border: 1px solid var(--line-strong); }
+.ds-surface__card--flat > span:last-child { border: 1px solid var(--line-strong); }
+.ds-surface__card--tactile { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 4px 10px -4px rgba(0, 0, 0, 0.55); }
+.ds-surface__card--tactile > span:last-child { background: var(--bg-1); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) inset; }
+
+/* Motion levels: one, two or three bars lit. */
+.ds-tiles--motion { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@container ds (max-width: 520px) { .ds-tiles--motion { grid-template-columns: minmax(0, 1fr); } }
+.ds-motion__bars { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
+.ds-motion__bars > span { width: 6px; border-radius: 2px; background: var(--line-strong); }
+.ds-motion__bars > span:nth-child(1) { height: 6px; }
+.ds-motion__bars > span:nth-child(2) { height: 11px; }
+.ds-motion__bars > span:nth-child(3) { height: 16px; }
+.ds-motion__bars > span.is-lit { background: var(--ds-on); }
+
+.ds-hint { margin: 0; }
+.ds-adv { border-top: 0; padding-top: 0; }
+
+/* Contrast checks, folded to their summary beside the sample. */
+.ds-checks { border-top: 0; padding-top: 0; }
+.ds-checks > summary { display: flex; gap: 6px; align-items: baseline; cursor: pointer; font-size: 12.5px; list-style: none; }
+.ds-checks > summary::-webkit-details-marker { display: none; }
+.ds-checks > summary > span { color: var(--sig-ok); }
+.ds-checks.is-bad > summary > span { color: var(--sig-bad, #e05252); }
+.ds-checks[open] > summary { margin-bottom: 6px; }
+
+@media (prefers-reduced-motion: reduce) { .ds-tile { transition: none; } }
