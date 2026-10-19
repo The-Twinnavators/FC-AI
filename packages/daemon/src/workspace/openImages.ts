@@ -49,7 +49,7 @@ const EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "
  */
 // Archive items too: their catalogue titles say so ("studio portrait, [n.d.]", a year before 1960, circa, carte de
 // visite), and the small vision model let some 1890s prints through.
-export const UNSUITABLE = /\b(sexy|nude|naked|nudity|lingerie|bra|bikini|boudoir|erotic\w*|topless|underwear|fetish|advert\w*|poster|magazine|catalogu?e?|flyer|brochure|screenshot|logo|diagram|map|infographic|packaging|circa|vintage|antique|archives?|daguerreotype|tintype|ambrotype|carte de visite|cabinet card|1[6-8]\d\d|19[0-5]\d)\b|\[n\.\s?d\.\]/i;
+export const UNSUITABLE = /\b(sexy|nude|naked|nudity|lingerie|bra|bikini|boudoir|erotic\w*|topless|underwear|fetish|advert\w*|poster|magazine|catalogu?e?|flyer|brochure|screenshot|logo|diagram|map|infographic|packaging|circa|vintage|antique|archives?|daguerreotype|tintype|ambrotype|carte de visite|cabinet card|postcards?|1[6-8]\d\ds?|19[0-5]\ds?)\b|\[n\.\s?d\.\]/i;
 const describes = (r: Result) => `${r.title ?? ""} ${(r.tags ?? []).map((t) => t.name ?? "").join(" ")}`.toLowerCase();
 const wordIn = (w: string, text: string) => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i").test(text);
 

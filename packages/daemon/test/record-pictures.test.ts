@@ -126,7 +126,7 @@ describe("the open-photo search", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("knows an archive print or an advert by its own catalogue title", () => {
-    for (const t of ["Arthur Roderick, Pelaw Main - studio portrait, [n.d.]", "1958 Sears: Why buy a 35mm Camera?", "General view, from the trees, 1906 (CHS-4332)", "Carte de visite of a lady"]) expect(UNSUITABLE.test(t)).toBe(true);
+    for (const t of ["Arthur Roderick, Pelaw Main - studio portrait, [n.d.]", "1958 Sears: Why buy a 35mm Camera?", "General view, from the trees, 1906 (CHS-4332)", "Carte de visite of a lady", "Studio portrait of a bride, [1920s]", "Postcard studio portrait of a man posting with an automobile"]) expect(UNSUITABLE.test(t)).toBe(true);
     for (const t of ["Woman Window", "Business People", "Tasha 5th shoot 04", "Studio portrait European couple posing"]) expect(UNSUITABLE.test(t)).toBe(false);
   });
 

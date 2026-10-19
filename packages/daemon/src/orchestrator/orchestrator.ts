@@ -72,7 +72,7 @@ import { PICTURES_STEP, pictureGaps, pictureQueries, pictureSvg, withRecordValue
 import { UNSUITABLE, findOpenImage } from "../workspace/openImages.js";
 
 /** The version of what makes a record's photo suitable: photos already placed are looked at again when it changes. */
-const PICTURE_RULES = "2";
+const PICTURE_RULES = "3";
 import { FRAME_SHEET, frameCss, usesAppFrame, withFrameImport } from "./frameComposer.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
