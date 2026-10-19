@@ -69,7 +69,10 @@ import { composable, composeListScreen, selectionListCss } from "./screenCompose
 import { SELECTION_FILE, composeDetailScreen, composeSelectionScreen, detectSelection, selectionStoreFile } from "./selectionComposer.js";
 import { composeAcceptanceFile } from "./acceptanceComposer.js";
 import { PICTURES_STEP, pictureGaps, pictureQueries, pictureSvg, withRecordValue } from "./recordPictures.js";
-import { findOpenImage } from "../workspace/openImages.js";
+import { UNSUITABLE, findOpenImage } from "../workspace/openImages.js";
+
+/** The version of what makes a record's photo suitable: photos already placed are looked at again when it changes. */
+const PICTURE_RULES = "2";
 import { FRAME_SHEET, frameCss, usesAppFrame, withFrameImport } from "./frameComposer.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
@@ -4407,9 +4410,10 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // The photos already there are looked at once per run: one that isn't a contemporary photo of its record is
     // replaced like a missing one (Frameproof: a camera advert, a palace statue, an 1890s print with its caption).
     let unsuitable: string[] = [];
-    if (model && run.modelAssignments.critic && !this.d.store.getSetting(`picturesJudged:${run.id}`, false)) {
+    // Looked at again whenever the rules for a suitable photo change (PICTURE_RULES).
+    if (model && run.modelAssignments.critic && this.d.store.getSetting<unknown>(`picturesJudged:${run.id}`, false) !== PICTURE_RULES) {
       unsuitable = await this.unsuitablePictures(jail.root, model, check).catch(() => []);
-      this.d.store.setSetting(`picturesJudged:${run.id}`, true);
+      this.d.store.setSetting(`picturesJudged:${run.id}`, PICTURE_RULES);
     }
     const found = model ? pictureGaps(jail.root, model, unsuitable) : undefined;
     if (!found?.gaps.length) return;
@@ -4536,9 +4540,20 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
   private async unsuitablePictures(root: string, model: AppModel, check: (image: Buffer, query: string) => Promise<{ ok: boolean; reason: string }>): Promise<string[]> {
     const all = pictureGaps(root, model);
     if (!all) return [];
+    let credits: Array<{ file: string; title: string }> = [];
+    try {
+      credits = JSON.parse(fs.readFileSync(path.join(root, "src/content/image-credits.json"), "utf8")) as typeof credits;
+    } catch {
+      credits = [];
+    }
     const out: string[] = [];
     for (const r of all.present) {
       if (!/\.(jpe?g|png|webp)$/i.test(r.file)) continue;
+      // Its own catalogue title says it isn't one (an archive print, an advert): no need to look.
+      if (UNSUITABLE.test(credits.find((c) => c.file === r.file)?.title ?? "")) {
+        out.push(r.id);
+        continue;
+      }
       let bytes: Buffer;
       try {
         bytes = fs.readFileSync(path.join(root, "public", r.file.replace(/^\/+/, "")));

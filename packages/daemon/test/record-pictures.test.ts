@@ -10,7 +10,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AppModel } from "../src/orchestrator/appModel.js";
 import { contentWords, pictureGaps, pictureQueries, pictureSvg, withRecordValue } from "../src/orchestrator/recordPictures.js";
-import { findOpenImage } from "../src/workspace/openImages.js";
+import { UNSUITABLE, findOpenImage } from "../src/workspace/openImages.js";
 import { PathJail } from "../src/security/pathJail.js";
 
 const MODEL = {
@@ -124,6 +124,11 @@ describe("records without their picture", () => {
 
 describe("the open-photo search", () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it("knows an archive print or an advert by its own catalogue title", () => {
+    for (const t of ["Arthur Roderick, Pelaw Main - studio portrait, [n.d.]", "1958 Sears: Why buy a 35mm Camera?", "General view, from the trees, 1906 (CHS-4332)", "Carte de visite of a lady"]) expect(UNSUITABLE.test(t)).toBe(true);
+    for (const t of ["Woman Window", "Business People", "Tasha 5th shoot 04", "Studio portrait European couple posing"]) expect(UNSUITABLE.test(t)).toBe(false);
+  });
 
   it("turns away unsuitable and off-subject results and photos already in the app", async () => {
     const root = workspace();
