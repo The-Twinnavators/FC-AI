@@ -3399,6 +3399,16 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     } catch {
       /* keeping a copy never affects the step */
     }
+    if (brief.overflow > 0 && lean && skills.length > 1 && !this.leanSkills.has(`${task.id}:${role}`)) {
+      // Its own material doesn't fit beside every skill: the same request with the workflow skill only, before a split
+      // or a refusal (the calculator's "Implement Input Display and Formatting" was 114 tokens over).
+      this.leanSkills.add(`${task.id}:${role}`);
+      try {
+        return await this.agentAttempt(run, task, jail, signal, changed, role, modelOverride, measure);
+      } finally {
+        this.leanSkills.delete(`${task.id}:${role}`);
+      }
+    }
     if (brief.overflow > 0 && !measure) {
       const tokens = Math.round(brief.overflow / reqBudget.charsPerToken);
       // Never sent with part of what it needs, and never sent over budget (a part can't be split again: the split path
