@@ -3785,6 +3785,11 @@ ${brief.text}` : objective, expectedPaths });
     // A rolled-back step starts over with its full tries, as the coder (Frameproof: kept at attempt 1, the Gallery's
     // next run went straight to the debugger).
     this.updateTask(task, { status: "pending", attempts: 0, actualPaths: [], blocker: undefined });
+    // What its earlier attempts found was about edits that are gone now: a fresh start doesn't carry it (Frameproof: a
+    // rolled-back Gallery read "--text-4xl is undefined" from its undone edit, couldn't find it, and wrote it back).
+    // A composed screen's own note stays (the composition isn't rolled back with the step).
+    this.d.store.setSetting(`taskFindings:${taskId}`, this.d.store.getSetting<string[]>(`taskFindings:${taskId}`, []).filter((f) => f.startsWith("FlowCode composed this screen already")));
+    this.d.store.setSetting(recoveryKey(taskId), { corrections: 0, history: [] });
     for (const t of this.graph.tasks(runId)) if (t.dependsOn.includes(taskId) && t.status === "verified") this.updateTask(t, { status: "invalidated" });
     return { restored: restored.length };
   }

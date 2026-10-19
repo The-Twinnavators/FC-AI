@@ -99,8 +99,11 @@ describe("rolling a step back", () => {
     const { project } = makeProject(app, { "README.md": "# demo\n" });
     const run = app.orchestrator.createRun({ projectId: project.id, objective: "demo", constraints: [], attachedKnowledgeIds: [] });
     app.store.tasks.upsert({ id: "t1", runId: run.id, title: "Design the Gallery screen", objective: "o", status: "blocked", dependsOn: [], expectedPaths: [], actualPaths: [], acceptanceCriteria: [], validationPlan: { kinds: [] }, role: "coder", ordinal: 1, attempts: 1 } as unknown as Task);
+    app.store.setSetting("taskFindings:t1", ["FlowCode composed this screen already (Gallery: …)", "These tokens are still used but no longer defined: --text-4xl"]);
     app.orchestrator.rollbackTask(run.id, "t1");
     expect(app.store.tasks.require("t1")).toMatchObject({ status: "pending", attempts: 0 });
+    // Findings about edits that are gone don't carry; the composition note does.
+    expect(app.store.getSetting("taskFindings:t1", [])).toEqual(["FlowCode composed this screen already (Gallery: …)"]);
   });
 });
 
