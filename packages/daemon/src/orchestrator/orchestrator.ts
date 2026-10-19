@@ -73,7 +73,7 @@ import { UNSUITABLE, findOpenImage } from "../workspace/openImages.js";
 
 /** The version of what makes a record's photo suitable: photos already placed are looked at again when it changes. */
 const PICTURE_RULES = "3";
-import { FRAME_SHEET, frameCss, refreshedFrameCss, usesAppFrame, withFrameImport } from "./frameComposer.js";
+import { FRAME_SHEET, frameCss, frameKind, refreshedFrameCss, withFrameImport } from "./frameComposer.js";
 import { completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
@@ -3095,7 +3095,7 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     // Refining a screen FlowCode composed: its PRD requirements are what the composition built, so the step gets the
     // direction (below), not the screen's requirements again.
     // The frame FlowCode styled (frameComposer.ts) is refined the same way: its stylesheet is the whole of the work.
-    const refining = !!this.d.store.getSetting(`composedFrom:${task.id}`, null) || this.d.store.getSetting(`frameComposed:${task.id}`, false) || this.d.store.getSetting(`refining:${task.id}`, false);
+    const refining = !!this.d.store.getSetting(`composedFrom:${task.id}`, null) || this.d.store.getSetting(`refining:${task.id}`, false);
     if (prdPath && !refining && !composedFix) {
       try {
         const md = readFile(jail, prdPath).content;
@@ -4521,34 +4521,46 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
    */
   private composeFrame(run: Run, task: Task, jail: ReturnType<ProjectService["jail"]>) {
     // Composed again when an undo took it away (a blocked step's edits are undone).
-    if (task.role !== "coder" || task.title !== "Design the frame" || fs.existsSync(jail.resolve(FRAME_SHEET).abs)) return;
+    // The frame part, or any step judged on the frame being designed (a sketch build's "Implement UI Components and States").
+    const framePart = task.title === "Design the frame" || task.acceptanceCriteria.some((c) => (c.check as { kind?: string }).kind === "frame-designed");
+    if (task.role !== "coder" || !framePart || fs.existsSync(jail.resolve(FRAME_SHEET).abs)) return;
     let app = "";
     try {
       app = fs.readFileSync(jail.resolve("src/App.tsx").abs, "utf8");
     } catch {
       return;
     }
-    if (!usesAppFrame(app)) return;
+    const kind = frameKind(app);
+    if (!kind) return;
     const model = this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null);
     const ev = { projectId: run.projectId, runId: run.id, taskId: task.id };
     const ctx = { jail, projectId: run.projectId, runId: run.id, taskId: task.id, toolCallId: `fc_frame_${task.id}`, approved: true };
-    const made = this.d.ops.create_file(ctx, { path: FRAME_SHEET, content: frameCss(model?.product ?? run.objective.split(":")[0] ?? "The app") } as never);
+    const made = this.d.ops.create_file(ctx, { path: FRAME_SHEET, content: frameCss(model?.product ?? this.d.store.projects.require(run.projectId).name, kind) } as never);
     if (!made.ok) return;
     const next = withFrameImport(app);
     if (next) {
       const r = this.d.ops.replaceContent(ctx, "src/App.tsx", next);
       if (!r.ok) return;
     }
+    // Checked first either way; only the frame part itself becomes a refinement of the stylesheet (another step judged on
+    // the frame keeps its own brief).
     this.d.store.setSetting(`frameComposed:${task.id}`, true);
+    const classes = kind === "appshell" ? ".ui-shell…" : ".fl-af-…";
+    const parts = kind === "appshell" ? "AppShell's header, brand, navigation and page area" : "AppFrame's rail, brand, navigation items, top bar and page area";
+    if (task.title === "Design the frame") this.d.store.setSetting(`refining:${task.id}`, true);
     this.updateTask(this.d.store.tasks.require(task.id), {
       actualPaths: [...new Set([...task.actualPaths, FRAME_SHEET, "src/App.tsx"])],
-      objective: [
-        `Refine the app frame FlowCode styled in ${FRAME_SHEET} (AppFrame's rail, brand, navigation items, top bar and page area, imported by src/App.tsx) so it follows the direction below.`,
-        `Change only ${FRAME_SHEET}, with the app's tokens (var(--…)) and the frame's own classes (.fl-af-…); keep the navigation working. Then run the type check.`,
-        tokenMenu(jail),
-      ]
-        .filter(Boolean)
-        .join("\n"),
+      ...(task.title === "Design the frame"
+        ? {
+            objective: [
+              `Refine the app frame FlowCode styled in ${FRAME_SHEET} (${parts}, imported by src/App.tsx) so it follows the direction below.`,
+              `Change only ${FRAME_SHEET}, with the app's tokens (var(--…)) and the frame's own classes (${classes}); keep the navigation working. Then run the type check.`,
+              tokenMenu(jail),
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          }
+        : {}),
     });
     this.d.bus.emit({ ...ev, type: "recovery.action", message: `FlowCode styled the app frame itself, with no model: ${FRAME_SHEET} (rail, brand, navigation, top bar, page area, in the app's tokens), imported by src/App.tsx. It is checked now; the model refines it only if needed.`, data: { composed: [FRAME_SHEET, "src/App.tsx"] } });
   }

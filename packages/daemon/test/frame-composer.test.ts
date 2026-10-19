@@ -3,7 +3,7 @@
  * imported by App.tsx, which counts as frame evidence. Frameproof: the frame part's model wrote prose and no tool call.
  */
 import { describe, expect, it } from "vitest";
-import { frameCss, refreshedFrameCss, usesAppFrame, withFrameImport } from "../src/orchestrator/frameComposer.js";
+import { frameCss, frameKind, refreshedFrameCss, usesAppFrame, withFrameImport } from "../src/orchestrator/frameComposer.js";
 import { cssRules, frameCssChanges } from "../src/quality/frameCheck.js";
 
 const APP = `import type { ComponentType } from "react";
@@ -41,5 +41,16 @@ describe("a composed frame brought up to date", () => {
     expect(next).toContain(".fl-af-top { background: var(--color-surface);");
     expect(refreshedFrameCss(next, "Frameproof")).toBeUndefined();
     expect(refreshedFrameCss(".fl-af-rail { color: red; }", "Frameproof")).toBeUndefined();
+  });
+});
+
+describe("a sketch build's frame (the kit's AppShell)", () => {
+  it("is recognised and styled through its ui-shell rules, which count as frame changes", () => {
+    const app = `import { AppShell } from "./components/ui";\nexport default function App() { return <AppShell name="Calculator" screens={[]} current="calculator" onNavigate={() => {}}>{null}</AppShell>; }\n`;
+    expect(frameKind(app)).toBe("appshell");
+    const css = frameCss("Calculator", "appshell");
+    expect(css).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
+    expect(frameCssChanges("", css)).toEqual(expect.arrayContaining([".ui-shell__header", '.ui-shell__link[aria-current="page"]']));
+    expect(refreshedFrameCss(css, "Calculator")).toBeUndefined();
   });
 });

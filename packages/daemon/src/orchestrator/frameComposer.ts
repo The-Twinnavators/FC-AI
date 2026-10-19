@@ -9,6 +9,12 @@ export const FRAME_SHEET = "src/styles/frame.css";
 /** Whether App.tsx renders the library's AppFrame (the frame this stylesheet styles). */
 export const usesAppFrame = (app: string) => /from\s+["']\.\/sections\/AppFrame["']/.test(app) && /<AppFrame\b/.test(app);
 
+/** Whether App.tsx renders the starter kit's AppShell (src/components/ui): a sketch build's frame. */
+export const usesAppShell = (app: string) => /from\s+["']\.\/components\/ui["']/.test(app) && /<AppShell\b/.test(app);
+
+/** The frame App.tsx renders, for the stylesheet FlowCode writes. */
+export const frameKind = (app: string): "appframe" | "appshell" | undefined => (usesAppFrame(app) ? "appframe" : usesAppShell(app) ? "appshell" : undefined);
+
 /** App.tsx importing the frame stylesheet (after its last import); undefined when it does already. */
 export function withFrameImport(app: string): string | undefined {
   if (/["']\.\/styles\/frame\.css["']/.test(app)) return undefined;
@@ -26,14 +32,29 @@ export function withFrameImport(app: string): string | undefined {
  */
 export function refreshedFrameCss(current: string, product: string): string | undefined {
   if (!current.includes("composed by FlowCode (frameComposer.ts)")) return undefined;
-  const has = new Set([...current.matchAll(/(^|\n)([^{}\n/@][^{}]*?)\s*\{/g)].map((m) => m[2]!.trim()));
-  const missing = frameCss(product)
+  // Selectors as written, comments left out (a header comment ran into the first rule's selector).
+  const has = new Set([...current.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/(^|\n)([^{}\n/@][^{}]*?)\s*\{/g)].map((m) => m[2]!.trim()));
+  const missing = frameCss(product, current.includes(".ui-shell") ? "appshell" : "appframe")
     .split("\n")
     .filter((l) => /^\.[^{]+\{.*\}$/.test(l.trim()) && !has.has(l.trim().replace(/\s*\{.*$/, "").trim()));
   return missing.length ? `${current.trimEnd()}\n${missing.join("\n")}\n` : undefined;
 }
 
-export function frameCss(product: string): string {
+export function frameCss(product: string, kind: "appframe" | "appshell" = "appframe"): string {
+  if (kind === "appshell")
+    return `/**
+ * ${product.replace(/\*\//g, "* /")}'s frame, composed by FlowCode (frameComposer.ts): the header, brand, navigation and page area of
+ * the kit's AppShell, in the app's tokens only. Quiet chrome, so the content leads.
+ */
+.ui-shell__header { background: var(--color-bg); border-bottom-color: var(--color-border); }
+.ui-shell__name { font-weight: var(--weight-semibold); letter-spacing: 0.01em; }
+.ui-shell__nav { gap: var(--space-2); }
+.ui-shell__link { border-radius: var(--radius-sm); font-size: var(--text-sm); }
+.ui-shell__link:hover { background: var(--color-surface-sunken); color: var(--color-text); }
+.ui-shell__link[aria-current="page"] { color: var(--color-text); font-weight: var(--weight-semibold); box-shadow: inset 0 -2px 0 var(--color-accent); }
+.ui-shell__main { padding-top: var(--space-4); }
+@media (prefers-reduced-motion: reduce) { .ui-shell__link { transition: none; } }
+`;
   return `/**
  * ${product.replace(/\*\//g, "* /")}'s frame, composed by FlowCode (frameComposer.ts): the rail, brand, navigation, top bar and page
  * area of AppFrame, in the app's tokens only. Quiet chrome, so the content leads.
