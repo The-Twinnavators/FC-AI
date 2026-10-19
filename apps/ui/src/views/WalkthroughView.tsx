@@ -109,17 +109,17 @@ export function WalkthroughView() {
           <p className="wt-top__sub">
             The Frameproof build, start to finish. Real parts come from build <code className="mono">{RUN.slice(0, 12)}…</code>; anything else says what it is.
           </p>
+          <dl className="wt-legend" aria-label="What the labels mean">
+            {(Object.keys(KIND_LABEL) as Kind[]).map((k) => (
+              <div key={k}>
+                <dt>
+                  <Badge kind={k} />
+                </dt>
+                <dd>{KIND_MEANS[k]}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <dl className="wt-legend" aria-label="What the labels mean">
-          {(Object.keys(KIND_LABEL) as Kind[]).map((k) => (
-            <div key={k}>
-              <dt>
-                <Badge kind={k} />
-              </dt>
-              <dd>{KIND_MEANS[k]}</dd>
-            </div>
-          ))}
-        </dl>
       </header>
 
       <div className="wt-body">
@@ -147,20 +147,6 @@ export function WalkthroughView() {
               {s.title}
             </h2>
             <p className="wt-stage__does">{s.does}</p>
-            <div className="wt-stage__nav">
-              <button type="button" className="btn btn--sm" disabled={stage === 0} onClick={() => go(stage - 1)} aria-label="Previous stage">
-                <Icon name="chevron" size={14} /> Back
-              </button>
-              {stage < STAGES.length - 1 ? (
-                <button type="button" className="btn btn--sm btn--primary" onClick={() => go(stage + 1)}>
-                  Next: {STAGES[stage + 1].title}
-                </button>
-              ) : (
-                <button type="button" className="btn btn--sm btn--primary" onClick={() => go(0)}>
-                  Done: start again
-                </button>
-              )}
-            </div>
           </header>
           <div className="wt-stage__grid">
             {s.id === "prd" && <PrdStage />}
@@ -182,9 +168,15 @@ export function WalkthroughView() {
         <span className="wt-foot__pos" aria-live="polite">
           {stage + 1} / {STAGES.length}: {s.title}
         </span>
-        <button type="button" className="btn btn--primary" disabled={stage === STAGES.length - 1} onClick={() => go(stage + 1)}>
-          Next: {STAGES[Math.min(stage + 1, STAGES.length - 1)].title}
-        </button>
+        {stage < STAGES.length - 1 ? (
+          <button type="button" className="btn btn--primary" onClick={() => go(stage + 1)}>
+            Next: {STAGES[stage + 1].title}
+          </button>
+        ) : (
+          <button type="button" className="btn btn--primary" onClick={() => go(0)}>
+            Done: start again
+          </button>
+        )}
       </footer>
     </main>
   );
@@ -199,7 +191,7 @@ function PrdStage() {
   const reqs = [...text.matchAll(/^###\s+(R\d+\s+—\s+.+)$/gm)].map((m) => m[1]);
   return (
     <>
-      <Panel kinds={["working"]} title="The PRD FlowCode imported" source={<>Read from the build's workspace: <code className="mono">spec/Frameproof-PRD.md</code>, {text.length.toLocaleString()} characters.</>}>
+      <Panel wide kinds={["working"]} title="The PRD FlowCode imported" source={<>Read from the build's workspace: <code className="mono">spec/Frameproof-PRD.md</code>, {text.length.toLocaleString()} characters.</>}>
         {prd.error ? <p className="wt-note wt-note--bad">Couldn't read the PRD: {prd.error}</p> : null}
         <p className="wt-prd__title">{title}</p>
         <div className="wt-prd">
@@ -221,7 +213,7 @@ function PrdStage() {
           </div>
         </div>
       </Panel>
-      <Panel kinds={["working"]} title="How it got here" source="New build in My Projects: description, attached PRD, Look, Complete app, Local model, Supervised.">
+      <Panel wide kinds={["working"]} title="How it got here" source="New build in My Projects: description, attached PRD, Look, Complete app, Local model, Supervised.">
         <ol className="wt-steps">
           <li>Open My Projects and choose New build.</li>
           <li>Describe the app in one line and attach the PRD.</li>
