@@ -1,7 +1,7 @@
 /**
  * Home → How FlowCode works: the path from a PRD to a clickable prototype and the hand-off for the real app. A stage
  * list on the left (number, name, one line), the chosen stage on the right: its picture, what you do, where to find it
- * in FlowCode (real links), which agents do the work, and a tip. "Let's build something" opens New build.
+ * in FlowCode (real links), which agents do the work, and a tip. "Let's build something" opens Home's composer.
  */
 import { useRef, useState, type KeyboardEvent } from "react";
 import { Lightbulb } from "lucide-react";
@@ -21,7 +21,7 @@ interface Stage {
   title: string;
   lede: string;
   youDo: string[];
-  /** Where it is in FlowCode: a page to open, or "new-build" for the New build window. */
+  /** Where it is in FlowCode: a page to open, or "new-build" for Home's composer. */
   where: Array<{ label: string; to: string }>;
   /** The agents that do this stage's work (only ones that really do). */
   agents: string[];
@@ -35,7 +35,7 @@ const STAGES: Stage[] = [
     summary: "Who it's for and what they need",
     title: "Start with a PRD for the real product",
     lede: "A PRD (product requirements document) says who the product is for, what they need to do and what's out of scope. FlowCode builds a clickable prototype of it, so you can try the idea before anything real is built.",
-    youDo: ["No PRD yet? Open Create PRD: describe the problem, and FlowCode researches it with you and writes the PRD.", "Have one? Bring it to New build, with any content as JSON (it becomes the prototype's data).", "Keep the numbered headings and any layout you draw: the plan follows them."],
+    youDo: ["No PRD yet? Open Create PRD: describe the problem, and FlowCode researches it with you and writes the PRD.", "Have one? On Home, press Attach PRD & Files and add it, with any content as JSON (it becomes the prototype's data).", "Keep the numbered headings and any layout you draw: the plan follows them."],
     where: [
       { label: "Create PRD", to: "/discover" },
       { label: "Settings → PRD templates", to: "/settings" },
@@ -48,14 +48,14 @@ const STAGES: Stage[] = [
     name: "Start a prototype",
     summary: "Bring the PRD and the look",
     title: "Start a prototype with your PRD and your look",
-    lede: "New build takes your PRD and support files, and the look you want: screenshots or mockups, a page's HTML or CSS, or a website to take the style from.",
-    youDo: ["Attach the PRD, content as JSON, and images or pages that show the style you want.", "Choose the look and feel, or give a website and FlowCode captures its colors, fonts, corners and surfaces.", "Name it, choose who writes the code (local or cloud) and how hands-on FlowCode is."],
+    lede: "Start on Home: describe the app, attach your PRD and support files, then choose the look and how hands-on FlowCode is.",
+    youDo: ["On Home, describe the app, pick its product type, and press Attach PRD & Files for the PRD, JSON content or images.", "Look and Feel: pick a template, then the buttons, type, colors, layout and motion. To copy a website's style, use Capture a style on the Design tab later.", "Build: choose how hands-on FlowCode is and Local or Cloud AI, then press Start Build."],
     where: [
-      { label: "New build", to: "new-build" },
+      { label: "Home", to: "new-build" },
       { label: "Create PRD → Build from this PRD", to: "/discover" },
     ],
     agents: [],
-    tip: "Assisted suits most builds: routine steps run on their own, and anything that needs you still asks.",
+    tip: "Collaborative suits most builds: routine steps run on their own, and anything that needs you still asks.",
   },
   {
     id: "plan",

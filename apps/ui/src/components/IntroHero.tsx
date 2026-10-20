@@ -9,7 +9,7 @@ import { navigate } from "../router";
 import { AboutDemo } from "./AboutDemo";
 import { Icon } from "./ui";
 
-/** Start a build: open New build on the Dashboard (it listens for this event). */
+/** Start a build: open Home, whose composer listens for this event and takes the cursor. */
 export const startBuild = () => {
   navigate("/");
   setTimeout(() => window.dispatchEvent(new Event("fc:new-build")), 50);
@@ -28,7 +28,7 @@ export function IntroActions() {
   );
 }
 
-/** What a prototype is and isn't, read before starting one (it used to sit inside New build). */
+/** What a prototype is and isn't, read before starting one. */
 export function PrototypeScope() {
   return (
     <div className="proto-scope" aria-label="What a prototype is">

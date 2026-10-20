@@ -1,15 +1,9 @@
 /* The walkthrough (views/WalkthroughView.tsx): FlowCode's own tokens; flat surfaces, fine borders, corners up to 10px. */
-.wt { display: grid; gap: 28px; width: 100%; max-width: 1180px; margin-inline: auto; padding-bottom: 96px; }
-.wt-top { display: grid; gap: 10px; max-width: 78ch; }
-.wt-top__title { margin: 0; font-size: 30px; line-height: 1.15; font-weight: 700; letter-spacing: -0.015em; text-wrap: balance; }
-.wt-top__sub { margin: 0; color: var(--text-1); max-width: 68ch; line-height: 1.55; }
-/* The key to the labels: a quiet line under the title, not a card. */
-.wt-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 6px 0 0; padding: 0; }
-.wt-legend > div { display: flex; gap: 6px; align-items: baseline; }
-.wt-legend dt { flex: none; }
-.wt-legend dd { margin: 0; font-size: 12.5px; color: var(--text-2); }
+/* Same page layout as the Feature guide: page header, the steps as the left list, one step's cards on the right. */
+.wt-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; list-style: none; align-self: end; }
+.wt-legend .wt-badge { cursor: help; }
 
-/* A label is a coloured dot and a word: what a panel is, said quietly. */
+/* A label is a colored dot and a word: what a card is, said quietly (its meaning on hover). */
 .wt-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; color: var(--text-1); }
 .wt-badge::before { content: ""; width: 7px; height: 7px; border-radius: 999px; background: currentColor; flex: none; }
 .wt-badge--working { color: var(--sig-ok); }
@@ -19,30 +13,25 @@
 .wt-badge--future::before { background: none; border: 1px dashed currentColor; }
 .wt-badge--manual { color: var(--sig-bad); }
 
-.wt-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; }
-.wt-rail { position: sticky; top: 16px; }
-.wt-rail ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.wt-rail__item { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: baseline; width: 100%; padding: 8px 10px; border: 0; border-radius: 8px; background: none; color: var(--text-1); font: inherit; font-size: 14px; line-height: 1.35; text-align: left; cursor: pointer; }
-.wt-rail__item:hover { color: var(--text-0); background: var(--bg-1); }
-.wt-rail__item[aria-current="step"] { color: var(--text-0); background: var(--bg-2); font-weight: 650; }
-.wt-rail__n { color: var(--text-2); font-size: 12.5px; font-variant-numeric: tabular-nums; }
-.wt-rail__item[aria-current="step"] .wt-rail__n { color: var(--brand-ink); }
-.wt-rail__item:focus-visible { outline: 2px solid var(--brand-ink); outline-offset: 2px; }
+/* The step list: the Feature guide's left nav, with each step's number. */
+.settings-nav .wt-nav__item { display: flex; gap: 10px; align-items: baseline; }
+.settings-nav .wt-nav__item > .settings-nav__label { grid-column: auto; }
+.wt-nav__n { color: var(--text-2); font-size: 12.5px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.wt-nav__item[aria-selected="true"] .wt-nav__n { color: var(--brand-ink); }
 
-.wt-stage { display: grid; gap: 20px; min-width: 0; animation: wt-in 260ms var(--ease-out, ease-out); }
+.wt-stage { display: grid; gap: 24px; min-width: 0; animation: wt-in 260ms var(--ease-out, ease-out); }
 @keyframes wt-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .wt-stage { animation: none; } }
 .wt-stage__step { margin: 0; color: var(--text-2); font-size: 13px; }
-.wt-stage__head h2 { margin: 2px 0 0; font-size: 24px; font-weight: 700; letter-spacing: -0.01em; outline: none; }
+.wt-stage__head h2 { margin: 4px 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; outline: none; }
 .wt-stage__does { margin: 6px 0 0; color: var(--text-1); max-width: 70ch; line-height: 1.55; }
 .wt-stage__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 20px; align-items: start; }
 
-.wt-panel { display: grid; gap: 14px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-1); min-width: 0; }
-.wt-panel--wide { grid-column: 1 / -1; }
-.wt-panel__head { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
-.wt-panel__head h3 { margin: 0; font-size: 16px; font-weight: 650; }
+.wt-panel { min-width: 0; margin: 0; }
+.wt-panel .guide-card__head { display: grid; gap: 6px; }
+.wt-panel .guide-card__title { margin: 0; }
 .wt-panel__badges { display: inline-flex; gap: 14px; }
-.wt-panel__body { display: grid; gap: 12px; min-width: 0; line-height: 1.5; }
+.wt-panel__body { display: grid; gap: 16px; min-width: 0; line-height: 1.55; }
 .wt-panel__body > p { margin: 0; }
 .wt-panel__source { margin: 0; padding-top: 12px; border-top: 1px solid var(--line); color: var(--text-2); font-size: 12.5px; line-height: 1.5; }
 
@@ -51,9 +40,9 @@
 .wt-big { margin: 0; font-size: 18px; font-weight: 650; }
 .wt-note { margin: 0; padding: 8px 10px; border-radius: 6px; background: var(--bg-2); color: var(--text-1); font-size: 13px; }
 .wt-note--bad { background: color-mix(in srgb, var(--sig-bad) 12%, transparent); color: var(--text-0); }
-.wt-list { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 13.5px; }
+.wt-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; }
 .wt-list--tight { gap: 2px; }
-.wt-steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.wt-steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
 
 .wt-prd__title { font-size: 17px; font-weight: 650; }
 .wt-prd { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 28px; }
@@ -67,7 +56,7 @@
 .wt-stats dd { margin: 2px 0 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .wt-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-.wt-checks, .wt-confirm, .wt-checklist, .wt-tasks, .wt-versions, .wt-events { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.wt-checks, .wt-confirm, .wt-checklist, .wt-tasks, .wt-versions, .wt-events { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .wt-checks li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; font-size: 13.5px; }
 .wt-checks li.is-ok { color: var(--text-1); }
 .wt-checks li.is-ok > svg { color: var(--sig-ok); }
@@ -120,18 +109,12 @@
 .wt-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--text-2); }
 .wt-dot.is-safe { background: var(--sig-ok); }
 
-.wt-foot { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 16px 0 0; border-top: 1px solid var(--line); }
+.wt-foot { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding-top: 8px; }
 .wt-foot .btn:first-child svg { transform: rotate(180deg); }
 .wt-foot__pos { color: var(--text-2); font-size: 13px; }
 
-@media (max-width: 960px) {
-  .wt-top { grid-template-columns: minmax(0, 1fr); }
-  .wt-body { grid-template-columns: minmax(0, 1fr); }
-  .wt-rail { position: static; }
-  .wt-rail ol { grid-auto-flow: column; overflow-x: auto; padding-bottom: 4px; }
-  .wt-rail__item { white-space: nowrap; }
-  .wt-body { gap: 20px; }
-  .wt-foot__pos { display: none; }
 }
 .wt-list--plain { list-style: none; padding-left: 0; }
 .wt-panel__body > .btn, .wt-panel__body > .wt-badge, .wt-panel__body > button { justify-self: start; }
+.wt-list--cols { display: block; columns: 3 14rem; column-gap: 32px; }
+.wt-list--cols li { break-inside: avoid; margin-bottom: 6px; }
