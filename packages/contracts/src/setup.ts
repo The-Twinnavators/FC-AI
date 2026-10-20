@@ -24,19 +24,20 @@ export type ProductType = (typeof PRODUCT_TYPES)[number]["id"];
 const PRODUCT_TYPE_IDS = PRODUCT_TYPES.map((t) => t.id) as [ProductType, ...ProductType[]];
 
 /**
- * The library page templates that suit each product type, best first (the first is where Look and Feel starts). A
- * template may suit several types. Ids not in the catalog yet are skipped where this is read.
+ * The library page templates that ARE each product type, best first (the first is where Look and Feel starts). Strict:
+ * a template is listed only where it is that kind of product (a startup homepage is not a social platform), so a
+ * thin type gets new templates rather than borrowed ones. Ids not in the catalog yet are skipped where this is read.
  */
 export const TEMPLATES_FOR: Record<ProductType, string[]> = {
-  saas: ["home-saas", "home-startup", "home-devtool", "app-analytics", "app-settings", "landing-lead", "landing-click-through", "landing-prelaunch"],
-  "ai-app": ["app-ai-chat", "home-devtool", "home-startup", "app-support-inbox"],
-  "admin-portal": ["app-admin", "app-analytics", "app-settings", "app-support-inbox"],
-  social: ["app-social-feed", "home-startup", "home-personal"],
+  saas: ["home-saas", "app-analytics", "app-settings", "home-startup", "home-devtool"],
+  "ai-app": ["app-ai-chat"],
+  "admin-portal": ["app-admin", "app-analytics", "app-settings"],
+  social: ["app-social-feed"],
   website: ["site-agency", "site-cafe", "site-photographer", "site-magazine", "site-real-estate", "site-fitness", "site-nonprofit", "site-event", "site-clinic", "site-coming-soon", "site-docs", "home-personal"],
-  "mobile-app": ["app-mobile-home", "home-mobile-app"],
-  "online-store": ["app-storefront", "landing-product", "landing-product-clothing", "landing-subscription", "landing-sales"],
-  marketplace: ["app-marketplace", "app-storefront", "site-real-estate"],
-  "internal-tool": ["app-kanban", "app-support-inbox", "app-admin", "app-settings", "site-docs"],
+  "mobile-app": ["app-mobile-home"],
+  "online-store": ["app-storefront", "landing-product", "landing-product-clothing", "landing-subscription"],
+  marketplace: ["app-marketplace"],
+  "internal-tool": ["app-kanban", "app-support-inbox", "app-admin"],
   other: [],
 };
 
