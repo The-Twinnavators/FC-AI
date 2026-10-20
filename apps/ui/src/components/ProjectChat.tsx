@@ -75,7 +75,7 @@ function reply(r: Run, v: View | undefined, events: FlowEvent[]): { text: string
     [
       lead,
       built.length ? `What changed:\n${built.slice(0, 6).join("\n")}${built.length > 6 ? `\n- and ${built.length - 6} more` : ""}` : files ? `What changed:\n- ${files} file${files === 1 ? "" : "s"} updated` : "",
-      "What you can do now:\n- Open Preview to try it\n- Open Changes to review or undo anything",
+      "What you can do now:\n- Try it in the Preview tab on the right\n- See each file change, or undo one, in the Review tab",
       passed.length ? `What I checked:\n- ${passed.slice(0, 6).join(", ")}${passed.length > 6 ? ` and ${passed.length - 6} more` : ""}` : "",
     ]
       .filter(Boolean)
@@ -84,42 +84,42 @@ function reply(r: Run, v: View | undefined, events: FlowEvent[]): { text: string
   if (r.review && r.review !== "signed_off" && ["done", "done_with_warnings", "done_unverified"].includes(r.status)) {
     const lead =
       r.review === "updating"
-        ? "I'm building the changes from your review. The pages you asked about come back for another look when I'm done."
+        ? "I'm building the changes you asked for in your review. When they're done, those pages come back to Your review for another look."
         : r.review === "changes_requested"
-          ? "Your review has change requests. Send them from Your review in Details when you've decided every page and journey."
+          ? "Your review has change requests that aren't sent yet. Select Details below, open Your review, decide every page and journey, then select Send change requests."
           : r.review === "awaiting_rereview"
-            ? "Your changes are built. Open Your review in Details to look again and approve or ask for more."
-            : "The checks passed and the prototype is ready for your review. It isn't complete until you've looked at every page and user journey in Your review (Details), approved each or asked for changes, and signed off.";
+            ? "The changes from your review are built. Select Details below, open Your review, and approve each page or ask for more changes."
+            : "The checks passed and the prototype is ready for your review. Select Details below and open Your review: approve each page and user journey or ask for changes, then select Sign off. The build isn't complete until you sign off.";
     return { text: r.review === "updating" ? lead : summary(lead), tone: "warn" };
   }
   switch (r.status) {
     case "draft":
-      return { text: "Reading your request and planning the work…", tone: "work" };
+      return { text: "Planning your change. The steps show here in a moment; nothing in your app changes until the plan is set.", tone: "work" };
     case "awaiting_approval":
-      return pending.length ? { text: `I've planned this and need your OK for ${pending.length === 1 ? "one step" : `${pending.length} steps`} before I continue. Open Approvals to review.`, tone: "warn" } : { text: "The plan is ready. Review it and approve to start building.", tone: "warn" };
+      return pending.length ? { text: `The plan is ready. ${pending.length === 1 ? "One step needs" : `${pending.length} steps need`} your OK before I build anything: select Review approval below, then Approve or Deny.`, tone: "warn" } : { text: "The plan is ready and needs your OK. Select Details below to read it, then select Approve to start building.", tone: "warn" };
     case "running":
     case "recovering":
-      return { text: tasks.length ? `${current ? stepActivity(current.title) : "Working on it…"}\n${done} of ${tasks.length} steps done.` : "Getting started…", tone: "work" };
+      return { text: tasks.length ? `${current ? stepActivity(current.title) : "Moving to the next step…"}\n${done} of ${tasks.length} steps done. Type a question to ask about it, or a change to queue for next.` : "Starting the first step. Each step shows here as it finishes.", tone: "work" };
     case "verifying":
-      return { text: "Checking that your app starts and works…", tone: "work" };
+      return { text: "All steps are built. Now checking that your app starts and its pages work; the result shows here when that's done.", tone: "work" };
     case "done":
-      return { text: summary("Your changes are ready."), tone: "ok" };
+      return { text: summary("Your change is done and its checks passed."), tone: "ok" };
     case "done_unverified":
-      return { text: summary("Your changes are ready, but not everything could be checked: a check couldn't run. Open Details to see which."), tone: "warn" };
+      return { text: summary("Your change is done, but at least one check couldn't run, so that part isn't confirmed. Select Details below to see which check."), tone: "warn" };
     case "done_with_warnings":
-      return { text: summary(`Your changes are ready, with a few notes${failed.length ? ` (${failed.join(", ")} need a look)` : ""}. Open Details to see them.`), tone: "warn" };
+      return { text: summary(`Your change is done, with notes${failed.length ? ` on: ${failed.join(", ")}` : ""}. Select Details below to read each note and decide whether to fix it.`), tone: "warn" };
     case "blocked": {
       const why = tasks.find((t) => t.blocker)?.blocker?.reason ?? events.filter((e) => e.type === "task.blocked").at(-1)?.message;
       const e = friendlyError(why, "finish this");
       // Raw reasons are long and technical: lead with a short version, details stay in Troubleshoot.
       const short = (why ?? "").replace(/^Done gate not met:\s*/i, "").split(/;|\n/)[0].replace(/^Task "([^"]+)" is blocked\s*[—-]\s*/i, "$1: ").slice(0, 160);
       const what = e.technical ? (short ? `What stopped it: ${short}${(why ?? "").length > short.length ? "…" : ""}` : e.explain) : e.explain;
-      return { text: `I need your help to continue. ${e.title}.\n${what}\nOpen Details and choose Troubleshoot on the step that stopped. It explains the problem and offers fixes.`, tone: "bad" };
+      return { text: `I stopped and need your help to continue. ${e.title}.\n${what}\nTo continue: select Details below, find the stopped step and select Troubleshoot. It explains the problem and offers fixes.`, tone: "bad" };
     }
     case "failed":
-      return { text: "This request stopped before it finished. Nothing was left half-done. Open Details to see what happened.", tone: "bad" };
+      return { text: "This change stopped before it finished, and nothing was left half-done. Select Details below to see why, or send the request again.", tone: "bad" };
     case "cancelled":
-      return { text: "Cancelled. Nothing else will change.", tone: "idle" };
+      return { text: "Cancelled. Nothing else will change. To undo anything this request already changed, open the Review tab.", tone: "idle" };
     default:
       return { text: statusLabel(r.status), tone: "idle" };
   }
@@ -241,7 +241,7 @@ export function ProjectChat({ projectId, runs, view, events, onSent, onShow, onD
       playSound("reply");
       setQa((cur) => cur.map((m) => (m.id === id ? { ...m, a: res.answer } : m)));
     } catch (e) {
-      setQa((cur) => cur.map((m) => (m.id === id ? { ...m, a: `I couldn't answer that just now (${(e as Error).message}).` } : m)));
+      setQa((cur) => cur.map((m) => (m.id === id ? { ...m, a: `I couldn't answer that: ${(e as Error).message}. Ask again in a moment, or select Details on the build above to see its progress.` } : m)));
     }
   };
   const send = async () => {
@@ -297,7 +297,7 @@ export function ProjectChat({ projectId, runs, view, events, onSent, onShow, onD
         {!thread.length ? (
           <div className="pchat__empty">
             <Icon name="ask" size={20} />
-            <p>Describe a change and FlowCode will plan it, make it, check it and show you the result. Every change can be undone from the Review tab.</p>
+            <p>Type a change below and select Send. FlowCode plans it, builds it, checks it and shows the result in Preview. You can undo any change from the Review tab.</p>
           </div>
         ) : null}
         {thread.map((r) => {
@@ -348,7 +348,7 @@ export function ProjectChat({ projectId, runs, view, events, onSent, onShow, onD
                         <Icon name="play" size={12} /> Preview
                       </button>
                       <button className="btn btn--sm" onClick={() => onShow("changes")}>
-                        <Icon name="undo" size={12} /> Changes
+                        <Icon name="undo" size={12} /> Review
                       </button>
                     </>
                   ) : null}

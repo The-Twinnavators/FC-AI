@@ -10,7 +10,7 @@ import { navigate } from "../router";
 import { Markdown } from "./Markdown";
 
 const draftKey = (id: string) => `fc.prdDraft.${id}`;
-/** New build picks this up once and attaches it as the PRD. */
+/** Home's composer picks this up once and attaches it as the PRD. */
 export const NEW_BUILD_PRD_KEY = "fc.newbuild.prd";
 
 const readDraft = (id: string) => {
@@ -65,7 +65,7 @@ export function PrdTemplates() {
     try {
       sessionStorage.setItem(NEW_BUILD_PRD_KEY, JSON.stringify({ name: fileName(), content: text }));
     } catch {
-      /* storage unavailable: New build just won't have it attached */
+      /* storage unavailable: Home just won't have it attached */
     }
     navigate("/");
     setTimeout(() => window.dispatchEvent(new CustomEvent("fc:new-build")), 300);
@@ -114,7 +114,7 @@ export function PrdTemplates() {
               <RotateCcw size={14} aria-hidden="true" /> Start over
             </button>
           ) : null}
-          <button type="button" className="btn btn--sm btn--primary" data-cp="prdt-build" onClick={startBuild} title="Opens New build with this PRD attached">
+          <button type="button" className="btn btn--sm btn--primary" data-cp="prdt-build" onClick={startBuild} title="Opens Home with this PRD attached, ready for a description">
             <Rocket size={14} aria-hidden="true" /> Start a prototype with it
           </button>
         </div>

@@ -14,8 +14,8 @@ import { CodeBackdrop } from "../components/CodeBackdrop";
 const FLOW = [
   { icon: MessageSquareText, title: "Describe the problem", text: "Say what you want to solve in your own words, or bring a PRD you already have." },
   { icon: FileText, title: "Shape the PRD", text: "FlowCode researches the problem with you and writes the requirements down." },
-  { icon: ClipboardList, title: "Approve the plan", text: "See the screens, features and tests it will build. Nothing starts until you approve." },
-  { icon: Hammer, title: "Watch it build", text: "Local models build one step at a time, and each step is checked before the next." },
+  { icon: ClipboardList, title: "Choose the look and approve", text: "Pick a template and the look, how hands-on FlowCode is, and Local or Cloud AI. Nothing is built until you press Start Build." },
+  { icon: Hammer, title: "Watch it build", text: "The AI builds one step at a time, on this computer or in the cloud as you chose, and each step is checked before the next." },
   { icon: Search, title: "Review the result", text: "See what changed, what was checked, and anything that couldn't be verified." },
 ];
 

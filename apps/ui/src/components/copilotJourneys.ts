@@ -36,51 +36,61 @@ export function addIdeaJourney(projectId: string, projectName: string, title?: s
   };
 }
 
+/**
+ * The setup after Home's composer, step by step: Look and Feel, then Build. Shared by the new-build journeys. Each
+ * page's Next is yours to press; the Copilot waits for the next page to appear, then carries on.
+ */
+const setupSteps = (lookSay = "Look and Feel: pick a starting template, then the buttons, type, colors, layout and motion, and any extras (a dark mode switch, animations). The preview beside it updates as you choose."): Step[] => [
+  { do: "wait", target: "nb-next", until: "look-panel", say: "Press Next: Look and Feel. FlowCode saves this as a draft (it shows under \"You have N drafts\" on Home), and I carry on on the next page." },
+  { do: "point", target: "look-panel", say: lookSay },
+  { do: "wait", target: "look-next", until: "build-levels", say: "When the look is right, press Next: Build. You can still change the look later on the project's Design tab." },
+  { do: "point", target: "build-levels", say: "Choose how hands-on you want to be. Guided: you approve each important step. Collaborative: routine work runs on its own and FlowCode asks about real risks and new packages. Autonomous: it works start to finish and still asks before anything leaves this computer." },
+  { do: "point", target: "build-coder", say: "Choose who writes the code. Local AI runs on this computer, so nothing leaves it. Cloud AI is available once a provider is set up on the Models page; it sends the code and screenshots to that provider, which charges per use." },
+  { do: "confirm", target: "build-start", say: "Press Start Build when you're ready. That starts the build and opens it in the builder, where you can watch each step being built and checked. This button is yours." },
+];
+
 export function newBuildJourney(description?: string): Journey {
   return {
     title: "Start a new build",
     steps: [
-      { do: "go", path: "/", say: "New builds start from the Dashboard." },
-      { do: "event", name: "fc:new-build", say: "This opens New build: four short steps, from what you want to who writes the code." },
+      { do: "go", path: "/", say: "New builds start on Home, in the \"What would you like to build?\" box. There are three steps: Describe, Look and Feel, Build." },
+      { do: "point", target: "nb-name", say: "Project name is optional. Leave it empty and FlowCode names the project from your description." },
+      { do: "point", target: "nb-type", say: "Pick the product type (SaaS, website, online store and so on). It decides which page templates you're offered on the next step." },
       description
-        ? { do: "type", target: "nb-desc", text: description, say: "I've described what you want to build." }
-        : { do: "point", target: "nb-desc", say: "Describe what you want in your own words. If you have a PRD, add it just below." },
-      { do: "confirm", target: "nb-next", say: "Go through the steps with Next. Nothing is built until you press Build the prototype at the end." },
+        ? { do: "type", target: "nb-desc", text: description, say: "I've written your description in. Change anything that isn't right: who uses it, what they do, and what data it shows." }
+        : { do: "point", target: "nb-desc", say: "Describe the app in your own words: who uses it, what they need to do, and what it shows. Next stays off until there's a description." },
+      { do: "point", target: "nb-files", say: "Optional: Attach PRD & Files adds a PRD (.md), HTML, CSS, JSON or images, up to 1.5 MB each. FlowCode builds from them." },
+      ...setupSteps(),
     ],
   };
 }
 
-/** Starting a prototype from a PRD you already have: New build, then the spec-file drop zone in step 1. */
+/** Starting a prototype from a PRD you already have: Home's composer, Attach PRD & Files, then the setup. */
 export function prdBuildJourney(): Journey {
   return {
     title: "Start a prototype from your PRD",
     steps: [
-      { do: "go", path: "/", say: "New prototypes start from the Dashboard.", auto: true },
-      { do: "event", name: "fc:new-build", say: "Start a prototype opens New build." },
-      { do: "point", target: "nb-desc", say: "Write a sentence or two about what you're building. Step 1 always needs this, even with a PRD." },
-      { do: "point", target: "nb-files", say: "Add your PRD here: drop the .md file in, or click choose files to pick it from your computer. FlowCode builds the prototype from it." },
-      { do: "confirm", target: "nb-next", say: "Then go through the steps with Next. Nothing is built until you press Build the prototype at the end." },
+      { do: "go", path: "/", say: "A PRD you already have goes into the \"What would you like to build?\" box on Home.", auto: true },
+      { do: "point", target: "nb-files", say: "Press Attach PRD & Files and choose your PRD (.md file), or drag the file onto the box. You can add HTML, CSS, JSON or images too, up to 1.5 MB each. FlowCode builds the prototype from the PRD." },
+      { do: "point", target: "nb-desc", say: "Then write a sentence or two about what you're building. The description is required even with a PRD; Next stays off until it's there." },
+      { do: "point", target: "nb-type", say: "Pick the product type. It decides which page templates you're offered on the next step." },
+      ...setupSteps(),
     ],
   };
 }
 
+/** The look of a new build: set on Look and Feel. A website's style is captured later, on the project's Design tab. */
 export function newBuildStyleJourney(url?: string, description?: string): Journey {
   return {
-    title: "Capture a style in a new build",
+    title: "Choose the look of a new build",
     steps: [
-      { do: "go", path: "/", say: "New builds start from the Dashboard.", auto: true },
-      { do: "event", name: "fc:new-build", say: "This opens New build. The look is chosen in step 2, Look and feel." },
-      ...(description
-        ? ([
-            { do: "type", target: "nb-desc", text: description, say: "Step 1 needs a description first, so I've written yours in." },
-            { do: "click", target: "nb-next", say: "On to step 2, Look and feel." },
-          ] as Step[])
-        : ([{ do: "wait", target: "nb-desc", until: "nb-style-url", say: "Step 1 needs a description first. Describe what you want here, then press Next and I'll carry on." }] as Step[])),
-      url
-        ? { do: "type", target: "nb-style-url", text: url, say: `I've put in the website to take the style from: ${url}. Its colors, fonts, corners and surfaces become your starting design.` }
-        : { do: "point", target: "nb-style-url", say: "Paste the website whose look you like here. Its colors, fonts, corners and surfaces become your starting design." },
-      { do: "point", target: "newbuild.look", say: "Below it you can also pick a starting template and the feel, or leave FlowCode's suggestion." },
-      { do: "confirm", target: "nb-next", say: "Carry on with Next for the name and how hands-on FlowCode is. Nothing is built until you press Build the prototype, and you can still change the look on the Design tab before the build starts." },
+      { do: "go", path: "/", say: "A new build's look is chosen on its second step, Look and Feel. First, describe the app on Home.", auto: true },
+      description
+        ? { do: "type", target: "nb-desc", text: description, say: "I've written your description in, so you can go on to the look." }
+        : { do: "point", target: "nb-desc", say: "Describe the app here first: Next stays off until there's a description." },
+      ...setupSteps(
+        `Look and Feel: pick a starting template, then the buttons, type, colors, layout and motion. The preview updates as you choose.${url ? ` Copying the style of ${url} isn't on this page: once the build has started, use Capture a style on the project's Design tab.` : " To copy a website's style, use Capture a style on the project's Design tab once the build has started."}`,
+      ),
     ],
   };
 }
@@ -128,7 +138,7 @@ export function prdStagesJourney(id: string, stages: Array<{ id: string; name: s
       });
     }
   });
-  steps.push({ do: "confirm", target: "prd-prototype", say: "Last stage. Start a prototype opens New build with the PRD attached. That button is yours." });
+  steps.push({ do: "confirm", target: "prd-prototype", say: "Last stage. Start a prototype takes you to Home with this PRD already attached; describe the app, then go through Look and Feel and Build. That button is yours." });
   return { id: "prd-stages", title: "Walk through the research stages", steps };
 }
 
@@ -216,54 +226,54 @@ export function matchJourney(q: string, project?: { id: string; name: string; ru
   const urlIn = /(https?:\/\/[^\s"']+|\b[a-z0-9-]+\.(?:com|io|dev|app|org|net|co)(?:\/[^\s"']*)?)/i.exec(q)?.[1];
   const fullUrl = urlIn && !/^https?:/i.test(urlIn) ? `https://${urlIn}` : urlIn;
   if (/\b(style|look|design|theme)\b/.test(t) && /\b(new build|new project|new prototype|start(ing)? a build|when (i )?build|during|in a new|before (the )?build)\b/.test(t)) {
-    return { journey: { ...newBuildStyleJourney(fullUrl, quoted), id: "style-new-build" }, summary: `I'll open New build and take you to Look and feel${fullUrl ? `, with ${fullUrl} filled in` : ""}. You go on from there; nothing is built until you press Build the prototype.` };
+    return { journey: { ...newBuildStyleJourney(fullUrl, quoted), id: "style-new-build" }, summary: `A new build's look is set on its second step, Look and Feel: template, buttons, type, colors, layout and motion. ${fullUrl ? `Copying ${fullUrl} itself happens after the build starts, with Capture a style on the project's Design tab. ` : ""}I'll take you there from Home. Nothing is built until you press Start Build.` };
   }
   // "How do I build from my PRD?" / "attach a PRD" → New build's spec files (not Create PRD, not the builder chat).
   if (/\b(prd|spec|requirements? (doc|document|file))\b/.test(t) && /\b(attach|upload|add|use|have|build|start|prototype|from)\b/.test(t) && !/\b(create|write|draft|make|research|template)s?\b.*\bprd\b/.test(t)) {
-    return { journey: { ...prdBuildJourney(), id: "prd-build" }, summary: "A PRD goes into New build: start a prototype, then add the .md file in step 1. I'll show you where." };
+    return { journey: { ...prdBuildJourney(), id: "prd-build" }, summary: "Your PRD goes into the \"What would you like to build?\" box on Home: press Attach PRD & Files and choose the .md file, write a sentence about the app, then press Next: Look and Feel. After you choose the look and how hands-on FlowCode is, you press Start Build. I'll point at each control." };
   }
   // "I want to solve the problem of keeping track of my calories" → Create PRD with that problem.
   const problem = /\b(?:solve|fix|tackle|address)\b\s+(?:the\s+)?(?:problem\s+(?:of|with|that)\s+)?(.{6,400})$/i.exec(q)?.[1]?.replace(/[.?!]+$/, "").trim();
   if (problem && !/\b(build|bug|error|stopped|failed|check)\b/i.test(problem)) {
     const text = quoted ?? problem.charAt(0).toUpperCase() + problem.slice(1);
-    return { journey: { ...createPrdJourney(text), id: "create-prd" }, summary: `Let's start from the problem. I'll open Create PRD and write it in: "${text}". You press Start; FlowCode then researches it with you and drafts the PRD.` };
+    return { journey: { ...createPrdJourney(text), id: "create-prd" }, summary: `I'll open Create PRD and write your problem in: "${text}". You press Start. FlowCode then asks a few questions, researches it with you and drafts the PRD stage by stage; you approve each part, then build a prototype from it.` };
   }
   // "I want to build an app that …" → New build with that description.
   const idea = /\b(?:i want to|i'd like to|help me|let's|lets)\s+(?:build|make|create)\s+(?:a|an|the)?\s*(.{6,400})$/i.exec(q)?.[1]?.replace(/[.?!]+$/, "").trim();
   if (idea && !/\b(prd|skill|prompt|topic|note|decision|idea)\b/i.test(idea)) {
     const text = quoted ?? idea.charAt(0).toUpperCase() + idea.slice(1);
-    return { journey: { ...newBuildJourney(text), id: "new-build" }, summary: `I'll open New build and describe it for you: "${text}". You go through the steps; nothing is built until you press Build the prototype.` };
+    return { journey: { ...newBuildJourney(text), id: "new-build" }, summary: `I'll open Home and write your description in: "${text}". Then three steps: Describe (add a product type or PRD if you like), Look and Feel (template, colors, type), and Build (how hands-on, local or cloud AI). Nothing is built until you press Start Build.` };
   }
   if (/\b(new|start|create|make|begin)\b.*\b(build|prototype|app|project)\b/.test(t) && !/\bprd\b/.test(t)) {
-    return { journey: { ...newBuildJourney(quoted), id: "new-build" }, summary: `I'll open New build${quoted ? " and describe it for you" : ""}. You go through the steps; nothing is built until you press Build the prototype.` };
+    return { journey: { ...newBuildJourney(quoted), id: "new-build" }, summary: `New builds start on Home in three steps: Describe (what it is, product type, an optional PRD), Look and Feel (template, colors, type), and Build (how hands-on, local or cloud AI). I'll point at each control${quoted ? " and write your description in" : ""}. Nothing is built until you press Start Build.` };
   }
   if (/\b(create|write|make|start|new)\b.*\b(prd|requirements|product requirements)\b|\bsolve something\b/.test(t)) {
-    return { journey: { ...createPrdJourney(quoted), id: "create-prd" }, summary: `I'll open Create PRD${quoted ? " and write the problem in" : ""}. You press Start.` };
+    return { journey: { ...createPrdJourney(quoted), id: "create-prd" }, summary: `I'll open Create PRD${quoted ? " and write the problem in" : ""}. Describe the problem (what it is, who it affects, when and why it happens), then press Start. FlowCode asks a few questions, researches it with you and drafts the PRD; you approve each part.` };
   }
   if (/\b(change|switch|swap|use|set|pick)\b.*\b(model)\b/.test(t)) {
     const role = ROLE_WORDS.find(([re]) => re.test(t))?.[1] ?? "coder";
-    return { journey: switchModelJourney(role), summary: `I'll show you where the ${role}'s model is set. You pick the model yourself.` };
+    return { journey: switchModelJourney(role), summary: `The ${role}'s model is set on System → Models & capability lab. I'll take you there and point at its list; the change applies as soon as you pick one, so you choose it.` };
   }
   if (/\b(phone|mobile|notification|pwa|home screen)\b/.test(t)) {
-    return { journey: phoneJourney(), summary: "I'll take you to Phone set-up and point at each part. You tick and press the buttons." };
+    return { journey: phoneJourney(), summary: "Phone setup is in Settings → Phone: allow your phone to follow FlowCode, then scan the QR code (use HTTPS with Tailscale for notifications when the app is closed). I'll point at each part; you tick and press the buttons." };
   }
   if (project && /\b(why|what)\b.*\b(stop|stopped|stuck|fail|failed|blocked|broke|help)\b|\btroubleshoot\b/.test(t)) {
-    return { journey: whyStoppedJourney(project.id, project.name, project.runId), summary: `I'll open ${project.name}'s latest build and open Troubleshoot run for you.` };
+    return { journey: whyStoppedJourney(project.id, project.name, project.runId), summary: `I'll open ${project.name}'s latest build and its Troubleshoot run, which explains in plain words why it stopped and offers fixes. Any fix is yours to press.` };
   }
   for (const c of CATALOG) {
     if (!c.match.test(t)) continue;
     if (c.project && !project) continue;
-    return { journey: c.build({ project }), summary: `I'll show you how to ${c.label.charAt(0).toLowerCase() + c.label.slice(1)} in the app. Anything final is yours to press.` };
+    return { journey: c.build({ project }), summary: `${c.label}: ${c.build({ project }).steps.map((st) => st.say).find((x) => x && x !== "Going there…") ?? "I'll take you there."} I'll walk you through it step by step; anything final is yours to press.` };
   }
   if (!project) return undefined;
   if (/(capture|copy|take|grab|steal|use)\b.*\b(style|look|design|theme)|\bstyle (from|of|like)\b/.test(t)) {
     const url = /(https?:\/\/[^\s"']+|\b[a-z0-9-]+\.(?:com|io|dev|app|org|net|co)(?:\/[^\s"']*)?)/i.exec(q)?.[1];
     const full = url && !/^https?:/i.test(url) ? `https://${url}` : url;
-    return { journey: captureStyleJourney(project.id, project.name, full), summary: `I'll show you where Capture a style is in ${project.name}${full ? ` and fill in ${full}` : ""}. You press Capture yourself.` };
+    return { journey: captureStyleJourney(project.id, project.name, full), summary: `Capture a style is at the top right of ${project.name}'s Design tab${full ? `; I'll fill in ${full}` : ""}. It takes the colors, fonts, corners and surfaces from a website or screenshot and restyles every page, so you press Capture and confirm it yourself.` };
   }
   if (/\b(add|suggest|save|new)\b.*\b(idea|suggestion|feature request)\b/.test(t)) {
     const title = quoted ?? /\bidea[:\-–]\s*(.{3,200})$/i.exec(q)?.[1];
-    return { journey: addIdeaJourney(project.id, project.name, title?.trim()), summary: `I'll take you to ${project.name}'s Suggestions${title ? " and write your idea in" : ""}. You choose Save for later or Build this now.` };
+    return { journey: addIdeaJourney(project.id, project.name, title?.trim()), summary: `Ideas for ${project.name} go on its Suggestions tab${title ? "; I'll write yours in" : ""}. Give it a title and say what should be built, then choose Save for later (keeps it on the list) or Build this now (starts the change).` };
   }
   return undefined;
 }
@@ -309,12 +319,12 @@ export const CATALOG: Array<{ id: string; group: string; label: string; match: R
     // Off the workspace, or before it has drawn, there is nothing to walk: say so instead of pointing at nothing.
     return id && stages.length ? prdStagesJourney(id, stages) : { title: "Walk through the research stages", steps: [go("/discover", "Open a piece of research first - or start one - and ask me again from inside it.")] };
   } },
-  { id: "open-folder", group: "Build", label: "Open an existing project folder", match: /\b(open|import|add|use)\b.*\b(existing|folder|repo|repository|code ?base)\b/, build: () => ({ title: "Open an existing project folder", steps: [go("/", "This starts from the Dashboard."), yours("open-folder", "Open an existing repository picks a folder on this computer and makes it a FlowCode project. Choose the folder yourself.", "Opening a folder works in the FlowCode desktop app, where it can show your computer's folder picker. In the browser, start a new build instead.")] }) },
+  { id: "open-folder", group: "Build", label: "Open an existing project folder", match: /\b(open|import|add|use)\b.*\b(existing|folder|repo|repository|code ?base)\b/, build: () => ({ title: "Open an existing project folder", steps: [go("/dashboard", "Opening an existing folder starts from the Dashboard, under its intro."), yours("open-folder", "Open an existing repository picks a folder on this computer and makes it a FlowCode project. Choose the folder yourself.", "Opening a folder works in the FlowCode desktop app, where it can show your computer's folder picker. In the browser, start a new build instead.")] }) },
   { id: "change", group: "Build", label: "Ask for a change to my app", project: true, match: /\b(change|edit|update|tweak|modify|fix)\b.*\b(my app|the app|prototype|screen|page|button|header|colou?r|text)\b|\bask for a change\b|\bfollow.?up\b/, build: (c) => ({ title: "Ask for a change", steps: [go(`/projects/${c.project!.id}`, `Open ${c.project!.name} in the builder.`), { do: "click", target: "ws-mode-chat", say: "Changes are asked for in the builder's Chat." }, point("chat-input", "Describe the change in your own words, e.g. \"make the header blue and the headings larger\". Tick Styling only for purely visual changes."), yours("chat-send", "Press Send when it's right. FlowCode plans only the difference, builds it and checks it.")] }) },
   { id: "preview", group: "Build", label: "Preview and try my app", project: true, match: /\b(preview|try|see|test|open|run)\b.*\b(my app|the app|prototype|it live)\b/, build: (c) => ({ title: "Preview your app", steps: [go(`/projects/${c.project!.id}`, `Open ${c.project!.name} in the builder.`), tab("preview", "The Preview tab runs your app live. Click around it like a user would; try a narrow window too.")] }) },
   { id: "undo", group: "Build", label: "Undo a change", project: true, match: /(undo|roll ?back|revert|go back|reverse)/, build: (c) => ({ title: "Undo a change", steps: [go(`/projects/${c.project!.id}`, `Open ${c.project!.name} in the builder.`), { do: "event", name: "fc:show-overview", say: "The Overview lists every step the build made; finished steps are folded to one line." }, { do: "click", target: "step-fold-changed", say: "This opens the latest finished step that changed files, to show what it changed.", missing: "No finished step has changed files yet, so there's nothing to undo." }, yours("rollback", "Roll back undoes everything that step changed. It asks you to confirm; the choice is yours. To undo an earlier step, open it the same way.", "Roll back appears once the build has stopped. While it's working, pause it first (the pause button at the bottom right).")] }) },
   { id: "design", group: "Design", label: "Change colors, fonts or corners", project: true, match: /(colou?rs?|fonts?|typography|corners?|radius|tokens?|theme|palette|spacing)/, build: (c) => ({ title: "Change the design", steps: [go(`/projects/${c.project!.id}`, `Open ${c.project!.name} in the builder.`), tab("styles", "The Design tab holds the app's look."), point("design-views", "Design shows the app's colors, type, shape and components; Tokens lists every value; Surface sets the card style; Extras adds features like a dark mode switch."), { do: "click", target: "configure-type", say: "Configure on Typography opens the font editor. Colors and Shape & style have the same button." }, point("typo-fonts", "Pick the heading, body and code fonts. These are the fonts FlowCode bundles, so the app shows them with no internet. The preview on the right changes as you pick; below are the sizes and weights for each level."), yours("typo-save", "Save typography applies it to the app, and you can undo it. Cancel leaves everything as it was.")] }) },
-  { id: "extras", group: "Design", label: "Add a dark mode switch or animations", project: true, match: /(extras?|dark mode switch|theme toggle|animations?|transitions?|skeleton|toasts?|empty states?|sticky header|keyboard shortcuts|install as an app|pwa)/, build: (c) => ({ title: "Add extras to your app", steps: [go(`/projects/${c.project!.id}`, `Open ${c.project!.name} in the builder.`), tab("styles", "Extras live in the Design tab."), { do: "click", target: "design-view-extras", say: "The Extras tab has the same options as New build." }, point("extras-list", "Tick what you'd like: micro-animations, page transitions, a light and dark switch, toasts and more. Ones this app already asked for are marked."), yours("extras-add", "Add writes the change into the chat. Read it, then press Send yourself.")] }) },
+  { id: "extras", group: "Design", label: "Add a dark mode switch or animations", project: true, match: /(extras?|dark mode switch|theme toggle|animations?|transitions?|skeleton|toasts?|empty states?|sticky header|keyboard shortcuts|install as an app|pwa)/, build: (c) => ({ title: "Add extras to your app", steps: [go(`/projects/${c.project!.id}`, `Open ${c.project!.name} in the builder.`), tab("styles", "Extras live in the Design tab."), { do: "click", target: "design-view-extras", say: "The Extras tab has the same options as a new build's Look and Feel step." }, point("extras-list", "Tick what you'd like: micro-animations, page transitions, a light and dark switch, toasts and more. Ones this app already asked for are marked."), yours("extras-add", "Add writes the change into the chat. Read it, then press Send yourself.")] }) },
   // Decisions and ideas
   { id: "approve", group: "Decisions", label: "Approve what's waiting on me", match: /\b(approve|approval|allow|waiting (on|for) me|needs? my (ok|approval))\b/, build: () => ({ title: "Approve what's waiting", steps: [go("/approvals", "Everything waiting on you is on Approvals."), tab("waiting", "Waiting on you lists what holds up a build, oldest first."), yours("approval-allow", "Read the exact action, then Allow once or Deny. Those buttons are yours.", "Nothing is waiting on you right now, so there's nothing to approve.")] }) },
   { id: "build-idea", group: "Decisions", label: "Build one of the suggested ideas", project: true, match: /\b(build|try|use|start)\b.*\b(ideas?|suggestions?)\b/, build: (c) => ({ title: "Build a suggested idea", steps: [go(`/quality/${c.project!.id}/ideas`, `${c.project!.name}'s ideas are on its Suggestions tab.`), yours("idea-build", "Build this now starts a follow-up change. Save for later keeps it on the list. Your call.", "There are no ideas for this project right now.")] }) },
@@ -338,7 +348,7 @@ export const CATALOG: Array<{ id: string; group: string; label: string; match: R
   { id: "page-appearance", group: "Settings", label: "Set light or dark for one page", match: /\b(light|dark)\b.*\b(one|a|this|single|particular|specific|each)\b.*\bpage\b|\bper page\b/, build: () => ({ title: "Set light or dark for one page", steps: [go("/settings/appearance", "Appearance can be set per page."), { do: "wait", target: "appear-mode-custom", until: "appear-pages", say: "Choose Custom per page. It changes as soon as you pick it, so pick it yourself; I'll carry on." }, point("appear-pages", "Then set Light or Dark for any page in this list. Pages you leave alone use your last toggle choice.")] }) },
   { id: "appearance", group: "Settings", label: "Switch light or dark mode", match: /\b(dark|light) mode\b|\bappearance\b|\btheme\b/, build: () => ({ title: "Switch light or dark", steps: [go("/settings/appearance", "Settings → Appearance: a toggle, follow your computer, or choose per page.")] }) },
   { id: "explain", group: "Settings", label: "Plain language or technical details", match: /\b(plain language|technical details|less technical|more technical|explanations?)\b/, build: () => ({ title: "Choose plain or technical explanations", steps: [go("/settings/explain", "Settings → Explanations chooses plain language or technical details everywhere.")] }) },
-  { id: "prd-templates", group: "Settings", label: "Fill in a PRD template", match: /\bprd templates?\b|\btemplate for (a|my) prd\b/, build: () => ({ title: "Fill in a PRD template", steps: [go("/settings/prd", "PRD templates are in Settings."), point("prdt-kinds", "Pick the kind of project. There are 10 ready-made templates; you fill one in, you don't create new ones. Your draft for each kind stays in this browser."), yours("prdt-build", "Replace the [placeholders], then copy it, download it as .md, or press Start a prototype with it to open New build with it attached.")] }) },
+  { id: "prd-templates", group: "Settings", label: "Fill in a PRD template", match: /\bprd templates?\b|\btemplate for (a|my) prd\b/, build: () => ({ title: "Fill in a PRD template", steps: [go("/settings/prd", "PRD templates are in Settings."), point("prdt-kinds", "Pick the kind of project. There are 10 ready-made templates; you fill one in, you don't create new ones. Your draft for each kind stays in this browser."), yours("prdt-build", "Replace the [placeholders], then copy it, download it as .md, or press Start a prototype with it: Home opens with this PRD attached, ready for a description.")] }) },
   { id: "mcp", group: "Settings", label: "Connect a tool server (MCP)", match: /\b(mcps?|tool servers?|connect\w* (a |an )?(tool|server|mcp)|figma|github|playwright|context7)\b/, build: () => ({ title: "Connect a tool server", steps: [go("/system/servers", "Extra tools for the agents come from connected servers, on System."), tab("servers", "Connected servers lists them; each can be switched on for the roles you pick."), yours("mcp-add", "Add server opens a form here. Fill it in and save it yourself.")] }) },
   { id: "skills", group: "Settings", label: "Review skills FlowCode proposed", match: /\b(proposed|review\w*|suggested|drafted)\b.*\bskills?\b|\bskills? (flowcode )?(proposed|proposals?|drafted)\b|\bproposed by flowcode\b/, build: () => ({ title: "Review proposed skills", steps: [go("/library?tab=proposals", "FlowCode drafts skills from failures that keep happening."), tab("proposals", "Each one shows what kept going wrong and the skill drafted for it. Turning one on is your call.")] }) },
   { id: "knowledge", group: "Settings", label: "Search the knowledge hub", match: /\b(knowledge|documents?|research notes?|sources?)\b/, build: () => ({ title: "Search the knowledge hub", steps: [go("/knowledge", "The Knowledge Hub keeps documents and research the agents can use."), point("knowledge.search", "Search everything here.")] }) },
@@ -479,7 +489,7 @@ const draftType = (target: string, text: string, what: string): Step => ({ do: "
 export function draftJourney(kind: DraftKind, f: Record<string, string>): Journey {
   switch (kind) {
     case "build":
-      return { title: "Draft your app description", steps: [go("/", "New builds start from the Dashboard."), { do: "event", name: "fc:new-build", say: "This opens New build." }, draftType("nb-desc", f.description ?? "", "a description of your app"), yours("nb-next", "Go through the rest with Next. Nothing is built until you press Build the prototype.")] };
+      return { title: "Draft your app description", steps: [go("/", "New builds start on Home, in the \"What would you like to build?\" box."), draftType("nb-desc", f.description ?? "", "a description of your app"), yours("nb-next", "Press Next: Look and Feel to choose the look, then Next: Build to choose how hands-on FlowCode is. Nothing is built until you press Start Build.")] };
     case "prd":
       return { ...createPrdJourney(), title: "Draft the problem for your PRD", steps: createPrdJourney().steps.map((s) => (s.do === "point" && s.target === "prd-problem" ? draftType("prd-problem", f.problem ?? "", "the problem") : s)) };
     case "about":
@@ -497,30 +507,27 @@ export function draftJourney(kind: DraftKind, f: Record<string, string>): Journe
 
 
 /**
- * Show me for features inside New build (a modal several steps deep): the generic one-step walkthrough can't open it
- * or reach step 3, so these open New build and go to the right place.
+ * Show me for features that sit partway through a new build's setup (a later step, or below the fold on Home): the
+ * generic one-step walkthrough can't reach them, so these go there.
  */
 export const FEATURE_JOURNEYS: Record<string, () => Journey> = {
-  "dash.prototype-card": () => ({
-    title: "What a prototype is and isn't",
-    steps: [go("/", "New builds start from the Dashboard."), { do: "event", name: "fc:new-build", say: "Start a prototype opens New build." }, point("nb-proto", "At the top of New build: what you get (real screens, pretend data, a checked design) and what it won't do yet.")],
+  "home.how": () => ({
+    title: "How FlowCode AI works",
+    steps: [go("/", "How FlowCode AI works is at the bottom of Home."), { do: "click", target: "home-how", say: "This scrolls down to it: the stages from a PRD to a clickable prototype, what you do at each, and which agents do the work." }],
   }),
-  "dash.reuse": () => ({
-    title: "Same settings as last time",
+  "home.drafts": () => ({
+    title: "Continue or delete a draft",
     steps: [
-      go("/", "New builds start from the Dashboard."),
-      { do: "event", name: "fc:new-build", say: "Start a prototype opens New build." },
-      { do: "point", target: "nb-last", say: "Same settings as your last build: its look, extras, autonomy and coder. Nothing changes until you press Use them.", missing: "This appears at the top of New build once you've started a build here: then it offers that build's settings." },
+      go("/", "Drafts are builds you described but haven't started. They're listed from Home."),
+      { do: "confirm", target: "home-drafts", say: "\"You have N drafts\" opens the list, newest first. Click a draft to continue it on Look and Feel, or the trash icon to delete it (it asks you to confirm).", missing: "You have no drafts right now. One is saved as soon as you press Next: Look and Feel on Home." },
     ],
   }),
-  "dash.help-choose": () => ({
-    title: "Help me choose (local or cloud)",
+  "setup.coder": () => ({
+    title: "Local AI or Cloud AI",
     steps: [
-      go("/", "New builds start from the Dashboard."),
-      { do: "event", name: "fc:new-build", say: "Start a prototype opens New build." },
-      { do: "wait", target: "nb-desc", until: "nb-help-choose", say: "Help me choose is in step 3, beside Who writes the code. Write a sentence about your app here, then press Next until you reach step 3. I'll carry on from there." },
-      { do: "click", target: "nb-help-choose", say: "Help me choose opens a side-by-side of Local and Cloud: what leaves this computer, cost, quality and speed." },
-      point("nb-help-choose-box", "Only what FlowCode knows: Local keeps everything here and is free; Cloud sends code and screenshots to the provider, which charges per use. Neither is claimed to be faster."),
+      go("/", "Who writes the code is chosen on a new build's last step, Build."),
+      { do: "wait", target: "nb-desc", until: "build-coder", say: "Describe the app here, press Next: Look and Feel, then Next: Build. I'll carry on when you reach Build." },
+      point("build-coder", "Local AI runs on this computer: nothing leaves it and it's free. Cloud AI sends the code and screenshots to the provider, which charges per use; it's available once a provider is set up on the Models page. Hover either option for its model."),
     ],
   }),
 };

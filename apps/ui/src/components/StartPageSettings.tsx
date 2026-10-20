@@ -10,7 +10,7 @@ export function StartPageSettings() {
     setStart(path);
     saveStartPage(path);
   };
-  const label = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.path === start)?.label ?? "Dashboard";
+  const label = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.path === start)?.label ?? "Home";
   return (
     <section className="section" aria-labelledby="start-title">
       <div className="section__head">
@@ -21,7 +21,7 @@ export function StartPageSettings() {
       <div className="section__body appear">
         <div className="appear__pages-head">
           <p className="appear__note">
-            FlowCode opens on <strong>{label}</strong> when you start it. The logo and Dashboard in the navigation still go to the Dashboard.
+            FlowCode opens on <strong>{label}</strong> when you start it. The logo and Home in the navigation still go to Home.
           </p>
           <button type="button" className="btn btn--sm" onClick={() => navigate(start)}>
             Open {label}

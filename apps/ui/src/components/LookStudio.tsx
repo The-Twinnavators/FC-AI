@@ -228,11 +228,11 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
           {look.error || nextError ? <span className="ls-err" role="alert" title={nextError ?? look.error}>Not saved</span> : null}
         </div>
         <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} reserve={16}>
-          <StepActions back={onBack} next={{ label: "Next: Build", onClick: () => void next(), busy: busy ? "Saving…" : undefined }} />
+          <StepActions back={onBack} next={{ label: "Next: Build", cp: "look-next", onClick: () => void next(), busy: busy ? "Saving…" : undefined }} />
         </LiveTemplate>
       </div>
 
-      <aside className="ls-panel" aria-label="Look controls">
+      <aside className="ls-panel" aria-label="Look controls" data-cp="look-panel">
         <form
           className="ls-ask"
           onSubmit={(e) => {

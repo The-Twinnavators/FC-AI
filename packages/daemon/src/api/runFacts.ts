@@ -130,7 +130,7 @@ export function factsAnswer(f: RunFacts): string {
   const named = f.resolvedBy === "named" ? ` (the latest build of ${f.projectName})` : "";
   lines.push(`${f.projectName}${named}: ${f.statusLabel}${f.finished && f.endedAt ? ` on ${when(f.endedAt)}` : ""}. ${f.steps.verified} of ${f.steps.total} steps passed their checks.`);
   if (f.steps.running) lines.push(`Working on "${f.steps.running}"${f.steps.runningAttempt && f.steps.runningAttempt > 1 ? ` (try ${f.steps.runningAttempt})` : ""}.`);
-  if (f.waitingApprovals) lines.push(`${f.waitingApprovals} approval${f.waitingApprovals === 1 ? " is" : "s are"} waiting for you.`);
+  if (f.waitingApprovals) lines.push(`${f.waitingApprovals} approval${f.waitingApprovals === 1 ? " is" : "s are"} waiting for you: approve or deny in the project's Overview.`);
   for (const b of f.blocked.slice(0, 2)) lines.push(`"${b.title}" stopped: ${b.explanation}${b.decision ? ` ${b.decision}` : ""}`);
   if (f.runReason) lines.push(`It stopped because: ${f.runReason}`);
   const missing = f.checks.filter((c) => c.state === "unavailable");

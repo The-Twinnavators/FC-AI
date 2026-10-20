@@ -40,7 +40,7 @@ export function DraftsButton({ drafts, reload }: { drafts: Draft[]; reload: () =
 
   return (
     <>
-      <button type="button" className="home__drafts-btn" onClick={() => setOpen(true)}>
+      <button type="button" className="home__drafts-btn" data-cp="home-drafts" onClick={() => setOpen(true)}>
         <Icon name="write" size={14} />
         You have {drafts.length} {drafts.length === 1 ? "draft" : "drafts"}
       </button>

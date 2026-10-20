@@ -71,8 +71,8 @@ export function saveStartPage(path: string) {
 }
 
 /**
- * At launch: open the chosen start page when FlowCode opens with no page of its own (no address, or the Dashboard's),
- * once per window, so a reload or the logo still shows the Dashboard after that.
+ * At launch: open the chosen start page when FlowCode opens with no page of its own (no address, or Home's),
+ * once per window, so a reload or the logo still shows Home after that.
  */
 export function applyStartPage() {
   const start = readStartPage();

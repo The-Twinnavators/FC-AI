@@ -95,7 +95,7 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
     <SetupSteps projectId={projectId} at="build" />
     <section className="psetup__build" aria-labelledby="build-title">
       <h1 className="psetup__title" id="build-title">How hands-on?</h1>
-      <fieldset className="psetup-levels">
+      <fieldset className="psetup-levels" data-cp="build-levels">
         <legend className="sr-only">Build level</legend>
         {BUILD_LEVELS.map((l) => (
           <label key={l.id} className={`psetup-card psetup-level${autonomy === l.id ? " is-on" : ""}`} title={AUTONOMY_LEVELS.find((a) => a.id === l.id)?.forYou.join(" ")}>
@@ -110,7 +110,7 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
         ))}
       </fieldset>
 
-      <fieldset className="psetup-coder">
+      <fieldset className="psetup-coder" data-cp="build-coder">
         <legend>Code written by</legend>
         <div className="psetup-seg">
           {(["local", "cloud"] as const).map((c) => {
@@ -131,7 +131,7 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
       </fieldset>
 
       <section className="psetup-summary" aria-label="Start the build">
-        <StepActions back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", onClick: () => void start(), busy: busy ? "Starting…" : undefined }} />
+        <StepActions back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", cp: "build-start", onClick: () => void start(), busy: busy ? "Starting…" : undefined }} />
       </section>
       {extras.includes("installable") ? <p className="psetup__note">Install as an app: installing depends on the browser; only the app's own screens work offline.</p> : null}
 
@@ -175,6 +175,8 @@ export interface NavAction {
   form?: string;
   disabled?: boolean;
   busy?: string;
+  /** The Copilot's name for the button (data-cp), so a walkthrough can point at it. */
+  cp?: string;
 }
 
 /** The three steps, as a progress row at the top of every step. Before a draft exists (Home), later steps can't open. */
@@ -203,7 +205,7 @@ export function StepActions({ back, next }: { back?: () => void; next?: NavActio
         </button>
       ) : null}
       {next ? (
-        <button type={next.form ? "submit" : "button"} form={next.form} className="btn btn--primary" disabled={next.disabled || !!next.busy} onClick={next.onClick}>
+        <button type={next.form ? "submit" : "button"} form={next.form} className="btn btn--primary" data-cp={next.cp} disabled={next.disabled || !!next.busy} onClick={next.onClick}>
           {next.busy ?? next.label} <Icon name="chevron" size={13} />
         </button>
       ) : null}

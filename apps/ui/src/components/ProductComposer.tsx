@@ -107,6 +107,7 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
         <span className="sr-only">Project name</span>
         <input
           className="composer__name-input"
+          data-cp="nb-name"
           value={shownName}
           maxLength={200}
           placeholder="Project name"
@@ -118,7 +119,7 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
       </label>
         <label className="composer__type">
           <span className="sr-only">Product type</span>
-          <select className="select" value={productType} onChange={(e) => setProductType(e.target.value as ProductType | "")}>
+          <select className="select" data-cp="nb-type" value={productType} onChange={(e) => setProductType(e.target.value as ProductType | "")}>
             <option value="">Product type</option>
             {PRODUCT_TYPES.map((t) => (
               <option key={t.id} value={t.id}>
@@ -132,6 +133,7 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
         <span className="sr-only">Product description</span>
         <textarea
           className="composer__text"
+          data-cp="nb-desc"
           value={description}
           maxLength={MAX_DESC}
           rows={4}
@@ -164,7 +166,7 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
       ) : null}
       <div className="composer__bar">
         <div className="composer__attach-col">
-          <button type="button" className="composer__attach" onClick={() => input.current?.click()} aria-describedby="composer-types">
+          <button type="button" className="composer__attach" data-cp="nb-files" onClick={() => input.current?.click()} aria-describedby="composer-types">
             <Icon name="clip" size={16} /> {reading ? "Reading…" : "Attach PRD & Files"}
           </button>
           <p className="composer__types" id="composer-types">
@@ -172,7 +174,7 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
           </p>
         </div>
         <input ref={input} type="file" multiple accept={ACCEPT} hidden onChange={(e) => e.target.files && void add(e.target.files)} />
-        <button type="submit" className="btn btn--primary composer__next" disabled={!described || busy}>
+        <button type="submit" className="btn btn--primary composer__next" data-cp="nb-next" disabled={!described || busy}>
           {busy ? "Saving…" : "Next: Look and Feel"} <Icon name="chevron" size={13} />
         </button>
       </div>
