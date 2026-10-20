@@ -332,3 +332,27 @@
 /* Home's pills under the composer: drafts, and PRDs in progress, side by side. */
 .home__pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; justify-self: center; }
 a.home__drafts-btn { text-decoration: none; }
+
+/* Dashboard: Build activity / Agents tabs, and each agent's completed and failed work. */
+.dash-tabs { display: flex; gap: 4px; margin-bottom: 4px; }
+.dash-tabs > button { padding: 4px 10px 6px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--text-2); font: inherit; font-size: 17px; font-weight: 650; cursor: pointer; }
+.dash-tabs > button:first-child { padding-left: 0; }
+.dash-tabs > button.is-on { border-bottom-color: #9b6bff; color: var(--text-0); }
+.dash-tabs > button:hover { color: var(--text-0); }
+.dash-agents { display: grid; gap: 10px; margin: 8px 0 0; padding: 0; list-style: none; }
+.dash-agents > li { display: grid; grid-template-columns: 220px minmax(0, 1fr) 280px; align-items: center; gap: 16px; }
+.dash-agents > li.is-idle { opacity: 0.55; }
+.dash-agents__who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dash-agents__who > span { display: grid; min-width: 0; }
+.dash-agents__who strong { font-size: 13.5px; }
+.dash-agents__who small { overflow: hidden; color: var(--text-2); font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
+.dash-agents__bar { display: flex; min-width: 4px; height: 10px; overflow: hidden; border-radius: 999px; background: var(--bg-3); }
+.dash-agents__bar > i.is-ok { background: #2fc4b2; }
+.dash-agents__bar > i.is-fail { background: #f0626b; }
+.dash-agents__bar > i.is-no { background: #e8b14c; }
+.dash-agents__nums { display: grid; color: var(--text-1); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.dash-agents__nums b { color: var(--text-0); }
+.dash-agents__nums b.is-ok { color: #2fc4b2; }
+.dash-agents__nums b.is-fail { color: #f0626b; }
+.dash-agents__nums small { color: var(--text-2); font-size: 11px; }
+@media (max-width: 900px) { .dash-agents > li { grid-template-columns: 1fr; gap: 6px; } }

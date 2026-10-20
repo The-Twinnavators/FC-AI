@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from "react";
 import { useResource } from "../api";
 import { AnimatedNumber, AreaChart, RadialGauge, Skeleton } from "./motion";
 import { navigate } from "../router";
+import { ROLE_COLOR, ROLE_LABEL, RobotHead } from "./RobotHead";
 
 const Mini3D = lazy(() => import("./Mini3D"));
 
@@ -19,6 +20,7 @@ const COLORS = { runs: "#3a60c4", verified: "#2fc4b2", toolCalls: "#84a0db", kno
 
 export function Dashboard() {
   const [range, setRange] = useState<(typeof RANGES)[number]>("7d");
+  const [tab, setTab] = useState<"activity" | "agents">("activity");
   const { data } = useResource<TS>(`/metrics/timeseries?range=${range}`, [range], 20_000);
   const t = data?.totals;
   // Waiting on you counts decisions only: suggestions never hold up a build (it showed 19 when nothing was waiting).
@@ -40,11 +42,17 @@ export function Dashboard() {
         <div className="section chart-card" data-reveal>
           <div className="chart-card__head">
             <div>
-              <h2 className="section__title" style={{ fontSize: 17 }}>
-                Build activity
-              </h2>
+              {/* Two views of the same range: overall activity, and each agent's completed and failed work. */}
+              <div className="dash-tabs" role="tablist" aria-label="Build activity views">
+                <button type="button" role="tab" id="dash-tab-activity" aria-controls="dash-panel" aria-selected={tab === "activity"} className={tab === "activity" ? "is-on" : undefined} onClick={() => setTab("activity")}>
+                  Build activity
+                </button>
+                <button type="button" role="tab" id="dash-tab-agents" aria-controls="dash-panel" aria-selected={tab === "agents"} className={tab === "agents" ? "is-on" : undefined} onClick={() => setTab("agents")}>
+                  Agents
+                </button>
+              </div>
               <span className="muted" style={{ fontSize: 12.5 }}>
-                Cumulative · from your builds, checked steps, agent tool calls and knowledge
+                {tab === "activity" ? "Cumulative · from your builds, checked steps, agent tool calls and knowledge" : "Each agent's completed and failed tasks (tool calls) in this range"}
               </span>
             </div>
             <div style={{ marginLeft: "auto", display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
@@ -57,6 +65,11 @@ export function Dashboard() {
               </div>
             </div>
           </div>
+          <div id="dash-panel" role="tabpanel" aria-labelledby={tab === "activity" ? "dash-tab-activity" : "dash-tab-agents"}>
+          {tab === "agents" ? (
+            <AgentWork range={range} />
+          ) : (
+          <>
           <div className="legend" style={{ marginBottom: 8 }}>
             <span>
               <i className="dot" style={{ background: COLORS.runs, color: COLORS.runs }} /> Runs
@@ -86,6 +99,9 @@ export function Dashboard() {
           ) : (
             <Skeleton h={280} />
           )}
+          </>
+          )}
+          </div>
         </div>
       </div>
       <div className="stat-cards">
@@ -111,5 +127,58 @@ function Stat({ i, label, value, suffix = "", gauge, gaugeLabel }: { i: number; 
       </div>
       {gauge === undefined ? null : <RadialGauge value={gauge} label={gaugeLabel} />}
     </div>
+  );
+}
+
+interface AgentRow {
+  role: string;
+  model: string;
+  calls: number;
+  ok: number;
+  rejected: number;
+  failed: number;
+}
+
+/** Each agent's work in the range: a bar split into completed, failed and turned down, with the counts beside it. */
+function AgentWork({ range }: { range: (typeof RANGES)[number] }) {
+  const { data } = useResource<{ agents: AgentRow[] }>(`/agents/activity?window=${range}`, [range], 20_000);
+  if (!data) return <Skeleton h={280} />;
+  const max = Math.max(1, ...data.agents.map((a) => a.calls));
+  return (
+    <ul className="dash-agents" aria-label="Agents' tasks">
+      {/* Agents that did work this range first, busiest first. */}
+      {[...data.agents].sort((x, y) => y.calls - x.calls).map((a) => {
+        const done = a.calls ? Math.round((a.ok / a.calls) * 100) : 0;
+        return (
+          <li key={a.role} className={a.calls ? undefined : "is-idle"}>
+            <span className="dash-agents__who">
+              <RobotHead color={ROLE_COLOR[a.role] ?? "#9a9fd6"} id={`dash-${a.role}`} size={24} />
+              <span>
+                <strong>{ROLE_LABEL[a.role] ?? a.role}</strong>
+                <small>{a.model}</small>
+              </span>
+            </span>
+            <span className="dash-agents__bar" style={{ width: `${(a.calls / max) * 100}%` }} role="img" aria-label={`${a.ok} completed, ${a.failed} failed, ${a.rejected} turned down`}>
+              {a.ok ? <i className="is-ok" style={{ flexGrow: a.ok }} /> : null}
+              {a.failed ? <i className="is-fail" style={{ flexGrow: a.failed }} /> : null}
+              {a.rejected ? <i className="is-no" style={{ flexGrow: a.rejected }} /> : null}
+            </span>
+            <span className="dash-agents__nums">
+              {a.calls ? (
+                <>
+                  <span>
+                    <b className="is-ok">{a.ok.toLocaleString()}</b> completed · <b className={a.failed ? "is-fail" : undefined}>{a.failed.toLocaleString()}</b> failed
+                    {a.rejected ? <> · {a.rejected.toLocaleString()} turned down</> : null}
+                  </span>
+                  <small>{done}% completed</small>
+                </>
+              ) : (
+                <span className="muted">No work in this range</span>
+              )}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

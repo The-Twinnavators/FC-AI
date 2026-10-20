@@ -175,15 +175,15 @@ const STAGES = [
   { id: "verify", label: "Verify", sub: "Checks · screenshots · reports" },
 ] as const;
 
-export type ActivityWindow = "24h" | "7d" | "30d" | "all";
-export const ACTIVITY_WINDOWS: ActivityWindow[] = ["24h", "7d", "30d", "all"];
+export type ActivityWindow = "24h" | "7d" | "30d" | "90d" | "all";
+export const ACTIVITY_WINDOWS: ActivityWindow[] = ["24h", "7d", "30d", "90d", "all"];
 
 export function agentActivity(app: App, window: ActivityWindow) {
   const now = Date.now();
   const DAY = 86_400_000;
   // "all" spans from the first recorded tool call or event (at least one day).
   const first = window === "all" ? app.db.all<{ t: string | null }>("SELECT MIN(t) AS t FROM (SELECT MIN(created_at) AS t FROM tool_calls UNION ALL SELECT MIN(created_at) FROM events)")[0]?.t : null;
-  const span = window === "24h" ? DAY : window === "7d" ? 7 * DAY : window === "30d" ? 30 * DAY : Math.max(DAY, now - (first ? new Date(first).getTime() : now) + 60_000);
+  const span = window === "24h" ? DAY : window === "7d" ? 7 * DAY : window === "30d" ? 30 * DAY : window === "90d" ? 90 * DAY : Math.max(DAY, now - (first ? new Date(first).getTime() : now) + 60_000);
   const buckets = window === "24h" ? 24 : window === "7d" ? 28 : 30;
   const size = span / buckets;
   const since = new Date(now - span).toISOString();
