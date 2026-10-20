@@ -31,7 +31,7 @@ import { applyStartPage } from "./nav";
 applyStartPage();
 
 // First paint: the theme this page should have (toggle, system or per page).
-document.documentElement.dataset.theme = themeFor(location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] ?? "");
+document.documentElement.dataset.theme = themeFor(location.hash.replace(/^#\/?/, "").split(/[/?]/)[0] ?? "", undefined, location.hash);
 document.documentElement.dataset.tone = toneFor(document.documentElement.dataset.theme as "light" | "dark");
 
 // The fonts prototypes use, so previews here show the real typeface.

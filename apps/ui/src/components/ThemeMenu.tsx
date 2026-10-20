@@ -18,7 +18,8 @@ const CHOICES: Array<{ key: string; label: string; choice: ThemeChoice }> = [
  * follows the computer's light or dark setting with the tones chosen here. Arrow keys move, Enter or Space picks,
  * Escape closes and returns focus to the button.
  */
-export function ThemeMenu({ theme, current, perPage, onPick }: { theme: ThemeName; current: string; perPage: boolean; onPick: (c: ThemeChoice) => void }) {
+/** `locked`: this page is always dark (Home, setup, Create PRD start, Network Graph), so the menu is off here. */
+export function ThemeMenu({ theme, current, perPage, onPick, locked }: { theme: ThemeName; current: string; perPage: boolean; onPick: (c: ThemeChoice) => void; locked?: boolean }) {
   const [open, setOpen] = useState(false);
   // Where the menu opens: under the button, right-aligned. It renders on the page itself, not inside the top bar,
   // because the top bar is blurred and a blur inside it can't see the page behind.
@@ -62,8 +63,9 @@ export function ThemeMenu({ theme, current, perPage, onPick }: { theme: ThemeNam
         }}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`Theme: ${label}${perPage ? " (this page)" : ""}`}
-        title={`Theme: ${label}${perPage ? " for this page" : ""}`}
+        disabled={locked}
+        aria-label={locked ? "Theme: this page is always dark" : `Theme: ${label}${perPage ? " (this page)" : ""}`}
+        title={locked ? "This page is always dark" : `Theme: ${label}${perPage ? " for this page" : ""}`}
       >
         {current === "system" ? <Monitor size={16} aria-hidden="true" /> : theme === "light" ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
       </button>

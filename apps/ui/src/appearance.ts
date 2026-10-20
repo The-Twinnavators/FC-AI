@@ -93,8 +93,18 @@ export function saveManualTheme(t: ThemeName) {
 
 export const systemTheme = (): ThemeName => (window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark");
 
-/** The theme a page should show under the current appearance settings. */
-export function themeFor(section: string, a: Appearance = readAppearance()): ThemeName {
+/**
+ * Pages that are always dark, whatever the theme setting: Home and a new build's setup steps (the wave background),
+ * Create PRD's start page (the same), and the Network Graph. `route` is the address without "#/" ("discover/new").
+ */
+export function alwaysDark(route: string): boolean {
+  const [section = "", sub] = route.replace(/^#?\/?/, "").split(/[/?]/);
+  return section === "" || section === "new" || section === "network" || (section === "discover" && sub === "new");
+}
+
+/** The theme a page should show under the current appearance settings (always dark on the pages above). */
+export function themeFor(section: string, a: Appearance = readAppearance(), route?: string): ThemeName {
+  if (alwaysDark(route ?? section)) return "dark";
   if (a.mode === "system") return systemTheme();
   if (a.mode === "custom") return a.pages[section] ?? manualTheme();
   return manualTheme();

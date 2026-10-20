@@ -7,7 +7,7 @@ import { JournalView } from "./views/JournalView";
 import { ApprovalsView } from "./views/ApprovalsView";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { fitSideLists } from "./fitSideLists";
-import { APPEARANCE_EVENT, applyTheme, readAppearance, readTones, saveAppearance, saveManualTheme, saveTones, themeFor } from "./appearance";
+import { APPEARANCE_EVENT, alwaysDark, applyTheme, readAppearance, readTones, saveAppearance, saveManualTheme, saveTones, themeFor } from "./appearance";
 import { ThemeMenu, type ThemeChoice } from "./components/ThemeMenu";
 import type { Approval, Project } from "@flowcode/contracts";
 import { conn, post, useEventStream, useResource } from "./api";
@@ -184,10 +184,10 @@ export function App() {
   }, []);
   // Each page shows its theme; a change fades instead of flashing.
   useEffect(() => {
-    const next = themeFor(section, appearance);
+    const next = themeFor(section, appearance, route.path);
     applyTheme(next);
     setThemeState(next);
-  }, [section, appearance]);
+  }, [section, appearance, route.path]);
   // The theme menu: a palette (dark blue or grey, light white or grey) or System. Per page, a palette sets this page's
   // theme; the tone is one choice for every page.
   const pickTheme = (c: ThemeChoice) => {
@@ -316,7 +316,7 @@ export function App() {
           <span className={`led ${health.data ? (health.data.providers.ollama.ok ? "led--ok" : "led--bad") : ""}`} aria-hidden="true" />
           {health.data ? (health.data.providers.ollama.ok ? "Local models · online" : "Local models · offline") : "Provider…"}
         </button>
-        <ThemeMenu theme={theme === "light" ? "light" : "dark"} current={themeKey} perPage={appearance.mode === "custom"} onPick={pickTheme} />
+        <ThemeMenu theme={theme === "light" ? "light" : "dark"} current={themeKey} perPage={appearance.mode === "custom"} onPick={pickTheme} locked={alwaysDark(route.path)} />
         <button data-guide="topbar.copilot" className="copilot-trigger" onClick={() => setCopilotOpen((o) => !o)} aria-expanded={copilotOpen} aria-controls="copilot-panel" title="Copilot (Ctrl+K)">
           <Logo size={16} />
           <span>Copilot</span>
