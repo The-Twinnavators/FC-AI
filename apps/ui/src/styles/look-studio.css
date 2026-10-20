@@ -1,0 +1,93 @@
+/*
+ * The Look studio (LookStudio.tsx): the preview takes the room, the panel stays slim. One 12px corner for panels,
+ * pills for the small toggles, FlowCode's brand ink for what is selected. Short labels; values sit beside their group.
+ */
+.ls { display: grid; grid-template-columns: minmax(0, 1fr) 320px; grid-template-areas: "main panel" "foot foot"; gap: 16px 20px; width: 100%; }
+.ls-main { grid-area: main; display: grid; grid-template-rows: auto 1fr auto auto; gap: 12px; min-width: 0; }
+.ls-panel { grid-area: panel; display: grid; align-content: start; gap: 8px; min-width: 0; }
+.ls-foot { grid-area: foot; position: sticky; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); background: var(--bg-0, #0f1420); }
+.ls-err { margin-right: auto; font-size: 13px; color: var(--sig-bad, #e05252); }
+@media (max-width: 1000px) {
+  .ls { grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "panel" "foot"; }
+}
+
+/* Preview toolbar */
+.ls-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ls-tabs { display: inline-flex; gap: 4px; }
+.ls-tabs > button { height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--text-1); font: inherit; font-size: 13px; cursor: pointer; }
+.ls-tabs > button:hover { color: var(--text-0); background: var(--bg-2); }
+.ls-tabs > button.is-on { background: var(--brand-soft, var(--bg-2)); color: var(--text-0); font-weight: 600; }
+.ls-status { margin-left: auto; font-size: 12.5px; color: var(--text-2); }
+.ls-status.is-saving { color: var(--text-1); }
+.ls-status.is-error { color: var(--sig-bad, #e05252); }
+.ls-icon-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--text-1); cursor: pointer; }
+.ls-icon-btn:hover:not(:disabled) { color: var(--text-0); border-color: var(--line-strong); }
+.ls-icon-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* Segmented controls (also used in the panel) */
+.ls-seg { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-1); }
+.ls-seg > button { flex: 1; min-height: 28px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; color: var(--text-1); font: inherit; font-size: 12.5px; white-space: nowrap; cursor: pointer; }
+.ls-seg > button:hover:not(:disabled) { color: var(--text-0); }
+.ls-seg > button.is-on { background: var(--brand-soft, var(--bg-2)); color: var(--text-0); font-weight: 600; box-shadow: inset 0 0 0 1px var(--brand-ink, var(--line-strong)); }
+.ls-seg > button:disabled { cursor: not-allowed; opacity: 0.5; }
+.ls :is(button, input, summary):focus-visible { outline: 2px solid var(--brand-ink, var(--text-0)); outline-offset: 2px; }
+
+/* The stage: the screen at its real width, scaled to fit, scrolling inside. */
+.ls-stage { position: relative; height: clamp(440px, calc(100vh - 300px), 820px); overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-2); display: flex; justify-content: center; }
+.ls-frame { flex: none; transform-origin: top center; overflow: auto; border-radius: 8px; box-shadow: 0 20px 50px -24px rgba(0, 0, 0, 0.6); background: #fff; }
+
+/* Describe a change */
+.ls-ask { display: flex; gap: 8px; padding: 6px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--bg-1); }
+.ls-ask:focus-within { border-color: var(--brand-ink, var(--line-strong)); }
+.ls-ask__input { flex: 1; min-width: 0; padding: 0 10px; border: 0; background: transparent; color: var(--text-0); font: inherit; font-size: 14px; }
+.ls-ask__input::placeholder { color: var(--text-2); }
+.ls-ask__input:focus { outline: none; }
+.ls-read { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; }
+.ls-read > li { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-1); }
+.ls-read > .is-ok { border-color: color-mix(in srgb, var(--sig-ok, #30c3c5) 50%, transparent); color: var(--text-0); }
+.ls-read > .is-no { border-color: color-mix(in srgb, var(--sig-bad, #e05252) 50%, transparent); }
+.ls-read > .is-locked, .ls-read > .is-later { color: var(--text-2); }
+
+/* Panel groups: one open at a time */
+.ls-group { border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); }
+.ls-group.is-open { border-color: var(--line-strong); }
+.ls-group__head { display: flex; align-items: center; }
+.ls-group__btn { flex: 1; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; min-width: 0; padding: 12px 14px; border: 0; background: transparent; color: var(--text-0); font: inherit; text-align: left; cursor: pointer; }
+.ls-group__btn > svg { transition: transform 160ms ease; color: var(--text-2); }
+.ls-group.is-open .ls-group__btn > svg { transform: rotate(90deg); }
+.ls-group__name { font-size: 14px; font-weight: 650; }
+.ls-group__val { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; color: var(--text-2); text-align: right; }
+.ls-lock { display: grid; place-items: center; width: 30px; height: 30px; margin-right: 8px; border: 0; border-radius: 8px; background: transparent; color: var(--text-2); opacity: 0.55; cursor: pointer; }
+.ls-lock:hover { opacity: 1; background: var(--bg-2); }
+.ls-lock.is-on { opacity: 1; color: var(--brand-ink, var(--text-0)); background: var(--brand-soft, var(--bg-2)); }
+.ls-group__body { display: grid; gap: 14px; padding: 4px 14px 14px; }
+.ls-field { display: grid; gap: 6px; }
+.ls-field__k { font-size: 12px; color: var(--text-2); }
+.ls-field > .ls-seg { display: flex; }
+.ls-row { display: flex; align-items: center; gap: 8px; }
+.ls-quiet { margin: 0; font-size: 12.5px; color: var(--text-2); }
+.ls-prd { justify-self: start; }
+.ls-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-1); }
+.ls-check--off { color: var(--text-2); cursor: not-allowed; }
+.ls-soon { margin-left: auto; padding: 0 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 11px; color: var(--text-2); }
+
+/* Themes: a small swatch of each theme's page and primary */
+.ls-themes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-height: 260px; overflow-y: auto; padding: 2px; }
+.ls-theme { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--text-1); font: inherit; cursor: pointer; text-align: left; }
+.ls-theme:hover:not(:disabled) { border-color: var(--line-strong); }
+.ls-theme.is-on { border-color: var(--brand-ink, var(--line-strong)); background: var(--brand-soft, var(--bg-2)); color: var(--text-0); }
+.ls-theme:disabled { opacity: 0.5; cursor: not-allowed; }
+.ls-theme__sw { position: relative; display: block; height: 26px; border: 1px solid; border-radius: 5px; }
+.ls-theme__sw > span { position: absolute; right: 5px; bottom: 5px; width: 12px; height: 12px; border-radius: 50%; }
+.ls-theme__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+
+/* Fonts */
+.ls-fonts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-height: 230px; overflow-y: auto; padding: 2px; }
+.ls-fonts > button { display: grid; gap: 2px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--text-1); font: inherit; text-align: left; cursor: pointer; }
+.ls-fonts > button.is-on { border-color: var(--brand-ink, var(--line-strong)); background: var(--brand-soft, var(--bg-2)); color: var(--text-0); }
+.ls-fonts__aa { font-size: 20px; font-weight: 600; color: var(--text-0); line-height: 1.1; }
+.ls-fonts__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+
+.ls-contrast { margin: 4px 2px 0; font-size: 12.5px; color: var(--sig-ok, #30c3c5); cursor: help; }
+.ls-contrast.is-bad { color: var(--sig-bad, #e05252); }
+@media (prefers-reduced-motion: reduce) { .ls-group__btn > svg { transition: none; } }

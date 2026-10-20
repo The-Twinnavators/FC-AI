@@ -44,6 +44,8 @@ export const ProjectSetup = z.object({
   buildMode: BuildMode.optional(),
   /** "Show me three design drafts before building." */
   threeDrafts: z.boolean().default(false),
+  /** The library page template chosen in Look and Feel (a LIBRARY_SECTIONS id): the build's starting composition. */
+  template: z.string().max(60).optional(),
   /** The run Start Build created. */
   runId: z.string().optional(),
   updatedAt: z.string(),
@@ -64,5 +66,6 @@ export const ProjectSetupPatch = z.object({
   coder: z.enum(["local", "cloud"]).optional(),
   buildMode: BuildMode.optional(),
   threeDrafts: z.boolean().optional(),
+  template: z.string().max(60).optional(),
 });
 export type ProjectSetupPatch = z.infer<typeof ProjectSetupPatch>;

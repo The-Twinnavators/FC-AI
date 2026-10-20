@@ -10,7 +10,7 @@ import { post } from "../api";
 import { navigate } from "../router";
 import { Icon } from "./ui";
 import { NEW_BUILD_PRD_KEY } from "./PrdTemplates";
-import { ACCEPT, ACCEPT_LABELS, MAX_DESC, readAttachments, summarize, type Attachment } from "./attachments";
+import { ACCEPT, MAX_DESC, readAttachments, summarize, type Attachment } from "./attachments";
 
 export function ProductComposer({ projectId, initial }: { projectId?: string; initial?: { name: string; setup: ProjectSetup } }) {
   const [name, setName] = useState(initial?.name ?? "");
@@ -169,7 +169,7 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
         </button>
       </div>
       <p className="composer__types" id="composer-types">
-        {drag ? "Drop to attach" : `Attach a PRD, JSON content, HTML or CSS to copy, or images: ${ACCEPT_LABELS.join(", ")}. Up to 1.5 MB each, 6 MB in all.`}
+        {drag ? "Drop to attach" : "PRD, JSON, HTML, CSS or images · up to 1.5 MB each"}
       </p>
       {error ? (
         <p className="composer__error" role="alert">

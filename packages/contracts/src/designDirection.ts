@@ -122,8 +122,8 @@ export function interpretDirection(text: string, from: Appearance = BASE_APPEARA
     // Light or dark, and the neutral family.
     if (/\bdark (mode|background|theme|ui)\b|\bnight mode\b/.test(c)) note(raw, "colors", "dark mode", () => (a = { ...a, mode: "dark" }));
     else if (/\b(off[- ]white|cream|ivory|paper|light (mode|background)|white background)\b/.test(c)) note(raw, "colors", "light mode", () => (a = { ...a, mode: "light" }));
-    if (/\b(warm|cream|ivory|paper|sand|linen|beige)\b/.test(c) && !/\bwarm serif\b/.test(c) && !COLOURS.some((k) => k.re.test(c))) note(raw, "colors", "warm neutral family (off-white backgrounds, warm greys)", () => (a = { ...a, neutral: "warm" }));
-    else if (/\b(cool|slate|blue[- ]gr[ae]y)\b/.test(c) && !COLOURS.some((k) => k.re.test(c))) note(raw, "colors", "cool neutral family", () => (a = { ...a, neutral: "cool" }));
+    if (/\b(warm|warmer|cream|ivory|paper|sand|linen|beige)\b/.test(c) && !/\bwarm serif\b/.test(c) && !COLOURS.some((k) => k.re.test(c))) note(raw, "colors", "warm neutral family (off-white backgrounds, warm greys)", () => (a = { ...a, neutral: "warm" }));
+    else if (/\b(cool|cooler|slate|blue[- ]gr[ae]y)\b/.test(c) && !COLOURS.some((k) => k.re.test(c))) note(raw, "colors", "cool neutral family", () => (a = { ...a, neutral: "cool" }));
     else if (/\b(pure gr[ae]y|neutral gr[ae]y|monochrome)\b/.test(c)) note(raw, "colors", "pure grey neutral family", () => (a = { ...a, neutral: "pure" }));
     if (/\b(near[- ]black|charcoal|black) text\b/.test(c)) note(raw, "colors", "text stays near-black (the neutral family's darkest step)");
     // The accent: a hex, or a named colour (muted when asked).
@@ -145,9 +145,9 @@ export function interpretDirection(text: string, from: Appearance = BASE_APPEARA
     const scale = a.typeScale ?? { base: 16, ratio: 1.2 };
     if (/\b(large|big) (text|type)\b/.test(c)) note(raw, "type", "larger body text (18px)", () => (a = { ...a, typeScale: { ...scale, base: 18 } }));
     if (/\b(small|compact) (text|type)\b/.test(c)) note(raw, "type", "smaller body text (15px)", () => (a = { ...a, typeScale: { ...scale, base: 15 } }));
-    if (/\bdramatic headings?\b/.test(c)) note(raw, "type", "dramatic heading sizes", () => (a = { ...a, typeScale: { ...(a.typeScale ?? scale), ratio: 1.5 } }));
-    else if (/\b(clear|strong) (typographic )?hierarchy\b/.test(c)) note(raw, "type", "clear heading steps (1.25)", () => (a = { ...a, typeScale: { ...(a.typeScale ?? scale), ratio: 1.25 } }));
-    else if (/\b(calm|understated|quiet) headings?\b/.test(c)) note(raw, "type", "calm heading steps (1.125)", () => (a = { ...a, typeScale: { ...(a.typeScale ?? scale), ratio: 1.125 } }));
+    if (/\b(dramatic|bigger|huge) headings?\b/.test(c)) note(raw, "type", "dramatic heading sizes", () => (a = { ...a, typeScale: { ...(a.typeScale ?? scale), ratio: 1.5 } }));
+    else if (/\b(clear|strong) (typographic )?hierarchy\b|\bbolder headings?\b/.test(c)) note(raw, "type", "clear heading steps (1.25)", () => (a = { ...a, typeScale: { ...(a.typeScale ?? scale), ratio: 1.25 } }));
+    else if (/\b(calm|calmer|understated|quiet|smaller) headings?\b/.test(c)) note(raw, "type", "calm heading steps (1.125)", () => (a = { ...a, typeScale: { ...(a.typeScale ?? scale), ratio: 1.125 } }));
     // Shape: corners, density, borders.
     const shape = a.shape ?? { radius: 10, density: "comfortable" as const, borders: "fine" as const };
     if (/\b(square|sharp|no round(ing|ed)?)\b/.test(c)) note(raw, "shape", "square corners (0px)", () => (a = { ...a, shape: { ...(a.shape ?? shape), radius: 0 } }));

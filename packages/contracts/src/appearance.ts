@@ -98,6 +98,18 @@ export function gradientOf(a: Appearance): GradientSetting | undefined {
   return a.gradient ? a.gradient : undefined;
 }
 
+/** The kit's feature panels, and the class the builder puts on a hero or highlight panel. */
+export const GRADIENT_PANELS = [".fl-gradient-panel", ".fl-as-promo"];
+
+/** The CSS for the gradient's uses no token reaches (page titles, feature panels); "" when the look uses neither. */
+export function gradientUseCss(a: Appearance): string {
+  const uses = gradientOf(a)?.uses ?? [];
+  const rules: string[] = [];
+  if (uses.includes("headline")) rules.push("h1 { background-image: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }");
+  if (uses.includes("panels")) rules.push(`${GRADIENT_PANELS.join(", ")} { background: var(--gradient); color: var(--color-on-accent); }`);
+  return rules.join("\n");
+}
+
 /** #rrggbb mixed with white by `w` (0–1). */
 const lighten = (hex: string, w: number) =>
   `#${[1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - w) + 255 * w).toString(16).padStart(2, "0")).join("")}`;

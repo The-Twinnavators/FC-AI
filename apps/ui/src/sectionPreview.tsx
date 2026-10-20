@@ -98,6 +98,21 @@ const isolate = () => {
     for (const sib of n.parentElement.children) if (sib !== n && sib instanceof HTMLElement && !keep(sib)) sib.style.display = "none";
 };
 
+// &live=1 (the Look studio): the page takes a look's token values by message and paints them over the starter's, so the
+// template follows every change without reloading. It says when it is ready for them.
+const live = params.get("live") === "1";
+if (live)
+  addEventListener("message", (e: MessageEvent) => {
+    const m = e.data as { type?: string; tokens?: Record<string, string>; css?: string } | null;
+    if (m?.type !== "fl-tokens" || !m.tokens) return;
+    const el = document.documentElement;
+    for (const [k, v] of Object.entries(m.tokens)) if (k.startsWith("--")) el.style.setProperty(k, v);
+    // Rules a look adds beyond tokens (its gradient's page titles and feature panels).
+    let extra = document.getElementById("fl-live-css");
+    if (!extra) (extra = document.createElement("style")), (extra.id = "fl-live-css"), document.head.appendChild(extra);
+    extra.textContent = m.css ?? "";
+  });
+
 const load = modules[file];
 const root = createRoot(document.getElementById("root")!);
 if (load)
@@ -106,5 +121,6 @@ if (load)
     root.render(<m.default />);
     setTimeout(isolate, 60);
     requestAnimationFrame(report);
+    if (live) parent.postMessage({ type: "fl-live-ready", id }, "*");
   });
 else (addStyles(""), root.render(<p style={{ padding: 24 }}>No section called “{id}”.</p>));

@@ -862,6 +862,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     const b = parse(C.ProjectSetupPatch, body);
     if (b.references) checkReferences(b.references);
     if (b.extras?.some((id) => !C.BUILD_EXTRAS.some((x) => x.id === id))) throw new HttpError(400, "Unknown extra");
+    if (b.template && !C.LIBRARY_SECTIONS.some((x) => x.id === b.template && x.ref?.startsWith("t."))) throw new HttpError(400, "Unknown page template");
     if (b.name) renameProject(app, params.id, redact(b.name));
     const { name: _name, ...rest } = b;
     const next: C.ProjectSetup = { ...s, ...rest, updatedAt: new Date().toISOString() };

@@ -6,6 +6,13 @@
 
 /* ── Home ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 .home { position: relative; min-height: 100%; overflow: hidden; isolation: isolate; }
+.home__shader { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.home__shader > .fl-shader-root { position: absolute; inset: 0; min-height: 0; border-radius: 0; }
+/* Fade the moving colour into the page towards the bottom, so the composer and drafts stay calm to read. */
+.home__shader::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--bg-0, #0f1420) 35%, transparent) 55%, var(--bg-0, #0f1420) 100%); }
+.home__pause { position: absolute; right: 16px; bottom: 16px; z-index: 2; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--bg-1) 80%, transparent); color: var(--text-1); cursor: pointer; backdrop-filter: blur(6px); }
+.home__pause:hover { color: var(--text-0); }
+.home__pause:focus-visible { outline: 2px solid var(--brand-ink, var(--text-0)); outline-offset: 2px; }
 .home__backdrop { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
 .home__backdrop > span { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.34; animation: home-drift 38s ease-in-out infinite alternate; }
 .home__backdrop > span:nth-child(1) { width: 46vw; height: 46vw; left: -8vw; top: -14vw; background: var(--brand-1, #3b3fc4); }
@@ -25,7 +32,12 @@
 .home__draft { padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-1); font: inherit; cursor: pointer; }
 .home__draft:hover { border-color: var(--line-strong); color: var(--text-0); }
 .home__draft:focus-visible { outline: 2px solid var(--brand-ink, var(--text-0)); outline-offset: 2px; }
-.home .proto-scope { justify-self: stretch; max-width: none; margin-top: 24px; }
+.home__scope { justify-self: center; font-size: 13px; color: var(--text-2); }
+.home__scope > summary { cursor: pointer; list-style: none; text-align: center; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
+.home__scope > summary::-webkit-details-marker { display: none; }
+.home__scope[open] > summary { margin-bottom: 12px; }
+.home__scope .proto-scope { margin-top: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); }
+.composer__types { text-align: right; }
 
 /* ── The composer ─────────────────────────────────────────────────────────────────────────────────────────────── */
 .composer {
@@ -71,11 +83,10 @@
 .psetup__steps .is-on button { border-color: var(--brand-ink, var(--line-strong)); color: var(--text-0); background: var(--brand-soft, var(--bg-2)); }
 .psetup__steps .is-done b { background: var(--brand-1, #3b3fc4); color: #fff; }
 .psetup__steps button:focus-visible { outline: 2px solid var(--brand-ink, var(--text-0)); outline-offset: 2px; }
-.psetup__describe { display: grid; justify-items: center; gap: 16px; width: min(800px, 100%); margin: 0 auto; }
 .psetup__head { display: grid; gap: 6px; }
 .psetup__title { margin: 0; font-size: 26px; line-height: 1.15; font-weight: 650; letter-spacing: -0.01em; color: var(--text-0); text-wrap: balance; }
 .psetup__lede { margin: 0; max-width: 72ch; font-size: 14px; line-height: 1.5; color: var(--text-2); }
-.psetup__look, .psetup__build { display: grid; gap: 28px; width: min(960px, 100%); }
+.psetup__build { display: grid; gap: 28px; width: min(960px, 100%); }
 .psetup__build > .psetup__title { text-align: center; }
 .psetup__look > .ds { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); }
 .psetup__foot { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; padding: 16px 0; border-top: 1px solid var(--line); background: var(--bg-0, #0f1420); }

@@ -6,11 +6,11 @@
  */
 import { useState } from "react";
 import { AUTONOMY_LEVELS, BUILD_EXTRAS, BUILD_LEVELS, PRODUCT_TYPES, type Appearance, type AutonomyLevel, type Project, type ProjectSetup } from "@flowcode/contracts";
-import { get, post, useResource } from "../api";
+import { post, useResource } from "../api";
 import { navigate } from "../router";
 import { Icon } from "../components/ui";
-import { ProductComposer } from "../components/ProductComposer";
-import { DirectionEditor } from "../components/DirectionEditor";
+import { HomeView } from "./HomeView";
+import { LookStudio } from "../components/LookStudio";
 
 type Step = "describe" | "look" | "build";
 const STEPS: Array<{ id: Step; label: string }> = [
@@ -38,63 +38,17 @@ export function SetupView({ projectId, step }: { projectId: string; step: string
         <button type="button" className="btn btn--primary" onClick={() => navigate(`/projects/${projectId}/runs/${setup.runId}`)}>Open the build</button>
       </div>
     );
+  // Describe is Home again, for this draft: the same page, background and composer.
+  if (at === "describe") return <HomeView draft={{ projectId, name: project.name, setup }} />;
   return (
     <div className="page psetup">
-      <ol className="psetup__steps" aria-label="Setup steps">
-        {STEPS.map((s, i) => (
-          <li key={s.id} className={s.id === at ? "is-on" : STEPS.findIndex((x) => x.id === at) > i ? "is-done" : ""}>
-            <button type="button" aria-current={s.id === at ? "step" : undefined} onClick={() => navigate(`/new/${projectId}/${s.id}`)}>
-              <b>{i + 1}</b>
-              {s.label}
-            </button>
-          </li>
-        ))}
-      </ol>
-      {at === "describe" ? (
-        <div className="psetup__describe">
-          <h1 className="psetup__title" id="composer-title">What would you like to build?</h1>
-          <ProductComposer projectId={projectId} initial={{ name: project.name, setup }} />
-        </div>
-      ) : at === "look" ? (
-        <LookStep projectId={projectId} />
+      <SetupSteps projectId={projectId} at={at} />
+      {at === "look" ? (
+        <LookStudio projectId={projectId} brand={project.name} tagline={setup.description.split(/(?<=[.!?])\s/)[0] ?? setup.description} onBack={() => navigate(`/new/${projectId}/describe`)} onNext={() => navigate(`/new/${projectId}/build`)} />
       ) : (
         <BuildStep key={setup.updatedAt} projectId={projectId} project={project} setup={setup} onSaved={res.reload} />
       )}
     </div>
-  );
-}
-
-/** Look and Feel: the Look editor (draft, selected, applied kept apart). Next selects a draft so the build applies it. */
-function LookStep({ projectId }: { projectId: string }) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
-  const next = async () => {
-    setBusy(true);
-    setError(undefined);
-    try {
-      const st = await get<DesignStateView>(`/projects/${projectId}/design/state`);
-      if (st.draft) await post(`/projects/${projectId}/design/select`, {});
-      navigate(`/new/${projectId}/build`);
-    } catch (e) {
-      setError((e as Error).message);
-      setBusy(false);
-    }
-  };
-  return (
-    <section className="psetup__look" aria-labelledby="look-title">
-      <header className="psetup__head">
-        <h1 className="psetup__title" id="look-title">Look and Feel</h1>
-        <p className="psetup__lede">Start from a theme or your own colours, then adjust. The preview beside the controls updates as you go. Nothing is built until Start Build.</p>
-      </header>
-      <DirectionEditor projectId={projectId} where="plan" />
-      <footer className="psetup__foot">
-        {error ? <span className="psetup__err" role="alert">{error}</span> : null}
-        <button type="button" className="btn" onClick={() => navigate(`/new/${projectId}/describe`)}>Back</button>
-        <button type="button" className="btn btn--primary" disabled={busy} onClick={() => void next()}>
-          {busy ? "Saving…" : "Next: Agentic Build Levels"} <Icon name="chevron" size={13} />
-        </button>
-      </footer>
-    </section>
   );
 }
 
@@ -209,3 +163,19 @@ const LEVEL_LINE: Record<AutonomyLevel, string> = {
   assisted: "Asks only about risky choices.",
   autonomous: "Runs on its own. Asks before anything leaves this computer.",
 };
+
+/** The three steps; before a draft exists (Home), the later ones can't be opened yet. */
+export function SetupSteps({ projectId, at }: { projectId?: string; at: Step }) {
+  return (
+    <ol className="psetup__steps" aria-label="Setup steps">
+      {STEPS.map((s, i) => (
+        <li key={s.id} className={s.id === at ? "is-on" : STEPS.findIndex((x) => x.id === at) > i ? "is-done" : ""}>
+          <button type="button" aria-current={s.id === at ? "step" : undefined} disabled={!projectId && s.id !== at} onClick={() => projectId && navigate(`/new/${projectId}/${s.id}`)}>
+            <b>{i + 1}</b>
+            {s.label}
+          </button>
+        </li>
+      ))}
+    </ol>
+  );
+}
