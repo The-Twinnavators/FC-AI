@@ -143,7 +143,7 @@ export function createPrdDoJourney(problem?: string): Journey {
     title: "Create a PRD",
     steps: [
       { do: "go", path: "/discover/new", say: "Let's make your PRD together. I'll take you through it from start to finish.", auto: true },
-      ...(problem ? [] : [{ do: "ask" as const, key: "problem", say: "Tell me, what problem would you like to solve?", placeholder: "Who has it, and what makes it hard? For example: busy parents can't tell which brands are non-GMO while shopping." }]),
+      ...(problem ? [] : [{ do: "ask" as const, key: "problem", say: "Tell me, what problem would you like to solve?", placeholder: "What is the problem? Who does it impact? When and why does it occur?" }]),
       // Your idea, written up as a problem statement with its pain points, for you to check before Start.
       { do: "draft", kind: "prd", from: "problem", ...(problem ? { text: problem } : {}), key: "statement", say: "I'm turning your idea into a problem statement and its pain points." },
       { do: "type", target: "prd-problem", text: "{statement}", say: "Here's the problem statement and its pain points. Change anything that isn't right." },

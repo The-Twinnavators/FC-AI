@@ -12,6 +12,8 @@ const LENS = 150;
 
 type Rgb = [number, number, number];
 const hex = (h: string): Rgb => [0, 2, 4].map((i) => parseInt(h.slice(1 + i, 3 + i), 16)) as Rgb;
+const PURPLE = hex("#9b6bff");
+const DEEP = hex("#6a3dff");
 const mix = (a: Rgb, b: Rgb, t: number): Rgb => a.map((x, i) => Math.round(x + (b[i]! - x) * t)) as Rgb;
 
 export function DotField({ from = "#9aa6e8", via = "#a9b6e6", to = "#8fb3e8" }: { from?: string; via?: string; to?: string }) {
@@ -44,20 +46,28 @@ export function DotField({ from = "#9aa6e8", via = "#a9b6e6", to = "#8fb3e8" }: 
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
       const r = LENS * (1 + lens.swell * 0.6);
+      // Near the cursor the dots turn purple, deepest right under it; further out they stay faint slate-blue.
+      const near = r * 1.8;
       for (let y = GAP / 2; y < h; y += GAP) {
         for (let x = GAP / 2; x < w; x += GAP) {
-          let px = x, py = y, size = DOT, alpha = 0.22;
+          let px = x, py = y, size = DOT, alpha = 0.14;
+          let color = colorAt(Math.min(1, Math.max(0, (x / Math.max(w, 1)) * 0.7 + (y / Math.max(h, 1)) * 0.3)));
           const dx = x - lens.x, dy = y - lens.y;
           const d = Math.hypot(dx, dy);
-          if (lens.power > 0.001 && d < r) {
-            // Magnify: push the dot out from the lens center and enlarge it, most at the center.
-            const k = (1 - d / r) ** 2 * lens.power;
-            px = x + dx * k * 0.55;
-            py = y + dy * k * 0.55;
-            size = DOT * (1 + k * 2.4);
-            alpha = 0.22 + k * 0.6;
+          if (lens.power > 0.001 && d < near) {
+            const tint = (1 - d / near) ** 1.5 * lens.power;
+            color = d < r * 0.5 ? mix(PURPLE, DEEP, Math.min(1, (1 - d / (r * 0.5)) * lens.power)) : mix(color, PURPLE, Math.min(1, tint * 1.6));
+            alpha = 0.14 + tint * 0.7;
+            if (d < r) {
+              // Magnify: push the dot out from the lens center and enlarge it, most at the center.
+              const k = (1 - d / r) ** 2 * lens.power;
+              px = x + dx * k * 0.55;
+              py = y + dy * k * 0.55;
+              size = DOT * (1 + k * 2.4);
+              alpha = Math.min(1, alpha + k * 0.3);
+            }
           }
-          const [cr, cg, cb] = colorAt(Math.min(1, Math.max(0, (x / Math.max(w, 1)) * 0.7 + (y / Math.max(h, 1)) * 0.3)));
+          const [cr, cg, cb] = color;
           ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha})`;
           ctx.beginPath();
           ctx.arc(px, py, size, 0, Math.PI * 2);
