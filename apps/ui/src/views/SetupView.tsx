@@ -4,8 +4,7 @@
  * summary with Start Build). Every choice is saved to the draft project as it is made (POST /projects/:id/setup), so
  * Back, Next and a reload keep it. Start Build makes the first run once (the daemon returns the same run on a repeat).
  */
-import { useLayoutEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import { AUTONOMY_LEVELS, BUILD_EXTRAS, BUILD_LEVELS, PRODUCT_TYPES, type Appearance, type AutonomyLevel, type Project, type ProjectSetup } from "@flowcode/contracts";
 import { post, useResource } from "../api";
 import { navigate } from "../router";
@@ -93,7 +92,7 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
   const chosen = BUILD_EXTRAS.filter((x) => extras.includes(x.id));
   return (
     <>
-    <SetupSteps projectId={projectId} at="build" back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", onClick: () => void start(), busy: busy ? "Starting…" : undefined }} />
+    <SetupSteps projectId={projectId} at="build" />
     <section className="psetup__build" aria-labelledby="build-title">
       <h1 className="psetup__title" id="build-title">How hands-on?</h1>
       <fieldset className="psetup-levels">
@@ -117,7 +116,7 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
           {(["local", "cloud"] as const).map((c) => {
             const ready = c === "local" || !!cloud.data?.ready;
             return (
-              <label key={c} className={coder === c ? "is-on" : ""} title={c === "local" ? "Runs on this computer. Code, design and screenshots stay here." : ready ? "Sends this project's code and screenshots to the provider, which charges per use." : `Not set up: ${cloud.data?.problem ?? "checking"}. Set it up on the Models page.`}>
+              <label key={c} className={coder === c ? "is-on" : ""} title={c === "local" ? `${roles.data?.coder?.assignment?.model ?? "The local coder"} on this computer. Code, design and screenshots stay here.` : ready ? `${cloud.data?.model}. Sends this project's code and screenshots to the provider, which charges per use.` : `Not set up: ${cloud.data?.problem ?? "checking"}. Set it up on the Models page.`}>
                 <input type="radio" name="setup-coder" checked={coder === c} disabled={!ready} onChange={() => (setCoder(c), save({ coder: c }))} />
                 {c === "local" ? (
                   <svg width="16" height="14" viewBox="0 0 24 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="2" width="18" height="12" rx="2" /><path d="M1 18h22" /></svg>
@@ -129,7 +128,6 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
             );
           })}
         </div>
-        <span className="psetup-coder__model">{coder === "cloud" ? cloud.data?.model : roles.data?.coder?.assignment?.model}</span>
       </fieldset>
 
       <section className="psetup-summary" aria-label="Summary">
@@ -138,6 +136,7 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
         <span>{look ? `Look v${design.data?.selected?.version}` : "Base look"}</span>
         <span>{level.name}</span>
         <span>{chosen.length ? chosen.map((x) => x.label).join(", ") : "No extras"}</span>
+        <StepActions back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", onClick: () => void start(), busy: busy ? "Starting…" : undefined }} />
       </section>
       {extras.includes("installable") ? <p className="psetup__note">Install as an app: installing depends on the browser; only the app's own screens work offline.</p> : null}
 
@@ -183,70 +182,36 @@ export interface NavAction {
   busy?: string;
 }
 
-/**
- * Every step's navigation: the three steps as a progress row at the top, and Back and the next action in one bar pinned
- * to the bottom of the window (SetupActions), the same place and buttons on every step. Before a draft exists (Home),
- * the later steps can't be opened yet.
- */
-export function SetupSteps({ projectId, at, back, next }: { projectId?: string; at: Step; back?: () => void; next?: NavAction }) {
+/** The three steps, as a progress row at the top of every step. Before a draft exists (Home), later steps can't open. */
+export function SetupSteps({ projectId, at }: { projectId?: string; at: Step; back?: () => void; next?: NavAction }) {
   return (
-    <>
-      <ol className="psetup__steps psetup-nav" aria-label="Setup steps">
-        {STEPS.map((s, i) => (
-          <li key={s.id} className={s.id === at ? "is-on" : STEPS.findIndex((x) => x.id === at) > i ? "is-done" : ""}>
-            <button type="button" aria-current={s.id === at ? "step" : undefined} disabled={!projectId && s.id !== at} onClick={() => projectId && navigate(`/new/${projectId}/${s.id}`)}>
-              <b>{i + 1}</b>
-              {s.label}
-            </button>
-          </li>
-        ))}
-      </ol>
-      <SetupActions back={back} next={next} />
-    </>
+    <ol className="psetup__steps psetup-nav" aria-label="Setup steps">
+      {STEPS.map((s, i) => (
+        <li key={s.id} className={s.id === at ? "is-on" : STEPS.findIndex((x) => x.id === at) > i ? "is-done" : ""}>
+          <button type="button" aria-current={s.id === at ? "step" : undefined} disabled={!projectId && s.id !== at} onClick={() => projectId && navigate(`/new/${projectId}/${s.id}`)}>
+            <b>{i + 1}</b>
+            {s.label}
+          </button>
+        </li>
+      ))}
+    </ol>
   );
 }
 
-/**
- * Back and the next action, in a bar pinned to the bottom of the window over the main area (beside the side
- * navigation, however wide it is). While it shows, FlowCode's own pinned footer steps aside.
- */
-function SetupActions({ back, next }: { back?: () => void; next?: NavAction }) {
-  const [box, setBox] = useState<{ left: number; width: number }>();
-  useLayoutEffect(() => {
-    const main = document.getElementById("main");
-    if (!main) return;
-    const measure = () => {
-      const r = main.getBoundingClientRect();
-      setBox({ left: r.left, width: r.width });
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(main);
-    addEventListener("resize", measure);
-    document.documentElement.classList.add("has-setup-actions");
-    return () => {
-      ro.disconnect();
-      removeEventListener("resize", measure);
-      document.documentElement.classList.remove("has-setup-actions");
-    };
-  }, []);
-  return createPortal(
-    <div className="psetup-actions" style={box ? { left: box.left, width: box.width } : undefined} role="group" aria-label="Setup actions">
-      <div className="psetup-actions__in">
-        {back ? (
-          <button type="button" className="btn" onClick={back}>
-            Back
-          </button>
-        ) : (
-          <span />
-        )}
-        {next ? (
-          <button type={next.form ? "submit" : "button"} form={next.form} className="btn btn--primary" disabled={next.disabled || !!next.busy} onClick={next.onClick}>
-            {next.busy ?? next.label} <Icon name="chevron" size={13} />
-          </button>
-        ) : null}
-      </div>
-    </div>,
-    document.body,
+/** Back and the next action, placed by each step inside its own main container (the same buttons on every step). */
+export function StepActions({ back, next }: { back?: () => void; next?: NavAction }) {
+  return (
+    <div className="psetup-actions">
+      {back ? (
+        <button type="button" className="btn" onClick={back}>
+          Back
+        </button>
+      ) : null}
+      {next ? (
+        <button type={next.form ? "submit" : "button"} form={next.form} className="btn btn--primary" disabled={next.disabled || !!next.busy} onClick={next.onClick}>
+          {next.busy ?? next.label} <Icon name="chevron" size={13} />
+        </button>
+      ) : null}
+    </div>
   );
 }

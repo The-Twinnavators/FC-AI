@@ -39,7 +39,7 @@ import { RampSwatch } from "./RampSwatch";
 import { ExtrasPicker } from "./ExtrasPicker";
 import { LiveTemplate, TemplateThumb } from "./LiveTemplate";
 import { Modal } from "./Modal";
-import { SetupSteps } from "../views/SetupView";
+import { SetupSteps, StepActions } from "../views/SetupView";
 import { useLookDraft } from "./useLookDraft";
 
 type Device = "phone" | "tablet" | "desktop";
@@ -202,7 +202,7 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
   if (!look.appearance) return <p className="dim">Loading the look…</p>;
   return (
     <>
-    <SetupSteps projectId={projectId} at="look" back={onBack} next={{ label: "Next: Build", onClick: () => void next(), busy: busy ? "Saving…" : undefined }} />
+    <SetupSteps projectId={projectId} at="look" />
     <div className="ls">
       <div className="ls-main">
         <div className="ls-bar">
@@ -227,7 +227,9 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
           </button>
           {look.error || nextError ? <span className="ls-err" role="alert" title={nextError ?? look.error}>Not saved</span> : null}
         </div>
-        <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} reserve={16} />
+        <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} reserve={16}>
+          <StepActions back={onBack} next={{ label: "Next: Build", onClick: () => void next(), busy: busy ? "Saving…" : undefined }} />
+        </LiveTemplate>
       </div>
 
       <aside className="ls-panel" aria-label="Look controls">

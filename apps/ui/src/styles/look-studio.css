@@ -35,7 +35,7 @@
 .ls :is(button, input, summary):focus-visible { outline: 2px solid var(--brand-ink, var(--text-0)); outline-offset: 2px; }
 
 /* The stage: the template at its real width, scaled to fit, scrolling inside its own window. */
-.lt-stage { position: relative; display: flex; justify-content: center; align-items: stretch; height: max(420px, calc(100dvh - 320px)); padding: 16px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-2); }
+.lt-stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; height: max(420px, calc(100dvh - 320px)); padding: 16px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-2); }
 /* The faux browser: a window bar with dots and the site's address, then the page. */
 .lt-browser { display: flex; flex-direction: column; max-width: 100%; min-height: 0; border: 1px solid var(--line-strong); border-radius: 10px; overflow: hidden; background: var(--bg-1); box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.65); transition: width 200ms ease; }
 .lt-browser__bar { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-bottom: 1px solid var(--line); background: var(--bg-1); }
@@ -155,3 +155,8 @@
 .ls-panel > .ls-ask { padding: 5px; }
 .ls-panel > .ls-read { margin-bottom: 4px; }
 .ls-seg--icons > button { display: grid; place-items: center; min-width: 36px; padding: 0 8px; }
+
+/* The preview's own actions row under the browser window. */
+.lt-browser { flex: 1; }
+.lt-stage__foot { display: flex; justify-content: space-between; width: 100%; }
+.lt-stage__foot > .psetup-actions { width: 100%; justify-content: space-between; margin-left: 0; }

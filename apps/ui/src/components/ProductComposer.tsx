@@ -165,6 +165,9 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
             ))}
           </select>
         </label>
+        <button type="submit" className="btn btn--primary composer__next" disabled={!described || busy}>
+          {busy ? "Saving…" : "Next: Look and Feel"} <Icon name="chevron" size={13} />
+        </button>
       </div>
       <p className="composer__types" id="composer-types">
         {drag ? "Drop to attach" : "PRD, JSON, HTML, CSS or images · up to 1.5 MB each"}

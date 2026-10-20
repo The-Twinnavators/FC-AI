@@ -108,7 +108,6 @@
 @media (max-width: 760px) { .psetup-levels { grid-template-columns: minmax(0, 1fr); } }
 .psetup-coder, .psetup-extras { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin: 0; padding: 0; border: 0; }
 .psetup-coder > legend, .psetup-extras > legend { float: left; width: 100%; margin-bottom: 8px; padding: 0; text-align: center; font-size: 14px; font-weight: 650; color: var(--text-0); }
-.psetup-coder__model { font-size: 12.5px; color: var(--text-2); }
 .psetup-seg { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-1); }
 .psetup-seg > label { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 7px; font-size: 13px; color: var(--text-1); cursor: pointer; }
 .psetup-seg > label.is-on { background: var(--brand-soft, var(--bg-2)); color: var(--text-0); box-shadow: inset 0 0 0 1px var(--brand-ink, var(--line-strong)); }
@@ -146,12 +145,11 @@
 .psetup-nav { justify-content: center; }
 .home > .psetup-nav { position: relative; margin: 64px auto 0; }
 .home > .psetup-nav + .home__inner { padding-top: clamp(24px, 5vh, 48px); }
-.psetup-actions { position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: var(--bg-0, #0f1420); }
-.psetup-actions__in { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: min(1232px, 100%); margin: 0 auto; }
+/* Back and Next sit inside each step's main container: the composer, the preview, the summary. */
+.psetup-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .psetup-actions .btn { height: 40px; }
-/* While the bar shows, FlowCode's own pinned footer steps aside and the page keeps room above the bar. */
-html.has-setup-actions .app-footer { display: none; }
-html.has-setup-actions #main .page-enter { padding-bottom: 72px; }
+.psetup-summary { align-items: center; }
+.psetup-summary > .psetup-actions { padding-left: 12px; }
 
 /* Over the moving background, nothing reads straight off it: the steps and "What do I get?" sit on solid surfaces with
    full-contrast text (faint text washed out where the background turned light). */
@@ -163,7 +161,7 @@ html.has-setup-actions #main .page-enter { padding-bottom: 72px; }
 .home__scope > summary { display: inline-block; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-1); text-decoration: none; }
 .home__scope > summary:hover { color: var(--text-0); }
 .home__scope { justify-self: center; text-align: center; }
-.psetup-bg .ls-status, .psetup-bg .psetup-coder__model { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-1); }
+.psetup-bg .ls-status { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-1); }
 .psetup-bg .ls-icon-btn { background: var(--bg-1); }
 /* Selected choices are solid too (their tint over the moving background washed their text out). */
 .psetup-card.is-on, .psetup-chip.is-on, .psetup-seg > label.is-on { background: color-mix(in srgb, var(--brand-1, #3b3fc4) 22%, var(--bg-1)); }

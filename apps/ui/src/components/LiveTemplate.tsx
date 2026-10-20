@@ -31,7 +31,7 @@ function useLiveFrame(id: string, tokens: Record<string, string>, css: string) {
  * The big preview: the template in a faux browser window (dots, the site's address) at the device's width, scaled to fit
  * the stage. The stage takes the window's height, so the page shows as much as the screen allows.
  */
-export function LiveTemplate({ id, title, tokens, css, device, site, reserve = 0 }: { id: string; title: string; tokens: Record<string, string>; css: string; device: "phone" | "tablet" | "desktop"; site: string; reserve?: number }) {
+export function LiveTemplate({ id, title, tokens, css, device, site, reserve = 0, children }: { id: string; title: string; tokens: Record<string, string>; css: string; device: "phone" | "tablet" | "desktop"; site: string; reserve?: number; children?: React.ReactNode }) {
   const { frame, ready, src } = useLiveFrame(id, tokens, css);
   const box = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState(1);
@@ -45,11 +45,9 @@ export function LiveTemplate({ id, title, tokens, css, device, site, reserve = 0
     const measure = () => {
       setFit(Math.min(1, (el.clientWidth - 32) / PAGE_WIDTH[device]));
       const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-      // Whatever is pinned over the bottom of the page (FlowCode's footer, or the setup's action bar) hides what's
-      // under it too.
+      // FlowCode's footer is pinned over the bottom of the page: what sits under it isn't visible either.
       const footer = scroller.querySelector<HTMLElement>(".app-footer");
-      const bar = document.querySelector<HTMLElement>(".psetup-actions");
-      const pinned = Math.max(footer && footer.offsetParent && /sticky|fixed/.test(getComputedStyle(footer).position) ? footer.offsetHeight : 0, bar?.offsetHeight ?? 0);
+      const pinned = footer && footer.offsetParent && /sticky|fixed/.test(getComputedStyle(footer).position) ? footer.offsetHeight : 0;
       setHeight(Math.max(280, Math.floor(scroller.clientHeight - top - reserve - pinned)));
     };
     measure();
@@ -83,6 +81,7 @@ export function LiveTemplate({ id, title, tokens, css, device, site, reserve = 0
           />
         </div>
       </div>
+      {children ? <div className="lt-stage__foot">{children}</div> : null}
     </div>
   );
 }
