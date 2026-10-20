@@ -1,0 +1,150 @@
+/**
+ * Mobile app home (t.app-mobile-home): the screens inside a phone app, in a phone-width column centered on the page
+ * color, over the library's bottom navigation bar (c.bottom-nav, mobile.css) with a round Add in the middle. Prefixed
+ * fl-mapp-; only the library's tokens.
+ */
+
+/* ── Frame: a phone-width column, centered on wider screens ── */
+.fl-mapp {
+  --fl-mapp-max: 430px;
+  min-height: 100dvh; background: var(--color-bg); color: var(--color-text);
+  font-family: var(--font-sans); font-size: var(--text-md); line-height: var(--leading-normal);
+}
+.fl-mapp-phone { position: relative; width: 100%; max-width: var(--fl-mapp-max); min-height: 100dvh; margin-inline: auto; background: var(--color-bg); }
+@media (min-width: 480px) {
+  .fl-mapp-phone { border-inline: 1px solid var(--color-border); }
+}
+.fl-mapp :where(h1, h2, h3, p) { margin: 0; }
+:where(.fl-mapp) :where(button) { font: inherit; color: inherit; }
+.fl-mapp :is(a, button, input, [tabindex]):focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.fl-mapp-main {
+  display: grid; gap: var(--space-6); padding: var(--space-4) var(--space-4) calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  animation: fl-mapp-in var(--duration-base) var(--ease-out, var(--easing)) both;
+}
+@keyframes fl-mapp-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* ── Header ── */
+.fl-mapp-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 3.5rem; padding-top: var(--space-2); }
+.fl-mapp-head__date { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-mapp-h1 { font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--heading-weight, var(--weight-bold)); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight, 0); }
+.fl-mapp-h2 { font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--heading-weight, var(--weight-semibold)); line-height: var(--leading-snug); margin-bottom: var(--space-3); }
+.fl-mapp-row .fl-mapp-h2 { margin-bottom: 0; }
+.fl-mapp-eyebrow { color: var(--color-text-muted); font-size: var(--text-sm); font-weight: var(--weight-medium); }
+.fl-mapp-meta { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-mapp-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+section > .fl-mapp-row { margin-bottom: var(--space-3); }
+.fl-mapp-avatarbtn {
+  display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: var(--pill-radius, 999px);
+  background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Balance card with the ring ── */
+.fl-mapp-hero, .fl-mapp-card {
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+  background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none);
+  backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
+  padding: var(--space-5);
+}
+.fl-mapp-hero { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.fl-mapp-hero__text { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-mapp-hero__amount { font-family: var(--font-display); font-size: var(--text-3xl); font-weight: var(--weight-bold); line-height: var(--leading-tight); font-variant-numeric: tabular-nums; }
+.fl-mapp-hero__amount.is-over { color: var(--color-danger); }
+.fl-mapp-hero__of { color: var(--color-text-muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.fl-mapp-hero__pace { margin-top: var(--space-2) !important; font-size: var(--text-sm); font-weight: var(--weight-medium); }
+.fl-mapp-ring { position: relative; flex: none; width: 7rem; height: 7rem; }
+.fl-mapp-ring svg { display: block; width: 100%; height: 100%; }
+.fl-mapp-ring circle { fill: none; stroke-width: 12; }
+.fl-mapp-ring__track { stroke: var(--color-surface-sunken); }
+.fl-mapp-ring__value { stroke: var(--color-accent); stroke-linecap: round; transition: stroke-dashoffset var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)); }
+.fl-mapp-ring[data-tight] .fl-mapp-ring__value { stroke: var(--color-warning); }
+.fl-mapp-ring__text { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1.1; }
+.fl-mapp-ring__text strong { font-family: var(--font-display); font-size: var(--text-xl); font-variant-numeric: tabular-nums; }
+.fl-mapp-ring__text span { color: var(--color-text-muted); font-size: var(--text-xs); }
+
+/* ── Quick add ── */
+.fl-mapp-quick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-mapp-quick__btn {
+  display: grid; justify-items: center; gap: var(--space-1); width: 100%; min-height: 2.75rem; padding: var(--space-2) var(--space-1);
+  border: 0; border-radius: var(--radius-md); background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.fl-mapp-quick__icon {
+  display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: var(--pill-radius, 999px);
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-bg)); color: var(--color-accent);
+  transition: transform var(--duration-fast) var(--easing), background var(--duration-fast) var(--easing);
+}
+.fl-mapp-quick__icon svg { width: 1.4rem; height: 1.4rem; }
+.fl-mapp-quick__btn:hover .fl-mapp-quick__icon { background: color-mix(in srgb, var(--color-accent) 22%, var(--color-bg)); }
+.fl-mapp-quick__btn:active .fl-mapp-quick__icon { transform: scale(var(--press-scale, 0.96)); }
+.fl-mapp-quick__label { font-size: var(--text-sm); font-weight: var(--weight-medium); }
+.fl-mapp-quick__amount { color: var(--color-text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.fl-mapp-logged {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3) !important;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4); border-radius: var(--radius-md);
+  background: var(--color-surface-sunken); font-size: var(--text-sm);
+}
+
+/* ── Lists: today's items, recent, settings ── */
+.fl-mapp-list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-mapp-task, .fl-mapp-line, .fl-mapp-setting, .fl-mapp-cat, .fl-mapp-msg {
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius-sm, var(--radius-md)), 12px);
+  background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none);
+}
+.fl-mapp-task { display: flex; align-items: center; gap: var(--space-3); min-height: 3.5rem; padding: var(--space-2) var(--space-4); cursor: pointer; }
+.fl-mapp-task .fl-ctl-check { flex: none; }
+.fl-mapp-task:has(input:focus-visible) { box-shadow: var(--focus-ring); }
+.fl-mapp-task__body, .fl-mapp-line__body { display: grid; flex: 1; min-width: 0; }
+.fl-mapp-task__title { display: flex; align-items: center; gap: var(--space-2); font-weight: var(--weight-medium); }
+.fl-mapp-task__amount { flex: none; font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-mapp-task.is-done .fl-mapp-task__title { color: var(--color-text-muted); text-decoration: line-through; }
+.fl-mapp-task.is-done .fl-mapp-task__amount { color: var(--color-success); }
+.fl-mapp-line { display: flex; align-items: center; gap: var(--space-3); min-height: 3.5rem; padding: var(--space-2) var(--space-4); }
+.fl-mapp-setting { display: flex; align-items: center; gap: var(--space-3); min-height: 3.5rem; padding: var(--space-3) var(--space-4); }
+
+/* ── Week strip ── */
+.fl-mapp-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.fl-mapp-week__day {
+  display: grid; grid-template-rows: 6rem auto; gap: var(--space-1); justify-items: center; width: 100%; min-height: 2.75rem;
+  padding: var(--space-2) 0; border: 0; border-radius: var(--radius-md); background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.fl-mapp-week__bar { display: flex; align-items: flex-end; width: 1.25rem; height: 100%; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); overflow: hidden; }
+.fl-mapp-week__bar span {
+  display: block; width: 100%; height: var(--fl-mapp-h, 0%); border-radius: var(--pill-radius, 999px);
+  background: color-mix(in srgb, var(--color-accent) 45%, var(--color-surface-sunken)); transition: height var(--duration-base) var(--ease-out, var(--easing)), background var(--duration-fast) var(--easing);
+}
+.fl-mapp-week__label { color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-mapp-week__day:hover { background: var(--color-surface-sunken); }
+.fl-mapp-week__day[aria-pressed="true"] .fl-mapp-week__bar span { background: var(--color-accent); }
+.fl-mapp-week__day[aria-pressed="true"] .fl-mapp-week__label { color: var(--color-text); font-weight: var(--weight-semibold); }
+
+/* ── Stats ── */
+.fl-mapp-card { display: grid; gap: var(--space-2); }
+.fl-mapp-statline { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fl-mapp-cat { display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-4); }
+.fl-mapp-meter { display: block; height: 0.5rem; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); overflow: hidden; }
+.fl-mapp-meter span { display: block; width: var(--fl-mapp-w, 0%); height: 100%; border-radius: var(--pill-radius, 999px); background: var(--color-accent); transition: width var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-mapp-meter[data-full] span { background: var(--color-text-muted); }
+
+/* ── Inbox and profile ── */
+.fl-mapp-msg { display: grid; gap: var(--space-1); width: 100%; min-height: 2.75rem; padding: var(--space-3) var(--space-4); text-align: left; cursor: pointer; }
+.fl-mapp-msg:hover { background: var(--color-surface-sunken); }
+.fl-mapp-msg.is-new { border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border)); }
+.fl-mapp-msg__text { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-mapp-dot { flex: none; width: 0.5rem; height: 0.5rem; border-radius: var(--pill-radius, 999px); background: var(--color-accent); }
+.fl-mapp-me { display: flex; align-items: center; gap: var(--space-4); }
+
+/* ── The bottom bar: kept to the column, with a round Add in the middle ── */
+.fl-mapp .fl-mob-nav--fixed { left: 0; right: 0; max-width: var(--fl-mapp-max); margin-inline: auto; }
+.fl-mapp .fl-mob-nav li:nth-child(3) .fl-mob-nav__item { align-content: center; }
+.fl-mapp .fl-mob-nav li:nth-child(3) .fl-mob-nav__pill {
+  width: 3rem; height: 3rem; border-radius: var(--pill-radius, 999px); background: var(--color-accent); color: var(--color-on-accent);
+  box-shadow: var(--surface-shadow, none);
+}
+.fl-mapp .fl-mob-nav li:nth-child(3) .fl-mob-nav__item:hover .fl-mob-nav__pill { background: var(--color-accent-hover, var(--color-accent)); }
+.fl-mapp .fl-mob-nav li:nth-child(3) .fl-mob-nav__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-mapp-main { animation: none; }
+  .fl-mapp *, .fl-mapp *::before, .fl-mapp *::after { transition: none !important; }
+  .fl-mapp-quick__btn:active .fl-mapp-quick__icon { transform: none; }
+}
