@@ -142,15 +142,29 @@
 .psetup-bg .psetup__foot { background: transparent; }
 .psetup-bg .lt-stage { background: var(--bg-1); }
 
-/* Every step's navigation: Back · the steps · Next, one row at the top, the same buttons on every step. */
-.psetup-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; width: min(1232px, 100%); }
-/* On Home the row sits where every other step has it: the page's width, 64px from the top. */
-.home > .psetup-nav { position: relative; width: min(1232px, calc(100% - 128px)); margin: 0 auto; padding-top: 64px; }
-.home > .psetup-nav + .home__inner { padding-top: clamp(24px, 6vh, 64px); }
-.psetup-nav__side { display: flex; align-items: center; min-width: 0; }
-.psetup-nav__side--end { justify-content: flex-end; }
-.psetup-nav .btn { height: 40px; }
-@media (max-width: 760px) {
-  .psetup-nav { grid-template-columns: auto auto; }
-  .psetup-nav > .psetup__steps { grid-column: 1 / -1; grid-row: 1; }
-}
+/* The setup's navigation: the steps at the top, Back and Next in a bar pinned to the bottom of the window. */
+.psetup-nav { justify-content: center; }
+.home > .psetup-nav { position: relative; margin: 64px auto 0; }
+.home > .psetup-nav + .home__inner { padding-top: clamp(24px, 5vh, 48px); }
+.psetup-actions { position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: var(--bg-0, #0f1420); }
+.psetup-actions__in { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: min(1232px, 100%); margin: 0 auto; }
+.psetup-actions .btn { height: 40px; }
+/* While the bar shows, FlowCode's own pinned footer steps aside and the page keeps room above the bar. */
+html.has-setup-actions .app-footer { display: none; }
+html.has-setup-actions #main .page-enter { padding-bottom: 72px; }
+
+/* Over the moving background, nothing reads straight off it: the steps and "What do I get?" sit on solid surfaces with
+   full-contrast text (faint text washed out where the background turned light). */
+.psetup__steps.psetup-nav { width: max-content; max-width: 100%; padding: 4px; gap: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); box-shadow: 0 8px 24px -16px rgba(0, 0, 0, 0.6); }
+.psetup__steps.psetup-nav button { border-color: transparent; color: var(--text-1); }
+.psetup__steps.psetup-nav button:hover { color: var(--text-0); }
+.psetup__steps.psetup-nav .is-on button { color: var(--text-0); }
+.psetup__steps.psetup-nav button:disabled { color: var(--text-2); cursor: default; }
+.home__scope > summary { display: inline-block; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-1); text-decoration: none; }
+.home__scope > summary:hover { color: var(--text-0); }
+.home__scope { justify-self: center; text-align: center; }
+.psetup-bg .ls-status, .psetup-bg .psetup-coder__model { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-1); }
+.psetup-bg .ls-icon-btn { background: var(--bg-1); }
+/* Selected choices are solid too (their tint over the moving background washed their text out). */
+.psetup-card.is-on, .psetup-chip.is-on, .psetup-seg > label.is-on { background: color-mix(in srgb, var(--brand-1, #3b3fc4) 22%, var(--bg-1)); }
+.psetup-card.is-on .psetup-card__text { color: var(--text-0); }

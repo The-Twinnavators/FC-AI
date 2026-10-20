@@ -45,9 +45,11 @@ export function LiveTemplate({ id, title, tokens, css, device, site, reserve = 0
     const measure = () => {
       setFit(Math.min(1, (el.clientWidth - 32) / PAGE_WIDTH[device]));
       const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-      // FlowCode's footer is pinned over the bottom of the page: what sits under it isn't visible either.
+      // Whatever is pinned over the bottom of the page (FlowCode's footer, or the setup's action bar) hides what's
+      // under it too.
       const footer = scroller.querySelector<HTMLElement>(".app-footer");
-      const pinned = footer && /sticky|fixed/.test(getComputedStyle(footer).position) ? footer.offsetHeight : 0;
+      const bar = document.querySelector<HTMLElement>(".psetup-actions");
+      const pinned = Math.max(footer && footer.offsetParent && /sticky|fixed/.test(getComputedStyle(footer).position) ? footer.offsetHeight : 0, bar?.offsetHeight ?? 0);
       setHeight(Math.max(280, Math.floor(scroller.clientHeight - top - reserve - pinned)));
     };
     measure();

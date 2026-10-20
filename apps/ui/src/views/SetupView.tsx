@@ -4,7 +4,8 @@
  * summary with Start Build). Every choice is saved to the draft project as it is made (POST /projects/:id/setup), so
  * Back, Next and a reload keep it. Start Build makes the first run once (the daemon returns the same run on a repeat).
  */
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AUTONOMY_LEVELS, BUILD_EXTRAS, BUILD_LEVELS, PRODUCT_TYPES, type Appearance, type AutonomyLevel, type Project, type ProjectSetup } from "@flowcode/contracts";
 import { post, useResource } from "../api";
 import { navigate } from "../router";
@@ -183,21 +184,14 @@ export interface NavAction {
 }
 
 /**
- * Every step's navigation in one row, always in view at the top: Back on the left, the three steps in the middle, the
- * next action on the right, the same size and style on every step. Before a draft exists (Home), the later steps
- * can't be opened yet.
+ * Every step's navigation: the three steps as a progress row at the top, and Back and the next action in one bar pinned
+ * to the bottom of the window (SetupActions), the same place and buttons on every step. Before a draft exists (Home),
+ * the later steps can't be opened yet.
  */
 export function SetupSteps({ projectId, at, back, next }: { projectId?: string; at: Step; back?: () => void; next?: NavAction }) {
   return (
-    <div className="psetup-nav">
-      <div className="psetup-nav__side">
-        {back ? (
-          <button type="button" className="btn" onClick={back}>
-            Back
-          </button>
-        ) : null}
-      </div>
-      <ol className="psetup__steps" aria-label="Setup steps">
+    <>
+      <ol className="psetup__steps psetup-nav" aria-label="Setup steps">
         {STEPS.map((s, i) => (
           <li key={s.id} className={s.id === at ? "is-on" : STEPS.findIndex((x) => x.id === at) > i ? "is-done" : ""}>
             <button type="button" aria-current={s.id === at ? "step" : undefined} disabled={!projectId && s.id !== at} onClick={() => projectId && navigate(`/new/${projectId}/${s.id}`)}>
@@ -207,13 +201,52 @@ export function SetupSteps({ projectId, at, back, next }: { projectId?: string; 
           </li>
         ))}
       </ol>
-      <div className="psetup-nav__side psetup-nav__side--end">
+      <SetupActions back={back} next={next} />
+    </>
+  );
+}
+
+/**
+ * Back and the next action, in a bar pinned to the bottom of the window over the main area (beside the side
+ * navigation, however wide it is). While it shows, FlowCode's own pinned footer steps aside.
+ */
+function SetupActions({ back, next }: { back?: () => void; next?: NavAction }) {
+  const [box, setBox] = useState<{ left: number; width: number }>();
+  useLayoutEffect(() => {
+    const main = document.getElementById("main");
+    if (!main) return;
+    const measure = () => {
+      const r = main.getBoundingClientRect();
+      setBox({ left: r.left, width: r.width });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(main);
+    addEventListener("resize", measure);
+    document.documentElement.classList.add("has-setup-actions");
+    return () => {
+      ro.disconnect();
+      removeEventListener("resize", measure);
+      document.documentElement.classList.remove("has-setup-actions");
+    };
+  }, []);
+  return createPortal(
+    <div className="psetup-actions" style={box ? { left: box.left, width: box.width } : undefined} role="group" aria-label="Setup actions">
+      <div className="psetup-actions__in">
+        {back ? (
+          <button type="button" className="btn" onClick={back}>
+            Back
+          </button>
+        ) : (
+          <span />
+        )}
         {next ? (
           <button type={next.form ? "submit" : "button"} form={next.form} className="btn btn--primary" disabled={next.disabled || !!next.busy} onClick={next.onClick}>
             {next.busy ?? next.label} <Icon name="chevron" size={13} />
           </button>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
