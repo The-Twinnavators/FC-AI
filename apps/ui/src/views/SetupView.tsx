@@ -10,6 +10,7 @@ import { post, useResource } from "../api";
 import { navigate } from "../router";
 import { Icon } from "../components/ui";
 import { HomeView } from "./HomeView";
+import { HomeBackdrop } from "../components/HomeBackdrop";
 import { LookStudio } from "../components/LookStudio";
 import { RobotHead, ROLE_COLOR } from "../components/RobotHead";
 
@@ -42,13 +43,16 @@ export function SetupView({ projectId, step }: { projectId: string; step: string
   // Describe is Home again, for this draft: the same page, background and composer.
   if (at === "describe") return <HomeView draft={{ projectId, name: project.name, setup }} />;
   return (
+    // The same moving background on every step (Home's), behind the page.
+    <div className="home psetup-bg">
+      <HomeBackdrop />
     <div className="page psetup">
-      <SetupSteps projectId={projectId} at={at} />
       {at === "look" ? (
         <LookStudio projectId={projectId} extras={setup.extras} onExtras={(extras) => void post(`/projects/${projectId}/setup`, { extras })} site={`${project.name.toLowerCase().replace(/[^a-z0-9]+/g, "")  || "yourapp"}.com`} template={setup.template} productType={setup.productType} onTemplate={(template) => void post(`/projects/${projectId}/setup`, { template })} onBack={() => navigate(`/new/${projectId}/describe`)} onNext={() => navigate(`/new/${projectId}/build`)} />
       ) : (
         <BuildStep key={setup.updatedAt} projectId={projectId} project={project} setup={setup} onSaved={res.reload} />
       )}
+    </div>
     </div>
   );
 }
@@ -88,6 +92,7 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
   const chosen = BUILD_EXTRAS.filter((x) => extras.includes(x.id));
   return (
     <section className="psetup__build" aria-labelledby="build-title">
+      <SetupSteps projectId={projectId} at="build" back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", onClick: () => void start(), busy: busy ? "Starting…" : undefined }} />
       <h1 className="psetup__title" id="build-title">How hands-on?</h1>
       <fieldset className="psetup-levels">
         <legend className="sr-only">Build level</legend>
@@ -134,23 +139,27 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
       </section>
       {extras.includes("installable") ? <p className="psetup__note">Install as an app: installing depends on the browser; only the app's own screens work offline.</p> : null}
 
-      <footer className="psetup__foot">
-        {error ? <span className="psetup__err" role="alert">{error}</span> : null}
-        <button type="button" className="btn" onClick={() => navigate(`/new/${projectId}/look`)}>Back: Look and Feel</button>
-        <button type="button" className="btn btn--primary" disabled={busy} onClick={() => void start()}>
-          {busy ? "Starting…" : "Start Build"} <Icon name="chevron" size={13} />
-        </button>
-      </footer>
+      {error ? <p className="psetup__err" role="alert">{error}</p> : null}
     </section>
   );
 }
 
 /** You, beside the Coder's robot head on the build levels: who leads shifts from you (Guided) to FlowCode (Autonomous). */
-function PersonHead() {
+function PersonHead({ size = 34 }: { size?: number }) {
+  // Drawn like RobotHead: the same shaded metal lit from the top-left, and the accent color where the robot has its
+  // antenna (here a collar), so the two read as one family; no visor, so it reads as a person.
   return (
-    <svg className="psetup-person" width={34} height={36} viewBox="0 0 34 36" aria-hidden="true">
-      <circle cx={17} cy={11} r={8} fill="var(--brand-ink, #a2b6e6)" />
-      <path d="M2 35c0-8.3 6.7-14 15-14s15 5.7 15 14" fill="var(--brand-1, #3b3fc4)" />
+    <svg className="psetup-person" width={size} height={(size * 36) / 34} viewBox="0 0 34 36" aria-hidden="true">
+      <defs>
+        <radialGradient id="person-metal" cx="35%" cy="28%" r="80%">
+          <stop offset="0%" style={{ stopColor: "var(--bot-hi)" }} />
+          <stop offset="55%" style={{ stopColor: "var(--bot-mid)" }} />
+          <stop offset="100%" style={{ stopColor: "var(--bot-lo)" }} />
+        </radialGradient>
+      </defs>
+      <path d="M3 35c0-7.5 6.3-12.5 14-12.5S31 27.5 31 35Z" fill="url(#person-metal)" />
+      <path d="M12 23.4 17 28l5-4.6" fill="none" stroke="var(--brand-ink, #a2b6e6)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={17} cy={11.5} r={8.5} fill="url(#person-metal)" />
     </svg>
   );
 }
@@ -162,18 +171,47 @@ const LEVEL_LINE: Record<AutonomyLevel, string> = {
   autonomous: "Runs on its own. Asks before anything leaves this computer.",
 };
 
-/** The three steps; before a draft exists (Home), the later ones can't be opened yet. */
-export function SetupSteps({ projectId, at }: { projectId?: string; at: Step }) {
+export interface NavAction {
+  label: string;
+  onClick?: () => void;
+  /** Submits this form instead (Describe's composer). */
+  form?: string;
+  disabled?: boolean;
+  busy?: string;
+}
+
+/**
+ * Every step's navigation in one row, always in view at the top: Back on the left, the three steps in the middle, the
+ * next action on the right, the same size and style on every step. Before a draft exists (Home), the later steps
+ * can't be opened yet.
+ */
+export function SetupSteps({ projectId, at, back, next }: { projectId?: string; at: Step; back?: () => void; next?: NavAction }) {
   return (
-    <ol className="psetup__steps" aria-label="Setup steps">
-      {STEPS.map((s, i) => (
-        <li key={s.id} className={s.id === at ? "is-on" : STEPS.findIndex((x) => x.id === at) > i ? "is-done" : ""}>
-          <button type="button" aria-current={s.id === at ? "step" : undefined} disabled={!projectId && s.id !== at} onClick={() => projectId && navigate(`/new/${projectId}/${s.id}`)}>
-            <b>{i + 1}</b>
-            {s.label}
+    <div className="psetup-nav">
+      <div className="psetup-nav__side">
+        {back ? (
+          <button type="button" className="btn" onClick={back}>
+            Back
           </button>
-        </li>
-      ))}
-    </ol>
+        ) : null}
+      </div>
+      <ol className="psetup__steps" aria-label="Setup steps">
+        {STEPS.map((s, i) => (
+          <li key={s.id} className={s.id === at ? "is-on" : STEPS.findIndex((x) => x.id === at) > i ? "is-done" : ""}>
+            <button type="button" aria-current={s.id === at ? "step" : undefined} disabled={!projectId && s.id !== at} onClick={() => projectId && navigate(`/new/${projectId}/${s.id}`)}>
+              <b>{i + 1}</b>
+              {s.label}
+            </button>
+          </li>
+        ))}
+      </ol>
+      <div className="psetup-nav__side psetup-nav__side--end">
+        {next ? (
+          <button type={next.form ? "submit" : "button"} form={next.form} className="btn btn--primary" disabled={next.disabled || !!next.busy} onClick={next.onClick}>
+            {next.busy ?? next.label} <Icon name="chevron" size={13} />
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 }

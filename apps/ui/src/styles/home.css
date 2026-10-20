@@ -137,4 +137,17 @@
 /* Guided: you in front, the robot smaller beside you. Collaborative: the two the same size. Autonomous: the robot. */
 .psetup-level__art--supervised .psetup-person { width: 40px; height: 42px; }
 .psetup-level__art--supervised svg:last-child { opacity: 0.75; }
-.psetup-card.is-on .psetup-card.is-on @media (max-width: 560px) { 
+/* Look and Feel and Build sit on Home's moving background too; their panels stay solid to read. */
+.home.psetup-bg { min-height: 100%; }
+.psetup-bg .psetup__foot { background: transparent; }
+.psetup-bg .lt-stage { background: var(--bg-1); }
+
+/* Every step's navigation: Back · the steps · Next, one row at the top, the same buttons on every step. */
+.psetup-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; width: 100%; }
+.psetup-nav__side { display: flex; align-items: center; min-width: 0; }
+.psetup-nav__side--end { justify-content: flex-end; }
+.psetup-nav .btn { height: 40px; }
+@media (max-width: 760px) {
+  .psetup-nav { grid-template-columns: auto auto; }
+  .psetup-nav > .psetup__steps { grid-column: 1 / -1; grid-row: 1; }
+}

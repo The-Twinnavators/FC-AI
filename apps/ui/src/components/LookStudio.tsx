@@ -38,6 +38,7 @@ import { RampSwatch } from "./RampSwatch";
 import { ExtrasPicker } from "./ExtrasPicker";
 import { LiveTemplate, TemplateThumb } from "./LiveTemplate";
 import { Modal } from "./Modal";
+import { SetupSteps } from "../views/SetupView";
 import { useLookDraft } from "./useLookDraft";
 
 type Device = "phone" | "tablet" | "desktop";
@@ -199,6 +200,8 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
 
   if (!look.appearance) return <p className="dim">Loading the look…</p>;
   return (
+    <>
+    <SetupSteps projectId={projectId} at="look" back={onBack} next={{ label: "Next: Build", onClick: () => void next(), busy: busy ? "Saving…" : undefined }} />
     <div className="ls">
       <div className="ls-main">
         <div className="ls-bar">
@@ -221,12 +224,7 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
             <Icon name="undo" size={15} />
             <span className="sr-only">Undo</span>
           </button>
-          <span className="ls-bar__sep" aria-hidden="true" />
           {look.error || nextError ? <span className="ls-err" role="alert" title={nextError ?? look.error}>Not saved</span> : null}
-          <button type="button" className="btn btn--sm" onClick={onBack}>Back</button>
-          <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => void next()}>
-            {busy ? "Saving…" : "Next: Build"} <Icon name="chevron" size={12} />
-          </button>
         </div>
         <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} reserve={16} />
       </div>
@@ -404,5 +402,6 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
         </Modal>
       ) : null}
     </div>
+    </>
   );
 }
