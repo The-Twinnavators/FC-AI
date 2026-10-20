@@ -11,7 +11,7 @@ import { HomeBackdrop } from "../components/HomeBackdrop";
 import { SetupSteps } from "./SetupView";
 import type { ProjectSetup } from "@flowcode/contracts";
 import { SetupCard } from "../components/SetupCard";
-import { PrototypeScope, startBuild } from "../components/IntroHero";
+import { startBuild } from "../components/IntroHero";
 import { HowItWorks } from "../components/HowItWorks";
 
 export function HomeView({ draft }: { draft?: { projectId: string; name: string; setup: ProjectSetup } } = {}) {
@@ -45,10 +45,11 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
             ))}
           </nav>
         ) : null}
-        <details className="home__scope">
-          <summary>What do I get?</summary>
-          <PrototypeScope />
-        </details>
+        {!draft ? (
+          <button type="button" className="home__how-link" onClick={() => document.getElementById("newbuild")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}>
+            How FlowCode AI works
+          </button>
+        ) : null}
       </div>
     </div>
     {/* How FlowCode works, at the bottom of Home (below the first screen and its backdrop). */}

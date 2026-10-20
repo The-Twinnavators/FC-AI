@@ -186,3 +186,6 @@
 /* Seamless: the waves fade out into the page itself, so there's no edge where Home's first screen ends. */
 .home__shader { -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%); mask-image: linear-gradient(180deg, #000 55%, transparent 100%); }
 .home__shader::after { display: none; }
+/* "How FlowCode AI works": jumps to that section at the bottom of Home. */
+.home__how-link { justify-self: center; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-1); font: inherit; font-size: 13px; cursor: pointer; }
+.home__how-link:hover { color: var(--text-0); }
