@@ -329,3 +329,6 @@
 .disc-list-bg .disc-projects--cards .disc-project__progress { margin-top: 8px; padding-top: 16px; }
 /* The demo panels blur what's behind them more strongly (the dots and glow read as frosted, not sharp through the glass). */
 .dots-bg .ab2__demo .abf { background: linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.06)), rgba(16, 18, 34, 0.45); -webkit-backdrop-filter: blur(28px) saturate(170%); backdrop-filter: blur(28px) saturate(170%); }
+/* Home's pills under the composer: drafts, and PRDs in progress, side by side. */
+.home__pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; justify-self: center; }
+a.home__drafts-btn { text-decoration: none; }
