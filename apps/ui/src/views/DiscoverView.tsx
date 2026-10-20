@@ -142,6 +142,9 @@ function StartResearch() {
             </button>
           </div>
         </form>
+        <p className="home__noprd">
+          Already have a Product Requirements Document (PRD)? <a href="#/">Let&apos;s build something together</a>
+        </p>
         <ol className="disc-home__steps" aria-label="What happens next">
           {next.map((s, i) => (
             <li key={i} className={s.off ? "is-off" : undefined} title={s.off ? "Only with Research thoroughly." : s.text}>
