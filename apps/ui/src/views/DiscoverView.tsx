@@ -95,7 +95,7 @@ function StartResearch() {
     { who: "you", title: "You approve it and build a prototype", text: "Edit anything first; nothing is built until you say so." },
   ];
   // The same treatment as Home: the moving waves, a centered question, the problem in a glass composer, and what happens
-  // next as one quiet row of steps (each step's detail on hover).
+  // next as a numbered stepper (each step's detail on hover).
   return (
     <div className="home disc-home page-enter">
       <HomeBackdrop />
@@ -144,8 +144,9 @@ function StartResearch() {
         <ol className="disc-home__steps" aria-label="What happens next">
           {next.map((s, i) => (
             <li key={i} className={s.off ? "is-off" : undefined} title={s.off ? "Only with Research thoroughly." : s.text}>
+              <span className="disc-home__n" aria-hidden="true">{i + 1}</span>
               <span className="disc-home__who" aria-hidden="true">
-                {s.who === "you" ? <span className="disc-new__you">You</span> : <RobotHead color={ROLE_COLOR[s.who] ?? "#9a9fd6"} id={`disc-next-${i}`} size={22} />}
+                {s.who === "you" ? <span className="disc-new__you">You</span> : <RobotHead color={ROLE_COLOR[s.who] ?? "#9a9fd6"} id={`disc-next-${i}`} size={26} />}
               </span>
               <span className="disc-home__step">{s.title}</span>
             </li>

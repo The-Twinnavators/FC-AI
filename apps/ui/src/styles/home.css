@@ -254,11 +254,23 @@
 .disc-home__thorough { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 8px; background: rgba(255, 255, 255, 0.08); color: var(--text-1); font-size: 13px; cursor: pointer; }
 .disc-home__thorough.is-on { border-color: rgba(255, 255, 255, 0.4); color: var(--text-0); }
 .disc-home__thorough input { margin: 0; accent-color: var(--brand-2, #5b9bd5); }
-.disc-home__steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; counter-reset: dstep; }
-.disc-home__steps > li { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-0); font-size: 13px; cursor: default; }
-.disc-home__steps > li.is-off { color: var(--text-2); }
-.disc-home__who { display: inline-grid; place-items: center; width: 26px; height: 26px; }
+/* What happens next: a numbered stepper on a solid panel — numbered dots on one line, who does it, then the step. */
+.disc-home__steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; margin: 12px 0 0; padding: 20px 8px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); list-style: none; }
+.disc-home__steps > li { position: relative; display: grid; justify-items: center; align-content: start; gap: 8px; padding: 0 8px; text-align: center; cursor: default; }
+/* The line joining the numbered dots. */
+.disc-home__steps > li::before { content: ""; position: absolute; top: 13px; left: -50%; width: 100%; height: 2px; background: var(--line-strong); }
+.disc-home__steps > li:first-child::before { display: none; }
+.disc-home__n { position: relative; z-index: 1; display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--brand-2, #5b9bd5); border-radius: 50%; background: var(--bg-1); color: var(--text-0); font-size: 13px; font-weight: 700; }
+.disc-home__who { display: grid; place-items: center; height: 28px; }
 .disc-home__who .disc-new__you { font-size: 10px; }
+.disc-home__step { color: var(--text-0); font-size: 13px; font-weight: 600; line-height: 1.35; }
+.disc-home__steps > li.is-off .disc-home__n { border-style: dashed; border-color: var(--line-strong); color: var(--text-2); }
+.disc-home__steps > li.is-off .disc-home__step, .disc-home__steps > li.is-off .disc-home__who { color: var(--text-2); opacity: 0.7; }
+@media (max-width: 640px) {
+  .disc-home__steps { grid-template-columns: 1fr; gap: 12px; padding: 16px; }
+  .disc-home__steps > li { grid-template-columns: 28px 28px 1fr; justify-items: start; align-items: center; text-align: left; }
+  .disc-home__steps > li::before { display: none; }
+}
 /* Under the composer: a way in for people without a PRD (Create PRD). */
 .home__noprd { margin: 0; color: var(--text-1); font-size: 13.5px; text-align: center; }
 .home__noprd a { color: var(--text-0); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
