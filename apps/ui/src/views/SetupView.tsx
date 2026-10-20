@@ -91,8 +91,9 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
   const level = BUILD_LEVELS.find((l) => l.id === autonomy)!;
   const chosen = BUILD_EXTRAS.filter((x) => extras.includes(x.id));
   return (
+    <>
+    <SetupSteps projectId={projectId} at="build" back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", onClick: () => void start(), busy: busy ? "Starting…" : undefined }} />
     <section className="psetup__build" aria-labelledby="build-title">
-      <SetupSteps projectId={projectId} at="build" back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", onClick: () => void start(), busy: busy ? "Starting…" : undefined }} />
       <h1 className="psetup__title" id="build-title">How hands-on?</h1>
       <fieldset className="psetup-levels">
         <legend className="sr-only">Build level</legend>
@@ -141,6 +142,7 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
 
       {error ? <p className="psetup__err" role="alert">{error}</p> : null}
     </section>
+    </>
   );
 }
 

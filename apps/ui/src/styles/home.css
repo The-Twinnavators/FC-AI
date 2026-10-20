@@ -143,7 +143,10 @@
 .psetup-bg .lt-stage { background: var(--bg-1); }
 
 /* Every step's navigation: Back · the steps · Next, one row at the top, the same buttons on every step. */
-.psetup-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; width: 100%; }
+.psetup-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; width: min(1232px, 100%); }
+/* On Home the row sits where every other step has it: the page's width, 64px from the top. */
+.home > .psetup-nav { position: relative; width: min(1232px, calc(100% - 128px)); margin: 0 auto; padding-top: 64px; }
+.home > .psetup-nav + .home__inner { padding-top: clamp(24px, 6vh, 64px); }
 .psetup-nav__side { display: flex; align-items: center; min-width: 0; }
 .psetup-nav__side--end { justify-content: flex-end; }
 .psetup-nav .btn { height: 40px; }

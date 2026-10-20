@@ -26,9 +26,9 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
   return (
     <div className="home page-enter" ref={wrap}>
       <HomeBackdrop />
+      <SetupSteps projectId={draft?.projectId} at="describe" next={{ label: "Next: Look and Feel", form: "composer-form" }} />
       <div className="home__inner">
         <SetupCard compact />
-        <SetupSteps projectId={draft?.projectId} at="describe" next={{ label: "Next: Look and Feel", form: "composer-form" }} />
         <h1 className="home__title" id="composer-title">
           What would you like to build?
         </h1>
