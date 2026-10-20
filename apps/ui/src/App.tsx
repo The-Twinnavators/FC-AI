@@ -15,6 +15,8 @@ import { Icon, Logo } from "./components/ui";
 import { navigate, useRoute } from "./router";
 import { NAV_GROUPS } from "./nav";
 import { ProjectsView } from "./views/ProjectsView";
+import { HomeView } from "./views/HomeView";
+import { SetupView } from "./views/SetupView";
 import { WorkspaceView } from "./views/WorkspaceView";
 import { Copilot } from "./components/Copilot";
 import { ContextMenu } from "./components/ContextMenu";
@@ -215,7 +217,7 @@ export function App() {
   }, [projectId]);
 
   useEffect(() => {
-    const titles: Record<string, string> = { "": "Dashboard", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Topic Search", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", motion: "Motion Lab", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
+    const titles: Record<string, string> = { "": "Home", dashboard: "Dashboard", new: "New build", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Topic Search", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", motion: "Motion Lab", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
     document.title = `${project ? project.name : titles[section] ?? "FlowCode"} · FlowCode`;
   }, [section, project]);
 
@@ -245,7 +247,7 @@ export function App() {
       </a>
       <nav className="rail" aria-label="Primary">
         {/* The logo goes home. Always rendered: the wordmark fades and folds with the rail instead of popping in and out. */}
-        <a className="rail__brand" href="#/" aria-label="FlowCode AI: Dashboard" title="Dashboard">
+        <a className="rail__brand" href="#/" aria-label="FlowCode AI: Home" title="Home">
           <Logo size={26} withWordmark />
         </a>
         {NAV_GROUPS.map((g, gi) => (
@@ -285,7 +287,7 @@ export function App() {
       <header className="topbar">
         <div className="topbar__crumbs">
           {/* The navigation shows the full logo when expanded, so this one fades out then. */}
-          <a className="topbar__brand" href="#/" aria-label="FlowCode AI: Dashboard" title="Dashboard" tabIndex={navExpanded ? -1 : undefined} aria-hidden={navExpanded || undefined}>
+          <a className="topbar__brand" href="#/" aria-label="FlowCode AI: Home" title="Home" tabIndex={navExpanded ? -1 : undefined} aria-hidden={navExpanded || undefined}>
             FlowCode <em className="brand-ai">AI</em>
           </a>
           {project ? (
@@ -325,7 +327,9 @@ export function App() {
       <main id="main" className="view" tabIndex={-1}>
         <Suspense fallback={<PageSkeleton />}>
         <div key={section || "home"} className={`page-enter${section !== "projects" ? " page-enter--footer" : ""}`} style={{ minHeight: "100%" }}>
-        {section === "" && <ProjectsView projects={projects.data} reload={projects.reload} />}
+        {section === "" && <HomeView />}
+        {section === "dashboard" && <ProjectsView projects={projects.data} reload={projects.reload} />}
+        {section === "new" && route.parts[1] ? <SetupView key={route.parts[1]} projectId={route.parts[1]} step={route.parts[2] ?? "describe"} /> : null}
         {section === "projects" && projectId && route.parts[2] === "design" && <DesignDirectionView key={projectId} projectId={projectId} />}
         {section === "projects" && projectId && route.parts[2] !== "design" && <WorkspaceView key={projectId} projectId={projectId} runId={runId ?? lastRun.current[projectId]} announce={announce} />}
         {projectSettings && projectId ? (

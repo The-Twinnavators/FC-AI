@@ -1,36 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SetupCard } from "../components/SetupCard";
 import type { Project, Run } from "@flowcode/contracts";
 import { post } from "../api";
-import { IntroHero, IntroActions } from "../components/IntroHero";
+import { IntroHero, IntroActions, startBuild } from "../components/IntroHero";
 import { Empty, Icon, ErrorNotice } from "../components/ui";
-import { NewBuild } from "../components/NewBuild";
 import { Dashboard } from "../components/Dashboard";
 import { SkeletonBlock } from "../components/motion";
 import { navigate } from "../router";
 import { HowItWorks } from "../components/HowItWorks";
 import { ProjectCards } from "./QualityOverview";
-import { Modal } from "../components/Modal";
-import { NEW_BUILD_PRD_KEY } from "../components/PrdTemplates";
 import { CodeBackdrop } from "../components/CodeBackdrop";
 
 type ProjectRow = Project & { latestRun?: Run };
 
 export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; reload: () => void }) {
-  // New build opens as a 4-step modal: from Start a prototype (hero or How FlowCode works), or a PRD handed over from
-  // Settings → PRD templates (left in session storage for New build).
-  const [building, setBuilding] = useState(() => {
-    try {
-      return !!sessionStorage.getItem(NEW_BUILD_PRD_KEY);
-    } catch {
-      return false;
-    }
-  });
-  useEffect(() => {
-    const open = () => setBuilding(true);
-    window.addEventListener("fc:new-build", open);
-    return () => window.removeEventListener("fc:new-build", open);
-  }, []);
   const [error, setError] = useState<string>();
 
   const openExisting = async () => {
@@ -91,13 +74,8 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
       </section>
       {/* How FlowCode works, after the projects. */}
       <div id="newbuild" data-reveal>
-        <HowItWorks onStart={() => setBuilding(true)} />
+        <HowItWorks onStart={startBuild} />
       </div>
-      {building ? (
-        <Modal onClose={() => setBuilding(false)} labelledBy="newbuild-title" className="nb-modal">
-          <NewBuild wizard onCancel={() => setBuilding(false)} />
-        </Modal>
-      ) : null}
 
       </div>
       {/* Closing call to action: the same band as About FlowCode's. */}

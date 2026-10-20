@@ -24,56 +24,11 @@ import { Upload } from "lucide-react";
 import { Icon, ErrorNotice } from "./ui";
 import { AutonomyPicker } from "./AutonomyPicker";
 import { LookStep, extrasInPrd, prdSetsLook, suggestedVibe } from "./LookStep";
-import { readCaptureFile } from "./StyleCapture";
+import { ACCEPT, ACCEPT_LABELS, MAX_DESC, readAttachments, summarize, type Attachment } from "./attachments";
 import type { AutonomyLevel } from "@flowcode/contracts";
 import { navigate } from "../router";
 
-type Ref = ReferenceFile & { size: number; summary: string };
-
-const ACCEPT = ".md,.markdown,.html,.htm,.css,.json,.txt,.png,.jpg,.jpeg,.webp,.gif";
-const MAX_FILE = 1_500_000;
-/** Limits the backend enforces: description length and the total size of all spec files. */
-const MAX_DESC = 20_000;
-const MAX_TOTAL = 6_000_000;
-
-function roleFor(name: string, hasPrd: boolean): ReferenceFile["role"] | undefined {
-  const ext = name.toLowerCase().split(".").pop() ?? "";
-  if (ext === "md" || ext === "markdown") return hasPrd ? "text" : "prd";
-  if (ext === "html" || ext === "htm") return "html";
-  if (ext === "css") return "css";
-  if (ext === "json") return "json";
-  if (ext === "txt") return "text";
-  // Screenshots and mockups: the style is captured from them (Styles page), they aren't built from.
-  if (/^(png|jpe?g|webp|gif)$/.test(ext)) return "image";
-  return undefined;
-}
-
-/** Client-side preview of what a reference must preserve (the daemon re-checks after the build). */
-function summarize(role: ReferenceFile["role"], content: string): string {
-  if (role === "image") return "Its colors, fonts and corners are captured for the Styles page";
-  try {
-    if (role === "html") {
-      const doc = new DOMParser().parseFromString(content, "text/html");
-      doc.querySelectorAll("script,style,noscript,template").forEach((n) => n.remove());
-      const words = (doc.body?.textContent ?? "").split(/\s+/).filter(Boolean).length;
-      const links = doc.querySelectorAll("a[href]").length;
-      const fields = Array.from(doc.querySelectorAll("input,select,textarea")).filter((f) => (f as HTMLInputElement).type !== "hidden").length;
-      return `Keeps ${words} words, ${links} links and ${fields} form fields — checked after the build`;
-    }
-    if (role === "css") {
-      const vars = (content.match(/--[\w-]+\s*:/g) ?? []).length;
-      return `${(content.match(/\{/g) ?? []).length} rules, ${vars} custom properties`;
-    }
-    if (role === "json") {
-      const v = JSON.parse(content) as unknown;
-      return Array.isArray(v) ? `Array of ${v.length} items` : `Object with ${Object.keys(v as object).length} keys`;
-    }
-    const reqs = content.split("\n").filter((l) => /^\s*(?:[-*+]|\d+[.)])\s+\S/.test(l) || /\b(must|should|shall)\b/i.test(l)).length;
-    return role === "prd" ? `PRD · ${reqs} requirement lines` : `${content.length.toLocaleString()} characters`;
-  } catch (e) {
-    return `Could not read: ${(e as Error).message}`;
-  }
-}
+type Ref = Attachment;
 
 /** One part of the form: a title, an optional tag and a one-line hint above its control. */
 function Step({ title, hint, tag, done, htmlFor, children }: { title: string; hint?: ReactNode; tag?: string; done?: boolean; htmlFor?: string; children: ReactNode }) {
@@ -179,29 +134,8 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
 
   const addFiles = async (files: FileList | File[]) => {
     setError(undefined);
-    const next = [...refs];
-    for (const f of Array.from(files)) {
-      const role = roleFor(f.name, next.some((r) => r.role === "prd"));
-      if (!role) {
-        setError(`${f.name}: only .md, .html, .css, .json, .txt and image files are supported`);
-        continue;
-      }
-      if (next.reduce((n, r) => n + r.size, 0) + f.size > MAX_TOTAL) {
-        setError(`${f.name} would take the spec files over 6 MB in total`);
-        continue;
-      }
-      if (f.size > MAX_FILE) {
-        setError(`${f.name} is larger than 1.5 MB`);
-        continue;
-      }
-      const read = role === "image" ? await readCaptureFile(f) : undefined;
-      if (typeof read === "string") {
-        setError(read);
-        continue;
-      }
-      const content = read ? read.content : await f.text();
-      next.push({ name: f.name, role, content, size: f.size, summary: summarize(role, content) });
-    }
+    const { next, errors } = await readAttachments(files, refs);
+    if (errors.length) setError(errors.join(" "));
     setRefs(next);
   };
 
@@ -342,7 +276,7 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
               </span>
               <span className="nb-drop__limit">Up to 1.5 MB per file · 6 MB in total{refs.length ? ` · ${(refs.reduce((n, r) => n + r.size, 0) / 1_000_000).toFixed(1)} MB used` : ""}</span>
               <span className="nb-drop__types" aria-label="Accepted file types">
-                {[".md PRD", ".json content", ".html", ".css", "images"].map((t) => (
+                {ACCEPT_LABELS.map((t) => (
                   <span key={t} className="chip">
                     {t}
                   </span>

@@ -1,6 +1,6 @@
 /** The side navigation's pages, in order and grouped (also the choices for Settings → Start page). */
 export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; icon: string; label: string }> }> = [
-  { items: [{ path: "/", icon: "home", label: "Dashboard" }] },
+  { items: [{ path: "/", icon: "home", label: "Home" }, { path: "/dashboard", icon: "gauge", label: "Dashboard" }] },
   {
     label: "Work",
     items: [

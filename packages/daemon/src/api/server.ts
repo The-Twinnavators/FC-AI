@@ -794,21 +794,92 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       body,
     );
     if (b.look?.styleUrl) throw new HttpError(403, C.STYLE_CAPTURE_OFF);
-    const total = b.references.reduce((n, r) => n + r.content.length, 0);
-    if (total > 6_000_000) throw new HttpError(413, "References are larger than 6 MB in total");
-    const cloud = b.coder === "cloud" ? cloudCoder() : undefined;
-    if (cloud && !cloud.ready) throw new HttpError(409, `The cloud coder isn't ready: ${cloud.problem}. Set it up on the Models page, or build with the local coder.`);
+    checkReferences(b.references);
+    const cloud = readyCloud(b.coder);
     const quality = C.scoreRequest(b.description, b.references.map((r) => r.role));
     const project = app.projects.create({ name: b.name?.trim() || C.suggestName(b.description) || "New build", workspacePath: b.workspacePath, createWorkspace: true });
+    const run = startSpecRun(project.id, { ...b, cloud });
+    return { project, run, quality };
+  });
+  const checkReferences = (refs: C.ReferenceFile[]) => {
+    if (refs.reduce((n, r) => n + r.content.length, 0) > 6_000_000) throw new HttpError(413, "References are larger than 6 MB in total");
+  };
+  const readyCloud = (coder: "local" | "cloud") => {
+    const cloud = coder === "cloud" ? cloudCoder() : undefined;
+    if (cloud && !cloud.ready) throw new HttpError(409, `The cloud coder isn't ready: ${cloud.problem}. Set it up on the Models page, or build with the local coder.`);
+    return cloud;
+  };
+  /** A project's first spec-driven run (New build, and Start Build at the end of a project's setup). */
+  const startSpecRun = (
+    projectId: string,
+    b: { description: string; references: C.ReferenceFile[]; autonomy: C.AutonomyLevel; starter?: "react" | "angular"; buildMode?: C.BuildMode; look?: Record<string, unknown>; cloud?: ReturnType<typeof cloudCoder> },
+  ) => {
     // Choosing the cloud coder for this build is the consent to send this project's code to that provider. Local means
     // local for every step, design and the design review included (VUS-01: "code stays here" has to be true).
-    app.projects.updateSettings(project.id, { autonomy: b.autonomy, ...(cloud ? { allowHostedModels: true } : {}) });
-    const pf = app.projects.preflight(project.id);
+    app.projects.updateSettings(projectId, { autonomy: b.autonomy, ...(b.cloud ? { allowHostedModels: true } : {}) });
+    const pf = app.projects.preflight(projectId);
     const empty = pf.projectType === "incomplete" || pf.projectType === "unknown";
-    const run = app.orchestrator.createRun({ projectId: project.id, objective: b.description, kind: empty ? "spec_build" : undefined, ...(empty && b.starter === "angular" ? { templateId: "angular-starter" } : {}), references: b.references, ...(b.buildMode ? { buildMode: b.buildMode } : {}), constraints: [], attachedKnowledgeIds: [], ...(cloud ? { modelAssignments: { planner: { ...cloud.assignment, temperature: 0.2 }, coder: cloud.assignment, debugger: cloud.assignment } } : {}) });
+    const cloud = b.cloud;
+    const run = app.orchestrator.createRun({ projectId, objective: b.description, kind: empty ? "spec_build" : undefined, ...(empty && b.starter === "angular" ? { templateId: "angular-starter" } : {}), references: b.references, ...(b.buildMode ? { buildMode: b.buildMode } : {}), constraints: [], attachedKnowledgeIds: [], ...(cloud ? { modelAssignments: { planner: { ...cloud.assignment, temperature: 0.2 }, coder: cloud.assignment, debugger: cloud.assignment } } : {}) });
     if (b.look) app.store.setSetting(`runLook:${run.id}`, b.look);
     void app.orchestrator.plan(run.id).catch(() => undefined);
-    return { project, run, quality };
+    return run;
+  };
+
+  // A project's setup before its first build (contracts setup.ts): Home creates it as a draft project, Look and Feel and
+  // Build levels add to it, Start Build turns it into the first run. Saved with the project, so Back, Next and a reload
+  // keep everything.
+  const setupKey = (projectId: string) => `projectSetup:${projectId}`;
+  const setupOf = (projectId: string) => {
+    app.store.projects.require(projectId);
+    const s = app.store.getSetting<C.ProjectSetup | null>(setupKey(projectId), null);
+    if (!s) throw new HttpError(404, "This project has no setup: it was made before setups existed, or by opening a folder.");
+    return s;
+  };
+  const SetupCreate = z.object({ name: z.string().trim().max(200).optional(), description: z.string().trim().min(1).max(20_000), productType: C.ProjectSetup.shape.productType, references: z.array(C.ReferenceFile).max(20).default([]) });
+  add("POST /setups", ({ body }) => {
+    const b = parse(SetupCreate, body);
+    checkReferences(b.references);
+    const project = app.projects.create({ name: b.name || C.suggestName(b.description) || "New build", createWorkspace: true });
+    const setup: C.ProjectSetup = { status: "draft", description: b.description, productType: b.productType, references: b.references, extras: [], autonomy: "supervised", coder: "local", threeDrafts: false, updatedAt: new Date().toISOString() };
+    app.store.setSetting(setupKey(project.id), setup);
+    return { project, setup };
+  });
+  // Drafts not started yet, newest first: Home offers to continue them.
+  add("GET /setups", () =>
+    app.store.projects
+      .where("1 = 1")
+      .map((project) => ({ project, setup: app.store.getSetting<C.ProjectSetup | null>(setupKey(project.id), null) }))
+      .filter((x): x is { project: C.Project; setup: C.ProjectSetup } => x.setup?.status === "draft")
+      .sort((a, b) => b.setup.updatedAt.localeCompare(a.setup.updatedAt))
+      .slice(0, 5)
+      .map(({ project, setup }) => ({ project: { id: project.id, name: project.name }, updatedAt: setup.updatedAt })),
+  );
+  add("GET /projects/:id/setup", ({ params }) => ({ project: app.store.projects.require(params.id), setup: setupOf(params.id) }));
+  add("POST /projects/:id/setup", ({ params, body }) => {
+    const s = setupOf(params.id);
+    if (s.status !== "draft") throw new HttpError(409, "This build has started. Change it through the project's chat or the Design tab.");
+    const b = parse(C.ProjectSetupPatch, body);
+    if (b.references) checkReferences(b.references);
+    if (b.extras?.some((id) => !C.BUILD_EXTRAS.some((x) => x.id === id))) throw new HttpError(400, "Unknown extra");
+    if (b.name) renameProject(app, params.id, redact(b.name));
+    const { name: _name, ...rest } = b;
+    const next: C.ProjectSetup = { ...s, ...rest, updatedAt: new Date().toISOString() };
+    app.store.setSetting(setupKey(params.id), next);
+    return { project: app.store.projects.require(params.id), setup: next };
+  });
+  // Start Build: once. A second press (or a retry after a lost response) returns the run already started.
+  add("POST /projects/:id/setup/start", ({ params }) => {
+    const s = setupOf(params.id);
+    if (s.status === "started" && s.runId) return { project: app.store.projects.require(params.id), run: app.store.runs.require(s.runId) };
+    if (!s.description.trim()) throw new HttpError(400, "Describe the product first.");
+    const cloud = readyCloud(s.coder);
+    const type = C.PRODUCT_TYPES.find((t) => t.id === s.productType);
+    // The product type is guidance for the plan, never a template: products may combine several.
+    const description = type && type.id !== "other" ? `${s.description}\n\nProduct type: ${type.label} (guidance; it may combine others).` : s.description;
+    const run = startSpecRun(params.id, { description, references: s.references, autonomy: s.autonomy, ...(s.buildMode ? { buildMode: s.buildMode } : {}), look: { extras: s.extras }, cloud });
+    app.store.setSetting(setupKey(params.id), { ...s, status: "started", runId: run.id, updatedAt: new Date().toISOString() } satisfies C.ProjectSetup);
+    return { project: app.store.projects.require(params.id), run };
   });
   add("POST /requests/score", ({ body }) => {
     const b = parse(z.object({ description: z.string().max(20_000), roles: z.array(z.string()).default([]) }), body);

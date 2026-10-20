@@ -53,7 +53,9 @@ export function previousRoute(): string | undefined {
 }
 
 const PAGE_NAMES: Record<string, string> = {
-  "": "Dashboard",
+  "": "Home",
+  dashboard: "Dashboard",
+  new: "New build",
   projects: "workspace",
   quality: "My Projects",
   search: "Search",

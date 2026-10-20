@@ -32,7 +32,8 @@ export const APPEARANCE_EVENT = "fc:appearance";
  * step with the navigation in App.tsx (a page missing here can't be given its own mode).
  */
 export const THEMED_PAGES: Array<{ section: string; label: string }> = [
-  { section: "", label: "Dashboard" },
+  { section: "", label: "Home" },
+  { section: "dashboard", label: "Dashboard" },
   { section: "quality", label: "My Projects" },
   { section: "approvals", label: "Approvals" },
   { section: "discover", label: "Create PRD" },
