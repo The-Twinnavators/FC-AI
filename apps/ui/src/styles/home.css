@@ -322,3 +322,8 @@
 .dots-bg > .page > .ab2--home { padding-top: 80px !important; }
 /* Create PRD's list is as wide as Dashboard and My Projects (the shared page width, not Create PRD's narrower one). */
 .disc-list-bg > .page.disc-page { max-width: 1360px; }
+/* Create PRD cards: more room inside each card and between them. */
+.disc-list-bg .disc-projects--cards { gap: 24px; }
+.disc-list-bg .disc-projects--cards .disc-project { padding: 24px; }
+.disc-list-bg .disc-projects--cards .disc-project__open { gap: 14px; }
+.disc-list-bg .disc-projects--cards .disc-project__progress { margin-top: 8px; padding-top: 16px; }
