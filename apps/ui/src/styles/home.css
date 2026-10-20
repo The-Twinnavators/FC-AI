@@ -189,3 +189,11 @@
 /* "How FlowCode AI works": jumps to that section at the bottom of Home. */
 .home__how-link { justify-self: center; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-1); font: inherit; font-size: 13px; cursor: pointer; }
 .home__how-link:hover { color: var(--text-0); }
+/* A mouse at the bottom center of Home's first screen: there's more below. Its wheel rolls down. */
+/* FlowCode's footer is pinned over the bottom 90px, so the mouse sits just above it. */
+.home__scroll { position: absolute; left: 50%; bottom: 114px; z-index: 2; display: grid; place-items: center; width: 40px; height: 52px; margin-left: -20px; padding: 0; border: 0; background: none; cursor: pointer; opacity: 0.85; transition: opacity 120ms ease; }
+.home__scroll:hover, .home__scroll:focus-visible { opacity: 1; }
+.home__mouse { position: relative; width: 24px; height: 38px; border: 2px solid rgba(255, 255, 255, 0.75); border-radius: 12px; }
+.home__mouse::after { content: ""; position: absolute; top: 7px; left: 50%; width: 4px; height: 8px; margin-left: -2px; border-radius: 2px; background: #fff; animation: home-wheel 1.8s ease-in-out infinite; }
+@keyframes home-wheel { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(12px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .home__mouse::after { animation: none; } }

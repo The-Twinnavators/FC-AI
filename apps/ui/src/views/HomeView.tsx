@@ -29,6 +29,11 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
     <div className="home page-enter" ref={wrap}>
       <HomeBackdrop />
       <SetupSteps projectId={draft?.projectId} at="describe" />
+      {!draft ? (
+        <button type="button" className="home__scroll" aria-label="Scroll to How FlowCode AI works" title="Scroll down" onClick={() => document.getElementById("newbuild")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}>
+          <span className="home__mouse" aria-hidden="true" />
+        </button>
+      ) : null}
       <div className="home__inner">
         <SetupCard compact />
         <h1 className="home__title" id="composer-title">
