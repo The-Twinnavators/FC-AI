@@ -95,3 +95,5 @@ html.fc-dots #main li:has(> .lib-card):is(:hover, :focus-within) > .lib-card, ht
   color-scheme: dark; color: var(--text-0);
   background: radial-gradient(55% 65% at 50% 50%, rgba(58, 96, 196, 0.18), transparent 70%), #0f141e !important;
 }
+/* Component library's "new" sparkle badges use the same purple as the NEW badges elsewhere. */
+.lib-shelf__label .cl-new, .cl-new--tile { background: linear-gradient(135deg, #6d5dfc, #8b5cf6) !important; color: #fff !important; box-shadow: 0 0 0 2px color-mix(in srgb, #8b5cf6 30%, transparent) !important; }
