@@ -66,6 +66,8 @@ const AUTO_ASK_KEY = "fc.discover.autoAsk";
 
 /** One flow: describe the problem and start. Deeper research is added per stage when the idea needs it. */
 function StartResearch() {
+  const prds = useResource<DiscoverySummary[]>("/discovery", []);
+  const prdsOpen = (prds.data ?? []).filter((p) => p.status !== "handed_off").length;
   const [problem, setProblem] = useState("");
   const [thorough, setThorough] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -156,6 +158,13 @@ function StartResearch() {
         <p className="home__noprd">
           Already have a Product Requirements Document (PRD)? <a href="#/">Let&apos;s build something together</a>
         </p>
+        {/* PRDs still being researched or written (not yet handed to a build): open the list. */}
+        {prdsOpen ? (
+          <a className="home__drafts-btn" href="#/discover">
+            <Icon name="write" size={14} />
+            You have {prdsOpen} {prdsOpen === 1 ? "PRD" : "PRDs"} in progress
+          </a>
+        ) : null}
       </div>
     </div>
   );

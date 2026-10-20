@@ -8,8 +8,7 @@ import { useResource } from "../api";
 import { ProductComposer } from "../components/ProductComposer";
 import { HomeBackdrop } from "../components/HomeBackdrop";
 import { SetupSteps } from "./SetupView";
-import type { DiscoverySummary, ProjectSetup } from "@flowcode/contracts";
-import { Icon } from "../components/ui";
+import type { ProjectSetup } from "@flowcode/contracts";
 import { SetupCard } from "../components/SetupCard";
 import { DraftsButton, type Draft } from "../components/DraftsButton";
 import { startBuild } from "../components/IntroHero";
@@ -18,8 +17,6 @@ import { Aurora } from "../components/Aurora";
 
 export function HomeView({ draft }: { draft?: { projectId: string; name: string; setup: ProjectSetup } } = {}) {
   const drafts = useResource<Draft[]>("/setups");
-  const prds = useResource<DiscoverySummary[]>(draft ? null : "/discovery");
-  const prdsOpen = (prds.data ?? []).filter((p) => p.status !== "handed_off").length;
   const wrap = useRef<HTMLDivElement>(null);
   // "Let's build something" from anywhere (and New build's old event) lands here with the cursor in the description.
   useEffect(() => {
@@ -48,18 +45,7 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
         <p className="home__noprd">
           Don&apos;t have a Product Requirements Document (PRD)? <a href="#/discover/new">Let&apos;s solve something together</a>
         </p>
-        {!draft && (drafts.data?.length || prdsOpen) ? (
-          <div className="home__pills">
-            {drafts.data?.length ? <DraftsButton drafts={drafts.data} reload={drafts.reload} /> : null}
-            {/* PRDs still being researched or written (not yet handed to a build): open the Create PRD list. */}
-            {prdsOpen ? (
-              <a className="home__drafts-btn" href="#/discover">
-                <Icon name="write" size={14} />
-                You have {prdsOpen} {prdsOpen === 1 ? "PRD" : "PRDs"} in progress
-              </a>
-            ) : null}
-          </div>
-        ) : null}
+        {!draft && drafts.data?.length ? <DraftsButton drafts={drafts.data} reload={drafts.reload} /> : null}
       </div>
     </div>
     {/* How FlowCode works, at the bottom of Home (below the first screen and its backdrop). */}
