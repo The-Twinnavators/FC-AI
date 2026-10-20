@@ -180,7 +180,11 @@
 .gradient-waves-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 
 /* How FlowCode works, at the bottom of Home. */
-.home__how { width: min(1232px, calc(100% - 48px)); margin: 0 auto; padding: 64px 0 80px; }
+.home__how { position: relative; isolation: isolate; overflow: hidden; width: 100%; padding: 64px max(24px, calc((100% - 1232px) / 2)) 260px; box-sizing: border-box; }
+/* The aurora spans the whole width at the bottom of Home, behind How FlowCode works, fading in from above. */
+.home__aurora { position: absolute; z-index: -1; bottom: 0; left: 0; width: 100%; height: min(70vh, 640px); pointer-events: none; -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%); mask-image: linear-gradient(180deg, transparent, #000 45%); }
+.aurora-container { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.aurora-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 /* With How FlowCode works below it, Home's first screen still fills the window, so the waves have room. */
 .home:has(+ .home__how) { min-height: calc(100dvh - 56px); }
 /* Seamless: the waves fade out into the page itself, so there's no edge where Home's first screen ends. */
@@ -229,3 +233,13 @@
 .drafts-dlg__icon:hover { border-color: var(--line); color: var(--text-0); }
 .modal-box.drafts-dlg { border: 1px solid var(--line-strong); border-radius: 12px; background: var(--bg-0, #0d1119); box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.7); }
 .drafts-dlg .drafts-dlg__item { background: var(--bg-1); }
+/* Composer layout: project name and product type side by side on top; the file note sits under Attach. */
+.composer__head { display: flex; gap: 8px; align-items: center; }
+.composer__head > .composer__name { flex: 1; min-width: 0; }
+.composer__head > .composer__type { flex: none; width: 220px; }
+.composer__head .select { width: 100%; }
+.composer .composer__head .composer__name-input { height: 42px; }
+.composer__attach-col { display: grid; gap: 6px; justify-items: start; }
+.composer .composer__attach-col .composer__types { margin: 0; text-align: left; }
+.composer__bar { align-items: flex-start; }
+@media (max-width: 560px) { .composer__head { flex-direction: column; align-items: stretch; } .composer__head > .composer__type { width: auto; } }

@@ -102,6 +102,7 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
       }}
       onDrop={onDrop}
     >
+      <div className="composer__head">
       <label className="composer__name">
         <span className="sr-only">Project name</span>
         <input
@@ -115,6 +116,18 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
           }}
         />
       </label>
+        <label className="composer__type">
+          <span className="sr-only">Product type</span>
+          <select className="select" value={productType} onChange={(e) => setProductType(e.target.value as ProductType | "")}>
+            <option value="">Product type</option>
+            {PRODUCT_TYPES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <label className="composer__desc">
         <span className="sr-only">Product description</span>
         <textarea
@@ -150,28 +163,19 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
         </ul>
       ) : null}
       <div className="composer__bar">
-        <button type="button" className="composer__attach" onClick={() => input.current?.click()} aria-describedby="composer-types">
-          <Icon name="clip" size={16} /> {reading ? "Reading…" : "Attach PRD & Files"}
-        </button>
+        <div className="composer__attach-col">
+          <button type="button" className="composer__attach" onClick={() => input.current?.click()} aria-describedby="composer-types">
+            <Icon name="clip" size={16} /> {reading ? "Reading…" : "Attach PRD & Files"}
+          </button>
+          <p className="composer__types" id="composer-types">
+            {drag ? "Drop to attach" : "PRD, JSON, HTML, CSS or images · up to 1.5 MB each"}
+          </p>
+        </div>
         <input ref={input} type="file" multiple accept={ACCEPT} hidden onChange={(e) => e.target.files && void add(e.target.files)} />
-        <label className="composer__type">
-          <span className="sr-only">Product type</span>
-          <select className="select" value={productType} onChange={(e) => setProductType(e.target.value as ProductType | "")}>
-            <option value="">Product type</option>
-            {PRODUCT_TYPES.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </label>
         <button type="submit" className="btn btn--primary composer__next" disabled={!described || busy}>
           {busy ? "Saving…" : "Next: Look and Feel"} <Icon name="chevron" size={13} />
         </button>
       </div>
-      <p className="composer__types" id="composer-types">
-        {drag ? "Drop to attach" : "PRD, JSON, HTML, CSS or images · up to 1.5 MB each"}
-      </p>
       {error ? (
         <p className="composer__error" role="alert">
           {error}

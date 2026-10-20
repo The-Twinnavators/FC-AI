@@ -13,6 +13,7 @@ import { SetupCard } from "../components/SetupCard";
 import { DraftsButton, type Draft } from "../components/DraftsButton";
 import { startBuild } from "../components/IntroHero";
 import { HowItWorks } from "../components/HowItWorks";
+import { Aurora } from "../components/Aurora";
 
 export function HomeView({ draft }: { draft?: { projectId: string; name: string; setup: ProjectSetup } } = {}) {
   const drafts = useResource<Draft[]>("/setups");
@@ -47,6 +48,10 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
     {/* How FlowCode works, at the bottom of Home (below the first screen and its backdrop). */}
     {!draft ? (
       <div id="newbuild" className="home__how">
+        {/* The waves' purple, carried to the bottom of the page as a drifting aurora. */}
+        <div className="home__aurora" aria-hidden="true">
+          <Aurora colorStops={["#5227FF", "#9b6bff", "#5227FF"]} direction="bottom" amplitude={1} blend={0.5} height={0.62} speed={0.6} glow={0.6} />
+        </div>
         <HowItWorks onStart={startBuild} />
       </div>
     ) : null}
