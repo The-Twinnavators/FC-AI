@@ -130,12 +130,7 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
         </div>
       </fieldset>
 
-      <section className="psetup-summary" aria-label="Summary">
-        <span><b>{project.name}</b>{setup.productType ? ` · ${PRODUCT_TYPES.find((t) => t.id === setup.productType)?.label}` : ""}</span>
-        <span>{setup.references.length ? `${setup.references.length} file${setup.references.length === 1 ? "" : "s"}` : "No files"}</span>
-        <span>{look ? `Look v${design.data?.selected?.version}` : "Base look"}</span>
-        <span>{level.name}</span>
-        <span>{chosen.length ? chosen.map((x) => x.label).join(", ") : "No extras"}</span>
+      <section className="psetup-summary" aria-label="Start the build">
         <StepActions back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", onClick: () => void start(), busy: busy ? "Starting…" : undefined }} />
       </section>
       {extras.includes("installable") ? <p className="psetup__note">Install as an app: installing depends on the browser; only the app's own screens work offline.</p> : null}
