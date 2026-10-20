@@ -124,10 +124,10 @@ function Checks({ checks }: { checks: AppearanceCheck[] }) {
 }
 
 /** One section of the editor: a title, what it decides, then its controls. */
-function Section({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) {
+function Section({ title, hint, wide, children }: { title: string; hint: string; wide?: boolean; children: React.ReactNode }) {
   const id = useId();
   return (
-    <section className="ds-sec" aria-labelledby={id}>
+    <section className={wide ? "ds-sec ds-sec--wide" : "ds-sec"} aria-labelledby={id}>
       <header className="ds-sec__head">
         <h3 id={id} className="ds-sec__title">{title}</h3>
         <p className="ds-sec__hint">{hint}</p>
@@ -255,7 +255,7 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
       </header>
       <div className="ds__body">
         <div className="ds__controls">
-          <Section title="Starting point" hint="A theme sets colours and fonts together. Everything below can still be changed.">
+          <Section wide title="Starting point" hint="A theme sets colours and fonts together. Everything below can still be changed.">
             <fieldset className="ds-tiles ds-tiles--theme">
               <legend className="sr-only">Theme</legend>
               <label className={`ds-tile ds-theme${!cur.theme ? " is-on" : ""}`}>
@@ -350,7 +350,7 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
             </details>
           </Section>
 
-          <Section title="Type" hint="Headings use the first face, text the second.">
+          <Section wide title="Type" hint="Headings use the first face, text the second.">
             <fieldset className="ds-tiles ds-tiles--type">
               <legend className="sr-only">Typography</legend>
               {TYPE_PAIRS.find((p) => p.display === cur.fonts.display && p.body === cur.fonts.body) ? null : (
@@ -406,7 +406,7 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
             </p>
           </Section>
 
-          <Section title="Components" hint="Suggest building blocks from the library. The builder is told to use these instead of writing its own.">
+          <Section wide title="Components" hint="Suggest building blocks from the library. The builder is told to use these instead of writing its own.">
             <DesignComponentsBar projectId={projectId} used={[]} onChange={noShown} />
           </Section>
         </div>

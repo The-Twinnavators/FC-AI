@@ -7,11 +7,21 @@
 .ds { --ds-on: var(--brand-ink, var(--text-0)); }
 .ds-seg label.is-on { border-color: var(--ds-on); }
 .ds__body { grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); gap: 28px; }
-.ds__controls { gap: 0; }
+.ds__controls { gap: 0 32px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.ds__open { margin-left: 8px; }
+/* Wide (the Look modal at 80% of the window, a wide Design tab): theme and type run full width, colour beside surface
+   and motion. */
+@container ds (min-width: 1180px) {
+  .ds__controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-flow: row dense; }
+  .ds-sec--wide { grid-column: 1 / -1; }
+}
 .ds__preview { display: grid; gap: 12px; min-width: 0; position: sticky; top: 12px; }
 @container ds (max-width: 640px) {
   .ds__preview { position: static; order: -1; }
 }
+
+/* The Look modal: 80% of the window, so the choices have room. */
+.modal-box.dmodal--look { width: min(80vw, 1600px); max-width: calc(100vw - 32px); }
 
 /* Sections: a title, what it decides, its controls. Divided by a hairline, not boxed. */
 .ds-sec { display: grid; gap: 14px; padding: 20px 0; border-top: 1px solid var(--line); min-width: 0; }
