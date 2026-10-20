@@ -67,3 +67,12 @@ html.fc-dots #main :is(.ml-nav, .ml-panels .ml-pat, .prim-grid .section) { backg
 .lrc-card__age { color: var(--text-2); font-size: 12px; }
 .lrc-card__age::before { content: "·"; margin-right: 8px; }
 html.fc-dots #main .qa-card-wrap .lrc-card__foot { padding-bottom: 0 !important; }
+/* My Projects: every card the same height. The name is one line (full name on hover), the progress one line, and
+   Demo and Builder sit at the bottom. */
+html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) > .qa-card-wrap { display: flex; }
+html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) .lrc-card.qa-card { flex: 1; display: flex; flex-direction: column; }
+html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) .lrc-card__name strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) .qa-metric__val { white-space: nowrap; }
+html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) .lrc-card__foot { margin-top: auto; }
+html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) { grid-auto-rows: 1fr; }
+html.fc-dots #main .qa-card-wrap .lrc-card__foot { border-top: 0 !important; padding-top: 0 !important; min-height: 32px; margin-top: 18px; }

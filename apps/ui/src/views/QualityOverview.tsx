@@ -60,7 +60,7 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
     };
   }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
   const byId = new Map((launch.data ?? []).map((s) => [s.projectId, s]));
-  const gauge = compact ? 44 : 56;
+  const gauge = compact ? 36 : 40;
   return (
     <>
       {projects.length && !launch.data ? <SkeletonBlock rows={compact ? 2 : 3} label="Loading projects" /> : null}
@@ -105,9 +105,8 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                   </div>
                   <div className="qa-card__metrics">
                     <div className="qa-metric">
-                      {l?.build?.total ? <RadialGauge value={l.build.done / l.build.total} size={gauge} stroke={compact ? 4 : 5} label={`${p.name} prototype build progress`} /> : <span className="qa-metric__none" aria-hidden="true">—</span>}
+                      {l?.build?.total ? <RadialGauge value={l.build.done / l.build.total} size={gauge} stroke={4} label={`${p.name} prototype build progress`} /> : <span className="qa-metric__none" aria-hidden="true">—</span>}
                       <span>
-                        <span className="label">Prototype</span>
                         <span className="qa-metric__val" title={l?.build?.review ? runStatusLabel(l.build) : undefined}>{l?.build?.total ? `${l.build.done} of ${l.build.total} steps built` : "No steps yet"}</span>
                       </span>
                     </div>
