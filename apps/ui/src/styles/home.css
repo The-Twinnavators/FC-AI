@@ -259,3 +259,7 @@
 .disc-home__steps > li.is-off { color: var(--text-2); }
 .disc-home__who { display: inline-grid; place-items: center; width: 26px; height: 26px; }
 .disc-home__who .disc-new__you { font-size: 10px; }
+/* Under the composer: a way in for people without a PRD (Create PRD). */
+.home__noprd { margin: 0; color: var(--text-1); font-size: 13.5px; text-align: center; }
+.home__noprd a { color: var(--text-0); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.home__noprd a:hover { color: #fff; }
