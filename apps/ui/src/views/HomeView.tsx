@@ -30,7 +30,8 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
       <HomeBackdrop />
       <SetupSteps projectId={draft?.projectId} at="describe" />
       {!draft ? (
-        <button type="button" className="home__scroll" aria-label="Scroll to How FlowCode AI works" title="Scroll down" onClick={() => document.getElementById("newbuild")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}>
+        <button type="button" className="home__scroll" onClick={() => document.getElementById("newbuild")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}>
+          How FlowCode AI works
           <span className="home__mouse" aria-hidden="true" />
         </button>
       ) : null}
@@ -49,11 +50,6 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
               </button>
             ))}
           </nav>
-        ) : null}
-        {!draft ? (
-          <button type="button" className="home__how-link" onClick={() => document.getElementById("newbuild")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}>
-            How FlowCode AI works
-          </button>
         ) : null}
       </div>
     </div>

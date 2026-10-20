@@ -151,7 +151,7 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
       ) : null}
       <div className="composer__bar">
         <button type="button" className="composer__attach" onClick={() => input.current?.click()} aria-describedby="composer-types">
-          <Icon name="clip" size={16} /> {reading ? "Reading…" : "Attach"}
+          <Icon name="clip" size={16} /> {reading ? "Reading…" : "Attach PRD & Files"}
         </button>
         <input ref={input} type="file" multiple accept={ACCEPT} hidden onChange={(e) => e.target.files && void add(e.target.files)} />
         <label className="composer__type">

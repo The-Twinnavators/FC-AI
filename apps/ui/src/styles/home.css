@@ -202,3 +202,10 @@
 .composer .composer__name-input:hover { border-color: rgba(255, 255, 255, 0.28); }
 .composer .composer__name-input:focus { border-color: rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.1); }
 .composer .composer__desc { padding-top: 4px; }
+/* The composer's bottom row: Attach, Product type and Next share one height. */
+.composer .composer__attach, .composer .composer__type .select, .composer .composer__next { height: 42px; box-sizing: border-box; }
+/* (A global button rule pins primary buttons' height, so Next needs the override.) */
+.composer .composer__bar .composer__next { height: 42px !important; min-height: 42px !important; }
+/* The scroll cue: "How FlowCode AI works" above the mouse, one button. */
+.home__scroll { width: auto; height: auto; margin-left: 0; transform: translateX(-50%); gap: 8px; color: var(--text-1); font: inherit; font-size: 13px; }
+.home__scroll:hover, .home__scroll:focus-visible { color: var(--text-0); }
