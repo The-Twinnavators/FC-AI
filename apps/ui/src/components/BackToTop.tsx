@@ -7,7 +7,8 @@ import { Icon } from "./ui";
 
 /** Areas that count: the page itself and the workspace's own scrolling panels. */
 const isScroller = (el: EventTarget | null): el is HTMLElement => el instanceof HTMLElement && (el.id === "main" || el.classList.contains("ws__scroll"));
-const farEnough = (el: HTMLElement) => el.scrollTop > Math.max(480, el.clientHeight * 0.6);
+// Shows once you have scrolled a little (it waited for over half a screen, so short pages never showed it).
+const farEnough = (el: HTMLElement) => el.scrollTop > 240;
 
 /** Where the button sits: a workspace panel gets it in its own bottom-right corner, not the window's (which is over
  * the chat column and the build bar, out of sight of the panel being scrolled). */

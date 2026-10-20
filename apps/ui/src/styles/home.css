@@ -364,3 +364,5 @@ a.home__drafts-btn { text-decoration: none; }
 .learn-tabs > button:hover { color: var(--text-0); }
 .learn-tabs > button.is-on { border-bottom-color: #9b6bff; color: var(--text-0); }
 .learn-tabs > button:focus-visible { outline: 2px solid var(--brand-ink, #8b5cf6); outline-offset: 2px; }
+/* About FlowCode's tabs stay at the top of the window while the page scrolls. */
+.learn-tabs { position: sticky; top: 0; z-index: 6; padding-top: 12px; background: var(--bg-0, #0d1119); }
