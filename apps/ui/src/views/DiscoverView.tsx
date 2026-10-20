@@ -286,13 +286,13 @@ function DiscoveryList() {
           <p className="lib__lede">Start with a problem statement, not an app idea. FlowCode AI helps you research the problem, uncover what matters, and shape a focused PRD. Once you approve the plan, FlowCode turns it into a clickable prototype.</p>
         </div>
         <button type="button" className="btn btn--primary" data-cp="prd-new" onClick={() => navigate("/discover/new")}>
-          <Icon name="plus" size={14} /> New PRD
+          <Icon name="plus" size={14} /> Create a PRD
         </button>
       </header>
       {error ? <ErrorNotice error={error} doing="load your research" onRetry={reload} /> : null}
       {!data && !error ? <SkeletonBlock rows={4} label="Loading your research" /> : null}
       {data && !data.length ? (
-        <Empty title="No PRDs yet" action={<button className="btn btn--primary" onClick={() => navigate("/discover/new")}>New PRD</button>}>
+        <Empty title="No PRDs yet" action={<button className="btn btn--primary" onClick={() => navigate("/discover/new")}>Create a PRD</button>}>
           Start with the problem, not the app. FlowCode helps you find who has it, what makes it hard, and the smallest first version worth building, then writes the PRD.
         </Empty>
       ) : null}
