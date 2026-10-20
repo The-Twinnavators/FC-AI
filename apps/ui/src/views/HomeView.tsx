@@ -43,7 +43,7 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
         </h1>
         <ProductComposer projectId={draft?.projectId} initial={draft ? { name: draft.name, setup: draft.setup } : undefined} />
         <p className="home__noprd">
-          Don&apos;t have a Product Requirements Document (PRD)? <a href="#/discover/new">Click here</a>
+          Don&apos;t have a Product Requirements Document (PRD)? <a href="#/discover/new">Let&apos;s solve something together</a>
         </p>
         {!draft && drafts.data?.length ? <DraftsButton drafts={drafts.data} reload={drafts.reload} /> : null}
       </div>
