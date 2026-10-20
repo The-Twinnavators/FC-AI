@@ -396,3 +396,6 @@ a.home__drafts-btn { text-decoration: none; }
 #main .dots-bg > .page.ab2 { max-width: 1360px !important; width: 100%; }
 /* Room under Home's content for the scroll cue, so a taller composer (an attached PRD) never runs into it. */
 .home:has(+ .home__how) .home__inner { padding-bottom: 200px; }
+/* The step you're on stands out: a solid brand pill, white text and number. */
+.psetup__steps.psetup-nav .is-on button { background: var(--brand-1, #4f46e5); border-color: color-mix(in srgb, #fff 18%, transparent); color: #fff; font-weight: 600; box-shadow: 0 4px 14px -4px rgba(82, 39, 255, 0.6); }
+.psetup__steps.psetup-nav .is-on b { background: #fff; color: var(--brand-1, #4f46e5); }

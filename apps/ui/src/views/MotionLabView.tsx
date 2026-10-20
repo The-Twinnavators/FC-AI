@@ -888,11 +888,11 @@ export function MotionLabView() {
 
       {/* Laid out like Prompts & Skills: the patterns as a list on the left, each pattern a panel on the right. */}
       <div className="ml-layout">
-        <nav className="ml-nav" aria-label="Motion patterns">
-          <span className="ml-nav__head">Patterns</span>
+        <nav className="lib-shelves ml-nav" aria-label="Motion patterns">
+          <p className="lib-shelves__heading">Patterns</p>
           {ML_NAV.map(([id, label]) => (
-            <a key={id} href={`#ml-${id}`} className="ml-nav__item" onClick={(e) => (e.preventDefault(), document.getElementById(`ml-${id}`)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }))}>
-              {label}
+            <a key={id} href={`#ml-${id}`} className="lib-shelf" onClick={(e) => (e.preventDefault(), document.getElementById(`ml-${id}`)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }))}>
+              <span className="lib-shelf__label">{label}</span>
             </a>
           ))}
         </nav>

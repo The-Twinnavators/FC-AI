@@ -6,9 +6,8 @@
 .app-dots > .dotfield { position: absolute; inset: 0; }
 html.fc-dots #main > .page-enter { position: relative; z-index: 1; }
 
-html.fc-dots #main .section,
+html.fc-dots #main .section:not(.prim-nav),
 html.fc-dots #main .lrc-card,
-html.fc-dots #main .settings-nav,
 html.fc-dots #main .stat-card,
 html.fc-dots #main .chart-card,
 html.fc-dots #main .cl-tile,
@@ -30,7 +29,7 @@ html.fc-dots #main .empty {
 /* A card inside a card stays plain (no second layer of glass). */
 html.fc-dots #main .section .section { background: transparent !important; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none !important; }
 @media (prefers-reduced-transparency: reduce) {
-  html.fc-dots #main :is(.section, .lrc-card, .settings-nav, .stat-card, .chart-card, .cl-tile, .fr-card, .lib-card, .ml-card, .prim-demo, .subsys, .topic-card, .network__panel, .network__keys, .disc-project, .empty) { background: var(--bg-1) !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  html.fc-dots #main :is(.section, .lrc-card, .stat-card, .chart-card, .cl-tile, .fr-card, .lib-card, .ml-card, .prim-demo, .subsys, .topic-card, .network__panel, .network__keys, .disc-project, .empty) { background: var(--bg-1) !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 
 /* My Projects: four cards to a row on wide screens (three, then two, then one as the window narrows). */
@@ -52,16 +51,12 @@ html.fc-dots #main .fr-card:hover, html.fc-dots #main .fr-card:focus-within { tr
 /* Prompts & Skills: each skill group's panel a little darker than the cards in it, so the cards stand out. */
 html.fc-dots #main .skill-browse__group { background: color-mix(in srgb, var(--bg-0, #0d1119) 55%, transparent) !important; border: 1px solid color-mix(in srgb, var(--text-0) 8%, transparent); }
 /* Motion Lab, laid out like Prompts & Skills: the patterns listed on the left (sticky), each pattern a panel on the right. */
-.ml-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 24px; align-items: start; }
-.ml-nav { position: sticky; top: 16px; display: grid; gap: 2px; padding: 8px; border-radius: 10px; }
-.ml-nav__head { padding: 6px 10px; color: var(--text-2); font-size: 11.5px; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; }
-.ml-nav__item { padding: 7px 10px; border-radius: 8px; color: var(--text-1); font-size: 13.5px; text-decoration: none; }
-.ml-nav__item:hover { background: var(--bg-hover, color-mix(in srgb, var(--text-0) 6%, transparent)); color: var(--text-0); }
+.ml-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 24px; align-items: start; }
 .ml-panels { display: grid; gap: 20px; min-width: 0; }
 .ml-panels .ml-pat { padding: 20px 24px; border-radius: 12px; box-shadow: none; scroll-margin-top: 16px; }
-@media (max-width: 900px) { .ml-layout { grid-template-columns: 1fr; } .ml-nav { position: static; } }
+@media (max-width: 900px) { .ml-layout { grid-template-columns: 1fr; } }
 /* Panels a little darker than the cards in them: skill groups, Motion Lab patterns, Branding's component panels. */
-html.fc-dots #main :is(.ml-nav, .ml-panels .ml-pat, .prim-grid .section) { background: color-mix(in srgb, var(--bg-0, #0d1119) 55%, transparent) !important; border: 1px solid color-mix(in srgb, var(--text-0) 8%, transparent) !important; -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%); }
+html.fc-dots #main :is(.ml-panels .ml-pat, .prim-grid .section:not(.prim-nav)) { background: color-mix(in srgb, var(--bg-0, #0d1119) 55%, transparent) !important; border: 1px solid color-mix(in srgb, var(--text-0) 8%, transparent) !important; -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%); }
 /* A project card's type and age on one line ("vite · 5h ago"); the footer holds only Demo and Builder. */
 .lrc-card__sub { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .lrc-card__age { color: var(--text-2); font-size: 12px; }
@@ -85,3 +80,8 @@ html.fc-dots #main li:has(> .lib-card):is(:hover, :focus-within), html.fc-dots #
 html.fc-dots #main li:has(> .lib-card):is(:hover, :focus-within) > .lib-card, html.fc-dots #main .topic-card:is(:hover, :focus-visible) { border-color: color-mix(in srgb, #9b6bff 60%, transparent) !important; background: linear-gradient(160deg, rgba(155, 107, 255, 0.16), rgba(255, 255, 255, 0.05) 45%, rgba(155, 107, 255, 0.1)) !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 0 24px rgba(155, 107, 255, 0.1), 0 22px 44px -20px rgba(82, 39, 255, 0.45) !important; }
 @media (prefers-reduced-motion: reduce) { html.fc-dots #main li:has(> .lib-card), html.fc-dots #main .topic-card { transform: none !important; } }
 @media (prefers-reduced-transparency: reduce) { html.fc-dots #main :is(.lib-card, .topic-card) { background: var(--bg-1) !important; -webkit-backdrop-filter: none; backdrop-filter: none; } }
+/* Feature guide: a row with a "new" badge keeps the name, the badge and the count on one line. */
+.settings-nav__item:has(.guide-new):has(.settings-nav__count) { grid-template-columns: minmax(0, 1fr) auto auto !important; }
+.settings-nav__item:has(.guide-new) .guide-new { grid-column: 2; grid-row: 1; margin: 0 !important; }
+.settings-nav__item:has(.guide-new) .settings-nav__count { grid-column: 3; grid-row: 1; }
+.ml-nav .lib-shelves__heading:first-child { margin-top: 0 !important; }
