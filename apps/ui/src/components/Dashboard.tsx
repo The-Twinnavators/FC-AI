@@ -52,7 +52,7 @@ export function Dashboard() {
                 </button>
               </div>
               <span className="muted" style={{ fontSize: 12.5 }}>
-                {tab === "activity" ? "Cumulative · from your builds, checked steps, agent tool calls and knowledge" : "Each agent's completed and failed tasks (tool calls) in this range"}
+                {tab === "activity" ? "Cumulative · from your builds, checked steps, agent tool calls and knowledge" : "Each agent's completed and failed jobs in this range; the accessibility and security reviewers are automated checks"}
               </span>
             </div>
             <div style={{ marginLeft: "auto", display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
@@ -133,44 +133,52 @@ function Stat({ i, label, value, suffix = "", gauge, gaugeLabel }: { i: number; 
 interface AgentRow {
   role: string;
   model: string;
-  calls: number;
-  ok: number;
-  rejected: number;
-  failed: number;
+  automated?: boolean;
+  jobs?: { done: number; failed: number; notRun: number };
 }
 
-/** Each agent's work in the range: a bar split into completed, failed and turned down, with the counts beside it. */
+const AGENT_NAME: Record<string, string> = { ...ROLE_LABEL, designer: "Designer" };
+
+/**
+ * Each agent's jobs in the range: an AI agent's model replies (completed or failed); the accessibility and security
+ * reviewers are automated checks, so theirs are check runs (passed, failed, or couldn't run). Busiest first.
+ */
 function AgentWork({ range }: { range: (typeof RANGES)[number] }) {
-  const { data } = useResource<{ agents: AgentRow[] }>(`/agents/activity?window=${range}`, [range], 20_000);
+  const { data } = useResource<{ agents: AgentRow[]; moreAgents?: AgentRow[] }>(`/agents/activity?window=${range}`, [range], 20_000);
   if (!data) return <Skeleton h={280} />;
-  const max = Math.max(1, ...data.agents.map((a) => a.calls));
+  const rows = [...data.agents, ...(data.moreAgents ?? [])].map((a) => {
+    // An older daemon sends no job counts: show the agent as idle rather than failing.
+    const jobs = a.jobs ?? { done: 0, failed: 0, notRun: 0 };
+    return { ...a, jobs, total: jobs.done + jobs.failed + jobs.notRun };
+  }).sort((x, y) => y.total - x.total);
+  const max = Math.max(1, ...rows.map((a) => a.total));
   return (
-    <ul className="dash-agents" aria-label="Agents' tasks">
-      {/* Agents that did work this range first, busiest first. */}
-      {[...data.agents].sort((x, y) => y.calls - x.calls).map((a) => {
-        const done = a.calls ? Math.round((a.ok / a.calls) * 100) : 0;
+    <ul className="dash-agents" aria-label="Agents' jobs">
+      {rows.map((a) => {
+        const { done, failed, notRun } = a.jobs;
+        const rate = a.total ? Math.round((done / a.total) * 100) : 0;
         return (
-          <li key={a.role} className={a.calls ? undefined : "is-idle"}>
+          <li key={a.role} className={a.total ? undefined : "is-idle"}>
             <span className="dash-agents__who">
               <RobotHead color={ROLE_COLOR[a.role] ?? "#9a9fd6"} id={`dash-${a.role}`} size={24} />
               <span>
-                <strong>{ROLE_LABEL[a.role] ?? a.role}</strong>
-                <small>{a.model}</small>
+                <strong>{AGENT_NAME[a.role] ?? a.role}</strong>
+                <small>{a.automated ? "Automated check" : a.model}</small>
               </span>
             </span>
-            <span className="dash-agents__bar" style={{ width: `${(a.calls / max) * 100}%` }} role="img" aria-label={`${a.ok} completed, ${a.failed} failed, ${a.rejected} turned down`}>
-              {a.ok ? <i className="is-ok" style={{ flexGrow: a.ok }} /> : null}
-              {a.failed ? <i className="is-fail" style={{ flexGrow: a.failed }} /> : null}
-              {a.rejected ? <i className="is-no" style={{ flexGrow: a.rejected }} /> : null}
+            <span className="dash-agents__bar" style={{ width: `${(a.total / max) * 100}%` }} role="img" aria-label={`${done} ${a.automated ? "passed" : "completed"}, ${failed} failed${notRun ? `, ${notRun} couldn't run` : ""}`}>
+              {done ? <i className="is-ok" style={{ flexGrow: done }} /> : null}
+              {failed ? <i className="is-fail" style={{ flexGrow: failed }} /> : null}
+              {notRun ? <i className="is-no" style={{ flexGrow: notRun }} /> : null}
             </span>
             <span className="dash-agents__nums">
-              {a.calls ? (
+              {a.total ? (
                 <>
                   <span>
-                    <b className="is-ok">{a.ok.toLocaleString()}</b> completed · <b className={a.failed ? "is-fail" : undefined}>{a.failed.toLocaleString()}</b> failed
-                    {a.rejected ? <> · {a.rejected.toLocaleString()} turned down</> : null}
+                    <b className="is-ok">{done.toLocaleString()}</b> {a.automated ? "passed" : "completed"} · <b className={failed ? "is-fail" : undefined}>{failed.toLocaleString()}</b> failed
+                    {notRun ? <> · {notRun.toLocaleString()} couldn&apos;t run</> : null}
                   </span>
-                  <small>{done}% completed</small>
+                  <small>{rate}% {a.automated ? "passed" : "completed"}</small>
                 </>
               ) : (
                 <span className="muted">No work in this range</span>

@@ -213,6 +213,24 @@ export function agentActivity(app: App, window: ActivityWindow) {
     const d = (JSON.parse(r.data) as { data: { role?: string; usage?: { promptTokens?: number; completionTokens?: number } } }).data;
     if (d.role) tokens.set(d.role, (tokens.get(d.role) ?? 0) + (d.usage?.promptTokens ?? 0) + (d.usage?.completionTokens ?? 0));
   }
+  // Each agent's jobs: an AI agent's model replies (completed or failed); the accessibility and security reviewers are
+  // automated checks, so theirs are check runs (passed, failed, or couldn't run).
+  const jobs = new Map<string, { done: number; failed: number; notRun: number }>();
+  const job = (role: string) => jobs.get(role) ?? (jobs.set(role, { done: 0, failed: 0, notRun: 0 }), jobs.get(role)!);
+  for (const r of app.db.all<{ type: string; data: string }>("SELECT type, data FROM events WHERE type IN ('model.completed','model.failed') AND created_at >= ?", since)) {
+    const role = (JSON.parse(r.data) as { data?: { role?: string } }).data?.role;
+    if (role) job(role)[r.type === "model.completed" ? "done" : "failed"]++;
+  }
+  const CHECK_ROLE: Record<string, string> = { accessibility: "accessibility_qa", security_scan: "security_qa" };
+  for (const r of app.db.all<{ data: string }>("SELECT data FROM events WHERE type = 'verification.completed' AND created_at >= ?", since)) {
+    const d = (JSON.parse(r.data) as { data?: { kind?: string; status?: string } }).data;
+    const role = d?.kind ? CHECK_ROLE[d.kind] : undefined;
+    if (!role || !d?.status || d.status === "pending") continue;
+    const j = job(role);
+    if (d.status === "passed" || d.status === "passed_with_warnings") j.done++;
+    else if (d.status === "failed") j.failed++;
+    else j.notRun++;
+  }
   const assignments = app.router.roleAssignments();
   const ROLES = ["planner", "coder", "debugger", "accessibility_qa", "security_qa", "critic", "researcher", "documenter"];
   return {
@@ -228,11 +246,15 @@ export function agentActivity(app: App, window: ActivityWindow) {
         rejected: r?.rejected ?? 0,
         failed: r?.failed ?? 0,
         tokens: tokens.get(role) ?? 0,
+        jobs: jobs.get(role) ?? { done: 0, failed: 0, notRun: 0 },
+        automated: role in { accessibility_qa: 1, security_qa: 1 },
         tools: r ? [...r.tools.entries()].sort((a, b) => b[1] - a[1]).map(([name, n]) => ({ name, n })) : [],
         allowedTools: ROLE_TOOLS[role] ?? [],
         last: r?.last,
       };
     }),
+    // Agents outside the Agents map (repository analysis, design direction): their jobs only, for the Dashboard.
+    moreAgents: ["repository_analyst", "designer"].map((role) => ({ role, model: assignments[role]?.model ?? "—", jobs: jobs.get(role) ?? { done: 0, failed: 0, notRun: 0 } })),
     activeRuns: app.orchestrator.activeRunIds().map((id) => {
       const run = app.store.runs.get(id);
       const task = run?.currentTaskId ? app.store.tasks.get(run.currentTaskId) : undefined;
