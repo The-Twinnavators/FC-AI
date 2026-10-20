@@ -18,7 +18,6 @@ import "./styles/look-editor.css";
 import "./styles/new-build.css";
 import "./styles/home.css";
 import "./styles/look-studio.css";
-import "./styles/look-preview.css";
 import "./styles/component-tokens.css";
 import { App } from "./App";
 import { loadThemeOverrides } from "./theme";

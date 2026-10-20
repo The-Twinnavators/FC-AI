@@ -121,6 +121,10 @@ if (load)
     root.render(<m.default />);
     setTimeout(isolate, 60);
     requestAnimationFrame(report);
-    if (live) parent.postMessage({ type: "fl-live-ready", id }, "*");
+    if (live) {
+      // A preview starts at the top of the page (an element further down can take focus and scroll to itself).
+      setTimeout(() => scrollTo(0, 0), 80);
+      parent.postMessage({ type: "fl-live-ready", id }, "*");
+    }
   });
 else (addStyles(""), root.render(<p style={{ padding: 24 }}>No section called “{id}”.</p>));

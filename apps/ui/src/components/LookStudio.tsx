@@ -1,12 +1,12 @@
 /**
- * Look and Feel (setup step 2): a preview-first studio. A large live preview of realistic app screens (LookPreview)
- * at phone, tablet or desktop width; beside it a slim panel: where to start (a theme, or the PRD's look) and five
+ * Look and Feel (setup step 2): a preview-first studio. A large live preview of the chosen library page template
+ * (LiveTemplate: the real template, painted in the draft look) at phone, tablet or desktop width; beside it a slim panel: where to start (a template from the gallery, or the PRD's look) and five
  * groups (Buttons, Type, Colours, Layout, Motion), one open at a time, each with its current value and a lock. Under
  * the preview, "Describe a change" in words. Saved as a draft as you go (useLookDraft); Next makes it the selected
  * direction the build applies. Short words on screen; the state (draft saved, contrast, not supported) is shown, not
  * explained.
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   APPEARANCE_THEMES,
   BORDER_WEIGHTS,
@@ -21,6 +21,8 @@ import {
   appearanceFromTheme,
   appearanceTokens,
   gradientOf,
+  gradientUseCss,
+  LIBRARY_SECTIONS,
   type Appearance,
   type DirectionReading,
   type LookGroup,
@@ -28,7 +30,8 @@ import {
 } from "@flowcode/contracts";
 import { Icon } from "./ui";
 import { ColorPicker } from "./ColorPicker";
-import { LookPreview, PREVIEW_SCREENS, type PreviewScreen } from "./LookPreview";
+import { LiveTemplate, TemplateThumb } from "./LiveTemplate";
+import { Modal } from "./Modal";
 import { useLookDraft } from "./useLookDraft";
 
 type Device = "phone" | "tablet" | "desktop";
@@ -54,6 +57,62 @@ const SIZES = [
 const SHAPE = { radius: 10, density: "comfortable" as const, borders: "fine" as const };
 const SCALE = { base: 16, ratio: 1.2 };
 
+/** The library's whole-page templates (not the neobrutalist landing: FlowCode starts from Flat or Tactile). */
+const TEMPLATES = LIBRARY_SECTIONS.filter((x) => x.ref?.startsWith("t.") && x.id !== "nb-landing");
+const KINDS: Array<{ id: string; label: string }> = [
+  { id: "", label: "All" },
+  { id: "apptemplates", label: "Apps" },
+  { id: "homepages", label: "Homepages" },
+  { id: "sites", label: "Websites" },
+  { id: "landings", label: "Landing pages" },
+];
+/** Where a product type starts when nothing is chosen yet. */
+const DEFAULT_TEMPLATE: Record<string, string> = {
+  saas: "home-saas",
+  "ai-app": "app-ai-chat",
+  "admin-portal": "app-admin",
+  social: "home-startup",
+  website: "site-agency",
+  "mobile-app": "home-mobile-app",
+  "online-store": "app-storefront",
+  marketplace: "app-storefront",
+  "internal-tool": "app-kanban",
+};
+
+/** Every template as a finished page in the current look, filtered by kind. */
+function TemplateGallery({ current, tokens, css, onChoose, onClose }: { current: string; tokens: Record<string, string>; css: string; onChoose: (id: string) => void; onClose: () => void }) {
+  const [kind, setKind] = useState("");
+  const shown = TEMPLATES.filter((t) => !kind || t.category === kind);
+  return (
+    <div className="ls-gallery">
+      <header className="ls-gallery__head">
+        <h2 id="ls-gallery-title">Choose a starting design</h2>
+        <div className="ls-gallery__kinds" role="radiogroup" aria-label="Kind">
+          {KINDS.map((k) => (
+            <button key={k.id} type="button" role="radio" aria-checked={kind === k.id} className={kind === k.id ? "is-on" : ""} onClick={() => setKind(k.id)}>
+              {k.label}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="ls-icon-btn" onClick={onClose} aria-label="Close">
+          <Icon name="x" size={15} />
+        </button>
+      </header>
+      <div className="ls-gallery__grid">
+        {shown.map((t) => (
+          <button key={t.id} type="button" className={`ls-tpl${t.id === current ? " is-on" : ""}`} aria-pressed={t.id === current} onClick={() => onChoose(t.id)}>
+            <TemplateThumb id={t.id} title={t.name} tokens={tokens} css={css} />
+            <span className="ls-tpl__name">
+              {t.name}
+              {t.id === current ? <span className="ls-tpl__on">Selected</span> : null}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** A row of choices drawn as one segmented control. */
 function Seg<T extends string | number>({ label, value, options, onChange, disabled }: { label: string; value: T | undefined; options: Array<{ v: T; label: string; title?: string }>; onChange: (v: T) => void; disabled?: boolean }) {
   return (
@@ -70,10 +129,17 @@ function Seg<T extends string | number>({ label, value, options, onChange, disab
   );
 }
 
-export function LookStudio({ projectId, brand, tagline, onBack, onNext }: { projectId: string; brand: string; tagline: string; onBack: () => void; onNext: () => void }) {
+export function LookStudio({ projectId, template, productType, onTemplate, onBack, onNext }: { projectId: string; template?: string; productType?: string; onTemplate: (id: string) => void; onBack: () => void; onNext: () => void }) {
   const look = useLookDraft(projectId);
   const a = look.appearance ?? BASE_APPEARANCE;
-  const [screen, setScreen] = useState<PreviewScreen>("home");
+  const [picked, setPicked] = useState(template ?? DEFAULT_TEMPLATE[productType ?? ""] ?? "home-saas");
+  const [gallery, setGallery] = useState(false);
+  const current = TEMPLATES.find((t) => t.id === picked) ?? TEMPLATES[0]!;
+  const choose = (id: string) => {
+    setPicked(id);
+    setGallery(false);
+    onTemplate(id);
+  };
   const [device, setDevice] = useState<Device>("desktop");
   const [open, setOpen] = useState<Group | "start">("start");
   const [words, setWords] = useState("");
@@ -81,26 +147,13 @@ export function LookStudio({ projectId, brand, tagline, onBack, onNext }: { proj
   const [busy, setBusy] = useState(false);
   const [nextError, setNextError] = useState<string>();
   const tokens = useMemo(() => appearanceTokens(a), [a]);
+  const css = useMemo(() => gradientUseCss(a), [a]);
   const checks = useMemo(() => appearanceChecks(a), [a]);
   const failing = checks.filter((c) => !c.ok);
   const g = gradientOf(a);
   const shape = a.shape ?? SHAPE;
   const scale = a.typeScale ?? SCALE;
   const locked = (grp: Group) => look.locks.includes(LOCK_OF[grp]);
-
-  // The preview is drawn at the device's real width and scaled to fit the stage.
-  const stage = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState(1);
-  useLayoutEffect(() => {
-    const el = stage.current;
-    if (!el) return;
-    const measure = () => setFit(Math.min(1, (el.clientWidth - 2) / WIDTH[device]));
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-    // The stage exists only once the look has loaded.
-  }, [device, !!look.appearance]);
 
   // Ctrl/Cmd+Z undoes the last change while focus isn't in a text field.
   useEffect(() => {
@@ -129,7 +182,7 @@ export function LookStudio({ projectId, brand, tagline, onBack, onNext }: { proj
   const summary: Record<Group, string> = {
     buttons: `${CORNERS.find((c) => c.r === shape.radius)?.label ?? `${shape.radius}px`} · ${a.surface === "skeuomorphism" ? "Tactile" : "Flat"}${g?.uses.includes("buttons") ? " · Gradient" : ""}`,
     type: `${a.fonts.display}${a.fonts.body !== a.fonts.display ? ` + ${a.fonts.body}` : ""}`,
-    colours: `${a.mode === "dark" ? "Dark" : "Light"} · ${NEUTRALS.find((n) => n.id === a.neutral)?.label}`,
+    colours: `${a.theme ? `${APPEARANCE_THEMES.find((t) => t.id === a.theme)?.name} · ` : ""}${a.mode === "dark" ? "Dark" : "Light"}`,
     layout: `${DENSITY_LABEL[shape.density].name} · ${shape.borders === "strong" ? "Strong" : "Fine"} borders`,
     motion: a.motion ? MOTION_LABEL[a.motion.level].name : "As is",
   };
@@ -155,13 +208,11 @@ export function LookStudio({ projectId, brand, tagline, onBack, onNext }: { proj
     <div className="ls">
       <div className="ls-main">
         <div className="ls-bar">
-          <div className="ls-tabs" role="tablist" aria-label="Screen">
-            {PREVIEW_SCREENS.map((s) => (
-              <button key={s.id} type="button" role="tab" aria-selected={screen === s.id} className={screen === s.id ? "is-on" : ""} onClick={() => setScreen(s.id)}>
-                {s.label}
-              </button>
-            ))}
-          </div>
+          <button type="button" className="ls-template" onClick={() => setGallery(true)} title="Choose another starting design">
+            <span className="ls-template__k">Template</span>
+            <span className="ls-template__v">{current.name}</span>
+            <Icon name="chevron" size={12} />
+          </button>
           <div className="ls-seg ls-seg--icons" role="radiogroup" aria-label="Width">
             {(["phone", "tablet", "desktop"] as Device[]).map((d) => (
               <button key={d} type="button" role="radio" aria-checked={device === d} className={device === d ? "is-on" : ""} onClick={() => setDevice(d)} title={`${d[0]!.toUpperCase()}${d.slice(1)} · ${WIDTH[d]}px`}>
@@ -177,11 +228,7 @@ export function LookStudio({ projectId, brand, tagline, onBack, onNext }: { proj
             <span className="sr-only">Undo</span>
           </button>
         </div>
-        <div className="ls-stage" ref={stage}>
-          <div className="ls-frame" style={{ width: WIDTH[device], transform: `scale(${fit})`, height: `${100 / fit}%` }}>
-            <LookPreview screen={screen} tokens={tokens} brand={brand} tagline={tagline} gradientUses={g?.uses ?? []} />
-          </div>
-        </div>
+        <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} />
         <form
           className="ls-ask"
           onSubmit={(e) => {
@@ -213,25 +260,17 @@ export function LookStudio({ projectId, brand, tagline, onBack, onNext }: { proj
           <div className="ls-group__head">
             <button type="button" className="ls-group__btn" aria-expanded={open === "start"} onClick={() => setOpen("start")}>
               <span className="ls-group__name">Start from</span>
-              <span className="ls-group__val">{a.theme ? APPEARANCE_THEMES.find((t) => t.id === a.theme)?.name : "Your colours"}</span>
+              <span className="ls-group__val">{current.name}</span>
               <Icon name="chevron" size={13} />
             </button>
           </div>
           {open === "start" ? (
             <div className="ls-group__body">
-              <div className="ls-themes">
-                {APPEARANCE_THEMES.map((t) => {
-                  const tk = appearanceTokens(appearanceFromTheme(t.id) ?? BASE_APPEARANCE);
-                  return (
-                    <button key={t.id} type="button" className={`ls-theme${a.theme === t.id ? " is-on" : ""}`} aria-pressed={a.theme === t.id} title={t.name} disabled={locked("colours")} onClick={() => look.edit(appearanceFromTheme(t.id, a.surface)!, `theme:${t.id}`)}>
-                      <span className="ls-theme__sw" style={{ background: tk["--color-bg"], borderColor: tk["--color-border"] }}>
-                        <span style={{ background: tk["--color-accent"] }} />
-                      </span>
-                      <span className="ls-theme__name">{t.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              <button type="button" className="ls-current" onClick={() => setGallery(true)}>
+                <TemplateThumb id={current.id} title={current.name} tokens={tokens} css={css} />
+                <span className="ls-current__name">{current.name}</span>
+                <span className="ls-current__change">Browse templates</span>
+              </button>
               {look.state?.prd?.direction ? (
                 <button type="button" className="btn btn--sm ls-prd" onClick={() => setReading(look.read(look.state!.prd!.direction!))}>
                   Use my PRD's look
@@ -289,6 +328,19 @@ export function LookStudio({ projectId, brand, tagline, onBack, onNext }: { proj
           "Colours",
           <>
             <div className="ls-field">
+              <span className="ls-field__k">Palette</span>
+              <div className="ls-palettes">
+                {APPEARANCE_THEMES.map((t) => {
+                  const tk = appearanceTokens(appearanceFromTheme(t.id) ?? BASE_APPEARANCE);
+                  return (
+                    <button key={t.id} type="button" className={`ls-palette${a.theme === t.id ? " is-on" : ""}`} aria-pressed={a.theme === t.id} title={t.name} aria-label={t.name} disabled={locked("colours")} onClick={() => look.edit(appearanceFromTheme(t.id, a.surface)!, `theme:${t.id}`)} style={{ background: tk["--color-bg"], borderColor: tk["--color-border"] }}>
+                      <span style={{ background: tk["--color-accent"] }} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="ls-field">
               <span className="ls-field__k">Primary</span>
               <ColorPicker label="Primary colour" value={a.primary} onChange={(hex) => !locked("colours") && look.edit({ primary: hex })} />
             </div>
@@ -326,6 +378,11 @@ export function LookStudio({ projectId, brand, tagline, onBack, onNext }: { proj
         </p>
       </aside>
 
+      {gallery ? (
+        <Modal onClose={() => setGallery(false)} labelledBy="ls-gallery-title" className="ls-gallery-modal">
+          <TemplateGallery current={current.id} tokens={tokens} css={css} onChoose={choose} onClose={() => setGallery(false)} />
+        </Modal>
+      ) : null}
       <footer className="ls-foot">
         {look.error || nextError ? <span className="ls-err" role="alert">{nextError ?? look.error}</span> : null}
         <button type="button" className="btn" onClick={onBack}>Back</button>

@@ -877,7 +877,15 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     const cloud = readyCloud(s.coder);
     const type = C.PRODUCT_TYPES.find((t) => t.id === s.productType);
     // The product type is guidance for the plan, never a template: products may combine several.
-    const description = type && type.id !== "other" ? `${s.description}\n\nProduct type: ${type.label} (guidance; it may combine others).` : s.description;
+    const template = s.template ? C.LIBRARY_SECTIONS.find((x) => x.id === s.template) : undefined;
+    const description = [
+      s.description,
+      type && type.id !== "other" ? `Product type: ${type.label} (guidance; it may combine others).` : "",
+      // The page template chosen in Look and Feel: where the composition starts, not a limit on it.
+      template ? `Start from the library page template "${template.name}" (${template.ref}) and adapt it to this product.` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
     const run = startSpecRun(params.id, { description, references: s.references, autonomy: s.autonomy, ...(s.buildMode ? { buildMode: s.buildMode } : {}), look: { extras: s.extras }, cloud });
     app.store.setSetting(setupKey(params.id), { ...s, status: "started", runId: run.id, updatedAt: new Date().toISOString() } satisfies C.ProjectSetup);
     return { project: app.store.projects.require(params.id), run };

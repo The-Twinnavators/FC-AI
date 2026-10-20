@@ -28,6 +28,9 @@ describe("project setup", () => {
       // Later steps add to it; several Extras at once, one taken out again without touching the others.
       await call(`/projects/${id}/setup`, { extras: ["toasts", "sticky-header", "installable"], autonomy: "assisted" });
       await call(`/projects/${id}/setup`, { extras: ["toasts", "installable"] });
+      // Look and Feel's page template: a library template only.
+      await call(`/projects/${id}/setup`, { template: "app-analytics" });
+      expect((await call(`/projects/${id}/setup`, { template: "nope" })).status).toBe(400);
       expect((await call(`/projects/${id}/setup`, { extras: ["not-an-extra"] })).status).toBe(400);
 
       // A reload reads it all back, the PRD included as it was attached.
@@ -38,6 +41,7 @@ describe("project setup", () => {
       const started = await call<{ run: { id: string; objective: string } }>(`/projects/${id}/setup/start`, {});
       expect(started.status).toBe(200);
       expect(started.body.run.objective).toContain("Product type: SaaS");
+      expect(started.body.run.objective).toContain('library page template "Analytics dashboard" (t.');
       expect(app.store.getSetting<unknown[]>(`runRefs:${started.body.run.id}`, [])).toHaveLength(1);
       expect(app.store.getSetting(`runLook:${started.body.run.id}`, null)).toEqual({ extras: ["toasts", "installable"] });
       expect(app.store.projects.require(id).settings.autonomy).toBe("assisted");
