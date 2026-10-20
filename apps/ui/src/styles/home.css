@@ -356,3 +356,11 @@ a.home__drafts-btn { text-decoration: none; }
 .dash-agents__nums b.is-fail { color: #f0626b; }
 .dash-agents__nums small { color: var(--text-2); font-size: 11px; }
 @media (max-width: 900px) { .dash-agents > li { grid-template-columns: 1fr; gap: 6px; } }
+
+/* About FlowCode's tabs (LearnTabs): About, Walkthrough, Feature guide, at the top of each of the three pages. */
+.learn-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
+.learn-tabs > button { margin-bottom: -1px; padding: 8px 14px 10px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--text-2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.learn-tabs > button:first-child { padding-left: 0; }
+.learn-tabs > button:hover { color: var(--text-0); }
+.learn-tabs > button.is-on { border-bottom-color: #9b6bff; color: var(--text-0); }
+.learn-tabs > button:focus-visible { outline: 2px solid var(--brand-ink, #8b5cf6); outline-offset: 2px; }

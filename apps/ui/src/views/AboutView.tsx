@@ -8,6 +8,7 @@ import { BadgeCheck, ClipboardList, Eye, FileText, Hammer, Layers, LayoutGrid, L
 import { BannerHero, IntroActions as Actions } from "../components/IntroHero";
 import { DemoCell } from "../components/AboutFragments";
 import { CodeBackdrop } from "../components/CodeBackdrop";
+import { LearnTabs } from "../components/LearnTabs";
 
 /* ─── Page content ─── */
 
@@ -86,6 +87,7 @@ const WHO = [
 export function AboutView() {
   return (
     <div className="page page-enter ab2">
+      <LearnTabs at="about" />
       <BannerHero dark />
 
       <section className="ab2__section" aria-labelledby="ab2-how">
@@ -218,7 +220,7 @@ export function AboutView() {
         <p className="ab2__lede">A PRD, a problem to solve, or an existing project folder.</p>
         <Actions />
         <p className="ab2__fine">
-          FlowCode builds prototypes, not production apps; each project&apos;s Launch readiness lists what the real app still needs. The pictures on this page are drawn from what FlowCode shows for the No BIO &amp; GMO project. Looking for something specific? <a href="#/guide">Browse the feature guide</a>.
+          FlowCode builds prototypes, not production apps; each project&apos;s Launch readiness lists what the real app still needs. The pictures on this page are drawn from what FlowCode shows for the No BIO &amp; GMO project. Looking for something specific? Open the <a href="#/guide">Feature guide</a> tab.
         </p>
       </section>
     </div>

@@ -9,6 +9,7 @@ import { Compass, MessageCircle } from "lucide-react";
 import { copilot } from "../components/Copilot";
 import { startJourney } from "../components/CopilotDriver";
 import { FEATURE_JOURNEYS, stepsJourney } from "../components/copilotJourneys";
+import { LearnTabs } from "../components/LearnTabs";
 import { get } from "../api";
 import { stepTarget } from "@flowcode/contracts";
 
@@ -64,6 +65,7 @@ export function GuideView() {
   };
   return (
     <div className="page">
+      <LearnTabs at="guide" />
       <header className="page__head">
         <div>
           <span className="label">System · v{VERSION}</span>

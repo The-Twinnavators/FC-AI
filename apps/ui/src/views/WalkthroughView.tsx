@@ -10,6 +10,7 @@ import { get, useResource } from "../api";
 import { navigate, useRoute } from "../router";
 import { DiffView, Icon, StatusChip, time } from "../components/ui";
 import { RobotHead, ROLE_COLOR, ROLE_LABEL } from "../components/RobotHead";
+import { LearnTabs } from "../components/LearnTabs";
 
 const PROJECT = "prj_7dc3fb8e913b4f61840f";
 const RUN = "run_b789650d36dd4323aa4b";
@@ -107,6 +108,7 @@ export function WalkthroughView() {
   // The Feature guide's layout: page header, the stages as the left list, one stage's cards on the right.
   return (
     <div className="page wt">
+      <LearnTabs at="walkthrough" />
       <header className="page__head">
         <div>
           <h1 className="page__title">Walkthrough</h1>

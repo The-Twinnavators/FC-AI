@@ -8,8 +8,6 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
       { path: "/quality", icon: "checklist", label: "My Projects" },
       // Everything waiting on you, and the decision log.
       { path: "/approvals", icon: "thumbsUp", label: "Approvals" },
-      // The end-to-end experience, told with the Frameproof build (real parts labelled; the rest says what it is).
-      { path: "/walkthrough", icon: "play", label: "Walkthrough" },
     ],
   },
   {
@@ -24,6 +22,8 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
       { path: "/components", icon: "layers", label: "Component library" },
       // The motion patterns, running live (a review harness, not the builder).
       { path: "/motion", icon: "play", label: "Motion Lab" },
+      // FlowCode's own look (colors, type, parts): a design tool, so it sits with the other two.
+      { path: "/primitives", icon: "palette", label: "Branding" },
       { path: "/knowledge", icon: "bulb", label: "Knowledge Hub" },
       { path: "/topics", icon: "search", label: "Topic Search" },
       // What FlowCode proposes to change about how it works, from run reviews.
@@ -40,10 +40,9 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
   {
     label: "System",
     items: [
+      // About FlowCode has three tabs: About, Walkthrough and Feature guide (LearnTabs).
       { path: "/about", icon: "flowcode", label: "About FlowCode" },
-      { path: "/guide", icon: "guide", label: "Feature guide" },
       { path: "/settings", icon: "settings", label: "Settings" },
-      { path: "/primitives", icon: "palette", label: "Branding" },
       { path: "/system", icon: "gauge", label: "System" },
     ],
   },
