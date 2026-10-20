@@ -85,3 +85,13 @@ html.fc-dots #main li:has(> .lib-card):is(:hover, :focus-within) > .lib-card, ht
 .settings-nav__item:has(.guide-new) .guide-new { grid-column: 2; grid-row: 1; margin: 0 !important; }
 .settings-nav__item:has(.guide-new) .settings-nav__count { grid-column: 3; grid-row: 1; }
 .ml-nav .lib-shelves__heading:first-child { margin-top: 0 !important; }
+/* Agents: the map stays dark in light mode too (its dark colors set on the diagram itself). */
+:root[data-theme="light"] .agents-stage {
+  --bg-0: #0d1119; --bg-1: rgba(24, 30, 43, 0.66); --bg-2: rgba(31, 38, 54, 0.6); --bg-3: rgba(50, 60, 82, 0.5);
+  --line: rgba(190, 200, 222, 0.11); --line-strong: rgba(190, 200, 222, 0.22);
+  --text-0: #ffffff; --text-1: #c3c7d0; --text-2: #8f96a6; --grid-line: rgba(255, 255, 255, 0.05);
+  --brand-1: #3a60c4; --brand-2: #5f7fd0; --brand-3: #84a0db; --brand-ink: #a2b6e6; --brand-soft: rgba(95, 127, 208, 0.16);
+  --badge-bg: #1a2030; --badge-line: rgba(255, 255, 255, 0.18);
+  color-scheme: dark; color: var(--text-0);
+  background: radial-gradient(55% 65% at 50% 50%, rgba(58, 96, 196, 0.18), transparent 70%), #0f141e !important;
+}
