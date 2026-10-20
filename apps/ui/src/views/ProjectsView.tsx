@@ -3,13 +3,12 @@ import { useState } from "react";
 import { SetupCard } from "../components/SetupCard";
 import type { Project, Run } from "@flowcode/contracts";
 import { post } from "../api";
-import { IntroHero, IntroActions } from "../components/IntroHero";
+import { IntroHero } from "../components/IntroHero";
 import { Empty, Icon, ErrorNotice } from "../components/ui";
 import { Dashboard } from "../components/Dashboard";
 import { SkeletonBlock } from "../components/motion";
 import { navigate } from "../router";
 import { ProjectCards } from "./QualityOverview";
-import { CodeBackdrop } from "../components/CodeBackdrop";
 
 type ProjectRow = Project & { latestRun?: Run };
 
@@ -34,6 +33,13 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
     {/* The same dot field as Create PRD's list, under a lens that follows the cursor. */}
     <DotField />
     <div className="page page-enter">
+      <header className="page__head">
+        <div>
+          <span className="label">Overview</span>
+          <h1 className="page__title">Dashboard</h1>
+          <p className="lib__lede">Your builds, checks and projects at a glance.</p>
+        </div>
+      </header>
       {/* Until this computer can build (Ollama, a model, a passed coder test): the next step. */}
       <SetupCard />
       <Dashboard />
@@ -61,7 +67,7 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
       </section>
 
       </div>
-      {/* The intro (what FlowCode does, the two ways in, a short live demo of a build), near the bottom: the Dashboard opens on its numbers. */}
+      {/* The intro (what FlowCode does, the two ways in, a short live demo of a build), at the bottom: the Dashboard opens on its numbers. */}
       <div className="ab2 ab2--home">
         <IntroHero
           extra={
@@ -77,20 +83,6 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
         />
       </div>
 
-      {/* Closing call to action: the same band as About FlowCode's. */}
-      <div className="ab2 ab2--home-cta">
-        <section className="ab2__cta" aria-labelledby="home-start">
-          <CodeBackdrop />
-          <h2 className="ab2__h" id="home-start">
-            Start with what you have.
-          </h2>
-          <p className="ab2__lede">A PRD, a problem to solve, or an existing project folder.</p>
-          <IntroActions />
-          <p className="ab2__fine">
-            FlowCode builds prototypes, not production apps; each project&apos;s Launch readiness lists what the real app still needs. Looking for something specific? <a href="#/guide">Browse the feature guide</a>.
-          </p>
-        </section>
-      </div>
     </div>
     </div>
   );
