@@ -11,6 +11,7 @@ import { navigate } from "../router";
 import { Icon } from "../components/ui";
 import { HomeView } from "./HomeView";
 import { LookStudio } from "../components/LookStudio";
+import { RobotHead, ROLE_COLOR } from "../components/RobotHead";
 
 type Step = "describe" | "look" | "build";
 const STEPS: Array<{ id: Step; label: string }> = [
@@ -44,7 +45,7 @@ export function SetupView({ projectId, step }: { projectId: string; step: string
     <div className="page psetup">
       <SetupSteps projectId={projectId} at={at} />
       {at === "look" ? (
-        <LookStudio projectId={projectId} site={`${project.name.toLowerCase().replace(/[^a-z0-9]+/g, "")  || "yourapp"}.com`} template={setup.template} productType={setup.productType} onTemplate={(template) => void post(`/projects/${projectId}/setup`, { template })} onBack={() => navigate(`/new/${projectId}/describe`)} onNext={() => navigate(`/new/${projectId}/build`)} />
+        <LookStudio projectId={projectId} extras={setup.extras} onExtras={(extras) => void post(`/projects/${projectId}/setup`, { extras })} site={`${project.name.toLowerCase().replace(/[^a-z0-9]+/g, "")  || "yourapp"}.com`} template={setup.template} productType={setup.productType} onTemplate={(template) => void post(`/projects/${projectId}/setup`, { template })} onBack={() => navigate(`/new/${projectId}/describe`)} onNext={() => navigate(`/new/${projectId}/build`)} />
       ) : (
         <BuildStep key={setup.updatedAt} projectId={projectId} project={project} setup={setup} onSaved={res.reload} />
       )}
@@ -55,7 +56,7 @@ export function SetupView({ projectId, step }: { projectId: string; step: string
 /** Build level, who writes the code, Extras, and the summary with Start Build. */
 function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; project: Project; setup: ProjectSetup; onSaved: () => void }) {
   const [autonomy, setAutonomy] = useState<AutonomyLevel>(setup.autonomy);
-  const [extras, setExtras] = useState<string[]>(setup.extras);
+  const extras = setup.extras;
   const [coder, setCoder] = useState(setup.coder);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -64,15 +65,9 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
   const design = useResource<DesignStateView>(`/projects/${projectId}/design/state`, [projectId]);
 
   // Each choice is saved as it is made.
-  const save = (patch: Partial<Pick<ProjectSetup, "autonomy" | "extras" | "coder">>) => {
+  const save = (patch: Partial<Pick<ProjectSetup, "autonomy" | "coder">>) => {
     setError(undefined);
     post(`/projects/${projectId}/setup`, patch).catch((e: Error) => setError(`Not saved: ${e.message}`));
-  };
-  const toggle = (id: string) => {
-    // Several at once: each card adds or removes only itself.
-    const next = extras.includes(id) ? extras.filter((x) => x !== id) : BUILD_EXTRAS.map((x) => x.id).filter((x) => x === id || extras.includes(x));
-    setExtras(next);
-    save({ extras: next });
   };
   const start = async () => {
     if (busy) return;
@@ -97,8 +92,16 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
       <fieldset className="psetup-levels">
         <legend className="sr-only">Build level</legend>
         {BUILD_LEVELS.map((l) => (
-          <label key={l.id} className={`psetup-card${autonomy === l.id ? " is-on" : ""}`} title={AUTONOMY_LEVELS.find((a) => a.id === l.id)?.forYou.join(" ")}>
+          <label key={l.id} className={`psetup-card psetup-level${autonomy === l.id ? " is-on" : ""}`} title={AUTONOMY_LEVELS.find((a) => a.id === l.id)?.forYou.join(" ")}>
             <input type="radio" name="build-level" checked={autonomy === l.id} onChange={() => (setAutonomy(l.id), save({ autonomy: l.id }))} />
+            <span className="psetup-level__art" aria-hidden="true">
+              <RobotHead color={ROLE_COLOR.coder} id={`lvl-${l.id}`} size={40} />
+              <span className="psetup-stops">
+                {STOPS[l.id].map((stop, i) => (
+                  <span key={i} className={stop ? "is-stop" : ""} />
+                ))}
+              </span>
+            </span>
             <span className="psetup-card__name">{l.name}</span>
             <span className="psetup-card__text">{LEVEL_LINE[l.id]}</span>
           </label>
@@ -108,33 +111,22 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
       <fieldset className="psetup-coder">
         <legend>Code written by</legend>
         <div className="psetup-seg">
-          <label className={coder === "local" ? "is-on" : ""}>
-            <input type="radio" name="setup-coder" checked={coder === "local"} onChange={() => (setCoder("local"), save({ coder: "local" }))} /> This computer
-          </label>
-          <label className={coder === "cloud" ? "is-on" : ""} title={cloud.data?.ready ? "Sends this project's code and screenshots to the provider, which charges per use" : `Not set up: ${cloud.data?.problem ?? "checking"}`}>
-            <input type="radio" name="setup-coder" checked={coder === "cloud"} disabled={!cloud.data?.ready} onChange={() => (setCoder("cloud"), save({ coder: "cloud" }))} /> Cloud
-          </label>
-        </div>
-        <span className="psetup-coder__model">{coder === "cloud" ? cloud.data?.model : roles.data?.coder?.assignment?.model}</span>
-      </fieldset>
-
-      <fieldset className="psetup-extras">
-        <legend>
-          Extras <span className="psetup-extras__count">{chosen.length ? `${chosen.length} in this build` : "optional"}</span>
-        </legend>
-        <div className="psetup-chips">
-          {BUILD_EXTRAS.map((x) => {
-            const on = extras.includes(x.id);
+          {(["local", "cloud"] as const).map((c) => {
+            const ready = c === "local" || !!cloud.data?.ready;
             return (
-              <label key={x.id} className={`psetup-chip${on ? " is-on" : ""}`} title={x.hint}>
-                <input type="checkbox" checked={on} onChange={() => toggle(x.id)} aria-description={x.hint} />
-                {on ? <Icon name="check" size={13} /> : null}
-                {x.label}
-                {on ? <span className="sr-only"> (in this build)</span> : null}
+              <label key={c} className={coder === c ? "is-on" : ""} title={c === "local" ? "Runs on this computer. Code, design and screenshots stay here." : ready ? "Sends this project's code and screenshots to the provider, which charges per use." : `Not set up: ${cloud.data?.problem ?? "checking"}. Set it up on the Models page.`}>
+                <input type="radio" name="setup-coder" checked={coder === c} disabled={!ready} onChange={() => (setCoder(c), save({ coder: c }))} />
+                {c === "local" ? (
+                  <svg width="16" height="14" viewBox="0 0 24 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="2" width="18" height="12" rx="2" /><path d="M1 18h22" /></svg>
+                ) : (
+                  <svg width="16" height="14" viewBox="0 0 24 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17h10a4.5 4.5 0 0 0 .6-8.96A6 6 0 0 0 6.1 9.2 4 4 0 0 0 7 17Z" /></svg>
+                )}
+                {c === "local" ? "Local AI" : "Cloud AI"}
               </label>
             );
           })}
         </div>
+        <span className="psetup-coder__model">{coder === "cloud" ? cloud.data?.model : roles.data?.coder?.assignment?.model}</span>
       </fieldset>
 
       <section className="psetup-summary" aria-label="Summary">
@@ -156,6 +148,9 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
     </section>
   );
 }
+
+/** Where each level stops for your OK, as four steps (plan, code, packages, risky changes); a filled dot is a stop. */
+const STOPS: Record<AutonomyLevel, number[]> = { supervised: [1, 1, 1, 1], assisted: [0, 0, 1, 1], autonomous: [0, 0, 0, 0] };
 
 /** One line each; the full policy is the card's tooltip. */
 const LEVEL_LINE: Record<AutonomyLevel, string> = {

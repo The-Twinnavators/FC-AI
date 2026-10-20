@@ -76,7 +76,9 @@
 }
 
 /* ── Setup pages ──────────────────────────────────────────────────────────────────────────────────────────────── */
-.psetup { display: grid; justify-items: center; gap: 32px; width: min(1320px, 100%); margin: 0 auto; padding: 24px; }
+/* FlowCode's page is a flex column (#main .page, !important): center its children in it. */
+#main .page.psetup { align-items: center; gap: 32px; }
+#main .page.psetup > * { max-width: 100%; }
 .psetup__steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .psetup__steps button { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px 0 6px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--text-1); font: inherit; font-size: 13px; cursor: pointer; }
 .psetup__steps b { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-2); font-size: 11.5px; }
@@ -104,11 +106,11 @@
 .psetup-card__in { margin-left: auto; padding: 1px 8px; border-radius: 999px; background: var(--brand-ink, var(--text-0)); color: var(--bg-0, #0f1420); font-size: 11px; font-weight: 650; }
 .psetup-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; border: 0; }
 @media (max-width: 760px) { .psetup-levels { grid-template-columns: minmax(0, 1fr); } }
-.psetup-coder, .psetup-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0; padding: 0; border: 0; }
-.psetup-coder > legend, .psetup-extras > legend { float: left; width: 100%; margin-bottom: 8px; padding: 0; font-size: 14px; font-weight: 650; color: var(--text-0); }
+.psetup-coder, .psetup-extras { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin: 0; padding: 0; border: 0; }
+.psetup-coder > legend, .psetup-extras > legend { float: left; width: 100%; margin-bottom: 8px; padding: 0; text-align: center; font-size: 14px; font-weight: 650; color: var(--text-0); }
 .psetup-coder__model { font-size: 12.5px; color: var(--text-2); }
 .psetup-seg { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-1); }
-.psetup-seg > label { position: relative; padding: 6px 14px; border-radius: 7px; font-size: 13px; color: var(--text-1); cursor: pointer; }
+.psetup-seg > label { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 7px; font-size: 13px; color: var(--text-1); cursor: pointer; }
 .psetup-seg > label.is-on { background: var(--brand-soft, var(--bg-2)); color: var(--text-0); box-shadow: inset 0 0 0 1px var(--brand-ink, var(--line-strong)); }
 .psetup-seg > label > input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .psetup-seg > label:has(> input:focus-visible) { outline: 2px solid var(--brand-ink, var(--text-0)); outline-offset: 2px; }
@@ -125,6 +127,15 @@
 .psetup-summary > span:first-child { padding-left: 0; border-left: 0; }
 .psetup-summary b { color: var(--text-0); font-weight: 600; }
 @media (max-width: 640px) {
-  .psetup { padding: 16px; }
+  #main .page.psetup { gap: 24px; }
 }
 @media (prefers-reduced-motion: reduce) { .psetup-card, .psetup-chip, .composer { transition: none; } }
+
+/* Build levels and who writes the code, drawn: the Coder's robot head on each card. */
+.psetup-level { justify-items: center; text-align: center; padding: 18px 14px 16px; }
+.psetup-level__art { display: grid; justify-items: center; gap: 10px; margin-bottom: 4px; }
+.psetup-stops { display: flex; gap: 4px; }
+.psetup-stops > span { width: 16px; height: 4px; border-radius: 999px; background: var(--line-strong); }
+.psetup-stops > span.is-stop { background: var(--brand-ink, var(--text-0)); }
+.psetup-card.is-on .psetup-stops > span.is-stop { background: var(--brand-1, #3b3fc4); }
+.psetup-card.is-on @media (max-width: 560px) { 

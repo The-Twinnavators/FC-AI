@@ -35,6 +35,7 @@ import {
 import { Icon } from "./ui";
 import { ColorPicker } from "./ColorPicker";
 import { RampSwatch } from "./RampSwatch";
+import { ExtrasPicker } from "./ExtrasPicker";
 import { LiveTemplate, TemplateThumb } from "./LiveTemplate";
 import { Modal } from "./Modal";
 import { useLookDraft } from "./useLookDraft";
@@ -121,11 +122,12 @@ function Seg<T extends string | number>({ label, value, options, onChange, disab
   );
 }
 
-export function LookStudio({ projectId, site, template, productType, onTemplate, onBack, onNext }: { projectId: string; site: string; template?: string; productType?: string; onTemplate: (id: string) => void; onBack: () => void; onNext: () => void }) {
+export function LookStudio({ projectId, site, template, productType, extras: extrasIn = [], onExtras, onTemplate, onBack, onNext }: { projectId: string; site: string; template?: string; productType?: string; extras?: string[]; onExtras: (next: string[]) => void; onTemplate: (id: string) => void; onBack: () => void; onNext: () => void }) {
   const look = useLookDraft(projectId);
   const a = look.appearance ?? BASE_APPEARANCE;
   const [picked, setPicked] = useState(template ?? firstFor(productType) ?? "home-saas");
   const [gallery, setGallery] = useState(false);
+  const [extras, setExtras] = useState(extrasIn);
   const current = TEMPLATES.find((t) => t.id === picked) ?? TEMPLATES[0]!;
   const choose = (id: string) => {
     setPicked(id);
@@ -133,7 +135,7 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
     onTemplate(id);
   };
   const [device, setDevice] = useState<Device>("desktop");
-  const [open, setOpen] = useState<Group | "start">("start");
+  const [open, setOpen] = useState<Group | "start" | "extras">("start");
   const [words, setWords] = useState("");
   const [reading, setReading] = useState<DirectionReading>();
   const [busy, setBusy] = useState(false);
@@ -375,6 +377,21 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
           "Motion",
           <Seg label="Amount" value={a.motion?.level} options={MOTION_LEVELS.map((m) => ({ v: m, label: MOTION_LABEL[m].name, title: MOTION_LABEL[m].detail }))} disabled={locked("motion")} onChange={(level) => look.edit({ motion: { ...a.motion, level } })} />,
         )}
+
+        <section className={`ls-group${open === "extras" ? " is-open" : ""}`}>
+          <div className="ls-group__head">
+            <button type="button" className="ls-group__btn" aria-expanded={open === "extras"} onClick={() => setOpen(open === "extras" ? "start" : "extras")}>
+              <span className="ls-group__name">Extras</span>
+              <span className="ls-group__val">{extras.length ? `${extras.length} in this build` : "None"}</span>
+              <Icon name="chevron" size={13} />
+            </button>
+          </div>
+          {open === "extras" ? (
+            <div className="ls-group__body">
+              <ExtrasPicker value={extras} onChange={(next) => (setExtras(next), onExtras(next))} />
+            </div>
+          ) : null}
+        </section>
 
         <p className={`ls-contrast${failing.length ? " is-bad" : ""}`} title={checks.map((c) => `${c.ok ? "✓" : "✕"} ${c.label}: ${c.ratio}:1 (needs ${c.min}:1)`).join("\n")}>
           {failing.length ? `✕ ${failing.length} contrast ${failing.length === 1 ? "issue" : "issues"}` : `✓ Contrast passes (${checks.length})`}
