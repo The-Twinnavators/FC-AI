@@ -1,0 +1,229 @@
+/**
+ * Cafe ordering app (t.app-mobile-order): a phone-width column centered on the page color with the cafe's header,
+ * scrolling category tabs, a menu with drawn food art, a sticky order bar over the library's bottom navigation
+ * (c.bottom-nav, mobile.css) and bottom sheets (c.drawer, dialogs.css) for an item, the order and the confirmation.
+ * Prefixed fl-mord-; only the library's tokens.
+ */
+
+/* ── Frame: a phone-width column, centered on wider screens ── */
+.fl-mord {
+  --fl-mord-max: 430px;
+  --fl-mord-nav: calc(4.5rem + 1px + env(safe-area-inset-bottom, 0px));
+  min-height: 100dvh; background: var(--color-bg); color: var(--color-text);
+  font-family: var(--font-sans); font-size: var(--text-md); line-height: var(--leading-normal);
+}
+.fl-mord-phone { position: relative; width: 100%; max-width: var(--fl-mord-max); min-height: 100dvh; margin-inline: auto; background: var(--color-bg); }
+@media (min-width: 480px) {
+  .fl-mord-phone { border-inline: 1px solid var(--color-border); }
+}
+.fl-mord :where(h1, h2, h3, p, dl, dd, fieldset) { margin: 0; }
+:where(.fl-mord) :where(button) { font: inherit; color: inherit; }
+.fl-mord :is(a, button, input, textarea, [tabindex]):focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.fl-mord-main {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); padding: var(--space-4) var(--space-4) calc(var(--fl-mord-nav) + 5.5rem);
+  animation: fl-mord-in var(--duration-base) var(--ease-out, var(--easing)) both;
+}
+@keyframes fl-mord-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* ── Type and rows ── */
+.fl-mord-h1 { font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--heading-weight, var(--weight-bold)); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight, 0); }
+.fl-mord-h2 { font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--heading-weight, var(--weight-semibold)); line-height: var(--leading-snug); margin-bottom: var(--space-3) !important; }
+.fl-mord-h2 .fl-mord-meta { font-family: var(--font-sans); font-weight: var(--weight-regular); }
+.fl-mord-row .fl-mord-h2 { margin-bottom: 0 !important; }
+.fl-mord-meta { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-mord-num { font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-mord-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+
+/* ── Header: name, pickup or delivery, the time ── */
+.fl-mord-head { display: grid; gap: var(--space-3); padding-top: var(--space-2); }
+.fl-mord-head__top { display: flex; align-items: center; gap: var(--space-3); }
+.fl-mord-logo { flex: none; display: grid; }
+.fl-mord-logo .fl-mord-art { width: 3rem; height: 3rem; border-radius: var(--pill-radius, 999px); }
+.fl-mord-when {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); width: 100%; min-height: 2.75rem;
+  padding: var(--space-2) var(--space-4); border: 0; border-radius: var(--control-radius, var(--radius-md));
+  background: var(--color-surface-sunken); text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.fl-mord-when--static { grid-template-columns: auto minmax(0, 1fr); cursor: default; }
+.fl-mord-when__label { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-mord-when__value { font-weight: var(--weight-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-mord-when__change { color: var(--color-accent); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+button.fl-mord-when:hover { background: color-mix(in srgb, var(--color-text) 8%, var(--color-surface-sunken)); }
+
+/* ── Category tabs: a sideways-scrolling row that stays at the top ── */
+.fl-mord-cats {
+  position: sticky; top: 0; z-index: 5; margin-inline: calc(-1 * var(--space-4)); padding: var(--space-2) 0;
+  background: var(--color-bg); border-bottom: 1px solid var(--color-border);
+}
+.fl-mord-cats ul {
+  display: flex; gap: var(--space-2); margin: 0; padding: var(--space-1) var(--space-4); list-style: none;
+  overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: var(--space-4); scrollbar-width: none; overscroll-behavior-x: contain;
+}
+.fl-mord-cats ul::-webkit-scrollbar { display: none; }
+.fl-mord-cats li { flex: none; scroll-snap-align: start; }
+.fl-mord-cat {
+  min-height: 2.75rem; padding: 0 var(--space-4); border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px);
+  background: var(--control-bg, var(--color-bg)); color: var(--color-text-muted); font-size: var(--text-sm); font-weight: var(--weight-medium);
+  white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
+}
+.fl-mord-cat:hover { color: var(--color-text); border-color: var(--color-border-strong); }
+.fl-mord-cat[aria-pressed="true"] { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); font-weight: var(--weight-semibold); }
+
+/* ── Menu items ── */
+.fl-mord-menu, .fl-mord-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.fl-mord-item, .fl-mord-card {
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+  background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none);
+  backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
+}
+.fl-mord-item {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "open add" "diet add";
+  align-items: center; column-gap: var(--space-2); padding: var(--space-3); padding-right: var(--space-3);
+}
+.fl-mord-item__open {
+  grid-area: open; display: flex; align-items: flex-start; gap: var(--space-3); min-width: 0; min-height: 2.75rem; padding: 0;
+  border: 0; border-radius: var(--radius-md); background: none; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.fl-mord-item__open .fl-mord-art { width: 4.5rem; height: 4.5rem; }
+.fl-mord-item__open:hover .fl-mord-item__name { text-decoration: underline; text-underline-offset: 0.15em; }
+.fl-mord-item__body { display: grid; gap: 0.125rem; min-width: 0; }
+.fl-mord-item__name { font-weight: var(--weight-semibold); line-height: var(--leading-snug); }
+.fl-mord-item__text { color: var(--color-text-muted); font-size: var(--text-sm); line-height: var(--leading-snug); }
+.fl-mord-item__price { margin-top: var(--space-1); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-mord-item__count { color: var(--color-accent); font-size: var(--text-sm); }
+.fl-mord-item__diet { grid-area: diet; display: flex; flex-wrap: wrap; gap: var(--space-1); padding: var(--space-2) 0 0 calc(4.5rem + var(--space-3)); }
+.fl-mord-sheethero .fl-mord-item__diet { grid-area: auto; padding: 0; }
+.fl-mord-add {
+  grid-area: add; align-self: center; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0;
+  border: 0; border-radius: var(--pill-radius, 999px); background: var(--color-accent); color: var(--color-on-accent);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background var(--duration-fast) var(--easing), transform var(--duration-fast) var(--easing);
+}
+.fl-mord-add svg { width: 1.25rem; height: 1.25rem; }
+.fl-mord-add:hover { background: var(--color-accent-hover, var(--color-accent)); }
+.fl-mord-add:active { transform: scale(var(--press-scale, 0.96)); }
+
+/* ── Food art: drawn from the theme colors ── */
+.fl-mord-art {
+  --fl-mord-hue: var(--color-accent);
+  flex: none; display: grid; place-items: center; width: 4rem; height: 4rem; border-radius: var(--radius-md); overflow: hidden;
+  background: color-mix(in srgb, var(--fl-mord-hue) 12%, var(--color-bg));
+}
+.fl-mord-art[data-tone="warm"] { --fl-mord-hue: var(--color-warning); }
+.fl-mord-art[data-tone="secondary"] { --fl-mord-hue: var(--color-secondary, var(--color-accent)); }
+.fl-mord-art svg { display: block; width: 86%; height: 86%; }
+.fl-mord-art__a { fill: color-mix(in srgb, var(--fl-mord-hue) 72%, var(--color-bg)); }
+.fl-mord-art__b { fill: color-mix(in srgb, var(--fl-mord-hue) 34%, var(--color-bg)); }
+.fl-mord-art__c { fill: color-mix(in srgb, var(--fl-mord-hue) 18%, var(--color-surface-sunken)); }
+.fl-mord-art__line { fill: none; stroke: color-mix(in srgb, var(--fl-mord-hue) 55%, var(--color-text)); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.fl-mord-art--big { width: 6.5rem; height: 6.5rem; border-radius: var(--radius-lg); }
+
+/* ── The order bar: above the tab bar, kept to the column ── */
+.fl-mord-bar {
+  position: fixed; z-index: 29; left: 0; right: 0; bottom: var(--fl-mord-nav); max-width: var(--fl-mord-max); margin-inline: auto;
+  padding: var(--space-2) var(--space-4); pointer-events: none;
+  animation: fl-mord-up var(--duration-base) var(--ease-out, var(--easing)) both;
+}
+@keyframes fl-mord-up { from { opacity: 0; transform: translateY(0.75rem); } }
+.fl-mord-bar__btn {
+  pointer-events: auto; display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: 3.5rem; padding: var(--space-2) var(--space-4);
+  border: 0; border-radius: min(var(--control-radius, var(--radius-md)), 12px); background: var(--color-accent); color: var(--color-on-accent);
+  box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none)); font-weight: var(--weight-semibold); text-align: left; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: background var(--duration-fast) var(--easing);
+}
+.fl-mord-bar__btn:hover { background: var(--color-accent-hover, var(--color-accent)); }
+.fl-mord-bar__btn:focus-visible { box-shadow: var(--focus-ring); }
+.fl-mord-bar__icon { position: relative; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; }
+.fl-mord-bar__icon svg { width: 1.4rem; height: 1.4rem; }
+.fl-mord-bar__count {
+  position: absolute; top: -0.45rem; right: -0.6rem; min-width: 1.1rem; height: 1.1rem; padding: 0 0.25rem; border-radius: var(--pill-radius, 999px);
+  background: var(--color-on-accent); color: var(--color-accent); font-size: 0.7rem; font-weight: var(--weight-bold); line-height: 1.1rem; text-align: center;
+}
+.fl-mord-bar__label { flex: 1; min-width: 0; font-variant-numeric: tabular-nums; }
+
+/* ── Bottom sheets: an item, the order, the confirmation ── */
+.fl-mord-sheet .fl-dlg-sheet, .fl-mord-times .fl-dlg-sheet { max-width: var(--fl-mord-max); }
+.fl-mord-sheet .fl-dlg-sheet__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.fl-mord-sheet .fl-dlg-sheet__head .fl-btn { flex: none; min-width: 2.75rem; min-height: 2.75rem; }
+.fl-mord-sheet .fl-dlg-foot {
+  position: sticky; bottom: calc(-1 * (var(--space-5) + env(safe-area-inset-bottom, 0px))); flex-direction: column; align-items: stretch;
+  margin: 0 calc(-1 * var(--space-4)) calc(-1 * (var(--space-5) + env(safe-area-inset-bottom, 0px)));
+  padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  background: var(--color-surface); border-top: 1px solid var(--color-border);
+}
+.fl-mord-sheetbody { display: grid; gap: var(--space-5); padding: var(--space-2) var(--space-1) var(--space-2); }
+.fl-mord-sheethero { display: flex; align-items: flex-start; gap: var(--space-4); }
+.fl-mord-sheethero__text { display: grid; gap: var(--space-2); color: var(--color-text-muted); }
+.fl-mord-field { display: grid; gap: var(--space-2); min-width: 0; padding: 0; border: 0; }
+.fl-mord-field > legend { padding: 0; margin-bottom: var(--space-2); font-weight: var(--weight-semibold); }
+.fl-mord-field .fl-ctl-seg__opt { font-size: var(--text-xs); }
+.fl-mord-extras { display: grid; margin: 0; padding: 0; list-style: none; }
+.fl-mord-extras li + li { border-top: 1px solid var(--color-border); }
+.fl-mord-extra { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); min-height: 3rem; padding: var(--space-1) 0; cursor: pointer; }
+.fl-mord-extra:has(input:focus-visible) { border-radius: var(--radius-md); box-shadow: var(--focus-ring); }
+
+/* Order lines, note and totals */
+.fl-mord-olines { display: grid; margin: 0; padding: 0; list-style: none; }
+.fl-mord-oline { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; }
+.fl-mord-oline + .fl-mord-oline { border-top: 1px solid var(--color-border); }
+.fl-mord-oline .fl-mord-art { width: 3rem; height: 3rem; }
+.fl-mord-oline__body { display: grid; gap: 0.125rem; min-width: 0; }
+.fl-mord-oline .fl-in-qty { width: auto; }
+.fl-mord-oline .fl-in-qty input { width: 2.25rem; }
+.fl-mord-note .fl-ctl-field { width: 100%; }
+.fl-mord-totals { display: grid; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--color-border); font-variant-numeric: tabular-nums; }
+.fl-mord-totals > div { display: flex; justify-content: space-between; gap: var(--space-3); }
+.fl-mord-totals dt { color: var(--color-text-muted); }
+.fl-mord-totals__sum { padding-top: var(--space-2); border-top: 1px dashed var(--color-border); font-size: var(--text-lg); font-weight: var(--weight-bold); }
+.fl-mord-totals__sum dt { color: var(--color-text); }
+.fl-mord-empty { display: grid; justify-items: start; gap: var(--space-2); color: var(--color-text-muted); }
+
+/* Confirmation */
+.fl-mord-done { justify-items: center; gap: var(--space-2); text-align: center; }
+.fl-mord-done__check {
+  display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: var(--pill-radius, 999px);
+  background: color-mix(in srgb, var(--color-success) 16%, var(--color-bg)); color: var(--color-success);
+  animation: fl-mord-pop var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)) both;
+}
+.fl-mord-done__check svg { width: 1.75rem; height: 1.75rem; }
+@keyframes fl-mord-pop { from { transform: scale(0.6); opacity: 0; } }
+.fl-mord-code { font-family: var(--font-mono); font-weight: var(--weight-bold); letter-spacing: var(--tracking-wide, 0.04em); }
+.fl-mord-code--big {
+  padding: var(--space-2) var(--space-5); border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md);
+  font-size: var(--text-2xl); line-height: var(--leading-tight);
+}
+
+/* ── Orders, rewards, account ── */
+.fl-mord-card { display: grid; gap: var(--space-3); padding: var(--space-4); }
+.fl-mord-card--tight { gap: var(--space-1); padding: var(--space-3) var(--space-4); }
+.fl-mord-card > .fl-btn { justify-self: start; }
+.fl-mord-lines { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; font-size: var(--text-sm); }
+.fl-mord-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin: 0; padding: 0; list-style: none; font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-mord-steps li { display: grid; gap: var(--space-1); }
+.fl-mord-steps li::before { content: ""; height: 0.375rem; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); }
+.fl-mord-steps li[data-done]::before { background: var(--color-accent); }
+.fl-mord-steps li[data-now] { color: var(--color-text); font-weight: var(--weight-semibold); }
+.fl-mord-steps li[data-now]::before { background: color-mix(in srgb, var(--color-accent) 50%, var(--color-surface-sunken)); }
+.fl-mord-stamps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-mord-stamps li {
+  display: grid; place-items: center; aspect-ratio: 1; border: 1px dashed var(--color-border-strong); border-radius: var(--pill-radius, 999px);
+  color: var(--color-text-muted);
+}
+.fl-mord-stamps li svg { width: 55%; height: 55%; opacity: 0.35; }
+.fl-mord-stamps li[data-on] { border: 0; background: var(--color-accent); color: var(--color-on-accent); }
+.fl-mord-stamps li[data-on] svg { opacity: 1; }
+.fl-mord-me { display: flex; align-items: center; gap: var(--space-4); }
+.fl-mord-setting { display: flex; align-items: center; gap: var(--space-3); min-height: 3.5rem; padding: var(--space-3) var(--space-4); }
+.fl-mord-setting__body { display: grid; flex: 1; min-width: 0; }
+
+/* ── The bottom bar, kept to the column ── */
+.fl-mord .fl-mob-nav--fixed { left: 0; right: 0; max-width: var(--fl-mord-max); margin-inline: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-mord-main, .fl-mord-bar, .fl-mord-done__check { animation: none; }
+  .fl-mord *, .fl-mord *::before, .fl-mord *::after { transition: none !important; }
+  .fl-mord-add:active { transform: none; }
+  .fl-mord-cats ul { scroll-behavior: auto; }
+}

@@ -30,13 +30,13 @@ const PRODUCT_TYPE_IDS = PRODUCT_TYPES.map((t) => t.id) as [ProductType, ...Prod
  */
 export const TEMPLATES_FOR: Record<ProductType, string[]> = {
   saas: ["home-saas", "app-analytics", "app-settings", "home-startup", "home-devtool"],
-  "ai-app": ["app-ai-chat"],
+  "ai-app": ["app-ai-chat", "app-ai-writer"],
   "admin-portal": ["app-admin", "app-analytics", "app-settings"],
-  social: ["app-social-feed"],
+  social: ["app-social-feed", "app-social-messages"],
   website: ["site-agency", "site-cafe", "site-photographer", "site-magazine", "site-real-estate", "site-fitness", "site-nonprofit", "site-event", "site-clinic", "site-coming-soon", "site-docs", "home-personal"],
-  "mobile-app": ["app-mobile-home"],
+  "mobile-app": ["app-mobile-home", "app-mobile-order"],
   "online-store": ["app-storefront", "landing-product", "landing-product-clothing", "landing-subscription"],
-  marketplace: ["app-marketplace"],
+  marketplace: ["app-marketplace", "app-marketplace-listing"],
   "internal-tool": ["app-kanban", "app-support-inbox", "app-admin"],
   other: [],
 };
