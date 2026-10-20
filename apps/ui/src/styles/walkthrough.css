@@ -118,3 +118,17 @@
 .wt-panel__body > .btn, .wt-panel__body > .wt-badge, .wt-panel__body > button { justify-self: start; }
 .wt-list--cols { display: block; columns: 3 14rem; column-gap: 32px; }
 .wt-list--cols li { break-inside: avoid; margin-bottom: 6px; }
+/* Examples in the general walkthrough. */
+.wt-quote { margin: 0; padding: 12px 16px; border-left: 3px solid var(--line-strong); border-radius: 0 8px 8px 0; background: var(--bg-2); color: var(--text-0); font-size: 14px; line-height: 1.55; }
+.wt-pairs, .wt-levels { display: grid; gap: 8px; margin: 0; }
+.wt-pairs { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.wt-pairs > div, .wt-levels > div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.wt-pairs dt, .wt-levels dt { color: var(--text-2); font-size: 12px; font-weight: 600; }
+.wt-levels dt { color: var(--text-0); font-size: 14px; }
+.wt-pairs dd, .wt-levels dd { margin: 2px 0 0; font-size: 13.5px; }
+.wt-plan-list { display: grid; gap: 10px; margin: 0; padding-left: 20px; }
+.wt-plan-list li { display: grid; gap: 2px; }
+.wt-plan-list .wt-dim { font-size: 12.5px; }
+.wt-chat { display: grid; gap: 10px; }
+.wt-chat__you { justify-self: end; max-width: 80%; margin: 0; padding: 10px 14px; border-radius: 12px 12px 4px 12px; background: color-mix(in srgb, var(--brand-1, #3b3fc4) 30%, var(--bg-2)); font-size: 13.5px; }
+.wt-chat__bot { display: flex; gap: 8px; align-items: flex-start; max-width: 90%; margin: 0; padding: 10px 14px; border-radius: 12px 12px 12px 4px; background: var(--bg-2); font-size: 13.5px; }
