@@ -79,7 +79,7 @@ export const PRD_TEMPLATES: PrdTemplate[] = [
   {
     id: "ecommerce",
     label: "E-commerce store",
-    description: "Online shop: catalogue, cart, checkout, orders, shipping and returns.",
+    description: "Online shop: catalog, cart, checkout, orders, shipping and returns.",
     extra: [
       { title: "Catalogue and product data", body: "- Product fields: [title, price, variants, images, stock, …]\n- Categories and filters: [list]\n- Who manages products and how: [admin screen, import, CMS]" },
       { title: "Cart and checkout", body: "1. [Add to cart rules: limits, variants, out of stock]\n2. [Checkout steps: guest or account, address, delivery, payment]\n3. [Confirmation page and email]" },

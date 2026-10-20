@@ -3,6 +3,7 @@
  * browser), then copy it, download it as Markdown, or start a new build with it attached as the PRD.
  * The headings are numbered so FlowCode's plans can cite them.
  */
+import "../styles/settings-groups.css";
 import { useEffect, useState } from "react";
 import { PRD_TEMPLATES, prdTemplate } from "@flowcode/contracts";
 import { Check, Copy, Download, Eye, PencilLine, RotateCcw, Rocket } from "lucide-react";
@@ -79,20 +80,26 @@ export function PrdTemplates() {
           PRD templates
         </h2>
         <span className="muted" style={{ marginLeft: "auto", fontSize: 12.5 }}>
-          Numbered headings, so plans can cite sections
+          Numbered headings, so a plan can point to each section
         </span>
       </div>
       <div className="section__body prdt">
-        <div className="prdt__kinds" data-cp="prdt-kinds" role="radiogroup" aria-label="Kind of project">
-          {PRD_TEMPLATES.map((t) => (
-            <button key={t.id} type="button" role="radio" aria-checked={id === t.id} className="prdt__kind" onClick={() => pick(t.id)}>
-              <strong>{t.label}</strong>
-              <span>{t.description}</span>
-              {readDraft(t.id) ? <span className="prdt__draft">Draft saved</span> : null}
-            </button>
-          ))}
+        {/* 1. Choose: the kinds as short pills (what each covers on hover), the chosen one's description below. */}
+        <div className="prdt__step">
+          <h3 className="prdt__h">1. Choose a template</h3>
+          <div className="prdt__kinds" data-cp="prdt-kinds" role="radiogroup" aria-label="Kind of project">
+            {PRD_TEMPLATES.map((t) => (
+              <button key={t.id} type="button" role="radio" aria-checked={id === t.id} className="prdt__kind" title={t.description} onClick={() => pick(t.id)}>
+                {t.label}
+                {readDraft(t.id) ? <span className="prdt__draft" title="Draft saved in this browser" aria-label="Draft saved" /> : null}
+              </button>
+            ))}
+          </div>
+          <p className="prdt__about">{template.description}</p>
         </div>
 
+        <div className="prdt__step">
+          <h3 className="prdt__h">2. Fill it in</h3>
         <div className="prdt__bar">
           <div className="styles-views" role="tablist" aria-label="Template view">
             <button type="button" role="tab" aria-selected={mode === "edit"} className="styles-views__btn" onClick={() => setMode("edit")}>
@@ -125,13 +132,14 @@ export function PrdTemplates() {
               {template.label} PRD
             </label>
             <textarea id="prdt-text" className="textarea mono prdt__text" value={text} onChange={(e) => setText(e.target.value)} spellCheck />
-            <p className="muted prdt__hint">Replace each [placeholder]. Delete sections that don&apos;t apply rather than leaving them empty. Your draft stays in this browser until you start over.</p>
+            <p className="muted prdt__hint">Replace each [placeholder] and delete sections that don&apos;t apply. Your draft stays in this browser.</p>
           </>
         ) : (
           <div className="prdt__preview">
             <Markdown source={text} />
           </div>
         )}
+        </div>
       </div>
     </section>
   );
