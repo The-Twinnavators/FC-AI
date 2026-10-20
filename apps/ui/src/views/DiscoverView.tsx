@@ -102,7 +102,7 @@ function StartResearch() {
       <HomeBackdrop />
       <div className="home__inner">
         <a className="disc-home__back" href="#/discover">
-          <Icon name="chevron" size={12} /> All PRDs
+          <Icon name="chevron" size={12} /> View all PRDs
         </a>
         <h1 className="home__title" id="disc-title">
           What problem do you want to solve?
