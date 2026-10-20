@@ -2,12 +2,11 @@ import { useState } from "react";
 import { SetupCard } from "../components/SetupCard";
 import type { Project, Run } from "@flowcode/contracts";
 import { post } from "../api";
-import { IntroHero, IntroActions, startBuild } from "../components/IntroHero";
+import { IntroHero, IntroActions } from "../components/IntroHero";
 import { Empty, Icon, ErrorNotice } from "../components/ui";
 import { Dashboard } from "../components/Dashboard";
 import { SkeletonBlock } from "../components/motion";
 import { navigate } from "../router";
-import { HowItWorks } from "../components/HowItWorks";
 import { ProjectCards } from "./QualityOverview";
 import { CodeBackdrop } from "../components/CodeBackdrop";
 
@@ -72,10 +71,6 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
           <ProjectCards compact reload={reload} projects={[...projects].sort((a, b) => (b.latestRun?.createdAt ?? b.updatedAt).localeCompare(a.latestRun?.createdAt ?? a.updatedAt)).slice(0, 3)} />
         )}
       </section>
-      {/* How FlowCode works, after the projects. */}
-      <div id="newbuild" data-reveal>
-        <HowItWorks onStart={startBuild} />
-      </div>
 
       </div>
       {/* Closing call to action: the same band as About FlowCode's. */}

@@ -11,7 +11,8 @@ import { HomeBackdrop } from "../components/HomeBackdrop";
 import { SetupSteps } from "./SetupView";
 import type { ProjectSetup } from "@flowcode/contracts";
 import { SetupCard } from "../components/SetupCard";
-import { PrototypeScope } from "../components/IntroHero";
+import { PrototypeScope, startBuild } from "../components/IntroHero";
+import { HowItWorks } from "../components/HowItWorks";
 
 export function HomeView({ draft }: { draft?: { projectId: string; name: string; setup: ProjectSetup } } = {}) {
   const drafts = useResource<Array<{ project: { id: string; name: string }; updatedAt: string }>>("/setups");
@@ -24,6 +25,7 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
     return () => window.removeEventListener("fc:new-build", focus);
   }, []);
   return (
+    <>
     <div className="home page-enter" ref={wrap}>
       <HomeBackdrop />
       <SetupSteps projectId={draft?.projectId} at="describe" />
@@ -49,5 +51,12 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
         </details>
       </div>
     </div>
+    {/* How FlowCode works, at the bottom of Home (below the first screen and its backdrop). */}
+    {!draft ? (
+      <div id="newbuild" className="home__how">
+        <HowItWorks onStart={startBuild} />
+      </div>
+    ) : null}
+    </>
   );
 }
