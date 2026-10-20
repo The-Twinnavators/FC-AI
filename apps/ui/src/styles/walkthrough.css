@@ -138,3 +138,5 @@
 .guide-shot img { display: block; width: 100%; height: auto; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--bg-0); }
 .guide-shot figcaption { color: var(--text-1); font-size: 13px; line-height: 1.5; }
 .guide-shot figcaption strong { margin-right: 4px; color: #b79bff; font-weight: 650; }
+/* Links inside Feature guide cards (Related, and parts that open their own entry) are semibold so they read as links. */
+.guide-card .link-btn { font-weight: 600; }
