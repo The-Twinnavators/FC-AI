@@ -58,6 +58,22 @@ function Seg<T extends string>({ label, value, options, onChange }: { label: str
   );
 }
 
+/** The left list: each pattern's id and short name, in page order. */
+const ML_NAV: Array<[string, string]> = [
+  ["controls", "Button and control feedback"],
+  ["save", "Save and selection state"],
+  ["dialogs", "Dialogs and drawers"],
+  ["expand", "Expand and collapse"],
+  ["tabs", "Tabs and indicators"],
+  ["pages", "Page transitions"],
+  ["cards", "Card entrance"],
+  ["filter", "Filtering and sorting"],
+  ["hero", "Hero choreography"],
+  ["demo", "Product demonstration"],
+  ["ambient", "Scrolling and backgrounds"],
+  ["checks", "Behaviour checks"],
+];
+
 function Pattern({ id, eyebrow, title, why, stage, spec }: { id: string; eyebrow: string; title: string; why: ReactNode; stage: ReactNode; spec: Array<[string, ReactNode]> }) {
   return (
     <section className="ml-pat" id={`ml-${id}`} aria-labelledby={`ml-${id}-h`}>
@@ -870,6 +886,17 @@ export function MotionLabView() {
         {osReduced ? <span className="chip chip--warn">Your system asks for reduced motion: it wins at every level</span> : null}
       </div>
 
+      {/* Laid out like Prompts & Skills: the patterns as a list on the left, each pattern a panel on the right. */}
+      <div className="ml-layout">
+        <nav className="ml-nav" aria-label="Motion patterns">
+          <span className="ml-nav__head">Patterns</span>
+          {ML_NAV.map(([id, label]) => (
+            <a key={id} href={`#ml-${id}`} className="ml-nav__item" onClick={(e) => (e.preventDefault(), document.getElementById(`ml-${id}`)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }))}>
+              {label}
+            </a>
+          ))}
+        </nav>
+        <div className="ml-panels">
       <Pattern id="controls" eyebrow="Functional · all levels" title="Button and control feedback" why="The press shows the instant the pointer goes down. Toggles move with a short spring that can be interrupted: pressing quickly ends on the right state, never on a finished animation for the wrong one." stage={<Controls />} spec={[["Use for", "Every pressable thing: buttons, switches, checkboxes, chips, rows."], ["Avoid", "Bouncy scale on large surfaces, any delay before the pressed state, hover motion on touch."], ["Native", <><Native>CSS transitions</Native> on scale, translate and colour; <code>linear()</code> for the spring.</>], ["Library", "No real gain."], ["Reduced", "No scale or travel; colour change only."], ["Tests", "Rapid toggling ends on the pressed state; Space/Enter work; focus ring visible; no layout shift."]]} />
       <Pattern id="save" eyebrow="Functional · all levels" title="Save and selection state" why="Saving acknowledges the press at once; the spinner shows only if the save takes more than 150ms, so quick saves don't flash. Presses during a save are combined into one more save, never lost and never queued up. The result is announced." stage={<SaveAndSelect sent={sent} />} spec={[["Use for", "Save, add, favourite, select: anything whose result the person needs confirmed."], ["Avoid", "Disabling the whole form while a tick plays; a success animation longer than the save."], ["Native", <><Native>CSS</Native> + a small state machine (idle → saving → saved, combining presses).</>], ["Library", "No."], ["Reduced", "Same states and words, without the pop or spin."], ["Tests", "5 rapid presses → exactly 2 saves and ends Saved; status announced; arrow keys move the selection."]]} />
       <Pattern id="dialogs" eyebrow="Functional · all levels" title="Dialogs and drawers" why={<>Native <code>&lt;dialog&gt;</code>s: the browser keeps focus inside, closes on Escape and returns focus; CSS animates entry and exit. Every control works from the first frame, and closing never waits for the animation.</>} stage={<Dialogs />} spec={[["Use for", "Confirmations, short forms, side panels for filters or details."], ["Avoid", "Zooming from the pressed element every time; long exits; animating the page behind."], ["Native", <><Native>&lt;dialog&gt;</Native> + <code>@starting-style</code> + <code>allow-discrete</code> for the exit.</>], ["Library", "No."], ["Reduced", "Fade only."], ["Tests", "Open → Escape at once → closed, focus back on the opener; Tab stays inside; the drawer's field works at once."]]} />
@@ -882,7 +909,7 @@ export function MotionLabView() {
       <Pattern id="demo" eyebrow="Expressive · opt-in per project, eligible pages only" title="Product demonstration" why="A short scripted walkthrough using the product's own interface: search, a result, save. It has Pause, stops when off-screen or in a background tab, and ends after 3 loops; with reduced motion or at Minimal it becomes three steps you press through." stage={<Demo settings={settings} api={demo} />} spec={[["Use for", "Homepages and launch pages explaining what the product does."], ["Avoid", "Autoplay without Pause; video for interface that can be drawn; running off-screen."], ["Native", <><Native>CSS transitions</Native> driven by a small step script.</>], ["Library", <><Lib>GSAP</Lib> timelines help for long, precisely timed demos; optional.</>], ["Reduced", "Static steps with captions and step buttons."], ["Tests", "Pause stops it; off-screen it doesn't run; captions announced; stops after 3 loops."]]} />
       <Pattern id="ambient" eyebrow="Expressive · opt-in per project, eligible pages only" title="Smooth scrolling and animated backgrounds" why="The most decorative effects, so they're off unless a project turns them on. Native smooth scrolling covers in-page jumps; the background is one animated gradient angle that pauses off-screen." stage={<Ambient settings={settings} />} spec={[["Use for", "Brand homepages and portfolios that asked for atmosphere."], ["Avoid", "Taking over wheel scrolling in apps; WebGL behind text or forms; anything on by default."], ["Native", <><Native>scrollIntoView smooth</Native>; an animated <code>@property</code> gradient.</>], ["Library", <><Lib>Lenis</Lib> adds inertial wheel smoothing (held for a specific need); <Lib>Vanta</Lib> adds WebGL scenes (not recommended).</>], ["Reduced", "Instant jumps; static background."], ["Tests", "Paused off-screen; keyboard scrolling and anchors unchanged."]]} />
 
-      <section className="ml-pat ml-pat--checks" aria-labelledby="ml-checks-h">
+      <section className="ml-pat ml-pat--checks" id="ml-checks" aria-labelledby="ml-checks-h">
         <header className="ml-pat__head">
           <span className="label">Behaviour</span>
           <h2 id="ml-checks-h" className="ml-pat__title">
@@ -914,6 +941,8 @@ export function MotionLabView() {
           ) : null}
         </div>
       </section>
+        </div>
+      </div>
     </div>
   );
 }

@@ -22,8 +22,6 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
       { path: "/components", icon: "layers", label: "Component library" },
       // The motion patterns, running live (a review harness, not the builder).
       { path: "/motion", icon: "play", label: "Motion Lab" },
-      // FlowCode's own look (colors, type, parts): a design tool, so it sits with the other two.
-      { path: "/primitives", icon: "palette", label: "Branding" },
       { path: "/knowledge", icon: "bulb", label: "Knowledge Hub" },
       { path: "/topics", icon: "search", label: "Topic Search" },
       // What FlowCode proposes to change about how it works, from run reviews.
@@ -42,6 +40,8 @@ export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; ic
     items: [
       // About FlowCode has three tabs: About, Walkthrough and Feature guide (LearnTabs).
       { path: "/about", icon: "flowcode", label: "About FlowCode" },
+      // FlowCode's own look: its brand, icons and the components the app is built from.
+      { path: "/primitives", icon: "palette", label: "Branding" },
       { path: "/settings", icon: "settings", label: "Settings" },
       { path: "/system", icon: "gauge", label: "System" },
     ],

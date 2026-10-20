@@ -34,10 +34,10 @@ html.fc-dots #main .section .section { background: transparent !important; -webk
 }
 
 /* My Projects: four cards to a row on wide screens (three, then two, then one as the window narrows). */
-html.fc-dots #main .lrc-cards { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-@media (max-width: 1500px) { html.fc-dots #main .lrc-cards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
-@media (max-width: 1100px) { html.fc-dots #main .lrc-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
-@media (max-width: 640px) { html.fc-dots #main .lrc-cards { grid-template-columns: 1fr !important; } }
+html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+@media (max-width: 1500px) { html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+@media (max-width: 1100px) { html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 640px) { html.fc-dots #main .lrc-cards:not(.lrc-cards--compact) { grid-template-columns: 1fr !important; } }
 html.fc-dots #main .lrc-cards .lrc-card__foot .muted { white-space: nowrap; font-size: 12px; }
 /* With four to a row, a card's date sits on its own line above Demo and Builder (they shared one and overlapped). */
 html.fc-dots #main .qa-card-wrap .lrc-card__foot { padding-bottom: 52px !important; }
@@ -51,3 +51,14 @@ html.fc-dots #main .fr-card:hover, html.fc-dots #main .fr-card:focus-within { tr
 @media (prefers-reduced-motion: reduce) { html.fc-dots #main .fr-card:hover, html.fc-dots #main .fr-card:focus-within { transform: none; } }
 /* Prompts & Skills: each skill group's panel a little darker than the cards in it, so the cards stand out. */
 html.fc-dots #main .skill-browse__group { background: color-mix(in srgb, var(--bg-0, #0d1119) 55%, transparent) !important; border: 1px solid color-mix(in srgb, var(--text-0) 8%, transparent); }
+/* Motion Lab, laid out like Prompts & Skills: the patterns listed on the left (sticky), each pattern a panel on the right. */
+.ml-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 24px; align-items: start; }
+.ml-nav { position: sticky; top: 16px; display: grid; gap: 2px; padding: 8px; border-radius: 10px; }
+.ml-nav__head { padding: 6px 10px; color: var(--text-2); font-size: 11.5px; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; }
+.ml-nav__item { padding: 7px 10px; border-radius: 8px; color: var(--text-1); font-size: 13.5px; text-decoration: none; }
+.ml-nav__item:hover { background: var(--bg-hover, color-mix(in srgb, var(--text-0) 6%, transparent)); color: var(--text-0); }
+.ml-panels { display: grid; gap: 20px; min-width: 0; }
+.ml-panels .ml-pat { padding: 20px 24px; border-radius: 12px; box-shadow: none; scroll-margin-top: 16px; }
+@media (max-width: 900px) { .ml-layout { grid-template-columns: 1fr; } .ml-nav { position: static; } }
+/* Panels a little darker than the cards in them: skill groups, Motion Lab patterns, Branding's component panels. */
+html.fc-dots #main :is(.ml-nav, .ml-panels .ml-pat, .prim-grid .section) { background: color-mix(in srgb, var(--bg-0, #0d1119) 55%, transparent) !important; border: 1px solid color-mix(in srgb, var(--text-0) 8%, transparent) !important; -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%); }
