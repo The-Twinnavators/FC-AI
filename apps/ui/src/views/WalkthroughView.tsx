@@ -8,6 +8,7 @@ import { navigate, useRoute } from "../router";
 import { Icon, StatusChip } from "../components/ui";
 import { RobotHead, ROLE_COLOR, ROLE_LABEL } from "../components/RobotHead";
 import { LearnTabs } from "../components/LearnTabs";
+import { DotField } from "../components/DotField";
 import { GuideShot } from "../components/GuideShot";
 
 /** One card, in the Feature guide's card style. `example` marks a made-up sample of what you'll see. */
@@ -80,6 +81,8 @@ export function WalkthroughView() {
 
   // The Feature guide's layout: page header, the steps as the left list, one step's cards on the right.
   return (
+    <div className="dots-bg">
+    <DotField />
     <div className="page wt">
       <LearnTabs at="walkthrough" />
       <header className="page__head">
@@ -134,6 +137,7 @@ export function WalkthroughView() {
           </footer>
         </article>
       </div>
+    </div>
     </div>
   );
 }

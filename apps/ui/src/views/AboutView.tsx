@@ -9,6 +9,7 @@ import { BannerHero, IntroActions as Actions } from "../components/IntroHero";
 import { DemoCell } from "../components/AboutFragments";
 import { CodeBackdrop } from "../components/CodeBackdrop";
 import { LearnTabs } from "../components/LearnTabs";
+import { DotField } from "../components/DotField";
 
 /* ─── Page content ─── */
 
@@ -86,6 +87,8 @@ const WHO = [
 
 export function AboutView() {
   return (
+    <div className="dots-bg">
+    <DotField />
     <div className="page page-enter ab2">
       <LearnTabs at="about" />
       <BannerHero dark />
@@ -223,6 +226,7 @@ export function AboutView() {
           FlowCode builds prototypes, not production apps; each project&apos;s Launch readiness lists what the real app still needs. The pictures on this page are drawn from what FlowCode shows for the No BIO &amp; GMO project. Looking for something specific? Open the <a href="#/guide">Feature guide</a> tab.
         </p>
       </section>
+    </div>
     </div>
   );
 }

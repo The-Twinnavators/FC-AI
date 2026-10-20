@@ -10,6 +10,7 @@ import { copilot } from "../components/Copilot";
 import { startJourney } from "../components/CopilotDriver";
 import { FEATURE_JOURNEYS, stepsJourney } from "../components/copilotJourneys";
 import { LearnTabs } from "../components/LearnTabs";
+import { DotField } from "../components/DotField";
 import { GuideShot } from "../components/GuideShot";
 import { get } from "../api";
 import { stepTarget } from "@flowcode/contracts";
@@ -65,6 +66,8 @@ export function GuideView() {
     setTimeout(() => document.getElementById(`feat-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
   };
   return (
+    <div className="dots-bg">
+    <DotField />
     <div className="page">
       <LearnTabs at="guide" />
       <header className="page__head">
@@ -103,6 +106,7 @@ export function GuideView() {
           ))}
         </div>
       </div>
+    </div>
     </div>
   );
 }
