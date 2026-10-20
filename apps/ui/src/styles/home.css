@@ -166,3 +166,8 @@
 /* Selected choices are solid too (their tint over the moving background washed their text out). */
 .psetup-card.is-on, .psetup-chip.is-on, .psetup-seg > label.is-on { background: color-mix(in srgb, var(--brand-1, #3b3fc4) 22%, var(--bg-1)); }
 .psetup-card.is-on .psetup-card__text { color: var(--text-0); }
+
+/* Satin waves backdrop (SatinBackdrop). */
+.satin { position: absolute; inset: 0; background: radial-gradient(120% 90% at 30% 10%, color-mix(in srgb, var(--brand-1, #3b3fc4) 45%, var(--bg-0, #0d1119)), var(--bg-0, #0d1119) 70%); }
+.satin__canvas { display: block; width: 100%; height: 100%; }
+.satin--static .satin__canvas { display: none; }
