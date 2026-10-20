@@ -24,6 +24,9 @@ import {
   gradientOf,
   gradientUseCss,
   LIBRARY_SECTIONS,
+  PRODUCT_TYPES,
+  TEMPLATES_FOR,
+  type ProductType,
   type Appearance,
   type DirectionReading,
   type LookGroup,
@@ -61,30 +64,17 @@ const SCALE = { base: 16, ratio: 1.2 };
 
 /** The library's whole-page templates (not the neobrutalist landing: FlowCode starts from Flat or Tactile). */
 const TEMPLATES = LIBRARY_SECTIONS.filter((x) => x.ref?.startsWith("t.") && x.id !== "nb-landing");
-const KINDS: Array<{ id: string; label: string }> = [
-  { id: "", label: "All" },
-  { id: "apptemplates", label: "Apps" },
-  { id: "homepages", label: "Homepages" },
-  { id: "sites", label: "Websites" },
-  { id: "landings", label: "Landing pages" },
-];
-/** Where a product type starts when nothing is chosen yet. */
-const DEFAULT_TEMPLATE: Record<string, string> = {
-  saas: "home-saas",
-  "ai-app": "app-ai-chat",
-  "admin-portal": "app-admin",
-  social: "home-startup",
-  website: "site-agency",
-  "mobile-app": "home-mobile-app",
-  "online-store": "app-storefront",
-  marketplace: "app-storefront",
-  "internal-tool": "app-kanban",
-};
+/** The gallery's filters: the product types that have templates, then all of them. */
+const KINDS = [...PRODUCT_TYPES.filter((t) => TEMPLATES_FOR[t.id].some((id) => TEMPLATES.some((x) => x.id === id))).map((t) => ({ id: t.id as string, label: t.label })), { id: "", label: "All" }];
+const fits = (kind: string) => (kind ? (TEMPLATES_FOR[kind as ProductType] ?? []).filter((id) => TEMPLATES.some((x) => x.id === id)) : TEMPLATES.map((x) => x.id));
+/** Where a product type starts when nothing is chosen yet: its best fitting template. */
+const firstFor = (type?: string) => (type ? fits(type)[0] : undefined);
 
 /** Every template as a finished page in the current look, filtered by kind. */
-function TemplateGallery({ current, tokens, css, onChoose, onClose }: { current: string; tokens: Record<string, string>; css: string; onChoose: (id: string) => void; onClose: () => void }) {
-  const [kind, setKind] = useState("");
-  const shown = TEMPLATES.filter((t) => !kind || t.category === kind);
+function TemplateGallery({ current, productType, tokens, css, onChoose, onClose }: { current: string; productType?: string; tokens: Record<string, string>; css: string; onChoose: (id: string) => void; onClose: () => void }) {
+  // Opens on the project's own product type.
+  const [kind, setKind] = useState(productType && productType !== "other" && KINDS.some((k) => k.id === productType) ? productType : "");
+  const shown = fits(kind).map((id) => TEMPLATES.find((x) => x.id === id)!);
   return (
     <div className="ls-gallery">
       <header className="ls-gallery__head">
@@ -134,7 +124,7 @@ function Seg<T extends string | number>({ label, value, options, onChange, disab
 export function LookStudio({ projectId, site, template, productType, onTemplate, onBack, onNext }: { projectId: string; site: string; template?: string; productType?: string; onTemplate: (id: string) => void; onBack: () => void; onNext: () => void }) {
   const look = useLookDraft(projectId);
   const a = look.appearance ?? BASE_APPEARANCE;
-  const [picked, setPicked] = useState(template ?? DEFAULT_TEMPLATE[productType ?? ""] ?? "home-saas");
+  const [picked, setPicked] = useState(template ?? firstFor(productType) ?? "home-saas");
   const [gallery, setGallery] = useState(false);
   const current = TEMPLATES.find((t) => t.id === picked) ?? TEMPLATES[0]!;
   const choose = (id: string) => {
@@ -393,7 +383,7 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
 
       {gallery ? (
         <Modal onClose={() => setGallery(false)} labelledBy="ls-gallery-title" className="ls-gallery-modal">
-          <TemplateGallery current={current.id} tokens={tokens} css={css} onChoose={choose} onClose={() => setGallery(false)} />
+          <TemplateGallery current={current.id} productType={productType} tokens={tokens} css={css} onChoose={choose} onClose={() => setGallery(false)} />
         </Modal>
       ) : null}
     </div>
