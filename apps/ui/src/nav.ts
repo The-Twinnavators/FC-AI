@@ -1,12 +1,11 @@
 /** The side navigation's pages, in order and grouped (also the choices for Settings → Start page). */
 export const NAV_GROUPS: Array<{ label?: string; items: Array<{ path: string; icon: string; label: string }> }> = [
-  { items: [{ path: "/", icon: "home", label: "Home" }, { path: "/dashboard", icon: "gauge", label: "Dashboard" }] },
+  // Create PRD sits right under Home: the two places a build starts (research a problem and write the PRD it starts from).
+  { items: [{ path: "/", icon: "home", label: "Home" }, { path: "/discover", icon: "write", label: "Create PRD" }, { path: "/dashboard", icon: "gauge", label: "Dashboard" }] },
   {
     label: "Work",
     items: [
       { path: "/quality", icon: "checklist", label: "My Projects" },
-      // Create PRD: research a problem and write the PRD a build starts from.
-      { path: "/discover", icon: "write", label: "Create PRD" },
       // Everything waiting on you, and the decision log.
       { path: "/approvals", icon: "thumbsUp", label: "Approvals" },
       // The end-to-end experience, told with the Frameproof build (real parts labelled; the rest says what it is).

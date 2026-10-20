@@ -3,6 +3,7 @@
  * workspace for stronger evidence), work through the steps at your own pace, and hand the approved PRD to New build.
  * Everything is saved on this machine as you go.
  */
+import { HomeBackdrop } from "../components/HomeBackdrop";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FOLLOW_UP_MAX, OPTIONAL_STEPS, discoveryStep, projectStages, stageOf, stagesFor, stepsFor, STATUS_LABEL, type ProjectStage, type BlockValue, type DiscoveryProject, type DiscoveryStage, type DiscoveryStep, type DiscoverySummary, type Row } from "@flowcode/contracts";
 import { get, post, useResource } from "../api";
@@ -85,7 +86,7 @@ function StartResearch() {
     }
   };
   // What happens after Start, step by step and credited to the agent that does it. The research step lights up
-  // only when "Research this thoroughly" is on.
+  // only when "Research thoroughly" is on.
   const next: Array<{ who: "you" | "planner" | "researcher" | "critic"; title: string; text: string; off?: boolean }> = [
     { who: "you", title: "You describe the problem", text: "Who has it and what makes it hard. A sentence or two is enough." },
     { who: "planner", title: "The Planner asks a few questions", text: "To pin down who it's for and what matters most." },
@@ -93,67 +94,63 @@ function StartResearch() {
     { who: "planner", title: "The Planner drafts a focused PRD", text: "The Critic reviews it before you see it." },
     { who: "you", title: "You approve it and build a prototype", text: "Edit anything first; nothing is built until you say so." },
   ];
+  // The same treatment as Home: the moving waves, a centered question, the problem in a glass composer, and what happens
+  // next as one quiet row of steps (each step's detail on hover).
   return (
-    <div className="page disc-page disc-new">
-      {/* The page and its form on the left; what happens next beside them from the top (it sat below the heading). */}
-      <div className="disc-new__grid">
-      <div className="disc-new__main">
-      <a className="disc-new__back" href="#/discover">
-        <Icon name="chevron" size={12} /> All PRDs
-      </a>
-      <header className="disc-hero">
-        <span className="label">Create PRD</span>
-        <h1 className="page__title">What problem do you want to solve?</h1>
-        <p className="disc-lede">Describe the difficulty, not the app. FlowCode asks a few questions, then drafts a focused PRD you can build a prototype from.</p>
-        {/* The Copilot walks it through: it writes in what you have typed (or waits for you to), then points at Start. */}
-        <div className="disc-new__doit">
-          <button type="button" className="btn btn--sm" data-cp="prd-do-it" onClick={() => startJourney(createPrdDoJourney(problem.trim() || undefined), "do")}>
-            <Sparkles size={14} aria-hidden="true" /> Do it for me
-          </button>
-          <span className="muted">The Copilot asks for your problem and takes you through to the finished PRD. You press the final buttons.</span>
-        </div>
-      </header>
-      {error ? <ErrorNotice error={error} doing="start your research" /> : null}
-        <form className="disc-start" onSubmit={(e) => (e.preventDefault(), void start())}>
-          <label className="disc-field">
-            <span className="disc-field__label">The problem</span>
-            <span className="disc-field__hint" id="start-hint">
-              Who has it, and what makes it hard? For example: &ldquo;Busy parents can&apos;t tell which brands are non-GMO while shopping.&rdquo;
-            </span>
-            <textarea className="textarea" data-cp="prd-problem" rows={6} value={problem} aria-describedby="start-hint" autoFocus onChange={(e) => setProblem(e.target.value)} />
+    <div className="home disc-home page-enter">
+      <HomeBackdrop />
+      <div className="home__inner">
+        <a className="disc-home__back" href="#/discover">
+          <Icon name="chevron" size={12} /> All PRDs
+        </a>
+        <h1 className="home__title" id="disc-title">
+          What problem do you want to solve?
+        </h1>
+        <p className="disc-home__lede">Describe the difficulty, not the app.</p>
+        {error ? <ErrorNotice error={error} doing="start your research" /> : null}
+        <form className="composer disc-home__form" aria-labelledby="disc-title" onSubmit={(e) => (e.preventDefault(), void start())}>
+          <label className="composer__desc">
+            <span className="sr-only">The problem</span>
+            <textarea
+              className="composer__text"
+              data-cp="prd-problem"
+              rows={5}
+              value={problem}
+              autoFocus
+              placeholder="Who has it, and what makes it hard? For example: Busy parents can't tell which brands are non-GMO while shopping."
+              onChange={(e) => setProblem(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  void start();
+                }
+              }}
+            />
           </label>
-          <label className={`disc-start__thorough${thorough ? " is-on" : ""}`}>
-            <input type="checkbox" checked={thorough} onChange={(e) => setThorough(e.target.checked)} />
-            <span>
-              <strong>Research this thoroughly</strong>
-              <span>Adds users and evidence, alternatives, interviews, risks and testing from the start. Leave it off to begin with a focused plan; you can add any of these later.</span>
-            </span>
-          </label>
-          <div className="disc-actions disc-new__actions">
-            <button type="submit" className="btn btn--primary" data-cp="prd-start" disabled={busy || !problem.trim()}>
-              {busy ? "Starting…" : "Start"} <Icon name="chevron" size={12} />
+          <div className="composer__bar">
+            {/* The Copilot walks it through: it writes in what you have typed (or waits for you to), then points at Start. */}
+            <button type="button" className="composer__attach" data-cp="prd-do-it" title="The Copilot takes you through to the finished PRD. You press the final buttons." onClick={() => startJourney(createPrdDoJourney(problem.trim() || undefined), "do")}>
+              <Sparkles size={15} aria-hidden="true" /> Do it for me
             </button>
-            {!problem.trim() ? <span className="muted disc-new__why">Describe the problem to start.</span> : <span className="muted disc-new__why">Saved on this computer.</span>}
+            <label className={`disc-home__thorough${thorough ? " is-on" : ""}`} title="Adds users and evidence, alternatives, interviews, risks and testing from the start. Leave it off for a focused plan; you can add these later.">
+              <input type="checkbox" checked={thorough} onChange={(e) => setThorough(e.target.checked)} />
+              Research thoroughly
+            </label>
+            <button type="submit" className="btn btn--primary composer__next" data-cp="prd-start" disabled={busy || !problem.trim()}>
+              {busy ? "Starting…" : "Start"} <Icon name="chevron" size={13} />
+            </button>
           </div>
         </form>
-      </div>
-        <aside className="disc-new__next" aria-labelledby="disc-next-title">
-          <h2 id="disc-next-title" className="disc-new__next-title">What happens next</h2>
-          <ol className="disc-new__steps">
-            {next.map((s, i) => (
-              <li key={i} className={s.off ? "is-off" : undefined}>
-                <span className="disc-new__num" aria-hidden="true">{i + 1}</span>
-                <span className="disc-new__who" aria-hidden="true">
-                  {s.who === "you" ? <span className="disc-new__you">You</span> : <RobotHead color={ROLE_COLOR[s.who] ?? "#9a9fd6"} id={`disc-next-${i}`} size={24} />}
-                </span>
-                <span>
-                  <strong>{s.title}</strong>
-                  <span className="muted">{s.off ? "Only with Research this thoroughly." : s.text}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-        </aside>
+        <ol className="disc-home__steps" aria-label="What happens next">
+          {next.map((s, i) => (
+            <li key={i} className={s.off ? "is-off" : undefined} title={s.off ? "Only with Research thoroughly." : s.text}>
+              <span className="disc-home__who" aria-hidden="true">
+                {s.who === "you" ? <span className="disc-new__you">You</span> : <RobotHead color={ROLE_COLOR[s.who] ?? "#9a9fd6"} id={`disc-next-${i}`} size={22} />}
+              </span>
+              <span className="disc-home__step">{s.title}</span>
+            </li>
+          ))}
+        </ol>
       </div>
     </div>
   );

@@ -243,3 +243,19 @@
 .composer .composer__attach-col .composer__types { margin: 0; text-align: left; }
 .composer__bar { align-items: flex-start; }
 @media (max-width: 560px) { .composer__head { flex-direction: column; align-items: stretch; } .composer__head > .composer__type { width: auto; } }
+
+/* Create PRD's start page, in Home's treatment (DiscoverView StartResearch). */
+.disc-home .home__inner { padding-top: clamp(48px, 14vh, 140px); }
+.disc-home__back { justify-self: start; display: inline-flex; align-items: center; gap: 6px; color: var(--text-1); font-size: 13px; text-decoration: none; }
+.disc-home__back svg { transform: rotate(180deg); }
+.disc-home__back:hover { color: var(--text-0); }
+.disc-home__lede { margin: -4px 0 8px; color: var(--text-1); font-size: 16px; text-align: center; }
+.disc-home__form .composer__bar { align-items: center; }
+.disc-home__thorough { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 8px; background: rgba(255, 255, 255, 0.08); color: var(--text-1); font-size: 13px; cursor: pointer; }
+.disc-home__thorough.is-on { border-color: rgba(255, 255, 255, 0.4); color: var(--text-0); }
+.disc-home__thorough input { margin: 0; accent-color: var(--brand-2, #5b9bd5); }
+.disc-home__steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; counter-reset: dstep; }
+.disc-home__steps > li { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg-1); color: var(--text-0); font-size: 13px; cursor: default; }
+.disc-home__steps > li.is-off { color: var(--text-2); }
+.disc-home__who { display: inline-grid; place-items: center; width: 26px; height: 26px; }
+.disc-home__who .disc-new__you { font-size: 10px; }
