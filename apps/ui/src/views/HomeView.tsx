@@ -5,17 +5,17 @@
  */
 import { useEffect, useRef } from "react";
 import { useResource } from "../api";
-import { navigate } from "../router";
 import { ProductComposer } from "../components/ProductComposer";
 import { HomeBackdrop } from "../components/HomeBackdrop";
 import { SetupSteps } from "./SetupView";
 import type { ProjectSetup } from "@flowcode/contracts";
 import { SetupCard } from "../components/SetupCard";
+import { DraftsButton, type Draft } from "../components/DraftsButton";
 import { startBuild } from "../components/IntroHero";
 import { HowItWorks } from "../components/HowItWorks";
 
 export function HomeView({ draft }: { draft?: { projectId: string; name: string; setup: ProjectSetup } } = {}) {
-  const drafts = useResource<Array<{ project: { id: string; name: string }; updatedAt: string }>>("/setups");
+  const drafts = useResource<Draft[]>("/setups");
   const wrap = useRef<HTMLDivElement>(null);
   // "Let's build something" from anywhere (and New build's old event) lands here with the cursor in the description.
   useEffect(() => {
@@ -41,16 +41,7 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
           What would you like to build?
         </h1>
         <ProductComposer projectId={draft?.projectId} initial={draft ? { name: draft.name, setup: draft.setup } : undefined} />
-        {!draft && drafts.data?.length ? (
-          <nav className="home__drafts" aria-label="Drafts not started yet">
-            <span className="home__drafts-h">Continue a draft</span>
-            {drafts.data.map((d) => (
-              <button key={d.project.id} type="button" className="home__draft" onClick={() => navigate(`/new/${d.project.id}/look`)}>
-                {d.project.name}
-              </button>
-            ))}
-          </nav>
-        ) : null}
+        {!draft && drafts.data?.length ? <DraftsButton drafts={drafts.data} reload={drafts.reload} /> : null}
       </div>
     </div>
     {/* How FlowCode works, at the bottom of Home (below the first screen and its backdrop). */}

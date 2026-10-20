@@ -845,15 +845,14 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     app.store.setSetting(setupKey(project.id), setup);
     return { project, setup };
   });
-  // Drafts not started yet, newest first: Home offers to continue them.
+  // Drafts not started yet, newest first: Home lists them to continue or delete.
   add("GET /setups", () =>
     app.store.projects
       .where("1 = 1")
       .map((project) => ({ project, setup: app.store.getSetting<C.ProjectSetup | null>(setupKey(project.id), null) }))
       .filter((x): x is { project: C.Project; setup: C.ProjectSetup } => x.setup?.status === "draft")
       .sort((a, b) => b.setup.updatedAt.localeCompare(a.setup.updatedAt))
-      .slice(0, 5)
-      .map(({ project, setup }) => ({ project: { id: project.id, name: project.name }, updatedAt: setup.updatedAt })),
+      .map(({ project, setup }) => ({ project: { id: project.id, name: project.name }, description: setup.description.slice(0, 240), productType: setup.productType, updatedAt: setup.updatedAt })),
   );
   add("GET /projects/:id/setup", ({ params }) => ({ project: app.store.projects.require(params.id), setup: setupOf(params.id) }));
   add("POST /projects/:id/setup", ({ params, body }) => {

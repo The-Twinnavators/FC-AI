@@ -63,6 +63,7 @@ export function deleteProject(app: App, projectId: string, opts: { deleteFiles?:
     db.run("DELETE FROM settings WHERE key = ?", `runRefs:${r.id}`);
     store.runs.delete(r.id);
   }
+  db.run("DELETE FROM settings WHERE key = ?", `projectSetup:${projectId}`);
   for (const repo of [store.approvals, store.preflights, store.knowledge, store.research]) {
     for (const row of (repo as typeof store.approvals).where("project_id = ?", projectId)) repo.delete(row.id);
   }
