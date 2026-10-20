@@ -19,8 +19,6 @@ import "./styles/new-build.css";
 import "./styles/home.css";
 import "./styles/look-studio.css";
 import "./styles/component-tokens.css";
-import "./styles/glass-light.css";
-import { startGlassPointer } from "./glassPointer";
 import { App } from "./App";
 import { loadThemeOverrides } from "./theme";
 import { themeFor, toneFor } from "./appearance";
@@ -40,7 +38,6 @@ registerBundledFonts();
 // Saved attribute overrides from Primitives → Attributes.
 void loadThemeOverrides();
 
-startGlassPointer();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
