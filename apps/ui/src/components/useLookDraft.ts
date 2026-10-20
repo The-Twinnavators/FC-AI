@@ -32,7 +32,7 @@ export function useLookDraft(projectId: string) {
   // Undo: the looks before each edit, this session.
   const [history, setHistory] = useState<Appearance[]>([]);
 
-  // Start once from the draft, else the selected or applied direction, else the PRD's colour on FlowCode's base.
+  // Start once from the draft, else the selected or applied direction, else the PRD's color on FlowCode's base.
   const inited = useRef(false);
   useEffect(() => {
     if (!s || inited.current) return;

@@ -1,7 +1,7 @@
 /**
  * Look and Feel (setup step 2): a preview-first studio. A large live preview of the chosen library page template
  * (LiveTemplate: the real template, painted in the draft look) at phone, tablet or desktop width; beside it a slim panel: where to start (a template from the gallery, or the PRD's look) and five
- * groups (Buttons, Type, Colours, Layout, Motion), one open at a time, each with its current value and a lock. Under
+ * groups (Buttons, Type, Colors, Layout, Motion), one open at a time, each with its current value and a lock. Under
  * the preview, "Describe a change" in words. Saved as a draft as you go (useLookDraft); Next makes it the selected
  * direction the build applies. Short words on screen; the state (draft saved, contrast, not supported) is shown, not
  * explained.
@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   APPEARANCE_THEMES,
   BORDER_WEIGHTS,
+  BUTTON_OUTLINES,
   BASE_APPEARANCE,
   DENSITIES,
   DENSITY_LABEL,
@@ -30,19 +31,20 @@ import {
 } from "@flowcode/contracts";
 import { Icon } from "./ui";
 import { ColorPicker } from "./ColorPicker";
+import { RampSwatch } from "./RampSwatch";
 import { LiveTemplate, TemplateThumb } from "./LiveTemplate";
 import { Modal } from "./Modal";
 import { useLookDraft } from "./useLookDraft";
 
 type Device = "phone" | "tablet" | "desktop";
 const WIDTH: Record<Device, number> = { phone: 390, tablet: 820, desktop: 1280 };
-type Group = "buttons" | "type" | "colours" | "layout" | "motion";
-const LOCK_OF: Record<Group, LookGroup> = { buttons: "surface", type: "type", colours: "colors", layout: "shape", motion: "motion" };
+type Group = "buttons" | "type" | "colors" | "layout" | "motion";
+const LOCK_OF: Record<Group, LookGroup> = { buttons: "surface", type: "type", colors: "colors", layout: "shape", motion: "motion" };
 const NEUTRALS: Array<{ id: NeutralTone; label: string }> = [
   { id: "brand", label: "Tinted" },
   { id: "warm", label: "Warm" },
   { id: "cool", label: "Cool" },
-  { id: "pure", label: "Grey" },
+  { id: "pure", label: "Gray" },
 ];
 const CORNERS = [
   { r: 0, label: "Sharp" },
@@ -180,9 +182,9 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
   };
 
   const summary: Record<Group, string> = {
-    buttons: `${CORNERS.find((c) => c.r === shape.radius)?.label ?? `${shape.radius}px`} · ${a.surface === "skeuomorphism" ? "Tactile" : "Flat"}${g?.uses.includes("buttons") ? " · Gradient" : ""}`,
+    buttons: `${CORNERS.find((c) => c.r === shape.radius)?.label ?? `${shape.radius}px`} · ${a.surface === "skeuomorphism" ? "Tactile" : "Flat"}${a.buttonOutline !== undefined ? ` · ${a.buttonOutline}px` : ""}${g?.uses.includes("buttons") ? " · Gradient" : ""}`,
     type: `${a.fonts.display}${a.fonts.body !== a.fonts.display ? ` + ${a.fonts.body}` : ""}`,
-    colours: `${a.theme ? `${APPEARANCE_THEMES.find((t) => t.id === a.theme)?.name} · ` : ""}${a.mode === "dark" ? "Dark" : "Light"}`,
+    colors: `${a.theme ? `${APPEARANCE_THEMES.find((t) => t.id === a.theme)?.name} · ` : ""}${a.mode === "dark" ? "Dark" : "Light"}`,
     layout: `${DENSITY_LABEL[shape.density].name} · ${shape.borders === "strong" ? "Strong" : "Fine"} borders`,
     motion: a.motion ? MOTION_LABEL[a.motion.level].name : "As is",
   };
@@ -234,7 +236,10 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
             {busy ? "Saving…" : "Next: Build"} <Icon name="chevron" size={12} />
           </button>
         </div>
-        <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} />
+        <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} reserve={16} />
+      </div>
+
+      <aside className="ls-panel" aria-label="Look controls">
         <form
           className="ls-ask"
           onSubmit={(e) => {
@@ -244,7 +249,7 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
             setWords("");
           }}
         >
-          <input className="ls-ask__input" value={words} onChange={(e) => setWords(e.target.value)} placeholder="Describe a change… e.g. warmer, rounder corners, bolder headings" aria-label="Describe a change" />
+          <input className="ls-ask__input" value={words} onChange={(e) => setWords(e.target.value)} placeholder="Describe a change… e.g. warmer, bolder headings" aria-label="Describe a change" />
           <button type="submit" className="btn btn--primary btn--sm" disabled={!words.trim()}>Apply</button>
         </form>
         {reading ? (
@@ -259,9 +264,6 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
             ))}
           </ul>
         ) : null}
-      </div>
-
-      <aside className="ls-panel" aria-label="Look controls">
         <section className={`ls-group${open === "start" ? " is-open" : ""}`}>
           <div className="ls-group__head">
             <button type="button" className="ls-group__btn" aria-expanded={open === "start"} onClick={() => setOpen("start")}>
@@ -296,12 +298,13 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
           "Buttons",
           <>
             <Seg label="Corners" value={shape.radius} options={CORNERS.map((c) => ({ v: c.r, label: c.label }))} disabled={locked("layout")} onChange={(r) => look.edit({ shape: { ...shape, radius: r } })} />
+            <Seg label="Outline" value={a.buttonOutline} options={BUTTON_OUTLINES.map((w) => ({ v: w, label: `${w}px` }))} disabled={locked("buttons")} onChange={(w) => look.edit({ buttonOutline: w })} />
             <Seg label="Style" value={a.surface === "skeuomorphism" ? "skeuomorphism" : "flat"} options={[{ v: "flat", label: "Flat" }, { v: "skeuomorphism", label: "Tactile" }]} disabled={locked("buttons")} onChange={(v) => look.edit({ surface: v })} />
             <Seg
               label="Fill"
               value={g?.uses.includes("buttons") ? "gradient" : "solid"}
               options={[{ v: "solid", label: "Solid" }, { v: "gradient", label: "Gradient" }]}
-              disabled={locked("colours")}
+              disabled={locked("colors")}
               onChange={(v) => {
                 const uses = (g?.uses ?? []).filter((u) => u !== "buttons");
                 const nextUses = v === "gradient" ? [...uses, "buttons" as const] : uses;
@@ -330,8 +333,8 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
           </>,
         )}
         {section(
-          "colours",
-          "Colours",
+          "colors",
+          "Colors",
           <>
             <div className="ls-field">
               <span className="ls-field__k">Palette</span>
@@ -339,7 +342,7 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
                 {APPEARANCE_THEMES.map((t) => {
                   const tk = appearanceTokens(appearanceFromTheme(t.id) ?? BASE_APPEARANCE);
                   return (
-                    <button key={t.id} type="button" className={`ls-palette${a.theme === t.id ? " is-on" : ""}`} aria-pressed={a.theme === t.id} title={t.name} aria-label={t.name} disabled={locked("colours")} onClick={() => look.edit(appearanceFromTheme(t.id, a.surface)!, `theme:${t.id}`)} style={{ background: tk["--color-bg"], borderColor: tk["--color-border"] }}>
+                    <button key={t.id} type="button" className={`ls-palette${a.theme === t.id ? " is-on" : ""}`} aria-pressed={a.theme === t.id} title={t.name} aria-label={t.name} disabled={locked("colors")} onClick={() => look.edit(appearanceFromTheme(t.id, a.surface)!, `theme:${t.id}`)} style={{ background: tk["--color-bg"], borderColor: tk["--color-border"] }}>
                       <span style={{ background: tk["--color-accent"] }} />
                     </button>
                   );
@@ -348,21 +351,25 @@ export function LookStudio({ projectId, site, template, productType, onTemplate,
             </div>
             <div className="ls-field">
               <span className="ls-field__k">Primary</span>
-              <ColorPicker label="Primary colour" value={a.primary} onChange={(hex) => !locked("colours") && look.edit({ primary: hex })} />
+              <RampSwatch label="Primary" value={a.primary} disabled={locked("colors")} onPick={(hex) => look.edit({ primary: hex })} />
+              <ColorPicker label="Primary color" value={a.primary} onChange={(hex) => !locked("colors") && look.edit({ primary: hex })} />
             </div>
             <div className="ls-field">
               <span className="ls-field__k">Secondary</span>
               {a.secondary ? (
-                <span className="ls-row">
-                  <ColorPicker label="Secondary colour" value={a.secondary} onChange={(hex) => !locked("colours") && look.edit({ secondary: hex })} />
-                  <button type="button" className="ls-icon-btn" title="Remove" onClick={() => look.edit({ secondary: undefined })}><Icon name="x" size={13} /><span className="sr-only">Remove secondary</span></button>
-                </span>
+                <>
+                  <RampSwatch label="Secondary" value={a.secondary} disabled={locked("colors")} onPick={(hex) => look.edit({ secondary: hex })} />
+                  <span className="ls-row">
+                    <ColorPicker label="Secondary color" value={a.secondary} onChange={(hex) => !locked("colors") && look.edit({ secondary: hex })} />
+                    <button type="button" className="ls-icon-btn" title="Remove" onClick={() => look.edit({ secondary: undefined })}><Icon name="x" size={13} /><span className="sr-only">Remove secondary</span></button>
+                  </span>
+                </>
               ) : (
-                <button type="button" className="btn btn--sm" disabled={locked("colours")} onClick={() => look.edit({ secondary: "#be6a2a" })}>Add</button>
+                <button type="button" className="btn btn--sm" disabled={locked("colors")} onClick={() => look.edit({ secondary: "#be6a2a" })}>Add</button>
               )}
             </div>
-            <Seg label="Neutrals" value={a.neutral} options={NEUTRALS.map((n) => ({ v: n.id, label: n.label }))} disabled={locked("colours")} onChange={(n) => look.edit({ neutral: n })} />
-            <Seg label="Mode" value={a.mode} options={[{ v: "light", label: "Light" }, { v: "dark", label: "Dark" }]} disabled={locked("colours")} onChange={(mode) => look.edit({ mode })} />
+            <Seg label="Neutrals" value={a.neutral} options={NEUTRALS.map((n) => ({ v: n.id, label: n.label }))} disabled={locked("colors")} onChange={(n) => look.edit({ neutral: n })} />
+            <Seg label="Mode" value={a.mode} options={[{ v: "light", label: "Light" }, { v: "dark", label: "Dark" }]} disabled={locked("colors")} onChange={(mode) => look.edit({ mode })} />
           </>,
         )}
         {section(

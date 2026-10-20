@@ -14,7 +14,7 @@ export const LOOK_GROUPS = [
   { id: "colors", label: "Colours", fields: ["primary", "neutral", "secondary", "tertiary", "status", "gradient", "mode", "theme"] },
   { id: "type", label: "Typography", fields: ["fonts", "typeScale"] },
   { id: "shape", label: "Shape and density", fields: ["shape"] },
-  { id: "surface", label: "Surface", fields: ["surface"] },
+  { id: "surface", label: "Surface", fields: ["surface", "buttonOutline"] },
   { id: "motion", label: "Motion", fields: ["motion"] },
 ] as const satisfies ReadonlyArray<{ id: string; label: string; fields: ReadonlyArray<keyof Appearance> }>;
 export type LookGroup = (typeof LOOK_GROUPS)[number]["id"];

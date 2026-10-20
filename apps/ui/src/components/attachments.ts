@@ -28,7 +28,7 @@ export function roleFor(name: string, hasPrd: boolean): ReferenceFile["role"] | 
 
 /** Client-side preview of what a file gives the build (the daemon re-checks after the build). */
 export function summarize(role: ReferenceFile["role"], content: string): string {
-  // Style capture is off, so an image is a reference kept with the project, not a source of colours and fonts.
+  // Style capture is off, so an image is a reference kept with the project, not a source of colors and fonts.
   if (role === "image") return "Kept with the project as a reference image";
   try {
     if (role === "html") {

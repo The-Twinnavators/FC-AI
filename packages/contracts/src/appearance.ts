@@ -59,6 +59,8 @@ export interface Appearance {
    * older switch (the primary action only, to the secondary or a lighter primary).
    */
   gradient?: boolean | GradientSetting;
+  /** The buttons' outline in px (0, 0.5 or 1). Unset: the surface style's own. */
+  buttonOutline?: ButtonOutline;
   /** Status colours the person set; the others are suggested from the palette. */
   status?: Partial<Record<StatusKind, string>>;
   fonts: { display: string; body: string };
@@ -72,6 +74,10 @@ export interface Appearance {
   /** Body size and heading ratio (shape.ts). Unset: the app keeps its text sizes. */
   typeScale?: TypeScaleSetting;
 }
+
+/** The outline weights a button may have. */
+export const BUTTON_OUTLINES = [0, 0.5, 1] as const;
+export type ButtonOutline = (typeof BUTTON_OUTLINES)[number];
 
 /** Where an app uses its gradient. */
 export const GRADIENT_USES = ["buttons", "panels", "background", "headline"] as const;
@@ -149,12 +155,13 @@ export const APPEARANCE_THEMES = DESIGN_TEMPLATES.map((t) => ({ id: t.id, name: 
 /** What stops an appearance from being used: an invalid colour, a font FlowCode can't ship, a surface not allowed. */
 export function appearanceProblems(a: Appearance, allowedSurfaces: readonly string[] = DEFAULT_SURFACES): string[] {
   const out: string[] = [];
-  for (const [label, hex] of [["primary", a.primary], ["secondary", a.secondary], ["tertiary", a.tertiary], ...Object.entries(a.status ?? {}).map(([k, v]) => [`${k} colour`, v])] as const)
-    if (hex !== undefined && !normalizeHex(hex)) out.push(`the ${label} "${hex}" isn't a colour (use #rrggbb)`);
+  for (const [label, hex] of [["primary", a.primary], ["secondary", a.secondary], ["tertiary", a.tertiary], ...Object.entries(a.status ?? {}).map(([k, v]) => [`${k} color`, v])] as const)
+    if (hex !== undefined && !normalizeHex(hex)) out.push(`the ${label} "${hex}" isn't a color (use #rrggbb)`);
   for (const [role, family] of [["heading", a.fonts.display], ["text", a.fonts.body]] as const)
     if (!bundled(family)) out.push(`the ${role} font "${family}" isn't one FlowCode bundles; choose one of ${BUNDLED_FONTS.map((f) => f.family).join(", ")}`);
   if (!STYLE_VIBES.some((v) => v.id === a.surface)) out.push(`surface style "${a.surface}" doesn't exist`);
   else if (!allowedSurfaces.includes(a.surface)) out.push(`the ${STYLE_VIBES.find((v) => v.id === a.surface)?.name} surface style is used only when you ask for it for this project; FlowCode starts from Flat or Tactile`);
+  if (a.buttonOutline !== undefined && !BUTTON_OUTLINES.includes(a.buttonOutline)) out.push(`button outline must be one of ${BUTTON_OUTLINES.join(", ")}px`);
   if (a.motion) out.push(...motionProblems(a.motion));
   out.push(...shapeProblems(a.shape, a.typeScale));
   return out;
@@ -180,6 +187,8 @@ export function appearanceTokens(a: Appearance): Record<string, string> {
   if (g?.uses.includes("buttons")) t["--accent-bg"] = gradient;
   if (g?.uses.includes("background"))
     t["--page-backdrop"] = `linear-gradient(${g.angle}deg, color-mix(in srgb, ${from} 14%, transparent), color-mix(in srgb, ${to} 10%, transparent) 45%, transparent 75%)`;
+  // Buttons only (text fields keep theirs): a hairline in the button's own text colour, so it suits every fill.
+  if (a.buttonOutline !== undefined) t["--button-border"] = a.buttonOutline === 0 ? "0 solid transparent" : `${a.buttonOutline}px solid color-mix(in srgb, currentColor 40%, transparent)`;
   if (a.motion) Object.assign(t, motionTokens(a.motion.level));
   if (a.shape) Object.assign(t, shapeTokens(a.shape));
   if (a.typeScale) Object.assign(t, typeScaleTokens(a.typeScale.base, a.typeScale.ratio));

@@ -1,6 +1,6 @@
 /**
  * Home's animated background: the library's shader gradient (c.background.shader, FlowCode's own WebGL shader; the
- * look comes from the CSSVibes shader backgrounds) in FlowCode's brand colours, behind the composer. It moves only on
+ * look comes from the CSSVibes shader backgrounds) in FlowCode's brand colors, behind the composer. It moves only on
  * screen and in a visible tab, holds one still frame for people who ask for reduced motion, and falls back to a CSS
  * gradient without WebGL. Its own Pause sits in the corner (remembered on this device); the library's button isn't
  * used, so the library's base stylesheet stays out of FlowCode's page.
@@ -21,7 +21,7 @@ const read = () => {
 
 export function HomeBackdrop() {
   const [paused, setPaused] = useState(read);
-  // FlowCode's brand colours (tokens.css), read once: the shader takes colours, not variables.
+  // FlowCode's brand colors (tokens.css), read once: the shader takes colors, not variables.
   const colors = useMemo(() => {
     const cs = getComputedStyle(document.documentElement);
     const v = (n: string, f: string) => cs.getPropertyValue(n).trim() || f;

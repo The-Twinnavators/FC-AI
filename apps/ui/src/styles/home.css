@@ -1,6 +1,6 @@
 /*
  * Home (HomeView, ProductComposer) and a project's setup (SetupView). FlowCode's own palette: the navy page, its indigo
- * and blue brand colours. Home is one centred composer over a slow backdrop; the setup pages share one 24px edge, the
+ * and blue brand colors. Home is one centered composer over a slow backdrop; the setup pages share one 24px edge, the
  * step pills, choice cards (a radio or checkbox inside, drawn as the card's outline) and a footer with the next action.
  */
 
@@ -8,7 +8,7 @@
 .home { position: relative; min-height: 100%; overflow: hidden; isolation: isolate; }
 .home__shader { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
 .home__shader > .fl-shader-root { position: absolute; inset: 0; min-height: 0; border-radius: 0; }
-/* Fade the moving colour into the page towards the bottom, so the composer and drafts stay calm to read. */
+/* Fade the moving color into the page towards the bottom, so the composer and drafts stay calm to read. */
 .home__shader::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--bg-0, #0f1420) 35%, transparent) 55%, var(--bg-0, #0f1420) 100%); }
 .home__pause { position: absolute; right: 16px; bottom: 16px; z-index: 2; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--bg-1) 80%, transparent); color: var(--text-1); cursor: pointer; backdrop-filter: blur(6px); }
 .home__pause:hover { color: var(--text-0); }

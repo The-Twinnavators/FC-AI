@@ -33,7 +33,7 @@
   display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
   min-height: var(--control-lg); padding-inline: var(--control-pad-lg); border-radius: var(--control-radius, var(--radius-md));
   font: var(--weight-semibold) var(--control-text-lg, var(--text-md)) / 1 var(--font-sans); text-decoration: none; cursor: pointer;
-  border: var(--control-border, 1px solid transparent); box-shadow: var(--control-shadow, none);
+  border: var(--button-border, var(--control-border, 1px solid transparent)); box-shadow: var(--control-shadow, none);
   transition: background-color var(--duration-fast) var(--easing), transform var(--duration-fast) var(--easing), translate var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
 }
 /* An icon in a button keeps its size, and the label stays on one line (an unsized svg grew and squeezed "Start free trial" onto three). */

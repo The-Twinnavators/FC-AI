@@ -31,22 +31,35 @@ function useLiveFrame(id: string, tokens: Record<string, string>, css: string) {
  * The big preview: the template in a faux browser window (dots, the site's address) at the device's width, scaled to fit
  * the stage. The stage takes the window's height, so the page shows as much as the screen allows.
  */
-export function LiveTemplate({ id, title, tokens, css, device, site }: { id: string; title: string; tokens: Record<string, string>; css: string; device: "phone" | "tablet" | "desktop"; site: string }) {
+export function LiveTemplate({ id, title, tokens, css, device, site, reserve = 0 }: { id: string; title: string; tokens: Record<string, string>; css: string; device: "phone" | "tablet" | "desktop"; site: string; reserve?: number }) {
   const { frame, ready, src } = useLiveFrame(id, tokens, css);
   const box = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState(1);
+  const [height, setHeight] = useState<number>();
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const measure = () => setFit(Math.min(1, (el.clientWidth - 32) / PAGE_WIDTH[device]));
+    // The stage fills what is visible of the page's scroll area below its top, leaving `reserve` px for what follows
+    // it (the "Describe a change" bar), so nothing the person needs sits below the fold.
+    const scroller = el.closest<HTMLElement>(".view") ?? document.documentElement;
+    const measure = () => {
+      setFit(Math.min(1, (el.clientWidth - 32) / PAGE_WIDTH[device]));
+      const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      // FlowCode's footer is pinned over the bottom of the page: what sits under it isn't visible either.
+      const footer = scroller.querySelector<HTMLElement>(".app-footer");
+      const pinned = footer && /sticky|fixed/.test(getComputedStyle(footer).position) ? footer.offsetHeight : 0;
+      setHeight(Math.max(280, Math.floor(scroller.clientHeight - top - reserve - pinned)));
+    };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, [device]);
+    ro.observe(scroller);
+    addEventListener("resize", measure);
+    return () => (ro.disconnect(), removeEventListener("resize", measure));
+  }, [device, reserve]);
   const width = Math.round(PAGE_WIDTH[device] * fit);
   return (
-    <div className="lt-stage" ref={box}>
+    <div className="lt-stage" ref={box} style={height ? { height } : undefined}>
       <div className={`lt-browser lt-browser--${device}`} style={{ width }}>
         <div className="lt-browser__bar" aria-hidden="true">
           <span className="lt-browser__dots"><i /><i /><i /></span>

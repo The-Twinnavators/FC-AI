@@ -82,6 +82,7 @@ function setTokenValues(input: string, theme: DesignTheme, values: Record<string
   // Size tokens newer apps have (--control-xl, --control-pad-*, --control-text-*) are added to older ones.
   const addable: Array<[string, string]> = [];
   let gradientAdd: string | undefined;
+  let buttonAdd: string | undefined;
   for (const [name, raw] of Object.entries(edit.values)) {
     const value = raw.trim();
     if (!/^--[\w-]+$/.test(name)) throw new Error(`"${name}" isn't a design token name.`);
@@ -94,6 +95,8 @@ function setTokenValues(input: string, theme: DesignTheme, values: Record<string
       if (theme === "default" && /^--control-(?:(?:pad|text)-)?(?:sm|md|lg|xl)$/.test(name) && LENGTH.test(value)) addable.push([name, value]);
       // The Look's gradient, new to apps made before it.
       else if (theme === "default" && name === "--gradient") gradientAdd = value;
+      // The Look's button outline, likewise.
+      else if (theme === "default" && name === "--button-border") buttonAdd = value;
       continue;
     }
     if (LENGTH.test(d.value) && /[a-z%]$/i.test(d.value) && !LENGTH.test(value) && !/^(calc|clamp|min|max|var)\(/.test(value)) throw new Error(`${name} is a size, so it needs a size like 2rem or 32px.`);
@@ -116,6 +119,13 @@ function setTokenValues(input: string, theme: DesignTheme, values: Record<string
     if (rootEnd >= 0) {
       css = `${css.slice(0, rootEnd).replace(/\s*$/, "\n")}\n  /* Gradient (Look → Colour → Gradient): "none" until the Look uses one. Put class="fl-gradient-panel" on a hero or\n     feature panel to fill it when the Look turns on feature panels. */\n  --gradient: ${gradientAdd};\n${css.slice(rootEnd)}`;
       changed.push("--gradient");
+    }
+  }
+  if (buttonAdd !== undefined) {
+    const rootEnd = css.indexOf("}", css.indexOf(":root"));
+    if (rootEnd >= 0) {
+      css = `${css.slice(0, rootEnd).replace(/\s*$/, "\n")}\n  /* Buttons' outline (Look → Buttons → Outline); text fields keep --control-border. */\n  --button-border: ${buttonAdd};\n${css.slice(rootEnd)}`;
+      changed.push("--button-border");
     }
   }
   return css;
