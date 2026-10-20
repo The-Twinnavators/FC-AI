@@ -96,5 +96,23 @@ export function useLookDraft(projectId: string) {
     }
     await post(`/projects/${projectId}/design/select`, {});
   };
-  return { state: s, error: error ?? res.error, appearance: a, sources, saving, locks, edit, undo, canUndo: history.length > 0, read, toggleLock, select };
+  /** Saves a pending edit now (before approving the design, which selects it on the server). */
+  const flush = async () => {
+    if (!timer.current) return;
+    clearTimeout(timer.current);
+    timer.current = undefined;
+    await post(`/projects/${projectId}/design/draft`, { appearance: a, sources, notes: notes.current });
+    setSaving("saved");
+  };
+  /** A look the server already saved as the draft (a chosen design draft): shown here, undoable, not saved again. */
+  const adopt = (next: Appearance) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = undefined;
+    if (a) setHistory((h) => [...h.slice(-29), a]);
+    setA(next);
+    setSources({});
+    setSaving("saved");
+    res.reload();
+  };
+  return { state: s, error: error ?? res.error, appearance: a, sources, saving, locks, edit, undo, canUndo: history.length > 0, read, toggleLock, select, flush, adopt, reload: res.reload };
 }

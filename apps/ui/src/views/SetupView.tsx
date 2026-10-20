@@ -21,6 +21,12 @@ const STEPS: Array<{ id: Step; label: string }> = [
   { id: "build", label: "Build" },
 ];
 
+/** Whether the approved design still holds, and what still needs the person (GET /projects/:id/setup). */
+interface DesignStatus {
+  approved: boolean;
+  questions: string[];
+}
+
 interface DesignStateView {
   draft?: { appearance: Appearance };
   selected?: { appearance: Appearance; version: number };
@@ -29,10 +35,10 @@ interface DesignStateView {
 export function SetupView({ projectId, step }: { projectId: string; step: string }) {
   const at: Step = step === "look" || step === "build" ? step : "describe";
   // Read again on every step: a step shown again must show what was saved since, not what was loaded first.
-  const res = useResource<{ project: Project; setup: ProjectSetup }>(`/projects/${projectId}/setup`, [projectId, at]);
+  const res = useResource<{ project: Project; setup: ProjectSetup; design?: DesignStatus }>(`/projects/${projectId}/setup`, [projectId, at]);
   if (res.error) return <div className="page"><p className="psetup__err" role="alert">{res.error}</p></div>;
   if (!res.data) return <div className="page"><p className="dim">Loading the setup…</p></div>;
-  const { project, setup } = res.data;
+  const { project, setup, design } = res.data;
   if (setup.status === "started" && setup.runId)
     return (
       <div className="page psetup">
@@ -48,9 +54,9 @@ export function SetupView({ projectId, step }: { projectId: string; step: string
       <HomeBackdrop />
     <div className="page psetup">
       {at === "look" ? (
-        <LookStudio projectId={projectId} extras={setup.extras} onExtras={(extras) => void post(`/projects/${projectId}/setup`, { extras })} site={`${project.name.toLowerCase().replace(/[^a-z0-9]+/g, "")  || "yourapp"}.com`} template={setup.template} productType={setup.productType} onTemplate={(template) => void post(`/projects/${projectId}/setup`, { template })} onBack={() => navigate(`/new/${projectId}/describe`)} onNext={() => navigate(`/new/${projectId}/build`)} />
+        <LookStudio projectId={projectId} extras={setup.extras} onExtras={(extras) => void post(`/projects/${projectId}/setup`, { extras })} site={`${project.name.toLowerCase().replace(/[^a-z0-9]+/g, "")  || "yourapp"}.com`} setup={setup} design={design} onSetup={res.reload} onTemplate={(template) => void post(`/projects/${projectId}/setup`, { template })} onBack={() => navigate(`/new/${projectId}/describe`)} onNext={() => navigate(`/new/${projectId}/build`)} />
       ) : (
-        <BuildStep key={setup.updatedAt} projectId={projectId} project={project} setup={setup} onSaved={res.reload} />
+        <BuildStep key={setup.updatedAt} projectId={projectId} project={project} setup={setup} status={design} onSaved={res.reload} />
       )}
     </div>
     </div>
@@ -58,7 +64,7 @@ export function SetupView({ projectId, step }: { projectId: string; step: string
 }
 
 /** Build level, who writes the code, Extras, and the summary with Start Build. */
-function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; project: Project; setup: ProjectSetup; onSaved: () => void }) {
+function BuildStep({ projectId, project, setup, status, onSaved }: { projectId: string; project: Project; setup: ProjectSetup; status?: DesignStatus; onSaved: () => void }) {
   const [autonomy, setAutonomy] = useState<AutonomyLevel>(setup.autonomy);
   const extras = setup.extras;
   const [coder, setCoder] = useState(setup.coder);
@@ -131,7 +137,15 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
       </fieldset>
 
       <section className="psetup-summary" aria-label="Start the build">
-        <StepActions back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", cp: "build-start", onClick: () => void start(), busy: busy ? "Starting…" : undefined }} />
+        {status?.approved ? (
+          <p className="psetup__approved">✓ Design approved{setup.designApproval?.draft ? `: ${setup.designApproval.draft.label}` : ""}</p>
+        ) : (
+          <p className="psetup__err" role="alert">
+            {setup.designApproval ? "The design changed after you approved it." : "The design isn't approved yet."}{" "}
+            <button type="button" className="link-btn" onClick={() => navigate(`/new/${projectId}/look`)}>Approve it in Look and Feel</button>
+          </p>
+        )}
+        <StepActions back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", cp: "build-start", onClick: () => void start(), disabled: !status?.approved, busy: busy ? "Starting…" : undefined }} />
       </section>
       {extras.includes("installable") ? <p className="psetup__note">Install as an app: installing depends on the browser; only the app's own screens work offline.</p> : null}
 

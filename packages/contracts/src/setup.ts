@@ -5,6 +5,7 @@
  */
 import { z } from "zod";
 import type { AutonomyLevel } from "./autonomy.js";
+import type { DraftSet } from "./designDrafts.js";
 import { BuildMode, ReferenceFile } from "./schemas.js";
 
 /** What kind of product it is: guidance for the plan, never a template that limits it. */
@@ -51,6 +52,21 @@ export const BUILD_LEVELS: Array<{ id: AutonomyLevel; name: string; experience: 
   { id: "autonomous", name: "Autonomous", experience: "Works start to finish within the project. It still asks before anything leaves this computer, and every change can be undone." },
 ];
 
+/**
+ * The design the person approved before the build: what the agents build from. Bound to the Look's version and to the
+ * template, fidelity and notes as they were; changing any of them afterward asks for approval again.
+ */
+export const DesignApproval = z.object({
+  at: z.string(),
+  lookVersion: z.number().int(),
+  template: z.string().max(60),
+  fidelity: z.enum(["close", "inspiration"]),
+  notes: z.string().max(4000).default(""),
+  /** The draft it came from, when the person chose one. */
+  draft: z.object({ id: z.string().max(80), label: z.string().max(120) }).optional(),
+});
+export type DesignApproval = z.infer<typeof DesignApproval>;
+
 export const ProjectSetup = z.object({
   status: z.enum(["draft", "started"]),
   description: z.string().max(20_000),
@@ -64,6 +80,17 @@ export const ProjectSetup = z.object({
   threeDrafts: z.boolean().default(false),
   /** The library page template chosen in Look and Feel (a LIBRARY_SECTIONS id): the build's starting composition. */
   template: z.string().max(60).optional(),
+  /** "mine": the person picks the template and Look. "agents": FlowCode proposes the direction (still approved by them). */
+  designMode: z.enum(["mine", "agents"]).default("mine"),
+  /** How closely the build follows the chosen design. Unset until the person says. */
+  fidelity: z.enum(["close", "inspiration"]).optional(),
+  /** "What would you like to change, keep, or add?" */
+  designNotes: z.string().max(4000).optional(),
+  /** Every set of design drafts made, oldest first, so earlier ones can be compared and chosen again. */
+  draftSets: z.array(z.custom<DraftSet>((v) => typeof v === "object" && v !== null)).max(12).default([]),
+  /** The draft the person chose (a DesignDraft id). */
+  chosenDraft: z.string().max(80).optional(),
+  designApproval: DesignApproval.optional(),
   /** The run Start Build created. */
   runId: z.string().optional(),
   updatedAt: z.string(),
@@ -85,5 +112,24 @@ export const ProjectSetupPatch = z.object({
   buildMode: BuildMode.optional(),
   threeDrafts: z.boolean().optional(),
   template: z.string().max(60).optional(),
+  designMode: z.enum(["mine", "agents"]).optional(),
+  fidelity: z.enum(["close", "inspiration"]).optional(),
+  designNotes: z.string().max(4000).optional(),
 });
 export type ProjectSetupPatch = z.infer<typeof ProjectSetupPatch>;
+
+/** What still needs the person before the design can be approved: focused questions, never a silent default. */
+export function designQuestions(s: Pick<ProjectSetup, "designMode" | "threeDrafts" | "draftSets" | "chosenDraft" | "fidelity" | "designNotes">): string[] {
+  const q: string[] = [];
+  if (s.designMode === "agents" && !s.draftSets.length) q.push("Let FlowCode propose a design first.");
+  if (s.designMode === "agents" && s.draftSets.length && !s.chosenDraft) q.push(s.threeDrafts ? "Which draft should FlowCode build from? Choose one, or say what none of them get right." : "Choose the proposal, or say what to change.");
+  if (!s.fidelity) q.push("How closely should FlowCode follow this design?");
+  if (s.fidelity === "inspiration" && !s.designNotes?.trim()) q.push("You chose to use it as inspiration: what would you like to change, keep, or add?");
+  return q;
+}
+
+/** Whether the approval still holds: the same Look version (no unsaved draft), template, fidelity and notes. */
+export function designApprovalHolds(s: Pick<ProjectSetup, "designApproval" | "template" | "fidelity" | "designNotes">, look: { version?: number; draftPending: boolean }): boolean {
+  const a = s.designApproval;
+  return !!a && !look.draftPending && a.lookVersion === look.version && a.template === s.template && a.fidelity === s.fidelity && a.notes === (s.designNotes ?? "");
+}

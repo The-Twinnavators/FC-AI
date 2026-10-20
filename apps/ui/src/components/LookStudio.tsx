@@ -6,7 +6,7 @@
  * direction the build applies. Short words on screen; the state (draft saved, contrast, not supported) is shown, not
  * explained.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   APPEARANCE_THEMES,
   BORDER_WEIGHTS,
@@ -26,6 +26,10 @@ import {
   LIBRARY_SECTIONS,
   PRODUCT_TYPES,
   TEMPLATES_FOR,
+  DESIGN_FIDELITY,
+  designQuestions,
+  type DesignDraft,
+  type ProjectSetup,
   type ProductType,
   type Appearance,
   type DirectionReading,
@@ -41,6 +45,11 @@ import { LiveTemplate, TemplateThumb } from "./LiveTemplate";
 import { Modal } from "./Modal";
 import { SetupSteps, StepActions } from "../views/SetupView";
 import { useLookDraft } from "./useLookDraft";
+import { DesignDrafts } from "./DesignDrafts";
+import { post } from "../api";
+
+/** Locked Look groups, by the names the panel uses. */
+const LOCK_NAME: Record<string, string> = { colors: "Colors", type: "Type", shape: "Layout", surface: "Buttons", motion: "Motion" };
 
 type Device = "phone" | "tablet" | "desktop";
 const WIDTH: Record<Device, number> = { phone: 390, tablet: 820, desktop: 1280 };
@@ -124,7 +133,8 @@ function Seg<T extends string | number>({ label, value, options, onChange, disab
   );
 }
 
-export function LookStudio({ projectId, site, template, productType, extras: extrasIn = [], onExtras, onTemplate, onBack, onNext }: { projectId: string; site: string; template?: string; productType?: string; extras?: string[]; onExtras: (next: string[]) => void; onTemplate: (id: string) => void; onBack: () => void; onNext: () => void }) {
+export function LookStudio({ projectId, site, setup, design, onSetup, extras: extrasIn = [], onExtras, onTemplate, onBack, onNext }: { projectId: string; site: string; setup: ProjectSetup; design?: { approved: boolean; questions: string[] }; onSetup: () => void; extras?: string[]; onExtras: (next: string[]) => void; onTemplate: (id: string) => void; onBack: () => void; onNext: () => void }) {
+  const { template, productType } = setup;
   const look = useLookDraft(projectId);
   const a = look.appearance ?? BASE_APPEARANCE;
   const [picked, setPicked] = useState(template ?? firstFor(productType) ?? "home-saas");
@@ -142,6 +152,72 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
   const [reading, setReading] = useState<DirectionReading>();
   const [busy, setBusy] = useState(false);
   const [nextError, setNextError] = useState<string>();
+  // FlowCode's proposals: shown in place of the preview until one is chosen.
+  const [view, setView] = useState<"drafts" | "preview">(setup.designMode === "agents" && setup.draftSets.length && !setup.chosenDraft ? "drafts" : "preview");
+  const [drafting, setDrafting] = useState<string>();
+  const [draftError, setDraftError] = useState<string>();
+  const [notes, setNotes] = useState(setup.designNotes ?? "");
+  const notesTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [summary, setSummary] = useState(false);
+  const askBox = useRef<HTMLTextAreaElement>(null);
+  const saveSetup = (patch: Partial<ProjectSetup>) => post(`/projects/${projectId}/setup`, patch).then(onSetup);
+  const propose = async (feedback?: string) => {
+    setDrafting(feedback ? "Making new drafts…" : "Making drafts…");
+    setDraftError(undefined);
+    try {
+      await post(`/projects/${projectId}/setup/drafts`, feedback ? { feedback } : {});
+      onSetup();
+      setView("drafts");
+    } catch (e) {
+      setDraftError((e as Error).message);
+    } finally {
+      setDrafting(undefined);
+    }
+  };
+  const setMode = async (mode: "mine" | "agents") => {
+    // Letting FlowCode decide starts with three drafts (one proposal is a click away).
+    await saveSetup(mode === "agents" ? { designMode: mode, threeDrafts: true } : { designMode: mode });
+    if (mode === "agents" && !setup.draftSets.length) await propose();
+    else setView(mode === "agents" && !setup.chosenDraft ? "drafts" : "preview");
+  };
+  const chooseDraft = async (d: DesignDraft, refine: boolean) => {
+    setDrafting("Choosing…");
+    setDraftError(undefined);
+    try {
+      await post(`/projects/${projectId}/setup/choose-draft`, { draft: d.id });
+      look.adopt(d.appearance);
+      setPicked(d.template);
+      setView("preview");
+      onSetup();
+      // Refine: the studio, ready for words.
+      if (refine) setTimeout(() => askBox.current?.focus(), 50);
+    } catch (e) {
+      setDraftError((e as Error).message);
+    } finally {
+      setDrafting(undefined);
+    }
+  };
+  const editNotes = (text: string) => {
+    setNotes(text);
+    if (notesTimer.current) clearTimeout(notesTimer.current);
+    notesTimer.current = setTimeout(() => void saveSetup({ designNotes: text }), 500);
+  };
+  const flushNotes = async () => {
+    if (!notesTimer.current) return;
+    clearTimeout(notesTimer.current);
+    notesTimer.current = undefined;
+    await saveSetup({ designNotes: notes });
+  };
+  const questions = designQuestions({ ...setup, designNotes: notes });
+  // Any change to the Look after the page opened means the approval (if any) no longer holds.
+  const [changed, setChanged] = useState(false);
+  const firstLook = useRef<unknown>(undefined);
+  useEffect(() => {
+    if (!look.appearance) return;
+    if (firstLook.current === undefined) firstLook.current = look.appearance;
+    else if (firstLook.current !== look.appearance) setChanged(true);
+  }, [look.appearance]);
+  const approved = !!design?.approved && !changed && notes === (setup.designNotes ?? "");
   const tokens = useMemo(() => appearanceTokens(a), [a]);
   const css = useMemo(() => gradientUseCss(a), [a]);
   const checks = useMemo(() => appearanceChecks(a), [a]);
@@ -163,11 +239,23 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
     return () => window.removeEventListener("keydown", on);
   });
 
-  const next = async () => {
+  /** Saves what is pending, then shows the summary to approve. */
+  const review = async () => {
+    setNextError(undefined);
+    try {
+      await Promise.all([look.flush(), flushNotes()]);
+      setSummary(true);
+    } catch (e) {
+      setNextError((e as Error).message);
+    }
+  };
+  /** "Approve Design and Continue": the person's approval; the build can start only from it. */
+  const approve = async () => {
     setBusy(true);
     setNextError(undefined);
     try {
-      await look.select();
+      await post(`/projects/${projectId}/setup/approve-design`, { template: picked });
+      onSetup();
       onNext();
     } catch (e) {
       setNextError((e as Error).message);
@@ -175,7 +263,7 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
     }
   };
 
-  const summary: Record<Group, string> = {
+  const values: Record<Group, string> = {
     buttons: `${CORNERS.find((c) => c.r === shape.radius)?.label ?? `${shape.radius}px`} · ${a.surface === "skeuomorphism" ? "Tactile" : "Flat"}${a.buttonOutline !== undefined ? ` · ${a.buttonOutline}px` : ""}${g?.uses.includes("buttons") ? " · Gradient" : ""}`,
     type: `${a.fonts.display}${a.fonts.body !== a.fonts.display ? ` + ${a.fonts.body}` : ""}`,
     colors: `${a.theme ? `${APPEARANCE_THEMES.find((t) => t.id === a.theme)?.name} · ` : ""}${a.mode === "dark" ? "Dark" : "Light"}`,
@@ -187,7 +275,7 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
       <div className="ls-group__head">
         <button type="button" className="ls-group__btn" aria-expanded={open === id} onClick={() => setOpen(open === id ? "start" : id)}>
           <span className="ls-group__name">{label}</span>
-          <span className="ls-group__val">{summary[id]}</span>
+          <span className="ls-group__val">{values[id]}</span>
           <Icon name="chevron" size={13} />
         </button>
         <button type="button" className={`ls-lock${locked(id) ? " is-on" : ""}`} aria-pressed={locked(id)} title={locked(id) ? `${label} locked: nothing changes it` : `Lock ${label.toLowerCase()}`} onClick={() => void look.toggleLock(LOCK_OF[id])}>
@@ -227,12 +315,81 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
           </button>
           {look.error || nextError ? <span className="ls-err" role="alert" title={nextError ?? look.error}>Not saved</span> : null}
         </div>
-        <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} reserve={16}>
-          <StepActions back={onBack} next={{ label: "Next: Build", cp: "look-next", onClick: () => void next(), busy: busy ? "Saving…" : undefined }} />
-        </LiveTemplate>
+        {view === "drafts" && setup.draftSets.length ? (
+            <DesignDrafts sets={setup.draftSets} chosen={setup.chosenDraft} site={site} busy={drafting} error={draftError} onChoose={(d, refine) => void chooseDraft(d, refine)} onRevise={(f) => void propose(f)}>
+            <StepActions back={onBack} next={{ label: "Approve Design and Continue", cp: "look-next", onClick: () => void review() }} />
+          </DesignDrafts>
+        ) : (
+          <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} reserve={16}>
+            <StepActions back={onBack} next={{ label: approved ? "Next: Build" : "Approve Design and Continue", cp: "look-next", onClick: () => (approved ? onNext() : void review()), busy: busy ? "Saving…" : undefined }} />
+          </LiveTemplate>
+        )}
       </div>
 
       <aside className="ls-panel" aria-label="Look controls" data-cp="look-panel">
+        <section className={`ls-group${open === "start" ? " is-open" : ""}`}>
+          <div className="ls-group__head">
+            <button type="button" className="ls-group__btn" aria-expanded={open === "start"} onClick={() => setOpen("start")}>
+              <span className="ls-group__name">Select a template</span>
+              <span className="ls-group__val">{current.name}</span>
+              <Icon name="chevron" size={13} />
+            </button>
+          </div>
+          {open === "start" ? (
+            <div className="ls-group__body">
+              <div className="ls-seg ls-mode" role="radiogroup" aria-label="Who picks the design">
+                {([["mine", "I'll choose"], ["agents", "Let FlowCode agents decide"]] as const).map(([m, label]) => (
+                  <button key={m} type="button" role="radio" aria-checked={setup.designMode === m} className={setup.designMode === m ? "is-on" : ""} disabled={!!drafting} onClick={() => void setMode(m)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {setup.designMode === "agents" ? (
+                <div className="ls-agents">
+                  <label className="ls-check">
+                    <input type="checkbox" checked={setup.threeDrafts} onChange={(e) => void saveSetup({ threeDrafts: e.target.checked })} /> Show me three design drafts
+                  </label>
+                  {setup.draftSets.length ? (
+                    <button type="button" className="btn btn--sm" onClick={() => setView("drafts")}>{view === "drafts" ? "Showing the drafts" : setup.chosenDraft ? "Compare the drafts" : "See the drafts"}</button>
+                  ) : (
+                    <button type="button" className="btn btn--primary btn--sm" disabled={!!drafting} onClick={() => void propose()}>{drafting ?? (setup.threeDrafts ? "Propose three designs" : "Propose a design")}</button>
+                  )}
+                  {draftError && view !== "drafts" ? <p className="psetup__err" role="alert">{draftError}</p> : null}
+                </div>
+              ) : null}
+              <button type="button" className="ls-current" onClick={() => setGallery(true)}>
+                <TemplateThumb id={current.id} title={current.name} tokens={tokens} css={css} />
+                <span className="ls-current__name">{current.name}</span>
+                <span className="ls-current__change">Browse templates</span>
+              </button>
+              {look.state?.prd?.direction ? (
+                <button type="button" className="btn btn--sm ls-prd" onClick={() => setReading(look.read(look.state!.prd!.direction!))}>
+                  Use my PRD's look
+                </button>
+              ) : (
+                <p className="ls-quiet">No design direction found in a PRD.</p>
+              )}
+              <fieldset className="ls-fidelity">
+                <legend>How closely should FlowCode follow this design?</legend>
+                {DESIGN_FIDELITY.map((f) => (
+                  <label key={f.id} className={`ls-fidelity__opt${setup.fidelity === f.id ? " is-on" : ""}`} title={f.detail}>
+                    <input type="radio" name="ls-fidelity" checked={setup.fidelity === f.id} onChange={() => void saveSetup({ fidelity: f.id })} />
+                    <span className="ls-fidelity__name">{f.label}</span>
+                    <span className="ls-fidelity__detail">{f.detail}</span>
+                  </label>
+                ))}
+              </fieldset>
+              <label className="ls-notes">
+                <span className="ls-notes__k">
+                  What would you like to change, keep, or add?
+                  {setup.fidelity === "inspiration" ? <span className={notes.trim() ? "ls-notes__ok" : "ls-notes__req"}>{notes.trim() ? "" : " Needed"}</span> : <span className="ls-notes__opt"> Optional</span>}
+                </span>
+                <textarea className="ls-ask__input ls-notes__input" rows={3} value={notes} onChange={(e) => editNotes(e.target.value)} placeholder="e.g. keep the calendar, add a photo of the studio, no pricing table" />
+              </label>
+            </div>
+          ) : null}
+        </section>
+
         <form
           className="ls-ask"
           onSubmit={(e) => {
@@ -243,6 +400,7 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
           }}
         >
           <textarea
+            ref={askBox}
             className="ls-ask__input"
             rows={3}
             value={words}
@@ -271,34 +429,7 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
             ))}
           </ul>
         ) : null}
-        <section className={`ls-group${open === "start" ? " is-open" : ""}`}>
-          <div className="ls-group__head">
-            <button type="button" className="ls-group__btn" aria-expanded={open === "start"} onClick={() => setOpen("start")}>
-              <span className="ls-group__name">Start from</span>
-              <span className="ls-group__val">{current.name}</span>
-              <Icon name="chevron" size={13} />
-            </button>
-          </div>
-          {open === "start" ? (
-            <div className="ls-group__body">
-              <button type="button" className="ls-current" onClick={() => setGallery(true)}>
-                <TemplateThumb id={current.id} title={current.name} tokens={tokens} css={css} />
-                <span className="ls-current__name">{current.name}</span>
-                <span className="ls-current__change">Browse templates</span>
-              </button>
-              {look.state?.prd?.direction ? (
-                <button type="button" className="btn btn--sm ls-prd" onClick={() => setReading(look.read(look.state!.prd!.direction!))}>
-                  Use my PRD's look
-                </button>
-              ) : (
-                <p className="ls-quiet">No design direction found in a PRD.</p>
-              )}
-              <label className="ls-check ls-check--off" title="Three different drafts to choose from: not built yet">
-                <input type="checkbox" disabled /> Show me three drafts first <span className="ls-soon">Soon</span>
-              </label>
-            </div>
-          ) : null}
-        </section>
+
 
         {section(
           "buttons",
@@ -413,6 +544,40 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
         </p>
       </aside>
 
+      {summary ? (
+        <Modal onClose={() => setSummary(false)} labelledBy="ls-approve-title" className="ls-approve">
+          <h2 id="ls-approve-title">Approve the design</h2>
+          <p className="ls-approve__lede">The build starts from this. Nothing is built until you approve it.</p>
+          <dl className="ls-approve__list">
+            <dt>Visual reference</dt>
+            <dd>{current.name}{setup.chosenDraft ? ` · ${setup.draftSets.flatMap((x) => x.drafts).find((x) => x.id === setup.chosenDraft)?.label ?? ""}` : ""} · {values.colors} · {values.type}</dd>
+            <dt>How closely</dt>
+            <dd>{DESIGN_FIDELITY.find((f) => f.id === setup.fidelity)?.label ?? <em className="ls-approve__missing">Not chosen yet</em>}</dd>
+            <dt>Changes and additions</dt>
+            <dd>{notes.trim() || "None"}{look.state?.draft?.notes?.length || look.state?.selected?.notes?.length ? ` · For the build: ${(look.state?.draft?.notes ?? look.state?.selected?.notes ?? []).join(", ")}` : ""}</dd>
+            <dt>Locked</dt>
+            <dd>{look.locks.length ? look.locks.map((l) => LOCK_NAME[l] ?? l).join(", ") : "Nothing"}</dd>
+            <dt>Open questions</dt>
+            <dd>
+              {questions.length || reading?.unread.length ? (
+                <ul className="ls-approve__q">
+                  {questions.map((q) => <li key={q}>{q}</li>)}
+                  {reading?.unread.length ? <li>FlowCode couldn't apply: {reading.unread.join(", ")}. Add it to your notes, or say it another way.</li> : null}
+                </ul>
+              ) : (
+                "None"
+              )}
+            </dd>
+          </dl>
+          {nextError ? <p className="psetup__err" role="alert">{nextError}</p> : null}
+          <div className="ls-approve__actions">
+            <button type="button" className="btn" onClick={() => setSummary(false)}>Keep editing</button>
+            <button type="button" className="btn btn--primary" data-cp="look-approve" disabled={busy || questions.length > 0} onClick={() => void approve()}>
+              {busy ? "Approving…" : "Approve Design and Continue"}
+            </button>
+          </div>
+        </Modal>
+      ) : null}
       {gallery ? (
         <Modal onClose={() => setGallery(false)} labelledBy="ls-gallery-title" className="ls-gallery-modal">
           <TemplateGallery current={current.id} productType={productType} tokens={tokens} css={css} onChoose={choose} onClose={() => setGallery(false)} />

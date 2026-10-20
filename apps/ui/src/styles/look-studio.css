@@ -164,3 +164,75 @@
 .ls-ask { flex-direction: column; align-items: stretch; }
 .ls-ask__input { min-height: 72px; padding: 8px 10px; line-height: 1.45; resize: vertical; }
 .ls-ask .btn { align-self: flex-end; }
+
+/* Who picks the design, how closely to follow it, and what to change. */
+.ls-mode { display: flex; }
+.ls-mode button { flex: 1; white-space: nowrap; }
+.ls-agents { display: grid; gap: 10px; justify-items: start; }
+.ls-fidelity { display: grid; gap: 6px; margin: 0; padding: 0; border: 0; }
+.ls-fidelity legend { margin-bottom: 6px; padding: 0; font-size: 13px; font-weight: 650; color: var(--text-0); }
+.ls-fidelity__opt { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.ls-fidelity__opt.is-on { border-color: var(--brand-ink, var(--line-strong)); background: var(--brand-soft, var(--bg-2)); }
+.ls-fidelity__opt input { grid-row: span 2; margin-top: 3px; accent-color: var(--brand-1); }
+.ls-fidelity__name { font-size: 13px; font-weight: 600; color: var(--text-0); }
+.ls-fidelity__detail { font-size: 12px; color: var(--text-2); line-height: 1.4; }
+.ls-notes { display: grid; gap: 6px; }
+.ls-notes__k { font-size: 13px; font-weight: 650; color: var(--text-0); }
+.ls-notes__opt { font-weight: 400; color: var(--text-2); }
+.ls-notes__req { font-weight: 600; color: var(--sig-warn, #f2b33d); }
+.ls-notes__input { min-height: 64px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--bg-1); }
+.ls-notes__input:focus { border-color: var(--brand-ink, var(--line-strong)); }
+
+/* Design drafts: the proposals, side by side, in place of the preview. */
+.dsd { display: grid; gap: 16px; align-content: start; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); }
+.dsd__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.dsd__title { margin: 0; font-size: 18px; font-weight: 650; color: var(--text-0); }
+.dsd__basis { margin: 4px 0 0; font-size: 13px; color: var(--text-2); max-width: 72ch; }
+.dsd__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.dsd__grid--1 { grid-template-columns: minmax(0, 560px); }
+@media (max-width: 1100px) { .dsd__grid { grid-template-columns: minmax(0, 1fr); } }
+.dsd-card { display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--line-strong); border-radius: 12px; overflow: hidden; background: var(--bg-2); }
+.dsd-card.is-chosen { border-color: var(--brand-ink, var(--line-strong)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-ink, #a2b6e6) 35%, transparent); }
+.dsd-card__pic { position: relative; display: block; padding: 0; border: 0; border-bottom: 1px solid var(--line); background: #fff; cursor: zoom-in; }
+.dsd-card__pic .lt-thumb { aspect-ratio: 16 / 10; }
+.dsd-card__tag { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(13, 17, 25, 0.78); color: #fff; font-size: 11px; font-weight: 600; }
+.dsd-card__zoom { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: rgba(13, 17, 25, 0.78); color: #fff; opacity: 0; transition: opacity 0.15s ease; }
+.dsd-card__pic:hover .dsd-card__zoom, .dsd-card__pic:focus-visible .dsd-card__zoom { opacity: 1; }
+.dsd-card__body { display: grid; gap: 8px; align-content: start; padding: 12px 14px 14px; }
+.dsd-card__label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-0); }
+.dsd-card__on { padding: 1px 8px; border-radius: 999px; background: var(--brand-soft, var(--bg-2)); color: var(--brand-ink, var(--text-0)); font-size: 11px; font-weight: 650; }
+.dsd-card__why { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--text-1); }
+.dsd-card__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.dsd__unread { margin: 0; font-size: 12.5px; color: var(--sig-warn, #f2b33d); }
+.dsd__none { display: grid; gap: 8px; justify-items: start; }
+.dsd__revise { display: grid; gap: 8px; width: min(560px, 100%); }
+.dsd__revise-k { font-size: 13px; font-weight: 650; color: var(--text-0); }
+.dsd__revise-input { min-height: 72px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--bg-1); }
+.dsd__revise-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-box.dsd-big { width: min(1320px, calc(100vw - 32px)); max-height: 94vh; display: grid; gap: 12px; }
+.dsd-big__head { display: flex; align-items: center; gap: 10px; }
+.dsd-big__name { flex: 1; min-width: 0; }
+.dsd-big__name h2 { margin: 0; font-size: 16px; }
+.dsd-big__name p { margin: 2px 0 0; font-size: 12.5px; color: var(--text-2); }
+
+/* The summary before approving. */
+.modal-box.ls-approve { width: min(560px, calc(100vw - 32px)); display: grid; gap: 14px; }
+.ls-approve h2 { margin: 0; font-size: 18px; }
+.ls-approve__lede { margin: 0; font-size: 13px; color: var(--text-2); }
+.ls-approve__list { display: grid; grid-template-columns: 150px 1fr; gap: 10px 14px; margin: 0; font-size: 13.5px; }
+.ls-approve__list dt { color: var(--text-2); }
+.ls-approve__list dsd { margin: 0; color: var(--text-0); }
+.ls-approve__missing { color: var(--sig-warn, #f2b33d); font-style: normal; }
+.ls-approve__q { margin: 0; padding-left: 18px; color: var(--sig-warn, #f2b33d); }
+.ls-approve__actions { display: flex; justify-content: flex-end; gap: 8px; }
+.psetup__approved { margin: 0; color: var(--sig-ok, #2fc4b2); font-size: 13.5px; }
+.modal-box.ls-approve, .modal-box.dsd-big { padding: 20px 22px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--bg-0, #0d1119); box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.7); color: var(--text-0); }
+.modal-box.dsd-big { padding: 14px 16px; overflow: auto; }
+.dsd__grid { align-items: start; }
+.ls-main > .dsd { align-self: start; }
+/* The picture's frame is laid out full size and only scaled down: keep it from sizing the row. */
+.dsd-card__pic { width: 100%; aspect-ratio: 16 / 10; contain: size layout; overflow: hidden; }
+.dsd-card__pic .lt-thumb { position: absolute; inset: 0; aspect-ratio: auto; }
+.dsd__foot { padding-top: 12px; border-top: 1px solid var(--line); }
+.modal-box.dsd-big .lt-stage { height: min(78vh, 900px) !important; }
+.dsd__foot > .psetup-actions { width: 100%; justify-content: space-between; margin-left: 0; }
