@@ -14,9 +14,9 @@ import { DirectionEditor } from "../components/DirectionEditor";
 
 type Step = "describe" | "look" | "build";
 const STEPS: Array<{ id: Step; label: string }> = [
-  { id: "describe", label: "Describe your product" },
+  { id: "describe", label: "Describe" },
   { id: "look", label: "Look and Feel" },
-  { id: "build", label: "Build levels and Extras" },
+  { id: "build", label: "Build" },
 ];
 
 interface DesignStateView {
@@ -25,8 +25,9 @@ interface DesignStateView {
 }
 
 export function SetupView({ projectId, step }: { projectId: string; step: string }) {
-  const res = useResource<{ project: Project; setup: ProjectSetup }>(`/projects/${projectId}/setup`, [projectId]);
   const at: Step = step === "look" || step === "build" ? step : "describe";
+  // Read again on every step: a step shown again must show what was saved since, not what was loaded first.
+  const res = useResource<{ project: Project; setup: ProjectSetup }>(`/projects/${projectId}/setup`, [projectId, at]);
   if (res.error) return <div className="page"><p className="psetup__err" role="alert">{res.error}</p></div>;
   if (!res.data) return <div className="page"><p className="dim">Loading the setup…</p></div>;
   const { project, setup } = res.data;
@@ -57,7 +58,7 @@ export function SetupView({ projectId, step }: { projectId: string; step: string
       ) : at === "look" ? (
         <LookStep projectId={projectId} />
       ) : (
-        <BuildStep projectId={projectId} project={project} setup={setup} onSaved={res.reload} />
+        <BuildStep key={setup.updatedAt} projectId={projectId} project={project} setup={setup} onSaved={res.reload} />
       )}
     </div>
   );
@@ -138,84 +139,58 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
   const chosen = BUILD_EXTRAS.filter((x) => extras.includes(x.id));
   return (
     <section className="psetup__build" aria-labelledby="build-title">
-      <header className="psetup__head">
-        <h1 className="psetup__title" id="build-title">Agentic Build Levels</h1>
-        <p className="psetup__lede">How much FlowCode does on its own. Every level keeps your requirements and locked choices, shows progress, can be paused, keeps every version, and asks before anything leaves this computer.</p>
-      </header>
+      <h1 className="psetup__title" id="build-title">How hands-on?</h1>
       <fieldset className="psetup-levels">
         <legend className="sr-only">Build level</legend>
-        {BUILD_LEVELS.map((l) => {
-          const policy = AUTONOMY_LEVELS.find((a) => a.id === l.id)!;
-          return (
-            <label key={l.id} className={`psetup-card${autonomy === l.id ? " is-on" : ""}`}>
-              <input type="radio" name="build-level" checked={autonomy === l.id} onChange={() => (setAutonomy(l.id), save({ autonomy: l.id }))} />
-              <span className="psetup-card__name">{l.name}</span>
-              <span className="psetup-card__text">{l.experience}</span>
-              <ul className="psetup-card__list">
-                {policy.forYou.map((t) => <li key={t}>{t}</li>)}
-              </ul>
-            </label>
-          );
-        })}
+        {BUILD_LEVELS.map((l) => (
+          <label key={l.id} className={`psetup-card${autonomy === l.id ? " is-on" : ""}`} title={AUTONOMY_LEVELS.find((a) => a.id === l.id)?.forYou.join(" ")}>
+            <input type="radio" name="build-level" checked={autonomy === l.id} onChange={() => (setAutonomy(l.id), save({ autonomy: l.id }))} />
+            <span className="psetup-card__name">{l.name}</span>
+            <span className="psetup-card__text">{LEVEL_LINE[l.id]}</span>
+          </label>
+        ))}
       </fieldset>
 
       <fieldset className="psetup-coder">
-        <legend>Who writes the code</legend>
-        <label className="check">
-          <input type="radio" name="psetup-coder" checked={coder === "local"} onChange={() => (setCoder("local"), save({ coder: "local" }))} /> Local model <span className="muted">· {roles.data?.coder?.assignment?.model ?? "the local coder"} on this computer. Code, design and screenshots stay here</span>
-        </label>
-        <label className="check">
-          <input type="radio" name="psetup-coder" checked={coder === "cloud"} disabled={!cloud.data?.ready} onChange={() => (setCoder("cloud"), save({ coder: "cloud" }))} /> Cloud model{" "}
-          <span className="muted">{cloud.data?.ready ? `· ${cloud.data.model}. This project's code and screenshots are sent to that provider, which charges per use` : `· not set up yet (${cloud.data?.problem ?? "checking"}); set it up on the Models page`}</span>
-        </label>
+        <legend>Code written by</legend>
+        <div className="psetup-seg">
+          <label className={coder === "local" ? "is-on" : ""}>
+            <input type="radio" name="setup-coder" checked={coder === "local"} onChange={() => (setCoder("local"), save({ coder: "local" }))} /> This computer
+          </label>
+          <label className={coder === "cloud" ? "is-on" : ""} title={cloud.data?.ready ? "Sends this project's code and screenshots to the provider, which charges per use" : `Not set up: ${cloud.data?.problem ?? "checking"}`}>
+            <input type="radio" name="setup-coder" checked={coder === "cloud"} disabled={!cloud.data?.ready} onChange={() => (setCoder("cloud"), save({ coder: "cloud" }))} /> Cloud
+          </label>
+        </div>
+        <span className="psetup-coder__model">{coder === "cloud" ? cloud.data?.model : roles.data?.coder?.assignment?.model}</span>
       </fieldset>
 
-      <section className="psetup-extras" aria-labelledby="extras-title">
-        <header className="psetup-extras__head">
-          <h2 className="psetup-extras__title" id="extras-title">Extras</h2>
-          <span className="psetup-extras__count" role="status">{chosen.length ? `${chosen.length} selected` : "None selected"}</span>
-        </header>
-        <p className="psetup__lede">Optional enhancements, any combination. They add to the build; they never replace basic usability.</p>
-        <div className="psetup-extras__grid">
+      <fieldset className="psetup-extras">
+        <legend>
+          Extras <span className="psetup-extras__count">{chosen.length ? `${chosen.length} in this build` : "optional"}</span>
+        </legend>
+        <div className="psetup-chips">
           {BUILD_EXTRAS.map((x) => {
             const on = extras.includes(x.id);
             return (
-              <label key={x.id} className={`psetup-card psetup-card--extra${on ? " is-on" : ""}`}>
-                <input type="checkbox" checked={on} onChange={() => toggle(x.id)} />
-                <span className="psetup-card__name">
-                  {x.label}
-                  {on ? <span className="psetup-card__in">In this build</span> : null}
-                </span>
-                <span className="psetup-card__text">{x.hint}</span>
+              <label key={x.id} className={`psetup-chip${on ? " is-on" : ""}`} title={x.hint}>
+                <input type="checkbox" checked={on} onChange={() => toggle(x.id)} aria-description={x.hint} />
+                {on ? <Icon name="check" size={13} /> : null}
+                {x.label}
+                {on ? <span className="sr-only"> (in this build)</span> : null}
               </label>
             );
           })}
         </div>
-      </section>
+      </fieldset>
 
-      <section className="psetup-summary" aria-labelledby="summary-title">
-        <h2 className="psetup-extras__title" id="summary-title">Start Build</h2>
-        <dl className="psetup-summary__list">
-          <dt>Project</dt>
-          <dd>{project.name}{setup.productType ? ` · ${PRODUCT_TYPES.find((t) => t.id === setup.productType)?.label}` : ""}</dd>
-          <dt>Requirements</dt>
-          <dd>
-            {setup.description.length > 220 ? `${setup.description.slice(0, 220)}…` : setup.description}
-            {setup.references.length ? <span className="muted"> · {setup.references.length} attached: {setup.references.map((r) => r.name).join(", ")}</span> : null}
-          </dd>
-          <dt>Design</dt>
-          <dd>
-            {look ? `Selected direction, version ${design.data?.selected?.version}: ${look.fonts.display} / ${look.fonts.body}, primary ${look.primary}, ${look.surface === "skeuomorphism" ? "Tactile" : "Flat"} surfaces` : "No direction selected: the app keeps FlowCode's base styling, or the PRD's if it sets one."}
-            {design.data?.draft ? <span className="muted"> · an unselected draft is waiting in Look and Feel</span> : null}
-          </dd>
-          <dt>Build level</dt>
-          <dd>{level.name} · {coder === "cloud" ? "cloud model" : "local model"}</dd>
-          <dt>Extras</dt>
-          <dd>{chosen.length ? chosen.map((x) => x.label).join(", ") : "None"}</dd>
-        </dl>
-        {extras.includes("installable") ? <p className="psetup__note">Install as an app: FlowCode adds a manifest and an offline cache for the app's own screens. Installing depends on the browser, and nothing that needs a server works offline.</p> : null}
-        {coder === "cloud" ? <p className="psetup__note">The cloud model receives this project's code and screenshots.</p> : null}
+      <section className="psetup-summary" aria-label="Summary">
+        <span><b>{project.name}</b>{setup.productType ? ` · ${PRODUCT_TYPES.find((t) => t.id === setup.productType)?.label}` : ""}</span>
+        <span>{setup.references.length ? `${setup.references.length} file${setup.references.length === 1 ? "" : "s"}` : "No files"}</span>
+        <span>{look ? `Look v${design.data?.selected?.version}` : "Base look"}</span>
+        <span>{level.name}</span>
+        <span>{chosen.length ? chosen.map((x) => x.label).join(", ") : "No extras"}</span>
       </section>
+      {extras.includes("installable") ? <p className="psetup__note">Install as an app: installing depends on the browser; only the app's own screens work offline.</p> : null}
 
       <footer className="psetup__foot">
         {error ? <span className="psetup__err" role="alert">{error}</span> : null}
@@ -227,3 +202,10 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
     </section>
   );
 }
+
+/** One line each; the full policy is the card's tooltip. */
+const LEVEL_LINE: Record<AutonomyLevel, string> = {
+  supervised: "You approve each step.",
+  assisted: "Asks only about risky choices.",
+  autonomous: "Runs on its own. Asks before anything leaves this computer.",
+};
