@@ -118,7 +118,7 @@ function StartResearch() {
               rows={5}
               value={problem}
               autoFocus
-              placeholder="Who has it, and what makes it hard? For example: Busy parents can't tell which brands are non-GMO while shopping."
+              placeholder="What is the problem? Who does it impact? When and why does it occur?"
               onChange={(e) => setProblem(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
