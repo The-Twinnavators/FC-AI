@@ -28,6 +28,34 @@ export function IntroActions() {
   );
 }
 
+/** What a prototype is and isn't, read before starting one (it used to sit inside New build). */
+export function PrototypeScope() {
+  return (
+    <div className="proto-scope" aria-label="What a prototype is">
+      <p className="proto-scope__lead">FlowCode builds a clickable prototype: a working demo of your app on this computer.</p>
+      <div className="proto-scope__cols">
+        <div>
+          <h3 className="proto-scope__h">You get</h3>
+          <ul>
+            <li>Real screens, links, forms and search you can click through</li>
+            <li>Pretend data that saves in your browser</li>
+            <li>A design checked at phone, tablet and desktop sizes</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="proto-scope__h">It won&apos;t, yet</h3>
+          <ul>
+            <li>Go online or have its own web address</li>
+            <li>Send anything to real people: no emails, bookings or payments</li>
+            <li>Keep accounts or a shared database</li>
+          </ul>
+        </div>
+      </div>
+      <p className="proto-scope__next">When you&apos;re ready for the real thing, the project&apos;s Launch readiness checklist lists what it still needs.</p>
+    </div>
+  );
+}
+
 export function IntroHero({ eyebrow, extra }: { eyebrow?: ReactNode; extra?: ReactNode }) {
   return (
     <section className="ab2__hero" aria-labelledby="intro-title">
@@ -53,6 +81,7 @@ export function IntroHero({ eyebrow, extra }: { eyebrow?: ReactNode; extra?: Rea
             <dd>You only have a problem. FlowCode researches it with you and writes the PRD first, then you build from it.</dd>
           </div>
         </dl>
+        <PrototypeScope />
         {extra}
       </div>
       <AboutDemo />

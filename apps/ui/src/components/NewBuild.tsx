@@ -75,24 +75,19 @@ function summarize(role: ReferenceFile["role"], content: string): string {
   }
 }
 
-/** One numbered step of the form: number, title, optional tag and a one-line hint above its control. */
-function Step({ n, title, hint, tag, done, htmlFor, children }: { n: number | null; title: string; hint?: ReactNode; tag?: string; done?: boolean; htmlFor?: string; children: ReactNode }) {
+/** One part of the form: a title, an optional tag and a one-line hint above its control. */
+function Step({ title, hint, tag, done, htmlFor, children }: { title: string; hint?: ReactNode; tag?: string; done?: boolean; htmlFor?: string; children: ReactNode }) {
   const Title = htmlFor ? "label" : "span";
   return (
     <div className={`nb-step${done ? " is-done" : ""}`}>
-      <span className={`nb-step__num${n === null ? " nb-step__num--none" : ""}`} aria-hidden="true">
-        {n === null ? null : done ? <Icon name="check" size={12} /> : n}
-      </span>
-      <div className="nb-step__body">
-        <div className="nb-step__head">
-          <Title className="nb-step__title" {...(htmlFor ? { htmlFor } : {})}>
-            {title}
-          </Title>
-          {tag ? <span className="nb-step__tag">{tag}</span> : null}
-        </div>
-        {hint ? <p className="nb-step__hint">{hint}</p> : null}
-        {children}
+      <div className="nb-step__head">
+        <Title className="nb-step__title" {...(htmlFor ? { htmlFor } : {})}>
+          {title}
+        </Title>
+        {tag ? <span className="nb-step__tag">{tag}</span> : null}
       </div>
+      {hint ? <p className="nb-step__hint">{hint}</p> : null}
+      {children}
     </div>
   );
 }
@@ -261,20 +256,14 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
       }}
     >
       <div className="section__head">
-        <span className="stack-anim" aria-hidden="true" style={{ marginRight: 12, flex: "none" }}>
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-        </span>
         <h2 className="section__title" id="newbuild-title">
           New build
         </h2>
-        <span className="label" style={{ marginLeft: "auto" }}>
-          {wizard ? `Step ${stepNo} of ${STEP_NAMES.length}` : `${STEP_NAMES.length} steps · about a minute`}
-        </span>
+        {wizard ? null : (
+          <span className="label" style={{ marginLeft: "auto" }}>
+            {STEP_NAMES.length} steps · about a minute
+          </span>
+        )}
       </div>
       {wizard ? (
         <>
@@ -310,34 +299,9 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
         </>
       ) : null}
       <SetupCard compact />
-      <div className="nb__proto" data-cp="nb-proto">
-        <span className="nb__proto-dot" aria-hidden="true" />
-        <div>
-          <strong>FlowCode builds a clickable prototype: a working demo of your app on this computer.</strong>
-          <div className="nb__proto-cols">
-            <div>
-              <span className="nb__proto-h">You get</span>
-              <ul>
-                <li>Real screens, links, forms and search you can click through</li>
-                <li>Pretend data that saves in your browser</li>
-                <li>A design checked at phone, tablet and desktop sizes</li>
-              </ul>
-            </div>
-            <div>
-              <span className="nb__proto-h">It won&apos;t, yet</span>
-              <ul>
-                <li>Go online or have its own web address</li>
-                <li>Send anything to real people: no emails, bookings or payments</li>
-                <li>Keep accounts or a shared database</li>
-              </ul>
-            </div>
-          </div>
-          <span className="nb__proto-next">When you&apos;re ready for the real thing, the project&apos;s Launch readiness checklist lists what it still needs.</span>
-        </div>
-      </div>
       <div className="section__body nb__steps" ref={stepBody}>
         {show(1) ? (
-        <Step n={1} title="What do you want to make?" tag="Required" done={quality.verdict === "specific"} htmlFor="nb-desc" hint="Say who it’s for and what they should be able to do first. Everyday words are fine.">
+        <Step title="Enter your product description" tag="Required" done={quality.verdict === "specific"} htmlFor="nb-desc" hint="Say who it’s for and what they should be able to do first. Everyday words are fine.">
           <div data-guide="newbuild.description" className="nb__field">
             <textarea id="nb-desc" data-cp="nb-desc" className="textarea" value={description} maxLength={MAX_DESC} onChange={(e) => setDescription(e.target.value)} placeholder="For example: A booking app for a small climbing gym. Members book a first lesson and see open climbing times. Staff see who is in today." required aria-describedby="nb-score" />
             <div id="nb-score" className="nb-score" aria-live="polite">
@@ -357,7 +321,7 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
         ) : null}
 
         {show(1) ? (
-        <Step n={null} title="Add your PRD and support files" tag="Optional" done={refs.length > 0} hint="A product plan (PRD), content as JSON, a page to copy (HTML or CSS), and screenshots or mockups of the look you want. FlowCode builds the prototype from the PRD, uses your content as the prototype's data, and captures the style from the images and pages.">
+        <Step title="Upload your PRD and any supporting files" tag="Optional" done={refs.length > 0} hint="FlowCode builds the prototype from the PRD and uses JSON content as its data.">
           <div data-guide="newbuild.files" className="nb__field">
             <div
               data-cp="nb-files"
@@ -411,7 +375,7 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
         ) : null}
 
         {show(2) ? (
-        <Step n={2} title="Choose the look" tag="Optional" done hint="How the app looks and feels. FlowCode applies the style when it sets up the app and builds the extras you tick.">
+        <Step title="Choose the look" tag="Optional" done hint="How the app looks and feels. FlowCode applies the style when it sets up the app and builds the extras you tick.">
           <div data-guide="newbuild.look">
             <LookStep refs={refs} template={template} onTemplate={setTemplate} extras={extras} onExtras={setExtras} vibe={vibe ?? suggestedVibe(refs, prdSetsLook(refs) ? undefined : template)} onVibe={setVibe} />
           </div>
@@ -419,7 +383,7 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
         ) : null}
 
         {show(3) ? (
-        <Step n={3} title="Name it" tag="Optional" done={!!autoName.trim()} hint="Filled in from your description. FlowCode makes a new folder for it on this computer.">
+        <Step title="Name it" tag="Optional" done={!!autoName.trim()} hint="Filled in from your description. FlowCode makes a new folder for it on this computer.">
           <div className="nb__row">
             <input
               id="nb-name"
@@ -509,7 +473,7 @@ export function NewBuild({ onCancel, wizard = false }: { onCancel?: () => void; 
         ) : null}
 
         {show(4) ? (
-        <Step n={4} title="Choose how much FlowCode does on its own" done hint="You can change this later in the project's settings.">
+        <Step title="Choose how much FlowCode does on its own" done hint="You can change this later in the project's settings.">
           <div data-guide="newbuild.autonomy">
             <AutonomyPicker value={autonomy} onChange={setAutonomy} compact />
           </div>
