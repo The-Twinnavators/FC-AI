@@ -236,3 +236,11 @@
 .dsd__foot { padding-top: 12px; border-top: 1px solid var(--line); }
 .modal-box.dsd-big .lt-stage { height: min(78vh, 900px) !important; }
 .dsd__foot > .psetup-actions { width: 100%; justify-content: space-between; margin-left: 0; }
+/* The preview (or the drafts) stays in view while the panel on the right scrolls. */
+.ls-main { position: sticky; top: 16px; align-self: start; }
+@media (max-width: 1000px) { .ls-main { position: static; } }
+/* Sticky needs the background wrapper to clip, not to be a scroll box. */
+.home.psetup-bg:has(.ls) { overflow: clip; }
+/* The panel on the left, the preview (or the drafts) on the right. */
+.ls { grid-template-columns: 320px minmax(0, 1fr); grid-template-areas: "panel main"; }
+@media (max-width: 1000px) { .ls { grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "panel"; } }
