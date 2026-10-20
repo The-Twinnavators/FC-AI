@@ -56,6 +56,7 @@ export function SettingsView({ projects }: { projects: Project[] }) {
   const go = (id: SectionId) => {
     setTab(id);
     navigate(`/settings/${id}`);
+    document.getElementById("main")?.scrollTo({ top: 0 });
   };
   const global = useResource<AppSettings>("/settings");
   const [defaults, setDefaults] = useState<ProjectSettings>();

@@ -66,6 +66,7 @@ export function WalkthroughView() {
   const head = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     head.current?.focus({ preventScroll: true });
+    document.getElementById("main")?.scrollTo({ top: 0 });
   }, [stage]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

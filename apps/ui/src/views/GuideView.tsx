@@ -88,7 +88,7 @@ export function GuideView() {
       <div className="settings-layout guide-layout">
         <nav className="settings-nav" role="tablist" aria-orientation="vertical" aria-label="Areas">
           {AREAS.map((a) => (
-            <button key={a} type="button" role="tab" aria-selected={!needle && area === a} className="settings-nav__item" onClick={() => (setQ(""), setArea(a), setFocus(undefined))}>
+            <button key={a} type="button" role="tab" aria-selected={!needle && area === a} className="settings-nav__item" onClick={() => (setQ(""), setArea(a), setFocus(undefined), document.getElementById("main")?.scrollTo({ top: 0 }))}>
               <span className="settings-nav__label">{a}</span>
               {a !== WHATS_NEW && inArea(a).some((f) => isNewFeature(f)) ? (
                 <span className="guide-new guide-new--dot" title={`${inArea(a).filter((f) => isNewFeature(f)).length} new`}>
