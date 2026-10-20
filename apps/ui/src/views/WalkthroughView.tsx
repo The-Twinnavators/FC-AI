@@ -291,6 +291,7 @@ function Change() {
         ]}
       />
       <Card title="On screen">
+        <GuideShot name="builder-preview" alt="The builder's Preview tab" lookFor="The Preview tab on the right: the app running live. Click through it like a user would." />
         <GuideShot name="builder-chat" alt="The builder's Chat" lookFor="The message box under the chat. Type a change in your own words; while a build runs, Queue change sends it when the build finishes." />
       </Card>
     </>

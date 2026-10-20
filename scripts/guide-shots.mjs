@@ -3,7 +3,7 @@
 // booking app the Walkthrough uses), never a person's own projects; counts of your own drafts and PRDs are hidden.
 //
 // Requires the dev daemon (7457) and UI dev server (5199). Usage:
-//   node scripts/guide-shots.mjs [setup|plan|builder|all]      (default: all)
+//   node scripts/guide-shots.mjs [setup|draft|plan|builder|all]      (default: all; draft needs the sample as a draft)
 // Writes apps/ui/public/guide/<name>.jpg (served at /guide/<name>.jpg). Re-run after a screen changes.
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -31,10 +31,15 @@ const fillComposer = async (p) => {
 /** Each shot: where to go, what to ring (the thing to look out for), and anything to do first. */
 const SHOTS = [
   { group: "setup", name: "home-composer", route: "/", ring: "#composer-form", before: fillComposer },
-  { group: "setup", name: "home-attach", route: "/", ring: '[data-cp="nb-files"]', before: fillComposer },
-  { group: "setup", name: "look-studio", route: `/new/${id}/look`, ring: '[data-cp="look-panel"]', wait: 4000 },
-  { group: "setup", name: "build-levels", route: `/new/${id}/build`, ring: '[data-cp="build-levels"]' },
-  { group: "setup", name: "build-coder", route: `/new/${id}/build`, ring: '[data-cp="build-coder"]' },
+  { group: "setup", name: "home-attach", route: "/", ring: ".composer__files, [data-cp=\"nb-files\"]", before: async (p) => {
+    await fillComposer(p);
+    // A sample PRD in the file picker, so the picture shows what an attached PRD looks like (nothing is saved).
+    await p.setInputFiles('#composer-form input[type="file"]', join(import.meta.dirname, "guide-assets", "studio-bookings-prd.md"));
+  } },
+  // Look and Feel and Build only show while the sample is a draft (before Start Build); kept from that capture.
+  { group: "draft", name: "look-studio", route: `/new/${id}/look`, ring: '[data-cp="look-panel"]', wait: 4000 },
+  { group: "draft", name: "build-levels", route: `/new/${id}/build`, ring: '[data-cp="build-levels"]' },
+  { group: "draft", name: "build-coder", route: `/new/${id}/build`, ring: '[data-cp="build-coder"]' },
   { group: "setup", name: "create-prd", route: "/discover/new", ring: ".disc-home__form" },
   // Once the sample's plan is waiting for approval (before you approve it).
   { group: "plan", name: "approvals", route: "/approvals", ring: '[data-cp="approval-allow"], [data-tab="waiting"]' },
@@ -55,7 +60,7 @@ await ctx.addInitScript(() => {
   localStorage.setItem("flowcode.home.backdropPaused", "1");
 });
 const page = await ctx.newPage();
-for (const s of SHOTS.filter((x) => group === "all" || x.group === group)) {
+for (const s of SHOTS.filter((x) => (group === "all" && x.group !== "draft") || x.group === group)) {
   await page.goto(`${UI}${qs}#${s.route}`, { waitUntil: "networkidle" });
   await page.waitForTimeout(s.wait ?? 2200);
   // A decision waiting opens over the builder; close it (Escape) so the screen behind shows. Nothing is decided.
@@ -70,7 +75,7 @@ for (const s of SHOTS.filter((x) => group === "all" || x.group === group)) {
   // Hide anything about the person's own work, then ring the control to look out for.
   const found = await page.evaluate((sel) => {
     const style = document.createElement("style");
-    style.textContent = ".app-footer, .home__drafts-btn, .home__pills, .disc-home .home__drafts-btn { display: none !important; } .fl-guide-ring { outline: 2px solid #9b6bff !important; outline-offset: 4px !important; box-shadow: 0 0 0 10px rgba(155, 107, 255, 0.22) !important; }";
+    style.textContent = ".stop-notice, .toast-region, .app-footer, .home__drafts-btn, .home__pills, .disc-home .home__drafts-btn { display: none !important; } .fl-guide-ring { outline: 2px solid #9b6bff !important; outline-offset: 4px !important; box-shadow: 0 0 0 10px rgba(155, 107, 255, 0.22) !important; }";
     document.head.appendChild(style);
     // One ring per picture: clear the last shot's (the page isn't reloaded between shots of the same screen).
     document.querySelectorAll(".fl-guide-ring").forEach((x) => x.classList.remove("fl-guide-ring"));

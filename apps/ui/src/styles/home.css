@@ -394,3 +394,5 @@ a.home__drafts-btn { text-decoration: none; }
 .theme-toggle:disabled { opacity: 0.45; cursor: not-allowed; }
 /* About FlowCode's three tabs share one width (the app's page width), so switching tabs doesn't jump. */
 #main .dots-bg > .page.ab2 { max-width: 1360px !important; width: 100%; }
+/* Room under Home's content for the scroll cue, so a taller composer (an attached PRD) never runs into it. */
+.home:has(+ .home__how) .home__inner { padding-bottom: 200px; }
