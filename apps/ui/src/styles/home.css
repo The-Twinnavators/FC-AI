@@ -286,3 +286,5 @@
 @media (prefers-reduced-transparency: reduce) { .disc-list-bg .disc-project { background: var(--bg-1); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 /* A soft purple glow under the dots, in Home's purple (#5227FF), strongest at the bottom right and top left. */
 .disc-list-bg::before { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none; background: radial-gradient(60% 55% at 85% 100%, color-mix(in srgb, #5227ff 38%, transparent), transparent 70%), radial-gradient(45% 40% at 10% 0%, color-mix(in srgb, #7c4dff 22%, transparent), transparent 70%), radial-gradient(40% 35% at 50% 55%, color-mix(in srgb, #5227ff 10%, transparent), transparent 75%); }
+/* The dots fade away toward the bottom of the page. */
+.disc-list-bg > .dotfield { -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 95%); mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 95%); }
