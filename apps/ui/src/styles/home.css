@@ -392,3 +392,5 @@ a.home__drafts-btn { text-decoration: none; }
 .dots-bg .hero--panel.hero--dark { background-image: linear-gradient(120deg, rgba(155, 107, 255, 0.16), rgba(82, 39, 255, 0.05) 55%, transparent) !important; }
 /* The theme button on pages that are always dark (appearance.ts alwaysDark). */
 .theme-toggle:disabled { opacity: 0.45; cursor: not-allowed; }
+/* About FlowCode's three tabs share one width (the app's page width), so switching tabs doesn't jump. */
+#main .dots-bg > .page.ab2 { max-width: 1360px !important; width: 100%; }
