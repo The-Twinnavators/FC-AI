@@ -220,12 +220,6 @@ function HandsOn() {
 
 /* 4. The plan. */
 function Plan() {
-  const steps = [
-    { t: "Class schedule screen", test: "Opening Schedule shows this week's classes by day" },
-    { t: "Book a spot", test: "Booking a class with spots left adds it to My bookings" },
-    { t: "Cancel a booking", test: "Cancelling two hours before class frees the spot" },
-    { t: "Staff class list", test: "A class shows the members booked into it" },
-  ];
   return (
     <>
       <YouDo
@@ -236,15 +230,8 @@ function Plan() {
         ]}
         go={{ label: "Open Approvals", path: "/approvals" }}
       />
-      <Card title="A plan, step by step" example>
-        <ol className="wt-plan-list">
-          {steps.map((x) => (
-            <li key={x.t}>
-              <strong>{x.t}</strong>
-              <span className="wt-dim">Test: {x.test}</span>
-            </li>
-          ))}
-        </ol>
+      <Card title="On screen">
+        <GuideShot name="approvals" alt="A plan waiting for approval" lookFor="The plan's build steps, then Approve plan at the bottom left. Request changes sends it back with your notes; nothing is built until you approve." />
       </Card>
     </>
   );
