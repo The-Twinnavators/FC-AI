@@ -320,3 +320,5 @@
 @media (prefers-reduced-transparency: reduce) { .dots-bg .lrc-card.qa-card { background: var(--bg-1) !important; } }
 /* Dashboard: the intro section sits 80px further below My Projects. */
 .dots-bg > .page > .ab2--home { padding-top: 80px !important; }
+/* Create PRD's list is as wide as Dashboard and My Projects (the shared page width, not Create PRD's narrower one). */
+.disc-list-bg > .page.disc-page { max-width: 1360px; }

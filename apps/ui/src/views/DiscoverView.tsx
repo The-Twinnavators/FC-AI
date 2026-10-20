@@ -279,11 +279,11 @@ function DiscoveryList() {
     {/* A dot field behind the list, under a lens that follows the cursor. */}
     <DotField />
     <div className="page disc-page">
-      <header className="disc-hero disc-hero--row">
+      {/* The same page header as Dashboard and My Projects. */}
+      <header className="page__head">
         <div>
-          <span className="label">Work</span>
           <h1 className="page__title">Create PRD</h1>
-          <p className="disc-lede">Start from the problem, not the app. FlowCode researches it with you and writes a focused PRD for the real product; approve it and build a clickable prototype from it. Your research is saved on this computer.</p>
+          <p className="lib__lede">Start from the problem, not the app. FlowCode researches it with you and writes a focused PRD you can approve and build a clickable prototype from. Saved on this computer.</p>
         </div>
         <button type="button" className="btn btn--primary" data-cp="prd-new" onClick={() => navigate("/discover/new")}>
           <Icon name="plus" size={14} /> New PRD

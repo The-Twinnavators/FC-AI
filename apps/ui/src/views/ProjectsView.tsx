@@ -35,7 +35,6 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
     <div className="page page-enter">
       <header className="page__head">
         <div>
-          <span className="label">Overview</span>
           <h1 className="page__title">Dashboard</h1>
           <p className="lib__lede">Your builds, checks and projects at a glance.</p>
         </div>
