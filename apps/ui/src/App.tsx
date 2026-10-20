@@ -26,6 +26,8 @@ import { AppFooter } from "./components/AppFooter";
 import { Modal } from "./components/Modal";
 import { playSound } from "./components/sounds";
 import { BackToTop } from "./components/BackToTop";
+import { DotField } from "./components/DotField";
+import "./styles/glass-pages.css";
 import { SkeletonBlock, useParallax, useRevealAll } from "./components/motion";
 import { CopilotDriver } from "./components/CopilotDriver";
 
@@ -59,6 +61,10 @@ function PageSkeleton() {
 }
 
 /** Primary navigation: Dashboard, then grouped sections. */
+
+
+/** Pages drawn over the dot field, with their cards as liquid glass (styles/glass-pages.css). */
+const DOT_PAGES = new Set(["quality", "approvals", "flowreport", "library", "components", "motion", "primitives", "knowledge", "topics", "agents", "network", "pipeline", "settings", "system", "models", "reports", "journal", "search"]);
 
 export function App() {
   const route = useRoute();
@@ -156,6 +162,10 @@ export function App() {
   const projects = useResource<Project[]>("/projects", [route.path]);
 
   const section = route.parts[0] ?? "";
+  // Pages that get the dot field and liquid glass surfaces (html.fc-dots).
+  useEffect(() => {
+    document.documentElement.classList.toggle("fc-dots", DOT_PAGES.has(section));
+  }, [section]);
   // Launch readiness now lives in My Projects; old links (/launch, /launch/:id) redirect there.
   useEffect(() => {
     if (section === "launch") location.replace(`#/quality${route.parts[1] ? `/${route.parts[1]}/launch` : ""}`);
@@ -326,6 +336,12 @@ export function App() {
 
       <main id="main" className="view" tabIndex={-1}>
         <Suspense fallback={<PageSkeleton />}>
+        {/* The dot field and purple glow behind every page in this list (the pages that have their own already use it). */}
+        {DOT_PAGES.has(section) ? (
+          <div className="app-dots" aria-hidden="true">
+            <DotField />
+          </div>
+        ) : null}
         <div key={section || "home"} className={`page-enter${section !== "projects" ? " page-enter--footer" : ""}`} style={{ minHeight: "100%" }}>
         {section === "" && <HomeView />}
         {section === "dashboard" && <ProjectsView projects={projects.data} reload={projects.reload} />}

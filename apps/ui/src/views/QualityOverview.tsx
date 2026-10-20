@@ -108,13 +108,6 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                         <span className="qa-metric__val" title={l?.build?.review ? runStatusLabel(l.build) : undefined}>{l?.build?.total ? `${l.build.done} of ${l.build.total} steps built` : "No steps yet"}</span>
                       </span>
                     </div>
-                    <div className="qa-metric">
-                      {r ? <RadialGauge value={r.overall / 100} size={gauge} stroke={compact ? 4 : 5} label={`${p.name} build health`} /> : <span className="qa-metric__none" aria-hidden="true">—</span>}
-                      <span>
-                        <span className="label">Build health</span>
-                        <span className="qa-metric__val">{r ? `${r.overall}/100 · ${r.verdict}` : "Not analyzed"}</span>
-                      </span>
-                    </div>
                   </div>
                   <div className="lrc-card__foot">
                     <span className="muted">{r ? `Analyzed ${ago(r.generatedAt)}` : l ? `Updated ${ago(l.updatedAt)}` : ""}</span>

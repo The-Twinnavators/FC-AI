@@ -1,0 +1,47 @@
+/* The rest of the app over the dot field (App.tsx DOT_PAGES; the html gets fc-dots): the dots and purple glow fill the
+   window behind the page and stay put as it scrolls, and the page's cards, panels and side lists are liquid glass:
+   translucent, blurred, a light top edge. Built from tokens so it reads in light and dark. */
+.app-dots { position: sticky; top: 0; z-index: 0; height: calc(100dvh - 56px); margin-bottom: calc(56px - 100dvh); pointer-events: none;
+  background: radial-gradient(60% 55% at 85% 100%, color-mix(in srgb, #5227ff 30%, transparent), transparent 70%), radial-gradient(45% 40% at 10% 0%, color-mix(in srgb, #7c4dff 18%, transparent), transparent 70%); }
+.app-dots > .dotfield { position: absolute; inset: 0; }
+html.fc-dots #main > .page-enter { position: relative; z-index: 1; }
+
+html.fc-dots #main .section,
+html.fc-dots #main .lrc-card,
+html.fc-dots #main .settings-nav,
+html.fc-dots #main .stat-card,
+html.fc-dots #main .chart-card,
+html.fc-dots #main .cl-tile,
+html.fc-dots #main .fr-card,
+html.fc-dots #main .lib-card,
+html.fc-dots #main .ml-card,
+html.fc-dots #main .prim-demo,
+html.fc-dots #main .subsys,
+html.fc-dots #main .topic-card,
+html.fc-dots #main .network__panel,
+html.fc-dots #main .network__keys,
+html.fc-dots #main .disc-project,
+html.fc-dots #main .empty {
+  border: 1px solid color-mix(in srgb, var(--text-0) 12%, transparent) !important;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--text-0) 7%, transparent), color-mix(in srgb, var(--text-0) 2%, transparent) 50%), color-mix(in srgb, var(--bg-1) 55%, transparent) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 16%, transparent), 0 18px 40px -26px rgba(0, 0, 0, 0.55) !important;
+}
+/* A card inside a card stays plain (no second layer of glass). */
+html.fc-dots #main .section .section { background: transparent !important; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none !important; }
+@media (prefers-reduced-transparency: reduce) {
+  html.fc-dots #main :is(.section, .lrc-card, .settings-nav, .stat-card, .chart-card, .cl-tile, .fr-card, .lib-card, .ml-card, .prim-demo, .subsys, .topic-card, .network__panel, .network__keys, .disc-project, .empty) { background: var(--bg-1) !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* My Projects: four cards to a row on wide screens (three, then two, then one as the window narrows). */
+html.fc-dots #main .lrc-cards { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+@media (max-width: 1500px) { html.fc-dots #main .lrc-cards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+@media (max-width: 1100px) { html.fc-dots #main .lrc-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 640px) { html.fc-dots #main .lrc-cards { grid-template-columns: 1fr !important; } }
+html.fc-dots #main .lrc-cards .lrc-card__foot .muted { white-space: nowrap; font-size: 12px; }
+/* With four to a row, a card's date sits on its own line above Demo and Builder (they shared one and overlapped). */
+html.fc-dots #main .qa-card-wrap .lrc-card__foot { padding-bottom: 52px !important; }
+/* Repo Report's cards: the same grid and spacing as Create PRD's (three to a row, 24px apart, 24px inside). */
+html.fc-dots #main .fr-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)) !important; gap: 24px !important; }
+html.fc-dots #main .fr-card { border-radius: 12px; }
+html.fc-dots #main .fr-card__main { padding: 24px !important; }
