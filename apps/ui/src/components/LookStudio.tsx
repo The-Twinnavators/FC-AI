@@ -32,6 +32,7 @@ import {
   type LookGroup,
   type NeutralTone,
 } from "@flowcode/contracts";
+import { Monitor, Smartphone, Tablet } from "lucide-react";
 import { Icon } from "./ui";
 import { ColorPicker } from "./ColorPicker";
 import { RampSwatch } from "./RampSwatch";
@@ -212,8 +213,8 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
           </button>
           <div className="ls-seg ls-seg--icons" role="radiogroup" aria-label="Width">
             {(["phone", "tablet", "desktop"] as Device[]).map((d) => (
-              <button key={d} type="button" role="radio" aria-checked={device === d} className={device === d ? "is-on" : ""} onClick={() => setDevice(d)} title={`${d[0]!.toUpperCase()}${d.slice(1)} · ${WIDTH[d]}px`}>
-                {d === "phone" ? "Phone" : d === "tablet" ? "Tablet" : "Desktop"}
+              <button key={d} type="button" role="radio" aria-checked={device === d} className={device === d ? "is-on" : ""} onClick={() => setDevice(d)} title={`${d[0]!.toUpperCase()}${d.slice(1)} · ${WIDTH[d]}px`} aria-label={`${d[0]!.toUpperCase()}${d.slice(1)}`}>
+                {d === "phone" ? <Smartphone size={16} strokeWidth={1.8} aria-hidden="true" /> : d === "tablet" ? <Tablet size={16} strokeWidth={1.8} aria-hidden="true" /> : <Monitor size={16} strokeWidth={1.8} aria-hidden="true" />}
               </button>
             ))}
           </div>

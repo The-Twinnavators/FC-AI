@@ -154,3 +154,4 @@
 /* "Describe a change" heads the panel, always in view. */
 .ls-panel > .ls-ask { padding: 5px; }
 .ls-panel > .ls-read { margin-bottom: 4px; }
+.ls-seg--icons > button { display: grid; place-items: center; min-width: 36px; padding: 0 8px; }
