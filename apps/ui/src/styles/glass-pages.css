@@ -62,3 +62,8 @@ html.fc-dots #main .skill-browse__group { background: color-mix(in srgb, var(--b
 @media (max-width: 900px) { .ml-layout { grid-template-columns: 1fr; } .ml-nav { position: static; } }
 /* Panels a little darker than the cards in them: skill groups, Motion Lab patterns, Branding's component panels. */
 html.fc-dots #main :is(.ml-nav, .ml-panels .ml-pat, .prim-grid .section) { background: color-mix(in srgb, var(--bg-0, #0d1119) 55%, transparent) !important; border: 1px solid color-mix(in srgb, var(--text-0) 8%, transparent) !important; -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%); }
+/* A project card's type and age on one line ("vite · 5h ago"); the footer holds only Demo and Builder. */
+.lrc-card__sub { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.lrc-card__age { color: var(--text-2); font-size: 12px; }
+.lrc-card__age::before { content: "·"; margin-right: 8px; }
+html.fc-dots #main .qa-card-wrap .lrc-card__foot { padding-bottom: 0 !important; }

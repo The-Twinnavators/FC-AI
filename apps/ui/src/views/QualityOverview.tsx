@@ -97,7 +97,10 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                   <div className="lrc-card__top">
                     <div className="lrc-card__name">
                       <strong>{p.name}</strong>
-                      <span className="mono">{p.projectType && p.projectType !== "unknown" ? p.projectType : "not analyzed"}</span>
+                      <span className="lrc-card__sub">
+                        <span className="mono">{p.projectType && p.projectType !== "unknown" ? p.projectType : "not analyzed"}</span>
+                        {r || l ? <span className="lrc-card__age">{ago(r ? r.generatedAt : l!.updatedAt)}</span> : null}
+                      </span>
                     </div>
                   </div>
                   <div className="qa-card__metrics">
@@ -110,7 +113,7 @@ export function ProjectCards({ projects, reload, compact }: { projects: Project[
                     </div>
                   </div>
                   <div className="lrc-card__foot">
-                    <span className="muted">{r ? `Analyzed ${ago(r.generatedAt)}` : l ? `Updated ${ago(l.updatedAt)}` : ""}</span>
+
                   </div>
                 </button>
                 <DemoButton projectId={p.id} projectName={p.name} className="card-demo" />
