@@ -242,7 +242,21 @@ export function LookStudio({ projectId, site, template, productType, extras: ext
             setWords("");
           }}
         >
-          <input className="ls-ask__input" value={words} onChange={(e) => setWords(e.target.value)} placeholder="Describe a change… e.g. warmer, bolder headings" aria-label="Describe a change" />
+          <textarea
+            className="ls-ask__input"
+            rows={3}
+            value={words}
+            onChange={(e) => setWords(e.target.value)}
+            // Enter applies; Shift+Enter starts a new line.
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                e.currentTarget.form?.requestSubmit();
+              }
+            }}
+            placeholder="Describe a change… e.g. warmer, bolder headings"
+            aria-label="Describe a change"
+          />
           <button type="submit" className="btn btn--primary btn--sm" disabled={!words.trim()}>Apply</button>
         </form>
         {reading ? (
