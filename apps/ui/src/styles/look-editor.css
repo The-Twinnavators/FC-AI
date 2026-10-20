@@ -99,3 +99,40 @@
 .ds-checks[open] > summary { margin-bottom: 6px; }
 
 @media (prefers-reduced-motion: reduce) { .ds-tile { transition: none; } }
+
+/* Supporting colours side by side; the add buttons sized to their words. */
+.ds-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.ds-add { justify-self: start; }
+.ds-status { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+/* Gradient: its strip, what it runs to, the angle, and where it's used. */
+.ds-grad { display: grid; gap: 14px; }
+.ds-grad--off { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.ds-grad--off .ds-grad__bar { opacity: 0.35; }
+.ds-grad__bar { display: block; height: 28px; border-radius: var(--r-2); border: 1px solid var(--line); }
+.ds-grad__off { justify-self: start; }
+.ds-tiles--ends { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ds-end__strip { display: block; height: 10px; border-radius: var(--r-1); }
+.ds-angles { display: flex; flex-wrap: wrap; gap: 8px; }
+.ds-angles > legend { width: 100%; margin-bottom: 2px; }
+.ds-angle { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: var(--r-3); background: var(--bg-1); cursor: pointer; }
+.ds-angle:hover { border-color: var(--line-strong); }
+.ds-angle.is-on { border-color: var(--ds-on); box-shadow: inset 0 0 0 1px var(--ds-on); background: var(--brand-soft, var(--bg-2)); }
+.ds-angle > input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.ds-angle:has(> input:focus-visible) { outline: 2px solid var(--ds-on); outline-offset: 2px; }
+.ds-angle__arrow { font-size: 16px; line-height: 1; color: var(--text-0); }
+.ds-tiles--uses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ds-use > input[type="checkbox"] { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.ds-use.is-on .ds-tile__name::after { content: "On"; margin-left: auto; padding: 0 6px; border-radius: 999px; background: var(--ds-on); color: var(--bg-0, #000); font-size: 10.5px; line-height: 16px; }
+/* Each use drawn small: a button, a panel, a washed page, a title. */
+.ds-use__art { display: grid; place-items: center; height: 40px; border-radius: var(--r-2); background: var(--bg-2); overflow: hidden; }
+.ds-use__art--buttons > span { width: 56px; height: 16px; border-radius: var(--r-1); background: var(--g); }
+.ds-use__art--panels > span { width: 82%; height: 26px; border-radius: var(--r-1); background: var(--g); }
+.ds-use__art--background { background: var(--g); }
+.ds-use__art--background > span { width: 70%; height: 22px; border-radius: var(--r-1); background: var(--bg-1); opacity: 0.92; }
+.ds-use__art--headline > span::before { content: "Aa Title"; font-size: 17px; font-weight: 700; background: var(--g); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* The sample's gradient uses. */
+.ds-sample__page { background-image: var(--page-backdrop, none); }
+.ds-sample__h.is-gradient { background-image: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.ds-sample__panel { margin: 0; padding: 10px 12px; border-radius: min(var(--surface-radius, 8px), 12px); background: var(--gradient); color: var(--color-on-accent); font-size: 12.5px; font-weight: 600; }

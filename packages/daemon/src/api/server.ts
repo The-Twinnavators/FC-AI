@@ -876,7 +876,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     neutral: z.enum(["brand", "warm", "cool", "pure"]),
     secondary: z.string().max(20).optional(),
     tertiary: z.string().max(20).optional(),
-    gradient: z.boolean().optional(),
+    gradient: z.union([z.boolean(), z.object({ to: z.enum(C.GRADIENT_ENDS), angle: z.number().min(0).max(360), uses: z.array(z.enum(C.GRADIENT_USES)).max(4) })]).optional(),
     // Any of the four may be set on its own (a record keyed by an enum requires every key in zod 4).
     status: z.partialRecord(z.enum(["success", "warning", "error", "info"]), z.string().max(20)).optional(),
     fonts: z.object({ display: z.string().max(60), body: z.string().max(60) }),

@@ -81,6 +81,7 @@ function setTokenValues(input: string, theme: DesignTheme, values: Record<string
   const targets: Array<{ start: number; end: number; value: string; name: string }> = [];
   // Size tokens newer apps have (--control-xl, --control-pad-*, --control-text-*) are added to older ones.
   const addable: Array<[string, string]> = [];
+  let gradientAdd: string | undefined;
   for (const [name, raw] of Object.entries(edit.values)) {
     const value = raw.trim();
     if (!/^--[\w-]+$/.test(name)) throw new Error(`"${name}" isn't a design token name.`);
@@ -91,6 +92,8 @@ function setTokenValues(input: string, theme: DesignTheme, values: Record<string
     const d = own[0] ?? (edit.theme === "dark" ? decls.find((x) => x.name === name && !isDark(x.selectors)) : undefined);
     if (!d) {
       if (theme === "default" && /^--control-(?:(?:pad|text)-)?(?:sm|md|lg|xl)$/.test(name) && LENGTH.test(value)) addable.push([name, value]);
+      // The Look's gradient, new to apps made before it.
+      else if (theme === "default" && name === "--gradient") gradientAdd = value;
       continue;
     }
     if (LENGTH.test(d.value) && /[a-z%]$/i.test(d.value) && !LENGTH.test(value) && !/^(calc|clamp|min|max|var)\(/.test(value)) throw new Error(`${name} is a size, so it needs a size like 2rem or 32px.`);
@@ -106,6 +109,13 @@ function setTokenValues(input: string, theme: DesignTheme, values: Record<string
       const lines = addable.map(([n, v]) => `  ${n}: ${v};`).join("\n");
       css = `${css.slice(0, rootEnd).replace(/\s*$/, "\n")}\n  /* Control sizes (CSSVibes' button sizes), added by Styles → Design */\n${lines}\n${css.slice(rootEnd)}`;
       changed.push(...addable.map(([n]) => n));
+    }
+  }
+  if (gradientAdd !== undefined) {
+    const rootEnd = css.indexOf("}", css.indexOf(":root"));
+    if (rootEnd >= 0) {
+      css = `${css.slice(0, rootEnd).replace(/\s*$/, "\n")}\n  /* Gradient (Look → Colour → Gradient): "none" until the Look uses one. Put class="fl-gradient-panel" on a hero or\n     feature panel to fill it when the Look turns on feature panels. */\n  --gradient: ${gradientAdd};\n${css.slice(rootEnd)}`;
+      changed.push("--gradient");
     }
   }
   return css;

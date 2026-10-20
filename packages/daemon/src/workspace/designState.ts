@@ -24,6 +24,7 @@ import type { FileOperations } from "./operations.js";
 import { applyDesign, tokenValues } from "./designStudio.js";
 import { setSurfaceStyle } from "./surfaceStyle.js";
 import { MOTION_UNSUPPORTED, motionSupported, setMotionStyle } from "./motionStyle.js";
+import { setGradientRules } from "./gradientStyle.js";
 
 /** Where a value came from: the person, a FlowCode theme, the PRD, or a FlowCode suggestion. */
 export type DesignSource = "you" | `theme:${string}` | "prd" | "suggested" | "concept";
@@ -226,6 +227,10 @@ export function applySelected(
       const res = applyDesign(jail, ops, ctx, { theme: "default", values: tokensFor(jail, want) });
       if (res.snapshotId) snapshots.push(res.snapshotId);
       if (res.changed.length) changed.push(TOKENS);
+      // The gradient's page titles and feature panels: rules, not tokens.
+      const gradient = setGradientRules(jail, ops, ctx, want);
+      snapshots.push(...gradient.snapshotIds);
+      changed.push(...gradient.changed);
     }
   } catch (err) {
     for (const id of [...snapshots].reverse()) {

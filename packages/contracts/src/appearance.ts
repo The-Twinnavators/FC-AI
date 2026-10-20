@@ -54,8 +54,11 @@ export interface Appearance {
   neutral: NeutralTone;
   secondary?: string;
   tertiary?: string;
-  /** The primary action drawn as a gradient from the primary to the secondary (or a lighter primary). */
-  gradient?: boolean;
+  /**
+   * The Look's gradient: from the primary to another colour, at an angle, and where the app uses it. `true` is the
+   * older switch (the primary action only, to the secondary or a lighter primary).
+   */
+  gradient?: boolean | GradientSetting;
   /** Status colours the person set; the others are suggested from the palette. */
   status?: Partial<Record<StatusKind, string>>;
   fonts: { display: string; body: string };
@@ -68,6 +71,42 @@ export interface Appearance {
   shape?: ShapeSetting;
   /** Body size and heading ratio (shape.ts). Unset: the app keeps its text sizes. */
   typeScale?: TypeScaleSetting;
+}
+
+/** Where an app uses its gradient. */
+export const GRADIENT_USES = ["buttons", "panels", "background", "headline"] as const;
+export type GradientUse = (typeof GRADIENT_USES)[number];
+export const GRADIENT_USE_LABEL: Record<GradientUse, { name: string; detail: string }> = {
+  buttons: { name: "Main buttons", detail: "The primary action on each screen" },
+  panels: { name: "Feature panels", detail: "Hero, promo and highlight panels" },
+  background: { name: "Page background", detail: "A soft wash behind the page" },
+  headline: { name: "Page titles", detail: "The large heading on each page" },
+};
+/** What the gradient runs to from the primary. */
+export const GRADIENT_ENDS = ["secondary", "tertiary", "lighter"] as const;
+export type GradientEnd = (typeof GRADIENT_ENDS)[number];
+export interface GradientSetting {
+  to: GradientEnd;
+  /** Degrees, 0–360 (CSS linear-gradient angle). */
+  angle: number;
+  uses: GradientUse[];
+}
+
+/** The Look's gradient as a setting (the older `true` is the primary action only), or undefined when it has none. */
+export function gradientOf(a: Appearance): GradientSetting | undefined {
+  if (a.gradient === true) return { to: a.secondary ? "secondary" : "lighter", angle: 135, uses: ["buttons"] };
+  return a.gradient ? a.gradient : undefined;
+}
+
+/** #rrggbb mixed with white by `w` (0–1). */
+const lighten = (hex: string, w: number) =>
+  `#${[1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - w) + 255 * w).toString(16).padStart(2, "0")).join("")}`;
+
+/** The gradient's two colours: the primary and its end (a missing secondary or tertiary falls back to a lighter primary). */
+export function gradientStops(a: Appearance, accent: string): [string, string] {
+  const g = gradientOf(a);
+  const end = g?.to === "secondary" ? a.secondary : g?.to === "tertiary" ? a.tertiary : undefined;
+  return [accent, (end && normalizeHex(end)) || (/^#[0-9a-f]{6}$/i.test(accent) ? lighten(accent, 0.35) : accent)];
 }
 
 const KIND_FALLBACK: Record<string, string> = { sans: "system-ui, sans-serif", serif: "Georgia, serif", display: "Georgia, serif", mono: "ui-monospace, monospace" };
@@ -121,10 +160,14 @@ export function appearanceTokens(a: Appearance): Record<string, string> {
   const palette = buildPalette({ brand: brandOf(a), neutral: a.neutral, status: a.status });
   const roles = roleTokens(palette, a.mode === "dark");
   const t: Record<string, string> = { ...roles, "--font-display": stack(a.fonts.display), "--font-sans": stack(a.fonts.body), ...vibeTokens(a.surface) };
-  if (a.gradient) {
-    const to = a.secondary && normalizeHex(a.secondary) ? normalizeHex(a.secondary)! : `color-mix(in srgb, ${roles["--color-accent"]} 70%, #ffffff)`;
-    t["--accent-bg"] = `linear-gradient(135deg, ${roles["--color-accent"]}, ${to})`;
-  }
+  // The gradient: one token for it, then each use. Unused, the surface style's own values stay (a flat button, its backdrop).
+  const g = gradientOf(a);
+  const [from, to] = gradientStops(a, roles["--color-accent"]!);
+  const gradient = `linear-gradient(${g?.angle ?? 135}deg, ${from}, ${to})`;
+  t["--gradient"] = g?.uses.length ? gradient : "none";
+  if (g?.uses.includes("buttons")) t["--accent-bg"] = gradient;
+  if (g?.uses.includes("background"))
+    t["--page-backdrop"] = `linear-gradient(${g.angle}deg, color-mix(in srgb, ${from} 14%, transparent), color-mix(in srgb, ${to} 10%, transparent) 45%, transparent 75%)`;
   if (a.motion) Object.assign(t, motionTokens(a.motion.level));
   if (a.shape) Object.assign(t, shapeTokens(a.shape));
   if (a.typeScale) Object.assign(t, typeScaleTokens(a.typeScale.base, a.typeScale.ratio));
@@ -156,12 +199,25 @@ export function appearanceChecks(a: Appearance): AppearanceCheck[] {
     ["Error text on its alert", "--color-danger", "--color-danger-surface", 4.5],
     ["Text on the secondary colour", "--color-on-secondary", "--color-secondary", 4.5],
   ];
-  return pairs
-    .filter(([, fg, bg]) => /^#[0-9a-f]{6}$/i.test(t[fg] ?? "") && /^#[0-9a-f]{6}$/i.test(t[bg] ?? ""))
+  const hex = (v?: string) => /^#[0-9a-f]{6}$/i.test(v ?? "");
+  const out = pairs
+    .filter(([, fg, bg]) => hex(t[fg]) && hex(t[bg]))
     .map(([label, fg, bg, min]) => {
       const ratio = Math.round(contrastRatio(t[fg]!, t[bg]!) * 100) / 100;
       return { label, fg: t[fg]!, bg: t[bg]!, ratio, min, ok: ratio >= min };
     });
+  // The gradient's far end, where it carries text: button and panel text on it, and gradient titles on the page (large
+  // text, 3:1).
+  const g = gradientOf(a);
+  const [, end] = gradientStops(a, t["--color-accent"] ?? "");
+  const check = (label: string, fg: string, bg: string, min: number) => {
+    if (!hex(fg) || !hex(bg)) return;
+    const ratio = Math.round(contrastRatio(fg, bg) * 100) / 100;
+    out.push({ label, fg, bg, ratio, min, ok: ratio >= min });
+  };
+  if (g?.uses.some((u) => u === "buttons" || u === "panels")) check("Button and panel text on the gradient's end", t["--color-on-accent"] ?? "", end, 4.5);
+  if (g?.uses.includes("headline")) check("Gradient page titles on the page", end, t["--color-bg"] ?? "", 3);
+  return out;
 }
 
 /** Two appearances are the same direction (for "unchanged" and "differs" comparisons). */

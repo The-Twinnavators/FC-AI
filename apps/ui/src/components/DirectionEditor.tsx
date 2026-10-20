@@ -6,7 +6,7 @@
  * (workspace/designState.ts, contracts appearance.ts).
  */
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { APPEARANCE_THEMES, BASE_APPEARANCE, MOTION_LABEL, MOTION_LEVELS, STYLE_VIBES, TYPE_PAIRS, appearanceChecks, appearanceFromTheme, appearanceTokens, type Appearance, type AppearanceCheck } from "@flowcode/contracts";
+import { APPEARANCE_THEMES, BASE_APPEARANCE, GRADIENT_ENDS, GRADIENT_USES, GRADIENT_USE_LABEL, MOTION_LABEL, MOTION_LEVELS, STYLE_VIBES, TYPE_PAIRS, appearanceChecks, appearanceFromTheme, appearanceTokens, gradientOf, gradientStops, type Appearance, type AppearanceCheck, type GradientEnd, type GradientSetting } from "@flowcode/contracts";
 import { post, useResource } from "../api";
 import { navigate } from "../router";
 import { ColorPicker } from "./ColorPicker";
@@ -83,11 +83,13 @@ const SOURCE_LABEL = (s?: string) => (!s ? "" : s === "you" ? "you" : s === "prd
 /** A small sample of the look: heading, text, a card, the primary action and the status colours (with their words). */
 export function StyleSample({ appearance, label }: { appearance: Appearance; label: string }) {
   const vars = useMemo(() => Object.fromEntries(Object.entries(appearanceTokens(appearance)).filter(([k]) => k.startsWith("--"))), [appearance]);
+  const uses = gradientOf(appearance)?.uses ?? [];
   return (
     <figure className="ds-sample" style={vars as React.CSSProperties} aria-label={label}>
       <figcaption className="ds-sample__label">{label}</figcaption>
       <div className="ds-sample__page">
-        <p className="ds-sample__h">Find it near you</p>
+        <p className={uses.includes("headline") ? "ds-sample__h is-gradient" : "ds-sample__h"}>Find it near you</p>
+        {uses.includes("panels") ? <p className="ds-sample__panel">New this week: oat and soy, two for one</p> : null}
         <p className="ds-sample__p">Search products, save the ones you like and see which stores carry them.</p>
         <div className="ds-sample__card">
           <p className="ds-sample__card-title">Oat Milk Original</p>
@@ -134,6 +136,72 @@ function Section({ title, hint, wide, children }: { title: string; hint: string;
       </header>
       {children}
     </section>
+  );
+}
+
+const END_LABEL: Record<GradientEnd, string> = { secondary: "To the secondary", tertiary: "To the tertiary", lighter: "To a lighter primary" };
+const ANGLES = [90, 135, 180, 225];
+
+/** The Look's gradient: on or off, what it runs to, its angle, and where the app uses it. */
+function GradientEditor({ appearance, group, onChange }: { appearance: Appearance; group: string; onChange: (g: GradientSetting | undefined) => void }) {
+  const g = gradientOf(appearance);
+  const accent = appearanceTokens(appearance)["--color-accent"] ?? appearance.primary;
+  const css = (s: GradientSetting) => {
+    const [from, to] = gradientStops({ ...appearance, gradient: s }, accent);
+    return `linear-gradient(${s.angle}deg, ${from}, ${to})`;
+  };
+  const turnOn = () => onChange({ to: appearance.secondary ? "secondary" : "lighter", angle: 135, uses: ["buttons"] });
+  if (!g)
+    return (
+      <div className="ds-grad ds-grad--off">
+        <span className="ds-grad__bar" aria-hidden="true" style={{ background: css({ to: appearance.secondary ? "secondary" : "lighter", angle: 135, uses: [] }) }} />
+        <button type="button" className="btn btn--sm" onClick={turnOn}>Use a gradient</button>
+      </div>
+    );
+  const set = (patch: Partial<GradientSetting>) => onChange({ ...g, ...patch });
+  return (
+    <div className="ds-grad">
+      <span className="ds-grad__bar" aria-hidden="true" style={{ background: css(g) }} />
+      <fieldset className="ds-field ds-tiles ds-tiles--ends">
+        <legend>Runs from the primary</legend>
+        {GRADIENT_ENDS.map((to) => {
+          const missing = (to === "secondary" && !appearance.secondary) || (to === "tertiary" && !appearance.tertiary);
+          return (
+            <label key={to} className={`ds-tile ds-end${g.to === to ? " is-on" : ""}`}>
+              <input type="radio" name={`ds-end-${group}`} checked={g.to === to} onChange={() => set({ to })} />
+              <span className="ds-end__strip" aria-hidden="true" style={{ background: css({ ...g, to, angle: 90 }) }} />
+              <span className="ds-tile__name">{END_LABEL[to]}</span>
+              {missing ? <span className="ds-tile__sub">Add one above; a lighter primary until then</span> : null}
+            </label>
+          );
+        })}
+      </fieldset>
+      <fieldset className="ds-field ds-angles">
+        <legend>Angle</legend>
+        {ANGLES.map((angle) => (
+          <label key={angle} className={`ds-angle${g.angle === angle ? " is-on" : ""}`} title={`${angle}°`}>
+            <input type="radio" name={`ds-angle-${group}`} checked={g.angle === angle} onChange={() => set({ angle })} />
+            <span className="ds-angle__arrow" aria-hidden="true" style={{ transform: `rotate(${angle - 90}deg)` }}>→</span>
+            <span className="sr-only">{angle} degrees</span>
+          </label>
+        ))}
+      </fieldset>
+      <fieldset className="ds-field ds-tiles ds-tiles--uses">
+        <legend>Use it for</legend>
+        {GRADIENT_USES.map((u) => {
+          const on = g.uses.includes(u);
+          return (
+            <label key={u} className={`ds-tile ds-use${on ? " is-on" : ""}`}>
+              <input type="checkbox" checked={on} onChange={() => set({ uses: on ? g.uses.filter((x) => x !== u) : GRADIENT_USES.filter((x) => x === u || g.uses.includes(x)) })} />
+              <span className={`ds-use__art ds-use__art--${u}`} aria-hidden="true" style={{ "--g": css(g) } as React.CSSProperties}><span /></span>
+              <span className="ds-tile__name">{GRADIENT_USE_LABEL[u].name}</span>
+              <span className="ds-tile__sub">{GRADIENT_USE_LABEL[u].detail}</span>
+            </label>
+          );
+        })}
+      </fieldset>
+      <button type="button" className="link-btn ds-grad__off" onClick={() => onChange(undefined)}>Don't use a gradient</button>
+    </div>
   );
 }
 
@@ -308,35 +376,32 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
                 );
               })}
             </fieldset>
-            <details className="ds-adv">
-            <summary>More: secondary colours, gradient, status colours</summary>
-            <div className="ds-field">
-              <span>Secondary colour (optional)</span>
-              {cur.secondary ? (
-                <span className="ds-row">
-                  <ColorPicker label="Secondary colour" value={cur.secondary} onChange={(hex) => edit({ secondary: hex }, "you")} />
-                  <button type="button" className="link-btn" onClick={() => edit({ secondary: undefined }, "you")}>Remove</button>
-                </span>
-              ) : (
-                <button type="button" className="btn btn--sm" onClick={() => edit({ secondary: "#be6a2a" }, "you")}>Add a secondary colour</button>
-              )}
+            <div className="ds-pair">
+              <div className="ds-field">
+                <span>Secondary colour <span className="ds-src">optional</span></span>
+                {cur.secondary ? (
+                  <span className="ds-row">
+                    <ColorPicker label="Secondary colour" value={cur.secondary} onChange={(hex) => edit({ secondary: hex }, "you")} />
+                    <button type="button" className="link-btn" onClick={() => edit({ secondary: undefined }, "you")}>Remove</button>
+                  </span>
+                ) : (
+                  <button type="button" className="btn btn--sm ds-add" onClick={() => edit({ secondary: "#be6a2a" }, "you")}>Add a secondary colour</button>
+                )}
+              </div>
+              <div className="ds-field">
+                <span>Tertiary colour <span className="ds-src">optional</span></span>
+                {cur.tertiary ? (
+                  <span className="ds-row">
+                    <ColorPicker label="Tertiary colour" value={cur.tertiary} onChange={(hex) => edit({ tertiary: hex }, "you")} />
+                    <button type="button" className="link-btn" onClick={() => edit({ tertiary: undefined }, "you")}>Remove</button>
+                  </span>
+                ) : (
+                  <button type="button" className="btn btn--sm ds-add" onClick={() => edit({ tertiary: "#3f7d6a" }, "you")}>Add a tertiary colour</button>
+                )}
+              </div>
             </div>
             <div className="ds-field">
-              <span>Tertiary colour (optional)</span>
-              {cur.tertiary ? (
-                <span className="ds-row">
-                  <ColorPicker label="Tertiary colour" value={cur.tertiary} onChange={(hex) => edit({ tertiary: hex }, "you")} />
-                  <button type="button" className="link-btn" onClick={() => edit({ tertiary: undefined }, "you")}>Remove</button>
-                </span>
-              ) : (
-                <button type="button" className="btn btn--sm" onClick={() => edit({ tertiary: "#3f7d6a" }, "you")}>Add a tertiary colour</button>
-              )}
-            </div>
-            <label className="ds-check">
-              <input type="checkbox" checked={!!cur.gradient} onChange={(e) => edit({ gradient: e.target.checked || undefined }, "you")} /> Primary action as a gradient (optional)
-            </label>
-            <div className="ds-field">
-              <span>Status colours (suggested from your palette; change any)</span>
+              <span>Status colours <span className="ds-src">suggested from your palette; change any</span></span>
               <div className="ds-status">
                 {(["success", "warning", "error", "info"] as const).map((k) => (
                   <span key={k} className="ds-row">
@@ -347,7 +412,10 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
                 ))}
               </div>
             </div>
-            </details>
+          </Section>
+
+          <Section title="Gradient" hint="One gradient from your primary colour, used wherever you turn it on.">
+            <GradientEditor appearance={cur} group={group} onChange={(gradient) => edit({ gradient }, "you")} />
           </Section>
 
           <Section wide title="Type" hint="Headings use the first face, text the second.">
@@ -406,7 +474,7 @@ export function DirectionEditor({ projectId, where, onAppearance }: { projectId:
             </p>
           </Section>
 
-          <Section wide title="Components" hint="Suggest building blocks from the library. The builder is told to use these instead of writing its own.">
+          <Section title="Components" hint="Suggest building blocks from the library. The builder is told to use these instead of writing its own.">
             <DesignComponentsBar projectId={projectId} used={[]} onChange={noShown} />
           </Section>
         </div>

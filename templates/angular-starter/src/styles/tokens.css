@@ -140,6 +140,9 @@
   /* More surface-style traits (a style may set any; these defaults are the flat look; "initial" = not set) */
   --control-bg: var(--color-surface);
   --accent-bg: var(--color-accent);
+  /* Gradient (Look → Colour → Gradient): "none" until the Look uses one. Put class="fl-gradient-panel" on a hero or
+     feature panel to fill it when the Look turns on feature panels. */
+  --gradient: none;
   --control-edge: initial;
   --surface-edge: initial;
   --control-shadow-active: var(--control-shadow-hover);
