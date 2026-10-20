@@ -197,3 +197,8 @@
 .home__mouse::after { content: ""; position: absolute; top: 7px; left: 50%; width: 4px; height: 8px; margin-left: -2px; border-radius: 2px; background: #fff; animation: home-wheel 1.8s ease-in-out infinite; }
 @keyframes home-wheel { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(12px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .home__mouse::after { animation: none; } }
+/* The project name is its own field: a box of its own above the description, so it reads as something to type in. */
+.composer .composer__name-input { height: 40px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 8px; background: rgba(255, 255, 255, 0.06); font-size: 15px; transition: border-color 120ms ease, background 120ms ease; }
+.composer .composer__name-input:hover { border-color: rgba(255, 255, 255, 0.28); }
+.composer .composer__name-input:focus { border-color: rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.1); }
+.composer .composer__desc { padding-top: 4px; }
