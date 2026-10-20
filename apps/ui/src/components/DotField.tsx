@@ -1,20 +1,20 @@
 /**
- * Dot field: a grid of small dots in a purple-to-blue gradient, seen through a lens that follows the cursor and
+ * Dot field: a grid of small, faint slate-blue dots (like the About demo's), seen through a lens that follows the cursor and
  * magnifies the dots under it; a click swells the lens for a moment. FlowCode's own 2D canvas (the look after React
  * Bits' "Dot Field"; none of its code). It draws only while on screen and in a visible tab, and holds a still field
  * (no lens) for people who ask for reduced motion.
  */
 import { useEffect, useRef } from "react";
 
-const GAP = 22;
-const DOT = 1.5;
+const GAP = 26;
+const DOT = 1;
 const LENS = 150;
 
 type Rgb = [number, number, number];
 const hex = (h: string): Rgb => [0, 2, 4].map((i) => parseInt(h.slice(1 + i, 3 + i), 16)) as Rgb;
 const mix = (a: Rgb, b: Rgb, t: number): Rgb => a.map((x, i) => Math.round(x + (b[i]! - x) * t)) as Rgb;
 
-export function DotField({ from = "#5227FF", via = "#9b6bff", to = "#5b9bd5" }: { from?: string; via?: string; to?: string }) {
+export function DotField({ from = "#9aa6e8", via = "#a9b6e6", to = "#8fb3e8" }: { from?: string; via?: string; to?: string }) {
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export function DotField({ from = "#5227FF", via = "#9b6bff", to = "#5b9bd5" }: 
       const r = LENS * (1 + lens.swell * 0.6);
       for (let y = GAP / 2; y < h; y += GAP) {
         for (let x = GAP / 2; x < w; x += GAP) {
-          let px = x, py = y, size = DOT, alpha = 0.55;
+          let px = x, py = y, size = DOT, alpha = 0.22;
           const dx = x - lens.x, dy = y - lens.y;
           const d = Math.hypot(dx, dy);
           if (lens.power > 0.001 && d < r) {
@@ -55,7 +55,7 @@ export function DotField({ from = "#5227FF", via = "#9b6bff", to = "#5b9bd5" }: 
             px = x + dx * k * 0.55;
             py = y + dy * k * 0.55;
             size = DOT * (1 + k * 2.4);
-            alpha = 0.55 + k * 0.45;
+            alpha = 0.22 + k * 0.6;
           }
           const [cr, cg, cb] = colorAt(Math.min(1, Math.max(0, (x / Math.max(w, 1)) * 0.7 + (y / Math.max(h, 1)) * 0.3)));
           ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha})`;
