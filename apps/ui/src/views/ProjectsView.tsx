@@ -36,22 +36,6 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
     <div className="page page-enter">
       {/* Until this computer can build (Ollama, a model, a passed coder test): the next step. */}
       <SetupCard />
-      {/* The intro: what FlowCode does, the two ways in, and a short live demo of a build. */}
-      <div className="ab2 ab2--home">
-        <IntroHero
-          extra={
-            <>
-              {window.flowcode?.selectFolder ? (
-                <button className="btn btn--ghost btn--sm ab2__repo" data-cp="open-folder" onClick={openExisting}>
-                  <Icon name="folder" size={14} /> Or open an existing repository
-                </button>
-              ) : null}
-              {error ? <ErrorNotice error={error} doing="do that" /> : null}
-            </>
-          }
-        />
-      </div>
-
       <Dashboard />
 
       <div className="home-split">
@@ -77,6 +61,22 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
       </section>
 
       </div>
+      {/* The intro (what FlowCode does, the two ways in, a short live demo of a build), near the bottom: the Dashboard opens on its numbers. */}
+      <div className="ab2 ab2--home">
+        <IntroHero
+          extra={
+            <>
+              {window.flowcode?.selectFolder ? (
+                <button className="btn btn--ghost btn--sm ab2__repo" data-cp="open-folder" onClick={openExisting}>
+                  <Icon name="folder" size={14} /> Or open an existing repository
+                </button>
+              ) : null}
+              {error ? <ErrorNotice error={error} doing="do that" /> : null}
+            </>
+          }
+        />
+      </div>
+
       {/* Closing call to action: the same band as About FlowCode's. */}
       <div className="ab2 ab2--home-cta">
         <section className="ab2__cta" aria-labelledby="home-start">
