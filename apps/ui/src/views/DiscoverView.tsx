@@ -4,6 +4,7 @@
  * Everything is saved on this machine as you go.
  */
 import { HomeBackdrop } from "../components/HomeBackdrop";
+import { DotField } from "../components/DotField";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FOLLOW_UP_MAX, OPTIONAL_STEPS, discoveryStep, projectStages, stageOf, stagesFor, stepsFor, STATUS_LABEL, type ProjectStage, type BlockValue, type DiscoveryProject, type DiscoveryStage, type DiscoveryStep, type DiscoverySummary, type Row } from "@flowcode/contracts";
 import { get, post, useResource } from "../api";
@@ -274,6 +275,9 @@ function DiscoveryList() {
     }
   };
   return (
+    <div className="disc-list-bg">
+    {/* A dot field behind the list, under a lens that follows the cursor. */}
+    <DotField />
     <div className="page disc-page">
       <header className="disc-hero disc-hero--row">
         <div>
@@ -344,6 +348,7 @@ function DiscoveryList() {
           Your answers, summaries and PRD versions for this research are removed from this machine. Export it first if you want a copy. Builds you already started are not affected.
         </ConfirmDialog>
       ) : null}
+    </div>
     </div>
   );
 }
