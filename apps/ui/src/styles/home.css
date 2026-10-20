@@ -131,11 +131,10 @@
 }
 @media (prefers-reduced-motion: reduce) { .psetup-card, .psetup-chip, .composer { transition: none; } }
 
-/* Build levels and who writes the code, drawn: the Coder's robot head on each card. */
+/* Build levels, drawn: you and the Coder's robot, the balance shifting from you to FlowCode. */
 .psetup-level { justify-items: center; text-align: center; padding: 18px 14px 16px; }
-.psetup-level__art { display: grid; justify-items: center; gap: 10px; margin-bottom: 4px; }
-.psetup-stops { display: flex; gap: 4px; }
-.psetup-stops > span { width: 16px; height: 4px; border-radius: 999px; background: var(--line-strong); }
-.psetup-stops > span.is-stop { background: var(--brand-ink, var(--text-0)); }
-.psetup-card.is-on .psetup-stops > span.is-stop { background: var(--brand-1, #3b3fc4); }
-.psetup-card.is-on @media (max-width: 560px) { 
+.psetup-level__art { display: flex; align-items: flex-end; justify-content: center; gap: 8px; height: 40px; margin-bottom: 6px; }
+/* Guided: you in front, the robot smaller beside you. Collaborative: the two the same size. Autonomous: the robot. */
+.psetup-level__art--supervised .psetup-person { width: 40px; height: 42px; }
+.psetup-level__art--supervised svg:last-child { opacity: 0.75; }
+.psetup-card.is-on .psetup-card.is-on @media (max-width: 560px) { 

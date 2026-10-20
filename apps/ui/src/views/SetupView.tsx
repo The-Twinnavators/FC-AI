@@ -94,13 +94,9 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
         {BUILD_LEVELS.map((l) => (
           <label key={l.id} className={`psetup-card psetup-level${autonomy === l.id ? " is-on" : ""}`} title={AUTONOMY_LEVELS.find((a) => a.id === l.id)?.forYou.join(" ")}>
             <input type="radio" name="build-level" checked={autonomy === l.id} onChange={() => (setAutonomy(l.id), save({ autonomy: l.id }))} />
-            <span className="psetup-level__art" aria-hidden="true">
-              <RobotHead color={ROLE_COLOR.coder} id={`lvl-${l.id}`} size={40} />
-              <span className="psetup-stops">
-                {STOPS[l.id].map((stop, i) => (
-                  <span key={i} className={stop ? "is-stop" : ""} />
-                ))}
-              </span>
+            <span className={`psetup-level__art psetup-level__art--${l.id}`} aria-hidden="true">
+              {l.id !== "autonomous" ? <PersonHead /> : null}
+              <RobotHead color={ROLE_COLOR.coder} id={`lvl-${l.id}`} size={l.id === "supervised" ? 28 : 40} />
             </span>
             <span className="psetup-card__name">{l.name}</span>
             <span className="psetup-card__text">{LEVEL_LINE[l.id]}</span>
@@ -149,8 +145,15 @@ function BuildStep({ projectId, project, setup, onSaved }: { projectId: string; 
   );
 }
 
-/** Where each level stops for your OK, as four steps (plan, code, packages, risky changes); a filled dot is a stop. */
-const STOPS: Record<AutonomyLevel, number[]> = { supervised: [1, 1, 1, 1], assisted: [0, 0, 1, 1], autonomous: [0, 0, 0, 0] };
+/** You, beside the Coder's robot head on the build levels: who leads shifts from you (Guided) to FlowCode (Autonomous). */
+function PersonHead() {
+  return (
+    <svg className="psetup-person" width={34} height={36} viewBox="0 0 34 36" aria-hidden="true">
+      <circle cx={17} cy={11} r={8} fill="var(--brand-ink, #a2b6e6)" />
+      <path d="M2 35c0-8.3 6.7-14 15-14s15 5.7 15 14" fill="var(--brand-1, #3b3fc4)" />
+    </svg>
+  );
+}
 
 /** One line each; the full policy is the card's tooltip. */
 const LEVEL_LINE: Record<AutonomyLevel, string> = {
