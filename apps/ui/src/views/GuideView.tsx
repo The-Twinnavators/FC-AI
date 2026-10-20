@@ -10,6 +10,7 @@ import { copilot } from "../components/Copilot";
 import { startJourney } from "../components/CopilotDriver";
 import { FEATURE_JOURNEYS, stepsJourney } from "../components/copilotJourneys";
 import { LearnTabs } from "../components/LearnTabs";
+import { GuideShot } from "../components/GuideShot";
 import { get } from "../api";
 import { stepTarget } from "@flowcode/contracts";
 
@@ -133,6 +134,7 @@ function FeatureCard({ f, focused, onOpen }: { f: Feature; focused: boolean; onO
           </span>
         </div>
         <p className="guide-card__summary">{f.summary}</p>
+        {f.shot ? <GuideShot name={f.shot.name} lookFor={f.shot.lookFor} alt={`${f.title} in FlowCode`} /> : null}
         {f.details ? <p className="guide-card__details">{f.details}</p> : null}
         {f.id === "concept.languages" ? <LanguageTable /> : null}
         {parts.length ? (

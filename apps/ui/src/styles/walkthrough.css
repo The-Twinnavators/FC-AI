@@ -132,3 +132,9 @@
 .wt-chat { display: grid; gap: 10px; }
 .wt-chat__you { justify-self: end; max-width: 80%; margin: 0; padding: 10px 14px; border-radius: 12px 12px 4px 12px; background: color-mix(in srgb, var(--brand-1, #3b3fc4) 30%, var(--bg-2)); font-size: 13.5px; }
 .wt-chat__bot { display: flex; gap: 8px; align-items: flex-start; max-width: 90%; margin: 0; padding: 10px 14px; border-radius: 12px 12px 12px 4px; background: var(--bg-2); font-size: 13.5px; }
+
+/* Real screenshots with what to look for (GuideShot), in the Walkthrough and the Feature guide. */
+.guide-shot { display: grid; gap: 10px; margin: 0; }
+.guide-shot img { display: block; width: 100%; height: auto; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--bg-0); }
+.guide-shot figcaption { color: var(--text-1); font-size: 13px; line-height: 1.5; }
+.guide-shot figcaption strong { margin-right: 4px; color: #b79bff; font-weight: 650; }

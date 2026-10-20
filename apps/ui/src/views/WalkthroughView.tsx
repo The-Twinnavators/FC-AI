@@ -8,6 +8,7 @@ import { navigate, useRoute } from "../router";
 import { Icon, StatusChip } from "../components/ui";
 import { RobotHead, ROLE_COLOR, ROLE_LABEL } from "../components/RobotHead";
 import { LearnTabs } from "../components/LearnTabs";
+import { GuideShot } from "../components/GuideShot";
 
 /** One card, in the Feature guide's card style. `example` marks a made-up sample of what you'll see. */
 function Card({ title, example, children }: { title: string; example?: boolean; children: ReactNode }) {
@@ -150,9 +151,9 @@ function Describe() {
         ]}
         go={{ label: "Open Home", path: "/" }}
       />
-      <Card title="A good description" example>
-        <blockquote className="wt-quote">A booking app for a small yoga studio. Members see the week's classes, book a spot and cancel up to two hours before. Staff see who's coming to each class.</blockquote>
-        <p className="wt-dim">It names who uses it, what they do and what it shows. That's enough to start; a PRD adds detail.</p>
+      <Card title="On screen">
+        <GuideShot name="home-composer" alt="Home's What would you like to build? box" lookFor='The "What would you like to build?" box on Home. Fill in the name, product type and description, then press Next: Look and Feel.' />
+        <GuideShot name="home-attach" alt="Attach PRD and Files on Home" lookFor="Attach PRD & Files, for your PRD and any HTML, CSS, JSON or images." />
       </Card>
     </>
   );
@@ -170,39 +171,8 @@ function Look() {
           <>Press Next: Build. You can change the look later on the project's Design tab.</>,
         ]}
       />
-      <Card title="A look, set in a few choices" example>
-        <ul className="wt-look__swatches" aria-label="Example colors">
-          <li>
-            <span style={{ background: "#3d5a99" }} /> Primary
-          </li>
-          <li>
-            <span style={{ background: "#e8b14c" }} /> Accent
-          </li>
-          <li>
-            <span style={{ background: "#f6f3ec" }} /> Background
-          </li>
-          <li>
-            <span style={{ background: "#1c1b19" }} /> Text
-          </li>
-        </ul>
-        <dl className="wt-pairs">
-          <div>
-            <dt>Template</dt>
-            <dd>Booking app</dd>
-          </div>
-          <div>
-            <dt>Type</dt>
-            <dd>Manrope, bold headings</dd>
-          </div>
-          <div>
-            <dt>Buttons</dt>
-            <dd>Rounded, filled</dd>
-          </div>
-          <div>
-            <dt>Extras</dt>
-            <dd>Dark mode switch</dd>
-          </div>
-        </dl>
+      <Card title="On screen">
+        <GuideShot name="look-studio" alt="The Look and Feel step" lookFor="The panel on the right: the template under Start from, then Buttons, Type, Colors, Layout and Motion. The preview on the left changes as you choose." />
       </Card>
     </>
   );
@@ -235,6 +205,10 @@ function HandsOn() {
           </div>
         </dl>
         <p className="wt-dim">Local AI keeps everything on this computer and is free. Cloud AI sends the code and screenshots to the provider, which charges per use.</p>
+      </Card>
+      <Card title="On screen">
+        <GuideShot name="build-levels" alt="The Build step's hands-on levels" lookFor="The three level cards. The selected one is highlighted." />
+        <GuideShot name="build-coder" alt="Code written by: Local AI or Cloud AI" lookFor="Code written by, under the levels. Cloud AI is grayed out until a provider is set up." />
       </Card>
     </>
   );
