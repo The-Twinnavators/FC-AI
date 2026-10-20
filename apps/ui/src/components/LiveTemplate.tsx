@@ -27,31 +27,47 @@ function useLiveFrame(id: string, tokens: Record<string, string>, css: string) {
   return { frame, ready, src };
 }
 
-/** The big preview: the template at the device's width, scaled to fit the stage, scrolling inside. */
-export function LiveTemplate({ id, title, tokens, css, device }: { id: string; title: string; tokens: Record<string, string>; css: string; device: "phone" | "tablet" | "desktop" }) {
+/**
+ * The big preview: the template in a faux browser window (dots, the site's address) at the device's width, scaled to fit
+ * the stage. The stage takes the window's height, so the page shows as much as the screen allows.
+ */
+export function LiveTemplate({ id, title, tokens, css, device, site }: { id: string; title: string; tokens: Record<string, string>; css: string; device: "phone" | "tablet" | "desktop"; site: string }) {
   const { frame, ready, src } = useLiveFrame(id, tokens, css);
   const box = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState(1);
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const measure = () => setFit(Math.min(1, (el.clientWidth - 2) / PAGE_WIDTH[device]));
+    const measure = () => setFit(Math.min(1, (el.clientWidth - 32) / PAGE_WIDTH[device]));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
   }, [device]);
+  const width = Math.round(PAGE_WIDTH[device] * fit);
   return (
     <div className="lt-stage" ref={box}>
-      {ready ? null : <span className="lt-loading" role="progressbar" aria-label={`Loading ${title}`} />}
-      <iframe
-        key={id}
-        ref={frame}
-        className={`lt-frame${ready ? " is-ready" : ""}`}
-        title={`${title}, live preview`}
-        src={src}
-        style={{ width: PAGE_WIDTH[device], height: `${100 / fit}%`, transform: `scale(${fit})` }}
-      />
+      <div className={`lt-browser lt-browser--${device}`} style={{ width }}>
+        <div className="lt-browser__bar" aria-hidden="true">
+          <span className="lt-browser__dots"><i /><i /><i /></span>
+          <span className="lt-browser__address">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+            {site}
+          </span>
+          <span className="lt-browser__end" />
+        </div>
+        <div className="lt-browser__view">
+          {ready ? null : <span className="lt-loading" role="progressbar" aria-label={`Loading ${title}`} />}
+          <iframe
+            key={id}
+            ref={frame}
+            className={`lt-frame${ready ? " is-ready" : ""}`}
+            title={`${title}, live preview`}
+            src={src}
+            style={{ width: PAGE_WIDTH[device], height: `${100 / fit}%`, transform: `scale(${fit})` }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

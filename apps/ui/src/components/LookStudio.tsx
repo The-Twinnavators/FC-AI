@@ -129,7 +129,7 @@ function Seg<T extends string | number>({ label, value, options, onChange, disab
   );
 }
 
-export function LookStudio({ projectId, template, productType, onTemplate, onBack, onNext }: { projectId: string; template?: string; productType?: string; onTemplate: (id: string) => void; onBack: () => void; onNext: () => void }) {
+export function LookStudio({ projectId, site, template, productType, onTemplate, onBack, onNext }: { projectId: string; site: string; template?: string; productType?: string; onTemplate: (id: string) => void; onBack: () => void; onNext: () => void }) {
   const look = useLookDraft(projectId);
   const a = look.appearance ?? BASE_APPEARANCE;
   const [picked, setPicked] = useState(template ?? DEFAULT_TEMPLATE[productType ?? ""] ?? "home-saas");
@@ -227,8 +227,14 @@ export function LookStudio({ projectId, template, productType, onTemplate, onBac
             <Icon name="undo" size={15} />
             <span className="sr-only">Undo</span>
           </button>
+          <span className="ls-bar__sep" aria-hidden="true" />
+          {look.error || nextError ? <span className="ls-err" role="alert" title={nextError ?? look.error}>Not saved</span> : null}
+          <button type="button" className="btn btn--sm" onClick={onBack}>Back</button>
+          <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => void next()}>
+            {busy ? "Saving…" : "Next: Build"} <Icon name="chevron" size={12} />
+          </button>
         </div>
-        <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} />
+        <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} />
         <form
           className="ls-ask"
           onSubmit={(e) => {
@@ -383,13 +389,6 @@ export function LookStudio({ projectId, template, productType, onTemplate, onBac
           <TemplateGallery current={current.id} tokens={tokens} css={css} onChoose={choose} onClose={() => setGallery(false)} />
         </Modal>
       ) : null}
-      <footer className="ls-foot">
-        {look.error || nextError ? <span className="ls-err" role="alert">{nextError ?? look.error}</span> : null}
-        <button type="button" className="btn" onClick={onBack}>Back</button>
-        <button type="button" className="btn btn--primary" disabled={busy} onClick={() => void next()}>
-          {busy ? "Saving…" : "Next: Agentic Build Levels"} <Icon name="chevron" size={13} />
-        </button>
-      </footer>
     </div>
   );
 }

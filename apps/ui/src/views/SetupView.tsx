@@ -44,7 +44,7 @@ export function SetupView({ projectId, step }: { projectId: string; step: string
     <div className="page psetup">
       <SetupSteps projectId={projectId} at={at} />
       {at === "look" ? (
-        <LookStudio projectId={projectId} template={setup.template} productType={setup.productType} onTemplate={(template) => void post(`/projects/${projectId}/setup`, { template })} onBack={() => navigate(`/new/${projectId}/describe`)} onNext={() => navigate(`/new/${projectId}/build`)} />
+        <LookStudio projectId={projectId} site={`${project.name.toLowerCase().replace(/[^a-z0-9]+/g, "")  || "yourapp"}.com`} template={setup.template} productType={setup.productType} onTemplate={(template) => void post(`/projects/${projectId}/setup`, { template })} onBack={() => navigate(`/new/${projectId}/describe`)} onNext={() => navigate(`/new/${projectId}/build`)} />
       ) : (
         <BuildStep key={setup.updatedAt} projectId={projectId} project={project} setup={setup} onSaved={res.reload} />
       )}

@@ -101,6 +101,16 @@ const isolate = () => {
 // &live=1 (the Look studio): the page takes a look's token values by message and paints them over the starter's, so the
 // template follows every change without reloading. It says when it is ready for them.
 const live = params.get("live") === "1";
+// A preview opens at the top: a piece that focuses a field on mount (a slider, a sign-up box) mustn't scroll to it.
+if (live) {
+  const focus = HTMLElement.prototype.focus;
+  HTMLElement.prototype.focus = function (this: HTMLElement, options?: FocusOptions) {
+    focus.call(this, { ...options, preventScroll: true });
+  };
+  // …nor scroll itself into view.
+  Element.prototype.scrollIntoView = function () {};
+  history.scrollRestoration = "manual";
+}
 if (live)
   addEventListener("message", (e: MessageEvent) => {
     const m = e.data as { type?: string; tokens?: Record<string, string>; css?: string } | null;
@@ -123,7 +133,7 @@ if (load)
     requestAnimationFrame(report);
     if (live) {
       // A preview starts at the top of the page (an element further down can take focus and scroll to itself).
-      setTimeout(() => scrollTo(0, 0), 80);
+      for (const ms of [0, 80, 300, 900]) setTimeout(() => scrollTo(0, 0), ms);
       parent.postMessage({ type: "fl-live-ready", id }, "*");
     }
   });
