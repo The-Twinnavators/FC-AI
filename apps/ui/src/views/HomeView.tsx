@@ -50,7 +50,7 @@ export function HomeView({ draft }: { draft?: { projectId: string; name: string;
       <div id="newbuild" className="home__how">
         {/* The waves' purple, carried to the bottom of the page as a drifting aurora. */}
         <div className="home__aurora" aria-hidden="true">
-          <Aurora colorStops={["#5227FF", "#9b6bff", "#5227FF"]} direction="bottom" amplitude={1} blend={0.5} height={0.62} speed={0.6} glow={0.6} />
+          <Aurora colorStops={["#5227FF", "#9b6bff", "#5227FF"]} direction="bottom" amplitude={1} blend={0.5} height={0.85} speed={0.6} glow={0.6} />
         </div>
         <HowItWorks onStart={startBuild} />
       </div>

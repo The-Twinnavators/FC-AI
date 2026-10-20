@@ -181,8 +181,8 @@
 
 /* How FlowCode works, at the bottom of Home. */
 .home__how { position: relative; isolation: isolate; overflow: hidden; width: 100%; padding: 64px max(24px, calc((100% - 1232px) / 2)) 260px; box-sizing: border-box; }
-/* The aurora spans the whole width at the bottom of Home, behind How FlowCode works, fading in from above. */
-.home__aurora { position: absolute; z-index: -1; bottom: 0; left: 0; width: 100%; height: min(70vh, 640px); pointer-events: none; -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%); mask-image: linear-gradient(180deg, transparent, #000 45%); }
+/* The aurora fills the whole How FlowCode works section, rising from the bottom and fading in at the top. */
+.home__aurora { position: absolute; z-index: -1; inset: 0; pointer-events: none; -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%); mask-image: linear-gradient(180deg, transparent, #000 18%); }
 .aurora-container { position: relative; width: 100%; height: 100%; overflow: hidden; }
 .aurora-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 /* With How FlowCode works below it, Home's first screen still fills the window, so the waves have room. */
