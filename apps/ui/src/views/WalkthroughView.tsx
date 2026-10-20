@@ -290,14 +290,8 @@ function Change() {
           <>FlowCode plans only the difference, builds it and checks it.</>,
         ]}
       />
-      <Card title="Asking for a change" example>
-        <div className="wt-chat">
-          <p className="wt-chat__you">Make the class cards larger, three to a row on desktop.</p>
-          <p className="wt-chat__bot">
-            <RobotHead color={ROLE_COLOR.planner!} id="wt-change-planner" size={20} />
-            <span>Plan: change the schedule grid and its cards, then check the Schedule screen at desktop and phone sizes. One step; approve it to start.</span>
-          </p>
-        </div>
+      <Card title="On screen">
+        <GuideShot name="builder-chat" alt="The builder's Chat" lookFor="The message box under the chat. Type a change in your own words; while a build runs, Queue change sends it when the build finishes." />
       </Card>
     </>
   );
@@ -305,12 +299,6 @@ function Change() {
 
 /* 7. Review and undo. */
 function Review() {
-  const checks: Array<[string, string]> = [
-    ["Code checks", "passed"],
-    ["Tests", "passed"],
-    ["App starts and pages work", "passed"],
-    ["Design at three sizes", "passed_with_warnings"],
-  ];
   return (
     <>
       <YouDo
@@ -321,16 +309,8 @@ function Review() {
           <>When the design is right, Launch readiness lists what the real app still needs.</>,
         ]}
       />
-      <Card title="What a finished build shows" example>
-        <ul className="wt-checklist">
-          {checks.map(([t, st]) => (
-            <li key={t}>
-              <StatusChip status={st} />
-              <span>{t}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="wt-dim">A warning means it passed with notes for you to read, like a color with low contrast on one screen.</p>
+      <Card title="On screen">
+        <GuideShot name="builder-review" alt="The builder's Review tab" lookFor="The Review tab on the right: every changed file, grouped by what it affects. Undo any one from here." />
       </Card>
     </>
   );

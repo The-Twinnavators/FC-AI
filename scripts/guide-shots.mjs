@@ -58,6 +58,11 @@ const page = await ctx.newPage();
 for (const s of SHOTS.filter((x) => group === "all" || x.group === group)) {
   await page.goto(`${UI}${qs}#${s.route}`, { waitUntil: "networkidle" });
   await page.waitForTimeout(s.wait ?? 2200);
+  // A decision waiting opens over the builder; close it (Escape) so the screen behind shows. Nothing is decided.
+  if (s.group === "builder") {
+    await page.keyboard.press("Escape").catch(() => undefined);
+    await page.waitForTimeout(400);
+  }
   if (s.before) {
     await s.before(page);
     await page.waitForTimeout(1500);
@@ -67,6 +72,8 @@ for (const s of SHOTS.filter((x) => group === "all" || x.group === group)) {
     const style = document.createElement("style");
     style.textContent = ".app-footer, .home__drafts-btn, .home__pills, .disc-home .home__drafts-btn { display: none !important; } .fl-guide-ring { outline: 2px solid #9b6bff !important; outline-offset: 4px !important; box-shadow: 0 0 0 10px rgba(155, 107, 255, 0.22) !important; }";
     document.head.appendChild(style);
+    // One ring per picture: clear the last shot's (the page isn't reloaded between shots of the same screen).
+    document.querySelectorAll(".fl-guide-ring").forEach((x) => x.classList.remove("fl-guide-ring"));
     const el = sel.split(",").map((x) => document.querySelector(x.trim())).find(Boolean);
     if (!el) return false;
     el.classList.add("fl-guide-ring");
