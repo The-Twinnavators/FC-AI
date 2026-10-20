@@ -1,3 +1,4 @@
+import { DotField } from "../components/DotField";
 import { useState } from "react";
 import { SetupCard } from "../components/SetupCard";
 import type { Project, Run } from "@flowcode/contracts";
@@ -29,6 +30,9 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
   };
 
   return (
+    <div className="dots-bg">
+    {/* The same dot field as Create PRD's list, under a lens that follows the cursor. */}
+    <DotField />
     <div className="page page-enter">
       {/* Until this computer can build (Ollama, a model, a passed coder test): the next step. */}
       <SetupCard />
@@ -88,6 +92,6 @@ export function ProjectsView({ projects, reload }: { projects?: ProjectRow[]; re
         </section>
       </div>
     </div>
+    </div>
   );
 }
-
