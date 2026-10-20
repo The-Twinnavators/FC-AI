@@ -281,14 +281,25 @@
 .disc-list-bg > .dotfield { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
 .dotfield__canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 /* Create PRD's cards over the dot field: liquid glass, like Home's composer. */
-.disc-list-bg .disc-project { border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 12px; background: linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.06)); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 0 20px rgba(255, 255, 255, 0.04), 0 18px 40px -24px rgba(0, 0, 0, 0.6); transition: border-color 120ms ease, box-shadow 120ms ease; }
+.disc-list-bg .disc-projects--cards .disc-project { border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 12px; background: linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.06)); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 0 20px rgba(255, 255, 255, 0.04), 0 18px 40px -24px rgba(0, 0, 0, 0.6); transition: border-color 120ms ease, box-shadow 120ms ease; }
 /* Hover is the card's, not the text's: the whole pane lifts, brightens and takes a purple edge. */
-.disc-list-bg .disc-project { transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease; }
-.disc-list-bg .disc-project:hover, .disc-list-bg .disc-project:focus-within { transform: translateY(-2px); border-color: color-mix(in srgb, #9b6bff 60%, transparent); background: linear-gradient(160deg, rgba(155, 107, 255, 0.16), rgba(255, 255, 255, 0.05) 45%, rgba(155, 107, 255, 0.1)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 0 24px rgba(155, 107, 255, 0.1), 0 22px 44px -20px rgba(82, 39, 255, 0.45); }
-.disc-list-bg .disc-project__open:hover .disc-project__title { text-decoration: none; }
-@media (prefers-reduced-motion: reduce) { .disc-list-bg .disc-project:hover, .disc-list-bg .disc-project:focus-within { transform: none; } }
-@media (prefers-reduced-transparency: reduce) { .disc-list-bg .disc-project { background: var(--bg-1); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+.disc-list-bg .disc-projects--cards .disc-project { transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease; }
+.disc-list-bg .disc-projects--cards .disc-project:hover, .disc-list-bg .disc-projects--cards .disc-project:focus-within { transform: translateY(-2px); border-color: color-mix(in srgb, #9b6bff 60%, transparent); background: linear-gradient(160deg, rgba(155, 107, 255, 0.16), rgba(255, 255, 255, 0.05) 45%, rgba(155, 107, 255, 0.1)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 0 24px rgba(155, 107, 255, 0.1), 0 22px 44px -20px rgba(82, 39, 255, 0.45); }
+.disc-list-bg .disc-projects--cards .disc-project__open:hover .disc-project__title { text-decoration: none; }
+@media (prefers-reduced-motion: reduce) { .disc-list-bg .disc-projects--cards .disc-project:hover, .disc-list-bg .disc-projects--cards .disc-project:focus-within { transform: none; } }
+@media (prefers-reduced-transparency: reduce) { .disc-list-bg .disc-projects--cards .disc-project { background: var(--bg-1); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 /* A soft purple glow under the dots, in Home's purple (#5227FF), strongest at the bottom right and top left. */
 .disc-list-bg::before { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none; background: radial-gradient(60% 55% at 85% 100%, color-mix(in srgb, #5227ff 38%, transparent), transparent 70%), radial-gradient(45% 40% at 10% 0%, color-mix(in srgb, #7c4dff 22%, transparent), transparent 70%), radial-gradient(40% 35% at 50% 55%, color-mix(in srgb, #5227ff 10%, transparent), transparent 75%); }
 /* The dots fade away toward the bottom of the page. */
 .disc-list-bg > .dotfield { -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 95%); mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 95%); }
+/* List view: one glass panel with rows (badge and title on the left, progress on the right), not a stack of cards. */
+.disc-list-bg .disc-projects--list { overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 12px; background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.05)); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 18px 40px -24px rgba(0, 0, 0, 0.6); }
+.disc-list-bg .disc-projects--list .disc-project { flex-wrap: nowrap; padding: 14px 12px 14px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); transition: background 140ms ease; }
+.disc-list-bg .disc-projects--list .disc-project:last-child { border-bottom: 0; }
+.disc-list-bg .disc-projects--list .disc-project:hover, .disc-list-bg .disc-projects--list .disc-project:focus-within { background: rgba(155, 107, 255, 0.12); }
+.disc-list-bg .disc-projects--list .disc-project__open { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; row-gap: 6px; align-items: center; }
+.disc-list-bg .disc-projects--list .disc-status-badge { grid-column: 1; grid-row: 1; justify-self: start; }
+.disc-list-bg .disc-projects--list .disc-project__title { grid-column: 1; grid-row: 2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.disc-list-bg .disc-projects--list .disc-project__open:hover .disc-project__title { text-decoration: none; }
+.disc-list-bg .disc-projects--list .disc-project__progress { grid-column: 2; grid-row: 1 / span 2; }
+@media (max-width: 640px) { .disc-list-bg .disc-projects--list .disc-project__open { grid-template-columns: 1fr; } .disc-list-bg .disc-projects--list .disc-project__progress { grid-column: 1; grid-row: 3; } }
