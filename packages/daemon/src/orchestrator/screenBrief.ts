@@ -17,6 +17,10 @@ export interface ScreenBriefSection {
   purpose: string;
   /** A catalog ID from the screen's matched list, or "" for plain content. */
   part: string;
+  /** An approved design's section (designContract.ts): FlowCode writes it with this component and content. */
+  contract?: { block: string; component: string; props: Record<string, unknown> };
+  /** A section the PRD needs on a page whose composition an approved design sets: kept, after the hero. */
+  required?: true;
 }
 export interface ScreenBrief {
   screen: string;

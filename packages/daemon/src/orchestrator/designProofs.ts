@@ -39,6 +39,7 @@ import { designSkillIds, renderSkills, selectSkills } from "../knowledge/skills.
 import { designSpecKey } from "./homeConceptOffer.js";
 import { DESIGN_POLISH, DESIGN_SCREENS } from "./templates.js";
 import { sectionsDir } from "./sectionRecipes.js";
+import { applyDesignContract, buildContract, contractNote, designContractKey, getContract } from "./designContract.js";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -176,7 +177,8 @@ export function chooseProof(store: Store, runId: string, proofId: string): Desig
 
 /**
  * The person's approval of the chosen proof: its specification becomes the build's design (applied by the style step),
- * and the design steps get its composition and rationale as their brief.
+ * and it is saved as the build's design contract (designContract.ts), which rewrites the target page's brief and
+ * manifest so the layout step writes its sections with their approved content, and which verification checks.
  */
 export function approveProof(d: Deps, runId: string): DesignProofs {
   const p = need(d.store, runId);
@@ -185,7 +187,10 @@ export function approveProof(d: Deps, runId: string): DesignProofs {
   p.approved = { at: now(), proofId: x.id };
   save(d.store, p);
   d.store.setSetting(designSpecKey(runId), x.spec);
-  const brief = `Approved design proof "${x.name}" (${x.label}): ${x.rationale ?? ""} Build the home page from these library sections, in this order, with this content: ${describePage(x.page)}. Its design specification is applied to the app's tokens; keep it, and carry the same direction to the other screens.`;
+  const run0 = d.store.runs.require(runId);
+  d.store.setSetting(designContractKey(runId), buildContract(runId, x, getDesignState(d.store, run0.projectId).locks ?? [], getContract(d.store, runId), p.approved.at));
+  const contract = applyDesignContract(d.store, runId);
+  const brief = `Approved design proof "${x.name}" (${x.label}): ${x.rationale ?? ""} ${contract && contract.target.screen ? contractNote(contract) : `The home page is composed from these library sections, in this order, with this content: ${describePage(x.page)}.`} Its design specification is applied to the app's tokens; keep it, and carry the same direction to the other screens.`;
   for (const t of d.store.tasks.where("run_id = ?", runId).filter((t) => t.title.startsWith(DESIGN_SCREENS) || t.title.startsWith(DESIGN_POLISH)))
     d.store.setSetting(`taskFindings:${t.id}`, [...d.store.getSetting<string[]>(`taskFindings:${t.id}`, []), brief]);
   const run = d.store.runs.require(runId);

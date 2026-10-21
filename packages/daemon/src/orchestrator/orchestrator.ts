@@ -4,6 +4,7 @@
  * computes Done deterministically. Agents never transition phases themselves.
  */
 import { designPending } from "./designProofs.js";
+import { applyDesignContract, contractNote, designContractProblems, getContract } from "./designContract.js";
 import { appliesToRole, isFinishedRun } from "@flowcode/contracts";
 import fs from "node:fs";
 import { z } from "zod";
@@ -1039,8 +1040,15 @@ ${brief.text}` : objective, expectedPaths });
     const composition = manifestFromBriefs(briefs, dropped, issues);
     if (issues.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Page plans checked against their page types: ${issues.map((i) => `${i.page}: ${i.reason}`).join("; ")}`.slice(0, 1500), level: "warning", data: { issues } });
     this.d.store.setSetting(compositionKey(run.id), composition);
+    // An approved design proof is the contract for its page: a replan rewrites the briefs, and the contract is put back
+    // on that page (only there), with any PRD section it doesn't show kept and said.
+    const contract = applyDesignContract(this.d.store, run.id, designed);
+    if (contract?.target.screen) {
+      briefs = this.d.store.getSetting<typeof briefs>(screenBriefKey(run.id), briefs);
+      this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Approved design (revision ${contract.revision}) set the composition of ${contract.target.screen}: ${contract.sections.map((x) => x.component).join(", ")}${contract.conflicts.length ? `. Kept from the PRD: ${contract.kept.map((k) => k.title).join(", ")}` : ""}`, level: contract.conflicts.length ? "warning" : "info", data: { contract: { revision: contract.revision, target: contract.target, conflicts: contract.conflicts } } });
+    }
     this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Composition manifest: ${composition.entries.length} catalog part${composition.entries.length === 1 ? "" : "s"} across ${briefs.length} page${briefs.length === 1 ? "" : "s"}${composition.gaps.length ? `; ${composition.gaps.length} catalog gap${composition.gaps.length === 1 ? "" : "s"} (${composition.gaps.map((g) => `${g.page}: ${g.section}`).join(", ")})` : ""}`, data: { composition } });
-    const note = [screenBriefNote(briefs), composition.gaps.length ? manifestNote({ entries: [], gaps: composition.gaps }) : ""].filter(Boolean).join("\n\n");
+    const note = [screenBriefNote(briefs), contract ? contractNote(contract) : "", composition.gaps.length ? manifestNote({ entries: [], gaps: composition.gaps }) : ""].filter(Boolean).join("\n\n");
     return tasks.map((t) => (t.title === DESIGN_SCREENS || t.title === DESIGN_POLISH ? { ...t, objective: `${t.objective}\n\n${note}` } : t));
   }
 
@@ -2686,6 +2694,21 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
       }
       this.d.bus.emit({ ...ev, type: "verification.completed", message: `Composition manifest after "${task.title}": ${checked.entries.length - unused.length} of ${checked.entries.length} catalog parts used in the app${unused.length ? ` (not used yet: ${[...new Set(unused.map((e) => e.ref))].slice(0, 6).join(", ")})` : ""}`, level: unused.length ? "warning" : "info", data: { composition: checked } });
     }
+    // The approved design (designContract.ts): a step that changed its page or the tokens, and every design pass, is
+    // held to it. A mismatch keeps the step unverified (its last verified version stays in the history).
+    const designContract = getContract(this.d.store, run.id);
+    if (designContract?.target.file) {
+      const norm = (c: string) => c.split("\\").join("/");
+      const touchedPage = [...changed].some((c) => norm(c) === designContract.target.file);
+      const touchedTokens = [...changed].some((c) => norm(c) === "src/styles/tokens.css");
+      if (touchedPage || touchedTokens || designPass) {
+        const problems = designContractProblems(jail.root, designContract, { page: touchedPage || designPass });
+        if (problems.length) {
+          verdict = { ...verdict, allMet: false, failures: [...verdict.failures, `Approved design: ${designContract.target.screen} no longer matches the design the person approved (revision ${designContract.revision}). Put it back:`, ...problems.slice(0, 8)] };
+        }
+        this.d.bus.emit({ ...ev, type: "verification.completed", message: `Approved design check after "${task.title}": ${problems.length ? `${problems.length} mismatch${problems.length === 1 ? "" : "es"} (${problems.slice(0, 2).join("; ")})` : "matches"}`, level: problems.length ? "warning" : "info", data: { contractProblems: problems } });
+      }
+    }
     // The app guard (complete apps): once FlowCode has written the app, no step may take its frame, store or working
     // pages apart. Checked on every later step, whatever files it says it changed.
     const appModel = task.title !== WRITE_APP && this.d.store.getSetting<boolean>(appWrittenKey(run.id), false) ? this.d.store.getSetting<AppModel | null>(appModelKey(run.id), null) : null;
@@ -3010,8 +3033,11 @@ ${seed ? JSON.stringify(seed) : ""}`) : checks, status: "running", checkpointId:
     }
     // The first screen is the product, not a pitch: the kit's Hero (eyebrow, giant headline, side card) made every build
     // look like the same landing page. Only a product that is itself a marketing site opens with one.
+    // An approved design proof sets its own page's composition (designContract.ts): the rule stands for every other
+    // screen, and that page is named as the exception, so it isn't merged away or stripped of its hero.
+    const approvedPage = designStep ? getContract(this.d.store, run.id)?.target : undefined;
     if (designStep && !/\bhero|landing|marketing|social proof\b/i.test(`${direction?.pattern ?? ""}`))
-      guidance.push("Composition (FlowCode rule): the first screen is the product's main tool (search, list, board, editor), shown working with real data, not a pitch. No Hero component, eyebrow label, marketing headline or 'Browse…' call-to-action block; if the app has a separate home screen that only introduces the tool, merge it into the tool screen (keep its route and test labels). Compose each screen from the design research and direction: decide the layout yourself, then use the kit (src/components/ui) for controls such as Button, Field, chips, Card and Dialog, not for page templates.");
+      guidance.push(`Composition (FlowCode rule): the first screen is the product's main tool (search, list, board, editor), shown working with real data, not a pitch. No Hero component, eyebrow label, marketing headline or 'Browse…' call-to-action block; if the app has a separate home screen that only introduces the tool, merge it into the tool screen (keep its route and test labels).${approvedPage?.file ? ` Exception: ${approvedPage.file} (${approvedPage.screen}) follows the person's approved design, hero and call to action included; keep it as a separate screen, as approved.` : ""} Compose each screen from the design research and direction: decide the layout yourself, then use the kit (src/components/ui) for controls such as Button, Field, chips, Card and Dialog, not for page templates.`);
     // Design research (inspiration from Dribbble, Behance and real products), done once per project while it's fresh.
     if (designStep && !ownDirection?.fromPersonOrPrd) {
       const research = measure ? (this.d.store.getSetting<DesignResearch | null>(researchKey(project.id), null) ?? undefined) : await designResearch(

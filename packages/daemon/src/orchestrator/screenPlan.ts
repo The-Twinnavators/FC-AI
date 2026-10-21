@@ -18,6 +18,7 @@ import { recordUse } from "./libraryUse.js";
 import { screenPicks, type ScreenPick } from "./screenPicks.js";
 import { catalogPiece, pieceFiles, sectionFile, sectionsDir, syncedLibraryCss } from "./sectionRecipes.js";
 import { screenBriefKey, type ScreenBrief } from "./screenBrief.js";
+import { contractJsx } from "./designContract.js";
 
 /** The library pieces matched to the planned screens (kept by planning, read by the layout step). */
 export const screenPicksKey = (runId: string) => `screenPicks:${runId}`;
@@ -208,7 +209,9 @@ export const placedKey = (runId: string) => `placedPieces:${runId}`;
 export function layoutFiles(plan: ScreenPlan, placements: Placement[] = [], briefs: ScreenBrief[] = []): Array<{ path: string; content: string }> {
   // A screen that is a whole website page (a homepage, landing page or industry site template) brings its own header,
   // navigation and footer, so it is drawn outside the app shell instead of under a second header.
-  const fullPage = plan.screens.filter((s) => placements.some((p) => p.screen === s.label && p.template && LIBRARY_SECTIONS.find((x) => x.id === p.id)?.category !== "apptemplates"));
+  // An approved design with its own top bar or footer (designContract.ts) is such a page too.
+  const ownFrame = (s: PlannedScreen) => briefs.some((b) => b.screen === s.label && b.sections.some((x) => x.contract && /^(top-nav|footer)/.test(x.contract.block)));
+  const fullPage = plan.screens.filter((s) => ownFrame(s) || placements.some((p) => p.screen === s.label && p.template && LIBRARY_SECTIONS.find((x) => x.id === p.id)?.category !== "apptemplates"));
   const pick = (list: typeof plan.screens, indent: string) => (list.length === 1 && plan.screens.length === 1 ? [`${indent}<${list[0]!.component} />`] : list.map((s) => `${indent}{current === ${q(s.id)} ? <${s.component} /> : null}`));
   const shelled = plan.screens.filter((s) => !fullPage.includes(s));
   const app = [
@@ -246,16 +249,28 @@ export function layoutFiles(plan: ScreenPlan, placements: Placement[] = [], brie
     const brief = briefs.find((b) => b.screen === s.label);
     if (brief && !template) {
       const placedFor = (ref: string) => pieces.find((p) => catalogPiece(ref)?.id === p.id);
+      // An approved design's page (designContract.ts) is its sections with their approved content, no page header; its
+      // top bar also links to the app's other screens, so none of them is cut off.
+      const approved = fullPage.includes(s) || brief.sections.some((x) => x.contract);
+      const others = plan.screens.filter((o) => o !== s && !isDetailScreen(plan, o)).map((o) => ({ label: o.label, href: `#/${o.id}` }));
+      const named: string[] = [];
       const lines = brief.sections.flatMap((x, i) => {
-        const p = x.part ? placedFor(x.part) : undefined;
+        const p = x.contract ? pieces.find((y) => y.id === x.contract!.block) : x.part ? placedFor(x.part) : undefined;
         const note = `${i + 1}. ${x.title}: ${x.purpose}`.replace(/\*\//g, "");
+        if (p && x.contract) {
+          named.push(`import { ${x.contract.component} } from "../sections/${p.component}";`);
+          const links = Array.isArray(x.contract.props.links) ? (x.contract.props.links as Array<{ label?: string }>) : undefined;
+          const extra = links ? { links: [...links, ...others.filter((o) => !links.some((l) => l.label === o.label))] } : {};
+          return [`      {/* ${note} */}`, `      ${contractJsx(x.contract, extra)}`];
+        }
         return p ? [`      {/* ${note} */}`, `      <${p.component} />`] : [`      {/* ${note}${x.part ? ` Build it with ${partSlot(x.part)}` : ""} */}`];
       });
-      const placedUsed = pieces.filter((p) => brief.sections.some((x) => x.part && placedFor(x.part) === p));
+      const placedUsed = pieces.filter((p) => brief.sections.some((x) => x.part && !x.contract && placedFor(x.part) === p));
       return {
         path: s.file,
         content: [
-          `import { PageHeader } from "../components/ui";`,
+          ...(approved ? [] : [`import { PageHeader } from "../components/ui";`]),
+          ...[...new Set(named)],
           ...placedUsed.map((p) => `import ${p.component} from "../sections/${p.component}";`),
           ``,
           `/**`,
@@ -265,7 +280,7 @@ export function layoutFiles(plan: ScreenPlan, placements: Placement[] = [], brie
           `export default function ${s.component}() {`,
           `  return (`,
           `    <>`,
-          `      <PageHeader title=${q(s.label)} />`,
+          ...(approved ? [] : [`      <PageHeader title=${q(s.label)} />`]),
           ...lines,
           `    </>`,
           `  );`,
@@ -349,8 +364,9 @@ export function layoutStep(plan: ScreenPlan) {
       // A screen with a brief takes the brief's pieces, in its order; one without keeps its matched starting pieces.
       const fromBriefs: ScreenPick[] = briefs.flatMap((b) =>
         b.sections.flatMap((x) => {
-          const piece = x.part ? catalogPiece(x.part) : undefined;
-          return piece && !piece.specimen ? [{ id: piece.id, screen: b.screen, score: 99, reason: `${b.screen}, section "${x.title}": ${piece.name}` }] : [];
+          // An approved design's section is its exact library piece (a catalog ID can name a pattern another piece owns).
+          const piece = x.contract ? LIBRARY_SECTIONS.find((l) => l.id === x.contract!.block) : x.part ? catalogPiece(x.part) : undefined;
+          return piece && (!piece.specimen || x.contract) ? [{ id: piece.id, screen: b.screen, score: 99, reason: `${b.screen}, section "${x.title}": ${piece.name}` }] : [];
         }),
       );
       const picks = [...fromBriefs.filter((p, i, all) => all.findIndex((x) => x.id === p.id && x.screen === p.screen) === i), ...matched.filter((p) => !briefs.some((b) => b.screen === p.screen))];
