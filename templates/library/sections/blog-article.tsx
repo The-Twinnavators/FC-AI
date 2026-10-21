@@ -366,7 +366,7 @@ const SAMPLE: BlogArticleProps = {
 
 export default function BlogArticlePreview() {
   return (
-    <section className="fl-section" aria-label={SAMPLE.post.title}>
+    <section className="fl-section fl-section--canvas" aria-label={SAMPLE.post.title}>
       <div className="fl-wrap">
         <BlogArticle {...SAMPLE} />
       </div>

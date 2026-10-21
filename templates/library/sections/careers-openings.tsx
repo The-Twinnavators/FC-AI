@@ -690,7 +690,7 @@ const SAMPLE: CareersOpeningsProps = {
 
 export default function CareersOpeningsPreview() {
   return (
-    <section className="fl-section" aria-label={SAMPLE.title}>
+    <section className="fl-section fl-section--canvas" aria-label={SAMPLE.title}>
       <div className="fl-wrap fl-wrap--narrow">
         <CareersOpenings {...SAMPLE} />
       </div>

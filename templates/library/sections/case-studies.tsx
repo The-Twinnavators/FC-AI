@@ -337,7 +337,7 @@ const SAMPLE = {
 export default function CaseStudiesPreview() {
   const d = SAMPLE;
   return (
-    <section className="fl-section" aria-labelledby="case-studies-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="case-studies-title">
       <div className="fl-wrap">
         <div className="fl-head">
           <p className="fl-eyebrow">{d.eyebrow}</p>

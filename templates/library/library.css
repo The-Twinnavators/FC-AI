@@ -11,6 +11,8 @@
 @media (max-width: 640px) { :root { --fs-shrink: 2px; } }
 /* Canvas: a gray page with white cards, panels and fields on it (app screens and components). */
 .fl-section--canvas { background: var(--color-surface-sunken); --color-surface: var(--color-bg); --surface-bg: var(--color-bg); }
+/* A page that is only one canvas section (a piece's preview) is gray to the edges. */
+html:has(body > #root > .fl-section--canvas:only-child), html:has(body > #root > .fl-section--canvas:only-child) body { background: var(--color-surface-sunken); }
 .fl-section--tint { background: var(--color-secondary-surface, var(--color-surface-sunken)); }
 /* A specimen of the building blocks themselves (the catalog's own pieces): even padding, no page rhythm. */
 /* A piece is shown in a column far narrower than the window - a library card, a modal, a page beside a sidebar - so

@@ -435,7 +435,7 @@ const SAMPLE: ChangelogReleasesProps = {
 
 export default function ChangelogReleasesPreview() {
   return (
-    <section className="fl-section" aria-label={SAMPLE.title}>
+    <section className="fl-section fl-section--canvas" aria-label={SAMPLE.title}>
       <div className="fl-wrap fl-wrap--narrow">
         <ChangelogReleases {...SAMPLE} />
       </div>

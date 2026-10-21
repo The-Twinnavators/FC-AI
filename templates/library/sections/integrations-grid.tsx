@@ -404,7 +404,7 @@ const SAMPLE = {
 export default function IntegrationsGridPreview() {
   const d = SAMPLE;
   return (
-    <section className="fl-section" aria-labelledby="integrations-grid-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="integrations-grid-title">
       <div className="fl-wrap">
         <div className="fl-head fl-head--center">
           <p className="fl-eyebrow">{d.eyebrow}</p>

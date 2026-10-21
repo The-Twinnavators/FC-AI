@@ -117,7 +117,7 @@ export default function SkipLinksSheet() {
   const frame = useRef<HTMLDivElement>(null);
   const show = () => frame.current?.querySelector<HTMLElement>(".fl-skip-link")?.focus();
   return (
-    <section className="fl-section" aria-label="Skip links">
+    <section className="fl-section fl-section--canvas" aria-label="Skip links">
       <div className="fl-wrap">
         <div className="fl-skip-demo-bar">
           <p>Tab into the page below to reveal the bar.</p>

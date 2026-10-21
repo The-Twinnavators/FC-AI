@@ -224,7 +224,7 @@ const SAMPLE = {
 export default function TestimonialsWallPreview() {
   const d = SAMPLE;
   return (
-    <section className="fl-section" aria-labelledby="testimonials-wall-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="testimonials-wall-title">
       <div className="fl-wrap">
         <div className="fl-head fl-head--center">
           <p className="fl-eyebrow">{d.eyebrow}</p>

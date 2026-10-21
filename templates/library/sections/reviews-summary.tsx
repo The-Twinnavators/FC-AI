@@ -702,7 +702,7 @@ const SAMPLE: ReviewsSummaryProps = {
 
 export default function ReviewsSummaryPreview() {
   return (
-    <section className="fl-section" aria-label={`Reviews of ${SAMPLE.product}`}>
+    <section className="fl-section fl-section--canvas" aria-label={`Reviews of ${SAMPLE.product}`}>
       <div className="fl-wrap">
         <ReviewsSummary {...SAMPLE} />
       </div>

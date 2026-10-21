@@ -273,7 +273,7 @@ export default function FeaturesBentoPreview() {
   const d = SAMPLE;
   const [said, setSaid] = useState("");
   return (
-    <section className="fl-section" aria-labelledby="features-bento-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="features-bento-title">
       <div className="fl-wrap">
         <div className="fl-head">
           <p className="fl-eyebrow">{d.eyebrow}</p>

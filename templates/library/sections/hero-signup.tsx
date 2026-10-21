@@ -276,5 +276,9 @@ const SAMPLE: Omit<HeroSignupProps, "onSignup"> = {
 };
 
 export default function HeroSignupPreview() {
-  return <HeroSignup {...SAMPLE} onSignup={() => new Promise<void>((resolve) => setTimeout(resolve, 700))} />;
+  return (
+    <div className="fl-section--canvas">
+      <HeroSignup {...SAMPLE} onSignup={() => new Promise<void>((resolve) => setTimeout(resolve, 700))} />
+    </div>
+  );
 }

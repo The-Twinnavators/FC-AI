@@ -318,7 +318,7 @@ const SAMPLE = {
 export default function RoadmapBoardPreview() {
   const d = SAMPLE;
   return (
-    <section className="fl-section" aria-labelledby="roadmap-board-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="roadmap-board-title">
       <div className="fl-wrap">
         <div className="fl-head">
           <p className="fl-eyebrow">{d.eyebrow}</p>
