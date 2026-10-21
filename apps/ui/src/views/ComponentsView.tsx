@@ -7,7 +7,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, isNewPiece, SECTION_CATEGORIES, STYLE_VIBES, TEMPLATE_VIBES, levelOf, relationsOf, usedBy, versionsOf, type LibrarySection, type SectionCategory } from "@flowcode/contracts";
 import { LibModal, CopyButton } from "../components/LibModal";
 import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
-import { Search, Sparkles } from "lucide-react";
+import { ChevronDown, Search, Sparkles } from "lucide-react";
+import "../styles/cl-details.css";
 import { post } from "../api";
 
 
@@ -176,6 +177,8 @@ export function ComponentsView() {
   const [code, setCode] = useState<string>();
   const [showCode, setShowCode] = useState(false);
   const [device, setDevice] = useState<Device>("desktop");
+  // The piece's description and catalog rows: folded away so the preview gets the room, open on request.
+  const [details, setDetails] = useState(false);
   useEffect(() => {
     try {
       localStorage.setItem("flowcode.componentsStyle", styleId);
@@ -396,11 +399,21 @@ export function ComponentsView() {
         >
           <div className="cl-detail">
             <div>
-              <h2 style={{ margin: 0, fontSize: 18 }}>{open.name}</h2>
-              <p className="dim" style={{ margin: "4px 0 0" }}>
-                {open.description} File: <span className="mono">templates/library/sections/{open.id}.tsx</span>
-              </p>
-              <PieceRefs piece={open} />
+              <div className="cl-detail__head">
+                <h2 style={{ margin: 0, fontSize: 18 }}>{open.name}</h2>
+                <button type="button" className="btn btn--sm cl-detail__toggle" aria-expanded={details} aria-controls="cl-detail-more" onClick={() => setDetails((v) => !v)}>
+                  Details
+                  <ChevronDown size={14} aria-hidden="true" />
+                </button>
+              </div>
+              <div id="cl-detail-more" className="cl-detail__more" data-open={details} inert={!details}>
+                <div>
+                  <p className="dim" style={{ margin: "4px 0 0" }}>
+                    {open.description} File: <span className="mono">templates/library/sections/{open.id}.tsx</span>
+                  </p>
+                  <PieceRefs piece={open} />
+                </div>
+              </div>
             </div>
             {showCode ? <pre className="cl-code">{code ?? "Loading…"}</pre> : <SectionFrame id={open.id} look={look} title={open.name} width={deviceWidth(device)} focus={open.focus} />}
           </div>

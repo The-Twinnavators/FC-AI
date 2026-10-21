@@ -1,0 +1,11 @@
+/* Component library details modal: the piece's description and catalog rows fold under a Details button. */
+.cl-detail__head { display: flex; align-items: center; gap: 12px; }
+.cl-detail__toggle { display: inline-flex; align-items: center; gap: 6px; }
+.cl-detail__toggle svg { transition: rotate 200ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.cl-detail__toggle[aria-expanded="true"] svg { rotate: 180deg; }
+.cl-detail__more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 240ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.cl-detail__more[data-open="true"] { grid-template-rows: 1fr; }
+.cl-detail__more > div { min-height: 0; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .cl-detail__toggle svg, .cl-detail__more { transition: none; }
+}
