@@ -1,0 +1,234 @@
+{
+  "manifest": [
+    {
+      "screen": "Home",
+      "candidates": 21
+    },
+    {
+      "screen": "Classes",
+      "candidates": 22
+    },
+    {
+      "screen": "My bookings",
+      "candidates": 20
+    },
+    {
+      "screen": "Class roster",
+      "candidates": 21
+    }
+  ],
+  "before": [
+    {
+      "ms": 27360,
+      "screens": 4,
+      "sections": 10,
+      "withPart": 9,
+      "distinctParts": 4,
+      "useRecorded": 0,
+      "adaptNotes": 0,
+      "removedByPageRules": 0,
+      "repeats": [],
+      "sameResponsibilityTwice": [
+        "Classes: \"Booking Flow\" and \"p.booking-calendar\" both give booking",
+        "Classes: \"Booking Flow\" and \"p.booking-calendar\" both give date entry",
+        "Classes: \"Booking Flow\" and \"p.booking-calendar\" both give time entry",
+        "Class roster: \"Check-in Flow\" and \"p.booking-calendar\" both give booking",
+        "Class roster: \"Check-in Flow\" and \"p.booking-calendar\" both give date entry",
+        "Class roster: \"Check-in Flow\" and \"p.booking-calendar\" both give time entry"
+      ],
+      "perScreen": [
+        {
+          "screen": "Home",
+          "pageType": "home",
+          "sections": [
+            "Studio Overview → p.upcoming-schedule",
+            "Passes and Prices → c.card",
+            "Booking Flow → b.booking-flow"
+          ]
+        },
+        {
+          "screen": "Classes",
+          "pageType": "booking",
+          "sections": [
+            "Weekly Schedule → p.booking-calendar",
+            "Class Details → p.upcoming-schedule",
+            "Booking Flow → b.booking-flow"
+          ]
+        },
+        {
+          "screen": "My bookings",
+          "pageType": "other",
+          "sections": [
+            "Upcoming Bookings → p.upcoming-schedule",
+            "Cancellation Flow → (plain)"
+          ]
+        },
+        {
+          "screen": "Class roster",
+          "pageType": "other",
+          "sections": [
+            "Class Roster → p.booking-calendar",
+            "Check-in Flow → b.booking-flow"
+          ]
+        }
+      ]
+    },
+    {
+      "ms": 28040,
+      "screens": 4,
+      "sections": 10,
+      "withPart": 10,
+      "distinctParts": 6,
+      "useRecorded": 0,
+      "adaptNotes": 0,
+      "removedByPageRules": 0,
+      "repeats": [],
+      "sameResponsibilityTwice": [
+        "Classes: \"Booking Flow\" and \"c.select\" both give form"
+      ],
+      "perScreen": [
+        {
+          "screen": "Home",
+          "pageType": "home",
+          "sections": [
+            "Upcoming Schedule → p.upcoming-schedule",
+            "Passes and Prices → c.card",
+            "Booking Flow → b.booking-flow"
+          ]
+        },
+        {
+          "screen": "Classes",
+          "pageType": "booking",
+          "sections": [
+            "Weekly Schedule → p.upcoming-schedule",
+            "Filters → c.select",
+            "Booking Flow → b.booking-flow"
+          ]
+        },
+        {
+          "screen": "My bookings",
+          "pageType": "other",
+          "sections": [
+            "Upcoming Schedule → p.upcoming-schedule",
+            "Cancellation Options → c.button"
+          ]
+        },
+        {
+          "screen": "Class roster",
+          "pageType": "other",
+          "sections": [
+            "Class Roster → c.list-row",
+            "Check-In → c.button"
+          ]
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "ms": 33856,
+      "screens": 4,
+      "sections": 10,
+      "withPart": 10,
+      "distinctParts": 5,
+      "useRecorded": 10,
+      "adaptNotes": 10,
+      "removedByPageRules": 1,
+      "repeats": [
+        "t.app-calendar is a whole screen, used here as one section among others: use it as the page, or a smaller part for this section"
+      ],
+      "sameResponsibilityTwice": [],
+      "perScreen": [
+        {
+          "screen": "Home",
+          "pageType": "home",
+          "sections": [
+            "Studio Overview → p.upcoming-schedule [reuse] adapt: Show the first class as the soonest event with a free badge",
+            "Passes and Prices → p.upcoming-schedule [reuse] adapt: Show the passes as events with price badges",
+            "Book a First Class → b.booking-flow [reuse] adapt: Use the first class as the service, with no staff selection, and set the price to $0"
+          ]
+        },
+        {
+          "screen": "Classes",
+          "pageType": "booking",
+          "sections": [
+            "Weekly Schedule → t.app-calendar [reuse] adapt: Show classes with type, teacher, time, and spots left",
+            "Book a Spot → p.booking-calendar [reuse] adapt: Show available times with spots left and waitlist option",
+            "Waitlist Option → p.booking-calendar [reuse] adapt: Show waitlist option for full classes"
+          ]
+        },
+        {
+          "screen": "My bookings",
+          "pageType": "other",
+          "sections": [
+            "Upcoming Bookings → p.upcoming-schedule [reuse] adapt: Show bookings with time, teacher, and cancellation status",
+            "Cancel Booking → c.modal [reuse] adapt: Show cancellation confirmation and reason for late cancellations"
+          ]
+        },
+        {
+          "screen": "Class roster",
+          "pageType": "other",
+          "sections": [
+            "Class Roster → p.upcoming-schedule [reuse] adapt: Show participants with names, contact info, and check-in status",
+            "Check In → c.modal [reuse] adapt: Show check-in confirmation and update status"
+          ]
+        }
+      ]
+    },
+    {
+      "ms": 34298,
+      "screens": 4,
+      "sections": 11,
+      "withPart": 11,
+      "distinctParts": 6,
+      "useRecorded": 11,
+      "adaptNotes": 11,
+      "removedByPageRules": 1,
+      "repeats": [
+        "t.app-calendar is a whole screen, used here as one section among others: use it as the page, or a smaller part for this section"
+      ],
+      "sameResponsibilityTwice": [],
+      "perScreen": [
+        {
+          "screen": "Home",
+          "pageType": "home",
+          "sections": [
+            "Studio Overview → c.card [reuse] adapt: Include studio name, description, and a call to action for booking",
+            "Weekly Classes → p.upcoming-schedule [reuse] adapt: Display classes with time, teacher, and spots left",
+            "Passes and Prices → c.card [reuse] adapt: List passes with price, description, and a call to action",
+            "Book a Free Class → b.booking-flow [reuse] adapt: Set up for a free first class, no payment required"
+          ]
+        },
+        {
+          "screen": "Classes",
+          "pageType": "booking",
+          "sections": [
+            "Weekly Schedule → t.app-calendar [reuse] adapt: Display classes with time, teacher, and spots left",
+            "Filter Classes → c.tabs [reuse] adapt: Include tabs for class types and teachers",
+            "Book a Class → b.booking-flow [reuse] adapt: Set up for booking a class with spots left and waitlist option"
+          ]
+        },
+        {
+          "screen": "My bookings",
+          "pageType": "other",
+          "sections": [
+            "Upcoming Bookings → p.upcoming-schedule [reuse] adapt: Display bookings with time, teacher, and cancellation button",
+            "Cancel a Booking → c.modal [reuse] adapt: Include a confirmation message and cancellation button"
+          ]
+        },
+        {
+          "screen": "Class roster",
+          "pageType": "other",
+          "sections": [
+            "Class Roster → p.upcoming-schedule [reuse] adapt: Display attendees with names and check-in buttons",
+            "Check In → c.modal [reuse] adapt: Include a confirmation message and check-in button"
+          ]
+        }
+      ]
+    }
+  ],
+  "promptChars": {
+    "before": 7306,
+    "after": 10152
+  }
+}

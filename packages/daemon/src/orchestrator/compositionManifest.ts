@@ -102,7 +102,8 @@ export function manifestFromBriefs(briefs: ScreenBrief[], dropped: Array<{ page:
   for (const b of briefs)
     for (const x of b.sections) {
       if (!x.part) continue;
-      const e = entryFor(x.part, b.screen, x.title, "plan", { why: x.purpose });
+      const mode = x.use === "adapt" ? "adapt" : x.use === "compose" ? "compose" : x.use === "reuse" ? "whole" : undefined;
+      const e = entryFor(x.part, b.screen, x.title, "plan", { why: x.purpose, ...(mode ? { mode } : {}), ...(x.adapt ? { adaptations: [x.adapt] } : {}) });
       if (e) entries.push(e);
     }
   const gaps = [

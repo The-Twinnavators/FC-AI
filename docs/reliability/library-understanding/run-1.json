@@ -1,0 +1,225 @@
+{
+  "manifest": [
+    {
+      "screen": "Home",
+      "candidates": 21
+    },
+    {
+      "screen": "Classes",
+      "candidates": 22
+    },
+    {
+      "screen": "My bookings",
+      "candidates": 20
+    },
+    {
+      "screen": "Class roster",
+      "candidates": 21
+    }
+  ],
+  "before": [
+    {
+      "ms": 37408,
+      "screens": 4,
+      "sections": 10,
+      "withPart": 10,
+      "distinctParts": 7,
+      "useRecorded": 0,
+      "adaptNotes": 0,
+      "removedByPageRules": 0,
+      "repeats": [],
+      "sameResponsibilityTwice": [
+        "Classes: \"Booking Flow\" and \"c.select\" both give form"
+      ],
+      "perScreen": [
+        {
+          "screen": "Home",
+          "pageType": "home",
+          "sections": [
+            "Free First Class → p.upcoming-schedule",
+            "Studio Passes → c.card",
+            "Booking Flow → b.booking-flow"
+          ]
+        },
+        {
+          "screen": "Classes",
+          "pageType": "booking",
+          "sections": [
+            "Weekly Schedule → p.upcoming-schedule",
+            "Filter Classes → c.select",
+            "Booking Flow → b.booking-flow"
+          ]
+        },
+        {
+          "screen": "My bookings",
+          "pageType": "other",
+          "sections": [
+            "Upcoming Bookings → p.upcoming-schedule",
+            "Cancel Booking → c.modal.danger"
+          ]
+        },
+        {
+          "screen": "Class roster",
+          "pageType": "other",
+          "sections": [
+            "Class Roster → c.list-row",
+            "Check In → c.button"
+          ]
+        }
+      ]
+    },
+    {
+      "ms": 28073,
+      "screens": 4,
+      "sections": 10,
+      "withPart": 10,
+      "distinctParts": 7,
+      "useRecorded": 0,
+      "adaptNotes": 0,
+      "removedByPageRules": 0,
+      "repeats": [],
+      "sameResponsibilityTwice": [
+        "Classes: \"Booking Flow\" and \"c.select\" both give form"
+      ],
+      "perScreen": [
+        {
+          "screen": "Home",
+          "pageType": "home",
+          "sections": [
+            "Upcoming Schedule → p.upcoming-schedule",
+            "Passes and Prices → c.card",
+            "Booking Flow → b.booking-flow"
+          ]
+        },
+        {
+          "screen": "Classes",
+          "pageType": "booking",
+          "sections": [
+            "Upcoming Schedule → p.upcoming-schedule",
+            "Filters → c.select",
+            "Booking Flow → b.booking-flow"
+          ]
+        },
+        {
+          "screen": "My bookings",
+          "pageType": "other",
+          "sections": [
+            "Upcoming Schedule → p.upcoming-schedule",
+            "Cancellation Options → c.modal"
+          ]
+        },
+        {
+          "screen": "Class roster",
+          "pageType": "other",
+          "sections": [
+            "Class Attendees → c.list-row",
+            "Check-in → c.button"
+          ]
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "ms": 38966,
+      "screens": 4,
+      "sections": 11,
+      "withPart": 11,
+      "distinctParts": 8,
+      "useRecorded": 11,
+      "adaptNotes": 11,
+      "removedByPageRules": 0,
+      "repeats": [],
+      "sameResponsibilityTwice": [],
+      "perScreen": [
+        {
+          "screen": "Home",
+          "pageType": "home",
+          "sections": [
+            "Studio Overview → c.card [reuse] adapt: Include the studio name, description, and a call to action for booking",
+            "Weekly Classes → p.upcoming-schedule [reuse] adapt: Display classes with time, teacher, and spots left",
+            "Passes and Prices → c.card [reuse] adapt: List the passes with their prices and a note about the first class being free",
+            "Book a First Class → b.booking-flow [reuse] adapt: Use the first class as the service, with no price, and allow booking without personal details"
+          ]
+        },
+        {
+          "screen": "Classes",
+          "pageType": "booking",
+          "sections": [
+            "Weekly Schedule → t.app-calendar [reuse] adapt: Display classes with time, teacher, and spots left",
+            "Filter Classes → c.tabs [reuse] adapt: Include tabs for class types and teachers",
+            "Book a Spot → p.booking-calendar [reuse] adapt: Show available spots and allow booking"
+          ]
+        },
+        {
+          "screen": "My bookings",
+          "pageType": "other",
+          "sections": [
+            "Upcoming Bookings → p.upcoming-schedule [reuse] adapt: Display bookings with time, teacher, and status",
+            "Cancel a Booking → c.modal.danger [reuse] adapt: Include a confirmation message and a cancellation button"
+          ]
+        },
+        {
+          "screen": "Class roster",
+          "pageType": "other",
+          "sections": [
+            "Class Roster → p.upcoming-schedule [reuse] adapt: Display students with their names and check-in status",
+            "Check In → c.modal.confirm [reuse] adapt: Include a confirmation message and a check-in button"
+          ]
+        }
+      ]
+    },
+    {
+      "ms": 36381,
+      "screens": 4,
+      "sections": 10,
+      "withPart": 10,
+      "distinctParts": 8,
+      "useRecorded": 10,
+      "adaptNotes": 10,
+      "removedByPageRules": 0,
+      "repeats": [],
+      "sameResponsibilityTwice": [],
+      "perScreen": [
+        {
+          "screen": "Home",
+          "pageType": "home",
+          "sections": [
+            "Weekly Classes → p.upcoming-schedule [reuse] adapt: Show classes with type, teacher, time, spots left and price",
+            "Book a First Class → b.booking-flow [reuse] adapt: Use only the first class booking flow, skip pass selection",
+            "Passes and Prices → c.card [compose] adapt: Display pass names, prices, and a call-to-action to book"
+          ]
+        },
+        {
+          "screen": "Classes",
+          "pageType": "booking",
+          "sections": [
+            "Weekly Schedule → t.app-calendar [reuse] adapt: Show classes with type, teacher, time, spots left and waitlist option",
+            "Book a Spot → p.booking-calendar [reuse] adapt: Show available times and spots left, offer waitlist option",
+            "Waitlist Option → c.badge [reuse] adapt: Display a badge indicating waitlist availability"
+          ]
+        },
+        {
+          "screen": "My bookings",
+          "pageType": "other",
+          "sections": [
+            "Upcoming Bookings → p.upcoming-schedule [reuse] adapt: Show bookings with class type, teacher, time, and cancellation status",
+            "Cancel Booking → c.modal.danger [reuse] adapt: Display a confirmation modal for cancellation"
+          ]
+        },
+        {
+          "screen": "Class roster",
+          "pageType": "other",
+          "sections": [
+            "Class Roster → p.upcoming-schedule [reuse] adapt: Show attendees with names, contact details, and check-in status",
+            "Check In → c.modal.form [reuse] adapt: Display a form to confirm check-in and update status"
+          ]
+        }
+      ]
+    }
+  ],
+  "promptChars": {
+    "before": 7306,
+    "after": 13844
+  }
+}

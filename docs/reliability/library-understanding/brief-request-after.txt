@@ -1,0 +1,73 @@
+Product: Studio Bookings
+Request: A booking app for a small yoga studio
+
+PRD (people, goals, journeys, screens):
+# Studio Bookings PRD
+
+## Users
+- Visitors: people new to the studio deciding whether to try a class.
+- Members: people with a pass who book and cancel classes each week.
+- Staff: front-desk staff and teachers who see who is coming to each class.
+
+## Goals
+Members see the week's classes, book a spot and cancel up to two hours before class. Staff see who is coming to each
+class and check people in. Visitors understand the studio, its passes and prices, and book a first class.
+
+## Passes
+Drop-in $22, 10-class pass $190, unlimited monthly $129. The first class is free.
+
+## Screens
+| Screen | Purpose |
+| Home | Visitors learn what the studio offers, see this week's classes and the passes, and book a first class |
+| Classes | Members see the week's schedule, filter by type and teacher, and book a spot (shows spots left; full classes offer the waitlist) |
+| My bookings | Members see upcoming bookings and cancel up to two hours before class |
+| Class roster | Staff see who is booked for a class and check them in |
+
+## Requirements
+- R1 Weekly schedule with class type, teacher, time and spots left.
+- R2 Book a spot; a full class offers the waitlist.
+- R3 Cancel up to two hours before class; later cancellation is refused with the reason.
+- R4 Staff roster per class with check-in.
+- R5 Passes and prices on the home page; first class free.
+
+
+Screens:
+## Home
+Purpose: Visitors learn what the studio offers, see this week's classes and the passes, and book a first class
+Parts for this screen (what each does, in the catalog's words):
+- p.booking-calendar (pattern, Booking calendar: a day, a time, booked): days marked by how much is left, the chosen day's times as a radio group with places left, a named time zone, and a confirmation that says what was booked and lets the person chang. Belongs on app screens and marketing pages. Gives a page: booking, date entry, time entry. Needs: the times free on each day
+- b.booking-flow (block, Appointment booking flow): A whole appointment booking (b.booking-flow) for a salon, studio or clinic: pick a service, a staff member or "Anyone available", a day and a free time, then your details;. Belongs on marketing pages and app screens. Gives a page: booking, steps, date entry, time entry, form, review, edit, primary action, error state. Needs: services with length, price in cents and who does them; staff, opening hours and closed days; which start times are taken. Avoid when: only a day and a time to pick (use p.booking-calendar); classes with a fixed timetable many people join (use an event listing)
+- p.upcoming-schedule (pattern, Upcoming schedule): a dashboard card of upcoming appointments or events, soonest first, each with day and time, title, detail and a status badge, a box to mark it done and a Hide done toggle.. Belongs on app screens and marketing pages. Gives a page: results. Needs: dated appointments or events with a status. Avoid when: the person needs to pick a day or time: use the booking calendar
+- b.newsletter-inline (block, Newsletter sign-up): An inline email sign-up band that checks the address, confirms and keeps it locally.. Belongs on marketing pages
+- c.modal (component, Modals: confirm, destructive, form and the one you cannot dismiss): The one dialog over the page (c.modal), with focus trapping, scroll lock, Escape and focus return built in;. Belongs on app screens and marketing pages. Also as: c.modal.confirm, c.modal.danger, c.modal.form, c.modal.blocking
+Core components, for sections built from them: c.button, c.text-field, c.select, c.card, c.badge, c.alert, c.empty-state, c.list-row, c.avatar, c.tabs, c.chip, c.media-frame
+
+## Classes
+Purpose: Members see the week's schedule, filter by type and teacher, and book a spot
+Parts for this screen (what each does, in the catalog's words):
+- t.app-calendar (template, Calendar): A calendar screen (t.app-calendar) with Month, Week and Day views, a Today / previous / next toolbar, events colored by their generic status tone in their days and hours, a read-on. Belongs on app screens. Already contains: p.top-nav.app, c.modal.form
+- p.booking-calendar (pattern, Booking calendar: a day, a time, booked): days marked by how much is left, the chosen day's times as a radio group with places left, a named time zone, and a confirmation that says what was booked and lets the person chang. Belongs on app screens and marketing pages. Gives a page: booking, date entry, time entry. Needs: the times free on each day
+- b.booking-flow (block, Appointment booking flow): A whole appointment booking (b.booking-flow) for a salon, studio or clinic: pick a service, a staff member or "Anyone available", a day and a free time, then your details;. Belongs on marketing pages and app screens. Gives a page: booking, steps, date entry, time entry, form, review, edit, primary action, error state. Needs: services with length, price in cents and who does them; staff, opening hours and closed days; which start times are taken. Avoid when: only a day and a time to pick (use p.booking-calendar); classes with a fixed timetable many people join (use an event listing)
+- p.upcoming-schedule (pattern, Upcoming schedule): a dashboard card of upcoming appointments or events, soonest first, each with day and time, title, detail and a status badge, a box to mark it done and a Hide done toggle.. Belongs on app screens and marketing pages. Gives a page: results. Needs: dated appointments or events with a status. Avoid when: the person needs to pick a day or time: use the booking calendar
+- b.newsletter-inline (block, Newsletter sign-up): An inline email sign-up band that checks the address, confirms and keeps it locally.. Belongs on marketing pages
+- c.modal (component, Modals: confirm, destructive, form and the one you cannot dismiss): The one dialog over the page (c.modal), with focus trapping, scroll lock, Escape and focus return built in;. Belongs on app screens and marketing pages. Also as: c.modal.confirm, c.modal.danger, c.modal.form, c.modal.blocking
+Core components, for sections built from them: c.button, c.text-field, c.select, c.card, c.badge, c.alert, c.empty-state, c.list-row, c.avatar, c.tabs, c.chip, c.media-frame
+
+## My bookings
+Purpose: Members see upcoming bookings and cancel up to two hours before class
+Parts for this screen (what each does, in the catalog's words):
+- p.booking-calendar (pattern, Booking calendar: a day, a time, booked): days marked by how much is left, the chosen day's times as a radio group with places left, a named time zone, and a confirmation that says what was booked and lets the person chang. Belongs on app screens and marketing pages. Gives a page: booking, date entry, time entry. Needs: the times free on each day
+- p.upcoming-schedule (pattern, Upcoming schedule): a dashboard card of upcoming appointments or events, soonest first, each with day and time, title, detail and a status badge, a box to mark it done and a Hide done toggle.. Belongs on app screens and marketing pages. Gives a page: results. Needs: dated appointments or events with a status. Avoid when: the person needs to pick a day or time: use the booking calendar
+- b.newsletter-inline (block, Newsletter sign-up): An inline email sign-up band that checks the address, confirms and keeps it locally.. Belongs on marketing pages
+- c.modal (component, Modals: confirm, destructive, form and the one you cannot dismiss): The one dialog over the page (c.modal), with focus trapping, scroll lock, Escape and focus return built in;. Belongs on app screens and marketing pages. Also as: c.modal.confirm, c.modal.danger, c.modal.form, c.modal.blocking
+Core components, for sections built from them: c.button, c.text-field, c.select, c.card, c.badge, c.alert, c.empty-state, c.list-row, c.avatar, c.tabs, c.chip, c.media-frame
+
+## Class roster
+Purpose: Staff see who is booked for a class and check them in
+Parts for this screen (what each does, in the catalog's words):
+- p.booking-calendar (pattern, Booking calendar: a day, a time, booked): days marked by how much is left, the chosen day's times as a radio group with places left, a named time zone, and a confirmation that says what was booked and lets the person chang. Belongs on app screens and marketing pages. Gives a page: booking, date entry, time entry. Needs: the times free on each day
+- b.booking-flow (block, Appointment booking flow): A whole appointment booking (b.booking-flow) for a salon, studio or clinic: pick a service, a staff member or "Anyone available", a day and a free time, then your details;. Belongs on marketing pages and app screens. Gives a page: booking, steps, date entry, time entry, form, review, edit, primary action, error state. Needs: services with length, price in cents and who does them; staff, opening hours and closed days; which start times are taken. Avoid when: only a day and a time to pick (use p.booking-calendar); classes with a fixed timetable many people join (use an event listing)
+- p.upcoming-schedule (pattern, Upcoming schedule): a dashboard card of upcoming appointments or events, soonest first, each with day and time, title, detail and a status badge, a box to mark it done and a Hide done toggle.. Belongs on app screens and marketing pages. Gives a page: results. Needs: dated appointments or events with a status. Avoid when: the person needs to pick a day or time: use the booking calendar
+- b.newsletter-inline (block, Newsletter sign-up): An inline email sign-up band that checks the address, confirms and keeps it locally.. Belongs on marketing pages
+- c.modal (component, Modals: confirm, destructive, form and the one you cannot dismiss): The one dialog over the page (c.modal), with focus trapping, scroll lock, Escape and focus return built in;. Belongs on app screens and marketing pages. Also as: c.modal.confirm, c.modal.danger, c.modal.form, c.modal.blocking
+Core components, for sections built from them: c.button, c.text-field, c.select, c.card, c.badge, c.alert, c.empty-state, c.list-row, c.avatar, c.tabs, c.chip, c.media-frame

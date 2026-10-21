@@ -1,0 +1,133 @@
+Product: Studio Bookings
+Request: A booking app for a small yoga studio
+
+PRD (people, goals, journeys, screens):
+# Studio Bookings PRD
+
+## Users
+- Visitors: people new to the studio deciding whether to try a class.
+- Members: people with a pass who book and cancel classes each week.
+- Staff: front-desk staff and teachers who see who is coming to each class.
+
+## Goals
+Members see the week's classes, book a spot and cancel up to two hours before class. Staff see who is coming to each
+class and check people in. Visitors understand the studio, its passes and prices, and book a first class.
+
+## Passes
+Drop-in $22, 10-class pass $190, unlimited monthly $129. The first class is free.
+
+## Screens
+| Screen | Purpose |
+| Home | Visitors learn what the studio offers, see this week's classes and the passes, and book a first class |
+| Classes | Members see the week's schedule, filter by type and teacher, and book a spot (shows spots left; full classes offer the waitlist) |
+| My bookings | Members see upcoming bookings and cancel up to two hours before class |
+| Class roster | Staff see who is booked for a class and check them in |
+
+## Requirements
+- R1 Weekly schedule with class type, teacher, time and spots left.
+- R2 Book a spot; a full class offers the waitlist.
+- R3 Cancel up to two hours before class; later cancellation is refused with the reason.
+- R4 Staff roster per class with check-in.
+- R5 Passes and prices on the home page; first class free.
+
+
+Screens:
+## Home
+Purpose: Visitors learn what the studio offers, see this week's classes and the passes, and book a first class
+Parts for this screen:
+- p.booking-calendar: Booking calendar: a day, a time, booked
+- b.booking-flow: Appointment booking flow
+- p.upcoming-schedule: Upcoming schedule
+- b.newsletter-inline: Newsletter sign-up
+- c.modal: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.confirm: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.danger: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.form: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.blocking: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.button: Buttons: every variant and state
+- c.text-field: Text fields: every variant and state
+- c.select: Dropdowns: select, combo box and the open menu
+- c.card: Cards: kinds, elevation and states
+- c.badge: Badges: status pills, counts and dots
+- c.alert: Alerts: four tones, inline, banner and toast
+- c.empty-state: Empty states: nothing yet, nothing found, nothing left, nothing worked
+- c.list-row: Lists: plain rows, rows that open, rows you act on, and rows you reorder
+- c.avatar: Avatars: sizes, shapes, initials, status and a stack
+- c.tabs: Horizontal tabs: underline, pills and enclosed
+- c.chip: Chips and tags: filters, choices and labels
+- c.media-frame: Media frames: ratios, fit, loading and what to do when it fails
+
+## Classes
+Purpose: Members see the week's schedule, filter by type and teacher, and book a spot
+Parts for this screen:
+- t.app-calendar: Calendar
+- p.booking-calendar: Booking calendar: a day, a time, booked
+- b.booking-flow: Appointment booking flow
+- p.upcoming-schedule: Upcoming schedule
+- b.newsletter-inline: Newsletter sign-up
+- c.modal: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.confirm: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.danger: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.form: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.blocking: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.button: Buttons: every variant and state
+- c.text-field: Text fields: every variant and state
+- c.select: Dropdowns: select, combo box and the open menu
+- c.card: Cards: kinds, elevation and states
+- c.badge: Badges: status pills, counts and dots
+- c.alert: Alerts: four tones, inline, banner and toast
+- c.empty-state: Empty states: nothing yet, nothing found, nothing left, nothing worked
+- c.list-row: Lists: plain rows, rows that open, rows you act on, and rows you reorder
+- c.avatar: Avatars: sizes, shapes, initials, status and a stack
+- c.tabs: Horizontal tabs: underline, pills and enclosed
+- c.chip: Chips and tags: filters, choices and labels
+- c.media-frame: Media frames: ratios, fit, loading and what to do when it fails
+
+## My bookings
+Purpose: Members see upcoming bookings and cancel up to two hours before class
+Parts for this screen:
+- p.booking-calendar: Booking calendar: a day, a time, booked
+- p.upcoming-schedule: Upcoming schedule
+- b.newsletter-inline: Newsletter sign-up
+- c.modal: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.confirm: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.danger: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.form: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.blocking: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.button: Buttons: every variant and state
+- c.text-field: Text fields: every variant and state
+- c.select: Dropdowns: select, combo box and the open menu
+- c.card: Cards: kinds, elevation and states
+- c.badge: Badges: status pills, counts and dots
+- c.alert: Alerts: four tones, inline, banner and toast
+- c.empty-state: Empty states: nothing yet, nothing found, nothing left, nothing worked
+- c.list-row: Lists: plain rows, rows that open, rows you act on, and rows you reorder
+- c.avatar: Avatars: sizes, shapes, initials, status and a stack
+- c.tabs: Horizontal tabs: underline, pills and enclosed
+- c.chip: Chips and tags: filters, choices and labels
+- c.media-frame: Media frames: ratios, fit, loading and what to do when it fails
+
+## Class roster
+Purpose: Staff see who is booked for a class and check them in
+Parts for this screen:
+- p.booking-calendar: Booking calendar: a day, a time, booked
+- b.booking-flow: Appointment booking flow
+- p.upcoming-schedule: Upcoming schedule
+- b.newsletter-inline: Newsletter sign-up
+- c.modal: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.confirm: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.danger: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.form: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.modal.blocking: Modals: confirm, destructive, form and the one you cannot dismiss
+- c.button: Buttons: every variant and state
+- c.text-field: Text fields: every variant and state
+- c.select: Dropdowns: select, combo box and the open menu
+- c.card: Cards: kinds, elevation and states
+- c.badge: Badges: status pills, counts and dots
+- c.alert: Alerts: four tones, inline, banner and toast
+- c.empty-state: Empty states: nothing yet, nothing found, nothing left, nothing worked
+- c.list-row: Lists: plain rows, rows that open, rows you act on, and rows you reorder
+- c.avatar: Avatars: sizes, shapes, initials, status and a stack
+- c.tabs: Horizontal tabs: underline, pills and enclosed
+- c.chip: Chips and tags: filters, choices and labels
+- c.media-frame: Media frames: ratios, fit, loading and what to do when it fails
