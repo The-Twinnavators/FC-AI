@@ -51,7 +51,8 @@ export function frameCss(product: string, kind: "appframe" | "appshell" = "appfr
 .ui-shell__nav { gap: var(--space-2); }
 .ui-shell__link { border-radius: var(--radius-sm); font-size: var(--text-sm); }
 .ui-shell__link:hover { background: var(--color-surface-sunken); color: var(--color-text); }
-.ui-shell__link[aria-current="page"] { color: var(--color-text); font-weight: var(--weight-semibold); box-shadow: inset 0 -2px 0 var(--color-accent); }
+.ui-shell__link[aria-current="page"] { color: var(--color-text); font-weight: var(--weight-semibold); box-shadow: none; }
+.ui-shell__link[aria-current="page"]::after { height: 2px; }
 .ui-shell__main { padding-top: var(--space-4); }
 @media (prefers-reduced-motion: reduce) { .ui-shell__link { transition: none; } }
 `;

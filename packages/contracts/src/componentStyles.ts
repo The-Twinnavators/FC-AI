@@ -196,7 +196,10 @@ const SPECS: Record<string, ComponentStyleSpec> = {
         brand ? rule(".ui-shell__header", ["background: var(--color-accent)", "color: var(--color-on-accent)", "border-bottom-color: transparent"]) : "",
         brand ? rule(".ui-shell__tagline, :root .ui-shell__link", ["color: color-mix(in srgb, var(--color-on-accent) 78%, transparent)"]) : "",
         brand ? rule(".ui-shell__link:hover", ["background: color-mix(in srgb, var(--color-on-accent) 14%, transparent)", "color: var(--color-on-accent)"]) : "",
-        brand && !cur ? rule('.ui-shell__link[aria-current="page"]', ["color: var(--color-on-accent)", `box-shadow: inset 0 -3px 0 ${ink}`]) : "",
+        brand && !cur ? rule('.ui-shell__link[aria-current="page"]', ["color: var(--color-on-accent)"]) : "",
+        // The underline is a straight bar of its own (never a stroke following the link's rounded corners).
+        brand && !cur ? rule('.ui-shell__link[aria-current="page"]::after', [`background: ${ink}`]) : "",
+        cur === "pill" || cur === "text" ? rule('.ui-shell__link[aria-current="page"]::after', ["content: none"]) : "",
         cur === "pill" ? rule('.ui-shell__link[aria-current="page"]', ["box-shadow: none", `background: color-mix(in srgb, ${ink} ${brand ? 22 : 14}%, transparent)`, `color: ${brand ? ink : "var(--color-text)"}`]) : "",
         cur === "text" ? rule('.ui-shell__link[aria-current="page"]', ["box-shadow: none", "background: transparent", `color: ${ink}`, "font-weight: var(--weight-bold)"]) : "",
       ]

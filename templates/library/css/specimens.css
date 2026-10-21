@@ -349,7 +349,7 @@ button.fl-ctl-step:focus-visible { outline: none; box-shadow: var(--focus-ring);
   box-shadow: var(--surface-shadow-overlay, var(--shadow-lg, 0 24px 60px rgba(0, 0, 0, 0.3)));
   animation: fl-ctl-dlg-in var(--duration-med, 220ms) var(--easing, ease); border: var(--overlay-border, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none);
 }
-.fl-ctl-dlg--danger { border-top: 3px solid var(--color-danger, #b42318); }
+.fl-ctl-dlg--danger { border-start-start-radius: 0; border-start-end-radius: 0; border-top: 3px solid var(--color-danger, #b42318); }
 .fl-ctl-dlg-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
 .fl-ctl-dlg-head h4 { margin: 0; }
 .fl-ctl-dlg-body { display: grid; gap: var(--space-3); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }

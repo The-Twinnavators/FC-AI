@@ -132,7 +132,7 @@ legend.fl-rd-group-title { float: left; width: 100%; }
 .fl-rd-event-what strong { font-weight: var(--weight-semibold); }
 .fl-rd-event-when { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .fl-rd-reason {
-  grid-column: 1 / -1; margin: var(--space-1) 0 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
+  grid-column: 1 / -1; margin: var(--space-1) 0 0; padding: var(--space-2) var(--space-3); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   border-left: 2px solid var(--color-border-strong, var(--color-border)); background: var(--color-surface-sunken); color: var(--color-text); white-space: pre-line;
 }
 .fl-rd-none { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-5) 0; color: var(--color-text-muted); }
