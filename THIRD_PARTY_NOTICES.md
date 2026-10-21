@@ -45,6 +45,15 @@ Some library sections (shop, inputs, display pieces, app screens and the neobrut
 HyperUI components (https://github.com/markmead/hyperui), MIT License, Copyright (c) Mark Mead. They were rewritten in
 FlowCode's own React and design-token CSS.
 
+## TailAdmin
+
+The bar chart, eCommerce dashboard, calendar, profile screen, upcoming schedule, stock watchlist and video grid pieces
+(`chart-bar`, `app-ecommerce-dashboard`, `app-calendar`, `app-profile`, `upcoming-schedule`, `stock-watchlist`,
+`video-grid`) follow the structure of TailAdmin's free community edition
+(https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template), MIT License, Copyright (c) 2023 TailAdmin.
+They were rewritten in FlowCode's own React and design-token CSS, without its dependencies (no FullCalendar, no maps).
+TailAdmin Pro components are not used.
+
 ## liquid-glass-js
 
 The liquid glass piece (`templates/library/sections/liquid-glass.tsx`) adapts the WebGL refraction, blur and masking

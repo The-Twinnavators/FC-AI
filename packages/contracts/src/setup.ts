@@ -37,7 +37,7 @@ export const TEMPLATES_FOR: Record<ProductType, string[]> = {
   "mobile-app": ["app-mobile-home", "app-mobile-order"],
   "online-store": ["app-storefront", "landing-product", "landing-product-clothing", "landing-subscription"],
   marketplace: ["app-marketplace", "app-marketplace-listing"],
-  "internal-tool": ["app-kanban", "app-support-inbox", "app-admin"],
+  "internal-tool": ["app-kanban", "app-support-inbox", "app-admin", "app-calendar"],
   other: [],
 };
 

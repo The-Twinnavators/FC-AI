@@ -1,4 +1,4 @@
-/* Data: count-up numbers, radial gauges, an area chart and a line diff. Tokens only; classes start with "fl-dat-". */
+/* Data: count-up numbers, radial gauges, an area chart, a bar chart and a line diff. Tokens only; classes start with "fl-dat-". */
 
 /* ── Shared bits ── */
 .fl-dat-bar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
@@ -105,6 +105,18 @@
 .fl-dat-tip-row strong { margin-left: auto; font-variant-numeric: tabular-nums; }
 .fl-dat-hint { margin: 0; font-size: var(--text-xs); color: var(--color-text-muted); }
 
+/* ── Bar chart (adapted from TailAdmin, MIT License, Copyright (c) 2023 TailAdmin) ── */
+.fl-dat-bars { cursor: default; }
+.fl-dat-col { outline: none; cursor: pointer; }
+.fl-dat-band { fill: transparent; transition: fill var(--duration-base) var(--easing); }
+.fl-dat-band.is-on { fill: color-mix(in srgb, var(--color-surface-sunken) 80%, transparent); }
+.fl-dat-focus { fill: none; stroke: var(--color-focus, var(--color-accent)); stroke-width: 2; pointer-events: none; }
+.fl-dat-rect { transform-box: fill-box; transform-origin: 50% 100%; animation: fl-dat-grow calc(var(--duration-base) * 4) var(--easing) both; }
+.fl-dat-rect--accent { fill: var(--color-accent); }
+.fl-dat-rect--success { fill: var(--color-success); }
+.fl-dat-baseline { stroke: var(--color-border-strong); }
+@keyframes fl-dat-grow { from { transform: scaleY(0); } }
+
 /* ── Diff ── */
 .fl-dat-diff-summary { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
 .fl-dat-pill { padding: var(--space-1) var(--space-3); border-radius: 999px; font: var(--weight-semibold) var(--text-xs) / 1.4 var(--font-sans); }
@@ -137,6 +149,8 @@
 /* ── Reduced motion: show final states at once ── */
 @media (prefers-reduced-motion: reduce) {
   .fl-dat-line, .fl-dat-area, .fl-dat-dot { animation: none; opacity: 1; stroke-dashoffset: 0; }
+  .fl-dat-rect { animation: none; }
+  .fl-dat-band { transition: none; }
   .fl-dat-gauge-value, .fl-dat-iconbtn, .fl-dat-stats[aria-busy="true"] .fl-dat-num { transition: none; }
   .fl-dat-spin { animation: none; }
 }

@@ -8,7 +8,7 @@
  * Contexts come from the piece's category unless a piece says otherwise; capabilities are listed per catalog ID. A
  * variant or version answers to its component's entry (c.tabs@folder → c.tabs).
  */
-import { LIBRARY_SECTIONS, type LibrarySection, type SectionCategory } from "./sectionLibrary.js";
+import { LIBRARY_SECTIONS, PROPOSED_SECTIONS, refsOf, type LibrarySection, type SectionCategory } from "./sectionLibrary.js";
 
 export type PieceContext = "app" | "marketing";
 
@@ -75,6 +75,7 @@ const RELATIONS: Record<string, Rel> = {
   "p.editable-details": { provides: ["detail", "edit"], requires: ["one record's fields"] },
   "p.profile-card": { provides: ["detail"], requires: ["a person or organization"] },
   "p.activity-timeline": { provides: ["history"], requires: ["dated events about one thing"] },
+  "p.upcoming-schedule": { provides: ["results"], requires: ["dated appointments or events with a status"], avoidWhen: ["the person needs to pick a day or time: use the booking calendar"] },
   "p.comment-box": { provides: ["conversation", "form"] },
   "c.chat-bubble": { provides: ["conversation"], requires: ["messages between people or with an assistant"] },
   // Forms and entry
@@ -101,6 +102,7 @@ const RELATIONS: Record<string, Rel> = {
   "c.gauge": { provides: ["metrics"], requires: ["a value against a known maximum"] },
   "c.area-chart": { provides: ["chart", "metrics"], requires: ["a value over time"] },
   "c.animated-number": { provides: ["metrics"] },
+  "p.stock-watchlist": { provides: ["metrics", "chart", "results", "sort"], requires: ["symbols or items with a price over time"] },
   "p.stats-compare": { provides: ["metrics", "compare"] },
   "p.plan-comparison": { provides: ["compare"], requires: ["two to four options with the same features"] },
   "p.diff": { provides: ["review", "compare"], requires: ["a before and an after"] },
@@ -109,6 +111,7 @@ const RELATIONS: Record<string, Rel> = {
   "c.carousel": { provides: ["media", "results"], avoidWhen: ["the items are the page's main list: show them all instead"] },
   "c.slideshow": { provides: ["media"], requires: ["pictures"], avoidWhen: ["text the person must read: a moving slide hides it"] },
   "c.media-frame": { provides: ["media"] },
+  "p.video-grid": { provides: ["media", "results"], requires: ["videos with an embed address"] },
   "p.top-nav": { provides: ["navigation"] },
   // Look-up apps (find it and where to get it): their landing page is the app's own front door, so its search, ZIP code
   // prompt, category tiles and featured entries are the working pieces, on marketing pages as on app screens (Clean
@@ -164,6 +167,10 @@ export function relationsOf(refOrPiece: string | LibrarySection): PieceRelations
 }
 
 /** Catalog IDs that provide a capability and may sit in the given context, components and patterns first. */
+/** Catalog IDs of approved pieces: a piece on the approval shelf can have relations ready, but builds aren't offered it. */
+let approved: Set<string> | undefined;
+const isApproved = (ref: string) => (approved ??= new Set(LIBRARY_SECTIONS.flatMap((s) => refsOf(s)))).has(ref) || ![...PROPOSED_SECTIONS.flatMap((s) => refsOf(s))].includes(ref);
+
 export function providersOf(cap: Capability, context?: PieceContext): string[] {
-  return Object.keys(RELATIONS).filter((ref) => (RELATIONS[ref]!.provides ?? []).includes(cap) && (!context || relationsOf(ref).contexts.includes(context)));
+  return Object.keys(RELATIONS).filter((ref) => isApproved(ref) && (RELATIONS[ref]!.provides ?? []).includes(cap) && (!context || relationsOf(ref).contexts.includes(context)));
 }

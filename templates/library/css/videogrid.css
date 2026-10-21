@@ -1,0 +1,56 @@
+/**
+ * Video grid (p.video-grid): tiles that hold their aspect ratio, a tinted poster with a round play button and the
+ * length, then the embedded player once played; a title and a line under each. Prefixed fl-vg-; only the library's
+ * tokens. Adapted from TailAdmin (MIT License, Copyright (c) 2023 TailAdmin).
+ */
+.fl-vg-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+.fl-vg { container-type: inline-size; display: grid; gap: var(--space-5); margin: 0; padding: 0; list-style: none; }
+.fl-vg--2 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); }
+.fl-vg--3 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); }
+@media (min-width: 48rem) {
+  .fl-vg--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fl-vg--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.fl-vg-item { display: grid; gap: var(--space-3); align-content: start; min-width: 0; }
+
+/* The frame holds its ratio before anything loads. */
+.fl-vg-frame {
+  position: relative; overflow: hidden; border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+  border: var(--surface-border, 1px solid var(--color-border)); background: var(--color-surface-sunken);
+}
+.fl-vg-frame--16-9 { aspect-ratio: 16 / 9; }
+.fl-vg-frame--4-3 { aspect-ratio: 4 / 3; }
+.fl-vg-frame--21-9 { aspect-ratio: 21 / 9; }
+.fl-vg-frame--1-1 { aspect-ratio: 1; }
+.fl-vg-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.fl-vg-frame iframe:focus-visible { outline: 3px solid var(--color-focus); outline-offset: -3px; }
+
+/* The poster: a real button over the whole frame. */
+.fl-vg-poster {
+  all: unset; box-sizing: border-box; position: absolute; inset: 0; display: grid; place-items: center; cursor: pointer;
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 26%, transparent), transparent 60%),
+    linear-gradient(135deg, var(--color-surface-sunken), var(--color-surface));
+}
+.fl-vg-poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fl-vg-poster:focus-visible { outline: 3px solid var(--color-focus); outline-offset: -3px; }
+.fl-vg-play {
+  position: relative; display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%;
+  background: var(--color-accent); color: var(--color-on-accent); box-shadow: var(--surface-shadow-hover, none);
+  transition: transform var(--duration-fast) var(--easing);
+}
+.fl-vg-play svg { width: 1.5rem; height: 1.5rem; margin-left: 2px; }
+.fl-vg-poster:hover .fl-vg-play, .fl-vg-poster:focus-visible .fl-vg-play { transform: scale(1.08); }
+.fl-vg-length {
+  position: absolute; right: var(--space-2); bottom: var(--space-2); padding: 2px var(--space-2); border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-text) 78%, transparent); color: var(--color-bg);
+  font: var(--weight-semibold) var(--text-xs) / 1.4 var(--font-sans); font-variant-numeric: tabular-nums;
+}
+.fl-vg-caption { display: grid; gap: 2px; }
+.fl-vg-caption strong { font-weight: var(--weight-semibold); }
+.fl-vg-caption span { font-size: var(--text-sm); color: var(--color-text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-vg-play { transition: none; }
+  .fl-vg-poster:hover .fl-vg-play, .fl-vg-poster:focus-visible .fl-vg-play { transform: none; }
+}
