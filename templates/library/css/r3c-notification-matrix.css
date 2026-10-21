@@ -1,0 +1,106 @@
+/**
+ * Notification preferences (p.notification-matrix): a card with a pause row over a table of events by channels (a
+ * switch per cell, column checkboxes, group rows, locks and changed-cell dots) and a save bar that slides up.
+ * Prefixed fl-npm-; only the library's tokens. Adapted from Creative Tim UI (MIT, Copyright (c) 2025 Creative Tim).
+ */
+.fl-npm {
+  container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-npm-head { display: grid; gap: var(--space-1); }
+.fl-npm-head h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-npm-head p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+.fl-npm-pause {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-sunken); border-radius: min(var(--radius-md), 12px);
+  transition: background-color var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-npm-pause.is-paused { background: color-mix(in srgb, var(--color-warning) 14%, var(--surface-bg, var(--color-surface))); }
+.fl-npm-pause-icon { display: grid; place-items: center; width: 2rem; height: 2rem; flex: none; border-radius: 999px; background: var(--surface-bg, var(--color-surface)); color: var(--color-text-muted); }
+.fl-npm-pause.is-paused .fl-npm-pause-icon { color: var(--color-warning); }
+.fl-npm-pause-icon svg { width: 1rem; height: 1rem; }
+.fl-npm-pause-text { flex: 1 1 10rem; margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-npm-pause-ctl { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.fl-npm-pause-ctl .fl-ctl-select { min-width: 11rem; }
+.fl-npm-pause-ctl select { height: 40px; }
+
+.fl-npm-scroll { min-width: 0; overflow-x: auto; border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); transition: opacity var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-npm-scroll[inert] { opacity: 0.45; }
+.fl-npm-table { width: 100%; border-collapse: collapse; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-npm-table thead th {
+  padding: var(--space-3) var(--space-3); border-bottom: 1px solid var(--color-border); color: var(--color-text-muted);
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-align: left; vertical-align: bottom;
+}
+.fl-npm-table thead th.fl-npm-ch { text-align: center; width: 6.5rem; }
+.fl-npm-chhead { display: flex; align-items: center; justify-content: center; gap: var(--space-1); margin-bottom: var(--space-2); white-space: nowrap; }
+.fl-npm-chhead svg { width: 0.875rem; height: 0.875rem; }
+.fl-npm-group th {
+  padding: var(--space-2) var(--space-3); background: var(--color-surface-sunken); text-align: left; color: var(--color-text-muted);
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+}
+.fl-npm-row > * { padding: var(--space-3); border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+.fl-npm-table tbody tr:last-child > * { border-bottom: 0; }
+.fl-npm-row th { text-align: left; font-weight: inherit; }
+.fl-npm-title { display: block; font-weight: var(--weight-semibold); color: var(--color-text); }
+.fl-npm-text { display: block; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-npm-cell { text-align: center; }
+.fl-npm-cellin { position: relative; display: inline-flex; align-items: center; gap: var(--space-1); }
+.fl-npm-lock { display: inline-grid; color: var(--color-text-muted); }
+.fl-npm-lock svg { width: 0.875rem; height: 0.875rem; }
+.fl-npm-dot { display: inline-block; width: 0.5rem; height: 0.5rem; flex: none; border-radius: 999px; background: var(--color-accent); }
+.fl-npm-cellin > .fl-npm-dot { position: absolute; top: -0.25rem; right: -0.75rem; animation: fl-npm-pop var(--duration-base) var(--ease-spring, var(--ease-out)) backwards; }
+@keyframes fl-npm-pop { from { scale: 0; } }
+
+.fl-npm-note { display: flex; gap: var(--space-2); align-items: flex-start; margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-npm-note svg { width: 1rem; height: 1rem; flex: none; margin-top: 2px; }
+
+/* The save bar: sticks to the bottom while there is something to save, and slides up as it appears. */
+.fl-npm-bar {
+  position: sticky; bottom: var(--space-3); z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4); background: var(--surface-bg, var(--color-surface)); border: 1px solid var(--color-border);
+  border-radius: min(var(--radius-md), 12px); box-shadow: var(--shadow-lg);
+  transition: opacity var(--duration-base) var(--ease-out, var(--easing)), translate var(--duration-base) var(--ease-out, var(--easing));
+}
+@starting-style { .fl-npm-bar { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-npm-bar p { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-npm-bar .fl-npm-err { color: var(--color-danger); }
+.fl-npm-bar svg { width: 1rem; height: 1rem; flex: none; }
+.fl-npm-barbtns { display: flex; gap: var(--space-2); margin-left: auto; }
+.fl-npm-status { margin: 0; min-height: 1.25rem; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+.fl-npm .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-npm .fl-btn:active:not(:disabled) { scale: 0.96; }
+
+/* Narrow: each event is a card, its switches labeled by channel. */
+@container (max-width: 34rem) {
+  .fl-npm { padding: var(--space-4); }
+  .fl-npm-scroll { overflow: visible; }
+  .fl-npm-table, .fl-npm-table tbody, .fl-npm-table thead { display: block; }
+  .fl-npm-table thead tr { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); padding: var(--space-3); border-bottom: 1px solid var(--color-border); }
+  .fl-npm-table thead th { display: flex; align-items: center; gap: var(--space-2); padding: 0; border: 0; width: auto !important; }
+  .fl-npm-table thead th.fl-npm-act { flex-basis: 100%; }
+  .fl-npm-chhead { margin: 0; }
+  .fl-npm-group, .fl-npm-group th { display: block; }
+  .fl-npm-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); padding: var(--space-3); border-bottom: 1px solid var(--color-border); }
+  .fl-npm-table tbody tr.fl-npm-row:last-child { border-bottom: 0; }
+  .fl-npm-row > * { padding: 0; border: 0; }
+  .fl-npm-row > th { grid-column: 1 / -1; }
+  .fl-npm-cell { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); text-align: left; }
+  .fl-npm-cell::before { content: attr(data-label); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+  .fl-npm-barbtns { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-npm .fl-btn, .fl-npm-bar, .fl-npm-scroll, .fl-npm-pause { transition-duration: 1ms; }
+  .fl-npm .fl-btn:active:not(:disabled) { scale: none; }
+  .fl-npm-cellin > .fl-npm-dot { animation: none; }
+  @starting-style { .fl-npm-bar { translate: none; } }
+}
+:root[data-motion="off"] .fl-npm * { transition: none !important; animation: none !important; }
+/* The switch's thumb is transformed, so it sits above the switch's own input and swallowed clicks; let them through. */
+.fl-npm .fl-ctl-switch-track { pointer-events: none; }
+.fl-npm-head h2:focus { outline: none; }
+.fl-npm-head h2:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 2px; }

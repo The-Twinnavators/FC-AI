@@ -349,9 +349,9 @@ select.fl-in-trigger option { color: var(--color-text); }
 .fl-ctl-switch--20 { --fl-switch-h: 20px; }
 .fl-ctl-switch--24 { --fl-switch-h: 24px; }
 .fl-ctl-switch--32 { --fl-switch-h: 32px; }
-.fl-ctl-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.fl-ctl-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
 .fl-ctl-switch input:disabled { cursor: not-allowed; }
-.fl-ctl-switch-track { display: inline-flex; align-items: center; width: calc(var(--fl-switch-h) * 1.75); height: var(--fl-switch-h); padding: calc(var(--fl-switch-h) * 0.1); border-radius: 999px; background: var(--color-border-strong, #9aa1ad); transition: background var(--duration-fast) var(--easing); box-shadow: var(--well-shadow, none); }
+.fl-ctl-switch-track { pointer-events: none; display: inline-flex; align-items: center; width: calc(var(--fl-switch-h) * 1.75); height: var(--fl-switch-h); padding: calc(var(--fl-switch-h) * 0.1); border-radius: 999px; background: var(--color-border-strong, #9aa1ad); transition: background var(--duration-fast) var(--easing); box-shadow: var(--well-shadow, none); }
 .fl-ctl-switch-thumb { width: calc(var(--fl-switch-h) * 0.8); height: calc(var(--fl-switch-h) * 0.8); border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: transform var(--duration-fast) var(--easing); }
 .fl-ctl-switch input:checked + .fl-ctl-switch-track { background: var(--color-accent); }
 .fl-ctl-switch input:checked + .fl-ctl-switch-track .fl-ctl-switch-thumb { transform: translateX(calc(var(--fl-switch-h) * 0.75)); }

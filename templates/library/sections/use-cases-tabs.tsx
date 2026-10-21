@@ -63,18 +63,25 @@ function useEnterOnce<T extends Element>() {
   useEffect(() => {
     const el = ref.current;
     if (!el || !("IntersectionObserver" in window) || still()) return;
+    // Already on screen: play now. Otherwise wait for it, but never leave it hidden (a page that isn't painting gets
+    // the content after a moment either way).
+    const box = el.getBoundingClientRect();
+    if (box.top < innerHeight && box.bottom > 0) {
+      setState("in");
+      return;
+    }
     setState("wait");
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setState("in");
-          io.disconnect();
-        }
-      },
-      { threshold: 0.15 },
-    );
+    const show = () => {
+      setState("in");
+      io.disconnect();
+    };
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && show(), { threshold: 0.15 });
     io.observe(el);
-    return () => io.disconnect();
+    const t = setTimeout(show, 1200);
+    return () => {
+      io.disconnect();
+      clearTimeout(t);
+    };
   }, []);
   return [ref, state] as const;
 }

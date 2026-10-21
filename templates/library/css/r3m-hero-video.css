@@ -1,0 +1,89 @@
+/**
+ * Demo video hero (b.hero-video): words beside a video poster whose play button opens the demo in a dialog. Prefixed
+ * fl-hvd-; only the library's tokens. Adapted from Meraki UI (MIT License, Copyright (c) 2021 Khatab Wedaa).
+ */
+.fl-hvd { container-type: inline-size; min-width: 0; }
+.fl-hvd-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: var(--space-8); align-items: center; }
+.fl-hvd-words { display: grid; gap: var(--space-4); justify-items: start; min-width: 0; }
+.fl-hvd-title { text-wrap: balance; }
+.fl-hvd-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); }
+.fl-hvd-actions .fl-btn:active { scale: var(--press-scale, 0.97); }
+.fl-hvd-notes { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-hvd-notes li { display: inline-flex; align-items: center; gap: var(--space-1); }
+.fl-hvd-notes svg { width: 1rem; height: 1rem; color: var(--color-success); }
+.fl-hvd-proof { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
+.fl-hvd-proof p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-hvd-faces { display: inline-flex; }
+.fl-hvd-faces > * { box-shadow: 0 0 0 2px var(--color-bg, var(--color-surface)); }
+.fl-hvd-faces > * + * { margin-left: calc(var(--space-2) * -1); }
+
+/* The poster: one big button. A soft accent halo sits behind it. */
+.fl-hvd-stage { position: relative; min-width: 0; }
+.fl-hvd-stage::before {
+  content: ""; position: absolute; inset: 10% 8% -8%; z-index: 0; border-radius: 12px; filter: blur(48px);
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent); pointer-events: none;
+}
+.fl-hvd-poster {
+  position: relative; z-index: 1; display: block; width: 100%; padding: 0; overflow: hidden; cursor: pointer; color: inherit; font: inherit; text-align: left;
+  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); background: var(--color-surface); box-shadow: var(--surface-shadow, none);
+}
+.fl-hvd-poster .fl-ctl-media { display: block; width: 100%; border-radius: 0; transition: scale var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-hvd-poster:hover .fl-ctl-media { scale: 1.02; }
+.fl-hvd-poster:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-hvd-play {
+  position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 4.5rem; height: 4.5rem; border-radius: 50%; translate: -50% -50%;
+  background: var(--color-accent); color: var(--color-on-accent); box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-accent) 25%, transparent), var(--surface-shadow, none);
+  transition: scale var(--duration-base) var(--ease-spring, var(--easing)), box-shadow var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-hvd-play svg { width: 1.75rem; height: 1.75rem; margin-left: 3px; }
+.fl-hvd-poster:hover .fl-hvd-play, .fl-hvd-poster:focus-visible .fl-hvd-play { scale: 1.08; box-shadow: 0 0 0 12px color-mix(in srgb, var(--color-accent) 20%, transparent), var(--surface-shadow, none); }
+.fl-hvd-poster:active .fl-hvd-play { scale: 0.96; }
+.fl-hvd-meta {
+  position: absolute; left: var(--space-3); right: var(--space-3); bottom: var(--space-3); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  width: fit-content; max-width: calc(100% - var(--space-5)); padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); background: var(--color-surface); color: var(--color-text);
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+}
+.fl-hvd-meta-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--weight-semibold); }
+.fl-hvd-meta-time { flex: none; padding: 2px var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); color: var(--color-text-muted); font-variant-numeric: tabular-nums; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+/* Stacked: centered words over a wide poster. */
+.fl-hvd--stacked .fl-hvd-grid { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: var(--space-7); }
+.fl-hvd--stacked .fl-hvd-words { justify-items: center; text-align: center; max-width: 46rem; }
+.fl-hvd--stacked .fl-hvd-actions, .fl-hvd--stacked .fl-hvd-notes, .fl-hvd--stacked .fl-hvd-proof { justify-content: center; }
+.fl-hvd--stacked .fl-hvd-stage { width: 100%; max-width: 60rem; }
+
+/* The demo dialog. */
+.fl-hvd-dialog { width: min(64rem, calc(100vw - var(--space-5) * 2)); max-width: none; max-height: calc(100dvh - var(--space-5) * 2); padding: 0; border: 0; background: transparent; color: var(--color-text); overflow: visible; }
+.fl-hvd-dialog::backdrop { background: color-mix(in srgb, var(--color-text) 60%, transparent); }
+.fl-hvd-dialog[open] { animation: fl-hvd-pop var(--duration-slow) var(--ease-spring, var(--easing)); }
+.fl-hvd-dialog[open]::backdrop { animation: fl-hvd-fade var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-hvd-panel { display: grid; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); background: var(--color-surface); box-shadow: var(--surface-shadow, none); }
+.fl-hvd-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding-left: var(--space-2); }
+.fl-hvd-dtitle { margin: 0; min-width: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@keyframes fl-hvd-pop { from { opacity: 0; scale: 0.96; } }
+@keyframes fl-hvd-fade { from { opacity: 0; } }
+
+/* Entrance once: the words rise one after another, then the poster lifts in. */
+.fl-hvd.is-waiting .fl-hvd-rise, .fl-hvd.is-waiting .fl-hvd-stage { opacity: 0; }
+.fl-hvd.is-entering .fl-hvd-rise { animation: fl-hvd-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 60ms)), var(--stagger-max, 240ms)); }
+.fl-hvd.is-entering .fl-hvd-stage { animation: fl-hvd-lift calc(var(--duration-slow) * 1.6) var(--ease-out, var(--easing)) backwards; animation-delay: var(--stagger-max, 240ms); }
+@keyframes fl-hvd-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+@keyframes fl-hvd-lift { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 4); scale: 0.98; } }
+
+/* Narrow: the poster goes under the words, the play button gets smaller. */
+@container (max-width: 48rem) {
+  .fl-hvd-grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-7); }
+  .fl-hvd-play { width: 3.5rem; height: 3.5rem; }
+  .fl-hvd-play svg { width: 1.4rem; height: 1.4rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-hvd.is-waiting .fl-hvd-rise, .fl-hvd.is-waiting .fl-hvd-stage { opacity: 1; }
+  .fl-hvd *, .fl-hvd.is-entering .fl-hvd-rise, .fl-hvd.is-entering .fl-hvd-stage { animation: none !important; transition-duration: 1ms !important; }
+  .fl-hvd-dialog[open] { animation: fl-hvd-fade 120ms linear; }
+  .fl-hvd-poster:hover .fl-ctl-media, .fl-hvd-poster:hover .fl-hvd-play, .fl-hvd-poster:focus-visible .fl-hvd-play { scale: 1; }
+}
+:root[data-motion="off"] .fl-hvd.is-waiting .fl-hvd-rise, :root[data-motion="off"] .fl-hvd.is-waiting .fl-hvd-stage { opacity: 1; }
+:root[data-motion="off"] .fl-hvd, :root[data-motion="off"] .fl-hvd *, :root[data-motion="off"] .fl-hvd-dialog, :root[data-motion="off"] .fl-hvd-dialog::backdrop { transition: none !important; animation: none !important; }
+@media print { .fl-hvd.is-waiting .fl-hvd-rise, .fl-hvd.is-waiting .fl-hvd-stage { opacity: 1; } }

@@ -1,0 +1,71 @@
+/**
+ * Conversion funnel (p.funnel-chart): rows of centered accent bars narrowing down the stack, drop-off lines between
+ * them and a sentence for the picked step. Prefixed fl-fnl-; only the library's tokens.
+ * Adapted from TailAdmin (MIT, Copyright (c) 2023 TailAdmin).
+ */
+.fl-fnl {
+  display: grid; gap: var(--space-4); margin: 0; padding: var(--space-5); min-width: 0;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-fnl-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.fl-fnl-titles { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-fnl-title { font: var(--weight-semibold) max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))) / 1.3 var(--font-sans); color: var(--color-text); }
+.fl-fnl-overall { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-fnl-overall strong { color: var(--color-text); font: var(--weight-bold) max(11px, calc(var(--text-2xl) - var(--fs-shrink, 0px))) / 1.1 var(--font-display, var(--font-sans)); font-variant-numeric: tabular-nums; letter-spacing: var(--tracking-tight, 0); }
+.fl-fnl-controls { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.fl-fnl-list { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; min-width: 0; }
+.fl-fnl-item { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-fnl-drop {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2); margin: 0; padding-block: 2px;
+  color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums;
+}
+.fl-fnl-drop.is-biggest { color: var(--color-text); }
+.fl-fnl-drop.is-biggest svg { color: var(--color-warning); }
+.fl-fnl-flag { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+.fl-fnl-row {
+  display: grid; gap: var(--space-2); width: 100%; padding: var(--space-2) var(--space-3); cursor: pointer; text-align: left;
+  border: 1px solid transparent; border-radius: min(var(--radius-sm), 8px); background: transparent; color: var(--color-text);
+  font: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1.3 var(--font-sans);
+  transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
+}
+.fl-fnl-row:hover { background: var(--color-surface-sunken); }
+.fl-fnl-row.is-picked { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 6%, transparent); }
+.fl-fnl-row:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-fnl-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto 4rem; align-items: baseline; gap: var(--space-3); }
+.fl-fnl-num {
+  display: inline-grid; place-items: center; width: 1.375rem; height: 1.375rem; border-radius: 50%; align-self: center;
+  background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold);
+}
+.fl-fnl-row.is-picked .fl-fnl-num { background: var(--color-accent); color: var(--color-on-accent); }
+.fl-fnl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--weight-medium, 500); }
+.fl-fnl-count { font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-fnl-rate { color: var(--color-text-muted); font-variant-numeric: tabular-nums; text-align: right; }
+.fl-fnl-track { display: flex; justify-content: center; height: 1.75rem; border-radius: min(var(--radius-sm), 6px); background: var(--color-surface-sunken); overflow: hidden; }
+.fl-fnl-bar {
+  display: block; height: 100%; border-radius: min(var(--radius-sm), 6px); background: var(--color-accent);
+  transition: width var(--duration-slow) var(--ease-out, var(--easing));
+  transition-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms));
+}
+.fl-fnl-ghost {
+  justify-self: center; width: var(--w, 100%); height: 3.25rem; border-radius: min(var(--radius-sm), 8px); background: var(--color-surface-sunken);
+  animation: fl-fnl-pulse 1.2s var(--easing) infinite alternate;
+}
+.fl-fnl-empty { margin: 0; padding: var(--space-5) 0; text-align: center; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-fnl-said { margin: 0; min-height: 1.25em; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: 1.45; }
+.fl-fnl-sr, .fl-fnl-overall .fl-fnl-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@keyframes fl-fnl-pulse { from { opacity: 1; } to { opacity: 0.45; } }
+
+@media (max-width: 36rem) {
+  .fl-fnl { padding: var(--space-4); }
+  .fl-fnl-head { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .fl-fnl-rate { grid-column: 2 / -1; text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-fnl-bar { transition: none; }
+  .fl-fnl-ghost { animation: none; opacity: 0.7; }
+}
+:root[data-motion="off"] .fl-fnl * { transition: none !important; animation: none !important; }

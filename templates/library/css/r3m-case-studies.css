@@ -1,0 +1,80 @@
+/**
+ * Customer stories carousel (b.case-studies): one story card with result numbers, company tabs with a filling bar,
+ * Previous, Pause and Next. Prefixed fl-cst-; only the library's tokens. Adapted from Meraki UI (MIT License,
+ * Copyright (c) 2021 Khatab Wedaa).
+ */
+.fl-cst { container-type: inline-size; display: grid; gap: var(--space-5); min-width: 0; }
+.fl-cst-stage { display: grid; min-width: 0; }
+.fl-cst-card {
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: var(--space-7); align-items: center; padding: var(--space-5);
+  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); background: var(--color-surface); box-shadow: var(--surface-shadow, none);
+  animation: fl-cst-swap var(--duration-slow) var(--ease-out, var(--easing));
+}
+@keyframes fl-cst-swap { from { opacity: 0; translate: calc(var(--enter-distance, 8px) * 2) 0; } }
+.fl-cst-media { position: relative; min-width: 0; border-radius: min(var(--surface-radius, var(--radius-md)), 10px); overflow: hidden; }
+.fl-cst-media .fl-ctl-media { display: block; width: 100%; border-radius: 0; }
+.fl-cst-company {
+  position: absolute; left: var(--space-3); top: var(--space-3); max-width: calc(100% - var(--space-5)); padding: var(--space-1) var(--space-3);
+  border-radius: var(--pill-radius, 999px); background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow, none);
+  font-family: var(--font-display); font-weight: var(--weight-bold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fl-cst-body { display: grid; gap: var(--space-4); min-width: 0; }
+.fl-cst-industry { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-wide, 0.04em); }
+.fl-cst-quote { margin: 0; }
+.fl-cst-quote p { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); line-height: var(--leading-snug, 1.35); text-wrap: pretty; }
+.fl-cst-quote p::before { content: "\201C"; }
+.fl-cst-quote p::after { content: "\201D"; }
+.fl-cst-person { display: flex; align-items: center; gap: var(--space-3); }
+.fl-cst-person p { display: grid; margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-cst-person span { color: var(--color-text-muted); }
+.fl-cst-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); gap: var(--space-3); margin: 0; padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-cst-metric { display: flex; flex-direction: column-reverse; gap: var(--space-1); min-width: 0; }
+.fl-cst-metric dt { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-cst-metric dd { margin: 0; color: var(--color-accent); font-family: var(--font-display); font-weight: var(--weight-bold); font-size: max(11px, calc(var(--text-2xl) - var(--fs-shrink, 0px))); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.fl-cst-read { display: inline-flex; align-items: center; gap: var(--space-1); justify-self: start; }
+.fl-cst-read svg { width: 1rem; height: 1rem; transition: translate var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-cst-read:hover svg { translate: 3px 0; }
+
+/* Company tabs: the current one has a straight accent bar under it that fills while the story is shown. */
+.fl-cst-nav { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-width: 0; }
+.fl-cst-tabs { display: flex; gap: var(--space-2); min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 3px; }
+.fl-cst-tabs::-webkit-scrollbar { display: none; }
+.fl-cst-tab {
+  position: relative; display: grid; gap: var(--space-2); flex: 1 0 auto; min-width: 7rem; padding: var(--space-2) var(--space-1) 0; border: 0; border-radius: 0; background: none; cursor: pointer;
+  color: var(--color-text-muted); font: inherit; font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); text-align: left; white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-cst-tab:hover, .fl-cst-tab.is-on { color: var(--color-text); }
+.fl-cst-tab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-cst-track { position: relative; display: block; height: 3px; overflow: hidden; background: var(--color-border); }
+.fl-cst-fill { position: absolute; inset: 0; background: var(--color-accent); transform-origin: left; }
+.fl-cst-fill.is-timed { animation: fl-cst-fill var(--fl-cst-interval, 8000ms) linear forwards; }
+.fl-cst-fill.is-paused { animation-play-state: paused; }
+@keyframes fl-cst-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.fl-cst-buttons { display: flex; flex: none; gap: var(--space-2); }
+.fl-cst-buttons .fl-btn:active { scale: var(--press-scale, 0.96); }
+
+/* Entrance once: the card rises in, then the numbers follow. */
+.fl-cst.is-waiting .fl-cst-card { opacity: 0; }
+.fl-cst.is-seen .fl-cst-card { animation-name: fl-cst-enter; }
+@keyframes fl-cst-enter { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 2); } }
+.fl-cst.is-seen .fl-cst-metric { animation: fl-cst-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 60ms) + var(--duration-base)), var(--stagger-max, 360ms)); }
+@keyframes fl-cst-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+
+@container (max-width: 46rem) {
+  .fl-cst-card { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); padding: var(--space-4); }
+  .fl-cst-nav { flex-direction: column; align-items: stretch; }
+  .fl-cst-buttons { justify-content: flex-end; }
+  .fl-cst-tab { min-width: 6rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-cst.is-waiting .fl-cst-card { opacity: 1; }
+  .fl-cst-card { animation: fl-cst-fade 120ms linear; }
+  .fl-cst-metric, .fl-cst-fill.is-timed { animation: none !important; }
+  .fl-cst * { transition-duration: 1ms !important; }
+}
+@keyframes fl-cst-fade { from { opacity: 0; } }
+:root[data-motion="off"] .fl-cst.is-waiting .fl-cst-card { opacity: 1; }
+:root[data-motion="off"] .fl-cst, :root[data-motion="off"] .fl-cst * { transition: none !important; animation: none !important; }
+@media print { .fl-cst.is-waiting .fl-cst-card { opacity: 1; } }

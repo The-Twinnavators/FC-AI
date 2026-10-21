@@ -1,0 +1,107 @@
+/**
+ * Order confirmation (b.shop-order-confirmation): a thank-you header with a drawn tick, a delivery line, the items
+ * and totals, and side cards for delivery, payment and text updates. Prefixed fl-oc-; only the library's tokens.
+ * Adapted from HyperUI (MIT License, Copyright (c) Mark Mead).
+ */
+.fl-oc { display: grid; gap: var(--space-4); min-width: 0; color: var(--color-text); }
+.fl-oc-card {
+  display: grid; gap: var(--space-3); align-content: start; min-width: 0; padding: var(--space-5); background: var(--surface-bg, var(--color-surface));
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+  animation: fl-oc-in var(--duration-slow) var(--ease-out, var(--easing)) backwards;
+}
+@keyframes fl-oc-in { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-oc-card h3 { margin: 0; font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-oc-card h3 span { font-weight: var(--weight-regular, 400); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-oc-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Header: a tick whose circle and check draw in turn. */
+.fl-oc-hero { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-4) 0 var(--space-2); text-align: center; }
+.fl-oc-hero h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-2xl) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); border-radius: min(var(--radius-sm, 4px), 12px); }
+.fl-oc-hero h2:focus { outline: none; }
+.fl-oc-hero h2:focus-visible { box-shadow: var(--focus-ring); }
+.fl-oc-hero p { margin: 0; max-width: 36rem; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-oc-hero p strong { color: var(--color-text); }
+.fl-oc-tick { width: 3.5rem; height: 3.5rem; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.fl-oc-tick circle { stroke: var(--color-success); fill: color-mix(in srgb, var(--color-success) 12%, transparent); stroke-dasharray: 151; stroke-dashoffset: 0; animation: fl-oc-draw var(--duration-slow) var(--ease-out, var(--easing)) both; }
+.fl-oc-tick path { stroke: var(--color-success); stroke-dasharray: 36; stroke-dashoffset: 0; animation: fl-oc-draw var(--duration-slow) var(--ease-out, var(--easing)) both; animation-delay: var(--duration-base); }
+.fl-oc-tick path { --fl-oc-len: 36; }
+.fl-oc-tick circle { --fl-oc-len: 151; }
+@keyframes fl-oc-draw { from { stroke-dashoffset: var(--fl-oc-len, 151); } }
+.fl-oc-mark { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: var(--color-surface-sunken); color: var(--color-text-muted); animation: fl-oc-pop var(--duration-slow) var(--ease-spring, var(--ease-out)) backwards; }
+.fl-oc-mark svg { width: 1.5rem; height: 1.5rem; }
+@keyframes fl-oc-pop { from { opacity: 0; scale: 0.8; } }
+
+/* Delivery line: straight connecting rule, filled to the current stop. */
+.fl-oc-track p { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-oc-track ol { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: var(--space-1) 0 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-oc-track ol::before, .fl-oc-track ol::after { content: ""; position: absolute; top: 0.45rem; left: 0.45rem; right: calc(25% - 0.45rem); height: 2px; background: var(--color-border); }
+.fl-oc-track ol::after { background: var(--color-success); transform: scaleX(0.04); transform-origin: left; animation: fl-oc-fill var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: var(--duration-slow); }
+@keyframes fl-oc-fill { from { transform: scaleX(0); } }
+.fl-oc-track li { position: relative; z-index: 1; display: grid; justify-items: start; gap: var(--space-1); }
+.fl-oc-track li > span { width: 0.9rem; height: 0.9rem; border-radius: 50%; border: 2px solid var(--color-border); background: var(--color-surface); }
+.fl-oc-track li.is-done { color: var(--color-text); font-weight: var(--weight-semibold); }
+.fl-oc-track li.is-done > span { border-color: var(--color-success); background: var(--color-success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 20%, transparent); }
+
+.fl-oc-cols { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+.fl-oc-side { display: grid; gap: var(--space-4); min-width: 0; }
+.fl-oc-side > .fl-oc-card:nth-child(2) { animation-delay: var(--stagger, 40ms); }
+.fl-oc-side > .fl-oc-card:nth-child(3) { animation-delay: calc(2 * var(--stagger, 40ms)); }
+
+.fl-oc-items ul { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.fl-oc-items li { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); animation: fl-oc-in var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: calc(var(--fl-oc-i, 0) * var(--stagger, 40ms)); }
+.fl-oc-pic .fl-ctl-media { border-radius: min(var(--radius-md), 12px); }
+.fl-oc-what { display: grid; gap: 2px; min-width: 0; }
+.fl-oc-what strong { font-weight: var(--weight-semibold); }
+.fl-oc-what span { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-oc-money { display: grid; gap: var(--space-2); margin: 0; padding-top: var(--space-3); border-top: 1px solid var(--color-border); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-oc-money > div { display: flex; justify-content: space-between; gap: var(--space-3); }
+.fl-oc-money dt { color: var(--color-text-muted); }
+.fl-oc-money dd { margin: 0; font-variant-numeric: tabular-nums; }
+.fl-oc-money .is-saving dd { color: var(--color-success); font-weight: var(--weight-semibold); }
+.fl-oc-total { padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+.fl-oc-total dt { color: var(--color-text); font-weight: var(--weight-semibold); }
+.fl-oc-total dd { font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-bold, 700); }
+
+.fl-oc-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.fl-oc-addr { font-style: normal; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: var(--leading-relaxed, 1.6); animation: fl-oc-in var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-oc-note { margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-oc-card-line { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-oc-card-line svg { width: 1rem; height: 1rem; color: var(--color-text-muted); }
+.fl-oc-form { display: grid; gap: var(--space-3); animation: fl-oc-in var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-oc-field { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-oc-field label { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-oc-field .fl-input { width: 100%; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-oc-trio { display: grid; grid-template-columns: minmax(0, 1fr) 4.5rem 6rem; gap: var(--space-2); }
+.fl-oc-formbtns { display: flex; justify-content: flex-end; gap: var(--space-2); }
+.fl-oc-err { display: flex; align-items: flex-start; gap: var(--space-1); margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); color: var(--color-danger); }
+.fl-oc-err svg { width: 0.875rem; height: 0.875rem; flex: none; margin-top: 1px; }
+.fl-oc-sms { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); }
+.fl-oc-sms .fl-input { width: 100%; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-oc-sms .fl-oc-err { grid-column: 1 / -1; }
+.fl-oc-ok { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; padding: var(--space-2) var(--space-3); border-radius: min(var(--radius-md), 12px); background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface)); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); animation: fl-oc-pop var(--duration-base) var(--ease-spring, var(--ease-out)) backwards; }
+.fl-oc-ok svg { width: 1rem; height: 1rem; flex: none; margin-top: 2px; color: var(--color-success); }
+
+.fl-oc-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); padding-top: var(--space-2); }
+.fl-oc .fl-btn { transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)); }
+.fl-oc .fl-btn:active:not(:disabled) { scale: var(--press-scale, 0.97); }
+
+@media (max-width: 44rem) {
+  .fl-oc-cols { grid-template-columns: minmax(0, 1fr); }
+  .fl-oc-card { padding: var(--space-4); }
+  .fl-oc-trio { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .fl-oc-trio > :first-child { grid-column: 1 / -1; }
+  .fl-oc-actions > .fl-btn { flex: 1 1 100%; }
+}
+
+@media print {
+  .fl-oc-actions, .fl-oc-sms, .fl-oc-row .fl-btn { display: none !important; }
+  .fl-oc-card, .fl-oc-items li, .fl-oc-tick * { animation: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-oc-card, .fl-oc-items li, .fl-oc-addr, .fl-oc-form, .fl-oc-ok, .fl-oc-mark { animation: fl-oc-fade var(--duration-fast, 120ms) var(--easing) backwards; animation-delay: 0ms; }
+  @keyframes fl-oc-fade { from { opacity: 0; } }
+  .fl-oc-tick circle, .fl-oc-tick path, .fl-oc-track ol::after { animation: none; }
+  .fl-oc .fl-btn:active:not(:disabled) { scale: none; }
+}
+:root[data-motion="off"] .fl-oc, :root[data-motion="off"] .fl-oc *, :root[data-motion="off"] .fl-oc *::before, :root[data-motion="off"] .fl-oc *::after { transition: none !important; animation: none !important; }

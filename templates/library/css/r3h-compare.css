@@ -1,0 +1,123 @@
+/**
+ * Product compare tray (b.shop-compare): product cards with a Compare tick, a tray that rises from the bottom with
+ * the picks, and a dialog with the side-by-side table. Prefixed fl-cmp-; only the library's tokens. Adapted from
+ * HyperUI (MIT License, Copyright (c) Mark Mead).
+ */
+.fl-cmp { display: grid; gap: var(--space-5); min-width: 0; color: var(--color-text); }
+.fl-cmp-head { display: grid; gap: var(--space-1); }
+.fl-cmp-head h3 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-cmp-head p { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+.fl-cmp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.fl-cmp-card {
+  display: grid; grid-template-rows: auto 1fr; min-width: 0; overflow: hidden; border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px);
+  background: var(--surface-bg, var(--color-surface)); transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
+}
+.fl-cmp-card:hover { box-shadow: var(--surface-shadow-hover, none); }
+.fl-cmp-card.is-on { border-color: var(--color-accent); box-shadow: 0 0 0 1px var(--color-accent); }
+.fl-cmp-card > .fl-ctl-media { border-radius: 0; }
+.fl-cmp-body { display: grid; gap: var(--space-1); align-content: start; padding: var(--space-3); }
+.fl-cmp-body > strong { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-cmp-stars { display: inline-flex; align-items: center; gap: var(--space-1); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-cmp-stars svg { width: 0.875rem; height: 0.875rem; color: var(--color-warning); }
+.fl-cmp-price { font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-cmp-body .fl-ctl-choice { margin-top: var(--space-2); padding: var(--space-2) 0 0; border: 0; border-top: 1px solid var(--color-border); border-radius: 0; align-items: center; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-cmp-body .fl-ctl-choice strong { font-weight: var(--weight-medium); }
+.fl-cmp-body .fl-ctl-choice:has(input:disabled) { color: var(--color-text-muted); cursor: not-allowed; }
+
+/* The tray: fixed along the bottom of the window while anything is picked; rises in. */
+.fl-cmp:has(.fl-cmp-tray) { padding-bottom: 8rem; }
+.fl-cmp-tray {
+  position: fixed; left: var(--space-3); right: var(--space-3); bottom: var(--space-3); z-index: 20; max-width: 60rem; margin-inline: auto; padding: var(--space-3) var(--space-4); border-radius: min(var(--radius-lg), 12px);
+  background: var(--accent-bg, var(--color-accent)); color: var(--color-on-accent); box-shadow: var(--shadow-lg, var(--surface-shadow-overlay, none));
+  transition: translate var(--duration-slow) var(--ease-out, var(--easing)), opacity var(--duration-base) var(--easing);
+}
+@starting-style { .fl-cmp-tray { translate: 0 calc(var(--enter-distance, 8px) * 3); opacity: 0; } }
+.fl-cmp-tray-in { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-4); }
+.fl-cmp-tray-title { display: grid; margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); white-space: nowrap; }
+.fl-cmp-tray-title strong { font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+.fl-cmp-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin: 0; padding: 0; list-style: none; min-width: 0; }
+.fl-cmp-slot {
+  display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 3.25rem; padding: var(--space-1) var(--space-1) var(--space-1) var(--space-1);
+  border-radius: min(var(--radius-md), 12px); background: color-mix(in srgb, var(--color-on-accent) 14%, transparent); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px)));
+  animation: fl-cmp-pop var(--duration-base) var(--ease-spring, var(--ease-out)) backwards;
+}
+@keyframes fl-cmp-pop { from { opacity: 0; scale: 0.9; } }
+.fl-cmp-slot .fl-ctl-media { border-radius: min(var(--radius-sm, 4px), 12px); }
+.fl-cmp-slot > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--weight-semibold); }
+.fl-cmp-slot button { display: grid; place-items: center; width: 2rem; height: 2rem; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; }
+.fl-cmp-slot button:hover { background: color-mix(in srgb, var(--color-on-accent) 18%, transparent); }
+.fl-cmp-slot button:focus-visible { outline: 2px solid var(--color-on-accent); outline-offset: 1px; }
+.fl-cmp-slot button svg { width: 1rem; height: 1rem; }
+.fl-cmp-slot.is-empty { display: grid; grid-template-columns: 1fr; place-items: center; background: none; border: 1px dashed color-mix(in srgb, var(--color-on-accent) 45%, transparent); animation: none; opacity: 0.8; }
+.fl-cmp-tray-actions { display: flex; align-items: center; gap: var(--space-2); }
+.fl-cmp-hint { margin: 0; max-width: 12rem; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-cmp-hint:empty { display: none; }
+.fl-cmp-tray .fl-btn[aria-disabled="true"] { opacity: var(--disabled-opacity, 0.55); }
+.fl-cmp .fl-btn, .fl-cmp-dialog .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)); }
+.fl-cmp .fl-btn:active:not(:disabled):not([aria-disabled="true"]), .fl-cmp-dialog .fl-btn:active:not(:disabled) { scale: var(--press-scale, 0.97); }
+
+/* The dialog: a native modal that fades and rises in, and fades out. */
+.fl-cmp-dialog {
+  width: min(64rem, calc(100% - 2 * var(--space-4))); max-width: none; max-height: calc(100% - 2 * var(--space-4)); padding: 0; border: 1px solid var(--color-border);
+  border-radius: min(var(--radius-lg), 12px); background: var(--surface-bg, var(--color-surface)); color: var(--color-text); box-shadow: var(--shadow-lg, none); overflow: hidden;
+  opacity: 0; translate: 0 var(--enter-distance, 8px);
+  transition: opacity var(--duration-base) var(--easing), translate var(--duration-base) var(--ease-out, var(--easing)), overlay var(--duration-base) allow-discrete, display var(--duration-base) allow-discrete;
+}
+.fl-cmp-dialog[open] { opacity: 1; translate: 0 0; }
+.fl-cmp-dialog::backdrop { background: color-mix(in srgb, var(--color-text) 40%, transparent); opacity: 0; transition: opacity var(--duration-base) var(--easing), overlay var(--duration-base) allow-discrete, display var(--duration-base) allow-discrete; }
+.fl-cmp-dialog[open]::backdrop { opacity: 1; }
+@starting-style {
+  .fl-cmp-dialog[open] { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 2); }
+  .fl-cmp-dialog[open]::backdrop { opacity: 0; }
+}
+.fl-cmp-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); max-height: calc(100vh - 2 * var(--space-4)); }
+.fl-cmp-dhead { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-border); }
+.fl-cmp-dhead h3 { flex: 1 1 auto; margin: 0; font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-cmp-dhead .fl-ctl-choice { padding: 0; border: 0; align-items: center; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-cmp-dhead .fl-ctl-choice strong { font-weight: var(--weight-medium); }
+.fl-cmp-scroll { overflow: auto; overscroll-behavior: contain; }
+.fl-cmp-scroll:focus-visible { outline: none; box-shadow: inset var(--focus-ring); }
+.fl-cmp-table { width: 100%; min-width: calc(8rem + var(--fl-cmp-cols, 3) * 11rem); border-collapse: collapse; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-cmp-table thead th { vertical-align: top; padding: var(--space-4) var(--space-3); text-align: left; font-weight: var(--weight-regular, 400); animation: fl-cmp-in var(--duration-slow) var(--ease-out, var(--easing)) backwards; }
+.fl-cmp-table thead th:nth-child(3) { animation-delay: var(--stagger, 40ms); }
+.fl-cmp-table thead th:nth-child(4) { animation-delay: calc(2 * var(--stagger, 40ms)); }
+@keyframes fl-cmp-in { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-cmp-table thead .fl-ctl-media { max-width: 12rem; }
+.fl-cmp-colname { display: block; margin: var(--space-2) 0; font-weight: var(--weight-semibold); }
+.fl-cmp-colbtns { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.fl-cmp-table tbody th { position: sticky; left: 0; z-index: 1; width: 8rem; padding: var(--space-3) var(--space-4); background: var(--color-surface-sunken); text-align: left; font-weight: var(--weight-semibold); color: var(--color-text-muted); }
+.fl-cmp-table tbody td { padding: var(--space-3); border-left: 1px solid var(--color-border); font-variant-numeric: tabular-nums; transition: background-color var(--duration-base) var(--easing); }
+.fl-cmp-table tbody tr { border-top: 1px solid var(--color-border); }
+.fl-cmp-table td.is-best { background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface)); font-weight: var(--weight-semibold); }
+.fl-cmp-best { margin-left: var(--space-2); padding: 1px var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-success); color: var(--color-on-accent, var(--color-surface)); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-cmp-same { padding: var(--space-5); text-align: center; color: var(--color-text-muted); }
+
+@media (max-width: 40rem) {
+  .fl-cmp:has(.fl-cmp-tray) { padding-bottom: 13rem; }
+  .fl-cmp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+  .fl-cmp-tray { left: var(--space-2); right: var(--space-2); bottom: var(--space-2); padding: var(--space-3); }
+  .fl-cmp-tray-in { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+  .fl-cmp-tray-title { display: block; }
+  .fl-cmp-slot { grid-template-columns: minmax(0, 1fr) auto; }
+  .fl-cmp-slot .fl-ctl-media { display: none; }
+  .fl-cmp-tray-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .fl-cmp-hint { flex: 1 1 100%; max-width: none; }
+  .fl-cmp-dialog { width: 100%; max-height: 100%; height: 100%; border-radius: 0; }
+  .fl-cmp-panel { max-height: 100vh; height: 100%; }
+  .fl-cmp-dhead { padding-left: var(--space-4); row-gap: var(--space-1); }
+  .fl-cmp-dhead h3 { flex-basis: calc(100% - 3.5rem); }
+  .fl-cmp-dhead .fl-ctl-choice { order: 3; flex-basis: 100%; }
+  .fl-cmp-table { min-width: calc(6rem + var(--fl-cmp-cols, 3) * 9rem); }
+  .fl-cmp-table tbody th { width: 6rem; padding-inline: var(--space-3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-cmp-tray, .fl-cmp-dialog { translate: 0 0; transition-duration: var(--duration-fast, 120ms); }
+  @starting-style { .fl-cmp-tray { translate: 0 0; } .fl-cmp-dialog[open] { translate: 0 0; } }
+  .fl-cmp-slot, .fl-cmp-table thead th { animation: fl-cmp-fade var(--duration-fast, 120ms) var(--easing) backwards; animation-delay: 0ms; }
+  @keyframes fl-cmp-fade { from { opacity: 0; } }
+  .fl-cmp .fl-btn:active:not(:disabled), .fl-cmp-dialog .fl-btn:active:not(:disabled) { scale: none; }
+}
+:root[data-motion="off"] .fl-cmp, :root[data-motion="off"] .fl-cmp *, :root[data-motion="off"] .fl-cmp-dialog, :root[data-motion="off"] .fl-cmp-dialog *, :root[data-motion="off"] .fl-cmp-dialog::backdrop { transition: none !important; animation: none !important; }
+:root[data-motion="off"] .fl-cmp-dialog { translate: 0 0; }

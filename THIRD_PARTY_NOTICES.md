@@ -47,14 +47,16 @@ FlowCode's own React and design-token CSS. The team members table, wide table wi
 skip links and setup checklist (`table-members`, `table-sticky-grid`, `skip-links`, `setup-checklist`) follow its
 tables, skip links, steps and accordion components the same way, and the API keys, audit log, invoice, task drawer and
 CSV import pieces (`api-keys`, `audit-log`, `invoice-view`, `task-drawer`, `csv-import`) follow its application
-components.
+components, and the checkout, wishlist, compare, order confirmation and bundle builder pieces (`shop-checkout`,
+`shop-wishlist`, `shop-compare`, `shop-order-confirmation`, `shop-bundle-builder`) its ecommerce components.
 
 ## TailAdmin
 
 The bar chart, eCommerce dashboard, calendar, profile screen, upcoming schedule, stock watchlist, multi-select with chips,
 phone field, card fields and language switcher pieces (`chart-bar`, `app-ecommerce-dashboard`, `app-calendar`,
 `app-profile`, `upcoming-schedule`, `stock-watchlist`, `select-multi-chips`, `input-phone`, `input-card-number`,
-`language-switcher`) follow the structure of TailAdmin's free community edition
+`language-switcher`), and the funnel chart, leaderboard and goal targets (`chart-funnel`, `leaderboard`, `goal-targets`)
+follow the structure of TailAdmin's free community edition
 (https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template), MIT License, Copyright (c) 2023 TailAdmin.
 They were rewritten in FlowCode's own React and design-token CSS, without its dependencies (no FullCalendar, no maps).
 TailAdmin Pro components are not used.
@@ -63,13 +65,16 @@ TailAdmin Pro components are not used.
 
 The notifications menu, team directory, files table and blog post pieces (`notification-menu`, `team-directory`,
 `table-files`, `blog-article`), and the careers, changelog, contact offices, pricing calculator and reviews pieces
-(`careers-openings`, `changelog-releases`, `contact-offices`, `pricing-calculator`, `reviews-summary`) follow the structure of Meraki UI components (https://github.com/merakiuilabs/merakiui),
+(`careers-openings`, `changelog-releases`, `contact-offices`, `pricing-calculator`, `reviews-summary`), and the video
+hero, integrations grid, case studies and newsletter footer (`hero-video`, `integrations-grid`, `case-studies`,
+`footer-newsletter`) follow the structure of Meraki UI components (https://github.com/merakiuilabs/merakiui),
 MIT License, Copyright (c) 2021 Khatab Wedaa. They were rewritten in FlowCode's own React and design-token CSS. Meraki UI
 site templates are not used.
 
 ## Tailblocks
 
-The how-it-works steps, filtered gallery and testimonial wall (`how-it-works`, `gallery-filter`, `testimonials-wall`) follow the structure of Tailblocks
+The how-it-works steps, filtered gallery and testimonial wall, roadmap and integrations grid (`how-it-works`, `gallery-filter`, `testimonials-wall`,
+`roadmap-board`, `integrations-grid`) follow the structure of Tailblocks
 (https://github.com/mertJF/tailblocks), MIT License, Copyright (c) 2020 Mert Cukuren, rewritten in FlowCode's own React
 and design-token CSS.
 
@@ -83,7 +88,9 @@ and design-token CSS (no Astro or Tailwind).
 
 ## Creative Tim UI
 
-The order history and signed-in devices pieces (`order-history`, `account-sessions`) follow the structure of Creative
+The order history, signed-in devices, two-factor, connected apps, notification preferences, payment methods and
+change password pieces (`order-history`, `account-sessions`, `account-two-factor`, `connected-apps`,
+`notification-matrix`, `billing-payment-methods`, `account-password`) follow the structure of Creative
 Tim UI blocks (https://github.com/creativetimofficial/ui), MIT License, Copyright (c) 2025 Creative Tim, rewritten in
 FlowCode's own React and design-token CSS (no Tailwind or shadcn/ui).
 
@@ -92,7 +99,8 @@ FlowCode's own React and design-token CSS (no Tailwind or shadcn/ui).
 The one-time code, number field, input group, social sign-in, context menu, menu bar, split panes, mega menu and
 scroll area pieces (`otp-input`, `number-field`, `input-group`, `social-button`, `context-menu`, `menubar`, `resizable`,
 `navigation-menu`, `scroll-area`), and the date field, collapsible group, zoomable chart, scrolling dialog and time
-zone field (`date-field`, `collapsible-group`, `chart-zoom`, `dialog-scroll`, `time-zone-field`) follow the structure of TailGrids' open-source components (https://github.com/TailGrids/tailgrids),
+zone field (`date-field`, `collapsible-group`, `chart-zoom`, `dialog-scroll`, `time-zone-field`), and the donut chart
+and activity heatmap (`chart-donut`, `activity-heatmap`) follow the structure of TailGrids' open-source components (https://github.com/TailGrids/tailgrids),
 MIT License, Copyright (c) 2025 Tailgrids, rewritten in FlowCode's own React and design-token CSS (no Tailwind or
 Radix). Provider names and marks in `social-button` are their owners' trademarks. tailgrids.com premium blocks and
 templates are not used.

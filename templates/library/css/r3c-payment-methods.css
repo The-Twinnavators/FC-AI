@@ -1,0 +1,90 @@
+/**
+ * Payment methods and billing details (p.payment-methods): two cards; saved cards as rows (brand plate, masked number,
+ * pills, Make default and remove) that glide on reorder, an add-card panel on grid rows, and label and value pairs.
+ * Prefixed fl-bpm-; only the library's tokens. Adapted from Creative Tim UI (MIT, Copyright (c) 2025 Creative Tim).
+ */
+.fl-bpm { container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; }
+.fl-bpm-top { display: grid; gap: var(--space-1); }
+.fl-bpm-top h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl, var(--text-lg)) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-bpm-top p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-bpm-card {
+  display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5); background: var(--surface-bg, var(--color-surface));
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-bpm-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.fl-bpm-head h3 { margin: 0; font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+
+/* Add card: grid rows 0fr to 1fr, inert while closed. */
+.fl-bpm-add { display: grid; grid-template-rows: 0fr; margin-top: calc(var(--space-4) * -1); transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)), margin-top var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-bpm-add.is-open { grid-template-rows: 1fr; margin-top: 0; }
+.fl-bpm-clip { min-height: 0; overflow: hidden; }
+.fl-bpm-addbody {
+  padding: var(--space-4); background: var(--color-surface-sunken); border-radius: min(var(--radius-md), 12px);
+  opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); transition: opacity var(--duration-base) var(--ease-out, var(--easing)), translate var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-bpm-add.is-open .fl-bpm-addbody { opacity: 1; translate: 0 0; }
+
+.fl-bpm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.fl-bpm-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--surface-bg, var(--color-surface));
+  transition: opacity var(--duration-base) var(--easing), border-color var(--duration-base) var(--easing), background-color var(--duration-base) var(--easing);
+}
+.fl-bpm-row:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-bpm-row.is-default { border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border)); background: color-mix(in srgb, var(--color-accent) 4%, var(--surface-bg, var(--color-surface))); }
+.fl-bpm-row.is-leaving { opacity: 0; }
+.fl-bpm-row.is-new { animation: fl-bpm-rise var(--duration-slow) var(--ease-out) backwards; }
+.fl-bpm-row.is-entering { animation: fl-bpm-rise var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)); }
+@keyframes fl-bpm-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-bpm-plate {
+  --bpm-tone: var(--color-accent);
+  display: grid; place-items: center; flex: none; width: 3.25rem; height: 2.25rem; border-radius: min(var(--radius-sm, 6px), 12px);
+  background: color-mix(in srgb, var(--bpm-tone) 14%, var(--surface-bg, var(--color-surface))); color: var(--bpm-tone);
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-bold, 700); letter-spacing: 0.06em; font-style: italic;
+}
+.fl-bpm-plate[data-brand="mastercard"] { --bpm-tone: var(--color-warning); }
+.fl-bpm-plate[data-brand="amex"] { --bpm-tone: var(--color-info, var(--color-accent)); }
+.fl-bpm-plate[data-brand="discover"] { --bpm-tone: var(--color-secondary, var(--color-accent)); }
+.fl-bpm-copy { flex: 1 1 10rem; display: grid; gap: 2px; min-width: 0; }
+.fl-bpm-copy p { margin: 0; }
+.fl-bpm-num { font: var(--weight-semibold) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1.4 var(--font-mono, ui-monospace, monospace); letter-spacing: 0.04em; }
+.fl-bpm-meta { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-bpm-tags { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+.fl-bpm-actions { display: flex; gap: var(--space-1); margin-left: auto; }
+.fl-bpm-hint { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+.fl-bpm-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin: 0; }
+.fl-bpm-facts div { display: grid; gap: 2px; min-width: 0; }
+.fl-bpm-facts dt { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-bpm-facts dd { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); overflow-wrap: anywhere; }
+.fl-bpm-wide { grid-column: 1 / -1; }
+.fl-bpm-status { margin: 0; min-height: 1.25rem; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+.fl-bpm-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.fl-bpm-field { display: grid; gap: var(--space-1); min-width: 0; align-content: start; }
+.fl-bpm-field > label { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-bpm-opt { color: var(--color-text-muted); font-weight: var(--weight-regular, 400); }
+.fl-bpm-error { display: flex; align-items: center; gap: var(--space-1); margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-danger); }
+.fl-bpm-error svg { width: 1rem; height: 1rem; flex: none; }
+
+.fl-bpm .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-bpm .fl-btn:active:not(:disabled) { scale: 0.96; }
+
+@container (max-width: 34rem) {
+  .fl-bpm-card { padding: var(--space-4); }
+  .fl-bpm-row { padding: var(--space-3); }
+  .fl-bpm-actions { margin-left: calc(3.25rem + var(--space-3)); }
+  .fl-bpm-facts { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 30rem) {
+  .fl-bpm-form { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-bpm .fl-btn, .fl-bpm-row, .fl-bpm-add, .fl-bpm-addbody { transition-duration: 1ms; }
+  .fl-bpm .fl-btn:active:not(:disabled) { scale: none; }
+  .fl-bpm-addbody { translate: none; }
+  .fl-bpm-row.is-new, .fl-bpm-row.is-entering { animation: fl-bpm-fade var(--duration-fast) var(--easing) backwards; }
+  @keyframes fl-bpm-fade { from { opacity: 0; } }
+}
+:root[data-motion="off"] .fl-bpm * { transition: none !important; animation: none !important; }

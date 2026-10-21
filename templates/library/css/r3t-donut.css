@@ -1,0 +1,86 @@
+/**
+ * Donut chart (p.donut-chart): a ring of slices drawn as strokes on one circle, the total in the middle and a legend of
+ * buttons that light and hide slices. Prefixed fl-dnt-; only the library's tokens.
+ * Adapted from TailGrids (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-dnt {
+  display: grid; gap: var(--space-4); margin: 0; padding: var(--space-5); min-width: 0;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-dnt-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.fl-dnt-title { font: var(--weight-semibold) max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))) / 1.3 var(--font-sans); color: var(--color-text); }
+
+.fl-dnt-body { display: grid; grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr); align-items: center; gap: var(--space-5); }
+.fl-dnt-ringwrap { position: relative; width: 100%; max-width: 15rem; aspect-ratio: 1; justify-self: center; }
+.fl-dnt-ring { display: block; width: 100%; height: 100%; overflow: visible; border-radius: 50%; }
+.fl-dnt-ring:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-dnt-track { fill: none; stroke: var(--color-surface-sunken); stroke-width: 26; }
+.fl-dnt-slice {
+  fill: none; stroke-width: 26; cursor: pointer; transform: rotate(-90deg); transform-origin: 100px 100px;
+  transition:
+    stroke-dasharray var(--duration-slow) var(--ease-out, var(--easing)),
+    stroke-dashoffset var(--duration-slow) var(--ease-out, var(--easing)),
+    stroke-width var(--duration-fast) var(--ease-out, var(--easing)),
+    opacity var(--duration-fast) var(--easing);
+  transition-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)), min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)), 0s, 0s;
+}
+.fl-dnt-body.has-active .fl-dnt-slice { opacity: 0.35; }
+.fl-dnt-body.has-active .fl-dnt-slice.is-active { opacity: 1; stroke-width: 34; }
+.fl-dnt-body.is-loading .fl-dnt-track { animation: fl-dnt-pulse 1.2s var(--easing) infinite alternate; }
+
+/* Tones: accent first, then the secondary and status colors. */
+.fl-dnt-slice.fl-dnt-t1 { stroke: var(--color-accent); }
+.fl-dnt-slice.fl-dnt-t2 { stroke: var(--color-secondary, var(--color-text-muted)); }
+.fl-dnt-slice.fl-dnt-t3 { stroke: var(--color-success); }
+.fl-dnt-slice.fl-dnt-t4 { stroke: var(--color-warning); }
+.fl-dnt-slice.fl-dnt-t5 { stroke: var(--color-danger); }
+.fl-dnt-slice.fl-dnt-t6 { stroke: var(--color-text-muted); }
+.fl-dnt-key.fl-dnt-t1 .fl-dnt-swatch { background: var(--color-accent); }
+.fl-dnt-key.fl-dnt-t2 .fl-dnt-swatch { background: var(--color-secondary, var(--color-text-muted)); }
+.fl-dnt-key.fl-dnt-t3 .fl-dnt-swatch { background: var(--color-success); }
+.fl-dnt-key.fl-dnt-t4 .fl-dnt-swatch { background: var(--color-warning); }
+.fl-dnt-key.fl-dnt-t5 .fl-dnt-swatch { background: var(--color-danger); }
+.fl-dnt-key.fl-dnt-t6 .fl-dnt-swatch { background: var(--color-text-muted); }
+
+.fl-dnt-mid { position: absolute; inset: 22%; display: grid; place-content: center; justify-items: center; gap: 2px; text-align: center; pointer-events: none; }
+.fl-dnt-mid-label { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); line-height: 1.3; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-dnt-mid-value { color: var(--color-text); font: var(--weight-bold) max(11px, calc(var(--text-2xl) - var(--fs-shrink, 0px))) / 1.1 var(--font-display, var(--font-sans)); font-variant-numeric: tabular-nums; letter-spacing: var(--tracking-tight, 0); }
+
+.fl-dnt-legend { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; min-width: 0; max-width: 28rem; }
+.fl-dnt-legend li.is-in { animation: fl-dnt-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)); }
+.fl-dnt-key {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto 3.5rem; align-items: center; gap: var(--space-3); width: 100%;
+  min-height: 40px; padding: var(--space-2) var(--space-3); border: 0; border-radius: min(var(--radius-sm), 8px); background: transparent; cursor: pointer;
+  color: var(--color-text); font: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1.3 var(--font-sans); text-align: left;
+  transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing);
+}
+.fl-dnt-key:hover, .fl-dnt-key.is-active { background: var(--color-surface-sunken); }
+.fl-dnt-key:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-dnt-swatch { width: 0.75rem; height: 0.75rem; border-radius: 3px; transition: opacity var(--duration-fast) var(--easing); }
+.fl-dnt-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-dnt-val { font-variant-numeric: tabular-nums; font-weight: var(--weight-semibold); }
+.fl-dnt-pct { color: var(--color-text-muted); font-variant-numeric: tabular-nums; text-align: right; }
+.fl-dnt-key.is-off { color: var(--color-text-muted); }
+.fl-dnt-key.is-off .fl-dnt-name { text-decoration: line-through; }
+.fl-dnt-key.is-off .fl-dnt-swatch { opacity: 0.3; }
+.fl-dnt-ghost { height: 40px; border-radius: min(var(--radius-sm), 8px); background: var(--color-surface-sunken); animation: fl-dnt-pulse 1.2s var(--easing) infinite alternate; }
+.fl-dnt-empty { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+.fl-dnt-said { margin: 0; min-height: 1.25em; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-dnt-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@keyframes fl-dnt-rise { from { opacity: 0; translate: 0 var(--enter-distance, 6px); } }
+@keyframes fl-dnt-pulse { from { opacity: 1; } to { opacity: 0.45; } }
+
+@media (max-width: 36rem) {
+  .fl-dnt { padding: var(--space-4); }
+  .fl-dnt-body { grid-template-columns: minmax(0, 1fr); }
+  .fl-dnt-ringwrap { max-width: 12rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-dnt-slice { transition: opacity var(--duration-fast) var(--easing); }
+  .fl-dnt-legend li.is-in { animation: none; }
+  .fl-dnt-ghost, .fl-dnt-body.is-loading .fl-dnt-track { animation: none; opacity: 0.7; }
+}
+:root[data-motion="off"] .fl-dnt * { transition: none !important; animation: none !important; }

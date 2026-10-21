@@ -1,0 +1,103 @@
+/**
+ * Integrations grid (b.integrations): search, a category row with a sliding marker, logo cards and a details dialog.
+ * Prefixed fl-itg-; only the library's tokens. Adapted from Meraki UI (MIT License, Copyright (c) 2021 Khatab Wedaa)
+ * and Tailblocks (MIT License, Copyright (c) 2020 Mert Cukuren).
+ */
+.fl-itg { container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; }
+.fl-itg-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; }
+.fl-itg-search { position: relative; display: block; flex: 0 1 20rem; min-width: 0; }
+.fl-itg-search > svg { position: absolute; left: var(--space-3); top: 50%; translate: 0 -50%; width: 1.1rem; height: 1.1rem; color: var(--color-text-muted); pointer-events: none; }
+.fl-itg-input.fl-input { width: 100%; height: var(--control-md, 2.75rem); padding-left: calc(var(--space-3) + 1.6rem); }
+
+/* Category row: plain words; the chosen one sits on an accent pill that slides. Scrolls sideways on a phone. */
+.fl-itg-cats {
+  position: relative; display: flex; gap: var(--space-1); max-width: 100%; min-width: 0; padding: var(--space-1); overflow-x: auto; scrollbar-width: none;
+  border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); background: var(--color-surface);
+}
+.fl-itg-cats::-webkit-scrollbar { display: none; }
+.fl-itg-mark {
+  position: absolute; left: 0; top: var(--space-1); bottom: var(--space-1); border-radius: var(--pill-radius, 999px); background: var(--color-accent);
+  transition: translate var(--duration-base) var(--ease-spring, var(--easing)), width var(--duration-base) var(--ease-spring, var(--easing));
+}
+.fl-itg-cat {
+  position: relative; z-index: 1; display: inline-flex; align-items: center; gap: var(--space-2); flex: none; min-height: 2.25rem; padding: 0 var(--space-3);
+  border: 0; border-radius: var(--pill-radius, 999px); background: none; color: var(--color-text-muted); font: inherit; font-weight: var(--weight-medium); cursor: pointer; white-space: nowrap;
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); transition: color var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-itg-cat:hover { color: var(--color-text); }
+.fl-itg-cat.is-on { color: var(--color-on-accent); }
+.fl-itg-cat:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-itg-count { font-variant-numeric: tabular-nums; opacity: 0.7; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-itg-found { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+.fl-itg-gridwrap { min-width: 0; }
+.fl-itg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.fl-itg-item { display: grid; min-width: 0; }
+.fl-itg-card {
+  position: relative; display: grid; align-content: start; gap: var(--space-1); width: 100%; padding: var(--space-4); cursor: pointer; text-align: left; color: inherit; font: inherit;
+  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-md)), 12px); background: var(--color-surface); box-shadow: var(--surface-shadow, none);
+  transition: border-color var(--duration-fast) var(--ease-out, var(--easing)), translate var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-itg-card:hover { border-color: color-mix(in srgb, var(--color-accent) 50%, var(--color-border)); translate: 0 -2px; }
+.fl-itg-card:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-itg-card:active { scale: var(--press-scale, 0.98); }
+.fl-itg-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-2); }
+.fl-itg-name { font-family: var(--font-display); font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); padding-right: var(--space-5); }
+.fl-itg-cat-name { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); text-transform: uppercase; letter-spacing: var(--tracking-wide, 0.04em); }
+.fl-itg-text { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: var(--leading-normal, 1.5); }
+.fl-itg-go { position: absolute; right: var(--space-3); bottom: var(--space-3); display: grid; color: var(--color-text-muted); opacity: 0; transition: opacity var(--duration-fast) var(--ease-out, var(--easing)), translate var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-itg-go svg { width: 1rem; height: 1rem; }
+.fl-itg-card:hover .fl-itg-go, .fl-itg-card:focus-visible .fl-itg-go { opacity: 1; translate: 2px 0; }
+
+.fl-itg-logo {
+  display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; overflow: hidden; border-radius: min(var(--radius-md, 10px), 12px);
+  font-family: var(--font-display); font-weight: var(--weight-bold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+}
+.fl-itg-logo img { width: 100%; height: 100%; object-fit: contain; }
+.fl-itg-logo--big { width: 3.5rem; height: 3.5rem; font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+.fl-itg-logo--a { background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface)); color: var(--color-accent); }
+.fl-itg-logo--b { background: color-mix(in srgb, var(--color-success) 16%, var(--color-surface)); color: var(--color-success); }
+.fl-itg-logo--c { background: color-mix(in srgb, var(--color-warning) 18%, var(--color-surface)); color: var(--color-warning); }
+.fl-itg-logo--d { background: color-mix(in srgb, var(--color-info, var(--color-accent)) 16%, var(--color-surface)); color: var(--color-info, var(--color-accent)); }
+.fl-itg-logo--e { background: var(--color-surface-sunken); color: var(--color-text); }
+
+.fl-itg-empty { display: grid; justify-items: center; gap: var(--space-3); padding: var(--space-7) var(--space-4); text-align: center; border: 1px dashed var(--color-border); border-radius: min(var(--surface-radius, var(--radius-md)), 12px); }
+.fl-itg-empty-icon { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--color-surface-sunken); color: var(--color-text-muted); }
+.fl-itg-empty-icon svg { width: 1.25rem; height: 1.25rem; }
+.fl-itg-empty-title { margin: 0; font-weight: var(--weight-semibold); }
+.fl-itg-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+.fl-itg-request { margin: 0; text-align: center; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+/* Details dialog. */
+.fl-itg-dialog { width: min(30rem, calc(100vw - var(--space-5) * 2)); max-height: calc(100dvh - var(--space-5) * 2); padding: 0; border: 0; background: transparent; color: var(--color-text); }
+.fl-itg-dialog::backdrop { background: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.fl-itg-dialog[open] { animation: fl-itg-pop var(--duration-slow) var(--ease-spring, var(--easing)); }
+.fl-itg-panel { display: grid; gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); background: var(--color-surface); box-shadow: var(--surface-shadow, none); }
+.fl-itg-dhead { display: flex; align-items: center; gap: var(--space-3); }
+.fl-itg-dwho { flex: 1 1 auto; min-width: 0; }
+.fl-itg-dtitle { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg, 1.125rem) - var(--fs-shrink, 0px))); }
+.fl-itg-dcat { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: var(--space-1) 0 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-itg-dtext { margin: 0; line-height: var(--leading-normal, 1.55); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+.fl-itg-does { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-itg-does li { display: flex; align-items: center; gap: var(--space-2); }
+.fl-itg-does svg { width: 1rem; height: 1rem; flex: none; color: var(--color-success); }
+.fl-itg-dactions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+@keyframes fl-itg-pop { from { opacity: 0; scale: 0.96; } }
+
+/* Entrance once (and again after each filter change): cards rise with a capped stagger. */
+.fl-itg-gridwrap.is-waiting .fl-itg-item { opacity: 0; }
+.fl-itg-gridwrap.is-entering .fl-itg-item { animation: fl-itg-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 240ms)); }
+@keyframes fl-itg-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+
+@container (max-width: 40rem) {
+  .fl-itg-search { flex: 1 1 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-itg-gridwrap.is-waiting .fl-itg-item { opacity: 1; }
+  .fl-itg *, .fl-itg-gridwrap.is-entering .fl-itg-item { animation: none !important; transition-duration: 1ms !important; }
+  .fl-itg-card:hover { translate: none; }
+}
+:root[data-motion="off"] .fl-itg-gridwrap.is-waiting .fl-itg-item { opacity: 1; }
+:root[data-motion="off"] .fl-itg, :root[data-motion="off"] .fl-itg * { transition: none !important; animation: none !important; }
+@media print { .fl-itg-gridwrap.is-waiting .fl-itg-item { opacity: 1; } }

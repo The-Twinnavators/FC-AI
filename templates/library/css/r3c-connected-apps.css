@@ -1,0 +1,100 @@
+/**
+ * Connected apps (p.connected-apps): a card with search and a filter switch over rows of apps (initials tile, name and
+ * category chip, Connect or Connected with Details) whose details slide open on grid rows, and a trust note.
+ * Prefixed fl-capp-; only the library's tokens. Adapted from Creative Tim UI (MIT, Copyright (c) 2025 Creative Tim).
+ */
+.fl-capp {
+  container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-capp-head { display: grid; gap: var(--space-1); }
+.fl-capp-head h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-capp-head p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+.fl-capp-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.fl-capp-search { position: relative; flex: 1 1 14rem; min-width: 0; display: block; }
+.fl-capp-search > svg { position: absolute; left: var(--space-3); top: 50%; translate: 0 -50%; width: 1rem; height: 1rem; color: var(--color-text-muted); pointer-events: none; }
+.fl-capp-search .fl-input { width: 100%; padding-left: calc(var(--space-3) + 1.5rem); }
+
+.fl-capp-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); overflow: clip; }
+.fl-capp-row + .fl-capp-row { border-top: 1px solid var(--color-border); }
+.fl-capp-main { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-4); }
+.fl-capp-tile {
+  --capp-tone: var(--color-accent);
+  display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; border-radius: min(var(--radius-md), 12px);
+  background: color-mix(in srgb, var(--capp-tone) 14%, var(--surface-bg, var(--color-surface))); color: var(--capp-tone);
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); letter-spacing: 0.02em;
+}
+.fl-capp-tile[data-tone="b"] { --capp-tone: var(--color-secondary, var(--color-accent)); }
+.fl-capp-tile[data-tone="c"] { --capp-tone: var(--color-success); }
+.fl-capp-tile[data-tone="d"] { --capp-tone: var(--color-warning); }
+.fl-capp-tile[data-tone="e"] { --capp-tone: var(--color-info, var(--color-text)); }
+.fl-capp-copy { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.fl-capp-name { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-capp-cat {
+  padding: 1px var(--space-2); border: 1px solid var(--color-border); border-radius: 999px; color: var(--color-text-muted);
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium);
+}
+.fl-capp-text { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-capp-error { display: flex; align-items: center; gap: var(--space-1); margin: var(--space-1) 0 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-capp-error svg { width: 1rem; height: 1rem; flex: none; }
+.fl-capp-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); flex: none; }
+.fl-capp-more svg { transition: rotate var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-capp-row.is-open .fl-capp-more svg { rotate: 180deg; }
+
+/* Details: grid rows 0fr to 1fr, inert while closed. */
+.fl-capp-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-capp-row.is-open .fl-capp-panel { grid-template-rows: 1fr; }
+.fl-capp-clip { min-height: 0; overflow: hidden; }
+.fl-capp-body {
+  display: grid; gap: var(--space-4); margin: 0 var(--space-4) var(--space-4); padding: var(--space-4); background: var(--color-surface-sunken); border-radius: min(var(--radius-md), 12px);
+  opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); transition: opacity var(--duration-base) var(--ease-out, var(--easing)), translate var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-capp-row.is-open .fl-capp-body { opacity: 1; translate: 0 0; }
+.fl-capp-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: var(--space-3); margin: 0; }
+.fl-capp-facts div { display: grid; gap: 2px; min-width: 0; }
+.fl-capp-facts dt, .fl-capp-label { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: 0.04em; }
+.fl-capp-facts dd { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); overflow-wrap: anywhere; }
+.fl-capp-scopes { display: grid; gap: var(--space-2); }
+.fl-capp-scopes ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
+.fl-capp-scopes li { display: flex; align-items: center; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-capp-scopes li svg { width: 1rem; height: 1rem; color: var(--color-success); flex: none; }
+.fl-capp-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+.fl-capp-switch { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-capp-btns { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.fl-capp-empty { border: 1px dashed var(--color-border); border-radius: min(var(--radius-md), 12px); }
+.fl-capp-note {
+  display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-accent) 7%, var(--surface-bg, var(--color-surface))); border-radius: min(var(--radius-md), 12px);
+}
+.fl-capp-note > svg { width: 1.25rem; height: 1.25rem; flex: none; color: var(--color-accent); }
+.fl-capp-note p { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-capp-note .fl-capp-label { color: var(--color-text); margin-bottom: 2px; text-transform: none; letter-spacing: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-capp-status { margin: 0; min-height: 1.25rem; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+/* Press feedback and the entrance (once, stagger capped). */
+.fl-capp .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-capp .fl-btn:active:not(:disabled) { scale: 0.96; }
+.fl-capp-row.is-entering { animation: fl-capp-rise var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)); }
+@keyframes fl-capp-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+
+@container (max-width: 34rem) {
+  .fl-capp { padding: var(--space-4); }
+  .fl-capp-main { flex-wrap: wrap; padding: var(--space-3); }
+  .fl-capp-actions { flex-basis: 100%; justify-content: flex-start; padding-left: calc(2.75rem + var(--space-3)); }
+  .fl-capp-body { margin: 0 var(--space-3) var(--space-3); padding: var(--space-3); }
+  .fl-capp-tools > .fl-ctl-seg, .fl-capp-tools > [data-fl] { max-width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-capp .fl-btn, .fl-capp-panel, .fl-capp-body, .fl-capp-more svg { transition-duration: 1ms; }
+  .fl-capp .fl-btn:active:not(:disabled) { scale: none; }
+  .fl-capp-body { translate: none; }
+  .fl-capp-row.is-entering { animation: fl-capp-fade var(--duration-fast) var(--easing) backwards; }
+  @keyframes fl-capp-fade { from { opacity: 0; } }
+}
+:root[data-motion="off"] .fl-capp * { transition: none !important; animation: none !important; }
+/* The switch's thumb is transformed, so it sits above the switch's own input and swallowed clicks; let them through. */
+.fl-capp .fl-ctl-switch-track { pointer-events: none; }
