@@ -9,8 +9,8 @@
 .fl-st-estate-card__img.fl-lhl-art svg { width: 3rem; height: 3rem; opacity: 0.7; }
 
 /* The rating in the price slot. */
-.fl-lhl-rating { display: inline-flex; align-items: center; gap: var(--space-2); font: var(--weight-regular) var(--text-sm) / 1 var(--font-sans); color: var(--color-text-muted); }
-.fl-lhl-rating b { font: var(--weight-bold) var(--text-xl) / 1.2 var(--font-display); color: var(--color-text); }
+.fl-lhl-rating { display: inline-flex; align-items: center; gap: var(--space-2); font: var(--weight-regular) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-sans); color: var(--color-text-muted); }
+.fl-lhl-rating b { font: var(--weight-bold) max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))) / 1.2 var(--font-display); color: var(--color-text); }
 .fl-lhl-rating svg { width: 1.1rem; height: 1.1rem; color: var(--color-warning, var(--color-accent)); }
 
 /* The title is the card's open control: it reads as the heading. */
@@ -18,7 +18,7 @@
 .fl-lhl-open:hover { color: var(--color-accent); text-decoration: underline; text-underline-offset: 0.2em; }
 
 /* Where it is near the person's ZIP code. */
-.fl-lhl-where { display: flex; align-items: center; gap: var(--space-2); margin: 0; min-width: 0; font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-lhl-where { display: flex; align-items: center; gap: var(--space-2); margin: 0; min-width: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-lhl-where.is-on { color: var(--color-success); }
 .fl-lhl-where svg { width: 1em; height: 1em; flex: none; }
 

@@ -205,7 +205,7 @@ export default function InputGroupSheet() {
   const over = msg.length > d.message.limit;
 
   return (
-    <section className="fl-section" aria-labelledby={`${uid}-title`}>
+    <section className="fl-section fl-section--canvas" aria-labelledby={`${uid}-title`}>
       <div className="fl-wrap">
         <div className="fl-head">
           <h2 id={`${uid}-title`} className="fl-title fl-title--md">

@@ -8,7 +8,7 @@
   position: relative; display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--control-sm, 2.5rem);
   padding: 0 calc(8px + 1rem + var(--space-2)) 0 var(--space-3);
   border: var(--control-border, 1px solid var(--color-border-strong, var(--color-border))); border-radius: min(var(--control-radius, var(--radius-md)), 12px);
-  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer;
+  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); cursor: pointer;
   transition: background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), scale var(--duration-fast) var(--ease-out);
 }
 .fl-lang-btn:hover { background: var(--color-surface-sunken); }
@@ -45,9 +45,9 @@
 .fl-lang-tick { display: grid; place-items: center; color: var(--color-accent); }
 .fl-lang-tick svg { width: 1rem; height: 1rem; animation: fl-lang-pop var(--duration-base) var(--ease-spring, var(--ease-out)); }
 @keyframes fl-lang-pop { from { opacity: 0; scale: 0.5; } }
-.fl-lang-names { display: grid; min-width: 0; font-size: var(--text-sm); }
-.fl-lang-names small { color: var(--color-text-muted); font-size: var(--text-xs); font-weight: var(--weight-regular, 400); }
-.fl-lang-code { color: var(--color-text-muted); font-size: var(--text-xs); letter-spacing: 0.04em; }
+.fl-lang-names { display: grid; min-width: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-lang-names small { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-regular, 400); }
+.fl-lang-code { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); letter-spacing: 0.04em; }
 
 /* The reference sheet: a site header, then a card in the chosen language. */
 .fl-lang-demo { display: grid; gap: var(--space-5); min-height: 30rem; align-content: start; }
@@ -56,7 +56,7 @@
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
   border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
 }
-.fl-lang-demo-bar nav { display: flex; gap: var(--space-4); margin-right: auto; font-size: var(--text-sm); }
+.fl-lang-demo-bar nav { display: flex; gap: var(--space-4); margin-right: auto; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-lang-demo-bar nav a { color: var(--color-text-muted); text-decoration: none; }
 .fl-lang-demo-bar nav a:hover { color: var(--color-text); }
 .fl-lang-demo-bar .fl-lang:has(.is-compact) { display: none; }
@@ -66,7 +66,7 @@
   border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
   animation: fl-lang-in var(--duration-base) var(--ease-out);
 }
-.fl-lang-demo-card h2 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); }
+.fl-lang-demo-card h2 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px)))); }
 .fl-lang-demo-card p { margin: 0; color: var(--color-text-muted); }
 @keyframes fl-lang-in { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 0.5); } }
 

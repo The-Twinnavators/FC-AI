@@ -1,0 +1,87 @@
+/**
+ * Zoom chart (p.zoom-chart): overlaid areas in a card, a crosshair readout, and an overview strip whose bright window
+ * and two grips pan and resize what the chart shows. Prefixed fl-zch-; only the library's tokens.
+ * Adapted from TailGrids (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-zch {
+  display: grid; gap: var(--space-3); margin: 0; padding: var(--space-5); min-width: 0;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-zch-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.fl-zch-titles { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-zch-title { font: var(--weight-semibold) max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))) / 1.3 var(--font-sans); color: var(--color-text); }
+.fl-zch-range { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-zch-legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin: 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-zch-key { display: inline-flex; align-items: center; gap: var(--space-2); }
+.fl-zch-key strong { color: var(--color-text); font-variant-numeric: tabular-nums; }
+.fl-zch-swatch { width: 0.625rem; height: 0.625rem; border-radius: 2px; background: currentColor; }
+.fl-zch-key--accent .fl-zch-swatch { background: var(--color-accent); }
+.fl-zch-key--secondary .fl-zch-swatch { background: var(--color-secondary, var(--color-text-muted)); }
+
+.fl-zch-plotwrap { position: relative; min-width: 0; }
+.fl-zch-plot { display: block; max-width: 100%; touch-action: pan-y; cursor: crosshair; user-select: none; -webkit-user-select: none; border-radius: min(var(--radius-sm), 8px); }
+.fl-zch-plot:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-zch-grid line { stroke: var(--color-border); stroke-dasharray: 2 4; }
+.fl-zch-grid text, .fl-zch-xlab { fill: var(--color-text-muted); font: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) var(--font-sans); font-variant-numeric: tabular-nums; }
+.fl-zch-stop--accent { stop-color: var(--color-accent); }
+.fl-zch-stop--secondary { stop-color: var(--color-secondary, var(--color-text-muted)); }
+.fl-zch-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.fl-zch-line--accent { stroke: var(--color-accent); }
+.fl-zch-line--secondary { stroke: var(--color-secondary, var(--color-text-muted)); }
+.fl-zch-sel { fill: color-mix(in srgb, var(--color-accent) 14%, transparent); stroke: var(--color-accent); stroke-dasharray: 3 3; }
+.fl-zch-cross line { stroke: var(--color-text-muted); stroke-dasharray: 3 3; }
+.fl-zch-dot { stroke: var(--color-surface); stroke-width: 2; }
+.fl-zch-dot--accent { fill: var(--color-accent); }
+.fl-zch-dot--secondary { fill: var(--color-secondary, var(--color-text-muted)); }
+.fl-zch-tip {
+  position: absolute; top: var(--space-1); translate: -50% 0; display: grid; gap: 2px; padding: var(--space-2) var(--space-3); pointer-events: none;
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 10px);
+  box-shadow: var(--surface-shadow-overlay, 0 8px 24px color-mix(in srgb, var(--color-text) 12%, transparent));
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); white-space: nowrap; color: var(--color-text-muted);
+  transition: left var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-zch-tip-date { font-weight: var(--weight-semibold); color: var(--color-text); }
+.fl-zch-tip-row { display: flex; align-items: center; gap: var(--space-2); }
+.fl-zch-tip-row strong { margin-left: auto; padding-left: var(--space-3); color: var(--color-text); font-variant-numeric: tabular-nums; }
+
+/* Overview strip and brush. */
+.fl-zch-strip {
+  position: relative; height: 52px; margin-left: 48px; touch-action: none; cursor: pointer;
+  border-radius: min(var(--radius-sm), 8px); background: var(--color-surface-sunken);
+}
+.fl-zch-mini { display: block; }
+.fl-zch-mini-area { fill: color-mix(in srgb, var(--color-text-muted) 30%, transparent); }
+.fl-zch-shade { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--color-surface) 55%, transparent); pointer-events: none; }
+.fl-zch-shade:first-of-type { border-radius: min(var(--radius-sm), 8px) 0 0 min(var(--radius-sm), 8px); }
+.fl-zch-win {
+  position: absolute; top: 0; bottom: 0; cursor: grab; border: 1.5px solid var(--color-accent); border-radius: min(var(--radius-sm), 6px);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  transition: background-color var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-zch-win:hover { background: color-mix(in srgb, var(--color-accent) 16%, transparent); }
+.fl-zch-win:active { cursor: grabbing; }
+.fl-zch-win:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-zch-grip {
+  position: absolute; top: 50%; width: 12px; height: 28px; translate: -50% -50%; cursor: ew-resize; touch-action: none;
+  border-radius: min(var(--radius-sm), 6px); background: var(--color-surface); border: 1.5px solid var(--color-accent);
+  transition: scale var(--duration-fast) var(--ease-spring, var(--ease-out, var(--easing)));
+}
+.fl-zch-grip::before { content: ""; position: absolute; inset: -10px -8px; }
+.fl-zch-grip::after { content: ""; position: absolute; inset: 7px 3px; border-inline: 1px solid var(--color-accent); }
+.fl-zch-grip:hover, .fl-zch-grip:active { scale: 1.12; }
+.fl-zch-grip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.fl-zch-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.fl-zch-said { margin: 0; min-height: 1.25em; flex: 1 1 12rem; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-zch-acts { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.fl-zch-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (max-width: 30rem) {
+  .fl-zch { padding: var(--space-4); }
+  .fl-zch-strip { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-zch-tip, .fl-zch-grip, .fl-zch-win { transition: none; }
+}
+:root[data-motion="off"] .fl-zch * { transition: none !important; animation: none !important; }

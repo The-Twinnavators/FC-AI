@@ -6,9 +6,9 @@
 .fl-tfil { container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; }
 .fl-tfil-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .fl-tfil-heading { display: grid; gap: 2px; }
-.fl-tfil-heading h3 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); font-weight: var(--weight-semibold); }
+.fl-tfil-heading h3 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px)))); font-weight: var(--weight-semibold); }
 .fl-tfil-heading h3:focus { outline: none; }
-.fl-tfil-count { font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-tfil-count { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-tfil-tools { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .fl-tfil-tools .fl-btn { transition: scale var(--duration-fast) var(--ease-out, var(--easing)), background-color var(--duration-fast) var(--easing); }
 .fl-tfil-tools .fl-btn:active:not(:disabled) { scale: 0.97; }
@@ -17,9 +17,9 @@
   overflow-x: auto; background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
   border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
 }
-.fl-tfil-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.fl-tfil-table { width: 100%; border-collapse: collapse; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-tfil-table th {
-  padding: var(--space-3) var(--space-4); text-align: start; white-space: nowrap; font-size: var(--text-xs); font-weight: var(--weight-medium);
+  padding: var(--space-3) var(--space-4); text-align: start; white-space: nowrap; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium);
   color: var(--color-text-muted); background: var(--color-surface-sunken); border-bottom: 1px solid var(--color-border);
 }
 .fl-tfil-table td { padding: var(--space-3) var(--space-4); vertical-align: middle; border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); white-space: nowrap; }
@@ -61,7 +61,7 @@ th[aria-sort="ascending"] .fl-tfil-sort, th[aria-sort="descending"] .fl-tfil-sor
 .fl-tfil-tile--zip { --_c: var(--color-warning); }
 .fl-tfil-name { display: grid; gap: 2px; min-width: 0; }
 .fl-tfil-name-text { color: var(--color-text); font-weight: var(--weight-medium); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22rem; }
-.fl-tfil-sub { font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-tfil-sub { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-tfil-col-name .fl-tfil-name .fl-tfil-sub { display: none; }
 .fl-tfil-row--up .fl-tfil-sub { display: inline !important; }
 .fl-tfil-by { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-text); }
@@ -70,10 +70,10 @@ th[aria-sort="ascending"] .fl-tfil-sort, th[aria-sort="descending"] .fl-tfil-sor
 .fl-tfil-progress { display: grid; gap: var(--space-1); min-width: 12rem; }
 .fl-tfil-bar { display: block; height: 6px; overflow: hidden; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); }
 .fl-tfil-bar > span { display: block; height: 100%; background: var(--color-accent); border-radius: inherit; transform-origin: left; transition: transform var(--duration-base) var(--ease-out, var(--easing)); }
-.fl-tfil-error { font-size: var(--text-xs); color: var(--color-danger); white-space: normal; }
+.fl-tfil-error { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-danger); white-space: normal; }
 .fl-tfil-rename { display: grid; gap: 2px; min-width: 12rem; }
 
-.fl-tfil-status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); min-height: 2rem; font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-tfil-status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); min-height: 2rem; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 
 /* Narrow: each file becomes a compact row (name and size, then actions); dates and uploader step aside. */
 @container (max-width: 44rem) {

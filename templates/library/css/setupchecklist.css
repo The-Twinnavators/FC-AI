@@ -18,10 +18,10 @@
 }
 .fl-sc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
 .fl-sc-heading { display: grid; gap: var(--space-1); min-width: 0; }
-.fl-sc-heading h2 { margin: 0; outline: none; font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); font-weight: var(--weight-semibold); }
-.fl-sc-heading p { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-sc-heading h2 { margin: 0; outline: none; font-family: var(--font-display); font-size: var(--type-h3-size, max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px)))); font-weight: var(--weight-semibold); }
+.fl-sc-heading p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-sc-progress { display: grid; gap: var(--space-2); }
-.fl-sc-count { font-size: var(--text-sm); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.fl-sc-count { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
 .fl-sc-count strong { color: var(--color-text); }
 .fl-sc-meter { display: block; height: 6px; border-radius: 999px; background: var(--color-surface-sunken); overflow: hidden; }
 .fl-sc-meter > span { display: block; height: 100%; border-radius: inherit; background: var(--color-accent); transition: width var(--duration-slow) var(--ease-out); }
@@ -30,7 +30,7 @@
 .fl-sc-bar {
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-2) var(--space-3); width: 100%;
   padding: var(--space-3) var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
-  background: var(--surface-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-semibold); text-align: left; cursor: pointer;
+  background: var(--surface-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-align: left; cursor: pointer;
   transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out);
 }
 .fl-sc-bar:hover { background: var(--color-surface-sunken); }
@@ -61,14 +61,14 @@
 
 .fl-sc-toggle {
   display: flex; align-items: center; gap: var(--space-2); width: 100%; min-height: 3rem; padding: var(--space-2) var(--space-2); border: 0; border-radius: var(--radius-sm);
-  background: none; color: var(--color-text); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-semibold); text-align: left; cursor: pointer;
+  background: none; color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-align: left; cursor: pointer;
   transition: background-color var(--duration-fast) var(--easing);
 }
 .fl-sc-toggle:hover { background: var(--color-surface-sunken); }
 .fl-sc-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .fl-sc-name { flex: 1 1 auto; min-width: 0; transition: color var(--duration-base) var(--easing); }
 .fl-sc-task:not(.is-todo) .fl-sc-name { color: var(--color-text-muted); font-weight: var(--weight-medium); }
-.fl-sc-tag { flex: none; padding: 0 var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: var(--text-xs); font-weight: var(--weight-medium); }
+.fl-sc-tag { flex: none; padding: 0 var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
 .fl-sc-toggle > svg { flex: none; width: 1rem; height: 1rem; color: var(--color-text-muted); transition: rotate var(--duration-base) var(--ease-out); }
 .fl-sc-task.is-open .fl-sc-toggle > svg { rotate: 180deg; }
 
@@ -77,9 +77,9 @@
 .fl-sc-task.is-open .fl-sc-panel { grid-template-rows: 1fr; }
 .fl-sc-body { display: grid; gap: var(--space-3); padding: 0 var(--space-2) var(--space-4) calc(2.25rem + var(--space-4)); opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); transition: opacity var(--duration-base) var(--easing), translate var(--duration-base) var(--ease-out); }
 .fl-sc-task.is-open .fl-sc-body { opacity: 1; translate: 0 0; }
-.fl-sc-body > p { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.5; }
+.fl-sc-body > p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: 1.5; }
 .fl-sc-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.fl-sc-error { display: flex; align-items: center; gap: var(--space-1); margin: 0; color: var(--color-danger); font-size: var(--text-sm); }
+.fl-sc-error { display: flex; align-items: center; gap: var(--space-1); margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-sc-error svg { width: 1rem; height: 1rem; flex: none; }
 
 .fl-sc-done { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }

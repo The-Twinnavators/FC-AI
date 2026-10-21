@@ -8,8 +8,8 @@
 /* ── Header card: photo, who, links, Edit ── */
 .fl-pf-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-5); }
 .fl-pf-who { display: grid; gap: var(--space-1); flex: 1 1 12rem; min-width: 0; }
-.fl-pf-name { font: var(--weight-semibold) var(--text-lg) / var(--leading-snug) var(--font-display); }
-.fl-pf-role { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-pf-name { font: var(--weight-semibold) max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))) / var(--leading-snug) var(--font-display); }
+.fl-pf-role { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 /* A thin rule between role and place, as the original's divider. */
 .fl-pf-role > span + span { padding-left: var(--space-3); border-left: 1px solid var(--color-border); }
 .fl-pf-links { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
@@ -18,15 +18,15 @@
 .fl-pf-sechead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .fl-pf-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5) var(--space-6); margin: 0; }
 .fl-pf-facts > div { display: grid; gap: var(--space-1); min-width: 0; }
-.fl-pf-facts dt { font-size: var(--text-xs); color: var(--color-text-muted); }
-.fl-pf-facts dd { margin: 0; font-size: var(--text-sm); font-weight: var(--weight-medium); overflow-wrap: anywhere; }
+.fl-pf-facts dt { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-pf-facts dd { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); overflow-wrap: anywhere; }
 .fl-pf-facts dd.fl-pf-empty { color: var(--color-text-muted); font-weight: var(--weight-regular); font-style: italic; }
 .fl-pf-wide { grid-column: 1 / -1; }
 .fl-pf-status:empty { display: none; }
 
 /* ── The edit dialog's fields: two columns, full width for long ones ── */
 .fl-pf-dialog { width: min(36rem, 100%); }
-.fl-pf-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); color: var(--color-text); font-size: var(--text-md); }
+.fl-pf-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); color: var(--color-text); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
 .fl-pf-fields textarea { min-height: 6rem; }
 
 @container fl-as (max-width: 34rem) {

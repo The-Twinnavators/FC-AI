@@ -244,7 +244,7 @@ const TONE: Record<string, "info" | "success" | "warning"> = { New: "info", Impr
 export default function ScrollAreaPreview() {
   const d = SAMPLE;
   return (
-    <section className="fl-section" aria-labelledby="scroll-area-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="scroll-area-title">
       <div className="fl-wrap">
         <div className="fl-head">
           <p className="fl-eyebrow">{d.eyebrow}</p>

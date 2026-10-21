@@ -15,7 +15,7 @@
 .fl-tdir-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 .fl-tdir-chips .fl-ctl-chip-item { transition: scale var(--duration-fast) var(--ease-out, var(--easing)), background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing); }
 .fl-tdir-chips .fl-ctl-chip-item:active { scale: 0.96; }
-.fl-tdir-n { font-size: var(--text-xs); font-variant-numeric: tabular-nums; opacity: 0.7; }
+.fl-tdir-n { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; opacity: 0.7; }
 
 .fl-tdir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--space-5); margin: 0; padding: 0; list-style: none; }
 .fl-tdir-grid:empty { display: none; }
@@ -28,21 +28,21 @@
 }
 .fl-tdir-card:hover { border-color: var(--color-border-strong, var(--color-border)); }
 .fl-tdir-who { display: grid; gap: var(--space-1); }
-.fl-tdir-who h3 { margin: 0; font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--weight-semibold); }
-.fl-tdir-role { margin: 0; font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-secondary, var(--color-accent)); }
-.fl-tdir-meta { margin: 0; font-size: var(--text-xs); color: var(--color-text-muted); }
-.fl-tdir-bio { margin: 0; font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.5; }
+.fl-tdir-who h3 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-tdir-role { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); color: var(--color-secondary, var(--color-accent)); }
+.fl-tdir-meta { margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-tdir-bio { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); line-height: 1.5; }
 
 /* About: folds open with grid rows; the closed part is inert. */
 .fl-tdir-more { display: grid; justify-items: center; width: 100%; }
 .fl-tdir-more-body { display: grid; grid-template-rows: 0fr; width: 100%; transition: grid-template-rows var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)); }
 .fl-tdir-more-body > div { overflow: hidden; min-height: 0; }
-.fl-tdir-more-body p { margin: 0; padding: var(--space-2) 0 var(--space-3); font-size: var(--text-sm); line-height: 1.55; color: var(--color-text); text-align: start; opacity: 0; transition: opacity var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-tdir-more-body p { margin: 0; padding: var(--space-2) 0 var(--space-3); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: 1.55; color: var(--color-text); text-align: start; opacity: 0; transition: opacity var(--duration-base) var(--ease-out, var(--easing)); }
 .fl-tdir-more.is-open .fl-tdir-more-body { grid-template-rows: 1fr; }
 .fl-tdir-more.is-open .fl-tdir-more-body p { opacity: 1; }
 .fl-tdir-toggle {
   display: inline-flex; align-items: center; gap: var(--space-1); min-height: 2rem; padding: 0 var(--space-2);
-  border: 0; border-radius: var(--radius-sm, 4px); background: none; color: var(--color-accent); font: var(--weight-medium) var(--text-sm) / 1 var(--font-sans); cursor: pointer;
+  border: 0; border-radius: var(--radius-sm, 4px); background: none; color: var(--color-accent); font: var(--weight-medium) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-sans); cursor: pointer;
 }
 .fl-tdir-toggle:hover { text-decoration: underline; }
 .fl-tdir-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
@@ -61,7 +61,7 @@
 .fl-tdir-link:active { scale: 0.92; }
 .fl-tdir-link:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
-.fl-tdir-status { margin: 0; min-height: 1.25rem; text-align: center; font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-tdir-status { margin: 0; min-height: 1.25rem; text-align: center; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 
 /* Entrance: once per card, the stagger capped. */
 .fl-tdir-item.is-waiting { opacity: 0; }

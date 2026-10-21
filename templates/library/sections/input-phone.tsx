@@ -299,7 +299,7 @@ export default function InputPhone() {
     );
   };
   return (
-    <section className="fl-section" aria-labelledby="fl-ph-demo-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="fl-ph-demo-title">
       <div className="fl-wrap fl-wrap--narrow">
         <form className="fl-ph-demo" onSubmit={submit} noValidate>
           <div>

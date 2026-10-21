@@ -9,7 +9,7 @@
 .fl-mob-nav ul { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin: 0; padding: var(--space-2) var(--space-1); list-style: none; }
 .fl-mob-nav__item {
   display: grid; justify-items: center; gap: var(--space-1); width: 100%; min-height: 3.5rem; padding: var(--space-1) 0; border: 0; border-radius: var(--radius-md);
-  background: none; color: var(--color-text-muted); font: inherit; font-size: var(--text-xs); text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background: none; color: var(--color-text-muted); font: inherit; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .fl-mob-nav__item:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .fl-mob-nav__pill {
@@ -23,7 +23,7 @@
 .fl-mob-nav__item:active .fl-mob-nav__pill { transform: scale(var(--press-scale, 0.96)); }
 .fl-mob-nav__badge {
   position: absolute; top: -0.2rem; left: calc(50% + 0.35rem); min-width: 1.1rem; height: 1.1rem; padding: 0 0.3rem; border-radius: var(--pill-radius, 999px);
-  background: var(--color-danger); color: var(--color-on-accent); font-size: 0.65rem; font-weight: var(--weight-bold); line-height: 1.1rem; text-align: center;
+  background: var(--color-danger); color: var(--color-on-accent); font-size: max(11px, calc(0.65rem - var(--fs-shrink, 0px))); font-weight: var(--weight-bold); line-height: 1.1rem; text-align: center;
 }
 .fl-mob-nav__badge--dot { min-width: 0.55rem; width: 0.55rem; height: 0.55rem; padding: 0; top: 0.1rem; }
 /* Only the current place shows its label; the others are icons that keep their names for screen readers. */
@@ -60,7 +60,7 @@
 .fl-mob-fab-menu__item {
   display: inline-flex; align-items: center; gap: var(--space-2); min-height: 2.75rem; padding: 0 var(--space-4); border: 1px solid var(--overlay-border, var(--color-border));
   border-radius: var(--pill-radius, 999px); background: var(--color-surface); color: var(--color-text); box-shadow: var(--surface-shadow);
-  font: inherit; font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer;
+  font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); cursor: pointer;
 }
 .fl-mob-fab-menu__item svg { width: 1.1rem; height: 1.1rem; color: var(--color-accent); }
 .fl-mob-fab-menu__item:hover { background: var(--color-surface-sunken); }
@@ -78,10 +78,10 @@
 .fl-mob-phone__screen { display: grid; align-content: start; gap: var(--space-2); padding: var(--space-4); min-height: 0; }
 .fl-mob-phone__screen--scroll { overflow-y: auto; grid-row: 1 / -1; }
 .fl-mob-phone__screen:focus-visible { outline: none; box-shadow: inset var(--focus-ring); }
-.fl-mob-phone__title { margin: 0; font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--heading-weight, var(--weight-bold)); }
+.fl-mob-phone__title { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); font-weight: var(--heading-weight, var(--weight-bold)); }
 .fl-mob-phone__rows { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.fl-mob-phone__rows li { padding: var(--space-3); border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--radius-md); background: var(--surface-bg, var(--color-surface)); font-size: var(--text-sm); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
-.fl-mob-notes { display: grid; gap: var(--space-1); margin: 0; padding-left: var(--space-4); color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-mob-phone__rows li { padding: var(--space-3); border: var(--surface-border, 1px solid var(--color-border)); border-radius: var(--radius-md); background: var(--surface-bg, var(--color-surface)); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
+.fl-mob-notes { display: grid; gap: var(--space-1); margin: 0; padding-left: var(--space-4); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 
 @media (prefers-reduced-motion: reduce) {
   .fl-mob-fab, .fl-mob-fab__icon svg, .fl-mob-nav__pill { transition: none; }

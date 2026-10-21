@@ -1,0 +1,115 @@
+/**
+ * CSV import (p.csv-import): three numbered steps with one sliding underline over a card that holds the drop zone, the
+ * column-matching table, the review table with tinted problem cells, the progress bar and the summary.
+ * Prefixed fl-ci-; only the library's tokens. Adapted from HyperUI (MIT License, Copyright (c) Mark Mead).
+ */
+.fl-ci { container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; }
+
+.fl-ci-steps { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0 0 var(--space-3); list-style: none; border-bottom: 1px solid var(--color-border); }
+.fl-ci-steps li { display: flex; align-items: center; gap: var(--space-2); min-width: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-ci-steps li > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-ci-steps li.is-current { color: var(--color-text); font-weight: var(--weight-semibold); }
+.fl-ci-steps li.is-done { color: var(--color-text); }
+.fl-ci-dot {
+  display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 999px; border: 1px solid var(--color-border);
+  background: var(--color-surface); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums;
+  transition: background-color var(--duration-base) var(--easing), color var(--duration-base) var(--easing), border-color var(--duration-base) var(--easing);
+}
+.fl-ci-dot svg { width: 0.875rem; height: 0.875rem; }
+.is-current > .fl-ci-dot { border-color: var(--color-accent); color: var(--color-accent); }
+.is-done > .fl-ci-dot { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent); }
+/* The one moving indicator: a third of the width, slid to the current step. */
+.fl-ci-rail { position: absolute; left: 0; bottom: -1px; width: calc(100% / 3); height: 2px; border-radius: 2px; background: var(--color-accent); translate: calc(var(--at, 0) * 100%) 0; transition: translate var(--duration-slow) var(--ease-out); }
+
+.fl-ci-card {
+  display: grid; gap: var(--space-4); padding: var(--space-5); min-width: 0;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+  animation: fl-ci-in var(--duration-slow) var(--ease-out) backwards;
+}
+@keyframes fl-ci-in { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-ci-title { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px)))); font-weight: var(--weight-semibold); overflow-wrap: anywhere; }
+.fl-ci-title:focus { outline: none; }
+.fl-ci-title:focus-visible { box-shadow: var(--focus-ring); border-radius: min(var(--radius-sm, 4px), 12px); }
+.fl-ci-lede { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-ci-muted { color: var(--color-text-muted); }
+.fl-ci-small { margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+.fl-ci-drop {
+  display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-6) var(--space-4); text-align: center;
+  border: 2px dashed var(--color-border); border-radius: min(var(--radius-lg), 12px); background: var(--color-surface-sunken);
+  transition: border-color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing), scale var(--duration-base) var(--ease-out);
+}
+.fl-ci-drop > svg { width: 2rem; height: 2rem; color: var(--color-text-muted); }
+.fl-ci-drop > span { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); max-width: 32rem; }
+.fl-ci-drop.is-over { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface-sunken)); scale: 1.01; }
+.fl-ci-drop.is-error { border-color: var(--color-danger); }
+.fl-ci-drop-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-top: var(--space-2); }
+
+.fl-ci-paste { display: grid; grid-template-rows: 0fr; margin-top: calc(-1 * var(--space-4)); transition: grid-template-rows var(--duration-base) var(--ease-out); }
+.fl-ci-paste.is-open { grid-template-rows: 1fr; }
+.fl-ci-paste-inner { overflow: hidden; min-height: 0; display: grid; gap: var(--space-2); }
+.fl-ci-paste-inner > :first-child { margin-top: var(--space-4); }
+.fl-ci-paste-inner > label { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-ci-mono { font-family: var(--font-mono, ui-monospace, monospace); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+.fl-ci-error { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-danger); }
+.fl-ci-error svg, .fl-ci-errors svg { width: 1rem; height: 1rem; flex: none; }
+.fl-ci-errors { display: grid; gap: var(--space-1); margin: 0; padding: var(--space-3); list-style: none; border-radius: min(var(--radius-md), 12px); background: var(--color-danger-surface, var(--color-surface-sunken)); color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-ci-errors li { display: flex; align-items: center; gap: var(--space-2); }
+
+.fl-ci-scroll { min-width: 0; overflow: auto; border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); }
+.fl-ci-scroll--tall { max-height: 22rem; }
+.fl-ci-scroll:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-ci-table { width: 100%; border-collapse: collapse; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-ci-table thead th { position: sticky; top: 0; z-index: 1; padding: var(--space-2) var(--space-3); background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-align: left; white-space: nowrap; border-bottom: 1px solid var(--color-border); }
+.fl-ci-table tbody th, .fl-ci-table tbody td { padding: var(--space-2) var(--space-3); text-align: left; font-weight: inherit; vertical-align: middle; border-top: 1px solid var(--color-border); }
+.fl-ci-table tbody tr:first-child > * { border-top: 0; }
+.fl-ci-maptable tbody th { font-weight: var(--weight-semibold); }
+.fl-ci-maptable td:last-child { width: 14rem; }
+.fl-ci-maptable select { height: 36px; min-height: 36px; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-ci-rows tbody th { color: var(--color-text-muted); font-variant-numeric: tabular-nums; width: 1%; }
+.fl-ci-rows td { white-space: nowrap; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; }
+.fl-ci-rows tr.is-bad > th { color: var(--color-warning); font-weight: var(--weight-semibold); }
+.fl-ci-rows td.is-bad { background: color-mix(in srgb, var(--color-danger) 10%, transparent); }
+.fl-ci-issue { display: block; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); color: var(--color-danger); }
+.fl-ci-counts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fl-ci-counts > :last-child:not(.fl-ctl-badge) { margin-left: auto; }
+
+.fl-ci-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); padding-top: var(--space-2); }
+.fl-ci .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-ci .fl-btn:active:not(:disabled) { scale: 0.96; }
+
+.fl-ci-run { display: grid; gap: var(--space-3); }
+.fl-ci-run p { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-ci-bar { display: block; height: 8px; border-radius: 999px; background: var(--color-surface-sunken); overflow: hidden; }
+.fl-ci-bar > span { display: block; height: 100%; background: var(--color-accent); transform-origin: left; transition: scale var(--duration-base) var(--ease-out); }
+
+.fl-ci-done { display: grid; justify-items: center; gap: var(--space-3); padding-block: var(--space-4); text-align: center; }
+.fl-ci-done p { margin: 0; color: var(--color-text-muted); }
+.fl-ci-done strong { color: var(--color-text); }
+.fl-ci-doneicon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 999px; background: var(--color-success); color: var(--color-on-accent, var(--color-surface)); animation: fl-ci-pop var(--duration-slow) var(--ease-spring, var(--ease-out)) backwards; }
+.fl-ci-doneicon.is-warn { background: var(--color-warning); }
+.fl-ci-doneicon svg { width: 1.5rem; height: 1.5rem; }
+@keyframes fl-ci-pop { from { opacity: 0; scale: 0.6; } }
+
+/* Narrow: the step names shrink to their numbers, and the column table stacks. */
+@container (max-width: 34rem) {
+  .fl-ci-card { padding: var(--space-4); }
+  .fl-ci-steps li:not(.is-current) > span:nth-child(2) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .fl-ci-maptable thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .fl-ci-maptable, .fl-ci-maptable tbody, .fl-ci-maptable tr { display: grid; }
+  .fl-ci-maptable tr { gap: var(--space-1); padding: var(--space-3); border-top: 1px solid var(--color-border); }
+  .fl-ci-maptable tbody tr:first-child { border-top: 0; }
+  .fl-ci-maptable tbody th, .fl-ci-maptable tbody td { padding: 0; border: 0; width: auto; }
+  .fl-ci-maptable td.fl-ci-muted { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); overflow-wrap: anywhere; }
+  .fl-ci-nav .fl-btn { flex: 1 1 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-ci-rail, .fl-ci-dot, .fl-ci-drop, .fl-ci-paste, .fl-ci-bar > span, .fl-ci .fl-btn { transition-duration: 1ms; }
+  .fl-ci-drop.is-over { scale: none; }
+  .fl-ci .fl-btn:active:not(:disabled) { scale: none; }
+  .fl-ci-card, .fl-ci-doneicon { animation: fl-ci-fade var(--duration-fast) var(--easing) backwards; }
+  @keyframes fl-ci-fade { from { opacity: 0; } }
+}
+:root[data-motion="off"] .fl-ci, :root[data-motion="off"] .fl-ci * { transition: none !important; animation: none !important; }

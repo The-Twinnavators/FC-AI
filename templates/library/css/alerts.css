@@ -24,13 +24,13 @@
 }
 .fl-alr__icon svg { width: 1.1rem; height: 1.1rem; }
 .fl-alr__body { display: grid; gap: var(--space-1); min-width: 0; padding-top: var(--space-1); }
-.fl-alr__title { margin: 0; font-weight: var(--weight-semibold); font-size: var(--text-md); line-height: var(--leading-snug); }
-.fl-alr__text { margin: 0; color: var(--color-text-muted); line-height: var(--leading-normal); font-size: var(--text-sm); }
+.fl-alr__title { margin: 0; font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); line-height: var(--leading-snug); }
+.fl-alr__text { margin: 0; color: var(--color-text-muted); line-height: var(--leading-normal); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-alr__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); }
 .fl-alr__action {
   min-height: var(--control-sm); padding-inline: var(--control-pad-sm); border-radius: var(--control-radius, var(--radius-sm));
   border: 1px solid color-mix(in srgb, var(--fl-alr-tone) 45%, transparent); background: var(--color-surface);
-  color: var(--fl-alr-tone); font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); cursor: pointer;
+  color: var(--fl-alr-tone); font: var(--weight-semibold) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-sans); cursor: pointer;
   transition: background-color var(--duration-fast) var(--easing);
 }
 .fl-alr__action:hover { background: color-mix(in srgb, var(--fl-alr-tone) 10%, var(--color-surface)); }
@@ -50,8 +50,8 @@
   display: flex; align-items: center; gap: var(--space-3); max-width: var(--content-max, 72rem); margin-inline: auto;
   padding: var(--space-3) var(--space-5); min-height: var(--control-lg);
 }
-.fl-alr-banner__msg { flex: 1; margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: center; justify-content: center; text-align: center; font-size: var(--text-sm); line-height: var(--leading-snug); }
-.fl-alr-banner__tag { padding: var(--space-1) var(--space-2); border-radius: 999px; background: color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 18%, transparent); font: var(--weight-semibold) var(--text-xs) / 1 var(--font-sans); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+.fl-alr-banner__msg { flex: 1; margin: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: center; justify-content: center; text-align: center; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: var(--leading-snug); }
+.fl-alr-banner__tag { padding: var(--space-1) var(--space-2); border-radius: 999px; background: color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 18%, transparent); font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1 var(--font-sans); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
 .fl-alr-banner a { color: inherit; font-weight: var(--weight-semibold); text-underline-offset: 3px; border-radius: var(--radius-sm); white-space: nowrap; }
 .fl-alr-banner .fl-alr__close { color: var(--color-on-secondary, var(--color-on-accent)); }
 .fl-alr-banner .fl-alr__close:hover { background: color-mix(in srgb, var(--color-on-secondary, var(--color-on-accent)) 16%, transparent); color: var(--color-on-secondary, var(--color-on-accent)); }
@@ -71,7 +71,7 @@
 }
 .fl-alr-toast .fl-alr__icon { width: 1.75rem; height: 1.75rem; }
 .fl-alr-toast__undo {
-  border: 0; background: none; padding: var(--space-1) 0; color: var(--color-accent); font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); cursor: pointer; border-radius: var(--radius-sm); justify-self: start;
+  border: 0; background: none; padding: var(--space-1) 0; color: var(--color-accent); font: var(--weight-semibold) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-sans); cursor: pointer; border-radius: var(--radius-sm); justify-self: start;
 }
 .fl-alr-toast__undo:hover { text-decoration: underline; text-underline-offset: 3px; }
 .fl-alr-toast__bar { position: absolute; left: 0; bottom: 0; height: 0.2rem; width: 100%; background: var(--fl-alr-tone); transform-origin: left; animation: fl-alr-bar linear forwards; }
@@ -79,7 +79,7 @@
 @keyframes fl-alr-in { from { opacity: 0; transform: translateY(0.75rem); } to { opacity: 1; transform: none; } }
 @keyframes fl-alr-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .fl-alr-log { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
-.fl-alr-log li { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-sunken); font-size: var(--text-sm); }
+.fl-alr-log li { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-sunken); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 
 /* ── Empty state ── */
 .fl-alr-empty { display: grid; justify-items: center; gap: var(--space-4); text-align: center; padding: var(--space-8) var(--space-5); border: 1px dashed var(--color-border-strong); border-radius: min(var(--radius-lg), 12px); background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none); backdrop-filter: var(--surface-blur, none); -webkit-backdrop-filter: var(--surface-blur, none); }
@@ -95,13 +95,13 @@
 /* ── 404 ── */
 .fl-alr-404 { display: grid; justify-items: center; gap: var(--space-5); text-align: center; }
 .fl-alr-404__code {
-  margin: 0; font: var(--weight-bold) var(--text-3xl) / 1 var(--font-display); font-size: calc(var(--text-3xl) * 2.5); letter-spacing: var(--tracking-tight);
+  margin: 0; font: var(--weight-bold) max(11px, calc(var(--text-3xl) - var(--fs-shrink, 0px))) / 1 var(--font-display); font-size: calc(max(11px, calc(var(--text-3xl) - var(--fs-shrink, 0px))) * 2.5); letter-spacing: var(--tracking-tight);
   font-variant-numeric: tabular-nums; color: var(--color-secondary, var(--color-accent));
   background: linear-gradient(160deg, var(--color-secondary, var(--color-accent)), color-mix(in srgb, var(--color-secondary, var(--color-accent)) 40%, var(--color-surface-sunken)));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .fl-alr-404 form { width: 100%; max-width: 30rem; }
-.fl-alr-404__error { margin: 0; color: var(--color-danger); font-size: var(--text-sm); text-align: left; }
+.fl-alr-404__error { margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); text-align: left; }
 .fl-alr-404__results { width: 100%; max-width: 30rem; display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; text-align: left; }
 .fl-alr-404__results a, .fl-alr-404__links a {
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4);
@@ -111,7 +111,7 @@
 .fl-alr-404__results a:hover, .fl-alr-404__links a:hover { border-color: var(--color-secondary-border, var(--color-accent)); background: var(--color-secondary-surface, color-mix(in srgb, var(--color-accent) 6%, var(--color-surface))); }
 .fl-alr-404__links { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; text-align: left; }
 .fl-alr-404__links a { align-items: flex-start; flex-direction: column; gap: var(--space-1); }
-.fl-alr-404__links a span { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-alr-404__links a span { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-alr-404 svg { width: 1rem; height: 1rem; flex: none; }
 .fl-alr-404 .fl-input[aria-invalid="true"] { border-color: var(--color-danger); }
 
@@ -128,6 +128,6 @@
   .fl-alr-banner__row { padding-inline: var(--space-4); }
   .fl-alr-banner__msg { justify-content: flex-start; text-align: left; }
   .fl-alr-toasts { right: var(--space-3); bottom: var(--space-3); width: calc(100vw - 2 * var(--space-3)); }
-  .fl-alr-404__code { font-size: calc(var(--text-3xl) * 1.8); }
+  .fl-alr-404__code { font-size: calc(max(11px, calc(var(--text-3xl) - var(--fs-shrink, 0px))) * 1.8); }
   .fl-alr-404__links { grid-template-columns: minmax(0, 1fr); }
 }

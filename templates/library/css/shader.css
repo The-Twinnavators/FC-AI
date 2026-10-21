@@ -30,7 +30,7 @@
 .fl-shader-content .fl-eyebrow { color: var(--fl-shader-on, var(--color-secondary, var(--color-accent))); }
 .fl-shader-heading { margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: var(--weight-semibold, 600); line-height: 1.25; color: inherit; }
 .fl-shader-heading--big { font-size: var(--text-2xl, 1.75rem); }
-.fl-shader-text { margin: 0; max-width: 34rem; font-size: var(--text-sm); }
+.fl-shader-text { margin: 0; max-width: 34rem; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 
 /* Pause / Play: a small round surface button in the corner, above everything. */
 .fl-shader-toggle {
@@ -57,13 +57,13 @@
 .fl-shader-controls { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: var(--space-4); align-items: start; }
 .fl-shader-field { display: grid; gap: var(--space-2); min-width: 0; margin: 0; }
 .fl-shader-field--wide { grid-column: 1 / -1; }
-.fl-shader-label { display: flex; justify-content: space-between; gap: var(--space-2); font-size: var(--text-sm); font-weight: var(--weight-semibold, 600); color: var(--color-text); }
+.fl-shader-label { display: flex; justify-content: space-between; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold, 600); color: var(--color-text); }
 .fl-shader-label output { font-weight: normal; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
-.fl-shader-hint { margin: 0; font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-shader-hint { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-shader-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .fl-shader-chip {
   min-height: 2.25rem; padding: 0 var(--space-3); border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px);
-  background: var(--color-surface); color: var(--color-text); font: inherit; font-size: var(--text-sm); cursor: pointer;
+  background: var(--color-surface); color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); cursor: pointer;
   transition: background var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
 }
 .fl-shader-chip:hover { background: var(--color-surface-sunken, var(--color-surface)); }
@@ -73,18 +73,18 @@
 .fl-shader-select { position: relative; display: block; }
 .fl-shader-select select {
   width: 100%; min-height: 2.5rem; padding: 0 calc(8px + 1rem + var(--space-2)) 0 var(--space-3); appearance: none; -webkit-appearance: none;
-  border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); font: inherit; font-size: var(--text-sm); cursor: pointer;
+  border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); cursor: pointer;
 }
 .fl-shader-select select:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .fl-shader-select svg { position: absolute; right: 8px; top: 50%; width: 1rem; height: 1rem; transform: translateY(-50%); pointer-events: none; color: var(--color-text-muted); }
 .fl-shader-range { width: 100%; margin: 0; min-height: 2.5rem; accent-color: var(--color-accent); cursor: pointer; }
 .fl-shader-range:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-md); }
-.fl-shader-check, .fl-shader-radio { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 2.25rem; font-size: var(--text-sm); color: var(--color-text); cursor: pointer; }
+.fl-shader-check, .fl-shader-radio { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 2.25rem; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text); cursor: pointer; }
 .fl-shader-check { align-self: end; }
 .fl-shader-check input, .fl-shader-radio input { width: 1.1rem; height: 1.1rem; margin: 0; accent-color: var(--color-accent); }
 .fl-shader-check input:focus-visible, .fl-shader-radio input:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .fl-shader-swatches { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-.fl-shader-swatch { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-shader-swatch { display: inline-flex; align-items: center; gap: var(--space-1); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-shader-swatch input { width: 2.25rem; height: 2.25rem; padding: 2px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); cursor: pointer; }
 .fl-shader-swatch input:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
@@ -100,8 +100,8 @@
 .fl-shader-tile[aria-pressed="true"] .fl-shader-thumb { box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent); }
 .fl-shader-tile:focus-visible { outline: none; }
 .fl-shader-tile:focus-visible .fl-shader-thumb { box-shadow: var(--focus-ring); }
-.fl-shader-tile-name { margin-top: var(--space-1); font-size: var(--text-sm); font-weight: var(--weight-semibold, 600); }
-.fl-shader-tile-what { font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-shader-tile-name { margin-top: var(--space-1); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold, 600); }
+.fl-shader-tile-what { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 
 @media (max-width: 40rem) {
   .fl-shader-hero .fl-shader-content { padding: var(--space-6) var(--space-4); }

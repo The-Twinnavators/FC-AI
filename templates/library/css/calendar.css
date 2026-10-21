@@ -6,12 +6,12 @@
 .fl-acal :is(button, [tabindex]):focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .fl-acal-bar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3) var(--space-4); }
 .fl-acal-nav, .fl-acal-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
-.fl-acal-period { margin: 0; font: var(--weight-semibold) var(--text-lg) / var(--leading-snug) var(--font-display); text-align: center; border-radius: var(--radius-sm); }
+.fl-acal-period { margin: 0; font: var(--weight-semibold) max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))) / var(--leading-snug) var(--font-display); text-align: center; border-radius: var(--radius-sm); }
 .fl-acal-period:focus { outline: none; }
 .fl-acal-period:focus-visible { box-shadow: var(--focus-ring); }
 
 /* The key: what each color means. */
-.fl-acal-key { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-acal-key { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-acal-key li { display: inline-flex; align-items: center; gap: var(--space-2); }
 
 /* ── Tones: one color per kind of event, the generic status tones (as c.badge.status: info is the accent) ── */
@@ -27,7 +27,7 @@
   display: flex; align-items: center; gap: var(--space-1); width: 100%; min-height: 1.5rem; padding: 2px var(--space-2);
   border: 0; border-radius: var(--radius-sm); cursor: pointer; text-align: start;
   background: color-mix(in srgb, var(--_tone) 14%, var(--surface-bg, var(--color-surface))); color: var(--color-text);
-  font: var(--weight-medium) var(--text-xs) / 1.3 var(--font-sans);
+  font: var(--weight-medium) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1.3 var(--font-sans);
   transition: background-color var(--duration-fast) var(--easing);
 }
 .fl-acal-ev::before { content: ""; flex: none; width: 0.4375rem; height: 0.4375rem; border-radius: 999px; background: var(--_tone); }
@@ -42,7 +42,7 @@
 
 /* ── Month ── */
 .fl-acal-month { width: 100%; table-layout: fixed; border-collapse: collapse; }
-.fl-acal-month th { padding: var(--space-2); font: var(--weight-semibold) var(--text-xs) / 1 var(--font-sans); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-text-muted); text-align: start; }
+.fl-acal-month th { padding: var(--space-2); font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1 var(--font-sans); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-text-muted); text-align: start; }
 .fl-acal-cell { height: 7rem; padding: var(--space-1); vertical-align: top; border: 1px solid var(--color-border); cursor: pointer; transition: background-color var(--duration-fast) var(--easing); }
 .fl-acal-cell:hover { background: color-mix(in srgb, var(--color-accent) 4%, transparent); }
 .fl-acal-cell--outside { background: var(--color-surface-sunken); }
@@ -50,14 +50,14 @@
 .fl-acal-daynum {
   display: inline-grid; place-items: center; min-width: 1.75rem; height: 1.75rem; margin-bottom: var(--space-1); padding-inline: var(--space-1);
   border: 0; border-radius: var(--pill-radius, 999px); background: transparent; color: var(--color-text); cursor: pointer;
-  font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans); font-variant-numeric: tabular-nums;
+  font: var(--weight-semibold) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-sans); font-variant-numeric: tabular-nums;
 }
 .fl-acal-daynum:hover { background: var(--color-surface-sunken); }
 .fl-acal-daynum[aria-current="date"] { background: var(--color-accent); color: var(--color-on-accent); }
 .fl-acal-chips { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; min-width: 0; }
 .fl-acal-more {
   padding: 2px var(--space-2); border: 0; border-radius: var(--radius-sm); background: transparent; cursor: pointer;
-  color: var(--color-text-muted); font: var(--weight-semibold) var(--text-xs) / 1.3 var(--font-sans);
+  color: var(--color-text-muted); font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1.3 var(--font-sans);
 }
 .fl-acal-more:hover { color: var(--color-text); background: var(--color-surface-sunken); }
 .fl-acal-dots { display: flex; justify-content: center; gap: 3px; min-height: 0.5rem; }
@@ -69,9 +69,9 @@
 .fl-acal-agenda__head .fl-btn { flex: none; white-space: nowrap; }
 .fl-acal-agenda__list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 .fl-acal-agenda__list li { display: grid; gap: 2px; }
-.fl-acal-agenda__list .fl-acal-ev { min-height: var(--control-sm); font-size: var(--text-sm); }
-.fl-acal-agenda__when { padding-inline: var(--space-2); font-size: var(--text-xs); color: var(--color-text-muted); }
-.fl-acal-empty { margin: 0; font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-acal-agenda__list .fl-acal-ev { min-height: var(--control-sm); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-acal-agenda__when { padding-inline: var(--space-2); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-acal-empty { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 
 /* ── Week and Day: the hours ── */
 .fl-acal-scroll { overflow-x: auto; min-width: 0; }
@@ -86,15 +86,15 @@
 .fl-acal-time__corner { border-bottom: 1px solid var(--color-border); }
 .fl-acal-colhead {
   display: grid; justify-items: center; gap: 2px; width: 100%; padding: var(--space-2) var(--space-1); border: 0; background: transparent; cursor: pointer;
-  color: var(--color-text-muted); font: var(--weight-semibold) var(--text-xs) / 1 var(--font-sans); text-transform: uppercase; letter-spacing: var(--tracking-wide);
+  color: var(--color-text-muted); font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1 var(--font-sans); text-transform: uppercase; letter-spacing: var(--tracking-wide);
 }
-.fl-acal-colhead strong { display: inline-grid; place-items: center; min-width: 1.75rem; height: 1.75rem; border-radius: var(--pill-radius, 999px); color: var(--color-text); font-size: var(--text-md); letter-spacing: 0; text-transform: none; }
+.fl-acal-colhead strong { display: inline-grid; place-items: center; min-width: 1.75rem; height: 1.75rem; border-radius: var(--pill-radius, 999px); color: var(--color-text); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); letter-spacing: 0; text-transform: none; }
 .fl-acal-colhead:hover strong { background: var(--color-surface-sunken); }
 .fl-acal-colhead[aria-current="date"] strong { background: var(--color-accent); color: var(--color-on-accent); }
-.fl-acal-time__label { padding: var(--space-2) var(--space-1); font-size: var(--text-xs); color: var(--color-text-muted); text-align: end; border-bottom: 1px solid var(--color-border); }
+.fl-acal-time__label { padding: var(--space-2) var(--space-1); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); text-align: end; border-bottom: 1px solid var(--color-border); }
 .fl-acal-allday { min-height: 2.25rem; padding: var(--space-1); border-bottom: 1px solid var(--color-border); border-inline-start: 1px solid var(--color-border); cursor: pointer; }
 .fl-acal-gutter { display: grid; grid-template-rows: repeat(var(--_hours), var(--_hour)); }
-.fl-acal-gutter span { padding-inline-end: var(--space-2); font-size: var(--text-xs); color: var(--color-text-muted); text-align: end; font-variant-numeric: tabular-nums; translate: 0 -0.5em; }
+.fl-acal-gutter span { padding-inline-end: var(--space-2); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); text-align: end; font-variant-numeric: tabular-nums; translate: 0 -0.5em; }
 .fl-acal-gutter span:first-child { translate: none; }
 .fl-acal-track {
   position: relative; cursor: pointer; border-inline-start: 1px solid var(--color-border);
@@ -112,7 +112,7 @@
 /* ── The event dialog's fields ── */
 .fl-acal-form { display: grid; gap: var(--space-4); color: var(--color-text); }
 .fl-acal-field { display: grid; gap: var(--space-1); }
-.fl-acal-field > label { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.fl-acal-field > label { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
 .fl-acal-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: var(--space-3); }
 .fl-acal-pair > *, .fl-acal-pair input { min-width: 0; }
 .fl-acal-pair input { width: 100%; }
@@ -147,5 +147,5 @@
 /* The read-only event view: its type as a status badge, and when. */
 .fl-acal-read { display: grid; gap: var(--space-4); margin: 0; }
 .fl-acal-read > div { display: grid; gap: var(--space-1); }
-.fl-acal-read dt { font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-acal-read dt { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-acal-read dd { margin: 0; font-weight: var(--weight-medium); }

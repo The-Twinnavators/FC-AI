@@ -137,7 +137,23 @@ const ALL_ITEMS: Item[] = LIBRARY_SECTIONS.flatMap((p) => [p, ...variantItems(p)
 export function ComponentsView() {
   // "proposed": new pieces waiting for the owner's approval, not in the library yet.
   // A shelf is a catalog level and a category in it ("component:forms"), or all pieces, or the approval queue.
-  const [cat, setCat] = useState<string>("all");
+  // On arrival: the approval queue while anything waits in it, else the shelf last viewed, else all pieces.
+  const [cat, setCat] = useState<string>(() => {
+    if (PROPOSED_SECTIONS.length) return "proposed";
+    try {
+      const saved = localStorage.getItem("flowcode.componentsShelf") ?? "";
+      return ALL_ITEMS.some((s) => shelfOf(s) === saved) ? saved : "all";
+    } catch {
+      return "all";
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("flowcode.componentsShelf", cat);
+    } catch {
+      /* kept for this visit */
+    }
+  }, [cat]);
   const [styleId, setStyleId] = useState(() => {
     try {
       const saved = localStorage.getItem("flowcode.componentsStyle");

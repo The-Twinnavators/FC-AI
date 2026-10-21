@@ -349,7 +349,7 @@ export default function ResizablePreview() {
   );
 
   return (
-    <section className="fl-section" aria-labelledby="resizable-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="resizable-title">
       <div className="fl-wrap" ref={host}>
         <div className="fl-head">
           <p className="fl-eyebrow">{d.eyebrow}</p>

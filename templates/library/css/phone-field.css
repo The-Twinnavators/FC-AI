@@ -4,8 +4,8 @@
  * (MIT License, Copyright (c) 2023 TailAdmin).
  */
 .fl-ph { display: grid; gap: var(--space-2); min-width: 0; }
-.fl-ph > label { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
-.fl-ph-opt { color: var(--color-text-muted); font-weight: var(--weight-regular, 400); font-size: var(--text-xs); }
+.fl-ph > label { font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-ph-opt { color: var(--color-text-muted); font-weight: var(--weight-regular, 400); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 
 /* Two controls drawn as one: the select keeps its left corners, the number box its right ones. */
 .fl-ph-group { display: flex; min-width: 0; }
@@ -33,12 +33,12 @@
 .fl-ph-ok svg { width: 0.8rem; height: 0.8rem; }
 @keyframes fl-ph-pop { from { opacity: 0; scale: 0.6; } }
 
-.fl-ph-hint { margin: 0; color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-ph-hint { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 /* The error line grows its row from 0fr to 1fr; while closed it is inert. */
 .fl-ph-msg { display: grid; grid-template-rows: 0fr; margin-top: calc(var(--space-2) * -1); transition: grid-template-rows var(--duration-base) var(--ease-out), margin var(--duration-base) var(--ease-out); }
 .fl-ph-msg[data-open="true"] { grid-template-rows: 1fr; margin-top: 0; }
 .fl-ph-msg > div { overflow: hidden; min-height: 0; }
-.fl-ph-err { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; color: var(--color-danger); font-size: var(--text-sm); }
+.fl-ph-err { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-ph-err svg { flex: none; width: 1rem; height: 1rem; margin-top: 0.15em; }
 
 /* The reference sheet's form. */
@@ -47,10 +47,10 @@
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
   border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
 }
-.fl-ph-demo h2 { margin: 0 0 var(--space-1); font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); }
-.fl-ph-demo h2 + p { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-ph-demo h2 { margin: 0 0 var(--space-1); font-family: var(--font-display); font-size: var(--type-h3-size, max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px)))); }
+.fl-ph-demo h2 + p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-ph-demo-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
-.fl-ph-demo-foot p { margin: 0; color: var(--color-success); font-size: var(--text-sm); overflow-wrap: anywhere; }
+.fl-ph-demo-foot p { margin: 0; color: var(--color-success); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); overflow-wrap: anywhere; }
 .fl-ph-demo-foot p:empty { display: none; }
 
 /* Phone: the number keeps its room. */

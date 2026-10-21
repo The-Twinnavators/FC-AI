@@ -4,7 +4,7 @@
  * TailGrids (MIT, Copyright (c) 2025 Tailgrids).
  */
 .fl-ig { display: grid; gap: var(--space-2); min-width: 0; }
-.fl-ig-label { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+.fl-ig-label { font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-ig-group {
   display: flex; align-items: center; min-width: 0; min-height: var(--control-md, 2.75rem); cursor: text;
   border: var(--control-border, 1px solid var(--color-border-strong)); border-radius: min(var(--field-radius, var(--control-radius, var(--radius-md))), 12px);
@@ -29,7 +29,7 @@ input.fl-ig-field { height: calc(var(--control-md, 2.75rem) - 2px); }
 /* Fixed text: muted, behind a thin divider so it reads as part of the address and not as typed text. */
 .fl-ig-text {
   flex: none; align-self: stretch; display: flex; align-items: center; padding-inline: var(--space-3); max-width: 45%;
-  background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none;
+  background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none;
 }
 .fl-ig-text--start { border-right: 1px solid var(--color-border); }
 .fl-ig-text--end { border-left: 1px solid var(--color-border); }
@@ -47,12 +47,12 @@ input.fl-ig-field { height: calc(var(--control-md, 2.75rem) - 2px); }
 .fl-ig-group--multi { flex-direction: column; align-items: stretch; }
 .fl-ig-group--multi .fl-ig-field { padding: var(--space-3); resize: vertical; min-height: 5rem; line-height: var(--leading-normal, 1.5); }
 .fl-ig-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3); border-top: 1px solid var(--color-border); cursor: default; }
-.fl-ig-count { font-size: var(--text-xs); color: var(--color-text-muted); font-variant-numeric: tabular-nums; transition: color var(--duration-fast) var(--easing); }
+.fl-ig-count { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); font-variant-numeric: tabular-nums; transition: color var(--duration-fast) var(--easing); }
 .fl-ig-count.is-over { color: var(--color-danger); font-weight: var(--weight-semibold); }
-.fl-ig-error { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; color: var(--color-danger); font-size: var(--text-sm); animation: fl-ig-rise var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-ig-error { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); animation: fl-ig-rise var(--duration-base) var(--ease-out, var(--easing)); }
 .fl-ig-error svg { flex: none; width: 1rem; height: 1rem; margin-top: 0.15em; }
-.fl-ig-hint { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
-.fl-ig-status { margin: 0; min-height: 1.25em; color: var(--color-success); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.fl-ig-hint { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-ig-status { margin: 0; min-height: 1.25em; color: var(--color-success); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
 
 /* Reference sheet. */
 .fl-ig-sheet { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--space-4); }
@@ -61,7 +61,7 @@ input.fl-ig-field { height: calc(var(--control-md, 2.75rem) - 2px); }
   background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
   border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
 }
-.fl-ig-card h3 { margin: 0; font-size: var(--text-xs); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-muted); }
+.fl-ig-card h3 { margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-muted); }
 
 @keyframes fl-ig-in { from { opacity: 0; scale: 0.85; } }
 @keyframes fl-ig-rise { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) / -2); } }
@@ -76,6 +76,6 @@ input.fl-ig-field { height: calc(var(--control-md, 2.75rem) - 2px); }
 /* Narrow: fixed text gives the typed part more room. */
 .fl-ig { container-type: inline-size; }
 @container (max-width: 22rem) {
-  .fl-ig-text { max-width: 32%; padding-inline: var(--space-2); font-size: var(--text-xs); }
+  .fl-ig-text { max-width: 32%; padding-inline: var(--space-2); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
   .fl-ig-field { padding-inline: var(--space-2); }
 }

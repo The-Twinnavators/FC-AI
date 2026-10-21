@@ -4,7 +4,7 @@
  */
 .fl-car { display: grid; gap: var(--space-3); min-width: 0; }
 .fl-car-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
-.fl-car-pos { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.fl-car-pos { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
 .fl-car-btns { display: flex; gap: var(--space-2); }
 .fl-car-btn {
   display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: var(--pill-radius, 999px);
@@ -45,8 +45,8 @@ button.fl-car-card, a.fl-car-card { cursor: pointer; }
 .fl-car-tint[data-tone="3"] { background: linear-gradient(135deg, color-mix(in srgb, var(--color-text) 35%, var(--color-surface)), var(--color-surface-sunken)); }
 .fl-car-text { display: grid; gap: 2px; }
 .fl-car-title { font-weight: var(--weight-semibold); }
-.fl-car--hero .fl-car-title, .fl-car--full .fl-car-title { font-family: var(--font-display); font-size: var(--text-lg); }
-.fl-car-caption { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-car--hero .fl-car-title, .fl-car--full .fl-car-title { font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); }
+.fl-car-caption { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-car-dots { display: flex; justify-content: center; gap: var(--space-2); }
 .fl-car-dot { width: 0.5rem; height: 0.5rem; border-radius: var(--pill-radius, 999px); background: var(--color-border-strong, var(--color-border)); transition: width var(--duration-base) var(--ease-out, var(--easing)), background var(--duration-base) var(--easing); }
 .fl-car-dot.is-on { width: 1.5rem; background: var(--color-accent); }

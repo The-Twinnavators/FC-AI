@@ -1,0 +1,94 @@
+/**
+ * Changelog with release filter (b.changelog): a timeline of releases with version pills, kind tags, folds, links and
+ * paging. Prefixed fl-clog-; only the library's tokens. Adapted from Meraki UI (MIT License, Copyright (c) 2021 Khatab
+ * Wedaa).
+ */
+.fl-clog { container-type: inline-size; display: grid; gap: var(--space-5); min-width: 0; }
+.fl-clog-head { display: grid; gap: var(--space-3); max-width: 44rem; }
+.fl-clog-head > * { margin: 0; }
+.fl-clog-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.fl-clog-tools .fl-ctl-seg { max-width: 100%; }
+.fl-clog-count { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+.fl-clog-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.fl-clog-list:empty { display: none; }
+.fl-clog-item { min-width: 0; scroll-margin-top: var(--space-6); }
+.fl-clog-rel { display: grid; grid-template-columns: 7.5rem 1.5rem minmax(0, 1fr); gap: 0 var(--space-3); }
+.fl-clog-when { display: grid; justify-items: end; align-content: start; gap: var(--space-1); padding-top: var(--space-4); text-align: end; }
+.fl-clog-ver {
+  display: inline-block; padding: 0.15rem var(--space-2); border-radius: var(--pill-radius, 999px);
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)); color: var(--color-accent);
+  font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1.4 var(--font-mono, var(--font-sans)); font-variant-numeric: tabular-nums;
+}
+.fl-clog-when time { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-clog-rail { position: relative; display: grid; justify-items: center; }
+.fl-clog-rail::before { content: ""; position: absolute; inset: 0 auto 0 50%; width: 2px; translate: -1px 0; background: var(--color-border); }
+.fl-clog-item:last-child .fl-clog-rail::before { bottom: auto; height: calc(var(--space-4) + 0.75rem); }
+.fl-clog-dot { position: relative; margin-top: calc(var(--space-4) + 0.25rem); width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--color-surface); border: 2px solid var(--color-accent); }
+.fl-clog-item:first-child .fl-clog-dot { background: var(--color-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 18%, transparent); }
+
+.fl-clog-card {
+  display: grid; gap: var(--space-3); margin-bottom: var(--space-5); padding: var(--space-4) var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none); min-width: 0;
+}
+.fl-clog-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fl-clog-top h3 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); border-radius: var(--radius-sm, 4px); }
+.fl-clog-top h3:focus { outline: none; }
+.fl-clog-top h3:focus-visible { box-shadow: var(--focus-ring); }
+.fl-clog-sum { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: 1.55; }
+.fl-clog-changes { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-clog-changes li { display: grid; grid-template-columns: 5.25rem minmax(0, 1fr); align-items: baseline; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: 1.5; }
+.fl-clog-kind {
+  justify-self: start; padding: 0.1rem var(--space-2); border-radius: min(var(--radius-sm, 4px), 12px);
+  font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1.5 var(--font-sans);
+}
+.fl-clog-kind--new { background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface)); color: var(--color-accent); }
+.fl-clog-kind--improved { background: color-mix(in srgb, var(--color-success) 14%, var(--color-surface)); color: color-mix(in srgb, var(--color-success) 80%, var(--color-text)); }
+.fl-clog-kind--fixed { background: color-mix(in srgb, var(--color-warning) 18%, var(--color-surface)); color: color-mix(in srgb, var(--color-warning) 55%, var(--color-text)); }
+
+/* The fold for long releases: grid rows 0fr to 1fr; the closed part is inert. */
+.fl-clog-more-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)); }
+.fl-clog-more-body > div { overflow: hidden; min-height: 0; }
+.fl-clog-more-body .fl-clog-changes { padding-top: 0; opacity: 0; transition: opacity var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-clog-more.is-open .fl-clog-more-body { grid-template-rows: 1fr; }
+.fl-clog-more.is-open .fl-clog-changes { opacity: 1; }
+.fl-clog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fl-clog-toggle {
+  display: inline-flex; align-items: center; gap: var(--space-1); min-height: 2rem; padding: 0 var(--space-2);
+  border: 0; border-radius: var(--radius-sm, 4px); background: none; color: var(--color-accent); font: var(--weight-medium) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-sans); cursor: pointer;
+  transition: scale var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-clog-toggle:hover { text-decoration: underline; }
+.fl-clog-toggle:active { scale: 0.97; }
+.fl-clog-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-clog-toggle svg { width: 1rem; height: 1rem; transition: rotate var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-clog-toggle[aria-expanded="true"] svg { rotate: 180deg; }
+
+.fl-clog-older { display: flex; justify-content: center; }
+.fl-clog-end { margin: 0; text-align: center; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-clog-status { margin: 0; min-height: 1.25rem; text-align: center; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); overflow-wrap: anywhere; }
+
+/* Entrance: once per release, the stagger capped. */
+.fl-clog-item.is-waiting { opacity: 0; }
+.fl-clog-item.is-entering { animation: fl-clog-rise var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)); }
+@keyframes fl-clog-rise { from { opacity: 0; translate: 0 var(--enter-distance, 10px); } }
+@keyframes fl-clog-fade { from { opacity: 0; } }
+
+/* Narrow: the date moves above the card, the rail stays on the left. */
+@container (max-width: 36rem) {
+  .fl-clog-rel { grid-template-columns: 1.25rem minmax(0, 1fr); gap: 0 var(--space-3); }
+  .fl-clog-when { grid-column: 2; grid-row: 1; display: flex; justify-content: flex-start; align-items: center; gap: var(--space-2); padding-top: var(--space-1); }
+  .fl-clog-rail { grid-column: 1; grid-row: 1 / span 2; }
+  .fl-clog-dot { margin-top: var(--space-2); }
+  .fl-clog-card { grid-column: 2; grid-row: 2; margin-top: var(--space-2); padding: var(--space-4); }
+  .fl-clog-changes li { grid-template-columns: 1fr; gap: var(--space-1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-clog-item.is-entering { animation-name: fl-clog-fade; animation-delay: 0ms; }
+  .fl-clog-more-body, .fl-clog-toggle svg { transition: none; }
+  .fl-clog-toggle:active { scale: none; }
+}
+:root[data-motion="off"] .fl-clog * { transition: none !important; animation: none !important; }
+:root[data-motion="off"] .fl-clog-item.is-waiting { opacity: 1; }

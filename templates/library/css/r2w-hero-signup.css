@@ -1,0 +1,95 @@
+/**
+ * Sign-up hero (b.hero-signup): a centered promise and email sign-up above a browser-window product frame. Prefixed
+ * fl-hps-; only the library's tokens. Adapted from AstroWind (MIT, onWidget) and Landwind (MIT, Themesberg).
+ */
+.fl-hps { container-type: inline-size; overflow: hidden; }
+.fl-hps-inner { display: grid; gap: var(--space-8); justify-items: center; }
+.fl-hps-words { display: grid; gap: var(--space-4); justify-items: center; text-align: center; max-width: 46rem; min-width: 0; }
+.fl-hps-title { text-wrap: balance; }
+.fl-hps-lede { margin-inline: auto; }
+
+.fl-hps-badge {
+  display: inline-flex; align-items: center; gap: var(--space-2); max-width: 100%; margin: 0; padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+  border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); background: var(--color-surface); color: var(--color-text);
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); text-decoration: none; transition: border-color var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-hps-badge span:not([class]) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-hps-badge svg { width: 0.9rem; height: 0.9rem; color: var(--color-text-muted); transition: translate var(--duration-base) var(--ease-spring, var(--easing)); }
+a.fl-hps-badge:hover { border-color: var(--color-accent); }
+a.fl-hps-badge:hover svg { translate: 2px 0; }
+a.fl-hps-badge:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.fl-hps-ask { display: grid; gap: var(--space-3); width: 100%; max-width: 32rem; margin-top: var(--space-2); }
+.fl-hps-form { display: grid; gap: var(--space-1); }
+.fl-hps-row { display: flex; gap: var(--space-2); align-items: stretch; }
+.fl-hps-row .fl-input { flex: 1 1 auto; min-width: 0; width: auto; height: var(--control-lg, 3rem); }
+.fl-hps-row .fl-btn { flex: 0 0 auto; }
+.fl-hps-row .fl-btn:active { scale: var(--press-scale, 0.97); }
+.fl-hps-err { display: flex; align-items: center; gap: var(--space-1); min-height: 1.25rem; margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); text-align: left; }
+.fl-hps-err svg { width: 1rem; height: 1rem; flex: none; }
+.fl-hps-notes { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-hps-notes li { display: inline-flex; align-items: center; gap: var(--space-1); }
+.fl-hps-notes svg { width: 1rem; height: 1rem; color: var(--color-success); }
+
+.fl-hps-done {
+  display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-4); text-align: left;
+  border: 1px solid color-mix(in srgb, var(--color-success) 40%, var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-md)), 12px);
+  background: color-mix(in srgb, var(--color-success) 8%, var(--color-surface)); animation: fl-hps-pop var(--duration-slow) var(--ease-spring, var(--easing));
+}
+.fl-hps-done:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-hps-done-mark { display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; border-radius: 50%; background: var(--color-success); color: var(--color-surface); }
+.fl-hps-done-mark svg { width: 1.1rem; height: 1.1rem; }
+.fl-hps-done-title { margin: 0; font-weight: var(--weight-semibold); }
+.fl-hps-done-text { margin: var(--space-1) 0 var(--space-2); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); overflow-wrap: anywhere; }
+.fl-hps-done-mail { color: var(--color-text); font-weight: var(--weight-medium); }
+@keyframes fl-hps-pop { from { opacity: 0; scale: 0.97; } }
+
+/* The product frame: a browser window with a tinted halo behind it. */
+.fl-hps-stage { position: relative; width: 100%; max-width: 60rem; min-width: 0; }
+.fl-hps-stage::before {
+  content: ""; position: absolute; inset: 8% 6% -6%; z-index: 0; border-radius: 12px; filter: blur(48px);
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent); pointer-events: none;
+}
+.fl-hps-window {
+  position: relative; z-index: 1; margin: 0; overflow: hidden; border: 1px solid var(--color-border);
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); background: var(--color-surface); box-shadow: var(--surface-shadow, none);
+}
+.fl-hps-bar { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); background: var(--color-surface-sunken); }
+.fl-hps-dots { display: inline-flex; gap: 6px; flex: none; }
+.fl-hps-dots i { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--color-border-strong, var(--color-border)); }
+.fl-hps-address {
+  flex: 0 1 22rem; min-width: 0; margin-inline: auto; padding: 2px var(--space-3); border-radius: var(--pill-radius, 999px); background: var(--color-surface);
+  color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fl-hps-shot.fl-ctl-media, .fl-hps-window .fl-ctl-media { display: block; width: 100%; border-radius: 0; }
+.fl-hps-proof {
+  position: absolute; z-index: 2; right: calc(var(--space-4) * -1); bottom: var(--space-5); display: grid; gap: 2px; margin: 0; padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-md)), 12px); background: var(--color-surface); box-shadow: var(--surface-shadow, none);
+}
+.fl-hps-proof strong { font-family: var(--font-display); font-size: var(--text-xl, 1.25rem); font-variant-numeric: tabular-nums; color: var(--color-accent); }
+.fl-hps-proof span { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+/* Entrance once: words rise one after another, then the frame lifts in. */
+.fl-hps.is-waiting .fl-hps-rise, .fl-hps.is-waiting .fl-hps-stage { opacity: 0; }
+.fl-hps.is-entering .fl-hps-rise { animation: fl-hps-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 60ms)), var(--stagger-max, 240ms)); }
+.fl-hps.is-entering .fl-hps-stage { animation: fl-hps-lift calc(var(--duration-slow) * 1.6) var(--ease-out, var(--easing)) backwards; animation-delay: var(--stagger-max, 240ms); }
+.fl-hps.is-entering .fl-hps-proof { animation: fl-hps-pop var(--duration-slow) var(--ease-spring, var(--easing)) backwards; animation-delay: calc(var(--stagger-max, 240ms) + var(--duration-slow)); }
+@keyframes fl-hps-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+@keyframes fl-hps-lift { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 4); scale: 0.98; } }
+
+/* Phone: the button goes under the field, the proof chip sits inside the frame. */
+@container (max-width: 34rem) {
+  .fl-hps-row { flex-direction: column; }
+  .fl-hps-row .fl-btn { width: 100%; justify-content: center; }
+  .fl-hps-proof { right: var(--space-2); bottom: var(--space-2); padding: var(--space-2) var(--space-3); }
+  .fl-hps-proof strong { font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+  .fl-hps-dots { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-hps.is-waiting .fl-hps-rise, .fl-hps.is-waiting .fl-hps-stage { opacity: 1; }
+  .fl-hps *, .fl-hps.is-entering .fl-hps-rise, .fl-hps.is-entering .fl-hps-stage, .fl-hps.is-entering .fl-hps-proof { animation: none !important; transition-duration: 1ms !important; }
+}
+:root[data-motion="off"] .fl-hps.is-waiting .fl-hps-rise, :root[data-motion="off"] .fl-hps.is-waiting .fl-hps-stage { opacity: 1; }
+:root[data-motion="off"] .fl-hps, :root[data-motion="off"] .fl-hps * { transition: none !important; animation: none !important; }
+@media print { .fl-hps.is-waiting .fl-hps-rise, .fl-hps.is-waiting .fl-hps-stage { opacity: 1; } }

@@ -1,0 +1,66 @@
+/**
+ * Testimonial wall (b.testimonials-wall): quote cards in a masonry with a Show more that reveals the rest. Prefixed
+ * fl-twall-; only the library's tokens. Adapted from Tailblocks (MIT, Mert Cukuren) and AstroWind (MIT, onWidget).
+ */
+.fl-twall { container-type: inline-size; display: grid; gap: var(--space-5); min-width: 0; scroll-margin-top: var(--space-7); }
+
+.fl-twall-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2) var(--space-3); margin: 0; }
+.fl-twall-summary strong { font-family: var(--font-display); font-size: var(--text-2xl, 1.75rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.fl-twall-summary > span:last-child { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+.fl-twall-stars { display: inline-flex; gap: 2px; color: var(--color-border); }
+.fl-twall-stars > span { display: grid; }
+.fl-twall-stars > span.is-on { color: var(--color-warning, var(--color-accent)); }
+.fl-twall-stars svg { width: 1rem; height: 1rem; }
+
+/* Masonry: CSS columns, each card kept whole. */
+.fl-twall-cols { position: relative; min-width: 0; }
+.fl-twall-list { columns: 3; column-gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.fl-twall-item { break-inside: avoid; padding-bottom: var(--space-4); }
+.fl-twall-card {
+  display: grid; gap: var(--space-3); margin: 0; padding: var(--space-5);
+  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+  background: var(--color-surface); box-shadow: var(--surface-shadow, none);
+  transition: translate var(--duration-base) var(--ease-out, var(--easing)), border-color var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-twall-card:hover { translate: 0 calc(var(--hover-lift, 2px) * -1); border-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border)); }
+.fl-twall-card:focus { outline: none; }
+.fl-twall-card:focus-visible { box-shadow: var(--focus-ring); }
+.fl-twall-card.is-highlight { background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface)); border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border)); }
+.fl-twall-quote { margin: 0; }
+.fl-twall-quote p { margin: 0; color: var(--color-text); line-height: var(--leading-relaxed, 1.6); }
+.fl-twall-card.is-highlight .fl-twall-quote p { font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-twall-who { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.fl-twall-who > span:last-child { display: grid; min-width: 0; }
+.fl-twall-name { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-twall-role { font-size: var(--text-xs, 0.75rem); color: var(--color-text-muted); }
+
+/* While more are hidden, the wall fades out at its foot. */
+.fl-twall.has-more .fl-twall-cols::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6rem; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--color-bg));
+}
+.fl-twall-foot { display: flex; justify-content: center; margin-top: calc(var(--space-5) * -1); position: relative; z-index: 1; }
+.fl-twall-btn.fl-btn:active { scale: var(--press-scale, 0.97); }
+.fl-twall-btn.is-less svg { rotate: 180deg; }
+
+/* Entrance once, then each new batch: cards rise in, the stagger capped. */
+.fl-twall.is-waiting .fl-twall-item, .fl-twall.is-waiting .fl-twall-summary { opacity: 0; }
+.fl-twall.is-entering .fl-twall-summary { animation: fl-twall-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; }
+.fl-twall.is-entering .fl-twall-item, .fl-twall-item.is-new { animation: fl-twall-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 50ms)), var(--stagger-max, 300ms)); }
+@keyframes fl-twall-rise { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 2); } }
+
+@container (max-width: 56rem) { .fl-twall-list { columns: 2; } }
+@container (max-width: 36rem) {
+  .fl-twall-list { columns: 1; }
+  .fl-twall-card { padding: var(--space-4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-twall.is-waiting .fl-twall-item, .fl-twall.is-waiting .fl-twall-summary { opacity: 1; }
+  .fl-twall *, .fl-twall.is-entering .fl-twall-item, .fl-twall-item.is-new { animation: none !important; transition-duration: 1ms !important; }
+  .fl-twall-card:hover { translate: none; }
+}
+:root[data-motion="off"] .fl-twall.is-waiting .fl-twall-item, :root[data-motion="off"] .fl-twall.is-waiting .fl-twall-summary { opacity: 1; }
+:root[data-motion="off"] .fl-twall, :root[data-motion="off"] .fl-twall * { transition: none !important; animation: none !important; }
+@media print { .fl-twall.is-waiting .fl-twall-item, .fl-twall.is-waiting .fl-twall-summary { opacity: 1; } }

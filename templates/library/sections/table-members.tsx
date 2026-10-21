@@ -494,7 +494,7 @@ const SAMPLE = {
 
 export default function MembersTableSheet() {
   return (
-    <section className="fl-section" aria-label={SAMPLE.title}>
+    <section className="fl-section fl-section--canvas" aria-label={SAMPLE.title}>
       <div className="fl-wrap">
         <MembersTable {...SAMPLE} />
       </div>

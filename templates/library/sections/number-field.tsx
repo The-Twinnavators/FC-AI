@@ -327,7 +327,7 @@ export default function NumberFieldSheet() {
   const [guests, setGuests] = useState<number | null>(d.guests.value);
   const after = rate !== null ? rate * (1 - (discount ?? 0)) : null;
   return (
-    <section className="fl-section" aria-labelledby={`${uid}-title`}>
+    <section className="fl-section fl-section--canvas" aria-labelledby={`${uid}-title`}>
       <div className="fl-wrap">
         <div className="fl-head">
           <h2 id={`${uid}-title`} className="fl-title fl-title--md">

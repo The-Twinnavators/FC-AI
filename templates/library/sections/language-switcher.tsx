@@ -254,7 +254,7 @@ export default function LanguageSwitcherSheet() {
   const current = d.languages.find((x) => x.code === lang) ?? d.languages[0];
   const copy = d.copy[lang] ?? d.copy.en;
   return (
-    <section className="fl-section" aria-label={d.brand}>
+    <section className="fl-section fl-section--canvas" aria-label={d.brand}>
       <div className="fl-wrap">
         <div className="fl-lang-demo">
           <header className="fl-lang-demo-bar">

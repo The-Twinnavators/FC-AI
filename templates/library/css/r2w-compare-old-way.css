@@ -1,0 +1,71 @@
+/**
+ * Us vs. the old way (b.compare-old-way): two columns compared row for row, the rows shared across both through a
+ * subgrid, with a switch between the sides on a phone. Prefixed fl-vsw-; only the library's tokens. Adapted from
+ * AstroWind (MIT License, Copyright (c) 2023 onWidget).
+ */
+.fl-vsw { container-type: inline-size; display: grid; gap: var(--space-5); min-width: 0; }
+.fl-vsw-switch { display: none; justify-content: center; }
+
+.fl-vsw-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-5); max-width: 60rem; width: 100%; margin-inline: auto; }
+.fl-vsw-col {
+  display: grid; grid-template-rows: subgrid; row-gap: 0; min-width: 0; padding: var(--space-5);
+  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+}
+.fl-vsw-col--old { grid-column: 1; background: var(--color-surface-sunken); color: var(--color-text-muted); }
+.fl-vsw-col--ours {
+  grid-column: 2; background: var(--color-surface); box-shadow: var(--surface-shadow, none);
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border)); outline: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent); outline-offset: 3px;
+}
+.fl-vsw-head { display: grid; gap: var(--space-1); align-content: start; padding-bottom: var(--space-4); }
+.fl-vsw-head-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.fl-vsw-title { margin: 0; font-family: var(--font-display); font-size: var(--text-lg, 1.125rem); font-weight: var(--weight-semibold); color: var(--color-text); }
+.fl-vsw-col--old .fl-vsw-title { color: var(--color-text-muted); }
+.fl-vsw-sub { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+.fl-vsw-rows { display: grid; grid-template-rows: subgrid; margin: 0; padding: 0; list-style: none; }
+.fl-vsw-row { display: flex; gap: var(--space-3); align-items: flex-start; padding-block: var(--space-3); border-top: 1px solid var(--color-border); }
+.fl-vsw-mark { display: grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; margin-top: 2px; border-radius: 50%; }
+.fl-vsw-mark svg { width: 0.9rem; height: 0.9rem; }
+.fl-vsw-col--old .fl-vsw-mark { background: var(--color-border); color: var(--color-text-muted); }
+.fl-vsw-col--ours .fl-vsw-mark { background: var(--color-accent); color: var(--color-on-accent); }
+.fl-vsw-cell { display: grid; gap: 2px; min-width: 0; }
+.fl-vsw-topic { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-wide, 0.04em); text-transform: uppercase; color: var(--color-text-muted); }
+.fl-vsw-line { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: var(--leading-normal, 1.5); }
+.fl-vsw-col--ours .fl-vsw-line { color: var(--color-text); font-weight: var(--weight-medium); }
+.fl-vsw-col--old .fl-vsw-line { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--color-text-muted) 45%, transparent); }
+
+.fl-vsw-total { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-vsw-total:empty { border-top-color: transparent; }
+.fl-vsw-total strong { font-family: var(--font-display); font-size: var(--text-2xl, 1.75rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.fl-vsw-col--ours .fl-vsw-total strong { color: var(--color-accent); }
+.fl-vsw-total span { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+.fl-vsw-cta { display: flex; justify-content: center; }
+.fl-vsw-cta .fl-btn:active { scale: var(--press-scale, 0.97); }
+
+/* Entrance once: old rows slide in, then the product's rows with their ticks popping in; the stagger is capped. */
+.fl-vsw.is-waiting .fl-vsw-col, .fl-vsw.is-waiting .fl-vsw-row { opacity: 0; }
+.fl-vsw.is-entering .fl-vsw-col { animation: fl-vsw-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; }
+.fl-vsw.is-entering .fl-vsw-col--ours { animation-delay: var(--stagger-max, 240ms); }
+.fl-vsw.is-entering .fl-vsw-row { animation: fl-vsw-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 50ms)), calc(var(--stagger-max, 240ms) * 2)); }
+.fl-vsw.is-entering .fl-vsw-col--ours .fl-vsw-mark { animation: fl-vsw-pop var(--duration-slow) var(--ease-spring, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 50ms) + var(--duration-base)), calc(var(--stagger-max, 240ms) * 2 + var(--duration-base))); }
+@keyframes fl-vsw-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+@keyframes fl-vsw-pop { from { scale: 0.4; opacity: 0; } }
+@keyframes fl-vsw-swap { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) / 2); } }
+
+/* Phone: one column at a time behind the switch. */
+@container (max-width: 40rem) {
+  .fl-vsw-switch { display: flex; }
+  .fl-vsw-grid { grid-template-columns: minmax(0, 1fr); }
+  .fl-vsw-col { grid-column: 1; padding: var(--space-4); }
+  .fl-vsw-grid[data-show="ours"] .fl-vsw-col--old, .fl-vsw-grid[data-show="old"] .fl-vsw-col--ours { display: none; }
+  .fl-vsw-grid .fl-vsw-col { animation: fl-vsw-swap var(--duration-base) var(--ease-out, var(--easing)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-vsw.is-waiting .fl-vsw-col, .fl-vsw.is-waiting .fl-vsw-row { opacity: 1; }
+  .fl-vsw *, .fl-vsw.is-entering .fl-vsw-col, .fl-vsw.is-entering .fl-vsw-row { animation: none !important; transition-duration: 1ms !important; }
+}
+:root[data-motion="off"] .fl-vsw.is-waiting .fl-vsw-col, :root[data-motion="off"] .fl-vsw.is-waiting .fl-vsw-row { opacity: 1; }
+:root[data-motion="off"] .fl-vsw, :root[data-motion="off"] .fl-vsw * { transition: none !important; animation: none !important; }
+@media print { .fl-vsw.is-waiting .fl-vsw-col, .fl-vsw.is-waiting .fl-vsw-row { opacity: 1; } }

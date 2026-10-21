@@ -7,7 +7,7 @@
 .fl-cat-root, .fl-cat-index, .fl-cat-compact {
   container: fl-cat / inline-size;
   display: grid; gap: var(--space-4); min-width: 0;
-  color: var(--color-text); font-size: var(--text-sm);
+  color: var(--color-text); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
 }
 .fl-cat-compact { gap: 0; }
 .fl-cat-root :is(button, select, input):focus-visible,
@@ -17,8 +17,8 @@
 
 /* ── Header ── */
 .fl-cat-head { display: grid; gap: var(--space-1); }
-.fl-cat-title { margin: 0; font-size: var(--text-xl); font-weight: var(--heading-weight, var(--weight-semibold)); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight, 0); }
-.fl-cat-lede { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-cat-title { margin: 0; font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); font-weight: var(--heading-weight, var(--weight-semibold)); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight, 0); }
+.fl-cat-lede { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 
 /* ── Toolbar ── */
 .fl-cat-toolbar { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-2) var(--space-3); }
@@ -38,7 +38,7 @@
 .fl-cat-search-field > svg { flex: none; width: 1rem; height: 1rem; margin-left: var(--space-3); color: var(--color-text-muted); }
 .fl-cat-search-field input {
   flex: 1; min-width: 0; height: 100%; padding: 0 var(--space-2); border: 0; background: transparent;
-  color: var(--color-text); font: inherit; font-size: var(--text-sm); outline: none; appearance: none; -webkit-appearance: none;
+  color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); outline: none; appearance: none; -webkit-appearance: none;
 }
 .fl-cat-search-field input::-webkit-search-cancel-button { display: none; }
 .fl-cat-search-field input::placeholder { color: var(--color-text-muted); }
@@ -65,7 +65,7 @@
 .fl-cat-search-optic { display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: var(--radius-sm); background: var(--color-surface-sunken); color: var(--color-text-muted); }
 .fl-cat-search-optic svg { width: 0.85rem; height: 0.85rem; }
 .fl-cat-search-optlabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fl-cat-search-optnote { color: var(--color-text-muted); font-size: var(--text-xs); white-space: nowrap; }
+.fl-cat-search-optnote { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); white-space: nowrap; }
 
 mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb, var(--color-accent) 22%, transparent); color: inherit; font-weight: var(--weight-semibold); }
 
@@ -75,7 +75,7 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
   height: var(--control-sm, 2.25rem); max-width: 100%; padding: 0 calc(8px + 1rem + var(--space-1)) 0 var(--space-3);
   appearance: none; -webkit-appearance: none; text-overflow: ellipsis;
   border: var(--control-border, 1px solid var(--color-border-strong, var(--color-border))); border-radius: var(--field-radius, var(--control-radius, var(--radius-md)));
-  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: var(--text-sm); cursor: pointer;
+  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); cursor: pointer;
 }
 .fl-cat-select.is-set select { border-color: var(--color-accent); }
 .fl-cat-select select option { background: var(--color-surface); color: var(--color-text); }
@@ -85,7 +85,7 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 .fl-cat-near {
   display: inline-flex; align-items: center; gap: var(--space-1); height: var(--control-sm, 2.25rem); padding: 0 var(--space-3);
   border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: var(--pill-radius, 999px);
-  background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-medium); cursor: pointer; white-space: nowrap;
+  background: transparent; color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); cursor: pointer; white-space: nowrap;
   transition: background var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing);
 }
 .fl-cat-near svg { width: 1rem; height: 1rem; flex: none; }
@@ -93,7 +93,7 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 .fl-cat-near[aria-pressed="true"] { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); }
 .fl-cat-zipchange {
   padding: var(--space-1); border: 0; border-radius: var(--radius-sm); background: transparent;
-  color: var(--color-accent); font: inherit; font-size: var(--text-sm); text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+  color: var(--color-accent); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
 }
 
 /* The inline ZIP code ask (a flat band, not a card) */
@@ -103,7 +103,7 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 .fl-cat-zip-input {
   width: 7rem; height: var(--control-sm, 2.25rem); padding: 0 var(--space-3);
   border: var(--control-border, 1px solid var(--color-border-strong, var(--color-border))); border-radius: var(--field-radius, var(--control-radius, var(--radius-md)));
-  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: var(--text-sm); font-variant-numeric: tabular-nums; letter-spacing: 0.06em;
+  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; letter-spacing: 0.06em;
 }
 .fl-cat-zip-input[aria-invalid="true"] { border-color: var(--color-danger); }
 .fl-cat-zip-msg { margin: 0; color: var(--color-text-muted); }
@@ -115,7 +115,7 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 .fl-cat-chip {
   display: inline-flex; align-items: center; gap: 2px; height: 1.75rem; padding: 0 2px 0 var(--space-3);
   border: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-border)); border-radius: var(--pill-radius, 999px);
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent); font-size: var(--text-xs); font-weight: var(--weight-medium);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium);
 }
 .fl-cat-chip-x {
   display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border: 0; border-radius: var(--pill-radius, 999px);
@@ -125,7 +125,7 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 .fl-cat-chip-x svg { width: 0.8rem; height: 0.8rem; }
 .fl-cat-clear {
   padding: var(--space-1); border: 0; border-radius: var(--radius-sm); background: transparent;
-  color: var(--color-accent); font: inherit; font-size: var(--text-xs); font-weight: var(--weight-medium); cursor: pointer;
+  color: var(--color-accent); font: inherit; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); cursor: pointer;
 }
 .fl-cat-clear:hover { text-decoration: underline; }
 .fl-cat-count { margin: 0 0 0 auto; color: var(--color-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -163,22 +163,22 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 .fl-cat-save[aria-pressed="true"] { color: var(--color-on-accent, var(--color-surface)); background: var(--color-accent); border-color: var(--color-accent); }
 
 .fl-cat-body { display: grid; align-content: start; gap: 2px; min-width: 0; padding: var(--space-3); }
-.fl-cat-kind { margin: 0; color: var(--color-text-muted); font-size: var(--text-xs); font-weight: var(--weight-medium); letter-spacing: 0.04em; text-transform: uppercase; }
-.fl-cat-name { margin: 0; font-size: var(--text-md); font-weight: var(--weight-semibold); line-height: var(--leading-snug); overflow-wrap: anywhere; }
+.fl-cat-kind { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); letter-spacing: 0.04em; text-transform: uppercase; }
+.fl-cat-name { margin: 0; font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); line-height: var(--leading-snug); overflow-wrap: anywhere; }
 .fl-cat-open { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .fl-cat-open::after { content: ""; position: absolute; z-index: 1; inset: 0; }
 .fl-cat-open:focus-visible { box-shadow: none !important; }
 .fl-cat-open:hover { color: var(--color-accent); }
 .fl-cat-sub { margin: 0; color: var(--color-text-muted); }
-.fl-cat-badge { display: inline-flex; align-items: center; gap: 4px; margin: var(--space-1) 0 0; color: var(--color-text); font-size: var(--text-xs); font-weight: var(--weight-medium); }
+.fl-cat-badge { display: inline-flex; align-items: center; gap: 4px; margin: var(--space-1) 0 0; color: var(--color-text); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
 .fl-cat-badge svg { width: 0.85rem; height: 0.85rem; color: var(--color-accent); }
-.fl-cat-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); margin: var(--space-1) 0 0; font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.fl-cat-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); margin: var(--space-1) 0 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
 .fl-cat-stars, .fl-cat-likes { display: inline-flex; align-items: center; gap: 4px; }
 .fl-cat-stars svg { width: 0.9rem; height: 0.9rem; color: var(--color-warning, var(--color-accent)); }
 .fl-cat-stars--none { color: var(--color-text-muted); }
 .fl-cat-likes { color: var(--color-text-muted); }
 .fl-cat-likes svg { width: 0.85rem; height: 0.85rem; }
-.fl-cat-where { display: flex; align-items: flex-start; gap: 4px; margin: var(--space-2) 0 0; padding-top: var(--space-2); border-top: 1px solid var(--color-border); color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-cat-where { display: flex; align-items: flex-start; gap: 4px; margin: var(--space-2) 0 0; padding-top: var(--space-2); border-top: 1px solid var(--color-border); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 .fl-cat-where svg { flex: none; width: 0.9rem; height: 0.9rem; margin-top: 1px; }
 .fl-cat-where.is-on { color: var(--color-success); font-weight: var(--weight-medium); }
 
@@ -196,12 +196,12 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 .fl-cat-empty { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-7, 3rem) var(--space-4); border: 1px dashed var(--color-border); border-radius: var(--radius-md); text-align: center; }
 .fl-cat-empty-icon { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: var(--color-surface-sunken); color: var(--color-text-muted); }
 .fl-cat-empty-icon svg { width: 1.3rem; height: 1.3rem; }
-.fl-cat-empty-title { margin: 0; font-size: var(--text-md); font-weight: var(--weight-semibold); }
+.fl-cat-empty-title { margin: 0; font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
 .fl-cat-empty-text { margin: 0; max-width: 32rem; color: var(--color-text-muted); }
 .fl-cat-empty-cats { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin: var(--space-1) 0 var(--space-2); }
 .fl-cat-catchip {
   height: 2rem; padding: 0 var(--space-3); border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: var(--pill-radius, 999px);
-  background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-sm); cursor: pointer;
+  background: transparent; color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); cursor: pointer;
 }
 .fl-cat-catchip:hover { border-color: var(--color-accent); color: var(--color-accent); }
 
@@ -224,7 +224,7 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 }
 .fl-cat-tile-icon svg { width: 1.2rem; height: 1.2rem; }
 .fl-cat-tile-name { font-weight: var(--weight-semibold); line-height: var(--leading-snug); overflow-wrap: anywhere; }
-.fl-cat-tile-count { color: var(--color-text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.fl-cat-tile-count { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
 
 /* Category index as chips: one wrapping row of pills (icon, name, count) */
 .fl-cat-tiles--chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
@@ -236,7 +236,7 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 .fl-cat-tiles--rail > li { scroll-snap-align: start; }
 .fl-cat-tiles--rail .fl-cat-tile { grid-template-columns: 1fr; align-content: end; row-gap: var(--space-1); min-height: 9rem; padding: var(--space-4); }
 .fl-cat-tiles--rail .fl-cat-tile-icon { grid-row: auto; width: 3rem; height: 3rem; margin-bottom: auto; }
-.fl-cat-tiles--rail .fl-cat-tile-name { font-size: var(--text-lg); }
+.fl-cat-tiles--rail .fl-cat-tile-name { font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); }
 
 /* Cards as rows: the picture beside the words, two to a line */
 .fl-cat-grid--rows { grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr)); }
@@ -253,15 +253,15 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
 .fl-cat-spot-pic { aspect-ratio: 16 / 10; }
 .fl-cat-spot-pic > svg { width: 3.5rem; height: 3.5rem; }
 .fl-cat-spot-body { display: grid; gap: var(--space-2); padding: var(--space-5); }
-.fl-cat-spot-name { margin: 0; font-family: var(--font-display, var(--font-sans)); font-size: var(--text-xl); font-weight: var(--type-h2-weight, var(--heading-weight, var(--weight-bold))); line-height: var(--leading-tight); }
+.fl-cat-spot-name { margin: 0; font-family: var(--font-display, var(--font-sans)); font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); font-weight: var(--type-h2-weight, var(--heading-weight, var(--weight-bold))); line-height: var(--leading-tight); }
 .fl-cat-spot-act { margin-top: var(--space-2); }
 
 /* ── The sheet: ZIP demo and a top bar for the compact search ── */
 .fl-cat-demo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border); }
-.fl-cat-demo-label { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-cat-demo-label { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-cat-demo-btn {
   height: 2rem; padding: 0 var(--space-3); border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: var(--pill-radius, 999px);
-  background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-sm); font-variant-numeric: tabular-nums; cursor: pointer;
+  background: transparent; color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; cursor: pointer;
 }
 .fl-cat-demo-btn[aria-pressed="true"] { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); font-weight: var(--weight-medium); }
 .fl-cat-demo-btn:disabled { opacity: var(--disabled-opacity, 0.45); cursor: default; }
@@ -275,7 +275,7 @@ mark.fl-cat-hit { padding: 0; border-radius: 2px; background: color-mix(in srgb,
   .fl-cat-filters { width: 100%; }
   .fl-cat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
   .fl-cat-body { padding: var(--space-2) var(--space-2) var(--space-3); }
-  .fl-cat-name { font-size: var(--text-sm); }
+  .fl-cat-name { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
   .fl-cat-count { flex-basis: 100%; margin-left: 0; order: -1; }
   .fl-cat-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
   .fl-cat-tile { grid-template-columns: 1fr; row-gap: var(--space-1); }

@@ -521,7 +521,7 @@ export default function ContextMenuPreview() {
   };
 
   return (
-    <section className="fl-section" aria-labelledby="context-menu-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="context-menu-title">
       <div className="fl-wrap">
         <div className="fl-head">
           <p className="fl-eyebrow">{d.eyebrow}</p>

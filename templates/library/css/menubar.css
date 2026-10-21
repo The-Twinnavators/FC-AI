@@ -8,7 +8,7 @@
 .fl-mb-trigger {
   position: relative; z-index: 1; display: inline-flex; align-items: center; min-height: 2.25rem; padding: 0 var(--space-3);
   border: 0; border-radius: min(var(--radius-sm), 8px); background: transparent; color: var(--color-text);
-  font: var(--weight-medium) var(--text-sm) / 1 var(--font-sans); cursor: default;
+  font: var(--weight-medium) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-sans); cursor: default;
   transition: background-color var(--duration-fast) var(--ease-out, var(--easing));
 }
 .fl-mb-trigger:hover { background: var(--color-surface-sunken); }
@@ -37,7 +37,7 @@
 .fl-mb-doc { display: grid; grid-template-rows: auto minmax(12rem, 1fr); gap: var(--space-2); padding: var(--space-5); min-width: 0; }
 .fl-mb-title {
   width: 100%; min-width: 0; padding: var(--space-1) 0; border: 0; border-bottom: 1px solid transparent; background: transparent; color: var(--color-text);
-  font: var(--weight-semibold) var(--text-xl) / 1.2 var(--font-display);
+  font: var(--weight-semibold) max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))) / 1.2 var(--font-display);
 }
 .fl-mb-title:focus-visible { outline: none; border-bottom-color: var(--color-accent); }
 .fl-mb-text {
@@ -47,8 +47,8 @@
 .fl-mb-text:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--color-surface), var(--focus-ring); border-radius: 2px; }
 .fl-mb-text::placeholder { color: var(--color-text-muted); }
 .fl-mb-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 2.5rem; padding: var(--space-2) var(--space-4); border-top: 1px solid var(--color-border); }
-.fl-mb-status { margin: 0; font-size: var(--text-sm); }
-.fl-mb-count { margin-left: auto; font-size: var(--text-xs); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.fl-mb-status { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-mb-count { margin-left: auto; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
 
 @media (prefers-reduced-motion: reduce) {
   .fl-mb-ind[data-ready] { transition-duration: 1ms; }

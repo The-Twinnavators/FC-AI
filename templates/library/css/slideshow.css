@@ -40,9 +40,9 @@
 .fl-show-progress__bar.is-running { animation: fl-show-progress linear forwards; }
 @keyframes fl-show-progress { from { width: 0; } to { width: 100%; } }
 .fl-show-under { display: flex; align-items: center; gap: var(--space-3); min-height: 2.75rem; }
-.fl-show-caption { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); margin: 0; min-width: 0; font-size: var(--text-sm); }
+.fl-show-caption { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); margin: 0; min-width: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-show-count { color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
-.fl-show-credit { color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-show-credit { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 .fl-show-thumbs { display: flex; gap: var(--space-2); margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; }
 .fl-show-thumbs::-webkit-scrollbar { display: none; }
 .fl-show-thumb {

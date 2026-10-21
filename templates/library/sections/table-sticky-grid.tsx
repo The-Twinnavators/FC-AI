@@ -32,7 +32,7 @@
  * Nothing else: no package to install and nothing fetched at run time. The styles are the library's own fl- classes in
  * templates/library/css/stickygrid.css.
  */
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { Button } from "./buttons-variants";
 import { Checkbox } from "./checkboxes-radios";
 import { Icon } from "./icons";
@@ -68,6 +68,8 @@ export type WideTableProps = {
   density?: WideDensity;
   /** The first cell of the totals row. */
   totalLabel?: string;
+  /** While the rows load: placeholder rows that shimmer; the real rows then cascade in from the top. */
+  loading?: boolean;
   labels?: {
     columns?: string;
     showAll?: string;
@@ -78,6 +80,7 @@ export type WideTableProps = {
     empty?: string;
     sortAsc?: string;
     sortDesc?: string;
+    loading?: string;
   };
 };
 
@@ -100,6 +103,7 @@ export function WideTable({
   maxHeight = "26rem",
   density: startDensity = "comfortable",
   totalLabel = "Total",
+  loading = false,
   labels = {},
 }: WideTableProps) {
   const l = {
@@ -110,6 +114,7 @@ export function WideTable({
     compact: "Compact",
     rows: "rows",
     empty: "No rows to show.",
+    loading: "Loading rows",
     sortAsc: "ascending",
     sortDesc: "descending",
     ...labels,
@@ -128,6 +133,7 @@ export function WideTable({
     bottom: false,
   });
   const scroller = useRef<HTMLDivElement>(null);
+  const [rail, setRail] = useState({ size: 1, pos: 0 });
   const menuWrap = useRef<HTMLDivElement>(null);
   const menuBtn = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
   const tbody = useRef<HTMLTableSectionElement>(null);
@@ -184,6 +190,64 @@ export function WideTable({
       bottom: el.scrollTop + el.clientHeight < el.scrollHeight - 1,
     };
     setEdges((e) => (e.left === next.left && e.right === next.right && e.top === next.top && e.bottom === next.bottom ? e : next));
+    // The rail under the table stands in for the scrollbar: its thumb is the visible share, at the scrolled place.
+    const size = el.scrollWidth ? el.clientWidth / el.scrollWidth : 1;
+    const pos = el.scrollWidth > el.clientWidth ? el.scrollLeft / (el.scrollWidth - el.clientWidth) : 0;
+    setRail((r) => (Math.abs(r.size - size) < 0.001 && Math.abs(r.pos - pos) < 0.001 ? r : { size, pos }));
+  };
+
+  // Drag the table to move through it (a mouse; touch scrolls natively). Controls inside keep their clicks.
+  const drag = useRef<{ x: number; y: number; left: number; top: number; moved: boolean } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const onPanStart = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const el = scroller.current;
+    if (!el || e.pointerType !== "mouse" || e.button !== 0 || (e.target as Element).closest("button, a, input, select, label, textarea")) return;
+    drag.current = { x: e.clientX, y: e.clientY, left: el.scrollLeft, top: el.scrollTop, moved: false };
+  };
+  const onPanMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const el = scroller.current;
+    const d = drag.current;
+    if (!el || !d) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    if (!d.moved && Math.hypot(dx, dy) < 4) return;
+    if (!d.moved) {
+      d.moved = true;
+      setDragging(true);
+      el.setPointerCapture(e.pointerId);
+    }
+    el.scrollLeft = d.left - dx;
+    el.scrollTop = d.top - dy;
+  };
+  const onPanEnd = () => {
+    drag.current = null;
+    setDragging(false);
+  };
+  // The rail: drag its thumb, or press the track to move a screenful that way.
+  const railRef = useRef<HTMLDivElement>(null);
+  const onRailDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const el = scroller.current;
+    const track = railRef.current;
+    if (!el || !track) return;
+    const box = track.getBoundingClientRect();
+    if ((e.target as Element).classList.contains("fl-sg-thumb")) {
+      const startX = e.clientX;
+      const startLeft = el.scrollLeft;
+      const ratio = el.scrollWidth / box.width;
+      const move = (m: PointerEvent) => {
+        el.scrollLeft = startLeft + (m.clientX - startX) * ratio;
+      };
+      const up = () => {
+        removeEventListener("pointermove", move);
+        removeEventListener("pointerup", up);
+      };
+      addEventListener("pointermove", move);
+      addEventListener("pointerup", up);
+      e.preventDefault();
+      return;
+    }
+    const thumbLeft = box.left + rail.pos * box.width * (1 - rail.size);
+    el.scrollBy({ left: e.clientX < thumbLeft ? -el.clientWidth * 0.9 : el.clientWidth * 0.9, behavior: reduced() ? "auto" : "smooth" });
   };
   useEffect(() => {
     measure();
@@ -240,7 +304,7 @@ export function WideTable({
 
   const align = (c: WideColumn) => (c.kind && c.kind !== "text" ? "fl-sg-num" : "");
   const sign = (c: WideColumn, v: unknown) => (c.signed && typeof v === "number" ? (v > 0 ? "up" : v < 0 ? "down" : "flat") : "");
-  const edgeCls = ["fl-sg-box", edges.left ? "is-left" : "", edges.top ? "is-top" : "", edges.bottom && hasTotals ? "is-bottom" : ""].filter(Boolean).join(" ");
+  const edgeCls = ["fl-sg-box", dragging ? "is-dragging" : "", edges.left ? "is-left" : "", edges.top ? "is-top" : "", edges.bottom && hasTotals ? "is-bottom" : ""].filter(Boolean).join(" ");
 
   return (
     <section className={`fl-sg fl-sg--${density}`} aria-labelledby={`${id}-title`} data-fl="p.wide-table">
@@ -301,7 +365,7 @@ export function WideTable({
       </div>
 
       <div className={`fl-sg-frame${edges.right ? " is-right" : ""}`}>
-        <div ref={scroller} className={edgeCls} style={{ maxHeight }} role="region" aria-labelledby={`${id}-caption`} tabIndex={0} onScroll={measure}>
+        <div ref={scroller} className={edgeCls} style={{ maxHeight }} role="region" aria-labelledby={`${id}-caption`} tabIndex={0} onScroll={measure} onPointerDown={onPanStart} onPointerMove={onPanMove} onPointerUp={onPanEnd} onPointerCancel={onPanEnd}>
           <table className="fl-sg-table">
             <caption id={`${id}-caption`} className="fl-sr">
               {title}
@@ -329,16 +393,28 @@ export function WideTable({
                 })}
               </tr>
             </thead>
-            <tbody ref={tbody}>
-              {sorted.length === 0 ? (
+            <tbody ref={tbody} aria-busy={loading || undefined}>
+              {loading ? (
+                // Placeholder rows, one shimmer sweeping down them; the table keeps its header and size.
+                Array.from({ length: 6 }, (_, i) => (
+                  <tr key={`sk${i}`} className="fl-sg-skel" aria-hidden="true" style={{ "--i": i } as CSSProperties}>
+                    {shown.map((c) => (
+                      <td key={c.key} className={c === first ? "fl-sg-stick" : undefined}>
+                        <span className="fl-sg-bar" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : sorted.length === 0 ? (
                 <tr>
                   <td className="fl-sg-empty" colSpan={shown.length}>
                     {l.empty}
                   </td>
                 </tr>
               ) : (
-                sorted.map((r) => (
-                  <tr key={r.id} data-row={r.id}>
+                // Each row rises in once when it first appears, top down (a sort moves rows; it doesn't replay this).
+                sorted.map((r, i) => (
+                  <tr key={r.id} data-row={r.id} className="fl-sg-in" style={{ "--i": Math.min(i, 11) } as CSSProperties}>
                     {shown.map((c) => {
                       const v = r[c.key];
                       const dir = sign(c, v);
@@ -359,7 +435,7 @@ export function WideTable({
                 ))
               )}
             </tbody>
-            {hasTotals && sorted.length ? (
+            {hasTotals && sorted.length && !loading ? (
               <tfoot>
                 <tr>
                   {shown.map((c) =>
@@ -379,6 +455,11 @@ export function WideTable({
           </table>
         </div>
       </div>
+      {rail.size < 0.999 ? (
+        <div ref={railRef} className="fl-sg-rail" aria-hidden="true" onPointerDown={onRailDown}>
+          <span className="fl-sg-thumb" style={{ width: `${rail.size * 100}%`, left: `${rail.pos * (1 - rail.size) * 100}%` }} />
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -581,10 +662,16 @@ const SAMPLE = {
 };
 
 export default function WideTableSheet() {
+  // The sample loads for a moment, as a real report would, so the cascade can be seen.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(t);
+  }, []);
   return (
-    <section className="fl-section" aria-label={SAMPLE.title}>
+    <section className="fl-section fl-section--canvas" aria-label={SAMPLE.title}>
       <div className="fl-wrap">
-        <WideTable {...SAMPLE} />
+        <WideTable {...SAMPLE} loading={loading} />
       </div>
     </section>
   );

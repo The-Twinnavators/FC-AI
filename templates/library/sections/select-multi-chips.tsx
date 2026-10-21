@@ -334,7 +334,7 @@ export default function SelectMultiChips() {
     setSaved(`${d.savedText}: ${names.join(", ")}.`);
   };
   return (
-    <section className="fl-section" aria-labelledby="fl-ms-demo-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="fl-ms-demo-title">
       <div className="fl-wrap fl-wrap--narrow">
         <form className="fl-ms-demo" onSubmit={submit} noValidate>
           <div>

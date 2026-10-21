@@ -44,11 +44,11 @@
 .fl-vg-length {
   position: absolute; right: var(--space-2); bottom: var(--space-2); padding: 2px var(--space-2); border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--color-text) 78%, transparent); color: var(--color-bg);
-  font: var(--weight-semibold) var(--text-xs) / 1.4 var(--font-sans); font-variant-numeric: tabular-nums;
+  font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1.4 var(--font-sans); font-variant-numeric: tabular-nums;
 }
 .fl-vg-caption { display: grid; gap: 2px; }
 .fl-vg-caption strong { font-weight: var(--weight-semibold); }
-.fl-vg-caption span { font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-vg-caption span { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 
 @media (prefers-reduced-motion: reduce) {
   .fl-vg-play { transition: none; }

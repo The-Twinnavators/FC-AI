@@ -395,7 +395,7 @@ const SAMPLE = {
 export default function InputCardNumber() {
   const d = SAMPLE;
   return (
-    <section className="fl-section" aria-labelledby="fl-cn-demo-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="fl-cn-demo-title">
       <div className="fl-wrap fl-wrap--narrow">
         <div className="fl-cn-demo">
           <div>

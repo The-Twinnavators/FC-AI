@@ -348,7 +348,7 @@ export default function MenubarPreview() {
   };
 
   return (
-    <section className="fl-section" aria-labelledby="menubar-title">
+    <section className="fl-section fl-section--canvas" aria-labelledby="menubar-title">
       <div className="fl-wrap">
         <div className="fl-head">
           <p className="fl-eyebrow">{d.eyebrow}</p>

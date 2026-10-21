@@ -10,7 +10,7 @@
   --fl-mord-max: 430px;
   --fl-mord-nav: calc(4.5rem + 1px + env(safe-area-inset-bottom, 0px));
   min-height: 100dvh; background: var(--color-bg); color: var(--color-text);
-  font-family: var(--font-sans); font-size: var(--text-md); line-height: var(--leading-normal);
+  font-family: var(--font-sans); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); line-height: var(--leading-normal);
 }
 .fl-mord-phone { position: relative; width: 100%; max-width: var(--fl-mord-max); min-height: 100dvh; margin-inline: auto; background: var(--color-bg); }
 @media (min-width: 480px) {
@@ -27,11 +27,11 @@
 @keyframes fl-mord-in { from { opacity: 0; transform: translateY(6px); } }
 
 /* ── Type and rows ── */
-.fl-mord-h1 { font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--heading-weight, var(--weight-bold)); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight, 0); }
-.fl-mord-h2 { font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--heading-weight, var(--weight-semibold)); line-height: var(--leading-snug); margin-bottom: var(--space-3) !important; }
+.fl-mord-h1 { font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); font-weight: var(--heading-weight, var(--weight-bold)); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight, 0); }
+.fl-mord-h2 { font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--heading-weight, var(--weight-semibold)); line-height: var(--leading-snug); margin-bottom: var(--space-3) !important; }
 .fl-mord-h2 .fl-mord-meta { font-family: var(--font-sans); font-weight: var(--weight-regular); }
 .fl-mord-row .fl-mord-h2 { margin-bottom: 0 !important; }
-.fl-mord-meta { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-mord-meta { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-mord-num { font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
 .fl-mord-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 
@@ -46,9 +46,9 @@
   background: var(--color-surface-sunken); text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .fl-mord-when--static { grid-template-columns: auto minmax(0, 1fr); cursor: default; }
-.fl-mord-when__label { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-mord-when__label { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-mord-when__value { font-weight: var(--weight-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fl-mord-when__change { color: var(--color-accent); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.fl-mord-when__change { color: var(--color-accent); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
 button.fl-mord-when:hover { background: color-mix(in srgb, var(--color-text) 8%, var(--color-surface-sunken)); }
 
 /* ── Category tabs: a sideways-scrolling row that stays at the top ── */
@@ -64,7 +64,7 @@ button.fl-mord-when:hover { background: color-mix(in srgb, var(--color-text) 8%,
 .fl-mord-cats li { flex: none; scroll-snap-align: start; }
 .fl-mord-cat {
   min-height: 2.75rem; padding: 0 var(--space-4); border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px);
-  background: var(--control-bg, var(--color-bg)); color: var(--color-text-muted); font-size: var(--text-sm); font-weight: var(--weight-medium);
+  background: var(--control-bg, var(--color-bg)); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium);
   white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent;
   transition: background var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing);
 }
@@ -90,9 +90,9 @@ button.fl-mord-when:hover { background: color-mix(in srgb, var(--color-text) 8%,
 .fl-mord-item__open:hover .fl-mord-item__name { text-decoration: underline; text-underline-offset: 0.15em; }
 .fl-mord-item__body { display: grid; gap: 0.125rem; min-width: 0; }
 .fl-mord-item__name { font-weight: var(--weight-semibold); line-height: var(--leading-snug); }
-.fl-mord-item__text { color: var(--color-text-muted); font-size: var(--text-sm); line-height: var(--leading-snug); }
+.fl-mord-item__text { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: var(--leading-snug); }
 .fl-mord-item__price { margin-top: var(--space-1); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
-.fl-mord-item__count { color: var(--color-accent); font-size: var(--text-sm); }
+.fl-mord-item__count { color: var(--color-accent); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-mord-item__diet { grid-area: diet; display: flex; flex-wrap: wrap; gap: var(--space-1); padding: var(--space-2) 0 0 calc(4.5rem + var(--space-3)); }
 .fl-mord-sheethero .fl-mord-item__diet { grid-area: auto; padding: 0; }
 .fl-mord-add {
@@ -139,7 +139,7 @@ button.fl-mord-when:hover { background: color-mix(in srgb, var(--color-text) 8%,
 .fl-mord-bar__icon svg { width: 1.4rem; height: 1.4rem; }
 .fl-mord-bar__count {
   position: absolute; top: -0.45rem; right: -0.6rem; min-width: 1.1rem; height: 1.1rem; padding: 0 0.25rem; border-radius: var(--pill-radius, 999px);
-  background: var(--color-on-accent); color: var(--color-accent); font-size: 0.7rem; font-weight: var(--weight-bold); line-height: 1.1rem; text-align: center;
+  background: var(--color-on-accent); color: var(--color-accent); font-size: max(11px, calc(0.7rem - var(--fs-shrink, 0px))); font-weight: var(--weight-bold); line-height: 1.1rem; text-align: center;
 }
 .fl-mord-bar__label { flex: 1; min-width: 0; font-variant-numeric: tabular-nums; }
 
@@ -158,7 +158,7 @@ button.fl-mord-when:hover { background: color-mix(in srgb, var(--color-text) 8%,
 .fl-mord-sheethero__text { display: grid; gap: var(--space-2); color: var(--color-text-muted); }
 .fl-mord-field { display: grid; gap: var(--space-2); min-width: 0; padding: 0; border: 0; }
 .fl-mord-field > legend { padding: 0; margin-bottom: var(--space-2); font-weight: var(--weight-semibold); }
-.fl-mord-field .fl-ctl-seg__opt { font-size: var(--text-xs); }
+.fl-mord-field .fl-ctl-seg__opt { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 .fl-mord-extras { display: grid; margin: 0; padding: 0; list-style: none; }
 .fl-mord-extras li + li { border-top: 1px solid var(--color-border); }
 .fl-mord-extra { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); min-height: 3rem; padding: var(--space-1) 0; cursor: pointer; }
@@ -176,7 +176,7 @@ button.fl-mord-when:hover { background: color-mix(in srgb, var(--color-text) 8%,
 .fl-mord-totals { display: grid; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--color-border); font-variant-numeric: tabular-nums; }
 .fl-mord-totals > div { display: flex; justify-content: space-between; gap: var(--space-3); }
 .fl-mord-totals dt { color: var(--color-text-muted); }
-.fl-mord-totals__sum { padding-top: var(--space-2); border-top: 1px dashed var(--color-border); font-size: var(--text-lg); font-weight: var(--weight-bold); }
+.fl-mord-totals__sum { padding-top: var(--space-2); border-top: 1px dashed var(--color-border); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-bold); }
 .fl-mord-totals__sum dt { color: var(--color-text); }
 .fl-mord-empty { display: grid; justify-items: start; gap: var(--space-2); color: var(--color-text-muted); }
 
@@ -192,15 +192,15 @@ button.fl-mord-when:hover { background: color-mix(in srgb, var(--color-text) 8%,
 .fl-mord-code { font-family: var(--font-mono); font-weight: var(--weight-bold); letter-spacing: var(--tracking-wide, 0.04em); }
 .fl-mord-code--big {
   padding: var(--space-2) var(--space-5); border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md);
-  font-size: var(--text-2xl); line-height: var(--leading-tight);
+  font-size: max(11px, calc(var(--text-2xl) - var(--fs-shrink, 0px))); line-height: var(--leading-tight);
 }
 
 /* ── Orders, rewards, account ── */
 .fl-mord-card { display: grid; gap: var(--space-3); padding: var(--space-4); }
 .fl-mord-card--tight { gap: var(--space-1); padding: var(--space-3) var(--space-4); }
 .fl-mord-card > .fl-btn { justify-self: start; }
-.fl-mord-lines { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; font-size: var(--text-sm); }
-.fl-mord-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin: 0; padding: 0; list-style: none; font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-mord-lines { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-mord-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin: 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-mord-steps li { display: grid; gap: var(--space-1); }
 .fl-mord-steps li::before { content: ""; height: 0.375rem; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); }
 .fl-mord-steps li[data-done]::before { background: var(--color-accent); }

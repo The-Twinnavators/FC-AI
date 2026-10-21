@@ -1,0 +1,92 @@
+/**
+ * Bento features (b.features-bento): a densely packed grid of mixed-size feature tiles that turn over to say more.
+ * Prefixed fl-bnto-; only the library's tokens. Adapted from AstroWind (MIT License, Copyright (c) 2023 onWidget).
+ */
+.fl-bnto-box { container-type: inline-size; min-width: 0; }
+.fl-bnto {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: dense; grid-auto-rows: minmax(11rem, auto);
+  gap: var(--space-4); margin: 0; padding: 0; list-style: none; min-width: 0;
+}
+.fl-bnto-tile {
+  position: relative; display: grid; min-width: 0; overflow: hidden; isolation: isolate;
+  border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+  background: var(--color-surface); box-shadow: var(--surface-shadow, none);
+  transition: translate var(--duration-base) var(--ease-out, var(--easing)), box-shadow var(--duration-base) var(--ease-out, var(--easing)), border-color var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-bnto-tile:hover { translate: 0 calc(var(--hover-lift, 2px) * -1); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none)); border-color: color-mix(in srgb, var(--color-accent) 35%, var(--color-border)); }
+.fl-bnto-tile--big { grid-column: span 2; grid-row: span 2; }
+.fl-bnto-tile--wide { grid-column: span 2; }
+.fl-bnto-tile--tall { grid-row: span 2; }
+
+.fl-bnto-face, .fl-bnto-back { grid-area: 1 / 1; display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); min-width: 0; }
+.fl-bnto-face { transition: opacity var(--duration-base) var(--ease-out, var(--easing)), translate var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-bnto-words { display: grid; gap: var(--space-2); justify-items: start; padding-right: var(--space-7); }
+.fl-bnto-icon {
+  display: grid; place-items: center; width: 2.5rem; height: 2.5rem; margin-bottom: var(--space-1); border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent);
+}
+.fl-bnto-icon svg { width: 1.25rem; height: 1.25rem; }
+.fl-bnto-title { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); line-height: var(--leading-snug, 1.3); }
+.fl-bnto-tile--big .fl-bnto-title { font-size: var(--text-xl, 1.25rem); }
+.fl-bnto-text { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: var(--leading-normal, 1.55); }
+.fl-bnto-stat { display: grid; gap: var(--space-1); margin: auto 0 0; }
+.fl-bnto-stat strong { font-family: var(--font-display); font-size: var(--text-3xl, 2.5rem); line-height: 1; color: var(--color-accent); font-variant-numeric: tabular-nums; letter-spacing: var(--tracking-tight, -0.01em); }
+.fl-bnto-stat span { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+/* The picture sits at the foot and bleeds to the tile's edges. */
+.fl-bnto-pic { margin: auto calc(var(--space-5) * -1) calc(var(--space-5) * -1); padding-top: var(--space-2); }
+.fl-bnto-pic .fl-ctl-media { display: block; width: 100%; border-radius: 0; transition: scale var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-bnto-tile:hover .fl-bnto-pic .fl-ctl-media { scale: 1.03; }
+.fl-bnto-link {
+  display: inline-flex; align-items: center; gap: var(--space-1); align-self: flex-start; margin-top: auto; border-radius: var(--radius-sm, 4px);
+  color: var(--color-accent); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-decoration: none;
+}
+.fl-bnto-link svg { width: 1rem; height: 1rem; transition: translate var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-bnto-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.fl-bnto-link:hover svg { translate: 2px 0; }
+.fl-bnto-link:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* The back of a tile: an accent card with the longer note. */
+.fl-bnto-back {
+  justify-content: flex-end; z-index: 1; background: var(--color-accent); color: var(--color-on-accent);
+  opacity: 0; translate: 0 var(--enter-distance, 8px); pointer-events: none;
+  transition: opacity var(--duration-base) var(--ease-out, var(--easing)), translate var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-bnto-back-title { margin: 0; font-family: var(--font-display); font-weight: var(--weight-semibold); }
+.fl-bnto-back-text { margin: 0; padding-right: var(--space-6); line-height: var(--leading-relaxed, 1.6); }
+.fl-bnto-tile.is-open .fl-bnto-back { opacity: 1; translate: 0 0; pointer-events: auto; }
+.fl-bnto-tile.is-open .fl-bnto-face { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -1); }
+.fl-bnto-toggle.fl-btn { position: absolute; z-index: 2; top: var(--space-3); right: var(--space-3); border-radius: 50%; }
+.fl-bnto-toggle svg { transition: rotate var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-bnto-tile.is-open .fl-bnto-toggle { color: var(--color-on-accent); }
+.fl-bnto-tile.is-open .fl-bnto-toggle:hover { background: color-mix(in srgb, var(--color-on-accent) 16%, transparent); }
+.fl-bnto-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Entrance once: tiles rise and settle one after another, the stagger capped. */
+.fl-bnto.is-waiting .fl-bnto-tile { opacity: 0; }
+.fl-bnto.is-entering .fl-bnto-tile { animation: fl-bnto-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 50ms)), var(--stagger-max, 300ms)); }
+@keyframes fl-bnto-rise { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 2); scale: 0.98; } }
+
+/* Tablet: two columns; tall tiles stop spanning rows so nothing leaves a hole. */
+@container (max-width: 52rem) {
+  .fl-bnto { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fl-bnto-tile--big { grid-row: span 1; }
+}
+/* Phone: one column, every tile full width. */
+@container (max-width: 34rem) {
+  .fl-bnto { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; gap: var(--space-3); }
+  .fl-bnto-tile--big, .fl-bnto-tile--wide, .fl-bnto-tile--tall { grid-column: auto; grid-row: auto; }
+  .fl-bnto-face, .fl-bnto-back { padding: var(--space-4); }
+  .fl-bnto-pic { margin: auto calc(var(--space-4) * -1) calc(var(--space-4) * -1); }
+  .fl-bnto-tile { min-height: 10rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-bnto.is-waiting .fl-bnto-tile { opacity: 1; }
+  .fl-bnto.is-entering .fl-bnto-tile { animation: none; }
+  .fl-bnto-tile, .fl-bnto-tile *, .fl-bnto-face, .fl-bnto-back { transition-duration: 1ms !important; }
+  .fl-bnto-tile:hover, .fl-bnto-back, .fl-bnto-tile.is-open .fl-bnto-face { translate: none; }
+  .fl-bnto-tile:hover .fl-bnto-pic .fl-ctl-media { scale: 1; }
+}
+:root[data-motion="off"] .fl-bnto.is-waiting .fl-bnto-tile { opacity: 1; }
+:root[data-motion="off"] .fl-bnto, :root[data-motion="off"] .fl-bnto * { transition: none !important; animation: none !important; }
+@media print { .fl-bnto.is-waiting .fl-bnto-tile { opacity: 1; } }

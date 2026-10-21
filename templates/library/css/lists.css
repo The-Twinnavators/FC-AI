@@ -8,7 +8,7 @@
 .fl-lst-root {
   container: fl-lst / inline-size;
   display: grid; gap: var(--space-4); align-content: start; min-width: 0;
-  color: var(--color-text); font-size: var(--text-sm);
+  color: var(--color-text); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
 }
 .fl-lst-root--framed {
   padding: var(--space-4) var(--space-5);
@@ -22,14 +22,14 @@
 /* ── Header ── */
 .fl-lst-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-2) var(--space-3); }
 .fl-lst-head-text { display: grid; gap: var(--space-1); min-width: 0; flex: 1 1 12rem; }
-.fl-lst-title { margin: 0; font-size: var(--text-lg); font-weight: var(--heading-weight, var(--weight-semibold)); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight, 0); }
+.fl-lst-title { margin: 0; font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--heading-weight, var(--weight-semibold)); line-height: var(--leading-tight); letter-spacing: var(--tracking-tight, 0); }
 .fl-lst-lede { margin: 0; color: var(--color-text-muted); }
 .fl-lst-actions { display: flex; flex-wrap: wrap; gap: var(--space-1); }
 .fl-lst-root .fl-lst-danger { color: var(--color-danger); }
 
 .fl-lst-back {
   display: inline-flex; align-items: center; gap: var(--space-1); justify-self: start; padding: 2px var(--space-1); margin-left: calc(-1 * var(--space-1));
-  border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-text-muted); font: inherit; font-size: var(--text-sm); cursor: pointer;
+  border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-text-muted); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); cursor: pointer;
 }
 .fl-lst-back:hover { color: var(--color-text); }
 .fl-lst-back svg { width: 1rem; height: 1rem; }
@@ -41,28 +41,28 @@
 .fl-lst-name svg { flex: none; width: 0.95rem; height: 0.95rem; color: var(--color-text-muted); opacity: 0.6; transition: opacity var(--duration-fast) var(--easing); }
 .fl-lst-name:hover { background: var(--color-surface-sunken); }
 .fl-lst-name:hover svg, .fl-lst-name:focus-visible svg { opacity: 1; }
-.fl-lst-name-input { font-size: var(--text-lg); font-weight: var(--weight-semibold); }
+.fl-lst-name-input { font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
 
 /* ── Fields ── */
 .fl-lst-field { display: grid; gap: var(--space-1); min-width: 0; }
-.fl-lst-label { font-size: var(--text-sm); font-weight: var(--weight-medium); }
+.fl-lst-label { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
 .fl-lst-input {
   width: 100%; min-width: 0; height: var(--control-sm, 2.5rem); padding: 0 var(--space-3);
   border: var(--control-border, 1px solid var(--color-border-strong, var(--color-border))); border-radius: min(var(--field-radius, var(--radius-md)), 12px);
-  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: var(--text-sm);
+  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
 }
 .fl-lst-input::placeholder { color: var(--color-text-muted); }
 .fl-lst-input:focus-visible { border-color: var(--control-edge, var(--color-accent)); }
 .fl-lst-input[aria-invalid="true"] { border-color: var(--color-danger); }
-.fl-lst-error { margin: 0; color: var(--color-danger); font-size: var(--text-sm); }
-.fl-lst-hint { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-lst-error { margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-lst-hint { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 
 .fl-lst-select { position: relative; display: flex; align-items: center; min-width: 0; }
 .fl-lst-select select {
   width: 100%; min-width: 0; height: var(--control-sm, 2.5rem); padding: 0 calc(8px + 1rem + var(--space-1)) 0 var(--space-3);
   appearance: none; -webkit-appearance: none; text-overflow: ellipsis;
   border: var(--control-border, 1px solid var(--color-border-strong, var(--color-border))); border-radius: min(var(--field-radius, var(--radius-md)), 12px);
-  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: var(--text-sm); cursor: pointer;
+  background: var(--control-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); cursor: pointer;
 }
 .fl-lst-select select option { background: var(--color-surface); color: var(--color-text); }
 .fl-lst-select svg { position: absolute; right: 8px; width: 1rem; height: 1rem; color: var(--color-text-muted); pointer-events: none; }
@@ -88,11 +88,11 @@
 .fl-lst-listrow-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); min-width: 0; }
 .fl-lst-listrow-name { min-width: 0; font-weight: var(--weight-semibold); overflow-wrap: anywhere; }
 .fl-lst-listrow[aria-current="true"] .fl-lst-listrow-name { color: var(--color-accent); }
-.fl-lst-listrow-when { flex: none; color: var(--color-text-muted); font-size: var(--text-xs); white-space: nowrap; }
+.fl-lst-listrow-when { flex: none; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); white-space: nowrap; }
 .fl-lst-listrow-place { display: inline-flex; align-items: center; gap: var(--space-1); min-width: 0; color: var(--color-text-muted); }
 .fl-lst-listrow-place svg { flex: none; width: 0.9rem; height: 0.9rem; }
 .fl-lst-listrow-progress { display: flex; align-items: center; gap: var(--space-2); }
-.fl-lst-listrow-count { flex: none; color: var(--color-text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.fl-lst-listrow-count { flex: none; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
 
 .fl-lst-bar { position: relative; display: block; flex: 1 1 auto; min-width: 3rem; height: 4px; overflow: hidden; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); }
 .fl-lst-bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--color-accent); transition: width var(--duration-base, 200ms) var(--easing); }
@@ -103,7 +103,7 @@
 .fl-lst-place-icon svg { width: 1.05rem; height: 1.05rem; }
 .fl-lst-place-text { display: grid; gap: 1px; flex: 1 1 10rem; min-width: 0; }
 .fl-lst-place-name { font-weight: var(--weight-semibold); }
-.fl-lst-place-sub { color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-lst-place-sub { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 
 /* The place picker: solid, in the page's flow. */
 .fl-lst-menu {
@@ -126,7 +126,7 @@
 .fl-lst-option-check svg { width: 1rem; height: 1rem; }
 .fl-lst-option-text { display: grid; gap: 1px; min-width: 0; }
 .fl-lst-option-name { font-weight: var(--weight-medium); }
-.fl-lst-option-sub { color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-lst-option-sub { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 .fl-lst-zip { display: grid; gap: var(--space-1); }
 .fl-lst-zip-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .fl-lst-zip-input { flex: 0 1 8rem; height: 40px; font-variant-numeric: tabular-nums; letter-spacing: 0.05em; }
@@ -158,10 +158,10 @@
 .fl-lst-result[aria-selected="true"] { background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)); }
 .fl-lst-result-text { display: grid; gap: 1px; min-width: 0; }
 .fl-lst-result-title { font-weight: var(--weight-medium); }
-.fl-lst-result-sub { color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-lst-result-sub { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 .fl-lst-result-meta { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-1); flex: none; }
 .fl-lst-results-none { padding: var(--space-3) var(--space-2); color: var(--color-text-muted); }
-.fl-lst-tag { padding: 1px var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: var(--text-xs); white-space: nowrap; }
+.fl-lst-tag { padding: 1px var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); white-space: nowrap; }
 .fl-lst-tag--yes { background: color-mix(in srgb, var(--color-success) 14%, var(--color-surface)); color: var(--color-success); }
 .fl-lst-tag--no { background: color-mix(in srgb, var(--color-warning, var(--color-danger)) 14%, var(--color-surface)); color: var(--color-text); }
 
@@ -173,7 +173,7 @@
 }
 .fl-lst-undo > span { flex: 1 1 auto; min-width: 0; }
 
-.fl-lst-link { padding: 2px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-accent); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-medium); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.fl-lst-link { padding: 2px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-accent); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .fl-lst-icon-btn {
   display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; padding: 0;
   border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--color-text-muted); cursor: pointer;
@@ -195,19 +195,19 @@
 .fl-lst-item-title { justify-self: start; padding: 0; border: 0; background: none; color: var(--color-text); font: inherit; font-weight: var(--weight-medium); text-align: left; overflow-wrap: anywhere; cursor: pointer; }
 .fl-lst-item-open { border-radius: var(--radius-sm); }
 .fl-lst-item-open:hover { color: var(--color-accent); text-decoration: underline; text-underline-offset: 2px; }
-.fl-lst-item-sub { color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-lst-item-sub { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 .fl-lst-item.is-done .fl-lst-item-title { color: var(--color-text-muted); text-decoration: line-through; }
 .fl-lst-item.is-done :is(.fl-lst-item-sub, .fl-lst-qty) { opacity: 0.6; }
-.fl-lst-done-label { padding: var(--space-4) 0 var(--space-1); border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); font-size: var(--text-xs); font-weight: var(--weight-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
+.fl-lst-done-label { padding: var(--space-4) 0 var(--space-1); border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
 
-.fl-lst-where { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--space-1); margin-top: 2px; color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-lst-where { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--space-1); margin-top: 2px; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 .fl-lst-where svg { flex: none; width: 0.85rem; height: 0.85rem; }
 .fl-lst-where--yes { color: var(--color-success); }
 .fl-lst-where--no { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; color: var(--color-text); }
 .fl-lst-where--no svg { margin-top: 1px; }
 .fl-lst-where--no .fl-lst-link { padding: 0; }
 .fl-lst-where--no svg { color: var(--color-warning, var(--color-danger)); }
-.fl-lst-where .fl-lst-link { font-size: var(--text-xs); }
+.fl-lst-where .fl-lst-link { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
 
 /* The stepper: − number + */
 .fl-lst-qty {
@@ -215,7 +215,7 @@
   border: var(--control-border, 1px solid var(--color-border-strong, var(--color-border))); border-radius: min(var(--field-radius, var(--radius-md)), 12px);
   background: var(--control-bg, var(--color-surface));
 }
-.fl-lst-qty-btn { display: grid; place-items: center; width: 1.9rem; height: 100%; padding: 0; border: 0; background: none; color: var(--color-text); font: inherit; font-size: var(--text-md); line-height: 1; cursor: pointer; }
+.fl-lst-qty-btn { display: grid; place-items: center; width: 1.9rem; height: 100%; padding: 0; border: 0; background: none; color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); line-height: 1; cursor: pointer; }
 .fl-lst-qty-btn svg { width: 0.85rem; height: 0.85rem; }
 .fl-lst-qty-btn:hover:not(:disabled) { color: var(--color-accent); }
 .fl-lst-qty-btn:disabled { opacity: var(--disabled-opacity, 0.4); cursor: default; }
@@ -237,12 +237,12 @@
 .fl-lst-empty--compact { padding: var(--space-6, 2rem) var(--space-4); }
 .fl-lst-empty-icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--color-surface-sunken); color: var(--color-text-muted); }
 .fl-lst-empty-icon svg { width: 1.2rem; height: 1.2rem; }
-.fl-lst-empty-title { margin: 0; font-size: var(--text-md); font-weight: var(--weight-semibold); }
+.fl-lst-empty-title { margin: 0; font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
 .fl-lst-empty-text { margin: 0 0 var(--space-1); max-width: 28rem; color: var(--color-text-muted); }
 
 /* ── The sheet: index and open list side by side ── */
 .fl-lst-demo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border); }
-.fl-lst-demo-label { color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-lst-demo-label { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-lst-demo { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); padding-top: var(--space-2); }
 @container specimen (min-width: 50rem) {
   .fl-lst-demo { grid-template-columns: minmax(16rem, 2fr) minmax(0, 3fr); }

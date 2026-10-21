@@ -1,0 +1,87 @@
+/**
+ * API keys manager (p.api-keys): a header with Create key over a table of keys (masked value, access pill, dates, Roll and
+ * Revoke), the create form and the show-once secret dialog; each key becomes a card on a narrow screen.
+ * Prefixed fl-ak-; only the library's tokens. Adapted from HyperUI (MIT License, Copyright (c) Mark Mead).
+ */
+.fl-ak { container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; }
+.fl-ak-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4); }
+.fl-ak-heading { display: grid; gap: var(--space-1); min-width: 0; max-width: 40rem; }
+.fl-ak-heading h2 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px)))); font-weight: var(--weight-semibold); }
+.fl-ak-heading p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+.fl-ak-scroll {
+  min-width: 0; overflow-x: auto; overflow-y: hidden; background: var(--surface-bg, var(--color-surface));
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+}
+.fl-ak-table { width: 100%; border-collapse: collapse; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-ak-table thead th {
+  padding: var(--space-2) var(--space-4); background: var(--color-surface-sunken); color: var(--color-text-muted);
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-align: left; white-space: nowrap; border-bottom: 1px solid var(--color-border);
+}
+.fl-ak-table tbody th, .fl-ak-table tbody td { padding: var(--space-3) var(--space-4); text-align: left; font-weight: inherit; vertical-align: middle; border-bottom: 1px solid var(--color-border); }
+.fl-ak-table tbody tr:last-child > * { border-bottom: 0; }
+.fl-ak-row { transition: background-color var(--duration-fast) var(--easing), opacity var(--duration-base) var(--easing); }
+.fl-ak-row:hover { background: color-mix(in srgb, var(--color-surface-sunken) 60%, transparent); }
+.fl-ak-row.is-leaving { opacity: 0; }
+.fl-ak-row.is-new { animation: fl-ak-in var(--duration-slow) var(--ease-out) backwards; }
+.fl-ak-row.is-expired .fl-ak-name, .fl-ak-row.is-expired .fl-ak-mask { color: var(--color-text-muted); }
+@keyframes fl-ak-in { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-ak-name { font-weight: var(--weight-semibold); color: var(--color-text); }
+.fl-ak-mask {
+  display: inline-block; padding: 2px var(--space-2); border-radius: min(var(--radius-sm, 4px), 12px); background: var(--color-surface-sunken);
+  font: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1.6 var(--font-mono, ui-monospace, monospace); color: var(--color-text); white-space: nowrap;
+}
+.fl-ak-mask > span { letter-spacing: 0.1em; color: var(--color-text-muted); }
+.fl-ak-muted { color: var(--color-text-muted); white-space: nowrap; }
+.fl-ak-table td.fl-ak-actions { text-align: right; white-space: nowrap; }
+.fl-ak-actions .fl-btn + .fl-btn { margin-left: var(--space-1); }
+.fl-ak .fl-btn, .fl-ak-secret .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-ak .fl-btn:active:not(:disabled), .fl-ak-secret .fl-btn:active:not(:disabled) { scale: 0.96; }
+.fl-ak-status { margin: 0; min-height: 1.5rem; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+.fl-ak-form { display: grid; gap: var(--space-4); }
+.fl-ak-field { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-ak-field > label, .fl-ak-radios > legend { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-ak-radios { margin: 0; padding: 0; border: 0; gap: var(--space-2); }
+.fl-ak-radios > legend { padding: 0; margin-bottom: var(--space-2); }
+.fl-ak-error { display: flex; align-items: center; gap: var(--space-1); margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-danger); }
+.fl-ak-error svg { width: 1rem; height: 1rem; flex: none; }
+
+.fl-ak-secret { display: grid; gap: var(--space-3); }
+.fl-ak-secret-name { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-ak-secret-row { display: flex; gap: var(--space-2); min-width: 0; }
+.fl-ak-secret-value {
+  flex: 1 1 auto; min-width: 0; height: 40px; padding-inline: var(--space-3); border: 1px solid var(--color-border);
+  border-radius: min(var(--control-radius, var(--radius-md)), 12px); background: var(--color-surface-sunken); color: var(--color-text);
+  font: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-mono, ui-monospace, monospace); text-overflow: ellipsis;
+}
+.fl-ak-secret-value:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-ak-copied { margin: 0; min-height: 1.25rem; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-success); }
+
+/* Narrow: each key is a card; the column names move in front of their values. */
+@container (max-width: 44rem) {
+  .fl-ak-scroll { overflow: visible; background: none; border: 0; }
+  .fl-ak-table, .fl-ak-table tbody { display: grid; gap: var(--space-3); }
+  .fl-ak-table caption { display: none; }
+  .fl-ak-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .fl-ak-table tbody tr {
+    display: grid; gap: var(--space-2); padding: var(--space-4);
+    background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+  }
+  .fl-ak-table tbody tr > * { padding: 0; border: 0; }
+  .fl-ak-table tbody td[data-label] { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+  .fl-ak-table tbody td[data-label]::before { content: attr(data-label); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+  .fl-ak-table tbody td.fl-ak-actions { text-align: left; padding-top: var(--space-1); }
+}
+@media (max-width: 30rem) {
+  .fl-ak-secret-row { flex-wrap: wrap; }
+  .fl-ak-secret-value { flex-basis: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-ak-row, .fl-ak .fl-btn, .fl-ak-secret .fl-btn { transition-duration: 1ms; }
+  .fl-ak .fl-btn:active:not(:disabled), .fl-ak-secret .fl-btn:active:not(:disabled) { scale: none; }
+  .fl-ak-row.is-new { animation: fl-ak-fade var(--duration-fast) var(--easing) backwards; }
+  @keyframes fl-ak-fade { from { opacity: 0; } }
+}
+:root[data-motion="off"] .fl-ak *, :root[data-motion="off"] .fl-ak-secret * { transition: none !important; animation: none !important; }

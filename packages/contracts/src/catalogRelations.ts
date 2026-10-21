@@ -168,6 +168,27 @@ const RELATIONS: Record<string, Rel> = {
   "c.split-panes": { contexts: ["app"], provides: ["detail"], requires: ["two or more panes of content that benefit from being seen at once"] },
   "p.mega-menu": { contexts: ["marketing"], provides: ["navigation"], requires: ["a site with enough pages to group into sections"], avoidWhen: ["A site with five pages or fewer: a simple header is enough."] },
   "c.scroll-area": { provides: [] },
+  // On the approval shelf (agents' batch, 2026-10-21)
+  "p.api-keys": { contexts: ["app"], provides: ["results", "edit", "settings", "empty state", "loading state", "error state"], requires: ["the workspace's keys (name, prefix, last four, access, dates)", "a server call that makes and rolls secrets"], avoidWhen: ["the app has no outside integrations or developer access"] },
+  "p.audit-log": { contexts: ["app"], provides: ["results", "history", "filter", "search", "sort", "detail", "empty state", "loading state", "error state"], requires: ["events with a time, a person, an action and a target", "names for each kind of action"], avoidWhen: ["a casual activity feed for end users (use p.activity-timeline)"] },
+  "p.invoice-view": { contexts: ["app"], provides: ["detail", "edit", "form", "primary action"], requires: ["one invoice with parties, line items, tax and payments", "a way to send email and record payments"], avoidWhen: ["a list of many invoices (use a table)", "a shopper's order history (use p.order-history)"] },
+  "p.task-drawer": { contexts: ["app"], provides: ["detail", "edit", "conversation", "steps", "date entry"], requires: ["tasks with status, assignee, due date, priority, checklist and comments", "the people who can be assigned"], avoidWhen: ["a record with many fields better served by a full page (use p.record-detail)"] },
+  "p.csv-import": { contexts: ["app"], provides: ["upload", "steps", "form", "review", "error state", "loading state"], requires: ["the fields a record has, with which are required and their kinds", "a save that takes many rows"], avoidWhen: ["uploading files to keep as files (use p.files-table)"] },
+  "b.careers": { provides: ["results", "filter", "search", "empty state", "form", "detail"], requires: ["the real open roles, each with a department, place and type"], avoidWhen: ["there is only one opening: a single role page fits better"] },
+  "b.changelog": { provides: ["history", "filter", "results", "detail"], requires: ["the real releases, newest first, each with a version, a date and its changes"], avoidWhen: ["a history of one record's events: use the activity timeline"] },
+  "b.contact-offices": { provides: ["form", "navigation"], requires: ["the real channels, offices with time zones and opening hours, and the message topics"], avoidWhen: ["one address and no opening hours: the contact split is enough"] },
+  "b.pricing-calculator": { provides: ["form"], requires: ["the real per-seat plan prices, seat ranges, extras and the yearly discount"], avoidWhen: ["flat-price plans with no seats or extras: use the pricing tiers or the monthly or yearly toggle"] },
+  "p.reviews": { provides: ["filter", "sort", "results", "form", "empty state"], requires: ["the real reviews with a rating, author, date and text"], avoidWhen: ["hand-picked quotes with no ratings: use the testimonial cards"] },
+  "b.hero-signup": { provides: ["media"], requires: ["a one-line promise","a picture of the product"], avoidWhen: ["the page's main action is not an email sign-up: use the split or centered hero"] },
+  "b.features-bento": { provides: ["media"], requires: ["four to ten features, each with a title and a line"], avoidWhen: ["three features or fewer of equal weight: use the features grid"] },
+  "b.use-cases-tabs": { provides: ["navigation", "media"], requires: ["three to five customer types or jobs, each with points and a picture"], avoidWhen: ["one kind of customer only: use features alternating"] },
+  "b.compare-old-way": { provides: ["compare", "primary action"], requires: ["four to six topics, each with the old way and the product's way"], avoidWhen: ["comparing plans or tiers: use the plan comparison table"] },
+  "b.testimonials-wall": { provides: [], requires: ["six or more short quotes with a name"], avoidWhen: ["three quotes or fewer: use the testimonial cards or the featured quote"] },
+  "c.date-field": { contexts: ["app"], provides: ["date entry", "form"], requires: ["a date people already know (birthday, expiry, due date)"], avoidWhen: ["Picking a day from availability: use the date picker or booking calendar instead."] },
+  "c.collapsible": { contexts: ["app", "marketing"], provides: ["detail", "settings"], requires: ["sections people only sometimes need"], avoidWhen: ["Only one section may be open at a time: use the accordion instead."] },
+  "p.zoom-chart": { contexts: ["app"], provides: ["chart", "metrics", "history"], requires: ["a long time series (weeks or months of points)"], avoidWhen: ["A dozen points or fewer: use the area or bar chart instead."] },
+  "p.scroll-dialog": { contexts: ["app"], provides: ["review", "primary action"], requires: ["long text people must read before agreeing"], avoidWhen: ["A short confirmation: use the confirm modal instead."] },
+  "c.time-zone-field": { contexts: ["app"], provides: ["time entry", "settings", "form"], requires: ["a person's or event's time zone"] },
 };
 
 /** The component an ID belongs to: variants and versions answer to it (c.tabs@folder, c.button.primary → c.tabs, c.button). */

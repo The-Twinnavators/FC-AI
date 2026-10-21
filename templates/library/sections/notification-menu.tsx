@@ -384,7 +384,7 @@ export default function NotificationMenuPreview() {
       window.setTimeout(() => (n === 1 ? reject(new Error("offline")) : resolve(n === 0 ? SAMPLE.older : [])), 900);
     });
   return (
-    <section className="fl-section" aria-label="Notifications menu">
+    <section className="fl-section fl-section--canvas" aria-label="Notifications menu">
       <div className="fl-wrap">
         <div className="fl-ntf-demo">
           <strong className="fl-ntf-demo-brand">{SAMPLE.brand}</strong>
