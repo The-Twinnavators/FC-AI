@@ -1,0 +1,119 @@
+/**
+ * Address form (p.address-form): a card with saved address cards, a form whose fields follow the country (the
+ * region row folds on grid rows), a street suggestion list, and a sunken preview that prints the address.
+ * Prefixed fl-adf-; only the library's tokens. Adapted from TailAdmin (MIT, Copyright (c) 2023 TailAdmin) and
+ * TailGrids (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-adf {
+  container-type: inline-size; display: grid; gap: var(--space-5); min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-adf-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.fl-adf-heading { display: grid; gap: var(--space-1); flex: 1 1 14rem; min-width: 0; }
+.fl-adf-heading h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-adf-heading p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-adf-sub { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+
+.fl-adf-book { display: grid; gap: var(--space-2); }
+.fl-adf-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--space-3); }
+.fl-adf-card {
+  display: grid; align-content: start; gap: var(--space-2); padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--surface-bg, var(--color-surface));
+  transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
+  animation: fl-adf-rise var(--duration-base) var(--ease-out, var(--easing)) backwards;
+}
+.fl-adf-card.is-editing { border-color: var(--color-accent); box-shadow: 0 0 0 1px var(--color-accent); }
+.fl-adf-card:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+@keyframes fl-adf-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-adf-card-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-adf-card address, .fl-adf-print { display: grid; font-style: normal; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); line-height: var(--leading-normal, 1.5); overflow-wrap: anywhere; }
+.fl-adf-card-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-left: calc(var(--space-2) * -1); }
+.fl-adf-del { margin-left: auto; }
+.fl-adf-del:hover:not(:disabled) { color: var(--color-danger); }
+.fl-adf-empty { display: flex; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-3) var(--space-4); border: 1px dashed var(--color-border); border-radius: min(var(--radius-md), 12px); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-adf-empty svg { width: 1.125rem; height: 1.125rem; flex: none; }
+
+.fl-adf-main { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-5); align-items: start; padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-adf-form { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.fl-adf-field { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-adf-field > label { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-adf-field .fl-input, .fl-adf-field .fl-ctl-select, .fl-adf-field select { width: 100%; }
+.fl-adf-opt { color: var(--color-text-muted); font-weight: var(--weight-regular, 400); }
+.fl-adf-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.fl-adf-field[data-shake="a"] { animation: fl-adf-shake-a 0.32s var(--easing); }
+.fl-adf-field[data-shake="b"] { animation: fl-adf-shake-b 0.32s var(--easing); }
+@keyframes fl-adf-shake-a { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+@keyframes fl-adf-shake-b { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+.fl-adf-error { display: flex; align-items: center; gap: var(--space-1); margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-adf-error svg { width: 1rem; height: 1rem; flex: none; }
+
+/* A field a country doesn't use folds away; inert while closed. */
+.fl-adf-fold { display: grid; grid-template-rows: 0fr; opacity: 0; margin-top: calc(var(--space-3) * -1); transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)), opacity var(--duration-base) var(--easing), margin-top var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-adf-fold.is-open { grid-template-rows: 1fr; opacity: 1; margin-top: 0; }
+.fl-adf-fold > div { min-height: 0; overflow: hidden; padding: 2px; margin: -2px; }
+.fl-adf-fold:not(.is-open) > div { padding: 0; margin: 0; }
+
+.fl-adf-combo { position: relative; display: block; }
+.fl-adf-list {
+  position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: var(--space-1); list-style: none;
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--surface-bg, var(--color-surface));
+  box-shadow: var(--surface-shadow-overlay, 0 8px 24px color-mix(in srgb, var(--color-text) 14%, transparent));
+  transform-origin: top center; animation: fl-adf-pop var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-adf-list[hidden] { display: none; }
+@keyframes fl-adf-pop { from { opacity: 0; scale: 0.98; translate: 0 -4px; } }
+.fl-adf-list li {
+  display: flex; align-items: flex-start; gap: var(--space-2); padding: var(--space-2); border-radius: min(var(--radius-sm, 6px), 12px); cursor: pointer;
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+}
+.fl-adf-list li.is-active { background: color-mix(in srgb, var(--color-accent) 10%, var(--surface-bg, var(--color-surface))); }
+.fl-adf-list li svg { width: 1rem; height: 1rem; flex: none; margin-top: 2px; color: var(--color-text-muted); }
+.fl-adf-list li > span { display: grid; min-width: 0; }
+.fl-adf-list li > span > span { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+.fl-adf-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+.fl-adf .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-adf .fl-btn:active:not(:disabled) { scale: 0.96; }
+.fl-adf-saved {
+  display: flex; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-2) var(--space-3); border-radius: min(var(--radius-md), 12px);
+  background: color-mix(in srgb, var(--color-success) 12%, var(--surface-bg, var(--color-surface))); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium);
+  animation: fl-adf-rise var(--duration-base) var(--ease-out, var(--easing)) backwards;
+}
+.fl-adf-saved > span { display: grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: 999px; background: var(--color-success); color: var(--color-surface); }
+.fl-adf-saved svg { width: 0.8rem; height: 0.8rem; stroke-width: 3; }
+
+.fl-adf-preview { position: sticky; top: var(--space-4); display: grid; gap: var(--space-3); padding: var(--space-4); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); }
+.fl-adf-ptitle { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: var(--tracking-wide, 0.04em); }
+.fl-adf-ptitle svg { width: 1rem; height: 1rem; color: var(--color-accent); }
+.fl-adf-print { padding: var(--space-3) var(--space-4); border-radius: min(var(--radius-sm, 6px), 12px); background: var(--surface-bg, var(--color-surface)); color: var(--color-text); font-family: var(--font-mono); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-adf-print span { animation: fl-adf-fade var(--duration-fast) var(--easing); }
+@keyframes fl-adf-fade { from { opacity: 0; } }
+.fl-adf-pempty { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+@container (max-width: 44rem) {
+  .fl-adf-main { grid-template-columns: minmax(0, 1fr); }
+  .fl-adf-preview { position: static; order: -1; }
+}
+@container (max-width: 30rem) {
+  .fl-adf { padding: var(--space-4); }
+  .fl-adf-row { grid-template-columns: minmax(0, 1fr); }
+  .fl-adf-btns { flex-direction: column-reverse; }
+  .fl-adf-btns .fl-btn { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-adf .fl-btn, .fl-adf-card, .fl-adf-fold { transition-duration: 1ms; }
+  .fl-adf .fl-btn:active:not(:disabled) { scale: none; }
+  .fl-adf-field[data-shake] { animation: none; }
+  .fl-adf-card, .fl-adf-saved, .fl-adf-list { animation: fl-adf-fade var(--duration-fast) var(--easing) backwards; }
+}
+:root[data-motion="off"] .fl-adf * { transition: none !important; animation: none !important; }
+
+/* Selects match the text fields beside them. */
+.fl-adf .fl-ctl-select select { height: 2.5rem; min-height: 2.5rem; padding-left: var(--space-3); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+/* The library's choice rows, sized for a dense form. */
+.fl-adf .fl-ctl-choice { gap: var(--space-2); padding: var(--space-2) var(--space-3); align-items: center; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-adf .fl-ctl-choice strong { font-weight: var(--weight-medium); }
+.fl-adf .fl-ctl-choice .fl-ctl-matrix-what { display: block; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }

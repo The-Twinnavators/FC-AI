@@ -1,0 +1,128 @@
+/**
+ * Guest list check-in (b.guest-checkin): a white card with the count, filters and guest rows, plus the scan and walk-in
+ * dialogs. Prefixed fl-gck-; only the library's tokens. Adapted from Meraki UI (MIT License, Copyright (c) 2021 Khatab
+ * Wedaa).
+ */
+.fl-gck {
+  display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5); color: var(--color-text);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+@keyframes fl-gck-in { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+@keyframes fl-gck-pop { from { opacity: 0; scale: 0.85; } }
+.fl-gck-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.fl-gck-title { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-gck-when { margin: var(--space-1) 0 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-gck-head-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.fl-gck .fl-btn, .fl-gck-dlg .fl-btn { transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)); }
+.fl-gck .fl-btn:active:not(:disabled) { scale: var(--press-scale, 0.97); }
+
+/* The count: a big number over one straight bar (no rounded ends). */
+.fl-gck-count { display: grid; gap: var(--space-2); padding: var(--space-4); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); }
+.fl-gck-count p { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-gck-count p strong { color: var(--color-text); font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-gck-pct { margin-left: auto; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-gck-bar { position: relative; display: block; height: 6px; background: var(--color-border); overflow: hidden; }
+.fl-gck-bar > span { position: absolute; inset: 0; background: var(--color-success); transform: scaleX(var(--fl-gck-fill, 0)); transform-origin: left; transition: transform var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-gck-types { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.fl-gck-types strong { color: var(--color-text); }
+
+.fl-gck-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(8rem, 11rem); gap: var(--space-3); align-items: center; }
+.fl-gck-search { position: relative; min-width: 0; }
+.fl-gck-search > svg { position: absolute; left: var(--space-3); top: 50%; width: 1rem; height: 1rem; translate: 0 -50%; color: var(--color-text-muted); pointer-events: none; }
+.fl-gck-search .fl-input { width: 100%; padding-left: calc(var(--space-3) + 1.5rem); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-gck-type { min-width: 0; }
+.fl-gck-type .fl-ctl-select, .fl-gck-field .fl-ctl-select { display: block; width: 100%; }
+.fl-gck-type select, .fl-gck-field select { width: 100%; height: 44px; min-height: 44px; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+/* Rows. */
+.fl-gck-list { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-border); }
+.fl-gck-row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: var(--space-2) var(--space-3); align-items: center;
+  padding: var(--space-3) var(--space-2); border-bottom: 1px solid var(--color-border); background: var(--surface-bg, var(--color-surface));
+  transition: background-color var(--duration-base) var(--easing);
+  animation: fl-gck-in var(--duration-base) var(--ease-out, var(--easing)) backwards; animation-delay: calc(var(--fl-gck-i, 0) * var(--stagger, 30ms));
+}
+.fl-gck-row.is-in { background: color-mix(in srgb, var(--color-success) 6%, var(--surface-bg, var(--color-surface))); }
+.fl-gck-who { display: grid; gap: 2px; min-width: 0; }
+.fl-gck-who strong { display: flex; align-items: center; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); overflow-wrap: anywhere; }
+.fl-gck-who > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-gck-who mark { padding: 0 1px; border-radius: 2px; background: color-mix(in srgb, var(--color-warning) 35%, transparent); color: inherit; }
+.fl-gck-party { padding: 0 var(--space-1); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-gck-meta { display: grid; justify-items: end; gap: 2px; }
+.fl-gck-ticket { padding: 1px var(--space-2); border-radius: var(--pill-radius, 999px); border: 1px solid var(--color-border); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-gck-ticket.is-alt { border-color: var(--color-accent); color: var(--color-accent); }
+.fl-gck-meta code { font-family: var(--font-mono, ui-monospace, monospace); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-gck-act { display: flex; align-items: center; gap: var(--space-1); justify-content: flex-end; min-width: 9.5rem; }
+.fl-gck-inbox { display: grid; justify-items: end; gap: 2px; animation: fl-gck-pop var(--duration-base) var(--ease-spring, var(--ease-out)) backwards; }
+.fl-gck-link { padding: 0; border: 0; background: none; color: var(--color-accent); font: inherit; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; border-radius: 2px; }
+.fl-gck-link:disabled { opacity: var(--disabled-opacity, 0.5); cursor: default; }
+.fl-gck-link:focus-visible, .fl-gck-chip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-gck-err { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--space-1); margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium, 500); color: var(--color-danger); animation: fl-gck-in var(--duration-fast) var(--ease-out, var(--easing)) backwards; }
+.fl-gck-err svg { width: 0.875rem; height: 0.875rem; flex: none; }
+
+.fl-gck-empty { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-6, 2rem) var(--space-4); text-align: center; animation: fl-gck-in var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-gck-empty > svg { width: 1.75rem; height: 1.75rem; color: var(--color-text-muted); }
+.fl-gck-empty strong { font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+.fl-gck-empty p { margin: 0 0 var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+/* Scan dialog: a camera stand-in with corner marks and a sweeping line; it flashes the answer's color. */
+.fl-gck-scan, .fl-gck-form { display: grid; gap: var(--space-3); }
+.fl-gck-cam { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; width: 100%; overflow: hidden; border-radius: min(var(--radius-md), 12px); background: var(--color-text); color: var(--color-surface); }
+.fl-gck-cam > svg { width: 2rem; height: 2rem; opacity: 0.5; }
+.fl-gck-corners { position: absolute; inset: 18% 30%; border: 2px solid transparent; background:
+  linear-gradient(var(--color-surface), var(--color-surface)) top left / 18px 2px no-repeat,
+  linear-gradient(var(--color-surface), var(--color-surface)) top left / 2px 18px no-repeat,
+  linear-gradient(var(--color-surface), var(--color-surface)) top right / 18px 2px no-repeat,
+  linear-gradient(var(--color-surface), var(--color-surface)) top right / 2px 18px no-repeat,
+  linear-gradient(var(--color-surface), var(--color-surface)) bottom left / 18px 2px no-repeat,
+  linear-gradient(var(--color-surface), var(--color-surface)) bottom left / 2px 18px no-repeat,
+  linear-gradient(var(--color-surface), var(--color-surface)) bottom right / 18px 2px no-repeat,
+  linear-gradient(var(--color-surface), var(--color-surface)) bottom right / 2px 18px no-repeat; }
+.fl-gck-sweep { position: absolute; left: 30%; right: 30%; top: 18%; height: 2px; background: var(--color-accent); box-shadow: 0 0 8px var(--color-accent); animation: fl-gck-sweep 1.8s var(--easing) infinite alternate; }
+@keyframes fl-gck-sweep { to { top: 82%; } }
+.fl-gck-cam.is-ok { background: var(--color-success); }
+.fl-gck-cam.is-again { background: var(--color-warning); }
+.fl-gck-cam.is-missing { background: var(--color-danger); }
+.fl-gck-cam.is-ok > svg, .fl-gck-cam.is-again > svg, .fl-gck-cam.is-missing > svg { opacity: 1; animation: fl-gck-pop var(--duration-base) var(--ease-spring, var(--ease-out)) backwards; }
+.fl-gck-cam.is-ok .fl-gck-sweep, .fl-gck-cam.is-again .fl-gck-sweep, .fl-gck-cam.is-missing .fl-gck-sweep { display: none; }
+.fl-gck-field { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-gck-field > label { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-gck-field > label span { font-weight: var(--weight-regular, 400); color: var(--color-text-muted); }
+.fl-gck-field .fl-input { width: 100%; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-gck-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: start; }
+.fl-gck-res { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; padding: var(--space-3); border-radius: min(var(--radius-md), 12px); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); animation: fl-gck-in var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-gck-res svg { width: 1rem; height: 1rem; flex: none; margin-top: 2px; }
+.fl-gck-res.is-ok { background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface)); }
+.fl-gck-res.is-ok svg { color: var(--color-success); }
+.fl-gck-res.is-again { background: color-mix(in srgb, var(--color-warning) 16%, var(--color-surface)); }
+.fl-gck-res.is-missing { background: var(--color-danger-surface, color-mix(in srgb, var(--color-danger) 10%, var(--color-surface))); }
+.fl-gck-res.is-missing svg { color: var(--color-danger); }
+.fl-gck-samples { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-gck-chip { min-height: 32px; padding: 0 var(--space-3); border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); background: var(--color-surface); color: var(--color-text); font-family: var(--font-mono, ui-monospace, monospace); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); cursor: pointer; transition: border-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)); }
+.fl-gck-chip:hover { border-color: var(--color-accent); }
+.fl-gck-chip:active { scale: var(--press-scale, 0.97); }
+
+@media (max-width: 44rem) {
+  .fl-gck { padding: var(--space-4); }
+  .fl-gck-tools { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .fl-gck-search { grid-column: 1 / -1; }
+  .fl-gck-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .fl-gck-meta { grid-column: 2; grid-row: 2; display: flex; justify-items: start; align-items: center; gap: var(--space-2); }
+  .fl-gck-act { grid-column: 3; grid-row: 1 / span 2; flex-direction: column; align-items: flex-end; min-width: 0; }
+}
+@media (max-width: 26rem) {
+  .fl-gck-head-actions, .fl-gck-head-actions > .fl-btn { flex: 1 1 auto; }
+  .fl-gck-tools .fl-ctl-seg { grid-column: 1 / -1; }
+  .fl-gck-type { grid-column: 1 / -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-gck-row, .fl-gck-inbox, .fl-gck-err, .fl-gck-empty, .fl-gck-res, .fl-gck-cam > svg { animation: fl-gck-fade var(--duration-fast, 120ms) var(--easing) backwards; animation-delay: 0s; }
+  @keyframes fl-gck-fade { from { opacity: 0; } }
+  .fl-gck-sweep { animation: none; top: 50%; }
+  .fl-gck-bar > span, .fl-gck-row { transition-duration: 1ms; }
+  .fl-gck .fl-btn:active:not(:disabled), .fl-gck-chip:active { scale: none; }
+}
+:root[data-motion="off"] .fl-gck, :root[data-motion="off"] .fl-gck *, :root[data-motion="off"] .fl-gck *::before, :root[data-motion="off"] .fl-gck *::after { transition: none !important; animation: none !important; }
+:root[data-motion="off"] .fl-gck-sweep { top: 50%; }

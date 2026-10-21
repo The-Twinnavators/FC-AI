@@ -105,6 +105,23 @@ MIT License, Copyright (c) 2025 Tailgrids, rewritten in FlowCode's own React and
 Radix). Provider names and marks in `social-button` are their owners' trademarks. tailgrids.com premium blocks and
 templates are not used.
 
+## More pieces from the same MIT sources
+
+Each was read for structure and rewritten in FlowCode's own React and design-token CSS, with nothing copied or fetched:
+
+- HyperUI (MIT, Copyright (c) Mark Mead): team chat, mail client and announcement composer (`app-team-chat`, `app-mail`,
+  `announcement-composer`).
+- Creative Tim UI (MIT, Copyright (c) 2025 Creative Tim): call lobby and away message (`call-lobby`, `away-message`).
+- Tailblocks (MIT, Copyright (c) 2020 Mert Cukuren): event listing, appointment booking flow and rental listing detail
+  (`event-listing`, `booking-flow`, `rental-detail`).
+- Meraki UI (MIT, Copyright (c) 2021 Khatab Wedaa): opening hours and guest check-in (`store-hours`, `guest-checkin`).
+- AstroWind (MIT, Copyright (c) 2023 onWidget): about story, story in numbers, plan comparison, press kit and partner
+  application (`about-story`, `numbers-story`, `plans-accordion`, `press-kit`, `partner-apply`); the last two also follow
+  Landwind (MIT, Copyright (c) 2022 Themesberg).
+- TailGrids (MIT, Copyright (c) 2025 Tailgrids) and TailAdmin free edition (MIT, Copyright (c) 2023 TailAdmin): profile
+  photo, tags manager, address form, survey builder and business details (`profile-photo`, `tags-manager`,
+  `address-form`, `survey-builder`, `business-details`).
+
 ## liquid-glass-js
 
 The liquid glass piece (`templates/library/sections/liquid-glass.tsx`) adapts the WebGL refraction, blur and masking

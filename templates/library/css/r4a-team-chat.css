@@ -1,0 +1,207 @@
+/**
+ * Team chat (t.app-team-chat): a channel rail, a message log with a New rule, reactions and thread links, a side thread
+ * and composers with @mention suggestions. Prefixed fl-tmc-; only the library's tokens.
+ * Adapted from HyperUI (MIT, Copyright (c) Mark Mead).
+ */
+.fl-tmc {
+  container-type: inline-size; position: relative; min-width: 0;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none); overflow: clip;
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+}
+.fl-tmc-grid { position: relative; display: grid; grid-template-columns: 15rem minmax(0, 1fr); height: 40rem; }
+.fl-tmc-grid.has-thread { grid-template-columns: 15rem minmax(0, 1fr) minmax(0, 18rem); }
+
+/* Rail */
+.fl-tmc-rail { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--color-border); background: var(--color-surface-sunken); }
+.fl-tmc-top { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-4); border-bottom: 1px solid var(--color-border); }
+.fl-tmc-ws { margin: 0; flex: 1; min-width: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-base) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-tmc-switch { display: none; }
+.fl-tmc-fold { flex: 1; min-height: 0; overflow-y: auto; }
+.fl-tmc-clip { display: grid; gap: var(--space-4); padding: var(--space-3) var(--space-2); }
+.fl-tmc-group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.fl-tmc-label {
+  margin: 0 0 var(--space-1); padding: 0 var(--space-2); color: var(--color-text-muted);
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.fl-tmc-chan {
+  position: relative; display: flex; align-items: center; gap: var(--space-2); width: 100%; min-height: 2.25rem; padding: var(--space-1) var(--space-2);
+  border: 0; border-radius: min(var(--radius-sm, 6px), 12px); background: transparent; color: var(--color-text-muted); font: inherit; text-align: left; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out, var(--easing)), color var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-tmc-chan:hover { background: color-mix(in srgb, var(--color-text) 6%, transparent); color: var(--color-text); }
+.fl-tmc-chan:active { scale: 0.98; }
+.fl-tmc-chan:focus-visible, .fl-tmc-switch:focus-visible, .fl-tmc-chip:focus-visible, .fl-tmc-tool:focus-visible, .fl-tmc-replies:focus-visible, .fl-tmc-link:focus-visible, .fl-tmc-emoji button:focus-visible, .fl-tmc-log:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-tmc-chan.is-unread { color: var(--color-text); font-weight: var(--weight-semibold); }
+/* The current channel: a tinted row and a straight bar of its own on the left (no curved side stroke). */
+.fl-tmc-chan.is-current { background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-text); font-weight: var(--weight-semibold); }
+.fl-tmc-chan.is-current::before { content: ""; position: absolute; left: calc(var(--space-2) * -1); top: 6px; bottom: 6px; width: 3px; background: var(--color-accent); border-radius: 0; }
+.fl-tmc-hash { width: 1.25rem; text-align: center; color: var(--color-text-muted); font-weight: var(--weight-medium); }
+.fl-tmc-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-tmc-unread {
+  min-width: 1.25rem; padding: 0 6px; border-radius: 999px; background: color-mix(in srgb, var(--color-text) 12%, transparent); color: var(--color-text); text-align: center;
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); line-height: 1.6; font-variant-numeric: tabular-nums;
+}
+.fl-tmc-at {
+  padding: 0 var(--space-2); border-radius: 999px; background: var(--color-accent); color: var(--color-on-accent, var(--color-surface));
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); line-height: 1.6;
+}
+
+/* Conversation */
+.fl-tmc-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.fl-tmc-head { display: grid; gap: 2px; padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-border); }
+.fl-tmc-head h3 { margin: 0; font-size: max(11px, calc(var(--text-base) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-tmc-head p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-tmc-log { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--space-3) var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: 2px; }
+.fl-tmc-log > [data-fl="c.empty-state.first-use"] { margin: auto; }
+
+/* The New rule: a straight accent line with a tag at its right end. */
+.fl-tmc-new { position: relative; display: flex; justify-content: flex-end; margin: var(--space-2) var(--space-2); }
+.fl-tmc-new::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--color-danger); }
+.fl-tmc-new span {
+  position: relative; padding: 0 var(--space-2); background: var(--surface-bg, var(--color-surface)); color: var(--color-danger);
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+.fl-tmc-msg {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); padding: var(--space-2) var(--space-2);
+  border-radius: min(var(--radius-md), 12px); transition: background-color var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-tmc-msg:hover, .fl-tmc-msg:focus-within { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+.fl-tmc-msg.is-sending .fl-tmc-text { color: var(--color-text-muted); }
+.fl-tmc-msg.is-failed { background: color-mix(in srgb, var(--color-danger) 6%, transparent); }
+/* A message that just arrived slides up into place. */
+.fl-tmc-msg.is-fresh { animation: fl-tmc-in var(--duration-base) var(--ease-spring, var(--ease-out, var(--easing))) backwards; }
+@keyframes fl-tmc-in { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-tmc-body { display: grid; gap: 2px; min-width: 0; }
+.fl-tmc-meta { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; }
+.fl-tmc-meta strong { font-weight: var(--weight-semibold); }
+.fl-tmc-meta time { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-tmc-text { margin: 0; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+.fl-tmc-mention { padding: 0 2px; border-radius: 4px; background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); font-weight: var(--weight-medium); }
+.fl-tmc-mention.is-me { background: color-mix(in srgb, var(--color-warning, var(--color-accent)) 22%, transparent); color: var(--color-text); }
+.fl-tmc-state { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-tmc-state.is-failed { color: var(--color-danger); }
+.fl-tmc-state svg { width: 0.9rem; height: 0.9rem; }
+.fl-tmc-link { padding: 0; border: 0; background: none; color: var(--color-accent); font: inherit; font-weight: var(--weight-semibold); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; border-radius: 4px; }
+
+.fl-tmc-reactions { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-1); margin: var(--space-1) 0 0; padding: 0; }
+.fl-tmc-chip {
+  display: inline-flex; align-items: center; gap: 4px; height: 1.75rem; padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: 999px;
+  background: var(--surface-bg, var(--color-surface)); color: var(--color-text); font: inherit; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out, var(--easing)), border-color var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--ease-spring, var(--ease-out));
+}
+.fl-tmc-chip:hover { border-color: var(--color-text-muted); }
+.fl-tmc-chip:active { scale: 0.92; }
+.fl-tmc-chip[aria-pressed="true"] { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 12%, var(--surface-bg, var(--color-surface))); }
+.fl-tmc-count { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-tmc-replies {
+  justify-self: start; display: inline-flex; align-items: center; gap: var(--space-1); margin-top: var(--space-1); padding: 2px var(--space-1);
+  border: 0; border-radius: 6px; background: none; color: var(--color-accent); font: inherit; font-weight: var(--weight-semibold); cursor: pointer;
+}
+.fl-tmc-replies:hover { background: color-mix(in srgb, var(--color-accent) 8%, transparent); }
+.fl-tmc-replies svg { width: 1rem; height: 1rem; }
+
+/* Actions show on hover or focus (always on touch screens). */
+.fl-tmc-tools {
+  position: absolute; top: calc(var(--space-2) * -1); right: var(--space-2); display: flex; gap: 2px; padding: 2px;
+  background: var(--surface-bg, var(--color-surface)); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px);
+  box-shadow: var(--surface-shadow-overlay, 0 4px 12px color-mix(in srgb, var(--color-text) 10%, transparent));
+  opacity: 0; transition: opacity var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-tmc-msg:hover .fl-tmc-tools, .fl-tmc-msg:focus-within .fl-tmc-tools { opacity: 1; }
+/* Touch screens have no hover: the actions stay in view, small, at the right of the name line. */
+@media (hover: none) {
+  .fl-tmc-tools { opacity: 1; top: var(--space-1); right: var(--space-1); padding: 0; border: 0; background: transparent; box-shadow: none; }
+  .fl-tmc-meta { min-height: 2rem; padding-right: 4.5rem; align-items: center; }
+}
+.fl-tmc-tool {
+  display: grid; place-items: center; width: 2rem; height: 2rem; border: 0; border-radius: min(var(--radius-sm, 6px), 12px); background: transparent; color: var(--color-text-muted); cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-tmc-tool:hover, .fl-tmc-tool[aria-expanded="true"] { background: color-mix(in srgb, var(--color-text) 8%, transparent); color: var(--color-text); }
+.fl-tmc-tool:active { scale: 0.92; }
+.fl-tmc-tool svg { width: 1.1rem; height: 1.1rem; }
+.fl-tmc-pick-wrap { position: relative; }
+.fl-tmc-emoji {
+  position: absolute; z-index: 5; right: 0; top: calc(100% + 4px); display: flex; gap: 2px; padding: var(--space-1);
+  background: var(--surface-bg, var(--color-surface)); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px);
+  box-shadow: var(--surface-shadow-overlay, 0 8px 24px color-mix(in srgb, var(--color-text) 14%, transparent));
+  transform-origin: top right; transition: opacity var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-base) var(--ease-spring, var(--ease-out));
+}
+@starting-style { .fl-tmc-emoji { opacity: 0; scale: 0.9; } }
+.fl-tmc-emoji button {
+  width: 2.25rem; height: 2.25rem; border: 0; border-radius: min(var(--radius-sm, 6px), 12px); background: transparent; cursor: pointer;
+  font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); transition: background-color var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--ease-spring, var(--ease-out));
+}
+.fl-tmc-emoji button:hover { background: color-mix(in srgb, var(--color-text) 8%, transparent); scale: 1.12; }
+
+/* Composer */
+.fl-tmc-composer { padding: var(--space-2) var(--space-4) var(--space-3); border-top: 1px solid var(--color-border); }
+.fl-tmc-box { position: relative; display: flex; align-items: flex-end; gap: var(--space-2); }
+.fl-tmc-box textarea { flex: 1; min-width: 0; min-height: 2.5rem; max-height: 9rem; resize: none; padding-block: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-tmc-send { flex: none; margin-bottom: 4px; }
+.fl-tmc-hint { margin: var(--space-1) 0 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-tmc-hint.is-over { color: var(--color-danger); }
+.fl-tmc-people {
+  position: absolute; z-index: 6; left: 0; bottom: calc(100% + 6px); width: min(18rem, 100%); margin: 0; padding: var(--space-1); list-style: none;
+  background: var(--surface-bg, var(--color-surface)); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px);
+  box-shadow: var(--surface-shadow-overlay, 0 8px 24px color-mix(in srgb, var(--color-text) 14%, transparent));
+  transition: opacity var(--duration-fast) var(--ease-out, var(--easing)), translate var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-tmc-people[hidden] { display: none; }
+@starting-style { .fl-tmc-people { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 0.5); } }
+.fl-tmc-person { display: flex; align-items: center; gap: var(--space-2); min-height: 2.25rem; padding: var(--space-1) var(--space-2); border-radius: min(var(--radius-sm, 6px), 12px); cursor: pointer; }
+.fl-tmc-person[aria-selected="true"] { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.fl-tmc-handle { margin-left: auto; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+/* Thread */
+.fl-tmc-thread { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-left: 1px solid var(--color-border); background: var(--surface-bg, var(--color-surface)); animation: fl-tmc-side var(--duration-base) var(--ease-out, var(--easing)); }
+@keyframes fl-tmc-side { from { opacity: 0; translate: var(--enter-distance, 8px) 0; } }
+.fl-tmc-thead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding-inline: var(--space-4) var(--space-2); }
+.fl-tmc-count-rule { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-2) var(--space-2); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-tmc-count-rule::after { content: ""; flex: 1; height: 1px; background: var(--color-border); }
+
+.fl-tmc .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-tmc .fl-btn:active:not(:disabled) { scale: 0.94; }
+
+/* Narrow card: the rail folds into a channel button above the conversation; a thread covers the conversation. */
+@container (max-width: 46rem) {
+  .fl-tmc-grid, .fl-tmc-grid.has-thread { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: 36rem; }
+  .fl-tmc-rail { position: relative; z-index: 4; border-right: 0; border-bottom: 1px solid var(--color-border); }
+  .fl-tmc-top { padding: var(--space-2) var(--space-3); border-bottom: 0; }
+  .fl-tmc-ws { flex: 0 1 auto; }
+  .fl-tmc-switch {
+    display: inline-flex; align-items: center; gap: var(--space-2); margin-left: auto; min-height: 2.25rem; max-width: 60%; padding: 0 var(--space-2) 0 var(--space-3);
+    border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--surface-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-weight: var(--weight-semibold); cursor: pointer;
+  }
+  .fl-tmc-switch span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fl-tmc-switch svg { width: 1rem; height: 1rem; flex: none; transition: rotate var(--duration-base) var(--ease-out, var(--easing)); }
+  .fl-tmc-rail.is-open .fl-tmc-switch svg { rotate: 180deg; }
+  .fl-tmc-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--color-accent); flex: none; }
+  /* The list: grid rows 0fr to 1fr over the conversation; hidden (and out of the tab order) while closed. */
+  .fl-tmc-fold {
+    position: absolute; left: 0; right: 0; top: 100%; display: grid; grid-template-rows: 0fr; overflow: hidden; visibility: hidden;
+    background: var(--color-surface-sunken); border-bottom: 1px solid var(--color-border); box-shadow: var(--surface-shadow-overlay, 0 8px 24px color-mix(in srgb, var(--color-text) 12%, transparent));
+    transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)), visibility 0s linear var(--duration-base);
+  }
+  .fl-tmc-rail.is-open .fl-tmc-fold { grid-template-rows: 1fr; visibility: visible; transition-delay: 0s; }
+  .fl-tmc-clip { min-height: 0; overflow: hidden; }
+  .fl-tmc-rail.is-open .fl-tmc-clip { max-height: 26rem; overflow-y: auto; }
+  .fl-tmc-chan.is-current::before { left: calc(var(--space-2) * -1); }
+  .fl-tmc-main { grid-row: 2; }
+  .fl-tmc-thread { grid-row: 2; grid-column: 1; z-index: 3; border-left: 0; }
+  .fl-tmc-head { padding-inline: var(--space-3); }
+  .fl-tmc-composer { padding-inline: var(--space-3); }
+  .fl-tmc-log { padding-inline: var(--space-1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-tmc *, .fl-tmc *::before { transition-duration: 1ms !important; }
+  .fl-tmc-msg.is-fresh, .fl-tmc-thread { animation: fl-tmc-fade var(--duration-fast) var(--easing) backwards; }
+  @keyframes fl-tmc-fade { from { opacity: 0; } }
+  .fl-tmc-chip:active, .fl-tmc-tool:active, .fl-tmc-chan:active, .fl-tmc .fl-btn:active:not(:disabled) { scale: none; }
+  .fl-tmc-emoji button:hover { scale: none; }
+  @starting-style { .fl-tmc-emoji { scale: 1; } .fl-tmc-people { translate: 0 0; } }
+}
+:root[data-motion="off"] .fl-tmc * { transition: none !important; animation: none !important; }

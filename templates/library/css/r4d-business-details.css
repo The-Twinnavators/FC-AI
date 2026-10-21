@@ -1,0 +1,103 @@
+/**
+ * Billing details (p.business-details): a card with a grouped form whose follow-up fields fold open on grid rows
+ * (inert while closed) and a sunken "On your invoices" summary with a thin progress bar. Prefixed fl-bzd-; only the
+ * library's tokens. Adapted from TailAdmin (MIT, Copyright (c) 2023 TailAdmin) and TailGrids (MIT, Copyright (c)
+ * 2025 Tailgrids).
+ */
+.fl-bzd {
+  container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-bzd-head { display: grid; gap: var(--space-1); }
+.fl-bzd-head h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-bzd-head p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+.fl-bzd-body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.fl-bzd-form { display: grid; gap: var(--space-5); min-width: 0; }
+.fl-bzd-group { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.fl-bzd-group + .fl-bzd-group { padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-bzd-sub { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-bzd-kinds legend { margin-bottom: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-bzd-kinds .fl-in-cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
+.fl-bzd-stack { display: flex; flex-direction: column; gap: var(--space-3); }
+.fl-bzd-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); align-items: start; }
+.fl-bzd-field { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-bzd-field > label { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-bzd-field .fl-input, .fl-bzd-field select { width: 100%; }
+.fl-bzd-mono { font-family: var(--font-mono); }
+.fl-bzd-opt { color: var(--color-text-muted); font-weight: var(--weight-regular, 400); }
+.fl-bzd-hint { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-bzd-error { display: flex; align-items: center; gap: var(--space-1); margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-bzd-error svg { width: 1rem; height: 1rem; flex: none; }
+.fl-bzd-field[data-shake="a"] { animation: fl-bzd-shake-a 0.32s var(--easing); }
+.fl-bzd-field[data-shake="b"] { animation: fl-bzd-shake-b 0.32s var(--easing); }
+@keyframes fl-bzd-shake-a { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+@keyframes fl-bzd-shake-b { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+.fl-bzd-switch { align-self: flex-start; display: inline-flex; align-items: center; gap: var(--space-2); justify-self: start; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); cursor: pointer; }
+
+/* Follow-up fields fold open on grid rows; inside a flex column the negative margin closes the gap they leave. */
+.fl-bzd-fold { display: grid; grid-template-rows: 0fr; opacity: 0; margin-top: calc(var(--space-3) * -1); transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)), opacity var(--duration-base) var(--easing), margin-top var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-bzd-fold.is-open { grid-template-rows: 1fr; opacity: 1; margin-top: 0; }
+.fl-bzd-fold > div { min-height: 0; overflow: hidden; padding: 3px; margin: -3px; }
+.fl-bzd-fold:not(.is-open) > div { padding: 0; margin: 0; }
+
+.fl-bzd-btns { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-bzd-savedline { display: flex; align-items: center; gap: var(--space-1); margin: 0 auto 0 0; color: var(--color-success); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-bzd-savedline:not(:empty) { animation: fl-bzd-rise var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-bzd-savedline svg { width: 1rem; height: 1rem; stroke-width: 2.5; }
+@keyframes fl-bzd-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-bzd .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-bzd .fl-btn:active:not(:disabled) { scale: 0.96; }
+
+.fl-bzd-summary { position: sticky; top: var(--space-4); display: grid; gap: var(--space-3); padding: var(--space-4); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); min-width: 0; }
+.fl-bzd-sumtitle { display: flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-wide, 0.04em); }
+.fl-bzd-sumtitle svg { width: 1rem; height: 1rem; color: var(--color-accent); }
+.fl-bzd-invoice {
+  display: grid; gap: 2px; padding: var(--space-3) var(--space-4); border-radius: min(var(--radius-sm, 6px), 12px); background: var(--surface-bg, var(--color-surface));
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); overflow-wrap: anywhere;
+}
+.fl-bzd-invoice > span { color: var(--color-text-muted); }
+.fl-bzd-billto { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); text-transform: uppercase; letter-spacing: var(--tracking-wide, 0.04em); }
+.fl-bzd-invoice strong { font-weight: var(--weight-semibold); transition: color var(--duration-fast) var(--easing); }
+.fl-bzd-placeholder { color: var(--color-text-muted) !important; font-style: italic; font-weight: var(--weight-regular, 400) !important; }
+.fl-bzd-invoice dl { display: grid; gap: 2px; margin: var(--space-2) 0 0; padding-top: var(--space-2); border-top: 1px dashed var(--color-border); }
+.fl-bzd-invoice dl > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); animation: fl-bzd-fade var(--duration-fast) var(--easing); }
+.fl-bzd-invoice dt { color: var(--color-text-muted); }
+.fl-bzd-invoice dd { margin: 0; font-family: var(--font-mono); }
+@keyframes fl-bzd-fade { from { opacity: 0; } }
+.fl-bzd-cc { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-bzd-progress { display: grid; gap: var(--space-1); }
+.fl-bzd-progress p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-bzd-bar { height: 6px; border-radius: 999px; background: var(--color-border); overflow: hidden; }
+.fl-bzd-bar span { display: block; width: 100%; height: 100%; border-radius: inherit; background: var(--color-accent); transform-origin: left center; transition: scale var(--duration-base) var(--ease-out, var(--easing)), background-color var(--duration-base) var(--easing); }
+.fl-bzd-bar span[data-done] { background: var(--color-success); }
+.fl-bzd-note { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+@container (max-width: 46rem) {
+  .fl-bzd-body { grid-template-columns: minmax(0, 1fr); }
+  .fl-bzd-summary { position: static; }
+}
+@container (max-width: 30rem) {
+  .fl-bzd { padding: var(--space-4); }
+  .fl-bzd-row { grid-template-columns: minmax(0, 1fr); }
+  .fl-bzd-btns { flex-direction: column-reverse; align-items: stretch; }
+  .fl-bzd-btns .fl-btn { width: 100%; }
+  .fl-bzd-savedline { margin: 0; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-bzd .fl-btn, .fl-bzd-fold, .fl-bzd-bar span, .fl-bzd-invoice strong { transition-duration: 1ms; }
+  .fl-bzd .fl-btn:active:not(:disabled) { scale: none; }
+  .fl-bzd-field[data-shake] { animation: none; }
+  .fl-bzd-savedline:not(:empty) { animation: fl-bzd-fade var(--duration-fast) var(--easing) backwards; }
+}
+:root[data-motion="off"] .fl-bzd * { transition: none !important; animation: none !important; }
+
+/* Selects match the text fields beside them. */
+.fl-bzd .fl-ctl-select select { height: 2.5rem; min-height: 2.5rem; padding-left: var(--space-3); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+/* The library's choice rows, sized for a dense form. */
+.fl-bzd .fl-ctl-choice { gap: var(--space-2); padding: var(--space-2) var(--space-3); align-items: center; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-bzd .fl-ctl-choice strong { font-weight: var(--weight-medium); }
+.fl-bzd .fl-ctl-choice .fl-ctl-matrix-what { display: block; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }

@@ -1,0 +1,115 @@
+/**
+ * Call lobby (p.call-lobby): a preview tile with round camera and mic buttons and a level meter beside a join form with
+ * device choices. Prefixed fl-lobby-; only the library's tokens. Adapted from Creative Tim UI (MIT, Copyright (c) 2025 Creative Tim).
+ */
+.fl-lobby {
+  container-type: inline-size; min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+}
+
+.fl-lobby-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--space-6, var(--space-5)); }
+
+/* Preview */
+.fl-lobby-stage { display: grid; gap: var(--space-3); align-content: start; min-width: 0; }
+.fl-lobby-tile {
+  position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; overflow: hidden; border-radius: min(var(--radius-lg), 12px);
+  background: color-mix(in srgb, var(--color-text) 88%, var(--color-accent)); color: var(--surface-bg, var(--color-surface));
+  transition: background-color var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-lobby-tile > .fl-ctl-avatar { animation: fl-lobby-pop var(--duration-base) var(--ease-spring, var(--ease-out, var(--easing))); }
+@keyframes fl-lobby-pop { from { opacity: 0; scale: 0.85; } }
+/* The camera stand-in: a slow wash of the accent colors. */
+.fl-lobby-wash {
+  position: absolute; inset: -20%;
+  background:
+    radial-gradient(ellipse 18% 26% at 50% 48%, color-mix(in srgb, var(--surface-bg, var(--color-surface)) 45%, transparent), transparent 100%),
+    radial-gradient(circle at 30% 35%, color-mix(in srgb, var(--color-accent) 70%, var(--surface-bg, var(--color-surface))), transparent 55%),
+    radial-gradient(circle at 70% 70%, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 60%, transparent), transparent 50%),
+    radial-gradient(circle at 50% 110%, color-mix(in srgb, var(--color-success) 40%, transparent), transparent 60%);
+  animation: fl-lobby-drift 12s var(--easing) infinite alternate, fl-lobby-fadein var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing));
+}
+.fl-lobby-tile.is-blur .fl-lobby-wash { filter: blur(18px); }
+@keyframes fl-lobby-drift { to { translate: 6% -4%; scale: 1.08; } }
+@keyframes fl-lobby-fadein { from { opacity: 0; } }
+.fl-lobby-tag {
+  position: absolute; left: var(--space-3); top: var(--space-3); display: inline-flex; align-items: center; gap: var(--space-1); max-width: calc(100% - 2 * var(--space-3));
+  padding: 2px var(--space-2); border-radius: min(var(--radius-sm, 6px), 12px); background: color-mix(in srgb, var(--color-text) 60%, transparent); color: var(--surface-bg, var(--color-surface));
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fl-lobby-tag svg { width: 0.9rem; height: 0.9rem; flex: none; color: var(--color-danger); }
+.fl-lobby-live {
+  position: absolute; top: var(--space-3); right: var(--space-3); padding: 2px var(--space-2); border-radius: 999px; background: var(--color-danger); color: var(--surface-bg, var(--color-surface));
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.fl-lobby-controls { display: flex; align-items: center; justify-content: center; gap: var(--space-3); margin-top: calc(-3rem - var(--space-3)); position: relative; z-index: 1; }
+.fl-lobby-round {
+  display: grid; place-items: center; width: 3rem; height: 3rem; border: 1px solid color-mix(in srgb, var(--surface-bg, var(--color-surface)) 30%, transparent); border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text) 70%, transparent); color: var(--surface-bg, var(--color-surface)); cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--ease-spring, var(--ease-out));
+}
+.fl-lobby-round svg { width: 1.3rem; height: 1.3rem; }
+.fl-lobby-round:hover { background: var(--color-text); }
+.fl-lobby-round:active:not(:disabled) { scale: 0.9; }
+.fl-lobby-round.is-off { background: var(--color-danger); border-color: transparent; }
+.fl-lobby-round:disabled { opacity: 0.5; cursor: not-allowed; }
+.fl-lobby-round:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* The level meter stand-in: five bars that bounce while the mic is on. */
+.fl-lobby-meter { display: inline-flex; align-items: flex-end; gap: 3px; height: 1.5rem; padding: 4px 6px; border-radius: min(var(--radius-sm, 6px), 12px); background: color-mix(in srgb, var(--color-text) 70%, transparent); }
+.fl-lobby-meter span { width: 3px; height: 3px; background: color-mix(in srgb, var(--surface-bg, var(--color-surface)) 50%, transparent); transform-origin: bottom; }
+.fl-lobby-meter.is-on span { height: 100%; background: var(--color-success); animation: fl-lobby-level 0.9s var(--easing) infinite alternate; scale: 1 0.3; }
+.fl-lobby-meter.is-on span:nth-child(2) { animation-delay: -0.3s; }
+.fl-lobby-meter.is-on span:nth-child(3) { animation-delay: -0.6s; }
+.fl-lobby-meter.is-on span:nth-child(4) { animation-delay: -0.15s; }
+.fl-lobby-meter.is-on span:nth-child(5) { animation-delay: -0.45s; }
+@keyframes fl-lobby-level { 0% { scale: 1 0.2; } 60% { scale: 1 0.9; } 100% { scale: 1 0.45; } }
+.fl-lobby-blur { display: inline-flex; align-items: center; gap: var(--space-2); justify-self: center; margin-top: var(--space-2); cursor: pointer; }
+.fl-lobby .fl-ctl-switch-track { pointer-events: none; }
+
+/* Form side */
+.fl-lobby-side { display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
+.fl-lobby-head { display: grid; gap: var(--space-1); }
+.fl-lobby-head h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl, var(--text-lg)) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); line-height: 1.25; }
+.fl-lobby-head p { display: flex; align-items: center; gap: var(--space-1); margin: 0; color: var(--color-text-muted); }
+.fl-lobby-head svg { width: 1rem; height: 1rem; }
+.fl-lobby-here { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fl-lobby-here p { margin: 0; color: var(--color-text-muted); }
+.fl-lobby-form { display: grid; gap: var(--space-3); }
+.fl-lobby-field { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-lobby-field label { font-weight: var(--weight-medium); }
+.fl-lobby-field .fl-input { width: 100%; }
+.fl-lobby-device { display: flex; gap: var(--space-2); min-width: 0; }
+.fl-lobby-device .fl-ctl-select { flex: 1; min-width: 0; }
+.fl-lobby-device select { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); text-overflow: ellipsis; }
+.fl-lobby-test { flex: none; }
+.fl-lobby-err { margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-lobby-alert { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: min(var(--radius-md), 12px); background: color-mix(in srgb, var(--color-danger) 10%, transparent); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-lobby-alert svg { width: 1rem; height: 1rem; flex: none; }
+.fl-lobby-wait {
+  display: flex; align-items: center; gap: var(--space-2); min-height: 2.75rem; padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken);
+  animation: fl-lobby-rise var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-lobby-wait > span:nth-child(2) { flex: 1; min-width: 0; }
+@keyframes fl-lobby-rise { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 0.5); } }
+.fl-lobby-in { display: grid; gap: var(--space-3); animation: fl-lobby-rise var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-lobby-banner { display: flex; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-3); border-radius: min(var(--radius-md), 12px); background: color-mix(in srgb, var(--color-success) 14%, transparent); font-weight: var(--weight-semibold); }
+.fl-lobby-banner svg { width: 1.1rem; height: 1.1rem; color: var(--color-success); }
+.fl-lobby-small { margin: 0; color: var(--color-text-muted); }
+
+.fl-lobby .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-lobby .fl-btn:active:not(:disabled) { scale: 0.97; }
+
+@container (max-width: 44rem) {
+  .fl-lobby-grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-lobby *, .fl-lobby *::before { transition-duration: 1ms !important; }
+  .fl-lobby-wash { animation: fl-lobby-fadein var(--duration-fast) var(--easing); }
+  .fl-lobby-meter.is-on span { animation: none; scale: 1 0.6; }
+  .fl-lobby-tile > .fl-ctl-avatar, .fl-lobby-wait, .fl-lobby-in { animation: fl-lobby-fadein var(--duration-fast) var(--easing); }
+  .fl-lobby-round:active:not(:disabled), .fl-lobby .fl-btn:active:not(:disabled) { scale: none; }
+}
+:root[data-motion="off"] .fl-lobby * { transition: none !important; animation: none !important; }

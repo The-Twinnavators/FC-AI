@@ -1,0 +1,132 @@
+/**
+ * Profile photo (p.profile-photo): a card with the current round photo, a dashed drop area that becomes a square
+ * crop stage under a dimmed frame with a round cut-out, a zoom row, three round canvas previews and the buttons.
+ * Prefixed fl-pho-; only the library's tokens. Adapted from TailAdmin (MIT, Copyright (c) 2023 TailAdmin) and
+ * TailGrids (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-pho {
+  container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-pho-head { display: grid; gap: var(--space-1); }
+.fl-pho-head h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-pho-head p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+.fl-pho-body { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.fl-pho-current { display: grid; justify-items: center; gap: var(--space-3); }
+.fl-pho-avatar {
+  display: grid; place-items: center; width: 8rem; height: 8rem; border-radius: 999px; overflow: hidden;
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--surface-bg, var(--color-surface))); color: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--surface-bg, var(--color-surface)), 0 0 0 5px var(--color-border);
+  font-family: var(--font-display); font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) * 2.4 - var(--fs-shrink, 0px)));
+}
+.fl-pho-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; animation: fl-pho-in var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)) backwards; }
+@keyframes fl-pho-in { from { opacity: 0; scale: 0.92; } }
+.fl-pho-current-btns { display: grid; gap: var(--space-2); width: 100%; }
+.fl-pho-current-btns .fl-btn { width: 100%; }
+
+.fl-pho-work { min-width: 0; }
+.fl-pho-drop {
+  display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-5) var(--space-4); text-align: center;
+  border: 1.5px dashed var(--color-border-strong, var(--color-border)); border-radius: min(var(--radius-lg), 12px);
+  background: var(--color-surface-sunken); transition: border-color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing);
+}
+.fl-pho-drop.is-over { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface-sunken)); }
+.fl-pho-drop.is-invalid { border-color: var(--color-danger); }
+.fl-pho-drop[data-shake="a"] { animation: fl-pho-shake-a 0.32s var(--easing); }
+.fl-pho-drop[data-shake="b"] { animation: fl-pho-shake-b 0.32s var(--easing); }
+@keyframes fl-pho-shake-a { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+@keyframes fl-pho-shake-b { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+.fl-pho-drop-icon { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 999px; background: var(--surface-bg, var(--color-surface)); color: var(--color-accent); }
+.fl-pho-drop-icon svg { width: 1.5rem; height: 1.5rem; }
+.fl-pho-drop-title { margin: 0; font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-pho-drop-hint { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-pho-drop-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-top: var(--space-2); }
+.fl-pho-reading { display: flex; align-items: center; gap: var(--space-2); min-height: 8rem; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-pho-spinner { width: 1.25rem; height: 1.25rem; border-radius: 999px; border: 2px solid var(--color-border); border-top-color: var(--color-accent); animation: fl-pho-spin 0.8s linear infinite; }
+@keyframes fl-pho-spin { to { rotate: 1turn; } }
+.fl-pho-error { display: flex; align-items: center; justify-content: center; gap: var(--space-1); margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-pho-error:empty { display: none; }
+.fl-pho-error svg { width: 1rem; height: 1rem; flex: none; }
+
+.fl-pho-editor { display: grid; gap: var(--space-3); animation: fl-pho-rise var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+@keyframes fl-pho-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-pho-stage {
+  position: relative; container-type: inline-size; width: min(100%, 20rem); aspect-ratio: 1; overflow: hidden; justify-self: center;
+  border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); cursor: grab; touch-action: none; user-select: none;
+}
+.fl-pho-stage:active { cursor: grabbing; }
+.fl-pho-stage:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-pho-pic { position: absolute; left: 50%; top: 50%; max-width: none; pointer-events: none; transition: rotate var(--duration-base) var(--ease-out, var(--easing)); }
+/* A dimmed frame with a round cut-out: the outside of the circle is shaded, the circle itself gets a thin ring. */
+.fl-pho-mask {
+  position: absolute; inset: 0; pointer-events: none; border-radius: 999px;
+  box-shadow: 0 0 0 100cqi color-mix(in srgb, var(--color-text) 45%, transparent), inset 0 0 0 2px color-mix(in srgb, var(--color-surface) 85%, transparent);
+}
+.fl-pho-hint { margin: 0; text-align: center; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+.fl-pho-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
+.fl-pho-zoom { display: flex; align-items: center; gap: var(--space-2); flex: 1 1 14rem; min-width: 0; }
+.fl-pho-iconbtn {
+  display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; padding: 0; border: 1px solid var(--color-border); border-radius: min(var(--radius-sm, 6px), 12px);
+  background: var(--surface-bg, var(--color-surface)); color: var(--color-text); cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out);
+}
+.fl-pho-iconbtn svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.fl-pho-iconbtn:hover:not(:disabled) { background: var(--color-surface-sunken); }
+.fl-pho-iconbtn:active:not(:disabled) { scale: 0.92; }
+.fl-pho-iconbtn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-pho-iconbtn:disabled { opacity: var(--disabled-opacity, 0.5); cursor: not-allowed; }
+.fl-pho-range {
+  --pho-fill: 0%; flex: 1; min-width: 4rem; height: 1.5rem; margin: 0; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer;
+}
+.fl-pho-range::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(to right, var(--color-accent) var(--pho-fill), var(--color-border) var(--pho-fill)); }
+.fl-pho-range::-moz-range-track { height: 6px; border-radius: 999px; background: linear-gradient(to right, var(--color-accent) var(--pho-fill), var(--color-border) var(--pho-fill)); }
+.fl-pho-range::-webkit-slider-thumb { -webkit-appearance: none; width: 1.125rem; height: 1.125rem; margin-top: -6px; border-radius: 999px; background: var(--surface-bg, var(--color-surface)); border: 2px solid var(--color-accent); transition: scale var(--duration-fast) var(--ease-out); }
+.fl-pho-range::-moz-range-thumb { width: 1rem; height: 1rem; border-radius: 999px; background: var(--surface-bg, var(--color-surface)); border: 2px solid var(--color-accent); }
+.fl-pho-range:active::-webkit-slider-thumb { scale: 1.15; }
+.fl-pho-range:focus-visible { outline: none; }
+.fl-pho-range:focus-visible::-webkit-slider-thumb { box-shadow: var(--focus-ring); }
+.fl-pho-range:focus-visible::-moz-range-thumb { box-shadow: var(--focus-ring); }
+.fl-pho-pct { min-width: 3rem; text-align: right; font-variant-numeric: tabular-nums; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-pho-tool-btns { display: flex; gap: var(--space-2); }
+
+.fl-pho-previews {
+  display: flex; align-items: flex-end; justify-content: center; gap: var(--space-4); padding: var(--space-3);
+  background: var(--color-surface-sunken); border-radius: min(var(--radius-md), 12px);
+}
+.fl-pho-preview { display: block; border-radius: 999px; background: var(--color-border); box-shadow: 0 0 0 2px var(--surface-bg, var(--color-surface)); }
+
+.fl-pho-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+.fl-pho .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-pho .fl-btn:active:not(:disabled) { scale: 0.96; }
+
+.fl-pho-status { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-pho-status:empty { display: none; }
+.fl-pho-status:not(:empty) {
+  padding: var(--space-3) var(--space-4); border-radius: min(var(--radius-md), 12px);
+  background: color-mix(in srgb, var(--color-success) 12%, var(--surface-bg, var(--color-surface)));
+  animation: fl-pho-rise var(--duration-base) var(--ease-out, var(--easing)) backwards;
+}
+.fl-pho-tick { display: grid; place-items: center; width: 1.25rem; height: 1.25rem; flex: none; border-radius: 999px; background: var(--color-success); color: var(--color-surface); }
+.fl-pho-tick svg { width: 0.8rem; height: 0.8rem; stroke-width: 3; }
+
+@container (max-width: 34rem) {
+  .fl-pho { padding: var(--space-4); }
+  .fl-pho-body { grid-template-columns: minmax(0, 1fr); }
+  .fl-pho-current { grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-items: center; }
+  .fl-pho-avatar { width: 5rem; height: 5rem; font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); }
+  .fl-pho-btns { flex-direction: column-reverse; }
+  .fl-pho-btns .fl-btn { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-pho .fl-btn, .fl-pho-iconbtn, .fl-pho-drop, .fl-pho-pic { transition-duration: 1ms; }
+  .fl-pho .fl-btn:active:not(:disabled), .fl-pho-iconbtn:active:not(:disabled) { scale: none; }
+  .fl-pho-drop[data-shake] { animation: none; }
+  .fl-pho-editor, .fl-pho-status:not(:empty), .fl-pho-avatar img { animation: fl-pho-fade var(--duration-fast) var(--easing) backwards; }
+  @keyframes fl-pho-fade { from { opacity: 0; } }
+  .fl-pho-spinner { animation-duration: 1.6s; }
+}
+:root[data-motion="off"] .fl-pho *:not(.fl-pho-spinner) { transition: none !important; animation: none !important; }

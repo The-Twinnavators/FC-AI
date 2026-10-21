@@ -1,0 +1,92 @@
+/**
+ * Away message (p.away-message): a switch row that slides open the automatic-reply settings beside an email-style
+ * preview. Prefixed fl-ooo-; only the library's tokens. Adapted from Creative Tim UI (MIT, Copyright (c) 2025 Creative Tim).
+ */
+.fl-ooo {
+  container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+}
+.fl-ooo-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.fl-ooo-head h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-ooo-head p { margin: var(--space-1) 0 0; color: var(--color-text-muted); }
+.fl-ooo-toggle { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); cursor: pointer; }
+.fl-ooo-toggle > span:last-child { display: grid; gap: 2px; }
+.fl-ooo-toggle > span:last-child > span { color: var(--color-text-muted); }
+.fl-ooo .fl-ctl-switch-track { pointer-events: none; }
+
+/* Settings: grid rows 0fr to 1fr, inert while closed. */
+.fl-ooo-fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-ooo-fold.is-open { grid-template-rows: 1fr; }
+.fl-ooo-clip { min-height: 0; overflow: hidden; }
+.fl-ooo-body {
+  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--space-5); padding: 2px;
+  opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); transition: opacity var(--duration-base) var(--ease-out, var(--easing)), translate var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-ooo-fold.is-open .fl-ooo-body { opacity: 1; translate: 0 0; }
+.fl-ooo-form { display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
+.fl-ooo-set { display: grid; gap: var(--space-3); min-width: 0; margin: 0; padding: 0; border: 0; }
+.fl-ooo-set legend { float: left; width: 100%; margin-bottom: var(--space-2); padding: 0; font-weight: var(--weight-semibold); }
+.fl-ooo-set legend + * { clear: both; }
+.fl-ooo-dates { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: var(--space-3); }
+.fl-ooo-field { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-ooo-field > label, .fl-ooo-labelrow label { font-weight: var(--weight-medium); }
+.fl-ooo-field .fl-input { width: 100%; }
+.fl-ooo-field textarea { min-height: 7rem; resize: vertical; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-ooo-field select { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-ooo-labelrow { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.fl-ooo-count { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-ooo-count.is-over { color: var(--color-danger); font-weight: var(--weight-semibold); }
+.fl-ooo-radios { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--space-2); }
+.fl-ooo-radios > label { padding: var(--space-3); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); transition: border-color var(--duration-fast) var(--ease-out, var(--easing)), background-color var(--duration-fast) var(--ease-out, var(--easing)); }
+.fl-ooo-radios > label:has(input:checked) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 7%, transparent); }
+.fl-ooo-inserts { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.fl-ooo-chip {
+  display: inline-flex; align-items: center; gap: 4px; height: 1.75rem; padding: 0 var(--space-2); border: 1px dashed var(--color-border); border-radius: 999px;
+  background: transparent; color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out, var(--easing)), border-color var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--ease-spring, var(--ease-out));
+}
+.fl-ooo-chip svg { width: 0.9rem; height: 0.9rem; }
+.fl-ooo-chip:hover:not(:disabled) { border-style: solid; border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 8%, transparent); }
+.fl-ooo-chip:active:not(:disabled) { scale: 0.94; }
+.fl-ooo-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+.fl-ooo-chip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-ooo-err { margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); animation: fl-ooo-in var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-ooo-fail { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: min(var(--radius-md), 12px); background: color-mix(in srgb, var(--color-danger) 10%, transparent); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-ooo-fail svg { width: 1rem; height: 1rem; flex: none; }
+.fl-ooo-muted { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+@keyframes fl-ooo-in { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); } }
+
+/* Preview */
+.fl-ooo-preview { display: grid; gap: var(--space-3); align-content: start; padding: var(--space-4); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); }
+.fl-ooo-label { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: 0.04em; }
+.fl-ooo-mail { display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--surface-bg, var(--color-surface)); }
+.fl-ooo-mail p { margin: 0; overflow-wrap: anywhere; }
+.fl-ooo-from { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-ooo-from strong { color: var(--color-text); }
+.fl-ooo-subj { font-weight: var(--weight-semibold); padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-border); }
+.fl-ooo-text { display: grid; gap: var(--space-2); line-height: 1.55; }
+.fl-ooo-text p { white-space: pre-line; }
+.fl-ooo-facts { list-style: none; display: grid; gap: var(--space-1); margin: 0; padding: 0; color: var(--color-text-muted); }
+.fl-ooo-facts li { display: flex; align-items: center; gap: var(--space-2); }
+.fl-ooo-facts svg { width: 1rem; height: 1rem; flex: none; }
+
+.fl-ooo-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-ooo-foot .fl-ooo-muted { margin-right: auto; }
+.fl-ooo .fl-btn { transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out); }
+.fl-ooo .fl-btn:active:not(:disabled) { scale: 0.96; }
+
+@container (max-width: 40rem) {
+  .fl-ooo-body { grid-template-columns: minmax(0, 1fr); }
+  .fl-ooo-toggle { padding: var(--space-3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-ooo *, .fl-ooo *::before { transition-duration: 1ms !important; }
+  .fl-ooo-body { translate: none; }
+  .fl-ooo-err { animation: fl-ooo-fade var(--duration-fast) var(--easing); }
+  @keyframes fl-ooo-fade { from { opacity: 0; } }
+  .fl-ooo-chip:active:not(:disabled), .fl-ooo .fl-btn:active:not(:disabled) { scale: none; }
+}
+:root[data-motion="off"] .fl-ooo * { transition: none !important; animation: none !important; }
