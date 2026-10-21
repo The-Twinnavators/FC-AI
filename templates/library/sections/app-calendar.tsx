@@ -561,7 +561,7 @@ export function EventCalendar({
               variant="pill"
               label="Type"
               className="fl-acal-tones"
-              options={TONES.map((t) => ({ value: t, label: toneLabels[t] }))}
+              options={TONES.map((t) => ({ value: t, label: toneLabels[t] ?? t }))}
               value={draft.tone}
               onChange={(v) => setDraft({ ...draft, tone: v as CalendarTone })}
             />
