@@ -14,8 +14,9 @@
 .fl-acal-key { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; font-size: var(--text-sm); color: var(--color-text-muted); }
 .fl-acal-key li { display: inline-flex; align-items: center; gap: var(--space-2); }
 
-/* ── Tones: one color per kind of event, from the accent and the status colors ── */
-.fl-acal-ev--accent { --_tone: var(--color-accent); }
+/* ── Tones: one color per kind of event, the generic status tones (as c.badge.status: info is the accent) ── */
+.fl-acal-ev--neutral { --_tone: var(--color-text-muted); }
+.fl-acal-ev--info { --_tone: var(--color-accent); }
 .fl-acal-ev--success { --_tone: var(--color-success); }
 .fl-acal-ev--warning { --_tone: var(--color-warning); }
 .fl-acal-ev--danger { --_tone: var(--color-danger); }
@@ -142,3 +143,9 @@
 @media (prefers-reduced-motion: reduce) {
   .fl-acal-ev, .fl-acal-cell { transition: none; }
 }
+
+/* The read-only event view: its type as a status badge, and when. */
+.fl-acal-read { display: grid; gap: var(--space-4); margin: 0; }
+.fl-acal-read > div { display: grid; gap: var(--space-1); }
+.fl-acal-read dt { font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-acal-read dd { margin: 0; font-weight: var(--weight-medium); }

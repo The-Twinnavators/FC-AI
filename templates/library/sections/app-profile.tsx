@@ -200,7 +200,7 @@ export default function AppProfile() {
   const labelOf = (key: string) => d.groups.flatMap((g) => g.fields).find((f) => f.key === key)?.label ?? key;
 
   return (
-    <div className="fl-as-app">
+    <div className="fl-as-app fl-as-app--canvas">
       <header className="fl-as-top">
         <div className="fl-as-brand">
           <span className="fl-as-mark" aria-hidden="true">

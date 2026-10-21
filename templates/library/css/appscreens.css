@@ -11,6 +11,9 @@
 :where(.fl-as-app) :where(button) { font: inherit; color: inherit; }
 .fl-as-app :where(h1, h2, h3, p) { margin: 0; }
 
+/* Canvas: white panels and cards on a gray page (the dashboard look). */
+.fl-as-app--canvas { --color-surface: var(--color-bg); --surface-bg: var(--color-bg); background: var(--color-surface-sunken); }
+
 /* Top bar */
 .fl-as-top {
   position: relative; display: flex; align-items: center; gap: var(--space-5); min-height: 3.75rem; padding: var(--space-2) var(--space-5);

@@ -1,7 +1,7 @@
 /** @flowcode-library app-calendar · Calendar (App screens)
  * Catalog ID: t.app-calendar (template)
- * Function: A calendar screen (t.app-calendar) with Month, Week and Day views, a Today / previous / next toolbar, events colored by kind in their days and hours, and an Add / Edit event dialog (title, color, start and end date and time) that adds, changes and deletes events; arrow keys move through the month. Adapted from TailAdmin (MIT).
- * Use it as: Copy app-calendar.tsx (FlowCode brings the components it uses); replace SAMPLE with the app's own event kinds and load the events from the app's data. Or import { EventCalendar } from "./app-calendar"; <EventCalendar events={[{ id, title, tone: "accent"|"success"|"warning"|"danger", start: "2026-10-21", end: "2026-10-21", startTime?: "10:00", endTime?: "12:00" }]} onChange={(events) => ...} toneLabels={{ accent: "Class", success: "Open studio", warning: "Firing", danger: "Deadline" }} defaultView?="month"|"week"|"day" weekStart?={0|1} hours?={[7, 21]} locale? labels?={{ dialogText?, noun?: "event" }} />  // no startTime is all day
+ * Function: A calendar screen (t.app-calendar) with Month, Week and Day views, a Today / previous / next toolbar, events colored by kind in their days and hours, and an read-only event view with an Edit button, and an Add / Edit event dialog (title, status type, start and end date and time) that adds, changes and deletes events; arrow keys move through the month. Adapted from TailAdmin (MIT).
+ * Use it as: Copy app-calendar.tsx (FlowCode brings the components it uses); replace SAMPLE with the app's own event kinds and load the events from the app's data. Or import { EventCalendar } from "./app-calendar"; <EventCalendar events={[{ id, title, tone: "neutral"|"info"|"success"|"warning"|"danger", start: "2026-10-21", end: "2026-10-21", startTime?: "10:00", endTime?: "12:00" }]} onChange={(events) => ...} toneLabels={{ info: "Class", success: "Open studio", warning: "Firing", danger: "Deadline" }} defaultView?="month"|"week"|"day" weekStart?={0|1} hours?={[7, 21]} locale? labels?={{ dialogText?, noun?: "event" }} />  // no startTime is all day
  * Built from: p.top-nav.app, c.button.primary, c.button.secondary, c.segmented.toggle, c.modal.form, c.modal.danger, c.text-field.outlined, c.choice-group.pill, c.date-picker.docked, c.select.outlined
  * Look: A toolbar with previous, next and Today, the month's name and a Month / Week / Day switch beside Add event, a key of event colors, and a month grid of days with tinted event chips (today's number filled with the accent); Week and Day show the hours with events as blocks in their slots and an all-day row on top; on a phone the month folds to colored dots with the chosen day's events listed under it.
  * Use cases: team calendar; event calendar; class schedule; studio schedule; content calendar; booking overview; shift planner; project deadlines
@@ -24,6 +24,7 @@
  * Make it the app's own: replace SAMPLE with the app's event kinds and load the events from the app's data.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from "react";
+import { Badge, type BadgeTone } from "./badges-status";
 import { Button } from "./buttons-variants";
 import { ChoiceGroup } from "./checkboxes-radios";
 import { DatePicker, fromIso, toIso, type IsoDate } from "./date-picker";
@@ -36,15 +37,15 @@ import { showTime } from "./booking-calendar";
 
 // ── Events and dates ──
 
-/** An event's color: the accent or one of the status colors (TailAdmin's Primary, Success, Warning and Danger). */
-export type CalendarTone = "accent" | "success" | "warning" | "danger";
+/** An event's color: one of the generic status tones (the same ones as the status badge, c.badge.status). */
+export type CalendarTone = BadgeTone;
 export type CalendarView = "month" | "week" | "day";
 /** Dates are YYYY-MM-DD in local time; times are 24-hour "HH:MM". No start time means all day. */
 export type CalendarEvent = { id: string; title: string; tone: CalendarTone; start: IsoDate; end: IsoDate; startTime?: string; endTime?: string };
 
 // Written out in full (not built from the tone) so a build finds every class.
-const TONE: Record<CalendarTone, string> = { accent: "fl-acal-ev--accent", success: "fl-acal-ev--success", warning: "fl-acal-ev--warning", danger: "fl-acal-ev--danger" };
-const TONES: CalendarTone[] = ["accent", "success", "warning", "danger"];
+const TONE: Record<CalendarTone, string> = { neutral: "fl-acal-ev--neutral", info: "fl-acal-ev--info", success: "fl-acal-ev--success", warning: "fl-acal-ev--warning", danger: "fl-acal-ev--danger" };
+const ALL_TONES: CalendarTone[] = ["info", "success", "warning", "danger", "neutral"];
 
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 const addMonths = (d: Date, n: number) => {
@@ -108,8 +109,8 @@ export function EventCalendar({
 }: {
   events: CalendarEvent[];
   onChange: (events: CalendarEvent[]) => void;
-  /** What each color means here, e.g. { accent: "Class", danger: "Deadline" }. Shown in the key and the dialog. */
-  toneLabels: Record<CalendarTone, string>;
+  /** What each status color means here, e.g. { info: "Class", danger: "Deadline" }. Only the tones named here are offered. */
+  toneLabels: Partial<Record<CalendarTone, string>>;
   defaultView?: CalendarView;
   /** 0 Sunday, 1 Monday. */
   weekStart?: 0 | 1;
@@ -120,10 +121,13 @@ export function EventCalendar({
   labels?: { dialogText?: string; noun?: string };
 }) {
   const noun = labels.noun ?? "event";
+  const TONES = ALL_TONES.filter((t) => toneLabels[t]);
   const Noun = noun[0]!.toUpperCase() + noun.slice(1);
   const [view, setView] = useState<CalendarView>(defaultView);
   const [anchor, setAnchor] = useState(() => new Date());
   const [draft, setDraft] = useState<Draft | null>(null);
+  // The event opened from its chip: read first, edited only on "Edit event".
+  const [shown, setShown] = useState<CalendarEvent | null>(null);
   const [errors, setErrors] = useState<DraftErrors>({});
   const [doomed, setDoomed] = useState<CalendarEvent | null>(null);
   const [said, setSaid] = useState("");
@@ -168,7 +172,7 @@ export function EventCalendar({
   }, [anchorIso]);
   useEffect(() => {
     const sel = refocus.current;
-    if (!sel || draft || doomed) return;
+    if (!sel || draft || doomed || shown) return;
     refocus.current = null;
     const el = [...(root.current?.querySelectorAll<HTMLElement>(sel) ?? [])].find((e) => e.offsetParent !== null);
     (el ?? heading.current)?.focus();
@@ -193,7 +197,7 @@ export function EventCalendar({
     if (!e.startTime) return e.start === e.end ? `${dates}, all day` : dates;
     return `${dates}, ${showTime(e.startTime, locale)}${e.endTime ? ` to ${showTime(e.endTime, locale)}` : ""}`;
   };
-  const evLabel = (e: CalendarEvent) => `${e.title}, ${toneLabels[e.tone]}, ${when(e)}`;
+  const evLabel = (e: CalendarEvent) => `${e.title}, ${toneLabels[e.tone] ?? e.tone}, ${when(e)}`;
 
   const openDay = (d: Date) => {
     setAnchor(d);
@@ -203,7 +207,7 @@ export function EventCalendar({
   };
   const add = (day: IsoDate = anchorIso, startTime = "") => {
     setErrors({});
-    setDraft({ title: "", tone: "accent", start: day, end: day, startTime, endTime: startTime ? `${pad(Math.min(23, Number(startTime.slice(0, 2)) + 1))}:${startTime.slice(3)}` : "" });
+    setDraft({ title: "", tone: TONES[0] ?? "info", start: day, end: day, startTime, endTime: startTime ? `${pad(Math.min(23, Number(startTime.slice(0, 2)) + 1))}:${startTime.slice(3)}` : "" });
   };
   const edit = (e: CalendarEvent) => {
     setErrors({});
@@ -268,7 +272,7 @@ export function EventCalendar({
       aria-label={evLabel(e)}
       onClick={(m) => {
         m.stopPropagation();
-        edit(e);
+        setShown(e);
       }}
     >
       {e.startTime && timed(e) ? <span className="fl-acal-ev__time">{showTime(e.startTime, locale)}</span> : null}
@@ -496,6 +500,35 @@ export function EventCalendar({
         {said}
       </p>
 
+      {shown ? (
+        <Modal
+          title={shown.title}
+          confirmLabel={`Edit this ${noun}`}
+          cancelLabel="Close"
+          onConfirm={() => {
+            const e = shown;
+            setShown(null);
+            edit(e);
+          }}
+          onClose={() => setShown(null)}
+        >
+          <dl className="fl-acal-read">
+            <div>
+              <dt>Type</dt>
+              <dd>
+                <Badge variant="status" tone={shown.tone}>
+                  {toneLabels[shown.tone] ?? shown.tone}
+                </Badge>
+              </dd>
+            </div>
+            <div>
+              <dt>When</dt>
+              <dd>{when(shown)}</dd>
+            </div>
+          </dl>
+        </Modal>
+      ) : null}
+
       {draft ? (
         <Modal
           variant="form"
@@ -526,7 +559,7 @@ export function EventCalendar({
             </div>
             <ChoiceGroup
               variant="pill"
-              label="Color"
+              label="Type"
               className="fl-acal-tones"
               options={TONES.map((t) => ({ value: t, label: toneLabels[t] }))}
               value={draft.tone}
@@ -594,22 +627,22 @@ const SAMPLE = {
   nav: ["Calendar", "Classes", "Members", "Kilns"],
   screen: "Studio calendar",
   eyebrow: "Schedule",
-  tones: { accent: "Class", success: "Open studio", warning: "Firing", danger: "Deadline" } as Record<CalendarTone, string>,
+  tones: { info: "Class", success: "Open studio", warning: "Firing", danger: "Deadline" } as Partial<Record<CalendarTone, string>>,
   dialogText: "Plan a class, an open studio session, a firing or a deadline.",
   // Days from today, so the calendar always has something on show.
   events: [
-    { title: "Wheel throwing for beginners", tone: "accent", day: 0, startTime: "10:00", endTime: "12:00" },
+    { title: "Wheel throwing for beginners", tone: "info", day: 0, startTime: "10:00", endTime: "12:00" },
     { title: "Open studio", tone: "success", day: 0, startTime: "11:00", endTime: "14:00" },
     { title: "Glaze firing", tone: "warning", day: 1, days: 2 },
-    { title: "Hand-building evening", tone: "accent", day: 2, startTime: "18:00", endTime: "20:00" },
+    { title: "Hand-building evening", tone: "info", day: 2, startTime: "18:00", endTime: "20:00" },
     { title: "Holiday market application due", tone: "danger", day: 4 },
     { title: "Open studio", tone: "success", day: 5, startTime: "09:00", endTime: "13:00" },
-    { title: "Kids' clay club", tone: "accent", day: 5, startTime: "14:00", endTime: "15:30" },
+    { title: "Kids' clay club", tone: "info", day: 5, startTime: "14:00", endTime: "15:30" },
     { title: "Bisque firing", tone: "warning", day: 7, startTime: "08:00", endTime: "16:00" },
-    { title: "Wheel throwing for beginners", tone: "accent", day: 7, startTime: "10:00", endTime: "12:00" },
+    { title: "Wheel throwing for beginners", tone: "info", day: 7, startTime: "10:00", endTime: "12:00" },
     { title: "Clay order cutoff", tone: "danger", day: 9 },
     { title: "Members' critique night", tone: "success", day: 11, startTime: "19:00", endTime: "21:00" },
-    { title: "Raku workshop", tone: "accent", day: 13, days: 1, startTime: "10:00", endTime: "16:00" },
+    { title: "Raku workshop", tone: "info", day: 13, days: 1, startTime: "10:00", endTime: "16:00" },
     { title: "Studio deep clean", tone: "danger", day: -3 },
     { title: "Glaze test tiles", tone: "warning", day: -2, startTime: "13:00", endTime: "15:00" },
   ] as Array<{ title: string; tone: CalendarTone; day: number; days?: number; startTime?: string; endTime?: string }>,
@@ -629,7 +662,7 @@ export default function AppCalendar() {
   const [page, setPage] = useState(d.nav[0]);
   const [events, setEvents] = useState(sampleEvents);
   return (
-    <div className="fl-as-app">
+    <div className="fl-as-app fl-as-app--canvas">
       <TopNav variant="app" brand={d.product} links={d.nav.map((n) => ({ label: n }))} current={page} onSelect={setPage} />
       <main className="fl-as-main">
         <div className="fl-as-pagehead">

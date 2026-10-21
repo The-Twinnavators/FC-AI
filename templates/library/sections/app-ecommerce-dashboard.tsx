@@ -180,7 +180,7 @@ export default function AppEcommerceDashboard() {
   ];
 
   return (
-    <div className="fl-as-app">
+    <div className="fl-as-app fl-as-app--canvas">
       <TopNav variant="app" brand={d.product} links={d.nav.map((n) => ({ label: n }))} current={page} onSelect={setPage} />
 
       <main className="fl-as-main">
