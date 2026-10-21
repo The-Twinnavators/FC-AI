@@ -10,6 +10,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PROOF_IMAGE, proofById, type DesignProof, type DesignProofs as Proofs } from "@flowcode/contracts";
 import { conn, post, useResource } from "../api";
 
+/** A credit's source as a link only when it is a web address (http or https). */
+const webLink = (u: string) => {
+  try {
+    const x = new URL(u);
+    return x.protocol === "https:" || x.protocol === "http:" ? x.href : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 /** The proof's saved photos ("fc-image:images/<file>") found in its page. */
 function photoPaths(v: unknown, out = new Set<string>()): Set<string> {
   if (typeof v === "string" && v.startsWith(PROOF_IMAGE)) out.add(v);
@@ -240,7 +250,7 @@ export function DesignReview({ runId }: { runId: string }) {
                     <ul className="pr-credits">
                       {x.photos.map((c) => (
                         <li key={c.source}>
-                          <a href={c.source} target="_blank" rel="noreferrer">{c.title}</a> by {c.creator}, {c.license}
+                          {webLink(c.source) ? <a href={webLink(c.source)} target="_blank" rel="noreferrer">{c.title}</a> : c.title} by {c.creator}, {c.license}
                         </li>
                       ))}
                     </ul>

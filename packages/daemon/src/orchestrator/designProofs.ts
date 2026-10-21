@@ -443,7 +443,8 @@ async function addPhotos(d: Deps, projectId: string, page: ProofPage, proofId: s
       media.src = `${PROOF_IMAGE}${file.replace(/^public\//, "")}`;
       const all = JSON.parse(fs.readFileSync(jail.resolve("src/content/image-credits.json").abs, "utf8")) as Array<{ file: string; title: string; creator: string; license: string; source: string }>;
       const c = all.find((y) => y.file === `/${file.replace(/^public\//, "")}`);
-      if (c) credits.push({ title: c.title, creator: c.creator, license: c.license, source: c.source });
+      // Only a web address is kept as the source (the credits file is in the project and can be edited).
+      if (c) credits.push({ title: String(c.title).slice(0, 200), creator: String(c.creator).slice(0, 120), license: String(c.license).slice(0, 40), source: /^https?:\/\//i.test(String(c.source)) ? String(c.source) : "" });
     } catch {
       /* offline or no match: the placeholder stays */
     }
