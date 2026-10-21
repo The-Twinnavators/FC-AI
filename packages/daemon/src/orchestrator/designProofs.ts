@@ -15,6 +15,7 @@ import {
   BUNDLED_FONTS,
   DEFAULT_SURFACES,
   PROOF_BLOCKS,
+  PROOF_IMAGE,
   ProofPage,
   appearanceTokens,
   contrastRatio,
@@ -32,6 +33,8 @@ import type { EventBus } from "../events/bus.js";
 import type { ModelRouter } from "../models/router.js";
 import { expectedTokens, specProblems, type DesignSpec } from "../workspace/designSpec.js";
 import { getDesignState } from "../workspace/designState.js";
+import { findOpenImage } from "../workspace/openImages.js";
+import type { PathJail } from "../security/pathJail.js";
 import { designSkillIds, renderSkills, selectSkills } from "../knowledge/skills.js";
 import { designSpecKey } from "./homeConceptOffer.js";
 import { DESIGN_POLISH, DESIGN_SCREENS } from "./templates.js";
@@ -45,6 +48,8 @@ interface Deps {
   store: Store;
   bus: EventBus;
   router: ModelRouter;
+  /** The project's folder, where a proof's photos are saved (the build reuses them). */
+  projects?: { jail(projectId: string): PathJail };
 }
 
 /** Three directions, so the proofs differ in composition and hierarchy, not only in color. The model fills them in. */
@@ -114,7 +119,7 @@ export function startProofs(d: Deps, runId: string, brief: DesignProofs["brief"]
   const existing = getProofs(d.store, runId);
   if (existing) return existing;
   const round: ProofRound = { id: "r1", at: now(), proofs: LABELS.map((label, i) => ({ id: `r1-${i}`, label, status: "queued" })) };
-  const p: DesignProofs = { runId, rounds: [round], ...(brief ? { brief } : {}) };
+  const p: DesignProofs = { runId, projectId: d.store.runs.require(runId).projectId, rounds: [round], ...(brief ? { brief } : {}) };
   save(d.store, p);
   void work(d, runId);
   return p;
@@ -123,6 +128,7 @@ export function startProofs(d: Deps, runId: string, brief: DesignProofs["brief"]
 /** The page reads the proofs; a job that should be running but isn't (the daemon restarted) picks up where it was. */
 export function readProofs(d: Deps, runId: string): DesignProofs | null {
   const p = getProofs(d.store, runId);
+  if (p && !p.projectId) p.projectId = d.store.runs.require(runId).projectId;
   if (p && !running.has(runId) && p.rounds.some((r) => r.proofs.some((x) => x.status === "queued" || x.status === "working"))) void work(d, runId);
   return p;
 }
@@ -317,7 +323,7 @@ async function makeProof(d: Deps, p: DesignProofs, proof: DesignProof): Promise<
   const catalog = PROOF_BLOCKS.map((b) => `### ${b.id} (${b.role}): ${b.use}\n${blockContract(b.id)}`).join("\n\n");
   const system = [
     "You are FlowCode's senior product designer. You propose one design concept for the product's home page before it is built: a design specification (type, palette, density, surface, corners) and the page composed from FlowCode's Component library sections, each with its props written in the product's own words (names, classes, times, prices, places from the request and PRD; never lorem ipsum, never generic placeholders, never \"Feature 1\").",
-    "The page, in order: the top bar (top-nav-variants), one hero that introduces the product and its main action, two to four sections about the app (what it does, how it works, who it's for, proof such as numbers or quotes, prices or questions when they matter), a closing call to action, and a footer. Write props exactly as each section's contract describes (field names and shapes); links are {\"label\", \"href\"} with href \"#\".",
+    "The page, in order: the top bar (top-nav-variants), one hero that introduces the product and its main action, two to four sections about the app (what it does, how it works, who it's for, proof such as numbers or quotes, prices or questions when they matter), a closing call to action, and a footer. Write props exactly as each section's contract describes (field names and shapes); links are {\"label\", \"href\"} with href \"#\". For a picture (a \"media\" with \"alt\"), write alt as a short photo description someone could search for, like \"yoga class in a sunlit studio\"; FlowCode finds an openly licensed photo for it.",
     "Make it production quality and specific to this product and its people. Avoid generic SaaS copy and AI-looking defaults.",
     "Rules: fonts only from the given list; text on background and surfaces at least 4.5:1 contrast, the accent on the background at least 3:1, text on the accent at least 4.5:1; corners at most 12px; surfaces Flat or Tactile (skeuomorphism) only.",
     "\"name\" is the name of this design direction in two or three words (like \"Morning light\" or \"Studio ledger\"), never the screen's or the product's name. \"rationale\" says in two sentences why this direction fits this product and its people.",
@@ -373,9 +379,76 @@ async function makeProof(d: Deps, p: DesignProofs, proof: DesignProof): Promise<
       note = problems.join("; ");
       continue;
     }
-    return { name: a.name, rationale: a.rationale, spec, tokens: expectedTokens(spec), page: a.page, skills: skills.map((s) => s.id.replace(/^skill\./, "")), settings: [...settingsOf(spec), ...(fixed.length ? [{ label: "Contrast", value: `FlowCode adjusted ${fixed.join(", ")} to meet WCAG AA` }] : [])] };
+    const photos = await addPhotos(d, run.projectId, a.page, proof.id);
+    return { ...(photos.length ? { photos } : {}), name: a.name, rationale: a.rationale, spec, tokens: expectedTokens(spec), page: a.page, skills: skills.map((s) => s.id.replace(/^skill\./, "")), settings: [...settingsOf(spec), ...(fixed.length ? [{ label: "Contrast", value: `FlowCode adjusted ${fixed.join(", ")} to meet WCAG AA` }] : [])] };
   }
   throw new Error(`the designer's answer didn't pass FlowCode's checks (${note})`);
+}
+
+/**
+ * Openly licensed photos for a page's pictures (Openverse via find_image's search: CC0 and public domain first, then
+ * CC BY), saved in the project's public/images (the build reuses them) with their credit. A picture with no match
+ * keeps its labelled placeholder.
+ */
+const STOP = new Set(["a", "an", "the", "in", "on", "at", "of", "with", "and", "for", "to", "from", "by", "their", "her", "his", "its", "large", "small", "big", "bright", "sunlit", "warm", "calm", "beautiful", "modern", "person", "people", "someone", "window", "windows"]);
+async function addPhotos(d: Deps, projectId: string, page: ProofPage, proofId: string): Promise<NonNullable<DesignProof["photos"]>> {
+  if (!d.projects) return [];
+  let jail: PathJail;
+  try {
+    jail = d.projects.jail(projectId);
+  } catch {
+    return [];
+  }
+  const credits: NonNullable<DesignProof["photos"]> = [];
+  let n = 0;
+  // The run's vision model looks at each candidate (the builds' own check): a search for a yoga class found a 1940s
+  // group photo by its words alone.
+  const run = d.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 1", projectId)[0];
+  const vision = run?.modelAssignments.critic;
+  const judge = vision && run
+    ? async (image: Buffer, query: string) => {
+        const res = await d.router.chat({ role: "critic", projectId, runId: run.id }, { ...vision, temperature: 0 }, {
+          messages: [
+            { role: "system", content: 'You check stock photos before they go into a modern website. Answer whether the photo clearly shows the thing asked for, as its main subject, as a contemporary color photograph someone would use on that site today. Reject scans, adverts, posters, documents, photos with captions or printed text, old archival or historical photos (black and white, sepia, vintage prints), figurines, logos, screenshots and collages. Reply JSON only: {"ok": true|false, "reason": "a few words"}.' },
+            { role: "user", content: `Does this photo clearly show: ${JSON.stringify(query)}?`, images: [image.toString("base64")] },
+          ],
+          format: { type: "object", properties: { ok: { type: "boolean" }, reason: { type: "string" } }, required: ["ok"] },
+          maxOutputTokens: 200,
+          timeoutMs: 60_000,
+        });
+        const j = JSON.parse(res.content.slice(res.content.indexOf("{"), res.content.lastIndexOf("}") + 1) || "{}") as { ok?: boolean; reason?: string };
+        return { ok: j.ok !== false, reason: String(j.reason ?? "") };
+      }
+    : undefined;
+  for (const x of page.sections) {
+    const media = x.props.media as { alt?: unknown; src?: unknown } | undefined;
+    // Only photos FlowCode found count: a path the model made up ("public/images/studio.jpg") points at nothing.
+    if (!media || typeof media !== "object" || typeof media.alt !== "string") continue;
+    if (typeof media.src === "string" && media.src.startsWith(PROOF_IMAGE)) continue;
+    delete media.src;
+    const query = media.alt.replace(/^(a |an |the )?(photo|picture|image) of /i, "").split(/[,.;:]/)[0]!.trim().slice(0, 80);
+    if (!query) continue;
+    // The open catalogue matches few long descriptions: the words that name things, then fewer of them.
+    const words = query.toLowerCase().split(/\s+/).filter((w) => !STOP.has(w));
+    const queries = [...new Set([query, words.slice(-3).join(" "), words.slice(-2).join(" ")].filter(Boolean))];
+    try {
+      const name = `proof-${proofId}-${++n}`;
+      let r: Awaited<ReturnType<typeof findOpenImage>> = { ok: false, message: "", paths: [] };
+      for (const q of queries) {
+        r = await findOpenImage(jail, { query: q, name, orientation: "landscape" }, undefined, judge);
+        if (r.ok) break;
+      }
+      const file = r.ok ? r.paths.find((p) => p.startsWith("public/images/")) : undefined;
+      if (!file) continue;
+      media.src = `${PROOF_IMAGE}${file.replace(/^public\//, "")}`;
+      const all = JSON.parse(fs.readFileSync(jail.resolve("src/content/image-credits.json").abs, "utf8")) as Array<{ file: string; title: string; creator: string; license: string; source: string }>;
+      const c = all.find((y) => y.file === `/${file.replace(/^public\//, "")}`);
+      if (c) credits.push({ title: c.title, creator: c.creator, license: c.license, source: c.source });
+    } catch {
+      /* offline or no match: the placeholder stays */
+    }
+  }
+  return credits;
 }
 
 const hexToRgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));

@@ -7,8 +7,46 @@
  * settings, changes and locks for an explicit approval. The plan card shows a summary and opens the review.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { proofById, type DesignProof, type DesignProofs as Proofs } from "@flowcode/contracts";
-import { post, useResource } from "../api";
+import { PROOF_IMAGE, proofById, type DesignProof, type DesignProofs as Proofs } from "@flowcode/contracts";
+import { conn, post, useResource } from "../api";
+
+/** The proof's saved photos ("fc-image:images/<file>") found in its page. */
+function photoPaths(v: unknown, out = new Set<string>()): Set<string> {
+  if (typeof v === "string" && v.startsWith(PROOF_IMAGE)) out.add(v);
+  else if (Array.isArray(v)) v.forEach((x) => photoPaths(x, out));
+  else if (v && typeof v === "object") Object.values(v).forEach((x) => photoPaths(x, out));
+  return out;
+}
+/** The page with each saved photo replaced by a local blob: address (fetched with the Authorization header, so the token never goes in a URL). */
+function withPhotos(v: unknown, urls: Map<string, string>): unknown {
+  if (typeof v === "string") return urls.get(v) ?? v;
+  if (Array.isArray(v)) return v.map((x) => withPhotos(x, urls));
+  if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, withPhotos(x, urls)]));
+  return v;
+}
+function usePhotoUrls(page: unknown, projectId?: string): Map<string, string> {
+  const [urls, setUrls] = useState(new Map<string, string>());
+  const key = projectId ? [...photoPaths(page)].join("|") : "";
+  useEffect(() => {
+    if (!key || !projectId) return;
+    let live = true;
+    const made: string[] = [];
+    void Promise.all(
+      key.split("|").map(async (ref) => {
+        const res = await fetch(`${conn.base}/projects/${projectId}/proof-image?path=${encodeURIComponent(ref.slice(PROOF_IMAGE.length))}`, { headers: { authorization: `Bearer ${conn.token}` } }).catch(() => undefined);
+        if (!res?.ok) return undefined;
+        const url = URL.createObjectURL(await res.blob());
+        made.push(url);
+        return [ref, url] as const;
+      }),
+    ).then((pairs) => live && setUrls(new Map(pairs.filter((x): x is readonly [string, string] => !!x))));
+    return () => {
+      live = false;
+      made.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [key, projectId]);
+  return urls;
+}
 import { navigate } from "../router";
 import { Icon } from "./ui";
 import "../styles/design-proofs.css";
@@ -16,7 +54,7 @@ import "../styles/design-proofs.css";
 const LOCK_NAME: Record<string, string> = { colors: "Colors", type: "Type", shape: "Layout", surface: "Buttons", motion: "Motion" };
 
 /** One proof drawn in its slot: the page is drawn 1280px wide and scaled to fit. Large ones scroll inside. */
-function ProofFrame({ proof, size = "thumb" }: { proof: DesignProof; size?: "thumb" | "large" }) {
+function ProofFrame({ proof, projectId, size = "thumb" }: { proof: DesignProof; projectId?: string; size?: "thumb" | "large" }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const slot = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -26,7 +64,8 @@ function ProofFrame({ proof, size = "thumb" }: { proof: DesignProof; size?: "thu
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const message = useMemo(() => ({ type: "fl-proof", page: proof.page, tokens: proof.tokens ?? {} }), [proof]);
+  const urls = usePhotoUrls(proof.page, projectId);
+  const message = useMemo(() => ({ type: "fl-proof", page: withPhotos(proof.page, urls), tokens: proof.tokens ?? {} }), [proof, urls]);
   useEffect(() => {
     const on = (e: MessageEvent) => {
       if (e.origin !== location.origin || e.source !== frame.current?.contentWindow || e.data?.type !== "fl-proof-ready") return;
@@ -51,8 +90,8 @@ function elapsed(from?: string) {
 }
 
 /** A proof's picture, or where it stands while it isn't ready (with Retry when it failed). */
-function ProofSlot({ x, size, busy, onRetry }: { x: DesignProof; size: "thumb" | "large"; busy?: boolean; onRetry: () => void }) {
-  if (x.status === "ready") return <ProofFrame proof={x} size={size} />;
+function ProofSlot({ x, size, busy, onRetry, projectId }: { x: DesignProof; size: "thumb" | "large"; busy?: boolean; onRetry: () => void; projectId?: string }) {
+  if (x.status === "ready") return <ProofFrame proof={x} size={size} projectId={projectId} />;
   return (
     <div className={`pp-wait pp-wait--${size}${x.status === "failed" ? " is-failed" : ""}`} role="status">
       {x.status === "failed" ? (
@@ -183,7 +222,7 @@ export function DesignReview({ runId }: { runId: string }) {
           const x = one ?? shown.proofs[0]!;
           return (
             <div className="pr-single">
-              <ProofSlot x={x} size="large" busy={!!busy} onRetry={() => retry(x)} />
+              <ProofSlot x={x} size="large" busy={!!busy} onRetry={() => retry(x)} projectId={p.projectId} />
               <aside className="pr-side">
                 <strong className="pp-card__label">{x.label}{x.name ? ` · ${x.name}` : ""}</strong>
                 {x.rationale ? <p className="pp-card__why">{x.rationale}</p> : null}
@@ -195,6 +234,18 @@ export function DesignReview({ runId }: { runId: string }) {
                   </dl>
                 ) : null}
                 {x.skills?.length ? <p className="pp-card__skills" title="Skills from your library the designer followed">Skills: {x.skills.join(", ")}</p> : null}
+                {x.photos?.length ? (
+                  <div className="pp-card__skills">
+                    Photos (openly licensed, from Openverse):
+                    <ul className="pr-credits">
+                      {x.photos.map((c) => (
+                        <li key={c.source}>
+                          <a href={c.source} target="_blank" rel="noreferrer">{c.title}</a> by {c.creator}, {c.license}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
                 {actions(x)}
               </aside>
             </div>
@@ -206,12 +257,12 @@ export function DesignReview({ runId }: { runId: string }) {
             <li key={x.id} className={`pp-card${x.id === p.chosen ? " is-chosen" : ""}${x.id === p.approved?.proofId ? " is-approved" : ""}`}>
               {x.status === "ready" ? (
                 <button type="button" className="pr-compare__pic" onClick={() => setView(x.id)} aria-label={`Open ${x.label} large`}>
-                  <ProofSlot x={x} size="thumb" busy={!!busy} onRetry={() => retry(x)} />
+                  <ProofSlot x={x} size="thumb" busy={!!busy} onRetry={() => retry(x)} projectId={p.projectId} />
                 </button>
               ) : (
                 // Not a button while it isn't ready: its Retry has to be clickable.
                 <div className="pr-compare__pic">
-                  <ProofSlot x={x} size="thumb" busy={!!busy} onRetry={() => retry(x)} />
+                  <ProofSlot x={x} size="thumb" busy={!!busy} onRetry={() => retry(x)} projectId={p.projectId} />
                 </div>
               )}
               <div className="pp-card__body">
@@ -305,7 +356,7 @@ export function ProofSummary({ runId, onChange }: { runId: string; onChange?: (p
       <ul className="pp-sum__pics">
         {latest.proofs.map((x) => (
           <li key={x.id} className={x.id === p.approved?.proofId || x.id === p.chosen ? "is-chosen" : ""}>
-            <ProofSlot x={x} size="thumb" onRetry={() => navigate(`/proofs/${runId}`)} />
+            <ProofSlot x={x} size="thumb" onRetry={() => navigate(`/proofs/${runId}`)} projectId={p.projectId} />
             <span>{x.label}{x.name ? ` · ${x.name}` : ""}</span>
           </li>
         ))}

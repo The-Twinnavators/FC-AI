@@ -62,6 +62,8 @@ export interface DesignProof {
   page?: ProofPage;
   /** Library skills the designer was given, by name (only ones that exist in this FlowCode). */
   skills?: string[];
+  /** Openly licensed photos it uses (Openverse; CC0, public domain or CC BY), with their credit. */
+  photos?: Array<{ title: string; creator: string; license: string; source: string }>;
   /** A short summary of its settings: type, colors, surface, corners, spacing. */
   settings?: Array<{ label: string; value: string }>;
   /** The proof it revises, and the feedback it answers. */
@@ -82,12 +84,16 @@ export interface ProofRound {
 /** A build's design proofs: every round, the chosen proof, and the person's approval. */
 export interface DesignProofs {
   runId: string;
+  projectId?: string;
   rounds: ProofRound[];
   chosen?: string;
   approved?: { at: string; proofId: string };
   /** What the person said before the build (preferences, what to avoid), passed to every proof. */
   brief?: { preferences?: string; avoid?: string; inspiration?: string[] };
 }
+
+/** A photo saved in the project for a proof: props hold "fc-image:images/<file>"; the review turns it into an address. */
+export const PROOF_IMAGE = "fc-image:";
 
 export const proofsDone = (p: DesignProofs) => p.rounds.every((r) => r.proofs.every((x) => x.status === "ready" || x.status === "failed"));
 export const proofById = (p: DesignProofs, id?: string) => (id ? p.rounds.flatMap((r) => r.proofs).find((x) => x.id === id) : undefined);

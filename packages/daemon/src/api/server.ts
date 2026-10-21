@@ -1367,6 +1367,18 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   add("GET /runs/:id/artifacts", ({ params }) => app.artifacts.forRun(params.id));
   // A project's picture for its card (Dashboard → My Projects): the newest build's desktop screenshot, else its look
   // check's first screen. 404 when no build has taken one yet; the card then shows a placeholder.
+  // A design proof's photo (orchestrator/designProofs.ts), saved in the project's public/images: images only.
+  add("GET /projects/:id/proof-image", ({ params, query, res }) => {
+    const rel = query.get("path") ?? "";
+    if (!/^images\/[\w.-]+\.(jpg|jpeg|png|webp|gif)$/i.test(rel)) throw new HttpError(400, "Not a proof image");
+    const abs = app.projects.jail(params.id).resolve(`public/${rel}`).abs;
+    if (!fs.existsSync(abs)) throw new HttpError(404, "No such image");
+    const content = fs.readFileSync(abs);
+    const ext = rel.split(".").pop()!.toLowerCase();
+    res.writeHead(200, { "content-type": ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : ext === "gif" ? "image/gif" : "image/jpeg", "content-length": content.length, "cache-control": "private, max-age=3600" });
+    res.end(content);
+    return SENT;
+  });
   add("GET /projects/:id/thumbnail", ({ params, res }) => {
     const runs = app.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 12", params.id);
     for (const run of runs) {
