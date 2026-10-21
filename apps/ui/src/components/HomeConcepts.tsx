@@ -12,7 +12,7 @@ interface Concept {
   id: string;
   name: string;
   thesis: string;
-  design?: "storefront" | "magazine" | "listings";
+  design?: "listings";
   tokens: Record<string, string>;
   fonts: string[];
 }

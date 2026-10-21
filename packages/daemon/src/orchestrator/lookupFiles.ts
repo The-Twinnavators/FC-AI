@@ -20,10 +20,10 @@ export const LOOKUP_PIECES = ["lookup-frame", "lookup-catalog", "lookup-entry", 
 export interface HomeLayout {
   /**
    * A whole Home page from the library's full-page designs, made for look-up apps (lookup-home-<design>.tsx: the
-   * storefront, magazine and listings pages, filled from the app's data). When set, it is the page; the parts below
+   * listings page, filled from the app's data). When set, it is the page; the parts below
    * describe the composed page used without one.
    */
-  design?: "storefront" | "magazine" | "listings";
+  design?: "listings";
   hero: "search" | "centered" | "split";
   categories: "tiles" | "chips" | "rail";
   list: "grid" | "rows";
@@ -34,7 +34,7 @@ export const DEFAULT_HOME: HomeLayout = { hero: "search", categories: "tiles", l
 export const homePieces = (h?: HomeLayout) => (h?.design ? [`lookup-home-${h.design}`] : h?.hero === "centered" ? ["hero-centered"] : h?.hero === "split" ? ["hero-split"] : []);
 /** Whether the Home page has its own search (then the top bar leaves its search out there). Every full-page design does. */
 const heroSearches = (h: HomeLayout) => Boolean(h.design) || h.hero !== "split";
-const DESIGN_COMPONENT = { storefront: "LookupHomeStorefront", magazine: "LookupHomeMagazine", listings: "LookupHomeListings" } as const;
+const DESIGN_COMPONENT = { listings: "LookupHomeListings" } as const;
 
 const pascal = (id: string) => id.split(/[^a-zA-Z0-9]+/).filter(Boolean).map((w) => w[0]!.toUpperCase() + w.slice(1)).join("");
 const q = (s: string) => JSON.stringify(s);

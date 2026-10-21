@@ -18,9 +18,9 @@ import type { Task } from "@flowcode/contracts";
 
 const RECORDED = path.resolve(import.meta.dirname, "../../../.flowcode-data/workspaces/clean-cart-slice-eval-1-9b1947");
 const MODEL = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "fixtures/apps/eval1-app-model.json"), "utf8")) as AppModel;
-/** The catalog without any Home page approved, and with all three: the tests say which pages are approved. */
+/** The catalog without the listings Home page approved, and with it: the tests say which pages are approved. */
 const NONE = new Set(LIBRARY_SECTIONS.map((s) => s.id).filter((id) => !id.startsWith("lookup-home-")));
-const APPROVED = new Set([...NONE, "lookup-home-storefront", "lookup-home-magazine", "lookup-home-listings"]);
+const APPROVED = new Set([...NONE, "lookup-home-listings"]);
 
 function lookupRun() {
   const { app } = makeApp();
@@ -36,14 +36,14 @@ describe("Home concepts on the plan card", () => {
     const offer = conceptOffer(app.store, run.id, false, NONE);
     expect(offer.offered).toBe(false);
     expect(offer.why).toMatch(/waiting for your approval in the Component library \(lookup-home-/);
-    expect(() => chooseConcept(app.store, app.bus, run, "concept-market", "user", NONE)).toThrow(/waiting for your approval/);
+    expect(() => chooseConcept(app.store, app.bus, run, "concept-bold", "user", NONE)).toThrow(/waiting for your approval/);
   });
 
   it("is offered with what the live preview runs on: the app's own records, look-up config and links", () => {
     const { app, run } = lookupRun();
     const offer = conceptOffer(app.store, run.id, false, APPROVED);
     expect(offer.offered).toBe(true);
-    expect(offer.concepts.map((c) => c.design)).toEqual(["magazine", "storefront", "listings"]);
+    expect(offer.concepts.map((c) => c.design)).toEqual(["listings"]);
     expect(offer.concepts.every((c) => c.problems.length === 0 && c.tokens["--font-display"])).toBe(true);
     const data = offer.preview!.data;
     expect(data.product).toBe("Clean Cart");
@@ -56,14 +56,14 @@ describe("Home concepts on the plan card", () => {
   it("a pick is recorded while the plan waits, settled at approval, and refused afterwards", () => {
     const { app, run } = lookupRun();
     expect(() => chooseConcept(app.store, app.bus, run, "concept-nope", "user", APPROVED)).toThrow(/isn't one of/);
-    chooseConcept(app.store, app.bus, run, "concept-market", "user", APPROVED);
+    chooseConcept(app.store, app.bus, run, "concept-bold", "user", APPROVED);
     const spec = settleConcept(app.store, app.bus, run, APPROVED);
-    expect(spec?.id).toBe("concept-market");
+    expect(spec?.id).toBe("concept-bold");
     // Selected with the plan; the final visual approval is still the person's, on the generated app.
-    expect(app.store.getSetting<DesignDirection | null>(designDirectionKey(run.id), null)).toMatchObject({ kind: "concept", conceptId: "concept-market", visualApproval: "pending" });
-    expect(app.store.getSetting<DesignSpec | null>(designSpecKey(run.id), null)?.id).toBe("concept-market");
+    expect(app.store.getSetting<DesignDirection | null>(designDirectionKey(run.id), null)).toMatchObject({ kind: "concept", conceptId: "concept-bold", visualApproval: "pending" });
+    expect(app.store.getSetting<DesignSpec | null>(designSpecKey(run.id), null)?.id).toBe("concept-bold");
     // The app is written with the concept's Home page.
-    expect(app.store.getSetting<AppModel | null>(appModelKey(run.id), null)?.home?.design).toBe("storefront");
+    expect(app.store.getSetting<AppModel | null>(appModelKey(run.id), null)?.home?.design).toBe("listings");
     expect(() => chooseConcept(app.store, app.bus, { ...run, planApproved: true }, "concept-bold", "user", APPROVED)).toThrow(/already approved/);
     const t = app.store.getSetting<ConceptTimings>(conceptTimingsKey(run.id), {});
     expect(t.chosenAt && t.approvedAt).toBeTruthy();
@@ -86,12 +86,6 @@ describe("Home concepts on the plan card", () => {
     settleConcept(c.app.store, c.app.bus, c.run, NONE);
     expect(direction(c.app, c.run.id)).toMatchObject({ kind: "not_offered", outstanding: true });
     expect(direction(c.app, c.run.id)?.why).toMatch(/waiting for your approval/);
-  });
-
-  it("approves concepts one by one: a concept whose page is approved is offered, the others aren't", () => {
-    const { app, run } = lookupRun();
-    const one = new Set([...NONE, "lookup-home-magazine"]);
-    expect(conceptOffer(app.store, run.id, false, one).concepts.map((c) => c.id)).toEqual(["concept-editorial"]);
   });
 
   it.skipIf(!fs.existsSync(RECORDED))("writing the app applies the picked concept, times it, and tells the design steps what is left", async () => {
@@ -132,10 +126,10 @@ describe("Home concepts on the plan card", () => {
 
   it("approving the plan settles the pick (no separate approval), and the run's performance has the design path", async () => {
     const { app, run } = lookupRun();
-    chooseConcept(app.store, app.bus, run, "concept-editorial", "user", APPROVED);
+    chooseConcept(app.store, app.bus, run, "concept-bold", "user", APPROVED);
     app.store.runs.upsert({ ...app.store.runs.require(run.id), plan: { goal: "g", assumptions: [], relevantFiles: [], expectedChanges: [], risk: "high", riskNotes: [], validationPlan: ["final_report"], rollbackStrategy: "Restore snapshots", tasks: [{ key: "t1", title: "Write the complete app", objective: "Write it", dependsOn: [], expectedPaths: ["src/App.tsx"], acceptanceCriteria: [{ id: "a", description: "App exists", check: { type: "file_exists", path: "src/App.tsx" } }], verification: [], role: "coder" }] } as never });
     app.orchestrator.approvePlan(run.id, "user", false);
-    expect(app.store.getSetting<AppModel | null>(appModelKey(run.id), null)?.home?.design).toBe("magazine");
+    expect(app.store.getSetting<AppModel | null>(appModelKey(run.id), null)?.home?.design).toBe("listings");
     const perf = runPerformance(app, run.id);
     expect(perf.designPath.concept?.chosenAt).toBeTruthy();
     expect(perf.designPath).toMatchObject({ designStepsMs: 0, stepApprovalWaitMs: 0 });

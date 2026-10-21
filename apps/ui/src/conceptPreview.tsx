@@ -11,8 +11,6 @@ import baseCss from "../../../templates/library/library.css?raw";
 import { createStore, type AppSchema, type RecordData } from "../../../templates/library/sections/app-data";
 import { createLookup, type LookupConfig, type LookupSeed } from "../../../templates/library/sections/lookup-data";
 import { LookupFrame, type LookupLink } from "../../../templates/library/sections/lookup-frame";
-import { LookupHomeStorefront } from "../../../templates/library/sections/lookup-home-storefront";
-import { LookupHomeMagazine } from "../../../templates/library/sections/lookup-home-magazine";
 import { LookupHomeListings } from "../../../templates/library/sections/lookup-home-listings";
 
 const categoryCss = import.meta.glob<string>("../../../templates/library/css/*.css", { query: "?raw", import: "default", eager: true });
@@ -30,13 +28,13 @@ export interface ConceptPreviewData {
 export interface ConceptPreviewMessage {
   type: "fl-concept";
   id: string;
-  design: "storefront" | "magazine" | "listings";
+  design: "listings";
   tokens: Record<string, string>;
   promise?: string;
   data: ConceptPreviewData;
 }
 
-const HOMES = { storefront: LookupHomeStorefront, magazine: LookupHomeMagazine, listings: LookupHomeListings };
+const HOMES = { listings: LookupHomeListings };
 
 function Preview({ m }: { m: ConceptPreviewMessage }) {
   // Its own storage key: a preview never reads or writes a built app's saved data.
