@@ -3,6 +3,7 @@
  * executes the task DAG with checkpoints, routes failures to bounded repair, runs verification and
  * computes Done deterministically. Agents never transition phases themselves.
  */
+import { designPending } from "./designProofs.js";
 import { appliesToRole, isFinishedRun } from "@flowcode/contracts";
 import fs from "node:fs";
 import { z } from "zod";
@@ -723,7 +724,8 @@ ${brief.text}` : objective, expectedPaths });
     // FR-A2: medium/high-risk plans need approval unless the project's autonomy level covers them.
     const level = project.settings.autonomy;
     const autoReason = plan.scopeDecisions?.length || plan.compliance?.some((c) => c.hard && !c.ok) ? undefined : autoApprovalReason(level, { kind: "plan", risk: plan.risk, action: plan.goal, affected: plan.expectedChanges });
-    if (autoReason) {
+    // A design still to approve (agent-led design proofs) keeps the plan waiting for the person, whatever the level.
+    if (autoReason && !designPending(this.d.store, runId)) {
       return this.approvePlan(runId, `auto-approved by ${level} policy: ${autoReason}`);
     }
     const planApproval = this.d.approvals.request({
@@ -1538,6 +1540,7 @@ ${brief.text}` : objective, expectedPaths });
   approvePlan(runId: string, by = "user", autoStart = true): Run {
     const run = this.d.store.runs.require(runId);
     if (!run.plan) throw new Error("No plan to approve");
+    if (designPending(this.d.store, runId)) throw new Error("Approve a design first: choose one of the design proofs and approve it.");
     for (const a of this.d.store.approvals.where("run_id = ? AND status = 'pending'", runId).filter((x) => x.kind === "plan")) this.d.approvals.decide(a.id, "once", `approved by ${by}`);
     const updated = this.d.store.runs.upsert({ ...run, planApproved: true });
     this.d.bus.emit({ type: "plan.approved", projectId: run.projectId, runId, message: `Plan approved (${by})`, data: { by } });

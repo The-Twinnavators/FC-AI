@@ -98,5 +98,5 @@ export default defineConfig({
   plugins: [react(), autoDaemon()],
   server: { port: uiPort, strictPort: true, host: "127.0.0.1", fs: { allow: [...new Set([root, deps])] } },
   // section-preview.html: the Component library shows each section in a page of its own.
-  build: { outDir: "dist", sourcemap: true, rollupOptions: { input: { main: path.resolve(root, "apps/ui/index.html"), sectionPreview: path.resolve(root, "apps/ui/section-preview.html"), conceptPreview: path.resolve(root, "apps/ui/concept-preview.html") } } },
+  build: { outDir: "dist", sourcemap: true, rollupOptions: { input: { main: path.resolve(root, "apps/ui/index.html"), sectionPreview: path.resolve(root, "apps/ui/section-preview.html"), conceptPreview: path.resolve(root, "apps/ui/concept-preview.html"), proofPreview: path.resolve(root, "apps/ui/proof-preview.html") } } },
 });

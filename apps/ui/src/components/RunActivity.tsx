@@ -2,6 +2,7 @@
  * What the build is doing right now, honestly: its current state, a time range (or "not enough data yet") with what it's
  * based on, and an advisory note when it may be stuck. Nothing here acts on its own; the buttons are the person's.
  */
+import { ProofProgress } from "./DesignProofs";
 import { useDisplayMode } from "../displayMode";
 import { useState } from "react";
 import { post, useResource } from "../api";
@@ -70,7 +71,8 @@ export function RunActivity({ runId, taskId, onChanged }: { runId: string; taskI
         </div>
         {/* The details and actions are in the notice above the work column; here, the one line that matters. */}
         <p className="run-activity__note">{a.stop.needsYou ? "Needs you. " : "No action needed: FlowCode handles it. "}Resumes when {a.stop.resumeWhen}.</p>
-        <RunTimeBar runId={runId} live={false} />
+        <ProofProgress runId={runId} />
+      <RunTimeBar runId={runId} live={false} />
       </section>
     );
   }

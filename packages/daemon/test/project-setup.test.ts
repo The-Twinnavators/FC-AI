@@ -4,9 +4,22 @@
  * Build makes the first run once, with the chosen level and Extras, and a second press returns that same run.
  */
 import { describe, expect, it } from "vitest";
-import type { ProjectSetup } from "@flowcode/contracts";
+import type { DesignProofs, ProjectSetup } from "@flowcode/contracts";
+import { ScriptedProvider } from "../src/models/scripted.js";
+import { designPending } from "../src/orchestrator/designProofs.js";
 import { startServer } from "../src/api/server.js";
 import { makeApp } from "./helpers.js";
+
+/** Polls an async check until it returns something (the proofs are made in the background). */
+async function waitFor<T>(fn: () => Promise<T | undefined | false>, timeoutMs = 20_000): Promise<T> {
+  const start = Date.now();
+  for (;;) {
+    const v = await fn();
+    if (v) return v;
+    if (Date.now() - start > timeoutMs) throw new Error("waitFor timed out");
+    await new Promise((r) => setTimeout(r, 50));
+  }
+}
 
 describe("project setup", () => {
   it("keeps the setup across steps and reloads, and starts the build once", async () => {
@@ -66,57 +79,94 @@ describe("project setup", () => {
     }
   });
 
-  it("proposes drafts, revises them from feedback, and needs the design approved again after a change", async () => {
+  it("in agents mode, starts without a design approval, makes three proofs while planning, and holds the plan for the design", async () => {
     const { app } = makeApp();
+    // A scripted designer: a valid proof each time, different per call; "fail" in the feedback makes it answer nonsense.
+    let n = 0;
+    const FONTS = [["Inter", "Inter"], ["Playfair Display", "Source Sans 3"], ["DM Sans", "DM Sans"]];
+    app.router.register(
+      new ScriptedProvider({ id: "scripted", kind: "scripted", label: "scripted", enabled: true, hosted: false }, async (req) => {
+        const user = req.messages.find((m) => m.role === "user")?.content ?? "";
+        if (/feedback: fail/.test(user)) return { content: "not json" };
+        const i = n++ % 3;
+        const answer = {
+          name: ["Quiet studio", "Editorial week", "Front desk"][i],
+          rationale: "Members check the week's classes and book quickly, so the schedule leads.",
+          typography: { display: FONTS[i]![0], body: FONTS[i]![1], scale: ["regular", "expressive", "compact"][i], headingWeight: 600, headingCase: "normal" },
+          palette: { bg: "#ffffff", surface: "#f7f7f8", surfaceSunken: "#efeff1", text: "#16161a", textMuted: "#55555f", border: "#d9d9de", borderStrong: "#9a9aa5", accent: ["#1d4ed8", "#f9a8d4", "#166534"][i], accentHover: "#1e3a8a", onAccent: "#ffffff", secondary: "#7c3aed" },
+          density: "regular",
+          surface: { vibe: "flat", radii: [2, 4, 8, 8], borderWidth: 1 },
+          contentWidth: "regular",
+          signature: "",
+          screen: {
+            title: i === 0 ? "Class schedule" : "Schedule",
+            purpose: "Members see the week's classes and book a spot.",
+            product: "Studio",
+            frame: ["top-nav", "top-nav", "side-nav"][i],
+            nav: ["Schedule", "My bookings", "Account"],
+            layout: ["single", "main-aside", "split"][i],
+            main: [
+              { kind: "intro", variant: "compact", title: "This week at the studio" },
+              { kind: "schedule", days: ["Mon", "Tue"], items: [{ day: "Mon", time: "7:00", title: "Sunrise flow" }, { day: "Tue", time: "18:00", title: "Yin" }] },
+            ],
+          },
+        };
+        return { content: JSON.stringify(answer) };
+      }),
+    );
+    app.router.setRoleAssignment("designer", { providerId: "scripted", model: "designer" });
     const server = await startServer(app, { port: 0, token: "t", host: "127.0.0.1" });
     const headers = { authorization: "Bearer t", "content-type": "application/json" };
     const call = async <T>(p: string, body?: unknown) => {
       const res = await fetch(`http://127.0.0.1:${server.port}${p}`, body === undefined ? { headers } : { method: "POST", headers, body: JSON.stringify(body) });
       return { status: res.status, body: (await res.json()) as T };
     };
-    type Reply = { setup: ProjectSetup; design: { approved: boolean; questions: string[] } };
     try {
-      const made = await call<Reply & { project: { id: string } }>("/setups", { name: "Sprout", description: "A shop for indoor plants with a cart and checkout", productType: "online-store" });
+      const made = await call<{ project: { id: string } }>("/setups", { name: "Studio", description: "A booking app for a small yoga studio", productType: "saas" });
       const id = made.body.project.id;
-      await call(`/projects/${id}/setup`, { designMode: "agents", threeDrafts: true });
+      await call(`/projects/${id}/setup`, { designMode: "agents", designNotes: "calm, lots of air", designAvoid: "stock photos" });
+      // No Look and Feel approval needed: the design is approved with the plan.
+      const started = await call<{ run: { id: string; objective: string } }>(`/projects/${id}/setup/start`, {});
+      expect(started.status).toBe(200);
+      const runId = started.body.run.id;
+      expect(started.body.run.objective).toContain("avoid stock photos");
 
-      // Three drafts: different templates and different treatments.
-      const first = await call<Reply>(`/projects/${id}/setup/drafts`, {});
-      expect(first.status).toBe(200);
-      const set = first.body.setup.draftSets[0]!;
-      expect(set.drafts).toHaveLength(3);
-      expect(new Set(set.drafts.map((d) => d.template)).size).toBe(3);
-      expect(new Set(set.drafts.map((d) => d.appearance.fonts.display)).size).toBeGreaterThan(1);
-      // Nothing is chosen for the person: approval asks which draft.
-      expect(first.body.design.questions.join(" ")).toContain("Which draft");
-      expect((await call(`/projects/${id}/setup/approve-design`, {})).status).toBe(409);
+      // Three proofs, made in the background, each saved as it is ready.
+      const proofs = await waitFor(async () => {
+        const r = (await call<DesignProofs>(`/runs/${runId}/proofs`)).body;
+        return r.rounds[0]?.proofs.every((p) => p.status === "ready") ? r : undefined;
+      });
+      const ready = proofs.rounds[0]!.proofs;
+      expect(ready).toHaveLength(3);
+      expect(new Set(ready.map((p) => p.name)).size).toBe(3);
+      // The same screen in every proof, a different composition.
+      expect(new Set(ready.map((p) => p.screen!.title))).toEqual(new Set(["Class schedule"]));
+      expect(new Set(ready.map((p) => `${p.screen!.frame}/${p.screen!.layout}`)).size).toBe(3);
+      expect(ready[0]!.skills!.length).toBeGreaterThan(0);
+      expect(ready[0]!.tokens!["--color-accent"]).toBe("#1d4ed8");
+      // A too-light accent (local models' usual miss) is fixed by FlowCode, not failed, and the proof says so.
+      expect(ready[1]!.tokens!["--color-accent"]).not.toBe("#f9a8d4");
+      expect(ready[1]!.settings!.find((x) => x.label === "Contrast")?.value).toContain("the accent");
 
-      // None fit: a new set needs words on what to change, and keeps the earlier set to go back to.
-      expect((await call(`/projects/${id}/setup/drafts`, {})).status).toBe(400);
-      const second = await call<Reply>(`/projects/${id}/setup/drafts`, { feedback: "darker and calmer" });
-      expect(second.body.setup.draftSets).toHaveLength(2);
-      expect(second.body.setup.draftSets[1]!.feedback).toBe("darker and calmer");
-      expect(second.body.setup.draftSets[1]!.drafts.every((d) => d.appearance.mode === "dark")).toBe(true);
+      // The plan waits for the design whatever happens; nothing is chosen for the person.
+      expect(designPending(app.store, runId)).toBe(true);
+      expect((await call(`/runs/${runId}/proofs/approve`, {})).status).toBe(409);
 
-      // Choose one from the first set, say how closely to follow it, approve.
-      const pick = set.drafts[1]!;
-      const chosen = await call<Reply>(`/projects/${id}/setup/choose-draft`, { draft: pick.id });
-      expect(chosen.body.setup).toMatchObject({ template: pick.template, chosenDraft: pick.id });
-      await call(`/projects/${id}/setup`, { fidelity: "inspiration" });
-      // Inspiration without saying what to change is a question, not a default.
-      expect((await call(`/projects/${id}/setup/approve-design`, {})).status).toBe(409);
-      await call(`/projects/${id}/setup`, { designNotes: "Add a plant care section." });
-      const ok = await call<Reply>(`/projects/${id}/setup/approve-design`, {});
-      expect(ok.status).toBe(200);
-      expect(ok.body.setup.designApproval).toMatchObject({ template: pick.template, fidelity: "inspiration", draft: { id: pick.id } });
+      // None of these fit: a revised proof from the feedback, the earlier ones kept. A failed one can be retried.
+      const bad = await call<DesignProofs>(`/runs/${runId}/proofs/revise`, { feedback: "fail" });
+      expect(bad.body.rounds).toHaveLength(2);
+      const failed = await waitFor(async () => (await call<DesignProofs>(`/runs/${runId}/proofs`)).body.rounds[1]?.proofs.find((p) => p.status === "failed"));
+      expect(failed.error).toContain("checks");
+      const refined = await call<DesignProofs>(`/runs/${runId}/proofs/revise`, { feedback: "warmer", from: ready[1]!.id });
+      expect(refined.body.rounds).toHaveLength(3);
+      await waitFor(async () => (await call<DesignProofs>(`/runs/${runId}/proofs`)).body.rounds[2]?.proofs[0]?.status === "ready");
 
-      // A material change after approval: approve again before the build.
-      await call(`/projects/${id}/setup`, { designNotes: "Add a plant care section and a blog." });
-      const after = await call<Reply>(`/projects/${id}/setup`);
-      expect(after.body.design.approved).toBe(false);
-      expect((await call(`/projects/${id}/setup/start`, {})).status).toBe(409);
-      await call(`/projects/${id}/setup/approve-design`, {});
-      expect((await call(`/projects/${id}/setup/start`, {})).status).toBe(200);
+      // Choose, approve: the proof's specification is the build's design reference, and the plan can go ahead.
+      await call(`/runs/${runId}/proofs/choose`, { proof: ready[2]!.id });
+      const approved = await call<DesignProofs>(`/runs/${runId}/proofs/approve`, {});
+      expect(approved.body.approved?.proofId).toBe(ready[2]!.id);
+      expect(designPending(app.store, runId)).toBe(false);
+      expect(app.store.getSetting<{ name: string } | null>(`runDesignSpec:${runId}`, null)?.name).toBe("Front desk");
     } finally {
       await server.close();
     }

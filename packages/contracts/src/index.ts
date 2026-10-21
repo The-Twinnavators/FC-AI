@@ -14,7 +14,7 @@ export * from "./styleVibes.js";
 export * from "./palette.js";
 export * from "./appearance.js";
 export * from "./setup.js";
-export * from "./designDrafts.js";
+export * from "./designProof.js";
 export * from "./shape.js";
 export * from "./designDirection.js";
 export * from "./motion.js";

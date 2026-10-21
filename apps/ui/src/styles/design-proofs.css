@@ -1,0 +1,98 @@
+/* Design proofs in the plan review (components/DesignProofs.tsx), and the agent-led brief in Look and Feel. */
+.pp { display: grid; gap: 14px; }
+.pp__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.pp__title { margin: 0; font-size: 17px; font-weight: 650; color: var(--text-0); }
+.pp__lede { margin: 4px 0 0; font-size: 13px; color: var(--text-2); max-width: 72ch; }
+.pp__feedback { margin: 0; font-size: 13px; color: var(--text-1); }
+.pp__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.pp__grid--1 { grid-template-columns: minmax(0, 620px); }
+@media (max-width: 1100px) { .pp__grid { grid-template-columns: minmax(0, 1fr); } }
+.pp-card { display: grid; border: 1px solid var(--line-strong); border-radius: 12px; overflow: hidden; background: var(--bg-2); }
+.pp-card.is-chosen, .pp-card.is-approved { border-color: var(--brand-ink, var(--line-strong)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-ink, #a2b6e6) 35%, transparent); }
+.pp-spin { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-strong); border-top-color: var(--brand-ink, #a2b6e6); animation: pp-spin 0.9s linear infinite; }
+@keyframes pp-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .pp-spin { animation: none; } }
+.pp-card__body { display: grid; gap: 8px; align-content: start; padding: 12px 14px 14px; }
+.pp-card__label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--text-0); }
+.pp-card__on { padding: 1px 8px; border-radius: 999px; background: var(--brand-soft, var(--bg-2)); color: var(--brand-ink, var(--text-0)); font-size: 11px; font-weight: 650; }
+.pp-card__why { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--text-1); }
+.pp-card__skills { margin: 0; font-size: 11.5px; color: var(--text-2); }
+.pp-card__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.pp__none { display: grid; gap: 8px; justify-items: start; }
+.pp__revise { display: grid; gap: 8px; width: min(560px, 100%); }
+.pp__revise-k { font-size: 13px; font-weight: 650; color: var(--text-0); }
+.pp__revise-input { min-height: 72px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--bg-1); }
+.pp__revise-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.pp-approve { display: grid; gap: 12px; padding: 14px 16px; border: 1px solid var(--brand-ink, var(--line-strong)); border-radius: 12px; background: var(--bg-1); }
+.pp-approve h4 { margin: 0; font-size: 15px; color: var(--text-0); }
+.pp-approve__row { display: contents; }
+.pp-approve__actions { display: flex; justify-content: flex-end; }
+
+/* A proof drawn at 1280px and scaled into its slot. */
+.pp-frame { position: relative; width: 100%; overflow: hidden; contain: size layout; --pp-scale: 0.25; background: #fff; }
+.pp-frame--thumb { aspect-ratio: 16 / 10; }
+.pp-frame--large { height: calc(100vh - 300px); min-height: 480px; border: 1px solid var(--line-strong); border-radius: 12px; }
+.pp-frame iframe { position: absolute; top: 0; left: 0; width: 1280px; height: calc(100% / var(--pp-scale)); border: 0; transform: scale(var(--pp-scale)); transform-origin: 0 0; background: #fff; }
+.pp-frame--thumb iframe { pointer-events: none; }
+.pp-frame__tag { position: absolute; bottom: 8px; right: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(13, 17, 25, 0.8); color: #fff; font-size: 11px; font-weight: 600; pointer-events: none; }
+.pp-wait { display: grid; place-content: center; justify-items: center; gap: 6px; padding: 16px; text-align: center; color: var(--text-2); font-size: 12.5px; background: var(--bg-2); }
+.pp-wait--thumb { aspect-ratio: 16 / 10; }
+.pp-wait--large { height: calc(100vh - 300px); min-height: 480px; border: 1px solid var(--line-strong); border-radius: 12px; }
+.pp-wait strong { color: var(--text-0); font-size: 13.5px; }
+.pp-wait.is-failed strong { color: var(--sig-warn, #f2b33d); }
+.pp-wait span { max-width: 52ch; overflow-wrap: anywhere; }
+
+/* The review page. */
+.pr-page { display: grid; gap: 18px; }
+.pr-head { display: grid; gap: 12px; }
+.pr-back { justify-self: start; display: inline-flex; align-items: center; gap: 4px; }
+.pr-back svg { transform: rotate(180deg); }
+.pr-head__row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.pr-title { margin: 0; font-size: 26px; font-weight: 650; color: var(--text-0); }
+.pr-lede { margin: 6px 0 0; font-size: 14px; color: var(--text-2); max-width: 80ch; }
+.pr-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); }
+.pr-tabs button { padding: 8px 14px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--text-1); font: inherit; font-size: 13.5px; cursor: pointer; }
+.pr-tabs button:hover { color: var(--text-0); }
+.pr-tabs button.is-on { color: var(--text-0); font-weight: 600; border-bottom-color: var(--brand-ink, #a2b6e6); }
+.pr-single { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
+@media (max-width: 1100px) { .pr-single { grid-template-columns: minmax(0, 1fr); } }
+.pr-side { position: sticky; top: 16px; display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); }
+.pr-settings { display: grid; gap: 8px; margin: 0; font-size: 12.5px; }
+.pr-settings > div { display: grid; gap: 2px; }
+.pr-settings dt { color: var(--text-2); }
+.pr-settings dd { margin: 0; color: var(--text-0); }
+.pr-compare { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.pr-compare--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .pr-compare { grid-template-columns: minmax(0, 1fr); } }
+.pr-compare__pic { display: block; width: 100%; padding: 0; border: 0; border-bottom: 1px solid var(--line); background: none; cursor: zoom-in; }
+.pr-compare__pic:disabled { cursor: default; }
+.pr-compare .pp-frame--thumb, .pr-compare .pp-wait--thumb { aspect-ratio: 4 / 5; }
+.pp-approve h2 { margin: 0; font-size: 16px; color: var(--text-0); }
+.pp-approve p { margin: 0; color: var(--text-1); }
+
+/* On the plan card: a summary and the way into the review. */
+.pp-sum { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .pp-sum { grid-template-columns: minmax(0, 1fr); } }
+.pp-sum__text { display: grid; gap: 10px; justify-items: start; }
+.pp-sum__pics { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pp-sum__pics li { display: grid; gap: 4px; font-size: 11.5px; color: var(--text-2); }
+.pp-sum__pics li > :first-child { border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+.pp-sum__pics li.is-chosen > :first-child { border-color: var(--brand-ink, #a2b6e6); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-ink, #a2b6e6) 35%, transparent); }
+.pp-sum .pp-wait { font-size: 11px; padding: 6px; }
+.pp-sum .pp-wait strong { font-size: 11.5px; }
+.pp-sum .pp-wait span:not(.pp-spin) { display: none; }
+.pp-sum .pp-wait button { display: none; }
+.pp-sum .pp-frame__tag { display: none; }
+
+/* Look and Feel, agent-led: what happens next, and the person's brief. */
+.ls-agentsbrief { display: grid; gap: 16px; align-content: start; padding: 22px 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-1); }
+.ls-agentsbrief h2 { margin: 0; font-size: 20px; font-weight: 650; color: var(--text-0); }
+.ls-agentsbrief__lede { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--text-1); max-width: 70ch; }
+.ls-agentsbrief__steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 13.5px; color: var(--text-1); }
+.ls-agentsbrief__steps b { color: var(--text-0); font-weight: 600; }
+.ls-agentsbrief .psetup-actions { width: 100%; justify-content: space-between; margin-left: 0; padding-top: 12px; border-top: 1px solid var(--line); }
+.ls-insp { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ls-insp li { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 10px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 12.5px; color: var(--text-1); }
+.ls-insp__add { justify-self: start; cursor: pointer; }
+.pp-progress { margin: 0; font-size: 13px; color: var(--text-1); }
+.pp-progress strong { color: var(--text-0); }

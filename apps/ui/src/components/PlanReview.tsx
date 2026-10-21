@@ -14,6 +14,8 @@ import type { Approval, ImplementationPlan } from "@flowcode/contracts";
 import { ApiError, api, post, useResource } from "../api";
 import { ErrorNotice, Icon } from "./ui";
 import { HomeConcepts } from "./HomeConcepts";
+import { ProofSummary } from "./DesignProofs";
+import { proofById, type DesignProofs as Proofs } from "@flowcode/contracts";
 
 interface PlanVersion {
   version: number;
@@ -33,6 +35,7 @@ interface DesignStateView {
   selected?: { version: number; appearance: { surface: string; primary: string; fonts: { display: string; body: string }; motion?: { level: string } } };
   draft?: { appearance: unknown };
   label: string;
+  locks?: string[];
 }
 interface PlanView {
   hasPlan: boolean;
@@ -64,6 +67,13 @@ export function PlanReview({ approval, onDecided }: { approval: Approval; onDeci
   const design = useResource<DesignStateView>(`/projects/${projectId}/design/state`, [projectId]);
   const planView = useResource<PlanView>(`/projects/${projectId}/plan`, [projectId, approval.id]);
   const concepts = useResource<Concepts>(`/runs/${runId}/concepts`, [runId]);
+  // Agent-led design: the designer's proofs, approved here before the plan (nothing is built until then).
+  const [proofs, setProofs] = useState<Proofs>();
+  const proofsRes = useResource<Proofs>(`/runs/${runId}/proofs`, [runId]);
+  const P = proofs ?? proofsRes.data;
+  const hasProofs = !!P?.rounds.length;
+  const designWaiting = hasProofs && !P?.approved;
+  const approvedProof = P ? proofById(P, P.approved?.proofId) : undefined;
   const [step, setStep] = useState<Step>("scope");
   const [lookChoice, setLookChoice] = useState<"use-edits" | "discard-edits" | undefined>();
   const [asking, setAsking] = useState(false);
@@ -102,6 +112,12 @@ export function PlanReview({ approval, onDecided }: { approval: Approval; onDeci
 
   const approve = async () => {
     if (done.current || busy) return;
+    // The design comes first: approving the plan is refused until a proof is approved.
+    if (designWaiting) {
+      setStep("look");
+      setNotice("Approve a design first: choose one of the design proposals and approve it.");
+      return;
+    }
     // The look as it is now (the editor saves drafts as you go; the poll can be a moment behind).
     const fresh = await api<DesignStateView>("GET", `/projects/${projectId}/design/state`).catch(() => design.data);
     const edits = !!fresh?.draft;
@@ -172,9 +188,9 @@ export function PlanReview({ approval, onDecided }: { approval: Approval; onDeci
   const lookLine = hasEdits ? "Unconfirmed edits: choose before approving" : look ? `Version ${look.version}: ${SURFACE(look.appearance.surface)}, ${look.appearance.primary}, ${look.appearance.fonts.display}${look.appearance.motion ? `, ${look.appearance.motion.level} motion` : ""}` : "Base styling: no brand direction selected";
   const stepState: Record<Step, string> = {
     scope: plan ? `${plan.tasks.length} steps${contradictions.length ? ` · ${contradictions.length} contradict${contradictions.length === 1 ? "s" : ""} the PRD` : ""}${plan.scopeDecisions?.length ? ` · ${plan.scopeDecisions.length} decision${plan.scopeDecisions.length === 1 ? "" : "s"}` : ""}` : "Loading…",
-    look: hasEdits ? "Edits not confirmed" : look ? `Look v${look.version}${conceptName ? ` · ${conceptName}` : ""}` : `Base styling${conceptName ? ` · ${conceptName}` : ""}`,
+    look: hasProofs ? (approvedProof ? `✓ ${approvedProof.name}` : P!.rounds.some((r) => r.proofs.some((x) => x.status === "working" || x.status === "queued")) ? "Proofs being made" : "Choose a design") : hasEdits ? "Edits not confirmed" : look ? `Look v${look.version}${conceptName ? ` · ${conceptName}` : ""}` : `Base styling${conceptName ? ` · ${conceptName}` : ""}`,
     permissions: `${approval.risk} risk${installs.length ? " · install asks separately" : ""}`,
-    review: contradictions.length ? "Not approval-ready" : hasEdits && !lookChoice ? "Choice needed" : "Ready",
+    review: designWaiting ? "Design to approve" : contradictions.length ? "Not approval-ready" : hasEdits && !lookChoice ? "Choice needed" : "Ready",
   };
 
   return (
@@ -353,7 +369,7 @@ export function PlanReview({ approval, onDecided }: { approval: Approval; onDeci
 
           {step === "look" ? (
             <section aria-label="Look and layout">
-              <HomeConcepts runId={runId} projectId={projectId} />
+              {hasProofs ? <ProofSummary runId={runId} onChange={setProofs} /> : <HomeConcepts runId={runId} projectId={projectId} />}
             </section>
           ) : null}
 
@@ -389,8 +405,17 @@ export function PlanReview({ approval, onDecided }: { approval: Approval; onDeci
                 </dd>
                 <dt>Look</dt>
                 <dd>{look ? `Version ${look.version}` : "Base styling (no brand direction)"}</dd>
-                <dt>Home layout</dt>
-                <dd>{conceptName ?? "Not chosen"}</dd>
+                {hasProofs ? (
+                  <>
+                    <dt>Design</dt>
+                    <dd>{approvedProof ? `${approvedProof.label}, ${approvedProof.name} (approved)` : "Not approved yet"}</dd>
+                  </>
+                ) : (
+                  <>
+                    <dt>Home layout</dt>
+                    <dd>{conceptName ?? "Not chosen"}</dd>
+                  </>
+                )}
                 <dt>Next</dt>
                 <dd>{installs.length ? "The build starts; installing dependencies then asks you separately" : "The build starts"}</dd>
               </dl>
@@ -438,7 +463,7 @@ export function PlanReview({ approval, onDecided }: { approval: Approval; onDeci
       </div>
       <footer className="approval__actions plan-review__actions">
         <button className="btn btn--primary" data-cp="approval-allow" disabled={busy} onClick={() => void approve()}>
-          {contradictions.length ? `Approve version ${approval.planVersion ?? 1} despite ${contradictions.length} contradiction${contradictions.length === 1 ? "" : "s"}` : `Approve plan version ${approval.planVersion ?? 1}`}
+          {designWaiting ? "Approve the design first" : contradictions.length ? `Approve version ${approval.planVersion ?? 1} despite ${contradictions.length} contradiction${contradictions.length === 1 ? "" : "s"}` : `Approve plan version ${approval.planVersion ?? 1}`}
         </button>
         <button className="btn" disabled={busy} aria-expanded={asking} onClick={() => setAsking((v) => !v)}>
           <Icon name="edit" size={14} /> Request changes

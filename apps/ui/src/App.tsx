@@ -1,5 +1,6 @@
 /** Where a notification leads: a route, optionally the run's Overview, with a short label for the link. */
 export type AnnounceLink = { href?: string; overview?: boolean; linkLabel?: string };
+import { DesignReview } from "./components/DesignProofs";
 import { AboutView } from "./views/AboutView";
 import { WalkthroughView } from "./views/WalkthroughView";
 import { DesignDirectionView } from "./views/DesignDirectionView";
@@ -227,7 +228,7 @@ export function App() {
   }, [projectId]);
 
   useEffect(() => {
-    const titles: Record<string, string> = { "": "Home", dashboard: "Dashboard", new: "New build", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Topic Search", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", motion: "Motion Lab", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report" };
+    const titles: Record<string, string> = { "": "Home", dashboard: "Dashboard", new: "New build", knowledge: "Knowledge Hub", library: "Prompts & Skills", search: "Search", topics: "Topic Search", quality: "My Projects", reports: "Reports", models: "Models", settings: "Settings", system: "System", agents: "Agents", network: "Network Graph", pipeline: "Skill pipeline", components: "Component library", motion: "Motion Lab", primitives: "Branding", guide: "Feature guide", about: "About FlowCode", approvals: "Approvals", improvements: "Improvements", journal: "Project journal", discover: "Create PRD", flowreport: "Repo Report", proofs: "Design review" };
     document.title = `${project ? project.name : titles[section] ?? "FlowCode"} · FlowCode`;
   }, [section, project]);
 
@@ -358,6 +359,7 @@ export function App() {
         {section === "knowledge" && <KnowledgeView query={route.query} projects={projects.data ?? []} />}
         {section === "library" && <LibraryView query={route.query} />}
         {section === "search" && <SearchView query={route.query} />}
+        {section === "proofs" && route.parts[1] ? <DesignReview key={route.parts[1]} runId={route.parts[1]} /> : null}
         {section === "topics" && <TopicsView topicId={route.parts[1]} />}
         {section === "quality" && (route.parts[1] ? <QualityView key={route.parts[1]} projectId={route.parts[1]} view={route.parts[2]} runId={route.parts[3]} projects={projects.data ?? []} reload={projects.reload} /> : <QualityOverview projects={projects.data ?? []} reload={projects.reload} loaded={projects.data !== undefined || !!projects.error} />)}
         {section === "reports" && <ReportsRedirect runId={route.parts[1]} />}

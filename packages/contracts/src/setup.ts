@@ -5,7 +5,6 @@
  */
 import { z } from "zod";
 import type { AutonomyLevel } from "./autonomy.js";
-import type { DraftSet } from "./designDrafts.js";
 import { BuildMode, ReferenceFile } from "./schemas.js";
 
 /** What kind of product it is: guidance for the plan, never a template that limits it. */
@@ -62,10 +61,15 @@ export const DesignApproval = z.object({
   template: z.string().max(60),
   fidelity: z.enum(["close", "inspiration"]),
   notes: z.string().max(4000).default(""),
-  /** The draft it came from, when the person chose one. */
-  draft: z.object({ id: z.string().max(80), label: z.string().max(120) }).optional(),
 });
 export type DesignApproval = z.infer<typeof DesignApproval>;
+
+/** How closely the build follows the chosen template and Look. */
+export const DESIGN_FIDELITY = [
+  { id: "close", label: "Follow closely", detail: "Keep its visual language and composition; adapt the content and features to this product." },
+  { id: "inspiration", label: "Use as inspiration", detail: "A starting point: layout, type, colors, components and imagery may change." },
+] as const;
+export type DesignFidelity = (typeof DESIGN_FIDELITY)[number]["id"];
 
 export const ProjectSetup = z.object({
   status: z.enum(["draft", "started"]),
@@ -84,12 +88,12 @@ export const ProjectSetup = z.object({
   designMode: z.enum(["mine", "agents"]).default("mine"),
   /** How closely the build follows the chosen design. Unset until the person says. */
   fidelity: z.enum(["close", "inspiration"]).optional(),
-  /** "What would you like to change, keep, or add?" */
+  /** "What would you like to change, keep, or add?" (agents mode: the person's design preferences). */
   designNotes: z.string().max(4000).optional(),
-  /** Every set of design drafts made, oldest first, so earlier ones can be compared and chosen again. */
-  draftSets: z.array(z.custom<DraftSet>((v) => typeof v === "object" && v !== null)).max(12).default([]),
-  /** The draft the person chose (a DesignDraft id). */
-  chosenDraft: z.string().max(80).optional(),
+  /** Agents mode: what the designs should avoid. */
+  designAvoid: z.string().max(2000).optional(),
+  /** Agents mode: inspiration (images, notes, links as text files) for the designer. */
+  inspiration: z.array(ReferenceFile).max(6).default([]),
   designApproval: DesignApproval.optional(),
   /** The run Start Build created. */
   runId: z.string().optional(),
@@ -115,14 +119,16 @@ export const ProjectSetupPatch = z.object({
   designMode: z.enum(["mine", "agents"]).optional(),
   fidelity: z.enum(["close", "inspiration"]).optional(),
   designNotes: z.string().max(4000).optional(),
+  designAvoid: z.string().max(2000).optional(),
+  inspiration: z.array(ReferenceFile).max(6).optional(),
 });
 export type ProjectSetupPatch = z.infer<typeof ProjectSetupPatch>;
 
 /** What still needs the person before the design can be approved: focused questions, never a silent default. */
-export function designQuestions(s: Pick<ProjectSetup, "designMode" | "threeDrafts" | "draftSets" | "chosenDraft" | "fidelity" | "designNotes">): string[] {
+export function designQuestions(s: Pick<ProjectSetup, "designMode" | "fidelity" | "designNotes">): string[] {
   const q: string[] = [];
-  if (s.designMode === "agents" && !s.draftSets.length) q.push("Let FlowCode propose a design first.");
-  if (s.designMode === "agents" && s.draftSets.length && !s.chosenDraft) q.push(s.threeDrafts ? "Which draft should FlowCode build from? Choose one, or say what none of them get right." : "Choose the proposal, or say what to change.");
+  // Agents mode: the design is approved with the plan, from the proofs the designer makes while planning.
+  if (s.designMode === "agents") return q;
   if (!s.fidelity) q.push("How closely should FlowCode follow this design?");
   if (s.fidelity === "inspiration" && !s.designNotes?.trim()) q.push("You chose to use it as inspiration: what would you like to change, keep, or add?");
   return q;

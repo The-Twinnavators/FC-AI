@@ -28,7 +28,6 @@ import {
   TEMPLATES_FOR,
   DESIGN_FIDELITY,
   designQuestions,
-  type DesignDraft,
   type ProjectSetup,
   type ProductType,
   type Appearance,
@@ -45,7 +44,6 @@ import { LiveTemplate, TemplateThumb } from "./LiveTemplate";
 import { Modal } from "./Modal";
 import { SetupSteps, StepActions } from "../views/SetupView";
 import { useLookDraft } from "./useLookDraft";
-import { DesignDrafts } from "./DesignDrafts";
 import { post } from "../api";
 
 /** Locked Look groups, by the names the panel uses. */
@@ -152,50 +150,40 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
   const [reading, setReading] = useState<DirectionReading>();
   const [busy, setBusy] = useState(false);
   const [nextError, setNextError] = useState<string>();
-  // FlowCode's proposals: shown in place of the preview until one is chosen.
-  const [view, setView] = useState<"drafts" | "preview">(setup.designMode === "agents" && setup.draftSets.length && !setup.chosenDraft ? "drafts" : "preview");
-  const [drafting, setDrafting] = useState<string>();
-  const [draftError, setDraftError] = useState<string>();
   const [notes, setNotes] = useState(setup.designNotes ?? "");
   const notesTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [avoid, setAvoid] = useState(setup.designAvoid ?? "");
+  const avoidTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [summary, setSummary] = useState(false);
-  const askBox = useRef<HTMLTextAreaElement>(null);
+  const [modeError, setModeError] = useState<string>();
+  const agents = setup.designMode === "agents";
   const saveSetup = (patch: Partial<ProjectSetup>) => post(`/projects/${projectId}/setup`, patch).then(onSetup);
-  const propose = async (feedback?: string) => {
-    setDrafting(feedback ? "Making new drafts…" : "Making drafts…");
-    setDraftError(undefined);
-    try {
-      await post(`/projects/${projectId}/setup/drafts`, feedback ? { feedback } : {});
-      onSetup();
-      setView("drafts");
-    } catch (e) {
-      setDraftError((e as Error).message);
-    } finally {
-      setDrafting(undefined);
-    }
+  // Switching keeps everything typed in either mode (it's all saved with the setup).
+  const setMode = (mode: "mine" | "agents") => saveSetup({ designMode: mode }).catch((e: Error) => setModeError(e.message));
+  const editAvoid = (text: string) => {
+    setAvoid(text);
+    if (avoidTimer.current) clearTimeout(avoidTimer.current);
+    avoidTimer.current = setTimeout(() => void saveSetup({ designAvoid: text }), 500);
   };
-  const setMode = async (mode: "mine" | "agents") => {
-    // Letting FlowCode decide starts with three drafts (one proposal is a click away).
-    await saveSetup(mode === "agents" ? { designMode: mode, threeDrafts: true } : { designMode: mode });
-    if (mode === "agents" && !setup.draftSets.length) await propose();
-    else setView(mode === "agents" && !setup.chosenDraft ? "drafts" : "preview");
-  };
-  const chooseDraft = async (d: DesignDraft, refine: boolean) => {
-    setDrafting("Choosing…");
-    setDraftError(undefined);
-    try {
-      await post(`/projects/${projectId}/setup/choose-draft`, { draft: d.id });
-      look.adopt(d.appearance);
-      setPicked(d.template);
-      setView("preview");
-      onSetup();
-      // Refine: the studio, ready for words.
-      if (refine) setTimeout(() => askBox.current?.focus(), 50);
-    } catch (e) {
-      setDraftError((e as Error).message);
-    } finally {
-      setDrafting(undefined);
-    }
+  /** Inspiration files: images, notes or links as text; read here and saved with the setup. */
+  const addInspiration = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setModeError(undefined);
+    const read = await Promise.all(
+      [...files].slice(0, 6).map(
+        (f) =>
+          new Promise<ProjectSetup["inspiration"][number]>((resolve, reject) => {
+            if (f.size > 2_000_000) return reject(new Error(`${f.name} is larger than 2 MB`));
+            const r = new FileReader();
+            const image = f.type.startsWith("image/");
+            r.onload = () => resolve({ name: f.name.slice(0, 200), role: image ? "image" : "text", content: String(r.result) });
+            r.onerror = () => reject(new Error(`Couldn't read ${f.name}`));
+            if (image) r.readAsDataURL(f);
+            else r.readAsText(f);
+          }),
+      ),
+    ).catch((e: Error) => (setModeError(e.message), undefined));
+    if (read) await saveSetup({ inspiration: [...setup.inspiration, ...read].slice(0, 6) }).catch((e: Error) => setModeError(e.message));
   };
   const editNotes = (text: string) => {
     setNotes(text);
@@ -293,6 +281,48 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
     <SetupSteps projectId={projectId} at="look" />
     <div className="ls">
       <div className="ls-main">
+        {agents ? (
+          <section className="ls-agentsbrief" aria-labelledby="ls-agents-title">
+            <h2 id="ls-agents-title">FlowCode designs it with you</h2>
+            <p className="ls-agentsbrief__lede">FlowCode will create three custom design concepts based on your project, audience, requirements, and any references you provide. You'll review and approve a direction before development begins.</p>
+            <ol className="ls-agentsbrief__steps">
+              <li><b>While it plans</b> the designer makes three proofs of your main screen, each a different direction.</li>
+              <li><b>In the plan review</b> you choose one, refine it, or say none fit.</li>
+              <li><b>Nothing is built</b> until you approve the design.</li>
+            </ol>
+            <label className="ls-notes">
+              <span className="ls-notes__k">Preferences <span className="ls-notes__opt">Optional</span></span>
+              <textarea className="ls-ask__input ls-notes__input" rows={3} value={notes} onChange={(e) => editNotes(e.target.value)} placeholder="e.g. calm and airy, the schedule first, feels like a boutique studio" />
+            </label>
+            <label className="ls-notes">
+              <span className="ls-notes__k">What to avoid <span className="ls-notes__opt">Optional</span></span>
+              <textarea className="ls-ask__input ls-notes__input" rows={2} value={avoid} onChange={(e) => editAvoid(e.target.value)} placeholder="e.g. stock photos, neon colors, dense tables" />
+            </label>
+            <div className="ls-notes">
+              <span className="ls-notes__k">Inspiration <span className="ls-notes__opt">Optional</span></span>
+              <ul className="ls-insp">
+                {setup.inspiration.map((f, i) => (
+                  <li key={`${f.name}-${i}`}>
+                    <span>{f.name}</span>
+                    <button type="button" className="ls-icon-btn" aria-label={`Remove ${f.name}`} onClick={() => void saveSetup({ inspiration: setup.inspiration.filter((_, k) => k !== i) })}><Icon name="x" size={13} /></button>
+                  </li>
+                ))}
+              </ul>
+              {setup.inspiration.length < 6 ? (
+                <label className="btn btn--sm ls-insp__add">
+                  Attach images or notes
+                  <input type="file" multiple accept="image/*,.txt,.md" className="sr-only" onChange={(e) => (void addInspiration(e.target.files), (e.target.value = ""))} />
+                </label>
+              ) : null}
+              <span className="ls-quiet">The designer reads notes and file names; images go to the build as references.</span>
+            </div>
+            {look.locks.length ? <p className="ls-quiet">Locked, and kept in every proof: {look.locks.map((l) => LOCK_NAME[l] ?? l).join(", ")}.</p> : null}
+            {modeError ? <p className="psetup__err" role="alert">{modeError}</p> : null}
+            <StepActions back={onBack} next={{ label: "Next: Build", cp: "look-next", onClick: () => void flushNotes().then(onNext) }} />
+          </section>
+        ) : null}
+        {agents ? null : (
+        <>
         <div className="ls-bar">
           <button type="button" className="ls-template" onClick={() => setGallery(true)} title="Choose another starting design">
             <span className="ls-template__k">Template</span>
@@ -315,14 +345,10 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
           </button>
           {look.error || nextError ? <span className="ls-err" role="alert" title={nextError ?? look.error}>Not saved</span> : null}
         </div>
-        {view === "drafts" && setup.draftSets.length ? (
-            <DesignDrafts sets={setup.draftSets} chosen={setup.chosenDraft} site={site} busy={drafting} error={draftError} onChoose={(d, refine) => void chooseDraft(d, refine)} onRevise={(f) => void propose(f)}>
-            <StepActions back={onBack} next={{ label: "Approve Design and Continue", cp: "look-next", onClick: () => void review() }} />
-          </DesignDrafts>
-        ) : (
-          <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} reserve={16}>
-            <StepActions back={onBack} next={{ label: approved ? "Next: Build" : "Approve Design and Continue", cp: "look-next", onClick: () => (approved ? onNext() : void review()), busy: busy ? "Saving…" : undefined }} />
-          </LiveTemplate>
+        <LiveTemplate id={current.id} title={current.name} tokens={tokens} css={css} device={device} site={site} reserve={16}>
+          <StepActions back={onBack} next={{ label: approved ? "Next: Build" : "Approve Design and Continue", cp: "look-next", onClick: () => (approved ? onNext() : void review()), busy: busy ? "Saving…" : undefined }} />
+        </LiveTemplate>
+        </>
         )}
       </div>
 
@@ -330,8 +356,8 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
         <section className={`ls-group${open === "start" ? " is-open" : ""}`}>
           <div className="ls-group__head">
             <button type="button" className="ls-group__btn" aria-expanded={open === "start"} onClick={() => setOpen("start")}>
-              <span className="ls-group__name">Select a template</span>
-              <span className="ls-group__val">{current.name}</span>
+              <span className="ls-group__name">{agents ? "Design direction" : "Select a template"}</span>
+              <span className="ls-group__val">{agents ? "FlowCode agents" : current.name}</span>
               <Icon name="chevron" size={13} />
             </button>
           </div>
@@ -339,24 +365,14 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
             <div className="ls-group__body">
               <div className="ls-seg ls-mode" role="radiogroup" aria-label="Who picks the design">
                 {([["mine", "I'll choose"], ["agents", "Let FlowCode agents decide"]] as const).map(([m, label]) => (
-                  <button key={m} type="button" role="radio" aria-checked={setup.designMode === m} className={setup.designMode === m ? "is-on" : ""} disabled={!!drafting} onClick={() => void setMode(m)}>
+                  <button key={m} type="button" role="radio" aria-checked={setup.designMode === m} className={setup.designMode === m ? "is-on" : ""} onClick={() => void setMode(m)}>
                     {label}
                   </button>
                 ))}
               </div>
-              {setup.designMode === "agents" ? (
-                <div className="ls-agents">
-                  <label className="ls-check">
-                    <input type="checkbox" checked={setup.threeDrafts} onChange={(e) => void saveSetup({ threeDrafts: e.target.checked })} /> Show me three design drafts
-                  </label>
-                  {setup.draftSets.length ? (
-                    <button type="button" className="btn btn--sm" onClick={() => setView("drafts")}>{view === "drafts" ? "Showing the drafts" : setup.chosenDraft ? "Compare the drafts" : "See the drafts"}</button>
-                  ) : (
-                    <button type="button" className="btn btn--primary btn--sm" disabled={!!drafting} onClick={() => void propose()}>{drafting ?? (setup.threeDrafts ? "Propose three designs" : "Propose a design")}</button>
-                  )}
-                  {draftError && view !== "drafts" ? <p className="psetup__err" role="alert">{draftError}</p> : null}
-                </div>
-              ) : null}
+              {agents ? <p className="ls-quiet">Three custom proofs are made while the build is planned. The template picker is off; switch back to choose one yourself.</p> : null}
+              {agents ? null : (
+              <>
               <button type="button" className="ls-current" onClick={() => setGallery(true)}>
                 <TemplateThumb id={current.id} title={current.name} tokens={tokens} css={css} />
                 <span className="ls-current__name">{current.name}</span>
@@ -386,10 +402,13 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
                 </span>
                 <textarea className="ls-ask__input ls-notes__input" rows={3} value={notes} onChange={(e) => editNotes(e.target.value)} placeholder="e.g. keep the calendar, add a photo of the studio, no pricing table" />
               </label>
+              </>
+              )}
             </div>
           ) : null}
         </section>
 
+        {agents ? null : (
         <form
           className="ls-ask"
           onSubmit={(e) => {
@@ -400,7 +419,7 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
           }}
         >
           <textarea
-            ref={askBox}
+
             className="ls-ask__input"
             rows={3}
             value={words}
@@ -417,6 +436,7 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
           />
           <button type="submit" className="btn btn--primary btn--sm" disabled={!words.trim()}>Apply</button>
         </form>
+        )}
         {reading ? (
           <ul className="ls-read" aria-label="What the change did">
             {reading.understood.map((u) => (
@@ -550,7 +570,7 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
           <p className="ls-approve__lede">The build starts from this. Nothing is built until you approve it.</p>
           <dl className="ls-approve__list">
             <dt>Visual reference</dt>
-            <dd>{current.name}{setup.chosenDraft ? ` · ${setup.draftSets.flatMap((x) => x.drafts).find((x) => x.id === setup.chosenDraft)?.label ?? ""}` : ""} · {values.colors} · {values.type}</dd>
+            <dd>{current.name} · {values.colors} · {values.type}</dd>
             <dt>How closely</dt>
             <dd>{DESIGN_FIDELITY.find((f) => f.id === setup.fidelity)?.label ?? <em className="ls-approve__missing">Not chosen yet</em>}</dd>
             <dt>Changes and additions</dt>

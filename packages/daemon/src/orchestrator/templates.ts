@@ -3,11 +3,14 @@
  * (typecheck/lint/test/build from a clean copy) by the benchmark; agents build the feature on top.
  * Deterministic steps (scaffold, approved install) are executed by the runtime, not by a model.
  */
+import { getProofs } from "./designProofs.js";
+import { applyDesignSpec, type DesignSpec } from "../workspace/designSpec.js";
+import { designSpecKey } from "./homeConceptOffer.js";
 import { syncLocalFonts } from "../workspace/localFonts.js";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { designTemplate, type ImplementationPlan, type PlanTask, type ReferenceFile, type Run, type Task, type VerificationKind } from "@flowcode/contracts";
+import { DEFAULT_SURFACES, designTemplate, type ImplementationPlan, type PlanTask, type ReferenceFile, type Run, type Task, type VerificationKind } from "@flowcode/contracts";
 import { referencePath } from "../quality/spec.js";
 import type { AgentOutcome } from "./agentLoop.js";
 import type { OrchestratorDeps } from "./orchestrator.js";
@@ -315,6 +318,18 @@ export async function captureStyleStep({ deps, run, task, jail, signal, onChange
   // A direction the person selected (plan card, Design tab) is the app's look: applied here through the shared design
   // state, and nothing captured or suggested replaces it.
   const design = getDesignState(deps.store, run.projectId, jail);
+  // An approved design proof (agent-led design): its specification is the app's look, applied deterministically.
+  const proofSpec = getProofs(deps.store, run.id)?.approved ? deps.store.getSetting<DesignSpec | null>(designSpecKey(run.id), null) : null;
+  if (proofSpec) {
+    try {
+      const res = applyDesignSpec(jail, deps.ops, { projectId: run.projectId, runId: run.id }, proofSpec, { frameCss: "src/styles/components.css", screens: [], allowedSurfaces: [...DEFAULT_SURFACES, ...design.surfaceExceptions] });
+      onChanged(["src/styles/tokens.css"]);
+      deps.bus.emit({ type: "tool.completed", projectId: run.projectId, runId: run.id, taskId: task.id, message: `Applied the approved design "${proofSpec.name}": ${res.applied.join("; ")}${res.coderWork.length ? `; for the design steps: ${res.coderWork.map((w) => w.statement).join("; ")}` : ""}. Final visual approval stays with you.` });
+      return { kind: "complete", summary: `Applied the approved design "${proofSpec.name}"`, changedPaths: ["src/styles/tokens.css"] };
+    } catch (err) {
+      return { kind: "blocked", reason: `The approved design couldn't be applied: ${(err as Error).message}`, nextAction: "Retry this step" };
+    }
+  }
   if (design.selected) {
     const res = applySelected(deps.store, run.projectId, jail, deps.ops, { projectId: run.projectId, runId: run.id }, (id) => void deps.snapshots.restore(id, jail));
     if (!res.ok) return { kind: "blocked", reason: `The selected direction couldn't be applied: ${res.reason}`, nextAction: "Fix the direction on the Design tab, then retry this step" };

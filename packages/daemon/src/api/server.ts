@@ -28,6 +28,7 @@ import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { DeadlinePassedError } from "../orchestrator/runDeadline.js";
 import { chooseConcept, conceptOffer } from "../orchestrator/homeConceptOffer.js";
+import { approveProof, chooseProof, readProofs, retryProof, reviseProofs, startProofs } from "../orchestrator/designProofs.js";
 import { bridgeInstalled, installBridge } from "../workspace/previewBridge.js";
 import { lookReached } from "../quality/lookReached.js";
 import { allowSurface, applySelected, describeState, discardDraft, getDesignState, groupStatus, recordVerification, restoreVersion, saveDraft, selectDraft, setLocks, type ApplyVerification, type VerifyCheck } from "../workspace/designState.js";
@@ -835,14 +836,14 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     const s = app.store.getSetting<C.ProjectSetup | null>(setupKey(projectId), null);
     if (!s) throw new HttpError(404, "This project has no setup: it was made before setups existed, or by opening a folder.");
     // Setups saved before design drafts and approval existed.
-    return { ...s, designMode: s.designMode ?? "mine", draftSets: s.draftSets ?? [] } as C.ProjectSetup;
+    return { ...s, designMode: s.designMode ?? "mine", inspiration: s.inspiration ?? [] } as C.ProjectSetup;
   };
   const SetupCreate = z.object({ name: z.string().trim().max(200).optional(), description: z.string().trim().min(1).max(20_000), productType: C.ProjectSetup.shape.productType, references: z.array(C.ReferenceFile).max(20).default([]) });
   add("POST /setups", ({ body }) => {
     const b = parse(SetupCreate, body);
     checkReferences(b.references);
     const project = app.projects.create({ name: b.name || C.suggestName(b.description) || "New build", createWorkspace: true });
-    const setup: C.ProjectSetup = { status: "draft", description: b.description, productType: b.productType, references: b.references, extras: [], autonomy: "supervised", coder: "local", threeDrafts: false, designMode: "mine", draftSets: [], updatedAt: new Date().toISOString() };
+    const setup: C.ProjectSetup = { status: "draft", description: b.description, productType: b.productType, references: b.references, extras: [], autonomy: "supervised", coder: "local", threeDrafts: false, designMode: "mine", inspiration: [], updatedAt: new Date().toISOString() };
     app.store.setSetting(setupKey(project.id), setup);
     return { project, setup };
   });
@@ -879,48 +880,6 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   const draftOnly = (s: C.ProjectSetup) => {
     if (s.status !== "draft") throw new HttpError(409, "This build has started. Change its design in the Design tab.");
   };
-  // Design drafts (contracts designDrafts.ts): three proposals, or one, of the same screen. After the first set, a new
-  // set needs the person's words on what to change, so it never regenerates blindly.
-  add("POST /projects/:id/setup/drafts", ({ params, body }) => {
-    const s = setupOf(params.id);
-    draftOnly(s);
-    const b = parse(z.object({ feedback: z.string().max(2000).optional() }), body);
-    if (s.draftSets.length && !b.feedback?.trim()) throw new HttpError(400, "Describe what you want to change, so the next drafts are different.");
-    const d = getDesignState(app.store, params.id, designJail(params.id));
-    const prd = s.references.filter((r) => r.role === "prd" || r.role === "text").map((r) => r.content.slice(0, 40_000)).join("\n\n");
-    const set = C.proposeDrafts({
-      productType: s.productType,
-      text: `${s.description}\n\n${prd}`,
-      brand: prdBranding(params.id).colors[0]?.hex,
-      feedback: b.feedback,
-      count: s.threeDrafts ? 3 : 1,
-      previous: s.draftSets,
-      locks: d.locks ?? [],
-      keep: d.draft?.appearance ?? d.selected?.appearance,
-      id: `ds${s.draftSets.length + 1}-${Date.now().toString(36)}`,
-      at: new Date().toISOString(),
-    });
-    const next: C.ProjectSetup = { ...s, draftSets: [...s.draftSets, set].slice(-12), updatedAt: new Date().toISOString() };
-    app.store.setSetting(setupKey(params.id), next);
-    return setupReply(params.id, next);
-  });
-  // "Choose this design" (or "Refine this design", which chooses it and opens it for editing): its template becomes the
-  // setup's, and its Look the project's draft (locks still hold).
-  add("POST /projects/:id/setup/choose-draft", ({ params, body }) => {
-    const s = setupOf(params.id);
-    draftOnly(s);
-    const b = parse(z.object({ draft: z.string().max(80) }), body);
-    const draft = s.draftSets.flatMap((x) => x.drafts).find((x) => x.id === b.draft);
-    if (!draft) throw new HttpError(404, "That draft isn't in this project's drafts.");
-    try {
-      saveDraft(app.store, params.id, draft.appearance, {}, designJail(params.id));
-    } catch (err) {
-      throw new HttpError(400, (err as Error).message);
-    }
-    const next: C.ProjectSetup = { ...s, template: draft.template, chosenDraft: draft.id, updatedAt: new Date().toISOString() };
-    app.store.setSetting(setupKey(params.id), next);
-    return setupReply(params.id, next);
-  });
   // "Approve Design and Continue": the person's explicit approval of the design the build starts from. Refused while a
   // question is open (no fidelity, inspiration without notes, drafts with none chosen): nothing is chosen for them.
   add("POST /projects/:id/setup/approve-design", ({ params, body }) => {
@@ -943,10 +902,9 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       throw new HttpError(409, (err as Error).message);
     }
     const version = d.selected?.version ?? d.applied?.version ?? 0;
-    const draft = s.chosenDraft ? s.draftSets.flatMap((x) => x.drafts).find((x) => x.id === s.chosenDraft) : undefined;
     const next: C.ProjectSetup = {
       ...s,
-      designApproval: { at: new Date().toISOString(), lookVersion: version, template, fidelity: s.fidelity!, notes: s.designNotes ?? "", ...(draft ? { draft: { id: draft.id, label: draft.label } } : {}) },
+      designApproval: { at: new Date().toISOString(), lookVersion: version, template, fidelity: s.fidelity!, notes: s.designNotes ?? "" },
       updatedAt: new Date().toISOString(),
     };
     app.store.setSetting(setupKey(params.id), next);
@@ -957,27 +915,41 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
     const s = setupOf(params.id);
     if (s.status === "started" && s.runId) return { project: app.store.projects.require(params.id), run: app.store.runs.require(s.runId) };
     if (!s.description.trim()) throw new HttpError(400, "Describe the product first.");
-    // No build without a design the person approved, as it is now.
-    if (!designStatus(params.id, s).approved) throw new HttpError(409, s.designApproval ? "The design changed after you approved it. Approve it again in Look and Feel." : "Approve the design in Look and Feel first.");
-    const approval = s.designApproval!;
+    // Agent-led design: the designer makes three proofs while the build is planned; the person approves one with the
+    // plan, and nothing is built before that (planReview.ts).
+    const agents = s.designMode === "agents";
+    // Otherwise no build without a design the person approved, as it is now.
+    if (!agents && !designStatus(params.id, s).approved) throw new HttpError(409, s.designApproval ? "The design changed after you approved it. Approve it again in Look and Feel." : "Approve the design in Look and Feel first.");
+    const approval = agents ? undefined : s.designApproval!;
     const cloud = readyCloud(s.coder);
     const type = C.PRODUCT_TYPES.find((t) => t.id === s.productType);
     // The product type is guidance for the plan, never a template: products may combine several.
-    const template = s.template ? C.LIBRARY_SECTIONS.find((x) => x.id === s.template) : undefined;
+    const template = !agents && s.template ? C.LIBRARY_SECTIONS.find((x) => x.id === s.template) : undefined;
     const description = [
       s.description,
       type && type.id !== "other" ? `Product type: ${type.label} (guidance; it may combine others).` : "",
       // The design the person approved in Look and Feel: the implementation reference.
-      template
+      agents ? "Design: FlowCode's designer proposes three design concepts while this is planned; the person approves one before anything is built, and its specification is the design reference." : "",
+      template && approval
         ? approval.fidelity === "close"
           ? `Approved design: build from the library page template "${template.name}" (${template.ref}) with the approved Look. Follow it closely: keep its visual language and composition, and adapt the content and features to this product.`
           : `Approved design: use the library page template "${template.name}" (${template.ref}) and the approved Look as inspiration. Layout, typography, colors, components and imagery may change where this product needs it.`
         : "",
-      approval.notes.trim() ? `The person's design instructions (change, keep or add): ${approval.notes.trim()}` : "",
+      approval?.notes.trim() ? `The person's design instructions (change, keep or add): ${approval.notes.trim()}` : "",
+      agents && s.designNotes?.trim() ? `The person's design preferences: ${s.designNotes.trim()}` : "",
+      agents && s.designAvoid?.trim() ? `Design: avoid ${s.designAvoid.trim()}` : "",
     ]
       .filter(Boolean)
       .join("\n\n");
-    const run = startSpecRun(params.id, { description, references: s.references, autonomy: s.autonomy, ...(s.buildMode ? { buildMode: s.buildMode } : {}), look: { extras: s.extras, template: s.template, fidelity: approval.fidelity, notes: approval.notes, approvedAt: approval.at, lookVersion: approval.lookVersion, ...(approval.draft ? { draft: approval.draft } : {}) }, cloud });
+    const look = approval ? { extras: s.extras, template: s.template, fidelity: approval.fidelity, notes: approval.notes, approvedAt: approval.at, lookVersion: approval.lookVersion } : { extras: s.extras, designMode: "agents" };
+    // Inspiration goes with the build's references (images for the style step); the designer reads their names and text.
+    const run = startSpecRun(params.id, { description, references: [...s.references, ...(agents ? s.inspiration : [])].slice(0, 20), autonomy: s.autonomy, ...(s.buildMode ? { buildMode: s.buildMode } : {}), look, cloud });
+    if (agents)
+      startProofs(app, run.id, {
+        ...(s.designNotes?.trim() ? { preferences: s.designNotes.trim() } : {}),
+        ...(s.designAvoid?.trim() ? { avoid: s.designAvoid.trim() } : {}),
+        ...(s.inspiration.length ? { inspiration: s.inspiration.map((f) => (f.role === "image" ? `${f.name} (an image)` : `${f.name}: ${f.content.slice(0, 400)}`)) } : {}),
+      });
     app.store.setSetting(setupKey(params.id), { ...s, status: "started", runId: run.id, updatedAt: new Date().toISOString() } satisfies C.ProjectSetup);
     return { project: app.store.projects.require(params.id), run };
   });
@@ -1226,6 +1198,23 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   });
   // Home concepts on the plan card: what is offered (with what the live preview needs), and the person's pick.
   add("GET /runs/:id/concepts", ({ params }) => conceptOffer(app.store, params.id, !!app.store.runs.require(params.id).planApproved));
+  // Design proofs (orchestrator/designProofs.ts): read (resumes a job a restart interrupted), retry one, revise from
+  // feedback, choose one, approve it.
+  const proofCall = <T>(f: () => T) => {
+    try {
+      return f();
+    } catch (err) {
+      throw new HttpError(409, (err as Error).message);
+    }
+  };
+  add("GET /runs/:id/proofs", ({ params }) => readProofs(app, params.id) ?? { runId: params.id, rounds: [] });
+  add("POST /runs/:id/proofs/retry", ({ params, body }) => proofCall(() => retryProof(app, params.id, parse(z.object({ proof: z.string().max(40) }), body).proof)));
+  add("POST /runs/:id/proofs/revise", ({ params, body }) => {
+    const b = parse(z.object({ feedback: z.string().trim().min(1).max(2000), from: z.string().max(40).optional() }), body);
+    return proofCall(() => reviseProofs(app, params.id, b.feedback, b.from));
+  });
+  add("POST /runs/:id/proofs/choose", ({ params, body }) => proofCall(() => chooseProof(app.store, params.id, parse(z.object({ proof: z.string().max(40) }), body).proof)));
+  add("POST /runs/:id/proofs/approve", ({ params }) => proofCall(() => approveProof(app, params.id)));
   add("POST /runs/:id/concept", ({ params, body }) => {
     // A concept's id, or "default" for the generic default Home chosen explicitly.
     const b = parse(z.object({ conceptId: z.string().max(80) }), body);

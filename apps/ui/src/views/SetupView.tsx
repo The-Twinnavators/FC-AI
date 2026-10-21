@@ -137,15 +137,17 @@ function BuildStep({ projectId, project, setup, status, onSaved }: { projectId: 
       </fieldset>
 
       <section className="psetup-summary" aria-label="Start the build">
-        {status?.approved ? (
-          <p className="psetup__approved">✓ Design approved{setup.designApproval?.draft ? `: ${setup.designApproval.draft.label}` : ""}</p>
+        {setup.designMode === "agents" ? (
+          <p className="psetup__approved">Design: three proofs are made while this is planned. You approve one before anything is built.</p>
+        ) : status?.approved ? (
+          <p className="psetup__approved">✓ Design approved</p>
         ) : (
           <p className="psetup__err" role="alert">
             {setup.designApproval ? "The design changed after you approved it." : "The design isn't approved yet."}{" "}
             <button type="button" className="link-btn" onClick={() => navigate(`/new/${projectId}/look`)}>Approve it in Look and Feel</button>
           </p>
         )}
-        <StepActions back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", cp: "build-start", onClick: () => void start(), disabled: !status?.approved, busy: busy ? "Starting…" : undefined }} />
+        <StepActions back={() => navigate(`/new/${projectId}/look`)} next={{ label: "Start Build", cp: "build-start", onClick: () => void start(), disabled: setup.designMode !== "agents" && !status?.approved, busy: busy ? "Starting…" : undefined }} />
       </section>
       {extras.includes("installable") ? <p className="psetup__note">Install as an app: installing depends on the browser; only the app's own screens work offline.</p> : null}
 

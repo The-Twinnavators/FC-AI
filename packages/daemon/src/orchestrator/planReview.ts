@@ -11,6 +11,7 @@
  *    version it saw. Unconfirmed edits on the Look need an explicit choice (use them, or discard them); a warning in
  *    the log isn't enough. What the approval bound to is recorded.
  */
+import { designPending } from "./designProofs.js";
 import { createHash } from "node:crypto";
 import type { Approval, ApprovalDecisionInput, ImplementationPlan, Run } from "@flowcode/contracts";
 import type { App } from "../app.js";
@@ -53,7 +54,7 @@ export interface PlanApprovalRecord {
 export class PlanReviewError extends Error {
   constructor(
     message: string,
-    readonly code: "superseded" | "changed" | "wrong_gate" | "started" | "not_waiting" | "unconfirmed_look" | "look_changed" | "deadline" | "planning" | "invalid_look",
+    readonly code: "superseded" | "changed" | "wrong_gate" | "started" | "not_waiting" | "unconfirmed_look" | "look_changed" | "deadline" | "planning" | "invalid_look" | "design_pending",
   ) {
     super(message);
   }
@@ -158,6 +159,8 @@ export function approvePlanVersion(app: App, approval: Approval, input: Approval
     throw new PlanReviewError(`Plan version ${approval.planVersion} was replaced${current ? ` by version ${current.version}` : ""} after you asked for changes. Review the new version.`, "superseded");
   }
   checkVersion(approval, input.planVersion, input.planHash, approval.runId!, app);
+  // Agent-led design: nothing is built before the person approves one of the design proofs (designProofs.ts).
+  if (designPending(app.store, approval.runId!)) throw new PlanReviewError("Approve a design first: choose one of the design proofs and approve it, then approve the plan.", "design_pending");
   let jail;
   try {
     jail = app.projects.jail(approval.projectId);
