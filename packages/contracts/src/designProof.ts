@@ -64,6 +64,8 @@ export interface DesignProof {
   skills?: string[];
   /** Openly licensed photos it uses (Openverse; CC0, public domain or CC BY), with their credit. */
   photos?: Array<{ title: string; creator: string; license: string; source: string }>;
+  /** Why some pictures kept their placeholder (the search couldn't be reached, or no suitable photo was found). */
+  photoNote?: string;
   /** A short summary of its settings: type, colors, surface, corners, spacing. */
   settings?: Array<{ label: string; value: string }>;
   /** The proof it revises, and the feedback it answers. */

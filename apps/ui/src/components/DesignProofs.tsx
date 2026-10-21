@@ -244,6 +244,7 @@ export function DesignReview({ runId }: { runId: string }) {
                   </dl>
                 ) : null}
                 {x.skills?.length ? <p className="pp-card__skills" title="Skills from your library the designer followed">Skills: {x.skills.join(", ")}</p> : null}
+                {x.photoNote ? <p className="pp-card__skills">{x.photoNote}</p> : null}
                 {x.photos?.length ? (
                   <div className="pp-card__skills">
                     Photos (openly licensed, from Openverse):

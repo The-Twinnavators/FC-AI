@@ -379,8 +379,8 @@ async function makeProof(d: Deps, p: DesignProofs, proof: DesignProof): Promise<
       note = problems.join("; ");
       continue;
     }
-    const photos = await addPhotos(d, run.projectId, a.page, proof.id);
-    return { ...(photos.length ? { photos } : {}), name: a.name, rationale: a.rationale, spec, tokens: expectedTokens(spec), page: a.page, skills: skills.map((s) => s.id.replace(/^skill\./, "")), settings: [...settingsOf(spec), ...(fixed.length ? [{ label: "Contrast", value: `FlowCode adjusted ${fixed.join(", ")} to meet WCAG AA` }] : [])] };
+    const { credits: photos, note: photoNote } = await addPhotos(d, run.projectId, a.page, proof.id);
+    return { ...(photos.length ? { photos } : {}), ...(photoNote ? { photoNote } : {}), name: a.name, rationale: a.rationale, spec, tokens: expectedTokens(spec), page: a.page, skills: skills.map((s) => s.id.replace(/^skill\./, "")), settings: [...settingsOf(spec), ...(fixed.length ? [{ label: "Contrast", value: `FlowCode adjusted ${fixed.join(", ")} to meet WCAG AA` }] : [])] };
   }
   throw new Error(`the designer's answer didn't pass FlowCode's checks (${note})`);
 }
@@ -391,16 +391,18 @@ async function makeProof(d: Deps, p: DesignProofs, proof: DesignProof): Promise<
  * keeps its labelled placeholder.
  */
 const STOP = new Set(["a", "an", "the", "in", "on", "at", "of", "with", "and", "for", "to", "from", "by", "their", "her", "his", "its", "large", "small", "big", "bright", "sunlit", "warm", "calm", "beautiful", "modern", "person", "people", "someone", "window", "windows"]);
-async function addPhotos(d: Deps, projectId: string, page: ProofPage, proofId: string): Promise<NonNullable<DesignProof["photos"]>> {
-  if (!d.projects) return [];
+async function addPhotos(d: Deps, projectId: string, page: ProofPage, proofId: string): Promise<{ credits: NonNullable<DesignProof["photos"]>; note?: string }> {
+  if (!d.projects) return { credits: [] };
   let jail: PathJail;
   try {
     jail = d.projects.jail(projectId);
   } catch {
-    return [];
+    return { credits: [] };
   }
   const credits: NonNullable<DesignProof["photos"]> = [];
   let n = 0;
+  let missed = 0;
+  let unreachable = false;
   // The run's vision model looks at each candidate (the builds' own check): a search for a yoga class found a 1940s
   // group photo by its words alone.
   const run = d.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 1", projectId)[0];
@@ -435,9 +437,10 @@ async function addPhotos(d: Deps, projectId: string, page: ProofPage, proofId: s
       const name = `proof-${proofId}-${++n}`;
       let r: Awaited<ReturnType<typeof findOpenImage>> = { ok: false, message: "", paths: [] };
       for (const q of queries) {
-        r = await findOpenImage(jail, { query: q, name, orientation: "landscape" }, undefined, judge);
+        r = await findOpenImage(jail, { query: q, name, orientation: "landscape" }, AbortSignal.timeout(90_000), judge);
         if (r.ok) break;
       }
+      if (!r.ok) missed++;
       const file = r.ok ? r.paths.find((p) => p.startsWith("public/images/")) : undefined;
       if (!file) continue;
       media.src = `${PROOF_IMAGE}${file.replace(/^public\//, "")}`;
@@ -446,10 +449,13 @@ async function addPhotos(d: Deps, projectId: string, page: ProofPage, proofId: s
       // Only a web address is kept as the source (the credits file is in the project and can be edited).
       if (c) credits.push({ title: String(c.title).slice(0, 200), creator: String(c.creator).slice(0, 120), license: String(c.license).slice(0, 40), source: /^https?:\/\//i.test(String(c.source)) ? String(c.source) : "" });
     } catch {
-      /* offline or no match: the placeholder stays */
+      // Offline, or the search timed out: the placeholder stays, and the proof says why.
+      missed++;
+      unreachable = true;
     }
   }
-  return credits;
+  const note = missed ? `${missed} picture${missed === 1 ? "" : "s"} kept a placeholder: ${unreachable ? "the open image search (Openverse) couldn't be reached" : "no suitable openly licensed photo was found"}. Ask for a revision to try again.` : undefined;
+  return { credits, ...(note ? { note } : {}) };
 }
 
 const hexToRgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
