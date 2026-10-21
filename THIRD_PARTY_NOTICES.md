@@ -78,8 +78,9 @@ FlowCode's own React and design-token CSS (no Tailwind or shadcn/ui).
 
 ## TailGrids
 
-The one-time code, number field, input group and social sign-in pieces (`otp-input`, `number-field`, `input-group`,
-`social-button`) follow the structure of TailGrids' open-source components (https://github.com/TailGrids/tailgrids),
+The one-time code, number field, input group, social sign-in, context menu, menu bar, split panes, mega menu and
+scroll area pieces (`otp-input`, `number-field`, `input-group`, `social-button`, `context-menu`, `menubar`, `resizable`,
+`navigation-menu`, `scroll-area`) follow the structure of TailGrids' open-source components (https://github.com/TailGrids/tailgrids),
 MIT License, Copyright (c) 2025 Tailgrids, rewritten in FlowCode's own React and design-token CSS (no Tailwind or
 Radix). Provider names and marks in `social-button` are their owners' trademarks. tailgrids.com premium blocks and
 templates are not used.

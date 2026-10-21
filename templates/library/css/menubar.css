@@ -1,0 +1,57 @@
+/**
+ * Menubar (c.menubar): a row of plain menu names with one highlight that slides to the open menu; each menu is the
+ * shared menu list (fl-cm-panel, css/contextmenu.css) dropped under its name. Also the reference sheet's note editor.
+ * Prefixed fl-mb-; only the library's tokens. Adapted from TailGrids (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-mb { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.fl-mb-li { position: relative; }
+.fl-mb-trigger {
+  position: relative; z-index: 1; display: inline-flex; align-items: center; min-height: 2.25rem; padding: 0 var(--space-3);
+  border: 0; border-radius: min(var(--radius-sm), 8px); background: transparent; color: var(--color-text);
+  font: var(--weight-medium) var(--text-sm) / 1 var(--font-sans); cursor: default;
+  transition: background-color var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-mb-trigger:hover { background: var(--color-surface-sunken); }
+.fl-mb-trigger[aria-expanded="true"] { background: transparent; }
+.fl-mb-trigger:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* One highlight under the open menu's name; it slides from one name to the next. */
+.fl-mb-ind {
+  position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none;
+  border-radius: min(var(--radius-sm), 8px); background: var(--color-surface-sunken);
+  transition: opacity var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-mb-ind[data-ready] {
+  transition: translate var(--duration-base) var(--ease-spring, var(--ease-out, var(--easing))), width var(--duration-base) var(--ease-out, var(--easing)), opacity var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-mb-panel { top: calc(100% + var(--space-1)); left: 0; }
+
+/* The reference sheet: a note editor. */
+.fl-mb-app {
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 24rem;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-mb-top { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); border-bottom: 1px solid var(--color-border); }
+.fl-mb-logo { display: grid; place-items: center; flex: none; width: 1.75rem; height: 1.75rem; border-radius: min(var(--radius-sm), 8px); background: var(--color-accent); color: var(--color-on-accent); }
+.fl-mb-logo svg { width: 1rem; height: 1rem; }
+.fl-mb-doc { display: grid; grid-template-rows: auto minmax(12rem, 1fr); gap: var(--space-2); padding: var(--space-5); min-width: 0; }
+.fl-mb-title {
+  width: 100%; min-width: 0; padding: var(--space-1) 0; border: 0; border-bottom: 1px solid transparent; background: transparent; color: var(--color-text);
+  font: var(--weight-semibold) var(--text-xl) / 1.2 var(--font-display);
+}
+.fl-mb-title:focus-visible { outline: none; border-bottom-color: var(--color-accent); }
+.fl-mb-text {
+  width: 100%; min-width: 0; resize: vertical; padding: 0; border: 0; background: transparent; color: var(--color-text); line-height: var(--leading-relaxed, 1.6);
+  transition: font-size var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-mb-text:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--color-surface), var(--focus-ring); border-radius: 2px; }
+.fl-mb-text::placeholder { color: var(--color-text-muted); }
+.fl-mb-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 2.5rem; padding: var(--space-2) var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-mb-status { margin: 0; font-size: var(--text-sm); }
+.fl-mb-count { margin-left: auto; font-size: var(--text-xs); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-mb-ind[data-ready] { transition-duration: 1ms; }
+  .fl-mb-text { transition: none; }
+}
+:root[data-motion="off"] .fl-mb * { transition: none !important; animation: none !important; }

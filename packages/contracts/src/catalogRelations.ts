@@ -162,6 +162,12 @@ const RELATIONS: Record<string, Rel> = {
   "c.number-field": { provides: ["form"], avoidWhen: ["a whole count of items or tickets: use c.quantity"] },
   "c.input-group": { provides: ["form"] },
   "c.social-button": { provides: ["sign-in"], requires: ["sign-in providers the app has set up"], avoidWhen: ["the person is already signed in"] },
+  // On the approval shelf (agents' batch, 2026-10-21)
+  "c.context-menu": { contexts: ["app"], provides: ["edit"], requires: ["items or records to act on"] },
+  "c.menubar": { contexts: ["app"], provides: ["navigation", "settings"], requires: ["commands grouped into a few menus"], avoidWhen: ["A marketing page: use a header with links instead."] },
+  "c.split-panes": { contexts: ["app"], provides: ["detail"], requires: ["two or more panes of content that benefit from being seen at once"] },
+  "p.mega-menu": { contexts: ["marketing"], provides: ["navigation"], requires: ["a site with enough pages to group into sections"], avoidWhen: ["A site with five pages or fewer: a simple header is enough."] },
+  "c.scroll-area": { provides: [] },
 };
 
 /** The component an ID belongs to: variants and versions answer to it (c.tabs@folder, c.button.primary → c.tabs, c.button). */

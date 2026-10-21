@@ -1,0 +1,63 @@
+/**
+ * Scroll area (c.scroll-area): a native scroller with the browser's bar hidden, slim drawn thumbs that fade in on hover,
+ * focus and scroll, and soft fades on edges that have more; and the reference sheet's notes list and card row.
+ * Prefixed fl-sa-; only the library's tokens. Adapted from TailGrids (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-sa { position: relative; min-width: 0; }
+.fl-sa-view { overflow: hidden; scrollbar-width: none; overscroll-behavior: contain; border-radius: inherit; }
+.fl-sa-view::-webkit-scrollbar { display: none; }
+.fl-sa-view--y { overflow-y: auto; }
+.fl-sa-view--x { overflow-x: auto; }
+.fl-sa-view:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: min(var(--radius-sm), 8px); }
+
+/* Edge fades: a band of the surface color over each edge that still has more beyond it. */
+.fl-sa::before, .fl-sa::after { content: ""; position: absolute; z-index: 1; pointer-events: none; opacity: 0; transition: opacity var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-sa::before { inset: 0 0 auto 0; height: 1.5rem; background: linear-gradient(to bottom, var(--fl-sa-fade, var(--color-surface)), transparent); }
+.fl-sa::after { inset: auto 0 0 0; height: 1.5rem; background: linear-gradient(to top, var(--fl-sa-fade, var(--color-surface)), transparent); }
+.fl-sa[data-top]::before, .fl-sa[data-bottom]::after { opacity: 1; }
+.fl-sa[data-left]::before { inset: 0 auto 0 0; width: 1.5rem; height: auto; background: linear-gradient(to right, var(--fl-sa-fade, var(--color-surface)), transparent); opacity: 1; }
+.fl-sa[data-right]::after { inset: 0 0 0 auto; width: 1.5rem; height: auto; background: linear-gradient(to left, var(--fl-sa-fade, var(--color-surface)), transparent); opacity: 1; }
+
+/* The drawn bars: a track along the edge, a rounded thumb that wakes, and grows when pointed at. */
+.fl-sa-track { position: absolute; z-index: 2; opacity: 0; transition: opacity var(--duration-base) var(--ease-out, var(--easing)); touch-action: none; }
+.fl-sa.is-awake .fl-sa-track, .fl-sa-track:hover { opacity: 1; }
+.fl-sa-track--y { top: 2px; bottom: 2px; right: 2px; width: 10px; }
+.fl-sa-track--x { left: 2px; right: 2px; bottom: 2px; height: 10px; }
+.fl-sa-track--y.fl-sa-track--both { bottom: 12px; }
+.fl-sa-track--x.fl-sa-track--both { right: 12px; }
+.fl-sa-thumb {
+  position: absolute; border-radius: var(--pill-radius, 999px); background: var(--color-border-strong, var(--color-text-muted)); cursor: default;
+  transition: background-color var(--duration-fast) var(--ease-out, var(--easing)), width var(--duration-fast) var(--ease-out, var(--easing)), height var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-sa-track--y .fl-sa-thumb { top: 0; right: 2px; width: 5px; }
+.fl-sa-track--x .fl-sa-thumb { left: 0; bottom: 2px; height: 5px; }
+.fl-sa-track:hover .fl-sa-thumb, .fl-sa-thumb.is-dragging { background: var(--color-text-muted); }
+.fl-sa-track--y:hover .fl-sa-thumb, .fl-sa-track--y .fl-sa-thumb.is-dragging { width: 8px; right: 1px; }
+.fl-sa-track--x:hover .fl-sa-thumb, .fl-sa-track--x .fl-sa-thumb.is-dragging { height: 8px; bottom: 1px; }
+
+/* The reference sheet. */
+.fl-sa-demo { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--space-4); align-items: start; }
+.fl-sa-box {
+  display: grid; gap: var(--space-3); min-width: 0; padding: var(--space-4);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-sa-heading { margin: 0; font-family: var(--font-display); font-size: var(--text-md); font-weight: var(--weight-semibold); }
+.fl-sa-notes { display: grid; gap: var(--space-4); margin: 0; padding: 0 var(--space-4) 0 0; list-style: none; }
+.fl-sa-note-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fl-sa-note-head strong { font-size: var(--text-sm); }
+.fl-sa-note-head time { margin-left: auto; font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-sa-notes ul { margin: var(--space-2) 0 0; padding-left: 1.1rem; display: grid; gap: var(--space-1); font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.5; }
+.fl-sa-cards { display: flex; gap: var(--space-3); width: max-content; margin: 0; padding: 0 0 var(--space-4); list-style: none; }
+.fl-sa-card {
+  display: grid; gap: var(--space-1); width: 10rem; padding: var(--space-3);
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); font-size: var(--text-sm);
+}
+.fl-sa-card span:last-child { font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-sa-card-icon { display: grid; place-items: center; width: 2rem; height: 2rem; margin-bottom: var(--space-2); border-radius: min(var(--radius-sm), 8px); background: var(--color-surface); color: var(--color-accent); }
+.fl-sa-card-icon svg { width: 1rem; height: 1rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-sa::before, .fl-sa::after, .fl-sa-track, .fl-sa-thumb { transition: none; }
+}
+:root[data-motion="off"] .fl-sa, :root[data-motion="off"] .fl-sa *, :root[data-motion="off"] .fl-sa::before, :root[data-motion="off"] .fl-sa::after { transition: none !important; animation: none !important; }
