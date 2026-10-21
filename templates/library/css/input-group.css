@@ -1,0 +1,81 @@
+/**
+ * Input group (c.input-group): one bordered field holding fixed text, icons or small buttons at its ends, or a text
+ * area with a footer row; the whole group takes the focus ring. Prefixed fl-ig-; only the library's tokens. Adapted from
+ * TailGrids (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-ig { display: grid; gap: var(--space-2); min-width: 0; }
+.fl-ig-label { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+.fl-ig-group {
+  display: flex; align-items: center; min-width: 0; min-height: var(--control-md, 2.75rem); cursor: text;
+  border: var(--control-border, 1px solid var(--color-border-strong)); border-radius: min(var(--field-radius, var(--control-radius, var(--radius-md))), 12px);
+  background: var(--control-bg, var(--color-surface)); box-shadow: var(--well-shadow, none); overflow: hidden;
+  transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
+}
+.fl-ig-group:hover:not(.is-disabled) { border-color: var(--color-text-muted); }
+.fl-ig-group:focus-within { border-color: var(--control-edge, var(--color-accent)); box-shadow: var(--control-shadow-focus, var(--focus-ring)); }
+.fl-ig-group.is-invalid { border-color: var(--color-danger); }
+.fl-ig-group.is-invalid:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent); }
+.fl-ig-group.is-disabled { opacity: var(--disabled-opacity, 0.5); background: var(--color-surface-sunken); cursor: not-allowed; }
+.fl-ig-group.is-readonly { background: var(--color-surface-sunken); }
+.fl-ig-field {
+  flex: 1 1 auto; align-self: stretch; min-width: 0; width: 100%; padding: 0 var(--space-3); border: 0; background: transparent;
+  color: var(--color-text); font: inherit; font-size: var(--text-md, 1rem);
+}
+.fl-ig-field:focus { outline: none; }
+.fl-ig-field::placeholder { color: var(--color-text-muted); }
+.fl-ig-field:disabled { cursor: not-allowed; }
+.fl-ig-field[type="search"]::-webkit-search-cancel-button { display: none; }
+input.fl-ig-field { height: calc(var(--control-md, 2.75rem) - 2px); }
+/* Fixed text: muted, behind a thin divider so it reads as part of the address and not as typed text. */
+.fl-ig-text {
+  flex: none; align-self: stretch; display: flex; align-items: center; padding-inline: var(--space-3); max-width: 45%;
+  background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none;
+}
+.fl-ig-text--start { border-right: 1px solid var(--color-border); }
+.fl-ig-text--end { border-left: 1px solid var(--color-border); }
+/* Icons sit inside the field without a divider. */
+.fl-ig-icon { flex: none; display: grid; place-items: center; color: var(--color-text-muted); }
+.fl-ig-icon svg { width: 1.125rem; height: 1.125rem; }
+.fl-ig-icon--start { padding-left: var(--space-3); }
+.fl-ig-icon--start + .fl-ig-field { padding-left: var(--space-2); }
+.fl-ig-icon--end { padding-right: var(--space-3); }
+.fl-ig-group:focus-within .fl-ig-icon { color: var(--color-text); }
+.fl-ig-slot { flex: none; display: flex; align-items: center; gap: var(--space-1); padding-inline: var(--space-1); }
+.fl-ig-slot--end { animation: fl-ig-in var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-ig .fl-ig-btn { flex: none; }
+/* Text area with a footer row. */
+.fl-ig-group--multi { flex-direction: column; align-items: stretch; }
+.fl-ig-group--multi .fl-ig-field { padding: var(--space-3); resize: vertical; min-height: 5rem; line-height: var(--leading-normal, 1.5); }
+.fl-ig-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3); border-top: 1px solid var(--color-border); cursor: default; }
+.fl-ig-count { font-size: var(--text-xs); color: var(--color-text-muted); font-variant-numeric: tabular-nums; transition: color var(--duration-fast) var(--easing); }
+.fl-ig-count.is-over { color: var(--color-danger); font-weight: var(--weight-semibold); }
+.fl-ig-error { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; color: var(--color-danger); font-size: var(--text-sm); animation: fl-ig-rise var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-ig-error svg { flex: none; width: 1rem; height: 1rem; margin-top: 0.15em; }
+.fl-ig-hint { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-ig-status { margin: 0; min-height: 1.25em; color: var(--color-success); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+
+/* Reference sheet. */
+.fl-ig-sheet { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--space-4); }
+.fl-ig-card {
+  display: grid; gap: var(--space-3); align-content: start; min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-ig-card h3 { margin: 0; font-size: var(--text-xs); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-muted); }
+
+@keyframes fl-ig-in { from { opacity: 0; scale: 0.85; } }
+@keyframes fl-ig-rise { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) / -2); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-ig-group, .fl-ig-count { transition: none; }
+  .fl-ig-slot--end, .fl-ig-error { animation: none; }
+}
+.fl-ig-stack { display: grid; gap: var(--space-2); min-width: 0; }
+.fl-ig-stack > .fl-ig-hint:empty { display: none; }
+
+/* Narrow: fixed text gives the typed part more room. */
+.fl-ig { container-type: inline-size; }
+@container (max-width: 22rem) {
+  .fl-ig-text { max-width: 32%; padding-inline: var(--space-2); font-size: var(--text-xs); }
+  .fl-ig-field { padding-inline: var(--space-2); }
+}

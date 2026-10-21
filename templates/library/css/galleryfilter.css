@@ -1,0 +1,53 @@
+/**
+ * Filterable gallery (b.gallery-filter): category chips over a mosaic of square, tall and wide pictures, each opening
+ * the slideshow's lightbox. Prefixed fl-gal-; only the library's tokens. Adapted from Tailblocks (MIT License,
+ * Copyright (c) 2020 Mert Cukuren).
+ */
+.fl-gal { container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; }
+.fl-gal-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.fl-gal-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fl-gal-chips .fl-ctl-chip-item { transition: background-color var(--duration-fast) var(--ease-out, var(--easing)), border-color var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--ease-out, var(--easing)); }
+.fl-gal-chips .fl-ctl-chip-item:active { scale: var(--press-scale, 0.97); }
+.fl-gal-chips .fl-ctl-chip-item:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-gal-count { font-size: var(--text-sm); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+
+/* The mosaic: square cells; a tall picture takes two rows, a wide one two columns. */
+.fl-gal-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 12rem; grid-auto-flow: row dense; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.fl-gal-item { min-width: 0; }
+.fl-gal-item--tall { grid-row: span 2; }
+.fl-gal-item--wide { grid-column: span 2; }
+.fl-gal-tile {
+  position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; cursor: zoom-in;
+  border: 0; border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); background: var(--color-surface-sunken); color: inherit; font: inherit; text-align: left;
+}
+.fl-gal-tile img, .fl-gal-tint { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-gal-tint { background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 70%, var(--color-surface)), color-mix(in srgb, var(--color-accent) 22%, var(--color-surface))); }
+.fl-gal-tint[data-tone="1"] { background: linear-gradient(160deg, color-mix(in srgb, var(--color-secondary, var(--color-accent)) 65%, var(--color-surface)), color-mix(in srgb, var(--color-secondary, var(--color-accent)) 18%, var(--color-surface))); }
+.fl-gal-tint[data-tone="2"] { background: linear-gradient(200deg, color-mix(in srgb, var(--color-success) 55%, var(--color-surface)), color-mix(in srgb, var(--color-success) 16%, var(--color-surface))); }
+.fl-gal-tint[data-tone="3"] { background: linear-gradient(120deg, color-mix(in srgb, var(--color-text) 35%, var(--color-surface)), var(--color-surface-sunken)); }
+/* The caption band rises along the bottom edge on hover or keyboard focus. */
+.fl-gal-cap {
+  position: absolute; inset: auto 0 0 0; display: grid; gap: 2px; padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent); color: var(--color-text); border-top: 1px solid var(--color-border);
+  translate: 0 100%; opacity: 0; transition: translate var(--duration-base) var(--ease-out, var(--easing)), opacity var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-gal-cap span { font-size: var(--text-xs); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-secondary, var(--color-accent)); }
+.fl-gal-cap strong { font-size: var(--text-sm); font-weight: var(--weight-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fl-gal-tile:hover .fl-gal-cap, .fl-gal-tile:focus-visible .fl-gal-cap { translate: 0 0; opacity: 1; }
+.fl-gal-tile:hover img, .fl-gal-tile:hover .fl-gal-tint { scale: 1.03; }
+.fl-gal-tile:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-gal-tile:active { scale: var(--press-scale, 0.98); }
+.fl-gal-more { display: flex; justify-content: center; padding-top: var(--space-2); }
+
+@container (max-width: 40rem) {
+  .fl-gal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 9rem; }
+}
+/* Touch screens have no hover, so the caption stays shown. */
+@media (hover: none) {
+  .fl-gal-cap { translate: 0 0; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-gal-cap, .fl-gal-tile img, .fl-gal-tint { transition-duration: 1ms; }
+  .fl-gal-tile:hover img, .fl-gal-tile:hover .fl-gal-tint, .fl-gal-tile:active { scale: 1; }
+  .fl-gal-cap { translate: 0 0; }
+}

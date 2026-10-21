@@ -1,0 +1,95 @@
+/**
+ * Wide table (p.wide-table): a report that scrolls inside its own box while the header row, the first column and the
+ * totals row stay in place, with edge shadows, a Columns menu, sortable headers and two densities. Prefixed fl-sg-; only
+ * the library's tokens. Adapted from HyperUI (MIT License, Copyright (c) Mark Mead).
+ */
+.fl-sg { --_pad-y: var(--space-3); --_pad-x: var(--space-4); --_shade: color-mix(in srgb, var(--color-text) 14%, transparent); display: grid; gap: var(--space-4); min-width: 0; }
+.fl-sg--compact { --_pad-y: var(--space-1); --_pad-x: var(--space-3); }
+.fl-sg-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-3) var(--space-4); }
+.fl-sg-heading { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-sg-heading h2 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-xl)); font-weight: var(--weight-semibold); }
+.fl-sg-heading p { margin: 0; max-width: 60ch; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-sg-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.fl-sg-count { font-size: var(--text-sm); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.fl-sg-colcount { margin-left: var(--space-1); padding: 0 var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); font-size: var(--text-xs); font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
+
+/* The Columns menu. */
+.fl-sg-menuwrap { position: relative; }
+.fl-sg-menu {
+  position: absolute; z-index: 20; top: calc(100% + var(--space-2)); left: 0; width: 14rem; display: grid; gap: var(--space-2);
+  padding: var(--space-3); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 12px);
+  box-shadow: var(--surface-shadow-hover, 0 12px 28px var(--_shade));
+  opacity: 1; translate: 0 0; transition: opacity var(--duration-base) var(--ease-out), translate var(--duration-base) var(--ease-out);
+}
+@starting-style { .fl-sg-menu { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -1); } }
+.fl-sg-menu ul { display: grid; gap: var(--space-1); max-height: 20rem; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+.fl-sg-menu ul { gap: 0; }
+.fl-sg-menu .fl-ctl-choice { gap: var(--space-2); align-items: center; padding: var(--space-1) var(--space-2); border: 0; border-radius: var(--radius-sm); background: none; font-size: var(--text-sm); }
+.fl-sg-menu .fl-ctl-choice:hover { background: var(--color-surface-sunken); }
+.fl-sg-menu .fl-ctl-choice strong { font-weight: var(--weight-regular); }
+.fl-sg-menu .fl-ctl-choice:has(input:disabled) { cursor: default; color: var(--color-text-muted); }
+.fl-sg-menu .fl-ctl-choice:has(input:focus-visible) { box-shadow: var(--focus-ring); }
+.fl-sg-menu .fl-btn { justify-self: start; }
+
+/* The scrolling box. The header, first column and totals stick; shadows show where more content is. */
+.fl-sg-box {
+  position: relative; overflow: auto; overscroll-behavior: contain; min-width: 0;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+}
+.fl-sg-box:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-sg-table { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--text-sm); }
+.fl-sg-table th, .fl-sg-table td { padding: var(--_pad-y) var(--_pad-x); text-align: left; white-space: nowrap; border-bottom: 1px solid var(--color-border); transition: padding var(--duration-base) var(--ease-out); }
+.fl-sg-table tbody th { font-weight: var(--weight-semibold); }
+.fl-sg-table tbody tr:nth-child(even) > * { background: color-mix(in srgb, var(--color-surface-sunken) 55%, var(--color-surface)); }
+.fl-sg-table tbody tr:nth-child(odd) > * { background: var(--color-surface); }
+.fl-sg-table tbody tr:hover > * { background: var(--color-surface-sunken); }
+.fl-sg-num { text-align: right; font-variant-numeric: tabular-nums; }
+.fl-sg-table th.fl-sg-num, .fl-sg-table td.fl-sg-num { text-align: right; }
+.fl-sg-up { color: var(--color-success); }
+.fl-sg-down { color: var(--color-danger); }
+
+.fl-sg-table thead th {
+  position: sticky; top: 0; z-index: 2; padding: 0; background: var(--color-surface-sunken); color: var(--color-text-muted);
+  font-size: var(--text-xs); font-weight: var(--weight-semibold); border-bottom: 1px solid var(--color-border-strong, var(--color-border));
+  transition: box-shadow var(--duration-fast) var(--easing);
+}
+.fl-sg-box.is-top thead th { box-shadow: 0 6px 8px -6px var(--_shade); }
+.fl-sg-table .fl-sg-stick { position: sticky; left: 0; z-index: 1; border-right: 1px solid var(--color-border); transition: box-shadow var(--duration-fast) var(--easing); }
+.fl-sg-table thead .fl-sg-stick { z-index: 3; }
+.fl-sg-box.is-left .fl-sg-stick { box-shadow: 6px 0 8px -6px var(--_shade); }
+.fl-sg-table tfoot td, .fl-sg-table tfoot th {
+  position: sticky; bottom: 0; z-index: 2; background: var(--color-surface-sunken); font-weight: var(--weight-semibold);
+  border-top: 1px solid var(--color-border-strong, var(--color-border)); border-bottom: 0;
+}
+.fl-sg-table tfoot .fl-sg-stick { z-index: 3; }
+.fl-sg-box.is-bottom tfoot > tr > * { box-shadow: 0 -6px 8px -6px var(--_shade); }
+.fl-sg-box.is-bottom.is-left tfoot .fl-sg-stick { box-shadow: 0 -6px 8px -6px var(--_shade), 6px 0 8px -6px var(--_shade); }
+.fl-sg-frame { position: relative; min-width: 0; }
+.fl-sg-frame::after {
+  content: ""; position: absolute; z-index: 4; top: 1px; bottom: 1px; right: 1px; width: 14px; pointer-events: none; opacity: 0;
+  border-radius: 0 min(var(--surface-radius, var(--radius-lg)), 12px) min(var(--surface-radius, var(--radius-lg)), 12px) 0;
+  background: linear-gradient(to left, var(--_shade), transparent); transition: opacity var(--duration-fast) var(--easing);
+}
+.fl-sg-frame.is-right::after { opacity: 1; }
+
+.fl-sg-sort {
+  display: inline-flex; align-items: center; gap: var(--space-1); width: 100%; padding: var(--space-2) var(--_pad-x); border: 0; background: none;
+  color: inherit; font: inherit; text-align: inherit; cursor: pointer; border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing);
+}
+.fl-sg-num .fl-sg-sort { justify-content: flex-end; }
+.fl-sg-sort:hover { color: var(--color-text); }
+.fl-sg-sort:focus-visible { outline: none; box-shadow: inset var(--focus-ring); }
+.fl-sg-arrow { display: inline-grid; place-items: center; width: 0.875rem; height: 0.875rem; opacity: 0.35; transition: rotate var(--duration-base) var(--ease-out), opacity var(--duration-fast) var(--easing); }
+.fl-sg-arrow svg { width: 100%; height: 100%; }
+.fl-sg-sort:hover .fl-sg-arrow { opacity: 0.7; }
+.fl-sg-arrow.is-asc { opacity: 1; rotate: 180deg; color: var(--color-accent); }
+.fl-sg-arrow.is-desc { opacity: 1; color: var(--color-accent); }
+th[aria-sort] .fl-sg-sort { color: var(--color-text); }
+.fl-sg-table td.fl-sg-empty { padding: var(--space-6, 2rem) var(--space-4); text-align: center; color: var(--color-text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-sg-table th, .fl-sg-table td, .fl-sg-arrow, .fl-sg-menu { transition-duration: 1ms; }
+  @starting-style { .fl-sg-menu { translate: 0 0; } }
+}

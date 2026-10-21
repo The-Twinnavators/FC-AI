@@ -1,0 +1,94 @@
+/**
+ * Multi-select with chips (c.multi-select): chosen options as chips inside the field, a search box after them, a
+ * floating checklist under it and an error line that slides open. Prefixed fl-ms-; only the library's tokens. Adapted
+ * from TailAdmin (MIT License, Copyright (c) 2023 TailAdmin).
+ */
+.fl-ms { position: relative; display: grid; gap: var(--space-2); min-width: 0; }
+.fl-ms-top { display: flex; align-items: center; gap: var(--space-2); min-height: 24px; }
+.fl-ms-top label { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+.fl-ms-count { margin-right: auto; color: var(--color-text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+
+.fl-ms-box { position: relative; }
+.fl-ms-field {
+  position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1);
+  min-height: var(--control-md, 2.75rem); padding: var(--space-1) calc(8px + 1rem + var(--space-2)) var(--space-1) var(--space-2);
+  border: var(--control-border, 1px solid var(--color-border-strong, var(--color-border)));
+  border-radius: min(var(--field-radius, var(--control-radius, var(--radius-md))), 12px);
+  background: var(--control-bg, var(--color-surface)); box-shadow: var(--well-shadow, none); cursor: text;
+  transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+.fl-ms-field:hover { border-color: var(--color-text-muted); }
+.fl-ms-field:focus-within { border-color: var(--control-edge, var(--color-accent)); box-shadow: var(--control-shadow-focus, var(--focus-ring)); }
+.fl-ms.is-invalid .fl-ms-field { border-color: var(--color-danger); }
+.fl-ms.is-disabled .fl-ms-field { opacity: 0.6; cursor: not-allowed; }
+
+.fl-ms-chips { display: contents; margin: 0; padding: 0; list-style: none; }
+.fl-ms-chips li { display: inline-flex; }
+.fl-ms-chips .fl-ctl-chip-item { padding-inline: var(--space-2) var(--space-1); gap: var(--space-1); font-size: var(--text-xs); }
+.fl-ms-chips .fl-ctl-chip-x:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-ms-chips li.is-new { animation: fl-ms-pop var(--duration-base) var(--ease-spring, var(--ease-out)); }
+@keyframes fl-ms-pop { from { opacity: 0; scale: 0.85; } }
+
+.fl-ms-input {
+  flex: 1 1 6rem; min-width: 4rem; height: calc(var(--control-md, 2.75rem) - var(--space-2) - 2px); padding: 0 var(--space-1);
+  border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: var(--text-sm);
+}
+.fl-ms-input::placeholder { color: var(--color-text-muted); }
+.fl-ms-chev {
+  position: absolute; right: 8px; top: 50%; width: 1rem; height: 1rem; translate: 0 -50%; pointer-events: none;
+  fill: none; stroke: var(--color-text-muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+  transition: rotate var(--duration-fast) var(--ease-out);
+}
+.fl-ms.is-open .fl-ms-chev { rotate: 180deg; }
+
+/* The checklist floats under the field and fades down into place when it opens. */
+.fl-ms-list {
+  position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + var(--space-1)); max-height: 16rem; overflow-y: auto;
+  margin: 0; padding: var(--space-1); list-style: none;
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius-sm, var(--radius-md)), 12px);
+  background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow-overlay, var(--shadow-md, none));
+  transition: opacity var(--duration-fast) var(--ease-out), translate var(--duration-fast) var(--ease-out);
+}
+@starting-style { .fl-ms-list { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); } }
+.fl-ms-opt { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); border-radius: min(var(--radius-sm), 12px); font-size: var(--text-sm); cursor: pointer; }
+.fl-ms-opt.is-active { background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface)); }
+.fl-ms-opt[aria-selected="true"] { font-weight: var(--weight-semibold); }
+.fl-ms-opt[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+.fl-ms-tick {
+  display: inline-grid; place-items: center; flex: none; width: 1.1rem; height: 1.1rem;
+  border: 1px solid var(--color-border-strong, var(--color-border)); border-radius: min(var(--radius-sm), 4px); color: var(--color-on-accent);
+  transition: background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+}
+.fl-ms-opt[aria-selected="true"] .fl-ms-tick { background: var(--color-accent); border-color: var(--color-accent); }
+.fl-ms-tick svg { width: 0.8rem; height: 0.8rem; }
+.fl-ms-text { display: grid; min-width: 0; }
+.fl-ms-text small { color: var(--color-text-muted); font-size: var(--text-xs); font-weight: var(--weight-regular, 400); }
+.fl-ms-none { padding: var(--space-3); color: var(--color-text-muted); font-size: var(--text-sm); text-align: center; }
+
+.fl-ms-hint { margin: 0; color: var(--color-text-muted); font-size: var(--text-xs); }
+.fl-ms-hint > span { color: var(--color-text); font-weight: var(--weight-semibold); }
+/* The error line opens by growing its row from 0fr to 1fr; while closed it is inert. */
+.fl-ms-msg { display: grid; grid-template-rows: 0fr; margin-top: calc(var(--space-2) * -1); transition: grid-template-rows var(--duration-base) var(--ease-out), margin var(--duration-base) var(--ease-out); }
+.fl-ms-msg[data-open="true"] { grid-template-rows: 1fr; margin-top: 0; }
+.fl-ms-msg > div { overflow: hidden; min-height: 0; }
+.fl-ms-err { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; color: var(--color-danger); font-size: var(--text-sm); }
+.fl-ms-err svg { flex: none; width: 1rem; height: 1rem; margin-top: 0.15em; }
+
+/* The reference sheet's form. */
+.fl-ms-demo {
+  display: grid; gap: var(--space-5); padding: var(--space-6, var(--space-5));
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-ms-demo h2 { margin: 0 0 var(--space-1); font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); }
+.fl-ms-demo h2 + p { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-ms-demo-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.fl-ms-demo-foot p { margin: 0; color: var(--color-success); font-size: var(--text-sm); }
+.fl-ms-demo-foot p:empty { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-ms-field, .fl-ms-chev, .fl-ms-tick, .fl-ms-msg { transition: none; }
+  .fl-ms-chips li.is-new { animation: none; }
+  .fl-ms-list { transition: opacity 100ms linear; }
+  @starting-style { .fl-ms-list { translate: none; } }
+}

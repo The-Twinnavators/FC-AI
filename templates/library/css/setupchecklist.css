@@ -1,0 +1,103 @@
+/**
+ * Setup checklist (p.setup-checklist): a getting-started card with a progress bar and an accordion of tasks whose
+ * check marks draw in when done; the card folds to a slim bar. Prefixed fl-sc-; only the library's tokens. Adapted from
+ * HyperUI (MIT License, Copyright (c) Mark Mead).
+ */
+.fl-sc { display: grid; min-width: 0; }
+
+/* The card and the folded bar trade places by folding their grid rows (1fr and 0fr); the hidden one is inert. */
+.fl-sc-fold { display: grid; grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows var(--duration-slow) var(--ease-out), opacity var(--duration-base) var(--easing); }
+.fl-sc-fold > * { min-height: 0; overflow: hidden; }
+.fl-sc-fold--bar, .fl-sc.is-hidden .fl-sc-fold:not(.fl-sc-fold--bar) { grid-template-rows: 0fr; opacity: 0; }
+.fl-sc.is-hidden .fl-sc-fold--bar { grid-template-rows: 1fr; opacity: 1; }
+
+.fl-sc-card {
+  display: grid; gap: var(--space-4); padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-sc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.fl-sc-heading { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-sc-heading h2 { margin: 0; outline: none; font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); font-weight: var(--weight-semibold); }
+.fl-sc-heading p { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-sc-progress { display: grid; gap: var(--space-2); }
+.fl-sc-count { font-size: var(--text-sm); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.fl-sc-count strong { color: var(--color-text); }
+.fl-sc-meter { display: block; height: 6px; border-radius: 999px; background: var(--color-surface-sunken); overflow: hidden; }
+.fl-sc-meter > span { display: block; height: 100%; border-radius: inherit; background: var(--color-accent); transition: width var(--duration-slow) var(--ease-out); }
+.fl-sc.is-finished .fl-sc-meter > span { background: var(--color-success); }
+
+.fl-sc-bar {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-2) var(--space-3); width: 100%;
+  padding: var(--space-3) var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+  background: var(--surface-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-semibold); text-align: left; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out);
+}
+.fl-sc-bar:hover { background: var(--color-surface-sunken); }
+.fl-sc-bar:active { scale: 0.99; }
+.fl-sc-bar:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-sc-bar > svg { width: 1.1rem; height: 1.1rem; color: var(--color-accent); }
+.fl-sc-bar-count { color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.fl-sc-bar .fl-sc-meter { grid-column: 1 / -1; }
+
+.fl-sc-list { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-border); }
+.fl-sc-task { border-bottom: 1px solid var(--color-border); }
+.fl-sc-task:last-child { border-bottom: 0; }
+.fl-sc-row { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--space-2); }
+.fl-sc-check {
+  display: grid; place-items: center; width: 2.25rem; height: 2.25rem; padding: 0; border: 0; border-radius: 999px; background: none; cursor: pointer;
+  color: var(--color-border-strong, var(--color-text-muted)); transition: scale var(--duration-instant, 80ms) var(--ease-out);
+}
+.fl-sc-check:active { scale: 0.9; }
+.fl-sc-check:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-sc-check svg { width: 1.5rem; height: 1.5rem; overflow: visible; }
+.fl-sc-check circle { fill: transparent; stroke: currentColor; stroke-width: 1.5; transition: fill var(--duration-base) var(--easing), stroke var(--duration-base) var(--easing); }
+.fl-sc-check path { fill: none; stroke: var(--color-on-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 14; stroke-dashoffset: 14; transition: stroke-dashoffset var(--duration-base) var(--ease-out) 60ms; }
+.fl-sc-check:hover circle { stroke: var(--color-accent); }
+.fl-sc-task.is-done .fl-sc-check circle { fill: var(--color-accent); stroke: var(--color-accent); }
+.fl-sc-task.is-done .fl-sc-check path { stroke-dashoffset: 0; }
+.fl-sc-task.is-skipped .fl-sc-check circle { stroke-dasharray: 3 3; }
+.fl-sc-task.is-skipped .fl-sc-check path { stroke: var(--color-text-muted); stroke-dashoffset: 0; d: path("M6.5 10h7"); }
+
+.fl-sc-toggle {
+  display: flex; align-items: center; gap: var(--space-2); width: 100%; min-height: 3rem; padding: var(--space-2) var(--space-2); border: 0; border-radius: var(--radius-sm);
+  background: none; color: var(--color-text); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-semibold); text-align: left; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing);
+}
+.fl-sc-toggle:hover { background: var(--color-surface-sunken); }
+.fl-sc-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-sc-name { flex: 1 1 auto; min-width: 0; transition: color var(--duration-base) var(--easing); }
+.fl-sc-task:not(.is-todo) .fl-sc-name { color: var(--color-text-muted); font-weight: var(--weight-medium); }
+.fl-sc-tag { flex: none; padding: 0 var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: var(--text-xs); font-weight: var(--weight-medium); }
+.fl-sc-toggle > svg { flex: none; width: 1rem; height: 1rem; color: var(--color-text-muted); transition: rotate var(--duration-base) var(--ease-out); }
+.fl-sc-task.is-open .fl-sc-toggle > svg { rotate: 180deg; }
+
+.fl-sc-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration-slow) var(--ease-out); }
+.fl-sc-panel > div { min-height: 0; overflow: hidden; }
+.fl-sc-task.is-open .fl-sc-panel { grid-template-rows: 1fr; }
+.fl-sc-body { display: grid; gap: var(--space-3); padding: 0 var(--space-2) var(--space-4) calc(2.25rem + var(--space-4)); opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); transition: opacity var(--duration-base) var(--easing), translate var(--duration-base) var(--ease-out); }
+.fl-sc-task.is-open .fl-sc-body { opacity: 1; translate: 0 0; }
+.fl-sc-body > p { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.5; }
+.fl-sc-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fl-sc-error { display: flex; align-items: center; gap: var(--space-1); margin: 0; color: var(--color-danger); font-size: var(--text-sm); }
+.fl-sc-error svg { width: 1rem; height: 1rem; flex: none; }
+
+.fl-sc-done { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.fl-sc-done-mark { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 999px; background: var(--color-success); color: var(--color-on-accent); animation: fl-sc-pop var(--duration-slow) var(--ease-spring); }
+.fl-sc-done-mark svg { width: 1.25rem; height: 1.25rem; }
+@keyframes fl-sc-pop { from { scale: 0.5; opacity: 0; } }
+
+@container (max-width: 26rem) {
+  .fl-sc-body { padding-left: var(--space-2); }
+}
+@media (max-width: 30rem) {
+  .fl-sc-card { padding: var(--space-4); }
+  .fl-sc-body { padding-left: var(--space-2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-sc-fold, .fl-sc-panel { transition: opacity var(--duration-fast) var(--easing); }
+  .fl-sc-body { translate: 0 0; transition: opacity var(--duration-fast) var(--easing); }
+  .fl-sc-meter > span, .fl-sc-check path, .fl-sc-toggle > svg { transition-duration: 1ms; }
+  .fl-sc-done-mark { animation: none; }
+}

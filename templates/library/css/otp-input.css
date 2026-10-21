@@ -1,0 +1,49 @@
+/**
+ * One-time code input (c.otp-input): a row of single-character boxes with an optional dash between the halves; filled
+ * boxes pop in and a wrong code shakes the row. Prefixed fl-otp-; only the library's tokens. Adapted from TailGrids
+ * (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-otp { display: grid; gap: var(--space-2); min-width: 0; justify-items: start; }
+.fl-otp-label { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+.fl-otp-row { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--space-2); max-width: 100%; }
+.fl-otp-slot { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.fl-otp-dash { flex: none; width: 0.75rem; height: 2px; margin-inline: var(--space-1); border-radius: 999px; background: var(--color-border-strong); }
+.fl-otp-box {
+  width: min(var(--control-lg, 3rem), 11vw); height: calc(var(--control-lg, 3rem) + 0.5rem); min-width: 2.25rem; padding: 0;
+  border: var(--control-border, 1px solid var(--color-border-strong)); border-radius: min(var(--field-radius, var(--radius-md)), 12px);
+  background: var(--control-bg, var(--color-surface)); color: var(--color-text); box-shadow: var(--well-shadow, none);
+  font: var(--weight-semibold) var(--text-xl) / 1 var(--font-sans); text-align: center; font-variant-numeric: tabular-nums; caret-color: var(--color-accent);
+  transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing);
+}
+.fl-otp-box:focus-visible, .fl-otp-box:focus { outline: none; border-color: var(--control-edge, var(--color-accent)); box-shadow: var(--control-shadow-focus, var(--focus-ring)); }
+.fl-otp-box.is-filled { border-color: var(--color-text-muted); animation: fl-otp-pop var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-otp-box:disabled { opacity: var(--disabled-opacity, 0.5); background: var(--color-surface-sunken); cursor: not-allowed; animation: none; }
+.fl-otp-box:not(:disabled):active { scale: 0.96; }
+.fl-otp-row.is-invalid .fl-otp-box { border-color: var(--color-danger); background: color-mix(in srgb, var(--color-danger-surface) 55%, var(--control-bg, var(--color-surface))); }
+.fl-otp-row.is-invalid .fl-otp-box:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent); }
+.fl-otp-row.is-shaking { animation: fl-otp-shake var(--duration-slow) var(--easing); }
+.fl-otp-error { display: flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-danger); font-size: var(--text-sm); animation: fl-otp-rise var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-otp-hint { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-otp-status { margin: var(--space-2) 0 0; min-height: 1.25em; color: var(--color-success); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+
+/* Reference sheet: one card per state. */
+.fl-otp-sheet { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--space-4); }
+.fl-otp-card {
+  display: grid; gap: var(--space-3); align-content: start; min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-otp-card h3 { margin: 0; font-size: var(--text-xs); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-muted); }
+
+@keyframes fl-otp-pop { 40% { scale: 1.06; } }
+@keyframes fl-otp-shake { 20% { translate: -4px 0; } 40% { translate: 4px 0; } 60% { translate: -3px 0; } 80% { translate: 2px 0; } }
+@keyframes fl-otp-rise { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) / -2); } }
+
+@media (max-width: 380px) {
+  .fl-otp-row, .fl-otp-slot { gap: var(--space-1); }
+  .fl-otp-box { min-width: 2rem; font-size: var(--text-lg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-otp-box, .fl-otp-box.is-filled, .fl-otp-row.is-shaking, .fl-otp-error { animation: none; transition: none; }
+  .fl-otp-box:not(:disabled):active { scale: none; }
+}

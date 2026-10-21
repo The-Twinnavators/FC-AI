@@ -111,7 +111,6 @@ const RELATIONS: Record<string, Rel> = {
   "c.carousel": { provides: ["media", "results"], avoidWhen: ["the items are the page's main list: show them all instead"] },
   "c.slideshow": { provides: ["media"], requires: ["pictures"], avoidWhen: ["text the person must read: a moving slide hides it"] },
   "c.media-frame": { provides: ["media"] },
-  "p.video-grid": { provides: ["media", "results"], requires: ["videos with an embed address"] },
   "p.top-nav": { provides: ["navigation"] },
   // Look-up apps (find it and where to get it): their landing page is the app's own front door, so its search, ZIP code
   // prompt, category tiles and featured entries are the working pieces, on marketing pages as on app screens (Clean
@@ -142,6 +141,27 @@ const RELATIONS: Record<string, Rel> = {
   "b.pricing-toggle": { provides: ["persuade", "compare"] },
   "b.cookie-consent": { contexts: ["app", "marketing"] },
   "b.announcement-bar": { contexts: ["app", "marketing"] },
+  // On the approval shelf (agents' batch, 2026-10-21)
+  "c.multi-select": { provides: ["form", "filter"], requires: ["a list of options to choose from"] },
+  "c.phone-field": { provides: ["form"] },
+  "c.card-fields": { provides: ["form", "primary action"], requires: ["a payment provider to hand the card to"], avoidWhen: ["The app uses the payment provider's own hosted card fields or checkout page."] },
+  "c.language-switcher": { contexts: ["app", "marketing"], provides: ["navigation", "settings"], requires: ["the app translated into more than one language"] },
+  "p.members-table": { provides: ["results", "search", "filter", "edit", "settings", "empty state"], requires: ["the people on a workspace and the roles they can have"] },
+  "p.wide-table": { provides: ["results", "sort", "compare", "metrics"], requires: ["a report with more columns than fit on screen"] },
+  "c.skip-links": { provides: ["navigation"] },
+  "p.setup-checklist": { provides: ["steps", "primary action", "error state"], requires: ["three to six first tasks a new account should do"] },
+  "p.notification-menu": { contexts: ["app"], provides: ["results", "filter", "navigation", "empty state", "loading state", "error state"], requires: ["notifications for the signed-in person, with who, what and when"], avoidWhen: ["the screen is the full notifications list: use a list or table there instead"] },
+  "b.team-directory": { provides: ["results", "filter", "search", "empty state"], requires: ["the real people, with a role and a department each"], avoidWhen: ["there are only three or four people: the team grid is enough"] },
+  "p.files-table": { contexts: ["app"], provides: ["results", "upload", "sort", "edit", "empty state", "loading state", "error state"], requires: ["files with a name, size, date and uploader", "a place to upload to"] },
+  "p.blog-article": { provides: ["detail", "navigation"], requires: ["one post with its sections, and a few recent posts"], avoidWhen: ["the page lists many posts: use the latest posts block instead"] },
+  "b.how-it-works": { provides: ["steps", "media", "primary action"], requires: ["three to six steps of a process, each with a title and a line"], avoidWhen: ["the person is filling in a multi-step form: use the form wizard"] },
+  "b.gallery-filter": { provides: ["media", "filter", "results"], requires: ["pictures with a title and a category"], avoidWhen: ["fewer than six pictures or a single category: use the slideshow"] },
+  "p.order-history": { provides: ["history", "results", "search", "filter", "detail", "empty state"], requires: ["the customer's orders with items, a status and a total"], contexts: ["app"] },
+  "p.account-sessions": { provides: ["settings", "results"], requires: ["the account's signed-in sessions with device, place and last activity"], contexts: ["app"] },
+  "c.otp-input": { provides: ["form"], avoidWhen: ["a whole verify screen is wanted: use p.auth-form.verify-code"] },
+  "c.number-field": { provides: ["form"], avoidWhen: ["a whole count of items or tickets: use c.quantity"] },
+  "c.input-group": { provides: ["form"] },
+  "c.social-button": { provides: ["sign-in"], requires: ["sign-in providers the app has set up"], avoidWhen: ["the person is already signed in"] },
 };
 
 /** The component an ID belongs to: variants and versions answer to it (c.tabs@folder, c.button.primary → c.tabs, c.button). */

@@ -1,0 +1,64 @@
+/**
+ * Number field (c.number-field): minus and plus buttons inside one bordered field around a formatted number; buttons
+ * press in and dim at the limits, a pulled-back value pulses the field. Prefixed fl-nf-; only the library's tokens.
+ * Adapted from TailGrids (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-nf { display: grid; gap: var(--space-2); min-width: 0; }
+.fl-nf-label { font-weight: var(--weight-semibold); font-size: var(--text-sm); }
+.fl-nf-group {
+  display: grid; grid-template-columns: var(--control-md, 2.75rem) minmax(0, 1fr) var(--control-md, 2.75rem); align-items: stretch;
+  width: 100%; max-width: 18rem; height: var(--control-md, 2.75rem); overflow: hidden;
+  border: var(--control-border, 1px solid var(--color-border-strong)); border-radius: min(var(--field-radius, var(--control-radius, var(--radius-md))), 12px);
+  background: var(--control-bg, var(--color-surface)); box-shadow: var(--well-shadow, none);
+  transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
+}
+.fl-nf-group:focus-within { border-color: var(--control-edge, var(--color-accent)); box-shadow: var(--control-shadow-focus, var(--focus-ring)); }
+.fl-nf-group.is-invalid { border-color: var(--color-danger); }
+.fl-nf-group.is-invalid:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent); }
+.fl-nf-group.is-disabled { opacity: var(--disabled-opacity, 0.5); background: var(--color-surface-sunken); cursor: not-allowed; }
+.fl-nf-group.is-readonly { background: var(--color-surface-sunken); }
+.fl-nf-group.is-pulsing { animation: fl-nf-pulse var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-nf-input {
+  min-width: 0; width: 100%; height: 100%; padding: 0 var(--space-2); border: 0; background: transparent; color: var(--color-text);
+  font: var(--weight-medium) var(--text-md) / 1 var(--font-sans); text-align: center; font-variant-numeric: tabular-nums;
+}
+.fl-nf-input:focus { outline: none; }
+.fl-nf-input:disabled { cursor: not-allowed; color: var(--color-text-muted); }
+.fl-nf-input::placeholder { color: var(--color-text-muted); }
+.fl-nf-btn {
+  display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--color-text); cursor: pointer;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing);
+}
+.fl-nf-btn:first-child { border-right: 1px solid var(--color-border); }
+.fl-nf-btn:last-child { border-left: 1px solid var(--color-border); }
+.fl-nf-btn svg { width: 1.125rem; height: 1.125rem; }
+.fl-nf-btn:hover:not(:disabled) { background: var(--color-surface-sunken); color: var(--color-accent); }
+.fl-nf-btn:active:not(:disabled) svg { scale: 0.85; }
+.fl-nf-btn svg { transition: scale var(--duration-fast) var(--easing); }
+.fl-nf-btn:disabled { color: var(--color-text-muted); opacity: 0.45; cursor: not-allowed; }
+.fl-nf-error { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; color: var(--color-danger); font-size: var(--text-sm); animation: fl-nf-rise var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-nf-error svg { flex: none; width: 1rem; height: 1rem; margin-top: 0.15em; }
+.fl-nf-note { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.fl-nf-note:empty { display: none; }
+.fl-nf-hint { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+
+/* Reference sheet. */
+.fl-nf-sheet { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--space-4); }
+.fl-nf-card {
+  display: grid; gap: var(--space-3); align-content: start; min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-nf-card h3 { margin: 0; font-size: var(--text-xs); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-muted); }
+.fl-nf-sum { display: flex; justify-content: space-between; gap: var(--space-3); margin: 0; padding-top: var(--space-3); border-top: 1px solid var(--color-border); font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-nf-sum strong { color: var(--color-text); font-variant-numeric: tabular-nums; }
+
+@keyframes fl-nf-pulse { 35% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 22%, transparent); } }
+@keyframes fl-nf-rise { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) / -2); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-nf-group, .fl-nf-btn, .fl-nf-btn svg { transition: none; }
+  .fl-nf-group.is-pulsing, .fl-nf-error { animation: none; }
+  .fl-nf-btn:active:not(:disabled) svg { scale: none; }
+}

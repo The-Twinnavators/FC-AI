@@ -1,0 +1,84 @@
+/**
+ * Team directory with filter (b.team-directory): a search and department chips over people cards with social links,
+ * Copy email and a folding bio. Prefixed fl-tdir-; only the library's tokens. Adapted from Meraki UI (MIT License,
+ * Copyright (c) 2021 Khatab Wedaa).
+ */
+.fl-tdir { container-type: inline-size; display: grid; gap: var(--space-5); min-width: 0; }
+.fl-tdir-head { display: grid; gap: var(--space-3); justify-items: center; text-align: center; max-width: 44rem; margin-inline: auto; }
+.fl-tdir-head > * { margin: 0; }
+
+.fl-tdir-tools { display: grid; gap: var(--space-3); justify-items: center; }
+.fl-tdir-search { position: relative; width: min(100%, 26rem); }
+.fl-tdir-search .fl-input { width: 100%; padding-inline-start: 2.5rem; }
+.fl-tdir-search-icon { position: absolute; top: 50%; left: var(--space-3); translate: 0 -50%; display: grid; color: var(--color-text-muted); pointer-events: none; }
+.fl-tdir-search-icon svg { width: 1.125rem; height: 1.125rem; }
+.fl-tdir-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-tdir-chips .fl-ctl-chip-item { transition: scale var(--duration-fast) var(--ease-out, var(--easing)), background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing); }
+.fl-tdir-chips .fl-ctl-chip-item:active { scale: 0.96; }
+.fl-tdir-n { font-size: var(--text-xs); font-variant-numeric: tabular-nums; opacity: 0.7; }
+
+.fl-tdir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--space-5); margin: 0; padding: 0; list-style: none; }
+.fl-tdir-grid:empty { display: none; }
+.fl-tdir-item { min-width: 0; }
+.fl-tdir-card {
+  display: grid; justify-items: center; align-content: start; gap: var(--space-3); height: 100%; padding: var(--space-6) var(--space-5) var(--space-5); text-align: center;
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+  transition: border-color var(--duration-fast) var(--ease-out, var(--easing)), box-shadow var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-tdir-card:hover { border-color: var(--color-border-strong, var(--color-border)); }
+.fl-tdir-who { display: grid; gap: var(--space-1); }
+.fl-tdir-who h3 { margin: 0; font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--weight-semibold); }
+.fl-tdir-role { margin: 0; font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-secondary, var(--color-accent)); }
+.fl-tdir-meta { margin: 0; font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-tdir-bio { margin: 0; font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.5; }
+
+/* About: folds open with grid rows; the closed part is inert. */
+.fl-tdir-more { display: grid; justify-items: center; width: 100%; }
+.fl-tdir-more-body { display: grid; grid-template-rows: 0fr; width: 100%; transition: grid-template-rows var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)); }
+.fl-tdir-more-body > div { overflow: hidden; min-height: 0; }
+.fl-tdir-more-body p { margin: 0; padding: var(--space-2) 0 var(--space-3); font-size: var(--text-sm); line-height: 1.55; color: var(--color-text); text-align: start; opacity: 0; transition: opacity var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-tdir-more.is-open .fl-tdir-more-body { grid-template-rows: 1fr; }
+.fl-tdir-more.is-open .fl-tdir-more-body p { opacity: 1; }
+.fl-tdir-toggle {
+  display: inline-flex; align-items: center; gap: var(--space-1); min-height: 2rem; padding: 0 var(--space-2);
+  border: 0; border-radius: var(--radius-sm, 4px); background: none; color: var(--color-accent); font: var(--weight-medium) var(--text-sm) / 1 var(--font-sans); cursor: pointer;
+}
+.fl-tdir-toggle:hover { text-decoration: underline; }
+.fl-tdir-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-tdir-toggle svg { width: 1rem; height: 1rem; transition: rotate var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-tdir-toggle[aria-expanded="true"] svg { rotate: 180deg; }
+
+.fl-tdir-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2); margin-top: auto; padding-top: var(--space-2); }
+.fl-tdir-links { display: flex; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.fl-tdir-link {
+  display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: var(--pill-radius, 999px);
+  color: var(--color-text-muted); background: var(--color-surface-sunken);
+  transition: color var(--duration-fast) var(--ease-out, var(--easing)), background-color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-tdir-link svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.fl-tdir-link:hover { color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)); }
+.fl-tdir-link:active { scale: 0.92; }
+.fl-tdir-link:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.fl-tdir-status { margin: 0; min-height: 1.25rem; text-align: center; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* Entrance: once per card, the stagger capped. */
+.fl-tdir-item.is-waiting { opacity: 0; }
+.fl-tdir-item.is-entering { animation: fl-tdir-rise var(--duration-slow, var(--duration-base)) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)); }
+@keyframes fl-tdir-rise { from { opacity: 0; translate: 0 var(--enter-distance, 10px); } }
+@keyframes fl-tdir-fade { from { opacity: 0; } }
+
+@container (max-width: 30rem) {
+  .fl-tdir-grid { gap: var(--space-3); }
+  .fl-tdir-card { padding: var(--space-5) var(--space-4) var(--space-4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-tdir-item.is-entering { animation-name: fl-tdir-fade; animation-delay: 0ms; }
+  .fl-tdir-more-body { transition: none; }
+  .fl-tdir-chips .fl-ctl-chip-item:active, .fl-tdir-link:active { scale: none; }
+  .fl-tdir-toggle svg { transition: none; }
+}
+:root[data-motion="off"] .fl-tdir * { transition: none !important; animation: none !important; }
+:root[data-motion="off"] .fl-tdir-item.is-waiting { opacity: 1; }

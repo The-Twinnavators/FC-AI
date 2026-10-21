@@ -43,16 +43,46 @@ See `docs/component-library-sources.md` for which sources may be used and on wha
 
 Some library sections (shop, inputs, display pieces, app screens and the neobrutalism kit) follow the structure of
 HyperUI components (https://github.com/markmead/hyperui), MIT License, Copyright (c) Mark Mead. They were rewritten in
-FlowCode's own React and design-token CSS.
+FlowCode's own React and design-token CSS. The team members table, wide table with a sticky header and first column,
+skip links and setup checklist (`table-members`, `table-sticky-grid`, `skip-links`, `setup-checklist`) follow its
+tables, skip links, steps and accordion components the same way.
 
 ## TailAdmin
 
-The bar chart, eCommerce dashboard, calendar, profile screen, upcoming schedule, stock watchlist and video grid pieces
-(`chart-bar`, `app-ecommerce-dashboard`, `app-calendar`, `app-profile`, `upcoming-schedule`, `stock-watchlist`,
-`video-grid`) follow the structure of TailAdmin's free community edition
+The bar chart, eCommerce dashboard, calendar, profile screen, upcoming schedule, stock watchlist, multi-select with chips,
+phone field, card fields and language switcher pieces (`chart-bar`, `app-ecommerce-dashboard`, `app-calendar`,
+`app-profile`, `upcoming-schedule`, `stock-watchlist`, `select-multi-chips`, `input-phone`, `input-card-number`,
+`language-switcher`) follow the structure of TailAdmin's free community edition
 (https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template), MIT License, Copyright (c) 2023 TailAdmin.
 They were rewritten in FlowCode's own React and design-token CSS, without its dependencies (no FullCalendar, no maps).
 TailAdmin Pro components are not used.
+
+## Meraki UI
+
+The notifications menu, team directory, files table and blog post pieces (`notification-menu`, `team-directory`,
+`table-files`, `blog-article`) follow the structure of Meraki UI components (https://github.com/merakiuilabs/merakiui),
+MIT License, Copyright (c) 2021 Khatab Wedaa. They were rewritten in FlowCode's own React and design-token CSS. Meraki UI
+site templates are not used.
+
+## Tailblocks
+
+The how-it-works steps and filtered gallery (`how-it-works`, `gallery-filter`) follow the structure of Tailblocks
+(https://github.com/mertJF/tailblocks), MIT License, Copyright (c) 2020 Mert Cukuren, rewritten in FlowCode's own React
+and design-token CSS.
+
+## Creative Tim UI
+
+The order history and signed-in devices pieces (`order-history`, `account-sessions`) follow the structure of Creative
+Tim UI blocks (https://github.com/creativetimofficial/ui), MIT License, Copyright (c) 2025 Creative Tim, rewritten in
+FlowCode's own React and design-token CSS (no Tailwind or shadcn/ui).
+
+## TailGrids
+
+The one-time code, number field, input group and social sign-in pieces (`otp-input`, `number-field`, `input-group`,
+`social-button`) follow the structure of TailGrids' open-source components (https://github.com/TailGrids/tailgrids),
+MIT License, Copyright (c) 2025 Tailgrids, rewritten in FlowCode's own React and design-token CSS (no Tailwind or
+Radix). Provider names and marks in `social-button` are their owners' trademarks. tailgrids.com premium blocks and
+templates are not used.
 
 ## liquid-glass-js
 

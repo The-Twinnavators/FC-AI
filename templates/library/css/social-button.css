@@ -1,0 +1,75 @@
+/**
+ * Social sign-in buttons (c.social-button): outlined "Continue with …" buttons with a one-color brand mark, an
+ * icon-only row, a spinner while one runs and a failure line with Try again. Prefixed fl-soc-; only the library's
+ * tokens. Adapted from TailGrids (MIT, Copyright (c) 2025 Tailgrids).
+ */
+.fl-soc { display: grid; gap: var(--space-3); min-width: 0; }
+.fl-soc-set { display: grid; gap: var(--space-2); min-width: 0; }
+.fl-soc-set--stack { grid-template-columns: minmax(0, 1fr); max-width: 24rem; }
+.fl-soc-set--row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fl-soc-btn {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: var(--space-3); min-width: 0;
+  min-height: var(--control-lg, 3rem); padding: 0 var(--space-4) 0 calc(var(--space-4) + 1.5rem);
+  border: var(--control-border, 1px solid var(--color-border-strong)); border-radius: min(var(--control-radius, var(--radius-md)), 12px);
+  background: var(--color-surface); color: var(--color-text); box-shadow: var(--control-shadow, none);
+  font: var(--weight-semibold) var(--text-sm) / 1.2 var(--font-sans); cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), translate var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing), opacity var(--duration-fast) var(--easing);
+}
+.fl-soc-btn:hover:not(:disabled):not(.is-busy) { background: var(--color-surface-sunken); border-color: var(--color-text-muted); translate: 0 -1px; }
+.fl-soc-btn:active:not(:disabled):not(.is-busy) { translate: 0; scale: 0.98; }
+.fl-soc-btn:focus-visible { outline: none; box-shadow: var(--control-shadow-focus, var(--focus-ring)); }
+.fl-soc-btn:disabled { opacity: var(--disabled-opacity, 0.5); cursor: not-allowed; }
+.fl-soc-btn.is-busy { cursor: progress; background: var(--color-surface-sunken); }
+/* The mark sits at the left edge so every label lines up in a stack. */
+.fl-soc-lead { position: absolute; left: var(--space-4); top: 50%; translate: 0 -50%; display: grid; place-items: center; width: 1.25rem; height: 1.25rem; }
+.fl-soc-mark { width: 1.25rem; height: 1.25rem; animation: fl-soc-in var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-soc-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-soc-btn--icon { width: var(--control-lg, 3rem); padding: 0; }
+.fl-soc-btn--icon .fl-soc-lead { position: static; translate: none; }
+.fl-soc-spin {
+  width: 1.125rem; height: 1.125rem; border-radius: 50%; border: 2px solid var(--color-border-strong); border-top-color: var(--color-text);
+  animation: fl-soc-spin 0.8s linear infinite, fl-soc-in var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-soc-or { display: flex; align-items: center; gap: var(--space-3); margin: 0; color: var(--color-text-muted); font-size: var(--text-xs); max-width: 24rem; }
+.fl-soc-or::before, .fl-soc-or::after { content: ""; flex: 1; height: 1px; background: var(--color-border); }
+.fl-soc-alert:empty { display: none; }
+.fl-soc-error {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); margin: 0; max-width: 24rem;
+  padding: var(--space-2) var(--space-3); border-radius: min(var(--radius-md), 12px); background: var(--color-danger-surface); color: var(--color-danger); font-size: var(--text-sm);
+  animation: fl-soc-shake var(--duration-slow) var(--easing);
+}
+.fl-soc-retry {
+  min-height: 2rem; padding: 0 var(--space-3); border: 1px solid currentColor; border-radius: min(var(--control-radius, var(--radius-sm)), 12px);
+  background: transparent; color: inherit; font: var(--weight-semibold) var(--text-xs) / 1 var(--font-sans); cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing);
+}
+.fl-soc-retry:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.fl-soc-retry:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-soc-why { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); max-width: 24rem; }
+.fl-soc-done { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); color: var(--color-text); font-size: var(--text-sm); animation: fl-soc-rise var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-soc-done__mark { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--color-surface-sunken); }
+.fl-soc-done__mark .fl-soc-mark { width: 1.125rem; height: 1.125rem; }
+.fl-soc-done .fl-soc-retry { color: var(--color-text-muted); }
+
+/* Reference sheet. */
+.fl-soc-sheet { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--space-4); }
+.fl-soc-card {
+  display: grid; gap: var(--space-4); align-content: start; min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-soc-card h3 { margin: 0; font-size: var(--text-xs); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-muted); }
+
+@keyframes fl-soc-spin { to { rotate: 1turn; } }
+@keyframes fl-soc-in { from { opacity: 0; scale: 0.6; } }
+@keyframes fl-soc-rise { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) / 2); } }
+@keyframes fl-soc-shake { 25% { translate: -3px 0; } 50% { translate: 3px 0; } 75% { translate: -2px 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-soc-btn, .fl-soc-retry { transition: none; }
+  .fl-soc-btn:hover:not(:disabled):not(.is-busy), .fl-soc-btn:active:not(:disabled):not(.is-busy) { translate: none; scale: none; }
+  .fl-soc-mark, .fl-soc-error, .fl-soc-done { animation: none; }
+  /* The spinner slows rather than stops, so "busy" still reads. */
+  .fl-soc-spin { animation: fl-soc-spin 2.4s linear infinite; }
+}
+.fl-soc-done:focus { outline: none; }

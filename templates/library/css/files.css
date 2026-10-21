@@ -1,0 +1,98 @@
+/**
+ * Files table (p.files-table): uploaded files with a type tile, size, dates and uploader; upload rows with a progress
+ * bar; sortable headers, rename in the row, select, download and delete. Prefixed fl-tfil-; only the library's tokens.
+ * Adapted from Meraki UI (MIT License, Copyright (c) 2021 Khatab Wedaa).
+ */
+.fl-tfil { container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; }
+.fl-tfil-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.fl-tfil-heading { display: grid; gap: 2px; }
+.fl-tfil-heading h3 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); font-weight: var(--weight-semibold); }
+.fl-tfil-heading h3:focus { outline: none; }
+.fl-tfil-count { font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-tfil-tools { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fl-tfil-tools .fl-btn { transition: scale var(--duration-fast) var(--ease-out, var(--easing)), background-color var(--duration-fast) var(--easing); }
+.fl-tfil-tools .fl-btn:active:not(:disabled) { scale: 0.97; }
+
+.fl-tfil-scroll {
+  overflow-x: auto; background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-tfil-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.fl-tfil-table th {
+  padding: var(--space-3) var(--space-4); text-align: start; white-space: nowrap; font-size: var(--text-xs); font-weight: var(--weight-medium);
+  color: var(--color-text-muted); background: var(--color-surface-sunken); border-bottom: 1px solid var(--color-border);
+}
+.fl-tfil-table td { padding: var(--space-3) var(--space-4); vertical-align: middle; border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); white-space: nowrap; }
+.fl-tfil-table tbody tr:last-child td { border-bottom: 0; }
+.fl-tfil-row { background: var(--color-surface); transition: background-color var(--duration-fast) var(--ease-out, var(--easing)); }
+.fl-tfil-row:hover { background: color-mix(in srgb, var(--color-surface-sunken) 60%, var(--color-surface)); }
+.fl-tfil-row.is-picked { background: color-mix(in srgb, var(--color-accent) 7%, var(--color-surface)); }
+.fl-tfil-row--up { animation: fl-tfil-in var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-tfil-row--up.is-error { background: var(--color-danger-surface); }
+@keyframes fl-tfil-in { from { opacity: 0; translate: 0 calc(var(--enter-distance, 10px) * -0.5); } }
+
+.fl-tfil-col-check { width: 1%; padding-inline-end: 0 !important; }
+.fl-tfil-col-actions { width: 1%; text-align: end; }
+.fl-tfil-check { width: 1.125rem; height: 1.125rem; margin: 0; accent-color: var(--color-accent); cursor: pointer; vertical-align: middle; }
+.fl-tfil-check:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 4px; }
+
+.fl-tfil-sort {
+  display: inline-flex; align-items: center; gap: var(--space-1); margin: calc(var(--space-1) * -1); padding: var(--space-1);
+  border: 0; border-radius: var(--radius-sm, 4px); background: none; color: inherit; font: inherit; cursor: pointer;
+}
+.fl-tfil-sort:hover { color: var(--color-text); }
+.fl-tfil-sort:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-tfil-sort svg { width: 0.875rem; height: 0.875rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.35; transition: rotate var(--duration-base) var(--ease-out, var(--easing)), opacity var(--duration-fast) var(--easing); }
+.fl-tfil-sort svg.is-on { opacity: 1; }
+.fl-tfil-sort svg.is-up { rotate: 180deg; }
+th[aria-sort="ascending"] .fl-tfil-sort, th[aria-sort="descending"] .fl-tfil-sort { color: var(--color-text); }
+
+.fl-tfil-file { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.fl-tfil-tile {
+  --_c: var(--color-text-muted);
+  position: relative; flex: none; display: grid; place-items: center; width: 2.5rem; height: 2.5rem;
+  border-radius: var(--radius-md); background: color-mix(in srgb, var(--_c) 12%, var(--color-surface)); color: var(--_c);
+}
+.fl-tfil-tile svg { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; opacity: 0.45; }
+.fl-tfil-tile span { position: relative; margin-top: 6px; font: var(--weight-semibold) 0.5625rem / 1 var(--font-mono, var(--font-sans)); letter-spacing: 0.02em; }
+.fl-tfil-tile--doc { --_c: var(--color-danger); }
+.fl-tfil-tile--img { --_c: var(--color-accent); }
+.fl-tfil-tile--sheet { --_c: var(--color-success); }
+.fl-tfil-tile--zip { --_c: var(--color-warning); }
+.fl-tfil-name { display: grid; gap: 2px; min-width: 0; }
+.fl-tfil-name-text { color: var(--color-text); font-weight: var(--weight-medium); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22rem; }
+.fl-tfil-sub { font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-tfil-col-name .fl-tfil-name .fl-tfil-sub { display: none; }
+.fl-tfil-row--up .fl-tfil-sub { display: inline !important; }
+.fl-tfil-by { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-text); }
+.fl-tfil-acts { display: inline-flex; gap: var(--space-1); }
+
+.fl-tfil-progress { display: grid; gap: var(--space-1); min-width: 12rem; }
+.fl-tfil-bar { display: block; height: 6px; overflow: hidden; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); }
+.fl-tfil-bar > span { display: block; height: 100%; background: var(--color-accent); border-radius: inherit; transform-origin: left; transition: transform var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-tfil-error { font-size: var(--text-xs); color: var(--color-danger); white-space: normal; }
+.fl-tfil-rename { display: grid; gap: 2px; min-width: 12rem; }
+
+.fl-tfil-status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); min-height: 2rem; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* Narrow: each file becomes a compact row (name and size, then actions); dates and uploader step aside. */
+@container (max-width: 44rem) {
+  .fl-tfil-col-updated, .fl-tfil-col-by { display: none; }
+}
+@container (max-width: 34rem) {
+  .fl-tfil-table thead .fl-tfil-col-name ~ th:not(.fl-tfil-col-actions) { display: none; }
+  .fl-tfil-col-size, .fl-tfil-col-date { display: none; }
+  .fl-tfil-col-name .fl-tfil-name .fl-tfil-sub { display: inline; }
+  .fl-tfil-table th, .fl-tfil-table td { padding-inline: var(--space-3); }
+  .fl-tfil-name-text { max-width: 9.5rem; }
+  .fl-tfil-progress { min-width: 7rem; }
+  .fl-tfil-rename { min-width: 8rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-tfil-row--up { animation-name: fl-tfil-fade; }
+  .fl-tfil-tools .fl-btn:active:not(:disabled) { scale: none; }
+  .fl-tfil-bar > span { transition: none; }
+}
+@keyframes fl-tfil-fade { from { opacity: 0; } }
+:root[data-motion="off"] .fl-tfil * { transition: none !important; animation: none !important; }

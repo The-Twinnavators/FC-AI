@@ -1,0 +1,61 @@
+/**
+ * Skip links (c.skip-links): a bar above the top edge that slides into view while one of its links has focus, and the
+ * short outline its target shows after the jump. Prefixed fl-skip-; only the library's tokens. Adapted from HyperUI
+ * (MIT License, Copyright (c) Mark Mead).
+ */
+.fl-skip {
+  position: fixed; z-index: 100; top: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4); background: var(--color-surface); color: var(--color-text);
+  border-bottom: 1px solid var(--color-border); box-shadow: 0 8px 20px color-mix(in srgb, var(--color-text) 12%, transparent);
+  translate: 0 -110%; opacity: 0; pointer-events: none;
+  transition: translate var(--duration-base) var(--ease-out), opacity var(--duration-base) var(--easing);
+}
+.fl-skip--contained { position: absolute; border-radius: min(var(--radius-md), 12px) min(var(--radius-md), 12px) 0 0; }
+.fl-skip:focus-within { translate: 0 0; opacity: 1; pointer-events: auto; }
+.fl-skip-title { font-size: var(--text-xs); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); }
+.fl-skip-list { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-skip-link {
+  display: inline-block; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm);
+  color: var(--color-accent); font-size: var(--text-sm); font-weight: var(--weight-semibold); text-decoration: none;
+  transition: background-color var(--duration-fast) var(--easing);
+}
+.fl-skip-link:hover { text-decoration: underline; }
+.fl-skip-link:focus-visible { outline: none; box-shadow: var(--focus-ring); background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+
+/* The target's outline after a jump: it appears, then fades. */
+.fl-skip-flash { outline: 2px solid var(--color-accent); outline-offset: -2px; border-radius: var(--radius-sm); animation: fl-skip-flash 1.2s var(--easing) forwards; }
+.fl-skip-flash:focus { outline: 2px solid var(--color-accent); }
+@keyframes fl-skip-flash { 0%, 55% { outline-color: var(--color-accent); } 100% { outline-color: transparent; } }
+.fl-skip-target:focus:not(.fl-skip-flash) { outline: none; }
+
+/* The sample page. */
+.fl-skip-demo-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-3); font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-skip-demo-bar p { margin: 0; }
+.fl-skip-demo-show {
+  padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--color-surface);
+  color: var(--color-text); font: inherit; font-size: var(--text-sm); font-weight: var(--weight-semibold); cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out);
+}
+.fl-skip-demo-show:hover { background: var(--color-surface-sunken); }
+.fl-skip-demo-show:active { scale: 0.97; }
+.fl-skip-demo-show:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-skip-demo { position: relative; overflow: hidden; display: grid; border: 1px solid var(--color-border); border-radius: min(var(--radius-lg), 12px); background: var(--color-surface); }
+.fl-skip-demo-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); }
+.fl-skip-demo-head strong { font-family: var(--font-display); }
+.fl-skip-demo-head ul { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); margin: 0; padding: 0; list-style: none; }
+.fl-skip-demo-head a, .fl-skip-demo-main a, .fl-skip-demo-foot a { color: var(--color-text-muted); font-size: var(--text-sm); text-decoration: none; border-radius: var(--radius-sm); }
+.fl-skip-demo-main a { color: var(--color-accent); }
+.fl-skip-demo-head a:hover, .fl-skip-demo-main a:hover, .fl-skip-demo-foot a:hover { text-decoration: underline; }
+.fl-skip-demo :is(a, input):focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-skip-demo-search { margin-left: auto; }
+.fl-skip-demo-search input { height: 2.25rem; padding: 0 var(--space-3); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--color-bg, var(--color-surface)); color: var(--color-text); font: inherit; font-size: var(--text-sm); }
+.fl-skip-demo-main { display: grid; gap: var(--space-3); padding: var(--space-5) var(--space-4); max-width: 44rem; }
+.fl-skip-demo-main h3 { margin: 0; font-family: var(--font-display); font-size: var(--text-lg); }
+.fl-skip-demo-main p { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.6; }
+.fl-skip-demo-main ul { display: grid; gap: var(--space-1); margin: 0; padding-left: var(--space-4); }
+.fl-skip-demo-foot { display: flex; flex-wrap: wrap; gap: var(--space-4); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); background: var(--color-surface-sunken); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-skip { transition: opacity var(--duration-fast) var(--easing); }
+  .fl-skip-flash { animation-duration: 1.6s; }
+}

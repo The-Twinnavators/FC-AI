@@ -1,0 +1,79 @@
+/**
+ * How it works (b.how-it-works): numbered steps on a line beside a picture that follows the open step. Prefixed
+ * fl-how-; only the library's tokens. Adapted from Tailblocks (MIT License, Copyright (c) 2020 Mert Cukuren).
+ */
+.fl-how { container-type: inline-size; min-width: 0; }
+.fl-how-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--space-7); align-items: start; }
+.fl-how-media { position: sticky; top: var(--space-5); min-width: 0; }
+.fl-how-stack { position: relative; display: grid; border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); overflow: hidden; }
+.fl-how-pic { grid-area: 1 / 1; opacity: 0; transition: opacity var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-how-pic.is-on { opacity: 1; }
+.fl-how-pic .fl-ctl-media { display: block; width: 100%; border-radius: 0; }
+.fl-how-tag {
+  position: absolute; left: var(--space-3); bottom: var(--space-3); display: inline-flex; align-items: center; gap: var(--space-2); max-width: calc(100% - var(--space-5));
+  margin: 0; padding: var(--space-2) var(--space-3); border-radius: var(--pill-radius, 999px);
+  background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); box-shadow: var(--surface-shadow, none);
+  font-size: var(--text-sm); font-weight: var(--weight-semibold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fl-how-tag span { color: var(--color-accent); font-variant-numeric: tabular-nums; }
+
+.fl-how-steps { min-width: 0; }
+.fl-how-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.fl-how-step { --_mark: 2.5rem; position: relative; display: grid; grid-template-columns: var(--_mark) minmax(0, 1fr); gap: var(--space-4); padding-bottom: var(--space-5); }
+/* The line to the next marker: a gray track, and an accent fill that grows down once that next step is reached. */
+.fl-how-step:not(:last-child)::before,
+.fl-how-step:not(:last-child)::after {
+  content: ""; position: absolute; left: calc(var(--_mark) / 2 - 1px); top: calc(var(--_mark) + var(--space-1)); bottom: var(--space-1); width: 2px; border-radius: 2px;
+  background: var(--color-border);
+}
+.fl-how-step:not(:last-child)::after { background: var(--color-accent); transform: scaleY(0); transform-origin: top; transition: transform var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-how-step.is-passed::after { transform: scaleY(1); }
+.fl-how-mark {
+  position: relative; z-index: 1; display: grid; place-items: center; width: var(--_mark); height: var(--_mark); border-radius: 50%;
+  border: 2px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted);
+  font-size: var(--text-sm); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums;
+  transition: background-color var(--duration-base) var(--ease-out, var(--easing)), border-color var(--duration-base) var(--ease-out, var(--easing)), color var(--duration-base) var(--ease-out, var(--easing)), scale var(--duration-base) var(--ease-spring, var(--easing));
+}
+.fl-how-mark svg { width: 1.1rem; height: 1.1rem; }
+.fl-how-step.is-reached .fl-how-mark { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent); }
+.fl-how-step.is-open .fl-how-mark { scale: 1.08; box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 18%, transparent); }
+.fl-how-body { display: grid; min-width: 0; padding-top: var(--space-1); }
+.fl-how-title { margin: 0; font-family: var(--font-display); font-size: var(--text-md); font-weight: var(--weight-semibold); }
+.fl-how-head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); width: 100%; min-height: 2rem; padding: 0 var(--space-1);
+  margin-inline: calc(var(--space-1) * -1); border: 0; border-radius: var(--radius-sm, 6px); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-how-head:hover { color: var(--color-accent); }
+.fl-how-head:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-how-chev { display: grid; color: var(--color-text-muted); transition: rotate var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-how-chev svg { width: 1rem; height: 1rem; }
+.fl-how-step.is-open .fl-how-chev { rotate: 180deg; }
+.fl-how-text { margin: var(--space-1) 0 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+/* Expand and collapse: the row grows from 0fr to 1fr; closed content is inert, so it is never reached by Tab. */
+.fl-how-more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-how-more > div { min-height: 0; overflow: hidden; opacity: 0; transition: opacity var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-how-step.is-open .fl-how-more { grid-template-rows: 1fr; }
+.fl-how-step.is-open .fl-how-more > div { opacity: 1; }
+.fl-how-more p { margin: var(--space-3) 0 0; font-size: var(--text-sm); line-height: var(--leading-normal, 1.55); }
+.fl-how-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-3) 2px 2px; }
+.fl-how-actions:empty { display: none; }
+.fl-how .fl-btn:active { scale: var(--press-scale, 0.97); }
+
+/* Entrance once: each step rises in, the stagger capped so the last never waits long. */
+.fl-how-steps.is-waiting .fl-how-step { opacity: 0; }
+.fl-how-steps.is-entering .fl-how-step { animation: fl-how-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)); }
+@keyframes fl-how-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+
+/* Narrow: the picture goes above the steps and stops following the scroll. */
+@container (max-width: 44rem) {
+  .fl-how-grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  .fl-how-media { position: static; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-how-pic, .fl-how-more, .fl-how-more > div, .fl-how-mark, .fl-how-chev, .fl-how-step::after { transition-duration: 1ms; }
+  .fl-how-steps.is-waiting .fl-how-step { opacity: 1; }
+  .fl-how-steps.is-entering .fl-how-step { animation: none; }
+  .fl-how-step.is-open .fl-how-mark { scale: 1; }
+}

@@ -1,0 +1,53 @@
+/**
+ * Signed-in devices (p.account-sessions): a card of the devices signed in to an account, each opening to its details,
+ * with sign out per device or for all others, and a sign-in alerts switch. Prefixed fl-ses-; only the library's tokens.
+ * Adapted from Creative Tim UI (MIT License, Copyright (c) 2025 Creative Tim).
+ */
+.fl-ses { container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; }
+.fl-ses-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.fl-ses-head h3 { margin: 0; font-family: var(--font-display); font-size: var(--type-h3-size, var(--text-lg)); font-weight: var(--weight-semibold); border-radius: var(--radius-sm, 6px); }
+.fl-ses-head h3:focus { outline: none; }
+.fl-ses-head h3:focus-visible { box-shadow: var(--focus-ring); }
+.fl-ses-head p { margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--color-text-muted); }
+.fl-ses .fl-btn:active:not(:disabled) { scale: var(--press-scale, 0.97); }
+.fl-ses-list { display: grid; margin: 0; padding: 0; list-style: none; }
+
+/* Each row is a 1fr grid track, so signing out folds it to 0fr before it leaves the list. */
+.fl-ses-item { display: grid; grid-template-rows: 1fr; border-top: 1px solid var(--color-border); transition: grid-template-rows var(--duration-slow) var(--ease-out, var(--easing)), opacity var(--duration-base) var(--ease-out, var(--easing)), border-color var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-ses-item > div { min-height: 0; overflow: hidden; }
+.fl-ses-item.is-leaving { grid-template-rows: 0fr; opacity: 0; border-color: transparent; }
+.fl-ses-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding-block: var(--space-3); }
+.fl-ses-glyph { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); color: var(--color-text); }
+.fl-ses-what { display: grid; gap: 2px; min-width: 0; font-size: var(--text-sm); }
+.fl-ses-name { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fl-ses-name strong { font-size: var(--text-md); font-weight: var(--weight-semibold); }
+.fl-ses-when { font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-ses-acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-1); }
+.fl-ses-acts [aria-expanded="true"] { background: var(--color-surface-sunken); }
+
+/* Details: 0fr to 1fr; closed content is inert. */
+.fl-ses-more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-ses-more > dl { min-height: 0; overflow: hidden; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-2) var(--space-4); opacity: 0; transition: opacity var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-ses-item.is-open .fl-ses-more { grid-template-rows: 1fr; }
+.fl-ses-item.is-open .fl-ses-more > dl { opacity: 1; padding: 0 0 var(--space-3) calc(2.75rem + var(--space-3)); }
+.fl-ses-more dt { font-size: var(--text-xs); color: var(--color-text-muted); }
+.fl-ses-more dd { margin: 0; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+
+.fl-ses-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.fl-ses-alert { display: grid; gap: 2px; font-size: var(--text-sm); }
+.fl-ses-alert span { color: var(--color-text-muted); }
+.fl-ses-said { margin: 0; font-size: var(--text-sm); color: var(--color-success); }
+.fl-ses-said:empty { display: none; }
+
+/* Narrow: the buttons go under the device's words. */
+@container (max-width: 30rem) {
+  .fl-ses-row { grid-template-columns: auto minmax(0, 1fr); }
+  .fl-ses-acts { grid-column: 2; justify-content: flex-start; }
+  .fl-ses-item.is-open .fl-ses-more > dl { padding-left: 0; }
+  .fl-ses-head .fl-btn { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-ses-item, .fl-ses-more, .fl-ses-more > dl { transition-duration: 1ms; }
+  .fl-ses .fl-btn:active:not(:disabled) { scale: 1; }
+}

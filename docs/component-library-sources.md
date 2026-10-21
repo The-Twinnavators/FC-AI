@@ -23,6 +23,7 @@ committed, not shipped); every converted item keeps its source's licence notice,
 | Tremor (`github.com/tremorlabs/tremor`) | Apache-2.0 | Dashboard, table and chart patterns | Keep the Apache-2.0 notice and state changes; it also carries MIT subcomponents (Radix Primitives by WorkOS) whose notices must stay |
 | Flowbite library (`github.com/themesberg/flowbite`) | MIT | Components, and the blocks published as MIT | Keep the MIT notice (Copyright (c) 2023 Bergside Inc.). The MIT repo only — see Flowbite Pro below |
 | TailAdmin free edition (github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template) | MIT | Dashboard, calendar, profile and widget patterns | Free edition only; tailadmin.com Pro components are not allowed. Keep the MIT notice (Copyright (c) 2023 TailAdmin) |
+| TailGrids (`github.com/TailGrids/tailgrids`) | MIT | Core React components (inputs, menus, overlays) | The open-source repo only; tailgrids.com blocks and templates are premium and not allowed. Keep the MIT notice (Copyright (c) 2025 Tailgrids) |
 
 ## Not allowed
 
