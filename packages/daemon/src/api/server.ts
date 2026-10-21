@@ -33,6 +33,8 @@ import { bridgeInstalled, installBridge } from "../workspace/previewBridge.js";
 import { lookReached } from "../quality/lookReached.js";
 import { allowSurface, applySelected, describeState, discardDraft, getDesignState, groupStatus, recordVerification, restoreVersion, saveDraft, selectDraft, setLocks, type ApplyVerification, type VerifyCheck } from "../workspace/designState.js";
 import { starterIdentity } from "../orchestrator/starterIdentity.js";
+import { decideProposed } from "../workspace/libraryDecisions.js";
+import { templatesRoot } from "../orchestrator/templates.js";
 import { z } from "zod";
 import * as C from "@flowcode/contracts";
 import type { App } from "../app.js";
@@ -455,6 +457,18 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   });
   // Restart/stop are executed by the parent shell: the daemon cleans up owned processes and exits with a
   // code the desktop shell understands (75 = restart me, 76 = stopped by user).
+  // The owner's Accept or Decline on a piece waiting on the Component library's approval shelf (workspace/libraryDecisions.ts).
+  add("POST /library/proposed/:id", ({ params, body }) => {
+    const b = parse(z.object({ decision: z.enum(["accept", "decline"]) }), body);
+    try {
+      const r = decideProposed(path.resolve(templatesRoot(), ".."), params.id, b.decision);
+      // Builds read the library at startup: restart so the decision takes effect.
+      setTimeout(() => void opts.onExitRequest?.(75), 300);
+      return { ...r, restarting: true };
+    } catch (err) {
+      throw new HttpError(409, (err as Error).message);
+    }
+  });
   add("POST /system/restart", () => {
     setTimeout(() => void opts.onExitRequest?.(75), 150);
     return { restarting: true };

@@ -8,6 +8,7 @@ import { DESIGN_TEMPLATES, LIBRARY_SECTIONS, PROPOSED_SECTIONS, isNewPiece, SECT
 import { LibModal, CopyButton } from "../components/LibModal";
 import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSizes";
 import { Search, Sparkles } from "lucide-react";
+import { post } from "../api";
 
 
 const sources = import.meta.glob<string>("../../../../templates/library/sections/*.tsx", { query: "?raw", import: "default" });
@@ -328,7 +329,7 @@ export function ComponentsView() {
         <ul className="cl-grid">
           {cat === "proposed" ? (
             <li className="cl-proposed-note" role="note">
-              New pieces, not in the library yet: builds don't use them until you approve them. Open one to try it, then say which to approve and which to change or drop.
+              New pieces, not in the library yet: builds don't use them until you accept them. Open one to try it, then Accept or Decline it.
             </li>
           ) : null}
           {shown.map((s) => (
@@ -345,6 +346,7 @@ export function ComponentsView() {
                   <span className="muted">{s.description}</span>
                 </span>
               </button>
+              {cat === "proposed" ? <ShelfDecision piece={s} /> : null}
             </li>
           ))}
         </ul>
@@ -475,5 +477,45 @@ function PieceRefs({ piece }: { piece: Item }) {
           </div>
         ))}
     </dl>
+  );
+}
+
+/**
+ * Accept or Decline for a piece on the approval shelf (daemon workspace/libraryDecisions.ts). Decline deletes the
+ * piece's file, so it asks first. FlowCode rebuilds and restarts after either, then this page reloads.
+ */
+function ShelfDecision({ piece }: { piece: LibrarySection }) {
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState<string>();
+  const [error, setError] = useState<string>();
+  const decide = async (decision: "accept" | "decline") => {
+    setBusy(decision === "accept" ? "Adding to the library…" : "Removing…");
+    setError(undefined);
+    try {
+      await post(`/library/proposed/${encodeURIComponent(piece.id)}`, { decision });
+      // The library is rebuilt and FlowCode restarts; the page comes back with the change.
+      window.setTimeout(() => location.reload(), 6000);
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(undefined);
+    }
+  };
+  if (busy) return <p className="cl-decide__busy" role="status">{busy}</p>;
+  return (
+    <div className="cl-decide">
+      {confirm ? (
+        <>
+          <span className="cl-decide__q">Decline {piece.name}? Its file is deleted.</span>
+          <button type="button" className="btn btn--sm btn--danger" onClick={() => void decide("decline")}>Decline</button>
+          <button type="button" className="btn btn--sm" onClick={() => setConfirm(false)}>Keep</button>
+        </>
+      ) : (
+        <>
+          <button type="button" className="btn btn--sm btn--primary" onClick={() => void decide("accept")}>Accept</button>
+          <button type="button" className="btn btn--sm" onClick={() => setConfirm(true)}>Decline</button>
+        </>
+      )}
+      {error ? <p className="psetup__err" role="alert">{error}</p> : null}
+    </div>
   );
 }
