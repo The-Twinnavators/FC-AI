@@ -98,16 +98,14 @@ describe("project setup", () => {
           surface: { vibe: "flat", radii: [2, 4, 8, 8], borderWidth: 1 },
           contentWidth: "regular",
           signature: "",
-          screen: {
-            title: i === 0 ? "Class schedule" : "Schedule",
-            purpose: "Members see the week's classes and book a spot.",
-            product: "Studio",
-            frame: ["top-nav", "top-nav", "side-nav"][i],
-            nav: ["Schedule", "My bookings", "Account"],
-            layout: ["single", "main-aside", "split"][i],
-            main: [
-              { kind: "intro", variant: "compact", title: "This week at the studio" },
-              { kind: "schedule", days: ["Mon", "Tue"], items: [{ day: "Mon", time: "7:00", title: "Sunrise flow" }, { day: "Tue", time: "18:00", title: "Yin" }] },
+          page: {
+            sections: [
+              { block: "top-nav-variants", props: { brand: "Studio", links: [{ label: "Classes" }, { label: "Pricing" }], actions: [{ label: "Book a class" }] } },
+              { block: ["hero-centered", "hero-split", "hero-stats"][i], props: { title: "Find your calm this week", lede: "Book a spot in any class in two taps.", primary: { label: "See this week's classes", href: "#" }, stats: [{ value: "24", label: "classes a week" }] } },
+              { block: "features-grid", props: { title: "How it works", items: [{ icon: "calendar", title: "Pick a class", text: "See the week at a glance." }] } },
+              { block: "testimonials-cards", props: { title: "Members say", quotes: [{ quote: "Booking is so easy.", name: "Ana", role: "Member" }] } },
+              { block: "cta-banner", props: { title: "Your mat is waiting", primary: { label: "Book now", href: "#" } } },
+              { block: "footer-simple", props: { brand: "Studio", links: [{ label: "Privacy", href: "#" }] } },
             ],
           },
         };
@@ -139,9 +137,9 @@ describe("project setup", () => {
       const ready = proofs.rounds[0]!.proofs;
       expect(ready).toHaveLength(3);
       expect(new Set(ready.map((p) => p.name)).size).toBe(3);
-      // The same screen in every proof, a different composition.
-      expect(new Set(ready.map((p) => p.screen!.title))).toEqual(new Set(["Class schedule"]));
-      expect(new Set(ready.map((p) => `${p.screen!.frame}/${p.screen!.layout}`)).size).toBe(3);
+      // A home page from library sections in every proof, each with a different hero; FlowCode fills ids and the year.
+      expect(new Set(ready.map((p) => p.page!.sections[1]!.block)).size).toBe(3);
+      expect(ready[0]!.page!.sections.at(-1)!.props.year).toBe(new Date().getFullYear());
       expect(ready[0]!.skills!.length).toBeGreaterThan(0);
       expect(ready[0]!.tokens!["--color-accent"]).toBe("#1d4ed8");
       // A too-light accent (local models' usual miss) is fixed by FlowCode, not failed, and the proof says so.

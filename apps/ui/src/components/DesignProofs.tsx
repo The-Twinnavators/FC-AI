@@ -1,6 +1,6 @@
 /**
  * Design proofs (agent-led design, daemon orchestrator/designProofs.ts): the designer's custom concepts of the build's
- * main screen, drawn by FlowCode (proof-preview.html). The review is a page of its own (#/proofs/:runId), so each proof
+ * home page (the Component library's own sections), drawn by FlowCode (proof-preview.html). The review is a page of its own (#/proofs/:runId), so each proof
  * shows large: one at a time beside its rationale, settings and skills, or all side by side to compare. Progress shows
  * while they're made (saved as they finish, so leaving loses nothing); a failed one has its own Retry. Choose this
  * design, Refine this design, or None of these fit; earlier rounds stay to compare. Choosing shows the design's
@@ -26,7 +26,7 @@ function ProofFrame({ proof, size = "thumb" }: { proof: DesignProof; size?: "thu
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const message = useMemo(() => ({ type: "fl-proof", screen: proof.screen, tokens: proof.tokens ?? {} }), [proof]);
+  const message = useMemo(() => ({ type: "fl-proof", page: proof.page, tokens: proof.tokens ?? {} }), [proof]);
   useEffect(() => {
     const on = (e: MessageEvent) => {
       if (e.origin !== location.origin || e.source !== frame.current?.contentWindow || e.data?.type !== "fl-proof-ready") return;
@@ -150,8 +150,8 @@ export function DesignReview({ runId }: { runId: string }) {
               {approved
                 ? `${approved.label}, ${approved.name}: its specification is the reference for the build. Go back to the build to approve the plan.`
                 : pending
-                  ? `The designer is making custom concepts of your main screen: ${ready.length} of ${all.length} ready. They're saved as they finish; you can leave and come back.`
-                  : "Custom concepts of your main screen, made for this project. Proposals, not a built app: choose one and approve it before anything is built."}
+                  ? `The designer is making custom home page concepts: ${ready.length} of ${all.length} ready. They're saved as they finish; you can leave and come back.`
+                  : "Custom home page concepts, made for this project. Proposals, not a built app: choose one and approve it before anything is built."}
             </p>
           </div>
           {p.rounds.length > 1 ? (

@@ -1,47 +1,46 @@
 /**
  * Design proofs: custom design concepts the designer agent makes while a build is planned, when the person lets
- * FlowCode decide the design. Each proof is a design specification (type, palette, density, surface, corners) and a
- * composition of the build's main screen: its frame, layout and content blocks, written with the project's own words.
- * FlowCode draws the composition with its own components (proof-preview.html), so a proof is always readable, and the
- * same specification is what the build applies once the person approves it. A proof is a proposal, never a screenshot
- * of a built app.
+ * FlowCode decide the design. Each proof is a design specification (type, palette, density, surface, corners) and the
+ * product's home page composed from the Component library's own sections (a hero, what it does, proof, a call to
+ * action, a footer), filled with the project's own words. FlowCode draws it with those sections (proof-preview.html),
+ * and the same specification is what the build applies once the person approves it. A proof is a proposal, never a
+ * screenshot of a built app.
  */
 import { z } from "zod";
 
-const Line = z.string().trim().min(1).max(160);
-const Text = z.string().trim().max(400);
-const Items = <T extends z.ZodTypeAny>(t: T, min: number, max: number) => z.array(t).min(min).max(max);
+/**
+ * The library page blocks a proof's home page is composed from: each a real section of FlowCode's Component library,
+ * drawn with the agent's content (its props) in the proof's tokens. `component` is the section file's named export.
+ */
+export const PROOF_BLOCKS = [
+  { id: "top-nav-variants", component: "TopNav", role: "nav", use: "The site's top bar: brand, links and the main action (variant \"marketing\")." },
+  { id: "hero-split", component: "HeroSplit", role: "hero", use: "Words on the left, a picture of the product or place on the right." },
+  { id: "hero-centered", component: "HeroCentered", role: "hero", use: "A centered headline and actions; calm and direct." },
+  { id: "hero-stats", component: "HeroStats", role: "hero", use: "A headline with three or four proof numbers beside it." },
+  { id: "hero-gradient", component: "HeroGradient", role: "hero", use: "A bold headline with an emphasized phrase and an announcement badge." },
+  { id: "features-grid", component: "FeaturesGrid", role: "info", use: "Three to six features, each an icon, a title and a sentence." },
+  { id: "features-alternating", component: "FeaturesAlternating", role: "info", use: "Two or three rows alternating words and a picture: how it works in depth." },
+  { id: "features-checklist", component: "FeaturesChecklist", role: "info", use: "A short list of what's included." },
+  { id: "stats-band", component: "StatsBand", role: "info", use: "A band of up to four numbers that prove it works." },
+  { id: "testimonials-cards", component: "TestimonialsCards", role: "social", use: "Three quotes from the people who use it." },
+  { id: "testimonial-feature", component: "TestimonialFeature", role: "social", use: "One large quote." },
+  { id: "pricing-tiers", component: "PricingTiers", role: "info", use: "Plans or passes with prices." },
+  { id: "faq-accordion", component: "FaqAccordion", role: "info", use: "Questions people ask before they sign up." },
+  { id: "cta-banner", component: "CtaBanner", role: "cta", use: "A closing call to action." },
+  { id: "cta-split", component: "CtaSplit", role: "cta", use: "A closing call to action beside a picture." },
+  { id: "footer-columns", component: "FooterColumns", role: "footer", use: "Brand, a line about it, link columns and legal links." },
+  { id: "footer-simple", component: "FooterSimple", role: "footer", use: "Brand, a few links and the year." },
+] as const;
+export type ProofBlockId = (typeof PROOF_BLOCKS)[number]["id"];
 
-/** The content blocks a proof's screen is composed from. Each holds the project's own words. */
-export const ProofBlock = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("intro"), variant: z.enum(["banner", "split", "compact", "centered"]), eyebrow: Line.optional(), title: Line, body: Text.optional(), action: Line.optional(), secondary: Line.optional() }),
-  z.object({ kind: z.literal("cards"), title: Line.optional(), columns: z.union([z.literal(2), z.literal(3), z.literal(4)]), items: Items(z.object({ title: Line, body: Text.optional(), meta: Line.optional(), tag: Line.optional() }), 2, 8) }),
-  z.object({ kind: z.literal("list"), title: Line.optional(), items: Items(z.object({ title: Line, meta: Line.optional(), status: Line.optional() }), 2, 8) }),
-  z.object({ kind: z.literal("schedule"), title: Line.optional(), days: Items(Line, 2, 7), items: Items(z.object({ day: Line, time: Line, title: Line, meta: Line.optional() }), 2, 14) }),
-  z.object({ kind: z.literal("stats"), items: Items(z.object({ label: Line, value: Line, note: Line.optional() }), 2, 4) }),
-  z.object({ kind: z.literal("form"), title: Line, fields: Items(z.object({ label: Line, type: z.enum(["text", "select", "date", "textarea", "number"]) }), 1, 6), action: Line }),
-  z.object({ kind: z.literal("table"), title: Line.optional(), columns: Items(Line, 2, 5), rows: Items(Items(Line, 2, 5), 2, 6) }),
-  z.object({ kind: z.literal("feature"), title: Line, body: Text, bullets: Items(Line, 0, 5).optional() }),
-  z.object({ kind: z.literal("callout"), title: Line, body: Text.optional(), action: Line.optional() }),
-  z.object({ kind: z.literal("filters"), chips: Items(Line, 2, 8) }),
-  z.object({ kind: z.literal("detail"), title: Line, meta: Line.optional(), body: Text, action: Line.optional() }),
-]);
-export type ProofBlock = z.infer<typeof ProofBlock>;
-
-/** The main screen, composed: its frame (navigation), layout and blocks (main column, and an aside when it has one). */
-export const ProofScreen = z.object({
-  /** The screen's name in the app ("Class schedule"). */
-  title: Line,
-  /** What the person does here, in one sentence. */
-  purpose: Text,
-  product: Line,
-  frame: z.enum(["top-nav", "side-nav", "minimal"]),
-  nav: Items(Line, 2, 7),
-  layout: z.enum(["single", "main-aside", "split"]),
-  main: Items(ProofBlock, 1, 5),
-  aside: Items(ProofBlock, 0, 3).optional(),
+/** A proof's home page: library blocks in order, each with the agent's content for it. */
+export const ProofPage = z.object({
+  sections: z
+    .array(z.object({ block: z.enum(PROOF_BLOCKS.map((b) => b.id) as [ProofBlockId, ...ProofBlockId[]]), props: z.record(z.string(), z.unknown()) }))
+    .min(4)
+    .max(9),
 });
-export type ProofScreen = z.infer<typeof ProofScreen>;
+export type ProofPage = z.infer<typeof ProofPage>;
 
 export type ProofStatus = "queued" | "working" | "ready" | "failed";
 
@@ -60,7 +59,7 @@ export interface DesignProof {
   spec?: unknown;
   /** The specification's tokens, to draw the proof. */
   tokens?: Record<string, string>;
-  screen?: ProofScreen;
+  page?: ProofPage;
   /** Library skills the designer was given, by name (only ones that exist in this FlowCode). */
   skills?: string[];
   /** A short summary of its settings: type, colors, surface, corners, spacing. */

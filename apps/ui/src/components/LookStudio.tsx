@@ -286,7 +286,7 @@ export function LookStudio({ projectId, site, setup, design, onSetup, extras: ex
             <h2 id="ls-agents-title">FlowCode designs it with you</h2>
             <p className="ls-agentsbrief__lede">FlowCode will create three custom design concepts based on your project, audience, requirements, and any references you provide. You'll review and approve a direction before development begins.</p>
             <ol className="ls-agentsbrief__steps">
-              <li><b>While it plans</b> the designer makes three proofs of your main screen, each a different direction.</li>
+              <li><b>While it plans</b> the designer makes three home page concepts from the Component library, each a different direction.</li>
               <li><b>In the plan review</b> you choose one, refine it, or say none fit.</li>
               <li><b>Nothing is built</b> until you approve the design.</li>
             </ol>

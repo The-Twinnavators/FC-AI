@@ -1,7 +1,8 @@
 /**
  * Design proofs (contracts designProof.ts): when the person lets FlowCode decide the design, the designer agent makes
- * three custom concepts of the build's main screen while the build is planned. Each is a design specification (the
- * same DesignSpec the build applies) and a composition of the screen in the project's own words, written from the
+ * three custom concepts of the product's home page while the build is planned. Each is a design specification (the
+ * same DesignSpec the build applies) and the page composed from the Component library's own sections (a hero, what it
+ * does, proof, a call to action, a footer) with the project's own words in their props, written from the
  * request, the PRD and the person's preferences, with the library's design skills in the prompt. One proof at a time
  * (the GPU gate serializes model calls anyway), each saved as it finishes, so leaving the page loses nothing and a
  * failed proof can be retried without the others.
@@ -13,8 +14,8 @@ import { z } from "zod";
 import {
   BUNDLED_FONTS,
   DEFAULT_SURFACES,
-  LIBRARY_SECTIONS,
-  ProofScreen,
+  PROOF_BLOCKS,
+  ProofPage,
   appearanceTokens,
   contrastRatio,
   proofById,
@@ -34,6 +35,9 @@ import { getDesignState } from "../workspace/designState.js";
 import { designSkillIds, renderSkills, selectSkills } from "../knowledge/skills.js";
 import { designSpecKey } from "./homeConceptOffer.js";
 import { DESIGN_POLISH, DESIGN_SCREENS } from "./templates.js";
+import { sectionsDir } from "./sectionRecipes.js";
+import fs from "node:fs";
+import path from "node:path";
 
 export const proofsKey = (runId: string) => `runProofs:${runId}`;
 
@@ -45,9 +49,9 @@ interface Deps {
 
 /** Three directions, so the proofs differ in composition and hierarchy, not only in color. The model fills them in. */
 const DIRECTIONS = [
-  "Direction A: calm and content-first. A top navigation frame, a restrained intro, generous white space, a light background, the main task in one clear column.",
-  "Direction B: editorial and confident. A strong type hierarchy (an expressive scale, a serif or condensed display face), an asymmetric main-and-aside or split layout, bold contrast.",
-  "Direction C: app-like and hands-on. A side navigation frame, the primary task front and center as a working tool (a schedule, list, table or form), tactile surfaces; a dark background is welcome.",
+  "Direction A: a centered hero (hero-centered), features as a grid, a band of numbers, quotes, a closing banner. Light and open, with generous spacing.",
+  "Direction B: a split hero with a picture (hero-split), features in alternating rows that show how it works, one large quote, questions people ask, a closing call to action beside a picture. Strong type hierarchy (an expressive scale, a serif or condensed display face).",
+  "Direction C: a hero with proof numbers (hero-stats) or an announcement (hero-gradient), a checklist of what's included, prices or passes when the product has them, quote cards, a closing banner. Tactile surfaces; a dark background is welcome.",
 ];
 const LABELS = ["Proof A", "Proof B", "Proof C"];
 
@@ -63,7 +67,7 @@ const ProofAnswer = z.object({
   surface: z.object({ vibe: z.enum(["flat", "skeuomorphism"]), radii: z.tuple([z.number().int().min(0).max(12), z.number().int().min(0).max(12), z.number().int().min(0).max(12), z.number().int().min(0).max(12)]), borderWidth: z.union([z.literal(0), z.literal(1), z.literal(2)]) }),
   contentWidth: z.enum(["narrow", "regular", "wide"]),
   signature: z.string().trim().max(200),
-  screen: ProofScreen,
+  page: ProofPage,
 });
 type ProofAnswer = z.infer<typeof ProofAnswer>;
 /**
@@ -171,11 +175,11 @@ export function chooseProof(store: Store, runId: string, proofId: string): Desig
 export function approveProof(d: Deps, runId: string): DesignProofs {
   const p = need(d.store, runId);
   const x = proofById(p, p.chosen);
-  if (!x?.spec || !x.screen) throw new Error("Choose a design first.");
+  if (!x?.spec || !x.page) throw new Error("Choose a design first.");
   p.approved = { at: now(), proofId: x.id };
   save(d.store, p);
   d.store.setSetting(designSpecKey(runId), x.spec);
-  const brief = `Approved design proof "${x.name}" (${x.label}): ${x.rationale ?? ""} Build ${x.screen.title} as composed: ${describeScreen(x.screen)}. Its design specification is applied to the app's tokens; keep it, and carry the same direction to the other screens.`;
+  const brief = `Approved design proof "${x.name}" (${x.label}): ${x.rationale ?? ""} Build the home page from these library sections, in this order, with this content: ${describePage(x.page)}. Its design specification is applied to the app's tokens; keep it, and carry the same direction to the other screens.`;
   for (const t of d.store.tasks.where("run_id = ?", runId).filter((t) => t.title.startsWith(DESIGN_SCREENS) || t.title.startsWith(DESIGN_POLISH)))
     d.store.setSetting(`taskFindings:${t.id}`, [...d.store.getSetting<string[]>(`taskFindings:${t.id}`, []), brief]);
   const run = d.store.runs.require(runId);
@@ -189,24 +193,73 @@ const need = (store: Store, runId: string) => {
   return p;
 };
 
-/** The composed screen in words, for the coder: frame, layout and each block. */
-export function describeScreen(s: ProofScreen): string {
-  const block = (b: ProofScreen["main"][number]) => {
-    switch (b.kind) {
-      case "intro": return `a ${b.variant} intro "${b.title}"${b.action ? ` with "${b.action}"` : ""}`;
-      case "cards": return `${b.columns}-column cards${b.title ? ` "${b.title}"` : ""} (${b.items.length})`;
-      case "list": return `a list${b.title ? ` "${b.title}"` : ""} (${b.items.length} rows)`;
-      case "schedule": return `a schedule${b.title ? ` "${b.title}"` : ""} across ${b.days.join(", ")}`;
-      case "stats": return `stats (${b.items.map((i) => i.label).join(", ")})`;
-      case "form": return `a form "${b.title}" (${b.fields.map((f) => f.label).join(", ")})`;
-      case "table": return `a table${b.title ? ` "${b.title}"` : ""} (${b.columns.join(", ")})`;
-      case "feature": return `a feature block "${b.title}"`;
-      case "callout": return `a callout "${b.title}"`;
-      case "filters": return `filter chips (${b.chips.join(", ")})`;
-      case "detail": return `a detail panel "${b.title}"`;
-    }
+/** The composed page in words, for the coder: each library section and its main text. */
+export function describePage(page: ProofPage): string {
+  const text = (v: unknown) => (typeof v === "string" ? v : "");
+  return page.sections
+    .map((x) => {
+      const t = text(x.props.title) || [text(x.props.before), text(x.props.emphasis), text(x.props.after)].filter(Boolean).join(" ") || text(x.props.quote) || text(x.props.brand);
+      return `${x.block}${t ? ` ("${t.slice(0, 80)}")` : ""}`;
+    })
+    .join("; ");
+}
+
+/** A library section's props contract, read from its source: the Props type and the small types it uses. */
+const contracts = new Map<string, string>();
+function blockContract(id: string): string {
+  const hit = contracts.get(id);
+  if (hit) return hit;
+  const b = PROOF_BLOCKS.find((x) => x.id === id)!;
+  let src = "";
+  try {
+    src = fs.readFileSync(path.join(sectionsDir(), "sections", `${id}.tsx`), "utf8");
+  } catch {
+    return "";
+  }
+  const props = new RegExp(`^export type ${b.component}Props = \\{[\\s\\S]*?^\\};`, "m").exec(src)?.[0] ?? "";
+  // The named types the props use (Link, Action, PricingPlan…), defined in the same file.
+  const used = [...new Set([...props.matchAll(/\b([A-Z][A-Za-z]+)\b/g)].map((m) => m[1]!))].filter((n) => n !== `${b.component}Props` && !/^(ReactNode|Record|Partial)$/.test(n));
+  const helpers = used.map((n) => new RegExp(`^(?:export )?type ${n} =[\\s\\S]*?;$`, "m").exec(src)?.[0]).filter(Boolean);
+  const out = [...helpers, props].join("\n").replace(/\n\s*\n/g, "\n");
+  contracts.set(id, out);
+  return out;
+}
+/** Required top-level props of a section (fields without "?"), from its contract. */
+const requiredProps = (id: string) => {
+  const b = PROOF_BLOCKS.find((x) => x.id === id)!;
+  const body = new RegExp(`type ${b.component}Props = \\{([\\s\\S]*?)^\\};`, "m").exec(blockContract(id))?.[1] ?? "";
+  return [...body.matchAll(/^  ([a-zA-Z]+): /gm)].map((m) => m[1]!).filter((k) => !["id", "year", "children", "onSelect", "className"].includes(k));
+};
+
+/** What's wrong with a composed page: its structure (a hero, information, a call to action, a footer) and each section's required content. */
+function pageProblems(page: ProofPage): string[] {
+  const roles = page.sections.map((x) => PROOF_BLOCKS.find((b) => b.id === x.block)!.role);
+  const out: string[] = [];
+  const hero = roles.indexOf("hero");
+  if (hero < 0) out.push("the page needs a hero section (hero-split, hero-centered, hero-stats or hero-gradient)");
+  else if (roles.slice(0, hero).some((r) => r !== "nav")) out.push("the hero comes first (after the top bar)");
+  if (roles.filter((r) => r === "hero").length > 1) out.push("one hero only");
+  if (roles.filter((r) => r === "info" || r === "social").length < 2) out.push("add at least two sections about the app: what it does, how it works, who it's for, proof");
+  if (!roles.includes("cta")) out.push("add a closing call to action (cta-banner or cta-split)");
+  if (roles[roles.length - 1] !== "footer") out.push("end with a footer (footer-columns or footer-simple)");
+  for (const x of page.sections) {
+    const missing = requiredProps(x.block).filter((k) => x.props[k] === undefined || x.props[k] === "" || (Array.isArray(x.props[k]) && !(x.props[k] as unknown[]).length));
+    if (missing.length) out.push(`${x.block} is missing ${missing.join(", ")}`);
+  }
+  return out;
+}
+
+/** Fills what FlowCode knows (ids, the year, the bar's variant) so the agent only writes content. */
+function completePage(page: ProofPage): ProofPage {
+  return {
+    sections: page.sections.map((x, i) => {
+      const props: Record<string, unknown> = { ...x.props };
+      if (props.id === undefined) props.id = `${x.block}-${i}`;
+      if (x.block.startsWith("footer") && typeof props.year !== "number") props.year = new Date().getFullYear();
+      if (x.block === "top-nav-variants") props.variant = "marketing";
+      return { block: x.block, props };
+    }),
   };
-  return `${s.frame === "side-nav" ? "side navigation" : s.frame === "top-nav" ? "top navigation" : "minimal frame"} (${s.nav.join(", ")}); ${s.layout} layout; main: ${s.main.map(block).join("; ")}${s.aside?.length ? `; aside: ${s.aside.map(block).join("; ")}` : ""}`;
 }
 
 async function work(d: Deps, runId: string) {
@@ -250,24 +303,22 @@ async function makeProof(d: Deps, p: DesignProofs, proof: DesignProof): Promise<
   const all = p.rounds.flatMap((r) => r.proofs);
   const index = all.indexOf(proof);
   const base = proof.revises ? proofById(p, proof.revises) : undefined;
-  const others = all.filter((x) => x.status === "ready" && x.id !== proof.id && x.screen);
-  // Every proof shows the same screen: the first one decides it (the heart of the primary user journey).
-  const first = all.find((x) => x.screen);
+  const others = all.filter((x) => x.status === "ready" && x.id !== proof.id && x.page);
   // Locks the person set on the Look stay: those groups come from their Look, whatever the designer writes.
   const design = getDesignState(d.store, run.projectId);
   const locks = design.locks ?? [];
   const look = design.draft?.appearance ?? design.selected?.appearance ?? design.applied?.appearance;
 
   const library = d.store.skills.list("updated_at DESC", 200).filter((s) => s.enabled !== false);
-  const task = "Design the main screen of the app: composition, layout, visual hierarchy, typography, color palette, accessibility and contrast, responsive behavior and motion.";
+  const task = "Design the product's home page: a hero introduction, sections about what the app does and who it is for, layout, visual hierarchy, typography, color palette, accessibility and contrast, responsive behavior and motion.";
   const ids = [...designSkillIds(task), ...selectSkills(library, "designer" as AgentRole, `${task} ${p.brief?.preferences ?? ""}`, 3).map((s) => s.id)];
   const skills = [...new Set(ids)].map((id) => library.find((s) => s.id === id)).filter((s): s is NonNullable<typeof s> => !!s).slice(0, 4);
-  // A few library pieces that fit, as inspiration only (names, not the library): the proof is its own composition.
-  const pieces = LIBRARY_SECTIONS.filter((x) => x.ref?.startsWith("t.") || x.ref?.startsWith("b.")).filter((x) => x.useCases?.some((u) => `${run.objective} ${prd}`.toLowerCase().includes(u.split(" ")[0]!))).slice(0, 6).map((x) => `${x.name} (${x.look ?? x.description})`);
-
+  // The library sections it may use, each with its props contract (only these, not the whole library).
+  const catalog = PROOF_BLOCKS.map((b) => `### ${b.id} (${b.role}): ${b.use}\n${blockContract(b.id)}`).join("\n\n");
   const system = [
-    "You are FlowCode's product designer. You propose one custom design concept for the main screen of an app before it is built: a design specification and a composition of that screen, written with the product's own content (names, items, times, prices from the request and PRD; never lorem ipsum, never generic placeholders).",
-    "Make a real, specific design for this product and its audience: a clear primary action, a strong hierarchy, content that reflects the primary user journey. Avoid generic SaaS templates and AI-looking defaults.",
+    "You are FlowCode's senior product designer. You propose one design concept for the product's home page before it is built: a design specification (type, palette, density, surface, corners) and the page composed from FlowCode's Component library sections, each with its props written in the product's own words (names, classes, times, prices, places from the request and PRD; never lorem ipsum, never generic placeholders, never \"Feature 1\").",
+    "The page, in order: the top bar (top-nav-variants), one hero that introduces the product and its main action, two to four sections about the app (what it does, how it works, who it's for, proof such as numbers or quotes, prices or questions when they matter), a closing call to action, and a footer. Write props exactly as each section's contract describes (field names and shapes); links are {\"label\", \"href\"} with href \"#\".",
+    "Make it production quality and specific to this product and its people. Avoid generic SaaS copy and AI-looking defaults.",
     "Rules: fonts only from the given list; text on background and surfaces at least 4.5:1 contrast, the accent on the background at least 3:1, text on the accent at least 4.5:1; corners at most 12px; surfaces Flat or Tactile (skeuomorphism) only.",
     "\"name\" is the name of this design direction in two or three words (like \"Morning light\" or \"Studio ledger\"), never the screen's or the product's name. \"rationale\" says in two sentences why this direction fits this product and its people.",
     "Answer with JSON only, matching the schema.",
@@ -278,12 +329,12 @@ async function makeProof(d: Deps, p: DesignProofs, proof: DesignProof): Promise<
     p.brief?.preferences ? `The person's preferences: ${p.brief.preferences}` : "",
     p.brief?.avoid ? `Avoid: ${p.brief.avoid}` : "",
     p.brief?.inspiration?.length ? `Inspiration they attached: ${p.brief.inspiration.join("; ")}` : "",
-    pieces.length ? `FlowCode library patterns that may inspire parts of it (not to copy as a whole): ${pieces.join("; ")}` : "",
-    first?.screen ? `Show the same screen as the other proofs: "${first.screen.title}" (${first.screen.purpose}). Use the same product content.` : "Choose the screen at the heart of the primary user journey (the one people use most), and say what it is for.",
-    base?.screen ? `Revise this proof: ${base.name}: ${base.rationale}\nIts composition: ${describeScreen(base.screen)}\nKeep what works; change what the person asks.` : "",
+    `The Component library sections you can use, with their props contracts:\n\n${catalog}`,
+    base?.page ? `Revise this proof: ${base.name}: ${base.rationale}\nIts page: ${describePage(base.page)}\nKeep what works; change what the person asks.` : "",
     proof.feedback ? `The person's feedback: ${proof.feedback}` : "",
     !base ? DIRECTIONS[index % 3] : "",
-    others.length ? `It must differ meaningfully from these proofs (composition, hierarchy, type and color), not only in color:\n${others.map((x) => `- ${x.name}: ${x.screen!.frame}, ${x.screen!.layout}, ${(x.spec as DesignSpec).typography.display}, background ${(x.spec as DesignSpec).palette.bg}`).join("\n")}` : "",
+    others.length ? `Its name must be its own, not any of: ${others.map((x) => `"${x.name}"`).join(", ")}.` : "",
+    others.length ? `It must differ meaningfully from these proofs (a different hero, a different mix of sections, different type and color), not only in color:\n${others.map((x) => `- ${x.name}: ${describePage(x.page!).slice(0, 300)}; ${(x.spec as DesignSpec).typography.display}, background ${(x.spec as DesignSpec).palette.bg}`).join("\n")}` : "",
     locks.length && look ? `Locked by the person (keep exactly): ${locks.join(", ")} as in their current Look (${look.fonts.display}/${look.fonts.body}, primary ${look.primary}, ${look.mode}).` : "",
   ].filter(Boolean).join("\n\n");
 
@@ -296,7 +347,7 @@ async function makeProof(d: Deps, p: DesignProofs, proof: DesignProof): Promise<
         { role: "user", content: note ? `${user}\n\nYour last answer had problems; fix them: ${note}` : user },
       ],
       format: answerSchema(),
-      maxOutputTokens: 6000,
+      maxOutputTokens: 8000,
       timeoutMs: 8 * 60_000,
     });
     let raw: unknown;
@@ -315,14 +366,14 @@ async function makeProof(d: Deps, p: DesignProofs, proof: DesignProof): Promise<
     // Local models get the hue right and the contrast wrong: FlowCode fixes contrast itself (only the failing colors,
     // moved toward black or white until they pass WCAG AA), keeps the design, and says what it changed.
     const fixed = locks.includes("colors") ? [] : fixContrast(a.palette);
-    if (first?.screen && !proof.revises && a.screen.title.toLowerCase() !== first.screen.title.toLowerCase()) a.screen.title = first.screen.title;
+    a.page = completePage(a.page);
     const spec = toSpec(a, proof.id);
-    const problems = specProblems(spec, [...DEFAULT_SURFACES, ...design.surfaceExceptions]);
+    const problems = [...pageProblems(a.page), ...specProblems(spec, [...DEFAULT_SURFACES, ...design.surfaceExceptions])];
     if (problems.length) {
       note = problems.join("; ");
       continue;
     }
-    return { name: a.name, rationale: a.rationale, spec, tokens: expectedTokens(spec), screen: a.screen, skills: skills.map((s) => s.id.replace(/^skill\./, "")), settings: [...settingsOf(spec), ...(fixed.length ? [{ label: "Contrast", value: `FlowCode adjusted ${fixed.join(", ")} to meet WCAG AA` }] : [])] };
+    return { name: a.name, rationale: a.rationale, spec, tokens: expectedTokens(spec), page: a.page, skills: skills.map((s) => s.id.replace(/^skill\./, "")), settings: [...settingsOf(spec), ...(fixed.length ? [{ label: "Contrast", value: `FlowCode adjusted ${fixed.join(", ")} to meet WCAG AA` }] : [])] };
   }
   throw new Error(`the designer's answer didn't pass FlowCode's checks (${note})`);
 }
@@ -403,7 +454,7 @@ function toSpec(a: ProofAnswer, id: string): DesignSpec {
     palette: a.palette,
     density: a.density,
     surface: { vibe: a.surface.vibe, radii: a.surface.radii, borderWidth },
-    composition: { contentWidth: a.contentWidth, changes: [{ target: a.screen.title, change: describeScreen(a.screen) }] },
+    composition: { contentWidth: a.contentWidth, changes: [{ target: "Home page", change: `Compose it from these library sections, in order: ${describePage(a.page)}` }] },
     signature: a.signature,
     responsive: [],
     sources: [{ kind: "internal", ref: "design proof", confidence: "medium" }],
