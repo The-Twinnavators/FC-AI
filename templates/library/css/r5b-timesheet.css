@@ -1,0 +1,137 @@
+/**
+ * Weekly timesheet with timer (b.timesheet-week): a white card with a timer bar, a week switch, a summary with a
+ * straight bar and an SVG day chart, day sections of entry rows and the submit footer. Prefixed fl-tms-; only the
+ * library's tokens. Adapted from HyperUI (MIT, Copyright (c) Mark Mead).
+ */
+.fl-tms {
+  display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5); color: var(--color-text);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-tms .fl-btn { transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)); }
+.fl-tms .fl-btn:active:not(:disabled) { scale: var(--press-scale, 0.97); }
+.fl-tms-title { margin: 0; font: var(--weight-semibold) max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))) / 1.25 var(--font-display, var(--font-sans)); }
+.fl-tms-err { flex-basis: 100%; margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+
+/* Timer bar. */
+.fl-tms-timer {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-3);
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken);
+  transition: border-color var(--duration-base) var(--easing), background-color var(--duration-base) var(--easing);
+}
+.fl-tms-timer.is-running { border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border)); background: color-mix(in srgb, var(--color-danger) 5%, var(--color-surface-sunken)); }
+.fl-tms-tp { flex: 0 1 13rem; min-width: 9rem; }
+.fl-tms-tp .fl-ctl-select, .fl-tms-field .fl-ctl-select { display: block; width: 100%; }
+.fl-tms-tp select { width: 100%; height: 40px; min-height: 40px; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-tms-tn { flex: 1 1 12rem; min-width: 0; }
+.fl-tms-tn .fl-input { width: 100%; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-tms-clock { min-width: 5.5ch; font: var(--weight-bold) max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))) / 1 var(--font-display, var(--font-sans)); font-variant-numeric: tabular-nums; text-align: right; }
+.fl-tms-timer.is-running .fl-tms-clock { color: var(--color-danger); }
+
+/* Week switch. */
+.fl-tms-weekbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.fl-tms-week { display: flex; align-items: center; gap: var(--space-1); }
+.fl-tms-week-name { min-width: 10.5rem; text-align: center; font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+
+/* Summary and day chart. */
+.fl-tms-sum { display: grid; grid-template-columns: minmax(0, 1fr) minmax(9rem, 14rem); gap: var(--space-4); align-items: end; padding: var(--space-4); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); }
+.fl-tms-total { display: grid; gap: var(--space-2); min-width: 0; }
+.fl-tms-total p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-tms-total p:first-child strong { color: var(--color-text); font: var(--weight-bold) max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))) / 1.1 var(--font-display, var(--font-sans)); }
+.fl-tms-bill strong { color: var(--color-text); font-weight: var(--weight-semibold); }
+.fl-tms-bar { position: relative; display: block; height: 8px; overflow: hidden; background: var(--color-border); }
+.fl-tms-bar > span { position: absolute; inset: 0; background: var(--color-accent); transform: scaleX(var(--fl-tms-w, 0)); transform-origin: left; transition: transform var(--duration-slow) var(--ease-out, var(--easing)); }
+@starting-style { .fl-tms-bar > span { transform: scaleX(0); } }
+.fl-tms-chart { display: grid; gap: var(--space-1); margin: 0; }
+.fl-tms-chart svg { display: block; width: 100%; height: 4.5rem; overflow: visible; }
+.fl-tms-col {
+  fill: color-mix(in srgb, var(--color-accent) 55%, var(--color-surface-sunken)); transform: scaleY(var(--h, 0)); transform-box: fill-box; transform-origin: center bottom;
+  transition: transform var(--duration-slow) var(--ease-out, var(--easing)), fill var(--duration-fast) var(--easing);
+  transition-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)), 0s;
+}
+@starting-style { .fl-tms-col { transform: scaleY(0); } }
+.fl-tms-col.is-today { fill: var(--color-accent); }
+.fl-tms-col.is-over { fill: var(--color-secondary, var(--color-accent)); }
+.fl-tms-target { stroke: var(--color-text-muted); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.fl-tms-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-tms-days .is-today { color: var(--color-text); }
+
+.fl-tms-locked {
+  position: relative; display: flex; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-3) var(--space-3) var(--space-3) calc(var(--space-3) + 4px);
+  border-radius: 0 min(var(--radius-sm), 8px) min(var(--radius-sm), 8px) 0; background: color-mix(in srgb, var(--color-success) 10%, var(--surface-bg, var(--color-surface)));
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); animation: fl-tms-rise var(--duration-base) var(--ease-out, var(--easing)) backwards;
+}
+.fl-tms-locked::before { content: ""; position: absolute; inset-block: 0; left: 0; width: 4px; background: var(--color-success); }
+.fl-tms-locked svg { width: 1rem; height: 1rem; color: var(--color-success); }
+
+/* Days and entries. */
+.fl-tms-list { display: grid; gap: var(--space-1); }
+.fl-tms-day { display: grid; gap: var(--space-1); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
+.fl-tms-day:last-child { border-bottom: 0; }
+.fl-tms-day-head { display: flex; align-items: center; gap: var(--space-2); min-height: 32px; }
+.fl-tms-day-head h4 { display: flex; align-items: center; gap: var(--space-2); margin: 0; font: var(--weight-semibold) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1.3 var(--font-sans); }
+.fl-tms-tag { padding: 0 var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-text); color: var(--surface-bg, var(--color-surface)); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-tms-day-total { margin-left: auto; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-tms-rows { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.fl-tms-row {
+  --fl-tms-tone: var(--color-accent);
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto 3.75rem auto; align-items: center; gap: var(--space-1) var(--space-3);
+  padding: var(--space-2); border-radius: min(var(--radius-sm), 8px); transition: background-color var(--duration-fast) var(--easing);
+  animation: fl-tms-rise var(--duration-base) var(--ease-out, var(--easing)) backwards;
+}
+.fl-tms-row:hover { background: color-mix(in srgb, var(--color-text) 3%, transparent); }
+.fl-tms-row--1 { --fl-tms-tone: var(--color-secondary, var(--color-accent)); }
+.fl-tms-row--2 { --fl-tms-tone: var(--color-success); }
+.fl-tms-row--3 { --fl-tms-tone: var(--color-warning); }
+.fl-tms-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--fl-tms-tone); }
+.fl-tms-what { display: grid; gap: 2px; min-width: 0; }
+.fl-tms-what strong { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); overflow-wrap: anywhere; }
+.fl-tms-what span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-tms-range { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fl-tms-len { text-align: right; font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-tms-acts { display: flex; gap: 2px; }
+
+.fl-tms-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2) var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+.fl-tms-why { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-tms-foot .fl-tms-err { flex-basis: 100%; text-align: right; }
+
+/* Dialog. */
+.fl-tms-form { display: grid; gap: var(--space-3); }
+.fl-tms-field { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-tms-field > label { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-tms-field > label span { font-weight: normal; }
+.fl-tms-form .fl-input, .fl-tms-form select { width: 100%; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-tms-form select { height: 44px; min-height: 44px; }
+.fl-tms-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.fl-tms-len-note { min-height: 1.3em; margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+
+/* Loading and empty. */
+.fl-tms-ghosts { display: grid; gap: var(--space-2); }
+.fl-tms-ghost { display: block; height: 3rem; border-radius: min(var(--radius-sm), 8px); background: var(--color-surface-sunken); animation: fl-tms-pulse 1.2s var(--easing) infinite alternate; }
+.fl-tms-ghost--big { height: 7rem; }
+.fl-tms-state { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-4) var(--space-3); text-align: center; }
+.fl-tms-state > svg { width: 1.75rem; height: 1.75rem; color: var(--color-text-muted); }
+.fl-tms-state strong { font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+.fl-tms-state p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+@keyframes fl-tms-rise { from { opacity: 0; translate: 0 var(--enter-distance, 6px); } }
+@keyframes fl-tms-pulse { from { opacity: 1; } to { opacity: 0.45; } }
+
+@media (max-width: 36rem) {
+  .fl-tms { padding: var(--space-4); }
+  .fl-tms-tp { flex: 1 1 100%; }
+  .fl-tms-tn { flex-basis: 100%; }
+  .fl-tms-clock { margin-right: auto; text-align: left; }
+  .fl-tms-week-name { min-width: 0; }
+  .fl-tms-sum { grid-template-columns: minmax(0, 1fr); }
+  .fl-tms-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .fl-tms-range { grid-column: 2; grid-row: 2; }
+  .fl-tms-len { grid-column: 3; grid-row: 1; }
+  .fl-tms-acts { grid-column: 3; grid-row: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-tms-row, .fl-tms-locked { animation: none; }
+  .fl-tms-bar > span, .fl-tms-col, .fl-tms-timer { transition: none; }
+  .fl-tms-ghost { animation: none; opacity: 0.7; }
+}
+:root[data-motion="off"] .fl-tms * { transition: none !important; animation: none !important; }

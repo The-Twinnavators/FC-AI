@@ -67,7 +67,8 @@ describe("the catalog reaches the build's agents", () => {
     const match = app.store.getSetting<{ screens: Array<{ screen: string; picks: Array<{ ref: string }> }> } | null>(`catalogManifest:${run.id}`, null)!;
     expect(match.screens[0]!.picks.map((p) => p.ref)).toContain("p.plan-comparison");
     // The planner writing the brief saw that list (it can only choose matched, real parts).
-    expect(briefPartsSeen).toContain("- p.plan-comparison:");
+    // Each candidate arrives as its catalog card (what it does, gives a page, needs), not its name alone.
+    expect(briefPartsSeen).toMatch(/- p\.plan-comparison \(pattern, [^\n]*Gives a page: compare/);
     // Composition manifest: the chosen part as an entry with its contract facts; the invented one as a gap.
     const comp = app.store.getSetting<CompositionManifest | null>(compositionKey(run.id), null)!;
     expect(comp.entries).toEqual([expect.objectContaining({ page: "Plans", section: "Compare plans", ref: "p.plan-comparison", version: "base", mode: "whole", by: "plan", pieceId: "table-plan-compare", appFile: "src/sections/TablePlanCompare.tsx" })]);

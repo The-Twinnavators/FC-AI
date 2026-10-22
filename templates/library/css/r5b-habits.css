@@ -1,0 +1,125 @@
+/**
+ * Habit tracker (b.habit-tracker): a white card with a week switch, a today strip with one straight bar, and a grid of
+ * habits by day with round tick buttons, a weekly ring and an edit button. Prefixed fl-hab-; only the library's tokens.
+ * Adapted from TailAdmin (MIT, Copyright (c) 2023 TailAdmin).
+ */
+.fl-hab {
+  display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5); color: var(--color-text);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-hab .fl-btn { transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)); }
+.fl-hab .fl-btn:active:not(:disabled) { scale: var(--press-scale, 0.97); }
+.fl-hab-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+.fl-hab-title { margin: 0; margin-right: auto; font: var(--weight-semibold) max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))) / 1.25 var(--font-display, var(--font-sans)); }
+.fl-hab-week { display: flex; align-items: center; gap: var(--space-1); }
+.fl-hab-week-name { min-width: 10.5rem; text-align: center; font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+
+/* Today strip. */
+.fl-hab-today { display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); }
+.fl-hab-today > p:first-child { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-hab-today strong { color: var(--color-text); font: var(--weight-bold) max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))) / 1.1 var(--font-display, var(--font-sans)); font-variant-numeric: tabular-nums; }
+.fl-hab-best { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; color: var(--color-text); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-hab-best svg, .fl-hab-meta svg { width: 0.85rem; height: 0.85rem; color: var(--color-warning); }
+.fl-hab-bar { position: relative; display: block; height: 6px; overflow: hidden; background: var(--color-border); }
+.fl-hab-bar > span { position: absolute; inset: 0; background: var(--color-success); transform: scaleX(var(--fl-hab-w, 0)); transform-origin: left; transition: transform var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-hab-all { display: inline-flex; align-items: center; gap: var(--space-1); margin: 0; color: var(--color-success); font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); animation: fl-hab-rise var(--duration-base) var(--ease-spring, var(--ease-out)) backwards; }
+.fl-hab-all svg { width: 1rem; height: 1rem; }
+
+/* The grid: one template shared by the header row and every habit row. */
+.fl-hab-grid { display: grid; min-width: 0; }
+.fl-hab-row {
+  --fl-hab-tone: var(--color-accent);
+  display: grid; grid-template-columns: minmax(8rem, 1fr) repeat(7, 2.25rem) 4.5rem 2.25rem; align-items: center; gap: var(--space-1) var(--space-2);
+  padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border);
+  animation: fl-hab-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms));
+}
+.fl-hab-row:last-child { border-bottom: 0; }
+.fl-hab-row.is-secondary { --fl-hab-tone: var(--color-secondary, var(--color-accent)); }
+.fl-hab-row.is-success { --fl-hab-tone: var(--color-success); }
+.fl-hab-row.is-warning { --fl-hab-tone: var(--color-warning); }
+.fl-hab-row--head { padding-top: 0; animation: none; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-hab-dh { display: grid; justify-items: center; gap: 2px; font-variant-numeric: tabular-nums; }
+.fl-hab-dh span:last-child { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; color: var(--color-text); }
+.fl-hab-dh.is-today span:last-child { background: var(--color-text); color: var(--surface-bg, var(--color-surface)); }
+.fl-hab-name { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px var(--space-2); min-width: 0; }
+.fl-hab-row--head .fl-hab-name { display: block; }
+.fl-hab-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--fl-hab-tone); }
+.fl-hab-name strong { overflow-wrap: anywhere; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-hab-meta { grid-column: 2; display: flex; flex-wrap: wrap; gap: 2px var(--space-3); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-hab-meta > span { display: inline-flex; align-items: center; gap: 3px; }
+.fl-hab-meta > span:nth-child(2) svg { color: var(--color-text-muted); }
+.fl-hab-cell { display: grid; place-items: center; }
+
+/* Day buttons: round, filled with the habit's color when done. */
+.fl-hab-day {
+  display: grid; place-items: center; width: 2rem; height: 2rem; padding: 0; border: 1.5px solid var(--color-border); border-radius: 50%;
+  background: transparent; color: var(--color-on-accent); cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing));
+}
+.fl-hab-day:hover:not([aria-disabled="true"]) { border-color: var(--fl-hab-tone); }
+.fl-hab-day:active:not([aria-disabled="true"]) { scale: 0.9; }
+.fl-hab-day.is-today { border-color: var(--color-text-muted); border-width: 2px; }
+.fl-hab-day[aria-pressed="true"] { border-color: var(--fl-hab-tone); background: var(--fl-hab-tone); }
+.fl-hab-day[aria-pressed="true"] svg { width: 1rem; height: 1rem; animation: fl-hab-pop var(--duration-base) var(--ease-spring, var(--ease-out)) backwards; }
+.fl-hab-day[aria-disabled="true"] { border-style: dashed; opacity: 0.45; cursor: default; }
+.fl-hab-day:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Week count with a ring. */
+.fl-hab-wk { display: flex; align-items: center; gap: var(--space-1); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-hab-row--head .fl-hab-wk { font-weight: var(--weight-semibold); }
+.fl-hab-wk svg { flex: none; width: 1.5rem; height: 1.5rem; rotate: -90deg; }
+.fl-hab-ring-bg, .fl-hab-ring { fill: none; stroke-width: 4; }
+.fl-hab-ring-bg { stroke: var(--color-surface-sunken); }
+.fl-hab-ring { stroke: var(--fl-hab-tone); stroke-dasharray: 100; stroke-linecap: butt; transition: stroke-dashoffset var(--duration-slow) var(--ease-out, var(--easing)), stroke var(--duration-fast) var(--easing); }
+.fl-hab-wk.is-met { color: var(--color-success); }
+.fl-hab-wk.is-met .fl-hab-ring { stroke: var(--color-success); }
+.fl-hab-ed { display: grid; place-items: center; }
+
+/* Dialog. */
+.fl-hab-form { display: grid; gap: var(--space-4); }
+.fl-hab-field { display: grid; gap: var(--space-1); }
+.fl-hab-field > label, .fl-hab-time label { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-hab-form .fl-input { width: 100%; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-hab-remind { display: grid; gap: var(--space-2); }
+.fl-hab-time { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)), opacity var(--duration-fast) var(--easing); }
+.fl-hab-time.is-open { grid-template-rows: 1fr; opacity: 1; }
+.fl-hab-time > div { display: grid; gap: var(--space-1); min-height: 0; overflow: hidden; padding: 2px; }
+.fl-hab-time .fl-input { max-width: 10rem; }
+.fl-hab-err { margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-hab-delete { justify-self: start; color: var(--color-danger); }
+
+/* Loading and empty. */
+.fl-hab-ghosts { display: grid; gap: var(--space-2); }
+.fl-hab-ghost { display: block; height: 3rem; border-radius: min(var(--radius-sm), 8px); background: var(--color-surface-sunken); animation: fl-hab-pulse 1.2s var(--easing) infinite alternate; }
+.fl-hab-ghost--strip { height: 4rem; }
+.fl-hab-state { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-5) var(--space-3); text-align: center; }
+.fl-hab-state > svg { width: 1.75rem; height: 1.75rem; color: var(--color-text-muted); }
+.fl-hab-state strong { font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+.fl-hab-state p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+@keyframes fl-hab-rise { from { opacity: 0; translate: 0 var(--enter-distance, 6px); } }
+@keyframes fl-hab-pop { from { opacity: 0; scale: 0.5; } }
+@keyframes fl-hab-pulse { from { opacity: 1; } to { opacity: 0.45; } }
+
+/* Phone: the name takes its own line above the seven days. */
+@media (max-width: 40rem) {
+  .fl-hab { padding: var(--space-4); }
+  .fl-hab-title { flex-basis: 100%; }
+  .fl-hab-week-name { min-width: 0; }
+  .fl-hab-best { margin-left: 0; }
+  .fl-hab-row { grid-template-columns: repeat(7, 2rem) minmax(0, 1fr); gap: var(--space-2) 4px; }
+  .fl-hab-row .fl-hab-name { grid-column: 1 / 8; grid-row: 1; }
+  .fl-hab-row .fl-hab-ed { grid-column: 8; grid-row: 1; justify-self: end; }
+  .fl-hab-row .fl-hab-wk { grid-column: 8; grid-row: 2; justify-self: end; }
+  .fl-hab-row--head .fl-hab-name, .fl-hab-row--head .fl-hab-ed { display: none; }
+  .fl-hab-row--head .fl-hab-wk { grid-row: 1; }
+  .fl-hab-row--head .fl-hab-dh { grid-row: 1; }
+  .fl-hab-wk svg { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-hab-row, .fl-hab-all, .fl-hab-day[aria-pressed="true"] svg { animation: none; }
+  .fl-hab-bar > span, .fl-hab-ring, .fl-hab-time { transition: none; }
+  .fl-hab-ghost { animation: none; opacity: 0.7; }
+}
+:root[data-motion="off"] .fl-hab * { transition: none !important; animation: none !important; }

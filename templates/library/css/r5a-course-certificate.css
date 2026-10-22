@@ -1,0 +1,109 @@
+/**
+ * Course certificate (p.certificate): the certificate beside a share and verify column. Prefixed fl-crt-; only the
+ * library's tokens.
+ * Adapted from Creative Tim UI (MIT License, Copyright (c) 2025 Creative Tim).
+ */
+.fl-crt { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(16rem, 1fr); gap: var(--space-5); align-items: start; min-width: 0; color: var(--color-text); }
+.fl-crt-card, .fl-crt-paper {
+  min-width: 0; background: var(--surface-bg, var(--color-surface));
+  border: var(--surface-border, 1px solid var(--color-border)); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-crt-muted { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-crt-strong { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-crt .fl-btn { transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)); }
+.fl-crt .fl-btn:active:not(:disabled) { scale: var(--press-scale, 0.97); }
+
+/* The certificate: a double frame inside the card. */
+.fl-crt-paper { padding: var(--space-4); animation: fl-crt-in var(--duration-slow) var(--ease-out, var(--easing)) backwards; }
+.fl-crt-frame {
+  display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-6, 2rem) var(--space-5); text-align: center;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border)); outline: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border)); outline-offset: 4px;
+  border-radius: min(var(--radius-sm, 4px), 12px);
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-accent) 6%, var(--color-surface)), var(--color-surface) 70%);
+}
+.fl-crt-issuer { display: inline-flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); color: var(--color-accent); }
+.fl-crt-issuer svg { width: 1.125rem; height: 1.125rem; }
+.fl-crt-kind { margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-text-muted); }
+.fl-crt-lede { margin: var(--space-2) 0 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-style: italic; color: var(--color-text-muted); }
+.fl-crt-name { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-3xl, var(--text-2xl, var(--text-xl))) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); line-height: 1.15; overflow-wrap: anywhere; }
+.fl-crt-course { margin: 0; font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-crt-skills { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-1); margin: var(--space-2) 0 0; padding: 0; list-style: none; }
+.fl-crt-skills li { padding: 2px var(--space-2); border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-crt-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: var(--space-4); align-items: end; width: 100%; margin-top: var(--space-5); text-align: left; }
+.fl-crt-facts { display: grid; gap: var(--space-1); margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-crt-facts > div { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.fl-crt-facts dt { color: var(--color-text-muted); }
+.fl-crt-facts dd { margin: 0; font-weight: var(--weight-semibold); }
+.fl-crt-mono { font-family: var(--font-mono, ui-monospace, monospace); }
+.fl-crt-seal {
+  display: grid; place-items: center; width: 4rem; height: 4rem; border-radius: 50%; color: var(--color-on-accent, var(--color-surface)); background: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--color-surface), 0 0 0 5px color-mix(in srgb, var(--color-accent) 50%, var(--color-border));
+  animation: fl-crt-pop var(--duration-slow) var(--ease-spring, var(--ease-out)) backwards; animation-delay: var(--duration-base, 200ms);
+}
+.fl-crt-seal svg { width: 1.75rem; height: 1.75rem; }
+.fl-crt-sign { display: grid; justify-items: end; gap: 2px; text-align: right; }
+.fl-crt-sign-name { font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-style: italic; }
+.fl-crt-sign-line { display: block; width: 100%; max-width: 10rem; height: 1px; background: var(--color-text-muted); }
+.fl-crt-sign-role { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+
+/* Share and verify. */
+.fl-crt-side { display: grid; gap: var(--space-4); min-width: 0; }
+.fl-crt-card { display: grid; gap: var(--space-4); padding: var(--space-5); animation: fl-crt-in var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-crt-side .fl-crt-card + .fl-crt-card { animation-delay: var(--stagger, 40ms); }
+.fl-crt-card h4 { margin: 0; font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-crt-vis { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); }
+.fl-crt-vis-text { display: grid; gap: 2px; min-width: 0; }
+.fl-crt-field { display: grid; gap: var(--space-1); min-width: 0; }
+.fl-crt-field > label { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-crt-row { display: flex; gap: var(--space-2); min-width: 0; }
+.fl-crt-row > :first-child { flex: 1 1 auto; min-width: 0; }
+.fl-crt-row .fl-input { width: 100%; min-width: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); text-overflow: ellipsis; }
+.fl-crt-row .fl-btn { flex: none; }
+.fl-crt-err, .fl-crt-ok { display: flex; align-items: center; gap: var(--space-1); margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium, 500); animation: fl-crt-in var(--duration-fast) var(--ease-out, var(--easing)) backwards; }
+.fl-crt-err { color: var(--color-danger); }
+.fl-crt-ok { color: var(--color-success); }
+.fl-crt-err svg, .fl-crt-ok svg { width: 0.875rem; height: 0.875rem; flex: none; }
+.fl-crt-alert { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-1); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-danger); border-radius: min(var(--radius-md), 12px); background: color-mix(in srgb, var(--color-danger) 8%, var(--color-surface)); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); animation: fl-crt-shake var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-crt-alert > span { flex: 1 1 10rem; }
+.fl-crt-alert svg { width: 1rem; height: 1rem; flex: none; color: var(--color-danger); }
+.fl-crt-alert:focus { outline: none; box-shadow: var(--focus-ring); }
+.fl-crt-note { margin: 0; padding: var(--space-2) var(--space-3); border-radius: min(var(--radius-md), 12px); background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface)); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-crt-result { display: grid; gap: var(--space-2); justify-items: start; padding: var(--space-3); border-radius: min(var(--radius-md), 12px); animation: fl-crt-in var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-crt-result.is-ok { background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface)); }
+.fl-crt-result.is-bad { background: color-mix(in srgb, var(--color-danger) 8%, var(--color-surface)); }
+.fl-crt-test { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-3); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); }
+.fl-crt-badge { padding: 2px var(--space-2); border-radius: var(--pill-radius, 999px); background: color-mix(in srgb, var(--color-warning) 22%, var(--color-surface)); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+
+@keyframes fl-crt-in { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+@keyframes fl-crt-pop { from { opacity: 0; scale: 0.6; rotate: -20deg; } }
+@keyframes fl-crt-shake { 0%, 100% { translate: 0 0; } 25% { translate: -4px 0; } 50% { translate: 4px 0; } 75% { translate: -2px 0; } }
+
+@media (max-width: 56rem) {
+  .fl-crt { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 34rem) {
+  .fl-crt-paper { padding: var(--space-2); }
+  .fl-crt-frame { padding: var(--space-5) var(--space-3); outline-offset: 2px; }
+  .fl-crt-card { padding: var(--space-4); }
+  .fl-crt-foot { grid-template-columns: minmax(0, 1fr) auto; }
+  .fl-crt-facts { grid-column: 1 / -1; grid-row: 2; }
+  .fl-crt-seal { width: 3rem; height: 3rem; }
+  .fl-crt-row { flex-wrap: wrap; }
+  .fl-crt-row > :first-child { flex-basis: 100%; }
+  .fl-crt-row .fl-btn { flex: 1 1 auto; }
+}
+
+/* Print: only the certificate. */
+@media print {
+  body:has(.fl-crt-paper) * { visibility: hidden; }
+  body:has(.fl-crt-paper) .fl-crt-paper, body:has(.fl-crt-paper) .fl-crt-paper * { visibility: visible; }
+  .fl-crt-paper { position: absolute; inset: 0 0 auto 0; border: 0; box-shadow: none; animation: none; }
+  .fl-crt-seal { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-crt-paper, .fl-crt-card, .fl-crt-result, .fl-crt-err, .fl-crt-ok, .fl-crt-alert, .fl-crt-seal { animation: fl-crt-fade var(--duration-fast, 120ms) var(--easing) backwards; animation-delay: 0ms; }
+  @keyframes fl-crt-fade { from { opacity: 0; } }
+  .fl-crt .fl-btn:active:not(:disabled) { scale: none; }
+}
+:root[data-motion="off"] .fl-crt, :root[data-motion="off"] .fl-crt *, :root[data-motion="off"] .fl-crt *::before, :root[data-motion="off"] .fl-crt *::after { transition: none !important; animation: none !important; }

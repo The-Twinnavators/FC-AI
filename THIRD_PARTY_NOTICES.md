@@ -118,6 +118,14 @@ Each was read for structure and rewritten in FlowCode's own React and design-tok
 - AstroWind (MIT, Copyright (c) 2023 onWidget): about story, story in numbers, plan comparison, press kit and partner
   application (`about-story`, `numbers-story`, `plans-accordion`, `press-kit`, `partner-apply`); the last two also follow
   Landwind (MIT, Copyright (c) 2022 Themesberg).
+- Learning: lesson player, quiz and learner progress follow HyperUI; flashcards Meraki UI; the course certificate Creative
+  Tim UI (`lesson-player`, `quiz-runner`, `learner-progress`, `flashcards-deck`, `course-certificate`).
+- Money and time: budget categories and habit tracker follow TailAdmin; transactions list and timesheet HyperUI; bill
+  splitter TailGrids (`budget-categories`, `habit-tracker`, `transactions-list`, `timesheet-week`, `bill-splitter`).
+- Operations: time off follows Creative Tim UI; shift schedule and inventory TailAdmin; shipment tracking and expense report
+  HyperUI (`time-off-request`, `shift-schedule`, `inventory-stock`, `shipment-tracking`, `expense-report`).
+- Content: media library, document review, version history, content approval and short links follow Meraki UI, TailGrids
+  and Tailblocks (`media-library`, `document-review`, `version-history`, `content-approval`, `short-links`).
 - TailGrids (MIT, Copyright (c) 2025 Tailgrids) and TailAdmin free edition (MIT, Copyright (c) 2023 TailAdmin): profile
   photo, tags manager, address form, survey builder and business details (`profile-photo`, `tags-manager`,
   `address-form`, `survey-builder`, `business-details`).

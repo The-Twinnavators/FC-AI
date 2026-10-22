@@ -1,0 +1,122 @@
+/**
+ * Expense report (b.expense-report): line cards with receipts and policy notes, and a totals panel with Submit.
+ * Prefixed fl-exr-; only the library's tokens. Adapted from HyperUI (MIT License, Copyright (c) Mark Mead).
+ */
+.fl-exr {
+  display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5); color: var(--color-text);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+@keyframes fl-exr-in { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-exr .fl-btn, .fl-exr-attach, .fl-exr-x { transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)); }
+.fl-exr .fl-btn:active:not(:disabled), .fl-exr-attach:active:not(:disabled) { scale: var(--press-scale, 0.97); }
+
+.fl-exr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.fl-exr-name { display: grid; gap: var(--space-1); flex: 1 1 16rem; min-width: 0; }
+.fl-exr-name .fl-input { width: 100%; max-width: 28rem; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-exr-name p { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+.fl-exr-total { display: grid; justify-items: end; gap: var(--space-1); }
+.fl-exr-total strong { font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-exr.is-locked .fl-exr-name .fl-input { border-color: transparent; background: none; padding-left: 0; }
+
+.fl-exr-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem); gap: var(--space-4); align-items: start; }
+.fl-exr-lines { display: grid; gap: var(--space-3); justify-items: start; min-width: 0; }
+.fl-exr-list { display: grid; gap: var(--space-3); width: 100%; margin: 0; padding: 0; list-style: none; }
+.fl-exr-line {
+  display: grid; gap: var(--space-2); min-width: 0; padding: var(--space-3); border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px);
+  background: var(--surface-bg, var(--color-surface)); transition: border-color var(--duration-base) var(--easing);
+  animation: fl-exr-in var(--duration-base) var(--ease-out, var(--easing)) backwards; animation-delay: calc(var(--fl-exr-i, 0) * var(--stagger, 30ms));
+}
+.fl-exr-line.has-error { border-color: color-mix(in srgb, var(--color-danger) 55%, var(--color-border)); }
+.fl-exr-fields { display: grid; grid-template-columns: 9.5rem minmax(8rem, 1fr) minmax(8rem, 11rem) 8rem; gap: var(--space-2); align-items: end; }
+.fl-exr-field { display: grid; gap: 2px; min-width: 0; }
+.fl-exr-field > label { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); color: var(--color-text-muted); }
+.fl-exr-field .fl-input { width: 100%; min-width: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-exr-field .fl-ctl-select { display: block; width: 100%; }
+.fl-exr-field select { width: 100%; height: 40px; min-height: 40px; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-exr-money { position: relative; display: block; }
+.fl-exr-money > span:first-child { position: absolute; left: var(--space-2); top: 50%; translate: 0 -50%; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); pointer-events: none; }
+.fl-exr-money .fl-input { padding-left: calc(var(--space-2) + 1ch + var(--space-1)); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Receipt slot: a dashed Attach button, or the file's name. */
+.fl-exr-receipt { min-width: 0; }
+.fl-exr-attach { display: inline-flex; align-items: center; gap: var(--space-1); height: 40px; padding: 0 var(--space-3); border: 1px dashed var(--color-border); border-radius: min(var(--radius-sm), 12px); background: var(--color-surface-sunken); color: var(--color-text); font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium, 500); white-space: nowrap; cursor: pointer; }
+.fl-exr-attach:hover:not(:disabled) { border-color: var(--color-accent); }
+.fl-exr-attach.is-invalid { border-color: var(--color-danger); color: var(--color-danger); }
+.fl-exr-attach:disabled, .fl-exr-attach[aria-disabled="true"] { cursor: default; opacity: 0.75; }
+.fl-exr-attach svg { width: 1rem; height: 1rem; }
+.fl-exr-attach:focus-visible, .fl-exr-x:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-exr-file { display: inline-flex; align-items: center; gap: var(--space-1); max-width: 11rem; height: 40px; padding: 0 var(--space-1) 0 var(--space-2); border-radius: min(var(--radius-sm), 12px); background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface)); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); animation: fl-exr-in var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-exr-file > svg { width: 0.875rem; height: 0.875rem; flex: none; color: var(--color-success); }
+.fl-exr-file > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-exr-x { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border: 0; border-radius: min(var(--radius-sm), 12px); background: none; color: var(--color-text-muted); cursor: pointer; }
+.fl-exr-x:hover { background: var(--color-surface); color: var(--color-text); }
+.fl-exr-x svg { width: 0.875rem; height: 0.875rem; }
+
+.fl-exr-extra { display: flex; align-items: center; gap: var(--space-2) var(--space-3); flex-wrap: wrap; }
+.fl-exr-extra .fl-exr-del { margin-left: auto; }
+.fl-exr-note { flex: 1 1 14rem; }
+.fl-exr-people { display: inline-flex; align-items: center; gap: var(--space-2); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); color: var(--color-text-muted); }
+
+/* Policy notes: a straight bar at the left, no curve on that side. */
+.fl-exr-issues { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.fl-exr-issues li { position: relative; display: flex; align-items: flex-start; gap: var(--space-2); padding: var(--space-1) var(--space-2) var(--space-1) calc(var(--space-2) + 3px); border-radius: 0 min(var(--radius-sm), 12px) min(var(--radius-sm), 12px) 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); animation: fl-exr-in var(--duration-fast) var(--ease-out, var(--easing)) backwards; }
+.fl-exr-issues li::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.fl-exr-issues li svg { width: 0.875rem; height: 0.875rem; flex: none; margin-top: 1px; }
+.fl-exr-issues .is-warn { background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface)); }
+.fl-exr-issues .is-warn::before { background: var(--color-warning); }
+.fl-exr-issues .is-error { background: var(--color-danger-surface, color-mix(in srgb, var(--color-danger) 9%, var(--color-surface))); color: var(--color-danger); font-weight: var(--weight-medium, 500); }
+.fl-exr-issues .is-error::before { background: var(--color-danger); }
+
+.fl-exr-empty { display: grid; justify-items: center; gap: var(--space-2); width: 100%; padding: var(--space-6, 2rem) var(--space-4); border: 1px dashed var(--color-border); border-radius: min(var(--radius-md), 12px); text-align: center; }
+.fl-exr-empty > svg { width: 1.75rem; height: 1.75rem; color: var(--color-text-muted); }
+.fl-exr-empty p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+/* Totals panel */
+.fl-exr-sum { position: sticky; top: var(--space-4); display: grid; gap: var(--space-3); padding: var(--space-4); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); }
+.fl-exr-sum h4 { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-exr-cats { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.fl-exr-cats li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-2); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-exr-cats li strong { font-variant-numeric: tabular-nums; }
+.fl-exr-cats li.is-no span:first-child { text-decoration: line-through; color: var(--color-text-muted); }
+.fl-exr-bar { grid-column: 1 / -1; display: block; height: 4px; background: var(--color-border); }
+.fl-exr-bar > span { display: block; height: 100%; width: calc(var(--w, 0) * 100%); background: var(--color-accent); transition: width var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-exr-cats li.is-no .fl-exr-bar > span { background: var(--color-text-muted); }
+.fl-exr-muted { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-exr-dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-1) var(--space-2); margin: 0; padding-top: var(--space-3); border-top: 1px solid var(--color-border); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-exr-dl dt { color: var(--color-text-muted); }
+.fl-exr-dl dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.fl-exr-dl .is-big { color: var(--color-text); font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+.fl-exr-flags { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); color: var(--color-warning); }
+.fl-exr-flags svg { width: 0.875rem; height: 0.875rem; }
+.fl-exr-agree { display: grid; gap: var(--space-2); }
+.fl-exr-err { display: flex; align-items: center; gap: var(--space-1); margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium, 500); color: var(--color-danger); }
+.fl-exr-err svg { width: 0.875rem; height: 0.875rem; flex: none; }
+
+@media (max-width: 60rem) {
+  .fl-exr-fields { grid-template-columns: 9.5rem minmax(0, 1fr) minmax(0, 8rem); }
+  .fl-exr-merchant { grid-column: span 2; }
+  .fl-exr-cat { grid-column: 1 / span 2; }
+}
+@media (max-width: 44rem) {
+  .fl-exr { padding: var(--space-4); }
+  .fl-exr-layout { grid-template-columns: minmax(0, 1fr); }
+  .fl-exr-sum { position: static; }
+}
+@media (max-width: 30rem) {
+  .fl-exr-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .fl-exr-merchant { grid-column: 1 / -1; grid-row: 1; }
+  .fl-exr-date { grid-column: 1; grid-row: 2; }
+  .fl-exr-amount { grid-column: 2; grid-row: 2; }
+  .fl-exr-cat { grid-column: 1 / -1; grid-row: 3; }
+  .fl-exr-note { flex-basis: 100%; }
+  .fl-exr-total { justify-items: start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-exr-line, .fl-exr-file, .fl-exr-issues li { animation: fl-exr-fade var(--duration-fast, 120ms) var(--easing) backwards; animation-delay: 0s; }
+  @keyframes fl-exr-fade { from { opacity: 0; } }
+  .fl-exr-bar > span { transition-duration: 1ms; }
+  .fl-exr .fl-btn:active:not(:disabled), .fl-exr-attach:active:not(:disabled) { scale: none; }
+}
+:root[data-motion="off"] .fl-exr, :root[data-motion="off"] .fl-exr *, :root[data-motion="off"] .fl-exr *::before, :root[data-motion="off"] .fl-exr *::after { transition: none !important; animation: none !important; }
