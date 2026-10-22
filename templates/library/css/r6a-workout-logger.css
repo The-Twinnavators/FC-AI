@@ -1,0 +1,204 @@
+/**
+ * Workout logger (b.workout-logger): a white card with a running clock and Finish, three count-up tiles, one block per
+ * exercise with a fold, move and remove, a set table with round ticks and PB pills, an Add exercise select and a rest
+ * bar with a draining ring. Prefixed fl-wkl-; only the library's tokens. Adapted from HyperUI (MIT, Copyright (c) Mark
+ * Mead).
+ */
+.fl-wkl {
+  container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5); color: var(--color-text);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-wkl .fl-btn { transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)); }
+.fl-wkl .fl-btn:active:not(:disabled) { scale: var(--press-scale, 0.98); }
+.fl-wkl .fl-input { transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing); }
+.fl-wkl-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+.fl-wkl-titles { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); min-width: 0; }
+.fl-wkl-title { margin: 0; font: var(--weight-semibold) max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))) / 1.25 var(--font-display, var(--font-sans)); }
+.fl-wkl-clock { display: inline-flex; align-items: center; gap: 4px; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-wkl-clock svg { width: 0.95rem; height: 0.95rem; }
+.fl-wkl-muted { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+/* Count-up tiles. */
+.fl-wkl-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin: 0; }
+.fl-wkl-stats > div {
+  display: grid; gap: 2px; padding: var(--space-3); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken);
+  animation: fl-wkl-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: calc(var(--i, 0) * var(--stagger, 40ms));
+}
+.fl-wkl-stats dt { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-wkl-stats dd { display: flex; align-items: center; gap: 4px; margin: 0; font: var(--weight-bold) max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))) / 1.15 var(--font-display, var(--font-sans)); font-variant-numeric: tabular-nums; }
+.fl-wkl-of { color: var(--color-text-muted); font: var(--weight-medium) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) var(--font-sans); }
+.fl-wkl-stats .is-pb dd { color: var(--color-warning); }
+.fl-wkl-stats .is-pb dd svg { width: 1rem; height: 1rem; animation: fl-wkl-pop var(--duration-base) var(--ease-spring, var(--ease-out)) backwards; }
+
+/* Alert: a straight bar on the left, square corners on that side. */
+.fl-wkl-alert {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-3);
+  border-left: 3px solid var(--color-danger); border-radius: 0 min(var(--radius-sm), 8px) min(var(--radius-sm), 8px) 0;
+  background: var(--color-surface-sunken); color: var(--color-text); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+  animation: fl-wkl-rise var(--duration-base) var(--ease-out, var(--easing)) backwards;
+}
+.fl-wkl-alert > svg { width: 1.1rem; height: 1.1rem; color: var(--color-danger); }
+.fl-wkl-alert > span { flex: 1 1 12rem; }
+
+/* Exercise blocks. */
+.fl-wkl-list { display: grid; gap: var(--space-3); }
+.fl-wkl-ex {
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--surface-bg, var(--color-surface));
+  transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
+  animation: fl-wkl-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms));
+}
+.fl-wkl-ex:focus-within { border-color: var(--color-text-muted); }
+.fl-wkl-exhead { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-1); }
+.fl-wkl-fold {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px var(--space-2); flex: 1; min-width: 0; padding: var(--space-2);
+  border: 0; border-radius: min(var(--radius-sm), 8px); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing)), box-shadow var(--duration-fast) var(--easing);
+}
+.fl-wkl-fold:hover { background: var(--color-surface-sunken); }
+.fl-wkl-fold:active { scale: 0.99; }
+.fl-wkl-fold:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-wkl-fold > svg { grid-row: 1 / 3; width: 1.1rem; height: 1.1rem; color: var(--color-text-muted); rotate: -90deg; transition: rotate var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-wkl-ex.is-open .fl-wkl-fold > svg { rotate: 0deg; }
+.fl-wkl-exname { font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); overflow-wrap: anywhere; }
+.fl-wkl-exmeta { display: flex; flex-wrap: wrap; gap: 2px var(--space-3); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-wkl-extools { display: flex; flex: none; gap: 2px; }
+.fl-wkl-up svg { rotate: 180deg; }
+
+/* Fold: grid rows 0fr to 1fr; the folded part is inert. */
+.fl-wkl-body { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)), opacity var(--duration-fast) var(--easing); }
+.fl-wkl-ex.is-open .fl-wkl-body { grid-template-rows: 1fr; opacity: 1; }
+.fl-wkl-body > div { display: grid; gap: var(--space-2); min-height: 0; overflow: hidden; padding: 0 var(--space-3); }
+.fl-wkl-ex.is-open .fl-wkl-body > div { padding-bottom: var(--space-3); }
+
+/* Set table. */
+.fl-wkl-sets { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-wkl-sets th, .fl-wkl-sets td { padding: 4px var(--space-1); text-align: left; vertical-align: middle; }
+.fl-wkl-sets thead th:nth-child(1) { width: 4.5rem; }
+.fl-wkl-sets thead th:nth-child(2) { width: 22%; }
+.fl-wkl-sets thead th:nth-child(5) { width: 6.5rem; }
+.fl-wkl-sets thead th { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-wkl-set { animation: fl-wkl-rise var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-wkl-set > th { white-space: nowrap; font-weight: var(--weight-semibold); }
+.fl-wkl-set > td, .fl-wkl-set > th { transition: background-color var(--duration-base) var(--easing); }
+.fl-wkl-set.is-done > td, .fl-wkl-set.is-done > th { background: var(--color-surface-sunken); }
+.fl-wkl-setno { display: inline-grid; place-items: center; min-width: 1.5rem; }
+.fl-wkl-pb {
+  display: inline-flex; align-items: center; gap: 2px; margin-left: 4px; padding: 1px 6px; border-radius: var(--pill-radius, 999px);
+  background: var(--color-warning); color: var(--color-text); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-bold);
+  animation: fl-wkl-pop var(--duration-base) var(--ease-spring, var(--ease-out)) backwards;
+}
+.fl-wkl-pb svg { width: 0.75rem; height: 0.75rem; }
+.fl-wkl-prev { color: var(--color-text-muted); white-space: nowrap; }
+.fl-wkl-num { width: 5rem; max-width: 100%; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-wkl-set.is-done .fl-wkl-num { color: var(--color-text-muted); }
+.fl-wkl-num { -moz-appearance: textfield; appearance: textfield; padding-inline: var(--space-2); }
+.fl-wkl-num::-webkit-inner-spin-button, .fl-wkl-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.fl-wkl-err { display: block; margin: 2px 0 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); animation: fl-wkl-rise var(--duration-fast) var(--ease-out, var(--easing)) backwards; }
+.fl-wkl-acts { white-space: nowrap; text-align: right !important; }
+.fl-wkl-tick, .fl-wkl-x {
+  display: inline-grid; place-items: center; height: 2rem; padding: 0; border: 1.5px solid var(--color-border); background: transparent; color: var(--color-text-muted); cursor: pointer; vertical-align: middle;
+  transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), width var(--duration-base) var(--ease-out, var(--easing)), opacity var(--duration-fast) var(--easing), scale var(--duration-instant, 80ms) var(--ease-out, var(--easing));
+}
+.fl-wkl-tick { width: 2rem; border-radius: 50%; overflow: hidden; }
+/* While a remove waits for its second press, the tick folds away to make room. */
+.fl-wkl-acts:has(.fl-wkl-x.is-armed) .fl-wkl-tick { width: 0; border-width: 0; opacity: 0; }
+.fl-wkl-tick svg { width: 1rem; height: 1rem; opacity: 0.35; transition: opacity var(--duration-fast) var(--easing); }
+.fl-wkl-tick:hover { border-color: var(--color-success); color: var(--color-success); }
+.fl-wkl-tick:hover svg { opacity: 1; }
+.fl-wkl-tick[aria-pressed="true"] { border-color: var(--color-success); background: var(--color-success); color: var(--color-on-accent); }
+.fl-wkl-tick[aria-pressed="true"] svg { opacity: 1; animation: fl-wkl-pop var(--duration-base) var(--ease-spring, var(--ease-out)) backwards; }
+.fl-wkl-x { width: 2rem; margin-left: 4px; border-color: transparent; border-radius: var(--pill-radius, 999px); }
+.fl-wkl-x svg { width: 0.9rem; height: 0.9rem; }
+.fl-wkl-x:hover { background: var(--color-surface-sunken); color: var(--color-danger); }
+.fl-wkl-x.is-armed { width: 5.25rem; border-color: var(--color-danger); background: var(--color-danger); color: var(--color-on-accent); font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) var(--font-sans); }
+.fl-wkl-x.is-armed span { animation: fl-wkl-pop var(--duration-fast) var(--ease-out, var(--easing)) backwards; }
+.fl-wkl-tick:active, .fl-wkl-x:active { scale: 0.92; }
+.fl-wkl-tick:focus-visible, .fl-wkl-x:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-wkl-addset { justify-self: start; }
+
+/* Add exercise, with a native select whose chevron sits 8px from the right edge. */
+.fl-wkl-addex { display: grid; gap: var(--space-1); }
+.fl-wkl-addex > label { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-wkl-addrow { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fl-wkl-select { position: relative; flex: 1 1 14rem; min-width: 0; }
+.fl-wkl-select::after {
+  content: ""; position: absolute; top: 50%; right: 8px; width: 7px; height: 7px; margin-top: -5px; pointer-events: none;
+  border-right: 1.5px solid var(--color-text-muted); border-bottom: 1.5px solid var(--color-text-muted); rotate: 45deg;
+}
+.fl-wkl-select select {
+  width: 100%; height: 40px; padding: 0 28px 0 var(--space-3); appearance: none; -webkit-appearance: none; cursor: pointer;
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-sm), 8px); background: var(--surface-bg, var(--color-surface)); color: var(--color-text);
+  font: inherit; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+  transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
+}
+.fl-wkl-select select:hover:not(:disabled) { border-color: var(--color-text-muted); }
+.fl-wkl-select select:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-wkl-select select[aria-invalid="true"] { border-color: var(--color-danger); }
+.fl-wkl-select select:disabled { opacity: 0.6; cursor: default; }
+
+/* Rest bar under the exercise just ticked: slides open while resting. */
+.fl-wkl-rest {
+  display: grid; grid-template-rows: 0fr; opacity: 0; translate: 0 var(--enter-distance, 8px);
+  transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)), opacity var(--duration-base) var(--easing), translate var(--duration-base) var(--ease-spring, var(--ease-out));
+}
+.fl-wkl-rest.is-on { grid-template-rows: 1fr; opacity: 1; translate: 0 0; }
+.fl-wkl-rest > div {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); min-height: 0; overflow: hidden;
+  border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); color: var(--color-text);
+}
+.fl-wkl-rest.is-on > div { padding: var(--space-2) var(--space-3); }
+.fl-wkl-ring { flex: none; width: 2.5rem; height: 2.5rem; rotate: -90deg; }
+.fl-wkl-ring-bg, .fl-wkl-ring-fg { fill: none; stroke-width: 4; }
+.fl-wkl-ring-bg { stroke: var(--color-border); }
+.fl-wkl-ring-fg { stroke: var(--color-success); stroke-dasharray: 100; transition: stroke-dashoffset 1s linear; }
+.fl-wkl-rest p { display: grid; margin: 0; margin-right: auto; }
+.fl-wkl-rest-label { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-wkl-rest strong { font: var(--weight-bold) max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))) / 1.1 var(--font-display, var(--font-sans)); font-variant-numeric: tabular-nums; }
+.fl-wkl-rest-tools { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.fl-wkl-rest .fl-ctl-btn--tertiary { color: inherit; }
+
+/* Summary. */
+.fl-wkl-done { display: grid; justify-items: center; gap: var(--space-3); padding: var(--space-3) 0; text-align: center; }
+.fl-wkl-done > h4 { margin: 0; font: var(--weight-semibold) max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))) / 1.2 var(--font-display, var(--font-sans)); }
+.fl-wkl-done-tick { display: grid; place-items: center; width: 3.25rem; height: 3.25rem; border-radius: 50%; background: var(--color-success); color: var(--color-on-accent); animation: fl-wkl-pop var(--duration-slow) var(--ease-spring, var(--ease-out)) backwards; }
+.fl-wkl-done-tick svg { width: 1.6rem; height: 1.6rem; }
+.fl-wkl-done .fl-wkl-stats { width: 100%; }
+.fl-wkl-bests { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.fl-wkl-bests li { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); animation: fl-wkl-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: calc(200ms + var(--i, 0) * var(--stagger, 40ms)); }
+.fl-wkl-bests svg { width: 1rem; height: 1rem; color: var(--color-warning); }
+
+/* Loading and empty. */
+.fl-wkl-ghosts { display: grid; gap: var(--space-2); }
+.fl-wkl-ghost { display: block; height: 7rem; border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); animation: fl-wkl-pulse 1.2s var(--easing) infinite alternate; }
+.fl-wkl-ghost--strip { height: 4.5rem; }
+.fl-wkl-empty { display: grid; justify-items: center; gap: var(--space-1); padding: var(--space-5) var(--space-3); text-align: center; border: 1px dashed var(--color-border); border-radius: min(var(--radius-md), 12px); }
+.fl-wkl-empty > svg { width: 1.6rem; height: 1.6rem; color: var(--color-text-muted); }
+.fl-wkl-empty p { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+@keyframes fl-wkl-rise { from { opacity: 0; transform: translateY(var(--enter-distance, 6px)); } }
+@keyframes fl-wkl-pop { 0% { opacity: 0; scale: 0.4; } 70% { opacity: 1; scale: 1.15; } 100% { scale: 1; } }
+@keyframes fl-wkl-pulse { from { opacity: 1; } to { opacity: 0.45; } }
+
+@container (max-width: 34rem) {
+  .fl-wkl { padding: var(--space-4); }
+  .fl-wkl-prev, .fl-wkl-prevh { display: none; }
+  .fl-wkl-num { width: 100%; }
+  .fl-wkl-sets thead th:nth-child(1) { width: 3.25rem; }
+  .fl-wkl-sets thead th:nth-child(5) { width: 4.75rem; }
+  .fl-wkl-x.is-armed { width: 4.5rem; }
+  .fl-wkl-body > div { padding-inline: var(--space-2); }
+  .fl-wkl-num { padding-inline: 6px; }
+  .fl-wkl-sets th, .fl-wkl-sets td { padding-inline: 2px; }
+  .fl-wkl-exhead { flex-wrap: wrap; }
+  .fl-wkl-extools { margin-left: auto; }
+  .fl-wkl-stats dd { font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+  .fl-wkl-stats > div { padding: var(--space-2); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-wkl-stats > div, .fl-wkl-alert, .fl-wkl-ex, .fl-wkl-set, .fl-wkl-pb, .fl-wkl-err, .fl-wkl-done-tick, .fl-wkl-bests li, .fl-wkl-x.is-armed span,
+  .fl-wkl-tick[aria-pressed="true"] svg, .fl-wkl-stats .is-pb dd svg { animation: none; }
+  .fl-wkl-body, .fl-wkl-rest, .fl-wkl-fold > svg, .fl-wkl-ring-fg, .fl-wkl-x { transition: none; }
+  .fl-wkl-ghost { animation: none; opacity: 0.7; }
+}
+:root[data-motion="off"] .fl-wkl, :root[data-motion="off"] .fl-wkl * { transition: none !important; animation: none !important; }

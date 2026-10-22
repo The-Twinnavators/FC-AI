@@ -126,6 +126,17 @@ Each was read for structure and rewritten in FlowCode's own React and design-tok
   HyperUI (`time-off-request`, `shift-schedule`, `inventory-stock`, `shipment-tracking`, `expense-report`).
 - Content: media library, document review, version history, content approval and short links follow Meraki UI, TailGrids
   and Tailblocks (`media-library`, `document-review`, `version-history`, `content-approval`, `short-links`).
+- Health: workout logger and medication schedule follow HyperUI; meal log TailAdmin; symptom check-in TailAdmin and
+  HyperUI; patient portal Creative Tim UI (`workout-logger`, `medication-schedule`, `meal-log`, `symptom-checkin`,
+  `patient-portal`).
+- Onboarding: product tour, what's new, usage limits, shortcuts sheet and feedback widget follow TailGrids, HyperUI and
+  Meraki UI (`product-tour`, `whats-new`, `usage-limits`, `shortcuts-sheet`, `feedback-widget`).
+- Community: forum threads, forum thread, public profile, community group and connection requests follow Meraki UI,
+  Tailblocks and Creative Tim UI (`forum-threads`, `forum-thread`, `public-profile`, `community-group`,
+  `connection-requests`).
+- Causes and travel: donation form and destination cards follow Tailblocks; fundraising progress and travel deals AstroWind;
+  volunteer sign-up Landwind (`donation-form`, `destination-cards`, `fundraising-progress`, `travel-deals`,
+  `volunteer-signup`).
 - TailGrids (MIT, Copyright (c) 2025 Tailgrids) and TailAdmin free edition (MIT, Copyright (c) 2023 TailAdmin): profile
   photo, tags manager, address form, survey builder and business details (`profile-photo`, `tags-manager`,
   `address-form`, `survey-builder`, `business-details`).

@@ -1,0 +1,150 @@
+/**
+ * Usage limits (p.usage-limits): a card with the plan tag and reset date, a warning strip that folds away, a grid of
+ * meter cards whose bars fill in and glide (accent, amber when close, red when full; unlimited striped), the email
+ * switch and Refresh; the compare dialog's period switch with a sliding thumb, plan choices with popping ticks and a
+ * What changes table. Prefixed fl-uplim-; only the library's tokens. Adapted from TailGrids (MIT, Copyright (c) 2025
+ * Tailgrids) and HyperUI (MIT, Copyright (c) Mark Mead).
+ */
+.fl-uplim {
+  container-type: inline-size; display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5);
+  background: var(--surface-bg, var(--color-surface)); border: var(--surface-border, 1px solid var(--color-border));
+  border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); box-shadow: var(--surface-shadow, none);
+}
+.fl-uplim-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.fl-uplim-heading { display: grid; gap: var(--space-1); min-width: 0; flex: 1 1 14rem; }
+.fl-uplim-heading h2 { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-uplim-heading p { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-uplim-plan { animation: fl-uplim-pop var(--duration-slow) var(--ease-spring, var(--ease-out)); }
+@keyframes fl-uplim-pop { 0% { scale: 0.7; opacity: 0; } 60% { scale: 1.08; } 100% { scale: 1; opacity: 1; } }
+
+/* Warning strip: folds on grid rows; a straight bar on its left edge (square corners on that side). */
+.fl-uplim-warn { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-uplim-warn.is-open { grid-template-rows: 1fr; }
+.fl-uplim-warn > div { min-height: 0; overflow: hidden; }
+.fl-uplim-warn-in {
+  --fl-uplim-tone: var(--color-warning);
+  display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border-left: 3px solid var(--fl-uplim-tone); border-radius: 0 min(var(--radius-md), 12px) min(var(--radius-md), 12px) 0;
+  background: color-mix(in srgb, var(--fl-uplim-tone) 12%, var(--color-surface)); color: var(--color-text);
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+}
+.fl-uplim-warn.is-full .fl-uplim-warn-in { --fl-uplim-tone: var(--color-danger); }
+.fl-uplim-warn-in > svg { width: 1.125rem; height: 1.125rem; flex: none; color: var(--fl-uplim-tone); }
+.fl-uplim-warn-in p { margin: 0; flex: 1; }
+
+.fl-uplim-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+@container (min-width: 52rem) { .fl-uplim-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@container (max-width: 24rem) { .fl-uplim-grid { grid-template-columns: minmax(0, 1fr); } }
+.fl-uplim-meter {
+  --fl-uplim-tone: var(--color-accent);
+  display: grid; gap: var(--space-2); align-content: start; padding: var(--space-3); border-radius: min(var(--radius-md), 12px);
+  background: var(--color-surface-sunken); border: 1px solid transparent;
+  transition: border-color var(--duration-base) var(--easing), background-color var(--duration-base) var(--easing);
+  animation: fl-uplim-rise var(--duration-base) var(--ease-out, var(--easing)) backwards; animation-delay: calc(var(--i) * var(--stagger, 40ms));
+}
+@keyframes fl-uplim-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+.fl-uplim-meter.is-close { --fl-uplim-tone: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 40%, transparent); }
+.fl-uplim-meter.is-full { --fl-uplim-tone: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 40%, transparent); }
+.fl-uplim-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 1.5rem; }
+.fl-uplim-label { font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-uplim-flag {
+  padding: 0 var(--space-2); border-radius: 999px; background: color-mix(in srgb, var(--fl-uplim-tone) 16%, transparent); color: var(--fl-uplim-tone);
+  font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold);
+  animation: fl-uplim-pop var(--duration-slow) var(--ease-spring, var(--ease-out));
+}
+.fl-uplim-nums { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-uplim-nums strong { color: var(--color-text); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-uplim-bar { display: block; height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--color-text) 8%, transparent); overflow: hidden; }
+.fl-uplim-bar > span {
+  display: block; height: 100%; width: 100%; border-radius: inherit; background: var(--fl-uplim-tone);
+  transform-origin: left; scale: var(--fill, 0) 1;
+  transition: scale var(--duration-slow) var(--ease-out, var(--easing)), background-color var(--duration-base) var(--easing);
+}
+@starting-style { .fl-uplim-bar > span { scale: 0 1; } }
+.fl-uplim-bar.is-unlimited { background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--color-accent) 18%, transparent) 0 6px, transparent 6px 12px); }
+.fl-uplim-left { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-uplim-meter.is-full .fl-uplim-left { color: var(--color-danger); font-weight: var(--weight-medium); }
+.fl-uplim-raise { color: var(--fl-uplim-tone); }
+.fl-uplim-raise svg { transition: translate var(--duration-fast) var(--ease-out); }
+.fl-uplim-raise:hover svg { translate: 2px 0; }
+.fl-uplim-skel { height: 1.5rem; width: 60%; border-radius: 4px; background: color-mix(in srgb, var(--color-text) 8%, transparent); animation: fl-uplim-pulse 1.2s var(--easing) infinite alternate; }
+@keyframes fl-uplim-pulse { to { opacity: 0.45; } }
+.fl-uplim-empty { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-5); text-align: center; border: 1px dashed var(--color-border); border-radius: min(var(--radius-md), 12px); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-uplim-empty > svg { width: 1.5rem; height: 1.5rem; }
+.fl-uplim-empty p { margin: 0; color: var(--color-text); font-weight: var(--weight-semibold); }
+
+.fl-uplim-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+.fl-uplim-spin svg { animation: fl-uplim-turn 0.9s linear infinite; }
+@keyframes fl-uplim-turn { to { rotate: 1turn; } }
+.fl-uplim-alerts { display: inline-flex; align-items: center; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+
+/* The compare dialog. */
+.fl-ctl-dlg.fl-uplim-dlg { width: min(34rem, 100%); }
+.fl-uplim-period { position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; justify-self: start; padding: 3px; border-radius: 999px; background: var(--color-surface-sunken); border: 1px solid var(--color-border); }
+.fl-uplim-period > i {
+  position: absolute; top: 3px; bottom: 3px; left: 0; width: var(--ind-w, 0); translate: var(--ind-x, 0) 0; border-radius: 999px;
+  background: var(--surface-bg, var(--color-surface)); box-shadow: 0 0 0 1px var(--color-border), var(--surface-shadow, none);
+  transition: translate var(--duration-base) var(--ease-spring, var(--ease-out)), width var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-uplim-period label {
+  position: relative; padding: var(--space-1) var(--space-4); border-radius: 999px; cursor: pointer; text-align: center;
+  color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium);
+  transition: color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--ease-out);
+}
+.fl-uplim-period label:hover, .fl-uplim-period label:has(input:checked) { color: var(--color-text); }
+.fl-uplim-period label:active { scale: 0.98; }
+.fl-uplim-period label:has(input:focus-visible) { box-shadow: var(--focus-ring); }
+.fl-uplim-period input, .fl-uplim-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+
+.fl-uplim-plans { display: grid; gap: var(--space-2); }
+.fl-uplim-choice {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-3);
+  border: 1px solid var(--color-border); border-radius: min(var(--radius-md), 12px); background: var(--surface-bg, var(--color-surface)); color: var(--color-text); cursor: pointer;
+  transition: border-color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), translate var(--duration-fast) var(--ease-out);
+}
+.fl-uplim-choice:hover { border-color: var(--color-border-strong, var(--color-text-muted)); background: var(--color-surface-sunken); }
+.fl-uplim-choice:active { translate: 0 1px; }
+.fl-uplim-choice:has(input:checked) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface)); }
+.fl-uplim-choice:has(input:focus-visible) { box-shadow: var(--focus-ring); }
+.fl-uplim-choice:has(input:disabled) { cursor: progress; }
+.fl-uplim-radio { display: grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: 999px; border: 1.5px solid var(--color-border-strong, var(--color-text-muted)); color: var(--color-on-accent); transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing); }
+.fl-uplim-radio svg { width: 0.75rem; height: 0.75rem; scale: 0; transition: scale var(--duration-base) var(--ease-spring, var(--ease-out)); }
+.fl-uplim-choice:has(input:checked) .fl-uplim-radio { background: var(--color-accent); border-color: var(--color-accent); }
+.fl-uplim-choice:has(input:checked) .fl-uplim-radio svg { scale: 1; }
+.fl-uplim-choice-main { display: grid; gap: 2px; min-width: 0; }
+.fl-uplim-choice-main strong { display: flex; align-items: center; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-uplim-current { padding: 0 var(--space-2); border-radius: 999px; background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); font-weight: var(--weight-medium); }
+.fl-uplim-choice-limits { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-uplim-price { font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; white-space: nowrap; animation: fl-uplim-rise var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-uplim-price small { color: var(--color-text-muted); font-weight: 400; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+
+.fl-uplim-diff { display: grid; gap: var(--space-1); padding: var(--space-3); border-radius: min(var(--radius-md), 12px); background: var(--color-surface-sunken); }
+.fl-uplim-diff-title { margin: 0; color: var(--color-text); font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+.fl-uplim-diff table { width: 100%; border-collapse: collapse; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-variant-numeric: tabular-nums; }
+.fl-uplim-diff th { text-align: left; font-weight: var(--weight-medium); color: var(--color-text); padding: 2px 0; }
+.fl-uplim-diff td { text-align: right; color: var(--color-text-muted); padding: 2px 0 2px var(--space-2); white-space: nowrap; }
+.fl-uplim-diff td svg { width: 0.875rem; height: 0.875rem; vertical-align: middle; }
+.fl-uplim-to { animation: fl-uplim-rise var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-uplim-diff tr.is-up .fl-uplim-to { color: var(--color-success); font-weight: var(--weight-semibold); }
+.fl-uplim-diff tr.is-down .fl-uplim-to { color: var(--color-danger); font-weight: var(--weight-semibold); }
+.fl-uplim-err { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; color: var(--color-danger); outline: none; border-radius: var(--radius-sm); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); animation: fl-uplim-rise var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-uplim-err:focus-visible { box-shadow: var(--focus-ring); }
+.fl-uplim-err svg { width: 1rem; height: 1rem; flex: none; margin-top: 2px; }
+
+.fl-uplim .fl-btn { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), translate var(--duration-fast) var(--ease-out), scale var(--duration-fast) var(--ease-out); }
+.fl-uplim .fl-btn:active:not(:disabled) { translate: 0 1px; scale: 0.98; }
+
+@container (max-width: 30rem) {
+  .fl-uplim { padding: var(--space-4); }
+  .fl-uplim-head > .fl-btn { width: 100%; }
+}
+@media (max-width: 30rem) {
+  .fl-uplim-choice { grid-template-columns: auto minmax(0, 1fr); }
+  .fl-uplim-price { grid-column: 2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-uplim *, .fl-uplim *::before, .fl-uplim *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; }
+  .fl-uplim .fl-btn:active:not(:disabled), .fl-uplim-choice:active, .fl-uplim-period label:active { translate: none; scale: none; }
+}
+:root[data-motion="off"] .fl-uplim, :root[data-motion="off"] .fl-uplim *, :root[data-motion="off"] .fl-uplim *::before, :root[data-motion="off"] .fl-uplim *::after { transition: none !important; animation: none !important; }

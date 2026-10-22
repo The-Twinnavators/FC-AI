@@ -1,0 +1,145 @@
+/**
+ * Donation form (b.donation-form): the cause beside a gift card with a sliding one-time/monthly thumb, amount tiles,
+ * an impact line, cover-the-fee and a thank-you. Prefixed fl-dnf-; only the library's tokens. Adapted from Tailblocks
+ * (MIT License, Copyright (c) 2020 Mert Cukuren).
+ */
+.fl-dnf { min-width: 0; container-type: inline-size; }
+.fl-dnf-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--space-7); align-items: start; min-width: 0; }
+
+/* The cause */
+.fl-dnf-cause { display: grid; gap: var(--space-3); min-width: 0; }
+.fl-dnf-pic { border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); overflow: hidden; box-shadow: var(--surface-shadow, none); }
+.fl-dnf-pic .fl-ctl-media { display: block; border-radius: 0; }
+.fl-dnf-name { margin: var(--space-2) 0 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); line-height: var(--leading-snug); }
+.fl-dnf-text { margin: 0; color: var(--color-text-muted); line-height: var(--leading-relaxed, 1.6); font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+.fl-dnf-split { display: grid; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
+.fl-dnf-split-title { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); font-weight: var(--weight-semibold); }
+.fl-dnf-split ul { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.fl-dnf-split li { display: grid; grid-template-columns: 1fr auto; gap: var(--space-1) var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-dnf-split-label { color: var(--color-text-muted); }
+.fl-dnf-split-val { font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.fl-dnf-bar { grid-column: 1 / -1; height: 6px; background: var(--color-surface-sunken); border-radius: 0; overflow: hidden; }
+.fl-dnf-bar > span { display: block; height: 100%; width: var(--share, 0%); background: var(--color-accent); border-radius: 0; transform-origin: left; }
+.fl-dnf.is-entering .fl-dnf-bar > span { animation: fl-dnf-fill var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: calc(240ms + var(--j, 0) * var(--stagger, 40ms)); }
+@keyframes fl-dnf-fill { from { transform: scaleX(0); } }
+
+/* The card */
+.fl-dnf-card {
+  min-width: 0; padding: var(--space-6); border: 1px solid var(--color-border); border-radius: min(var(--surface-radius, var(--radius-lg)), 12px);
+  background: var(--surface-bg, var(--color-surface)); box-shadow: var(--surface-shadow, none);
+}
+.fl-dnf-form { display: grid; gap: var(--space-4); }
+.fl-dnf-title { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-lg) - var(--fs-shrink, 0px))); }
+
+/* One time / Monthly: a pill track with one thumb that slides. */
+.fl-dnf-freq { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: var(--pill-radius, 999px); background: var(--color-surface-sunken); }
+.fl-dnf-thumb {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: var(--pill-radius, 999px); background: var(--color-accent);
+  box-shadow: var(--surface-shadow, none); transform: translateX(calc(var(--at, 0) * 100%));
+  transition: transform var(--duration-base) var(--ease-spring, var(--easing));
+}
+.fl-dnf-freq label {
+  position: relative; z-index: 1; display: grid; place-items: center; min-height: 40px; border-radius: var(--pill-radius, 999px); cursor: pointer;
+  color: var(--color-text-muted); font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+  transition: color var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-dnf-freq label:hover { color: var(--color-text); }
+.fl-dnf-freq label.is-on { color: var(--color-on-accent); }
+.fl-dnf-freq label:active { scale: 0.98; }
+.fl-dnf-freq label:has(:focus-visible) { box-shadow: var(--focus-ring); }
+
+/* Amount tiles: real radios. */
+.fl-dnf-amounts { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: var(--space-2); margin: 0; padding: 0; border: 0; min-width: 0; }
+.fl-dnf-tile {
+  display: grid; place-items: center; min-height: 52px; padding: var(--space-2); border: 1px solid var(--color-border); border-radius: min(var(--radius-md, 10px), 12px);
+  background: var(--surface-bg, var(--color-surface)); cursor: pointer; font-weight: var(--weight-bold); font-variant-numeric: tabular-nums;
+  font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px)));
+  transition: border-color var(--duration-fast) var(--ease-out, var(--easing)), background-color var(--duration-fast) var(--ease-out, var(--easing)), box-shadow var(--duration-fast) var(--ease-out, var(--easing)), translate var(--duration-fast) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-dnf-tile:hover { border-color: var(--color-accent); translate: 0 -1px; box-shadow: var(--surface-shadow, none); }
+.fl-dnf-tile:active { translate: 0 1px; scale: 0.98; }
+.fl-dnf-tile.is-on { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, var(--surface-bg, var(--color-surface))); box-shadow: inset 0 0 0 1px var(--color-accent); color: var(--color-accent); }
+.fl-dnf-tile:has(:focus-visible) { box-shadow: var(--focus-ring); }
+.fl-dnf-amounts:not(.is-still) .fl-dnf-tile { animation: fl-dnf-pop var(--duration-base) var(--ease-out, var(--easing)); }
+@keyframes fl-dnf-pop { from { opacity: 0; scale: 0.96; } }
+
+/* Reveal: grid rows 0fr to 1fr; the content is inert while closed. */
+.fl-dnf-reveal { display: grid; grid-template-rows: 0fr; margin-top: calc(var(--space-4) * -1); transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)), margin-top var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-dnf-reveal.is-open { grid-template-rows: 1fr; margin-top: 0; }
+.fl-dnf-reveal-in { min-height: 0; overflow: hidden; opacity: 0; transition: opacity var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-dnf-reveal.is-open .fl-dnf-reveal-in { opacity: 1; overflow: visible; }
+.fl-dnf-reveal .fl-field { padding: 2px; }
+.fl-dnf-money { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--space-2); font-weight: var(--weight-semibold); }
+
+.fl-dnf-impact {
+  display: flex; gap: var(--space-2); align-items: flex-start; margin: 0; padding: var(--space-3); border-radius: min(var(--radius-md, 10px), 12px);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent); line-height: var(--leading-normal, 1.5); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+}
+.fl-dnf-impact svg { flex: none; width: 1.1rem; height: 1.1rem; margin-top: 2px; color: var(--color-accent); }
+.fl-dnf .fl-dat-num { display: inline; font: inherit; letter-spacing: inherit; color: inherit; }
+.fl-dnf-impact-n { font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; color: var(--color-accent); }
+.fl-dnf-impact-more { color: var(--color-text-muted); }
+
+.fl-dnf-fee { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-3); align-items: center; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-dnf-fee > span:last-child { display: grid; gap: 2px; }
+.fl-dnf-muted { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); }
+p.fl-dnf-muted { margin: 0; }
+.fl-dnf-center { text-align: center; }
+
+.fl-dnf-honor {
+  justify-self: start; display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); margin-left: calc(var(--space-2) * -1);
+  border: 0; border-radius: var(--radius-sm, 6px); background: none; color: var(--color-accent); font: inherit; font-weight: var(--weight-semibold); cursor: pointer;
+  font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px)));
+  transition: background-color var(--duration-fast) var(--ease-out, var(--easing)), translate var(--duration-fast) var(--ease-out, var(--easing));
+}
+.fl-dnf-honor svg { width: 1rem; height: 1rem; transition: rotate var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-dnf-honor[aria-expanded="true"] svg { rotate: 90deg; }
+.fl-dnf-honor:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.fl-dnf-honor:active { translate: 0 1px; }
+.fl-dnf-honor:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.fl-dnf-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.fl-dnf-form .fl-ctl-field { transition: border-color var(--duration-fast) var(--ease-out, var(--easing)), box-shadow var(--duration-fast) var(--ease-out, var(--easing)); }
+.fl-dnf-err { margin: 0; color: var(--color-danger); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); animation: fl-dnf-nudge var(--duration-base) var(--ease-out, var(--easing)); }
+@keyframes fl-dnf-nudge { 0% { opacity: 0; translate: -4px 0; } 60% { translate: 2px 0; } }
+.fl-dnf .fl-dnf-total { font-variant-numeric: tabular-nums; }
+.fl-dnf .fl-dnf-impact-n { font-weight: var(--weight-bold); color: var(--color-accent); }
+
+/* Thank-you: settles in with a small spring; the check draws itself. */
+.fl-dnf-done { display: grid; justify-items: center; gap: var(--space-3); padding: var(--space-5) 0; text-align: center; animation: fl-dnf-settle var(--duration-slow) var(--ease-spring, var(--easing)); }
+@keyframes fl-dnf-settle { from { opacity: 0; scale: 0.94; } }
+.fl-dnf-tick { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: color-mix(in srgb, var(--color-success) 14%, transparent); color: var(--color-success); }
+.fl-dnf-tick svg { width: 1.75rem; height: 1.75rem; }
+.fl-dnf-tick path { stroke-dasharray: 24; stroke-dashoffset: 0; animation: fl-dnf-draw var(--duration-slow) var(--ease-out, var(--easing)) 120ms backwards; }
+@keyframes fl-dnf-draw { from { stroke-dashoffset: 24; } }
+.fl-dnf-done-title { margin: 0; font-family: var(--font-display); font-size: max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))); outline: none; }
+.fl-dnf-done-sum, .fl-dnf-done-note { margin: 0; max-width: 28rem; font-size: max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))); }
+.fl-dnf-done-note { color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
+.fl-dnf-test {
+  display: inline-flex; align-items: center; gap: var(--space-1); margin: 0; padding: var(--space-1) var(--space-3); border-radius: var(--pill-radius, 999px);
+  background: var(--color-surface-sunken); color: var(--color-text-muted); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px)));
+}
+.fl-dnf-test svg { width: 0.9rem; height: 0.9rem; }
+
+@container (max-width: 46rem) {
+  .fl-dnf-in { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+}
+@container (max-width: 30rem) {
+  .fl-dnf-card { padding: var(--space-4); }
+  .fl-dnf-amounts { grid-template-columns: 1fr 1fr; }
+  .fl-dnf-row { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Entrance once: the cause, then the card, with a capped stagger. */
+.fl-dnf.is-waiting .fl-dnf-rise { opacity: 0; }
+.fl-dnf.is-entering .fl-dnf-rise { animation: fl-dnf-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; animation-delay: min(calc(var(--i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms)); }
+@keyframes fl-dnf-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-dnf.is-waiting .fl-dnf-rise { opacity: 1; }
+  .fl-dnf *, .fl-dnf.is-entering .fl-dnf-rise { animation: none !important; transition-duration: 1ms !important; }
+  .fl-dnf-tile:hover, .fl-dnf-tile:active { translate: none; scale: none; }
+}
+:root[data-motion="off"] .fl-dnf.is-waiting .fl-dnf-rise { opacity: 1; }
+:root[data-motion="off"] .fl-dnf, :root[data-motion="off"] .fl-dnf * { transition: none !important; animation: none !important; }
+@media print { .fl-dnf.is-waiting .fl-dnf-rise { opacity: 1; } }
