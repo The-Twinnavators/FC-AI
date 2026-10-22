@@ -579,9 +579,18 @@ const namedBy = (v: ModelView, name: string) => screenWords(name).some((w) => `$
 export function buildRequiredPlaceholders(m: AppModel, declared: Array<{ name: string; purpose?: string }>): AppModel {
   const working = m.nav.flatMap((g) => g.items).filter((v) => v.kind !== "placeholder");
   const same = (a: string[], b: string[]) => a.length > 0 && a.every((w) => b.includes(w));
+  // Required screens with nothing at all for them (not even a placeholder) are added as custom pages too, so a small
+  // planner's varying omissions don't stop planning on a different screen every try (ShelfSure, five tries).
+  const all = m.nav.flatMap((g) => g.items);
+  const absent = declared.filter((d) => !coveringView(working, d.name) && !all.some((v) => v.kind === "placeholder" && (same(screenWords(v.label), screenWords(d.name)) || same(screenWords(d.name), screenWords(v.label)))));
+  const ids = new Set(all.map((v) => v.id));
+  const added = absent
+    .map((d) => ({ id: d.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""), label: d.name.slice(0, 40), kind: "custom" as const, purpose: d.purpose || d.name }))
+    .filter((v) => v.id && !ids.has(v.id) && ids.add(v.id));
+  const nav0 = added.length ? (m.nav.length ? [{ ...m.nav[0]!, items: [...added, ...m.nav[0]!.items] }, ...m.nav.slice(1)] : [{ label: "Screens", items: added }]) : m.nav;
   return {
     ...m,
-    nav: m.nav.map((g) => ({
+    nav: nav0.map((g) => ({
       ...g,
       items: g.items.map((v) => {
         if (v.kind !== "placeholder") return v;

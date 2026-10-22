@@ -192,3 +192,14 @@ describe("required screens the planner left as placeholders", () => {
     expect(items.find((i) => i.id === "reports")?.kind).toBe("placeholder");
   });
 });
+
+describe("required screens the planner left out", () => {
+  it("are added as custom pages with the PRD's purpose, first in the navigation", async () => {
+    const { buildRequiredPlaceholders, completenessProblems } = await import("../src/orchestrator/appModel.js");
+    const { model } = parseAppModel(raw);
+    const declared = [{ name: "Shopping List", purpose: "Group by grocery category with check-off" }];
+    const built = buildRequiredPlaceholders(model!, declared);
+    expect(built.nav[0]!.items[0]).toEqual(expect.objectContaining({ id: "shopping-list", label: "Shopping List", kind: "custom", purpose: "Group by grocery category with check-off" }));
+    expect(completenessProblems(built, declared).filter((p) => /Shopping List/.test(p))).toEqual([]);
+  });
+});
