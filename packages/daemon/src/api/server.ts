@@ -45,7 +45,7 @@ import { PolicyError } from "../security/pathJail.js";
 import { PlanReviewError, approvePlanVersion, pendingPlanApproval, planApprovalKey, planVersions, requestPlanChanges } from "../orchestrator/planReview.js";
 import { NotFoundError } from "../db/db.js";
 import { ModelRouter } from "../models/router.js";
-import { aiEngine, checkNetwork, environment, systemHealth, toolCatalog } from "./system.js";
+import { DAEMON_VERSION, aiEngine, checkNetwork, environment, systemHealth, toolCatalog } from "./system.js";
 import { STYLE_EDIT_RUN, editStyleToken, scanStyles, editFixedFontSize } from "../workspace/styleTokens.js";
 import { surfaceStyleOf } from "../workspace/surfaceStyle.js";
 import { applyComponentStyle, applyDesign, componentStylesOf, designComponents, paletteOf, setDesignComponents } from "../workspace/designStudio.js";
@@ -153,7 +153,7 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   // ── health & settings
   add(R.health, async () => {
     const ollama = await app.router.provider("ollama").health();
-    return { ok: true, version: "0.1.0", dataDirName: "FlowCode", providers: { ollama }, migrations: app.db.appliedMigrations().map((m) => m.name) };
+    return { ok: true, version: DAEMON_VERSION, dataDirName: "FlowCode", providers: { ollama }, migrations: app.db.appliedMigrations().map((m) => m.name) };
   });
   // Can the Visual critic see images? (Its model, and whether that model has vision.) Used by Capture a style.
   add("GET /models/critic-vision", async ({ query }) => {

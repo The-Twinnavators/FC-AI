@@ -12,7 +12,7 @@ import type { App } from "../app.js";
 import { resolveSpawn, scrubbedEnv } from "../commands/runner.js";
 
 const STARTED = Date.now();
-export const DAEMON_VERSION = "0.1.0";
+export const DAEMON_VERSION = "2.0.0";
 
 function run(file: string, args: string[], timeoutMs = 8000): Promise<string | undefined> {
   return new Promise((resolve) => {

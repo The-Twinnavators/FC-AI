@@ -1,7 +1,7 @@
 {
   "name": "flowcode",
   "private": true,
-  "version": "0.1.0",
+  "version": "2.0.0",
   "description": "FlowCode — local-first, AI-native IDE with a governed multi-agent runtime",
   "workspaces": [
     "packages/*",
