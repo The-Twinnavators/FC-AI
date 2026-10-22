@@ -287,7 +287,9 @@ export function parseAppModel(raw: unknown): { model?: AppModel; problems: strin
     .map((g0) => g0 as Record<string, unknown>)
     .map((g) => ({
       label: str(g.label, 40),
-      items: arr(g.items)
+      // A group with no destinations is itself one (ShelfSure's planner listed each screen as an empty group, and
+      // "Swap & Compare" had no page): a working page of its own, named after it.
+      items: (arr(g.items).length ? arr(g.items) : str(g.label, 40) ? [{ id: kebab(g.label), label: g.label, kind: lookupShape ? "custom" : (g.kind ?? "custom"), ...(g.entity ? { entity: g.entity } : {}), ...(g.purpose ? { purpose: g.purpose } : {}) }] : [])
         .map((i0) => i0 as Record<string, unknown>)
         .map((i) => {
           const kinds: ViewKind[] = lookupShape ? ["custom", "placeholder", ...LOOKUP_KINDS] : ["list", "create", "detail", "dashboard", "queue", "custom", "placeholder"];

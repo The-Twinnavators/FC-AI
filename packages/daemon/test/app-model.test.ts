@@ -79,6 +79,12 @@ describe("the app model", () => {
     expect(appModelNote(model!)).toContain("Treaties (treaty)");
   });
 
+  it("makes a navigation group with no destinations a page of its own (ShelfSure's planner listed screens as empty groups)", () => {
+    const { model } = parseAppModel({ ...raw, nav: [...(raw as { nav: unknown[] }).nav, { label: "Swap & Compare", items: [] }] });
+    const page = model!.nav.find((g) => g.label === "Swap & Compare")?.items[0];
+    expect(page).toEqual(expect.objectContaining({ id: "swap-compare", label: "Swap & Compare", kind: "custom" }));
+  });
+
   it("says what is missing instead of inventing it", () => {
     const { model, problems } = parseAppModel({ product: "X", roles: [], entities: [{ key: "a", fields: [] }], seed: {}, nav: [] });
     expect(model).toBeUndefined();
