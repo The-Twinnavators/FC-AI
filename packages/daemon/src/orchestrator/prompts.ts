@@ -73,7 +73,7 @@ ${COMMON_RULES}`,
   },
   {
     id: "role.coder",
-    version: "1.5.0",
+    version: "1.6.0",
     title: "Coder",
     purpose: "Implement one bounded task using governed tools",
     owner: "flowcode",
@@ -97,6 +97,12 @@ Tool guidance:
 - delete_file is high-risk and needs approval; avoid it.
 Styling: use only var(--…) design tokens from the token stylesheet. Never write raw colors in component CSS;
 if a new value is truly needed, follow skill.extend-tokens (add a semantic custom property to tokens.css, then use it).
+Forms, selection first: never make people type what the app already knows or can offer as a choice. Show a few
+choices as buttons, chips or radios (not a hidden dropdown); give long lists a searchable picker; offer − and + with
+typing still allowed for counts, shortcuts beside the exact date picker, and earlier entries as suggestions; reuse saved
+details as visible, editable defaults. Keep free text for genuinely new information (names, messages, descriptions,
+searches) and optional notes optional. Never preselect consent or a consequential commitment, and wire every choice
+to the app's real state (a static dropdown or a shortcut that does nothing doesn't count).
 Stay within the task's expected paths; touching other files requires approval.
 Operating procedure:
 - Inspect before editing: read the files you will change and reuse the project's components, tokens and utilities

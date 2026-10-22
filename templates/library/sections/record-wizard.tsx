@@ -69,6 +69,18 @@ export function RecordWizard({ store, entity, draftId, title, onDone, onCancel, 
   const allKeys = useMemo(() => steps.flatMap((s) => s.fields), [steps]);
   const uid = useId().replace(/:/g, "");
   const fid = (k: string) => `wz-${uid}-${k}`;
+  // What earlier records already say in each text field (repeated values: places, people, makers), offered as suggestions.
+  const known = useMemo(() => {
+    const rows = (store.get().records[entity] ?? []).filter((r) => !r.draft);
+    const out: Record<string, string[]> = {};
+    for (const f of e.fields) {
+      if (f.type !== "text" && f.type !== "email") continue;
+      const seen = rows.map((r) => r[f.key]).filter((v): v is string => typeof v === "string" && v.trim() !== "");
+      const unique = [...new Set(seen)];
+      if (unique.length && unique.length < seen.length && unique.length <= 40) out[f.key] = unique.sort((a, b) => a.localeCompare(b));
+    }
+    return out;
+  }, [store, entity, e]);
 
   // A draft's own values (only the schema's fields: not its id, dates or status).
   const [initial] = useState<{ values: Values; title?: string }>(() => {
@@ -321,6 +333,7 @@ export function RecordWizard({ store, entity, draftId, title, onDone, onCancel, 
                     key={k}
                     f={f}
                     id={fid(k)}
+                    suggest={known[k]}
                     value={values[k]}
                     error={showError(k, steps[index]!.key) ? errors[k] : undefined}
                     onChange={(v) => set(k, v)}
@@ -416,8 +429,25 @@ export function RecordWizard({ store, entity, draftId, title, onDone, onCancel, 
   );
 }
 
-/** One field, drawn for its type: label, required mark, help, the control, and its error under it. */
-function WizardField({ f, id, value, error, onChange, onBlur }: { f: FieldDef; id: string; value: unknown; error?: string; onChange: (v: unknown) => void; onBlur: () => void }) {
+/** A date as the date input holds it (YYYY-MM-DD), in local time, some days from today. */
+const dayFrom = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+const DATE_SHORTCUTS: Array<[string, number]> = [
+  ["Today", 0],
+  ["Tomorrow", 1],
+  ["In a week", 7],
+];
+
+/**
+ * One field, drawn for its type: label, required mark, help, the control, and its error under it. Selection first:
+ * a short list of choices is shown as choices (not hidden in a menu), a count has − and + with typing still allowed,
+ * a date has shortcuts beside the exact picker (nothing is picked for the person), and a text field offers what earlier
+ * records already say while still taking anything new.
+ */
+function WizardField({ f, id, value, error, suggest, onChange, onBlur }: { f: FieldDef; id: string; value: unknown; error?: string; suggest?: string[]; onChange: (v: unknown) => void; onBlur: () => void }) {
   const helpId = `${id}-help`;
   const errId = `${id}-err`;
   const described = [f.help ? helpId : "", error ? errId : ""].filter(Boolean).join(" ") || undefined;
@@ -430,7 +460,35 @@ function WizardField({ f, id, value, error, onChange, onBlur }: { f: FieldDef; i
     case "longtext":
       control = <textarea {...common} className={`${cls} fl-wz-textarea`} rows={4} value={str} onChange={(ev) => onChange(ev.target.value)} />;
       break;
-    case "number":
+    case "number": {
+      // A count: − and + for the usual small change, the field itself for a big or exact one.
+      const n = typeof value === "number" ? value : Number(str);
+      const at = Number.isFinite(n) && str !== "" ? n : undefined;
+      const clamp = (v: number) => Math.min(f.max ?? Infinity, Math.max(f.min ?? -Infinity, v));
+      control = (
+        <span className="fl-wz-stepper">
+          <button type="button" className="fl-wz-step" aria-label={`Less ${f.label.toLowerCase()}`} disabled={at !== undefined && f.min !== undefined && at <= f.min} onClick={() => onChange(clamp((at ?? f.min ?? 1) - 1))}>
+            −
+          </button>
+          <input
+            {...common}
+            className={cls}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            value={str}
+            onChange={(ev) => {
+              const raw = ev.target.value.replace(/[,s]/g, "");
+              onChange(raw === "" ? undefined : Number.isNaN(Number(raw)) ? ev.target.value : Number(raw));
+            }}
+          />
+          <button type="button" className="fl-wz-step" aria-label={`More ${f.label.toLowerCase()}`} disabled={at !== undefined && f.max !== undefined && at >= f.max} onClick={() => onChange(clamp(at === undefined ? (f.min ?? 1) : at + 1))}>
+            +
+          </button>
+        </span>
+      );
+      break;
+    }
     case "money":
     case "percent": {
       const adorn = f.type === "money" ? (f.currency ?? "USD") : f.type === "percent" ? "%" : null;
@@ -459,9 +517,34 @@ function WizardField({ f, id, value, error, onChange, onBlur }: { f: FieldDef; i
       break;
     }
     case "date":
-      control = <input {...common} className={cls} type="date" value={str} onChange={(ev) => onChange(ev.target.value || undefined)} />;
+      control = (
+        <>
+          <input {...common} className={cls} type="date" value={str} onChange={(ev) => onChange(ev.target.value || undefined)} />
+          <span className="fl-wz-shortcuts" role="group" aria-label={`${f.label} shortcuts`}>
+            {DATE_SHORTCUTS.map(([label, days]) => (
+              <button key={label} type="button" className="fl-wz-chip" aria-pressed={str === dayFrom(days)} onClick={() => onChange(dayFrom(days))}>
+                {label}
+              </button>
+            ))}
+          </span>
+        </>
+      );
       break;
     case "select":
+      // A few choices are shown, not hidden in a menu; a long list keeps the menu (type a letter to jump).
+      if ((f.options ?? []).length <= 5) {
+        control = (
+          <div className="fl-wz-choices" role="radiogroup" aria-labelledby={`${id}-label`} aria-describedby={described} aria-required={f.required || undefined} aria-invalid={error ? true : undefined}>
+            {(f.options ?? []).map((o, i) => (
+              <label key={o} className="fl-wz-choice">
+                <input type="radio" id={i === 0 ? id : undefined} name={id} value={o} checked={str === o} onChange={() => onChange(o)} onBlur={onBlur} />
+                <span>{o}</span>
+              </label>
+            ))}
+          </div>
+        );
+        break;
+      }
       control = (
         <span className="fl-ctl-select">
           <select {...common} className={cls} value={str} onChange={(ev) => onChange(ev.target.value || undefined)}>
@@ -496,12 +579,23 @@ function WizardField({ f, id, value, error, onChange, onBlur }: { f: FieldDef; i
         </div>
       );
     default:
-      control = <input {...common} className={cls} type={f.type === "email" ? "email" : "text"} autoComplete="off" value={str} onChange={(ev) => onChange(ev.target.value)} />;
+      control = (
+        <>
+          <input {...common} className={cls} type={f.type === "email" ? "email" : "text"} autoComplete="off" list={suggest?.length ? `${id}-known` : undefined} value={str} onChange={(ev) => onChange(ev.target.value)} />
+          {suggest?.length ? (
+            <datalist id={`${id}-known`}>
+              {suggest.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+          ) : null}
+        </>
+      );
   }
 
   return (
     <div className={`fl-wz-field${f.type === "longtext" ? " fl-wz-field--wide" : ""}`}>
-      <label className="fl-wz-label" htmlFor={id}>
+      <label className="fl-wz-label" htmlFor={id} id={`${id}-label`}>
         {f.label}
         {f.required ? (
           <span className="fl-wz-req" aria-hidden="true">

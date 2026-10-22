@@ -131,6 +131,10 @@ designer and engineer would for an internal tool or SaaS product. Write:
   PRD needs; say its purpose), placeholder (a real part of the product that this prototype doesn't build).
 Build the PRD's focus area in depth (list, create, detail, queue and dashboard for its main entity); everything else is
 placeholder. Use only what the PRD supports; don't invent unrelated features.
+Fields are selection first: when the answers come from a known set (a category, a type, a size, a store, a person, a
+priority), make the field a select with those options, not text; a field that points at another record lists those
+records' names as its options, never their ids. Keep text and longtext for genuinely new information (names,
+descriptions, notes), and make notes optional.
 For a look-up app (shape "lookup"):
 - entities: exactly two, no statuses, steps or transitions: the entries people look up (a select field of categories,
   text fields for the details people check, a longtext about it, an optional text field of tags or themes, an optional
