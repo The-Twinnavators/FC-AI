@@ -92,6 +92,14 @@ describe("the screens a PRD names", () => {
     expect(declaredScreens("# PRD\n## Goals\n- Faster checkout")).toEqual([]);
   });
 
+  it("are the sub-headings when the section names each screen as one, their bullets saying what it's for (ShelfSure)", () => {
+    const prd = "## Five Main Screens\n\n### 1. Home / My Regulars\n\n- Prominent search and barcode entry.\n- Needs-review notices.\n\n### 2. Product Finder\n\n- Search and category/evidence filters.\n\nNever silently relax constraints.\n\n### 3. Product Detail\n\n- Evidence records.\n\n## Data\n- Product: name";
+    const screens = declaredScreens(prd);
+    expect(screens.map((s) => s.name)).toEqual(["Home / My Regulars", "Product Finder", "Product Detail"]);
+    expect(screens[0]!.purpose).toBe("Prominent search and barcode entry. Needs-review notices.");
+    expect(screens[1]!.purpose).toContain("Never silently relax constraints.");
+  });
+
   it("are each a page, never folded into a list (Build test 3 built one page for two), keeping the planner's purpose where it fits", () => {
     const planner = { product: "Brands", screens: [{ name: "Brands", purpose: "Parents scan a list of trusted non-GMO brands, search and open a brand's details" }] };
     const plan = parseScreenPlan(planner, declaredScreens(PRD))!;

@@ -90,9 +90,32 @@ export function declaredScreens(prd: string): Array<{ name: string; purpose: str
     if (!clean || clean.length > 40 || /^(screen|page|name|responsibilit(y|ies)|purpose|-+)$/i.test(clean)) return;
     if (!out.some((x) => x.name.toLowerCase() === clean.toLowerCase())) out.push({ name: clean, purpose: purpose.replace(/[*_`]/g, "").replace(/\s+/g, " ").trim().slice(0, 200) });
   };
+  // A section that names each screen as a sub-heading ("### 1. Home / My Regulars", then its feature bullets): the
+  // sub-headings are the screens and their bullets say what each is for. Read as a list, ShelfSure's "Prominent search
+  // and barcode entry." became a required screen of its own and planning stopped on four screens that don't exist.
+  const body: string[] = [];
   for (const line of lines.slice(at + 1)) {
     const h = /^(#+)\s/.exec(line);
     if (h && h[1]!.length <= level) break;
+    body.push(line);
+  }
+  const subs = body.map((l, i) => ({ i, m: /^(#+)\s+(.+?)\s*#*\s*$/.exec(l) })).filter((x) => x.m && x.m[1]!.length > level);
+  if (subs.length >= 2) {
+    subs.forEach((s, k) => {
+      const name = s.m![2]!.replace(/^\s*(?:\d+[.)]|[-*])\s+/, "");
+      const until = subs[k + 1]?.i ?? body.length;
+      const what = body
+        .slice(s.i + 1, until)
+        .map((l) => l.replace(/^\s*(?:[-*]|\d+[.)])\s+/, "").trim())
+        .filter((l) => l && !/^#/.test(l))
+        .join(" ");
+      add(name, what);
+    });
+    return out.slice(0, MAX_SCREENS);
+  }
+  for (const line of body) {
+    const h = /^(#+)\s/.exec(line);
+    if (h) continue;
     const row = /^\s*\|(.+)\|\s*$/.exec(line);
     if (row) {
       const cells = row[1]!.split("|").map((c) => c.trim());
