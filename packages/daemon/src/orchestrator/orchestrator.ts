@@ -1184,7 +1184,7 @@ ${brief.text}` : objective, expectedPaths });
                     await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature }, {
                       messages: [
                         { role: "system", content: APP_MODEL_SYSTEM },
-                        { role: "user", content: untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, budget.note)) },
+                        { role: "user", content: untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, budget.note, declaredScreens(prd))) },
                       ],
                       format: APP_MODEL_SCHEMA,
                       maxOutputTokens: budget.maxOutputTokens,
@@ -1272,7 +1272,7 @@ ${brief.text}` : objective, expectedPaths });
       }
       throw last;
     };
-    const structure = await ask(`${APP_MODEL_SYSTEM}\n\n${APP_PARTS_NOTE}`, untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, sizeNote)), APP_STRUCTURE_SCHEMA, 4096);
+    const structure = await ask(`${APP_MODEL_SYSTEM}\n\n${APP_PARTS_NOTE}`, untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, sizeNote, declaredScreens(prd))), APP_STRUCTURE_SCHEMA, 4096);
     // A look-up app without its ZIP code areas isn't usable at all: they're asked for on their own (one short reply).
     if (structure.shape === "lookup" && !usableAreas((structure.lookup as Record<string, unknown> | undefined)?.areas)) {
       const got = await ask(AREAS_SYSTEM, untrusted("app-model", areasRequest(String(structure.product ?? run.objective.slice(0, 80)), prd)), AREAS_SCHEMA, 800).catch(() => ({}) as Record<string, unknown>);

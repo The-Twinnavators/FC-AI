@@ -178,10 +178,13 @@ export function appModelBudget(hosted: boolean): { maxOutputTokens: number; time
       };
 }
 
-export function appModelRequest(objective: string, prd: string, requirements: Requirement[], boundary: string, sizeNote = ""): string {
+export function appModelRequest(objective: string, prd: string, requirements: Requirement[], boundary: string, sizeNote = "", declared: Array<{ name: string; purpose: string }> = []): string {
   return [
     `Request: ${objective.slice(0, 800)}`,
     sizeNote,
+    // The PRD's own screens are required pages: told up front, not only checked after (ShelfSure: "Swap & Compare" came
+    // back a placeholder, as the focus-area rule allows, and the screen check then stopped planning).
+    declared.length ? `The PRD names these screens; each must be a working page in nav (a list, detail, dashboard or queue when one fits, else custom with its purpose), never a placeholder:\n${declared.map((d) => `- ${d.name}${d.purpose ? `: ${d.purpose.slice(0, 160)}` : ""}`).join("\n")}` : "",
     requirements.length ? `Requirements this build makes:\n${requirements.slice(0, 80).map((r) => `${r.id}: ${r.text.slice(0, 180)}`).join("\n")}` : "",
     boundary,
     `PRD:\n${prd.slice(0, 24_000)}`,
