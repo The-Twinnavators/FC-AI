@@ -118,7 +118,7 @@ describe("the app model in parts", () => {
   it("asks for the structure, then the places, then the entries naming them, then ratings, each reply capped; and assembles a valid model", async () => {
     const { asked, got } = await modelInParts();
     expect(asked.map((a) => a.part)).toEqual(["structure", "places", "entries", "entries", "social"]);
-    expect(asked.every((a) => (a.max ?? 0) <= 3500 && a.think === false)).toBe(true);
+    expect(asked.every((a) => (a.max ?? 0) <= 4096 && a.think === false)).toBe(true);
     expect(got.model!.seed.product!.length).toBe(20);
     expect(got.model!.seed.product![0]!.carriedBy).toEqual(["STR-1001", "STR-1002"]);
     expect(got.model!.lookup!.ratings.length).toBe(1);
@@ -128,7 +128,7 @@ describe("the app model in parts", () => {
   it("asks for a look-up app's ZIP code areas on their own when the structure leaves them out", async () => {
     const { asked, got } = await modelInParts(true);
     expect(asked.map((a) => a.part)).toEqual(["structure", "areas", "places", "entries", "entries", "social"]);
-    expect(asked.every((a) => (a.max ?? 0) <= 3500 && a.think === false)).toBe(true);
+    expect(asked.every((a) => (a.max ?? 0) <= 4096 && a.think === false)).toBe(true);
     expect(got.model!.seed.product!.length).toBe(20);
     expect(got.problems.filter((p) => /ZIP/.test(p))).toEqual([]);
   });

@@ -1255,20 +1255,24 @@ ${brief.text}` : objective, expectedPaths });
     let calls = 0;
     const ask = async (system: string, user: string, format: Record<string, unknown>, maxOutputTokens: number): Promise<Record<string, unknown>> => {
       let last: unknown;
+      // A reply cut off at its size limit is asked again in fewer words: the same question twice was cut off twice
+      // (ShelfSure: the structure of a five-area app ran past the 8GB profile's cap on both tries).
+      let shorter = "";
       for (let i = 0; i < 2; i++) {
         try {
           calls++;
-          const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, { messages: [{ role: "system", content: system }, { role: "user", content: user }], format, maxOutputTokens, timeoutMs: 600_000, think: false, signal });
+          const res = await this.d.router.chat({ role: "planner", projectId: run.projectId, runId: run.id }, { ...run.modelAssignments.planner, temperature: 0.2 }, { messages: [{ role: "system", content: system }, { role: "user", content: `${user}${shorter}` }], format, maxOutputTokens, timeoutMs: 600_000, think: false, signal });
           if (res.doneReason === "length") throw new Error("the reply was cut off at its size limit");
           return JSON.parse(extractJson(res.content)) as Record<string, unknown>;
         } catch (err) {
           if (signal.aborted) throw err;
           last = err;
+          if (/cut off/.test(String((err as Error)?.message))) shorter = "\n\nYour last answer was too long and was cut off. Answer again with the same structure in far fewer words: short names and labels, one short sentence where a description is asked, nothing repeated, and only the fields the schema asks for.";
         }
       }
       throw last;
     };
-    const structure = await ask(`${APP_MODEL_SYSTEM}\n\n${APP_PARTS_NOTE}`, untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, sizeNote)), APP_STRUCTURE_SCHEMA, 3500);
+    const structure = await ask(`${APP_MODEL_SYSTEM}\n\n${APP_PARTS_NOTE}`, untrusted("app-model", appModelRequest(run.objective, prd, requirements, boundary, sizeNote)), APP_STRUCTURE_SCHEMA, 4096);
     // A look-up app without its ZIP code areas isn't usable at all: they're asked for on their own (one short reply).
     if (structure.shape === "lookup" && !usableAreas((structure.lookup as Record<string, unknown> | undefined)?.areas)) {
       const got = await ask(AREAS_SYSTEM, untrusted("app-model", areasRequest(String(structure.product ?? run.objective.slice(0, 80)), prd)), AREAS_SCHEMA, 800).catch(() => ({}) as Record<string, unknown>);
