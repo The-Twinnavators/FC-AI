@@ -181,3 +181,14 @@ describe("the app model", () => {
     expect(parseAppModel({ ...raw, shape: "app" }).model?.product).toBe("Treaty Tables");
   });
 });
+
+describe("required screens the planner left as placeholders", () => {
+  it("builds one the PRD names when no working page stands for it, strictly by its words, and leaves the rest", async () => {
+    const { buildRequiredPlaceholders } = await import("../src/orchestrator/appModel.js");
+    const { model } = parseAppModel({ ...raw, nav: [...(raw as { nav: unknown[] }).nav, { label: "More", items: [{ id: "compare", label: "Compare", kind: "placeholder" }, { id: "reports", label: "Reports", kind: "placeholder" }] }] });
+    const built = buildRequiredPlaceholders(model!, [{ name: "Swap & Compare", purpose: "Compare alternatives side by side" }]);
+    const items = built.nav.flatMap((g) => g.items);
+    expect(items.find((i) => i.id === "compare")).toEqual(expect.objectContaining({ kind: "custom", purpose: "Compare alternatives side by side" }));
+    expect(items.find((i) => i.id === "reports")?.kind).toBe("placeholder");
+  });
+});

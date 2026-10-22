@@ -571,6 +571,29 @@ const screenWords = (name: string) =>
 const namedBy = (v: ModelView, name: string) => screenWords(name).some((w) => `${v.label} ${v.id}`.toLowerCase().includes(w));
 
 /**
+ * At planning only: a screen the PRD requires that the planner left a placeholder ("not in this prototype") and that no
+ * working page stands for is built, as a custom page with the PRD's purpose. Strict: every word of the placeholder's
+ * label is in the screen's name, or the other way round ("Compare" for "Swap & Compare"). A small planner kept making
+ * ShelfSure's Swap & Compare a placeholder although told not to, and planning stopped on it every time.
+ */
+export function buildRequiredPlaceholders(m: AppModel, declared: Array<{ name: string; purpose?: string }>): AppModel {
+  const working = m.nav.flatMap((g) => g.items).filter((v) => v.kind !== "placeholder");
+  const same = (a: string[], b: string[]) => a.length > 0 && a.every((w) => b.includes(w));
+  return {
+    ...m,
+    nav: m.nav.map((g) => ({
+      ...g,
+      items: g.items.map((v) => {
+        if (v.kind !== "placeholder") return v;
+        const label = screenWords(v.label);
+        const d = declared.find((x) => (same(label, screenWords(x.name)) || same(screenWords(x.name), label)) && !coveringView(working, x.name));
+        return d ? { ...v, kind: "custom" as const, purpose: v.purpose ?? (d.purpose || d.name) } : v;
+      }),
+    })),
+  };
+}
+
+/**
  * The working page that covers a screen the PRD names: one sharing a word of its name, else a look-up page of its kind
  * (an alias). A placeholder ("not in this prototype") never covers a required screen (Clean Cart slice eval 1: the
  * Search link was a placeholder and counted as the PRD's Search screen).
