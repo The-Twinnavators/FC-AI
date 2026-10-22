@@ -42,9 +42,26 @@ const env = {
 };
 const entry = path.join(root, "packages/daemon/dist/index.js");
 
+/**
+ * The contracts (the Component library's catalog among them) rebuilt when their source is newer than their build: a
+ * shelf decision whose own rebuild collided with another (two Accepts in a row) is finished here, before the daemon
+ * reads the catalog again.
+ */
+function freshContracts() {
+  const src = path.join(root, "packages/contracts/src/sectionLibrary.ts");
+  const out = path.join(root, "packages/contracts/dist/sectionLibrary.js");
+  try {
+    if (fs.existsSync(out) && fs.statSync(src).mtimeMs <= fs.statSync(out).mtimeMs) return;
+    execFileSync(process.execPath, [path.join(root, "node_modules/typescript/bin/tsc"), "-b"], { cwd: path.join(root, "packages/contracts"), stdio: "ignore", windowsHide: true, timeout: 180_000 });
+  } catch {
+    process.stdout.write("[dev-daemon] couldn't rebuild the contracts; starting with the last build\n");
+  }
+}
+
 let child;
 let stopping = false;
 function start() {
+  freshContracts();
   const key = userEnv("FLOWCODE_HOSTED_API_KEY") ?? process.env.FLOWCODE_HOSTED_API_KEY;
   child = spawn(process.execPath, ["--disable-warning=ExperimentalWarning", entry], { env: { ...env, ...(key ? { FLOWCODE_HOSTED_API_KEY: key } : {}) }, stdio: ["pipe", "inherit", "inherit"], windowsHide: true });
   child.on("exit", (code) => {

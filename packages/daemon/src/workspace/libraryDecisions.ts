@@ -50,7 +50,20 @@ export function decideProposed(repoRoot: string, id: string, decision: "accept" 
       }
     }
   }
-  // The contracts are what the daemon and the UI read: rebuild them.
-  if (rebuild) execFileSync(process.execPath, [path.join(repoRoot, "node_modules/typescript/bin/tsc"), "-b"], { cwd: path.join(repoRoot, "packages/contracts"), stdio: "ignore", timeout: 180_000 });
-  return { id, decision, done: decision === "accept" ? `Added ${id} to the library.` : `Removed ${id} from the shelf and deleted its file.` };
+  const done = decision === "accept" ? `Added ${id} to the library.` : `Removed ${id} from the shelf and deleted its file.`;
+  // The contracts are what the daemon and the UI read: rebuild them. A build can collide with the one the restart after
+  // the previous decision starts (two Accepts in a row): try again after a moment, and if it still fails the decision
+  // stands (the catalog is already changed) and the restart that follows builds it.
+  if (rebuild) {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        execFileSync(process.execPath, [path.join(repoRoot, "node_modules/typescript/bin/tsc"), "-b"], { cwd: path.join(repoRoot, "packages/contracts"), stdio: "ignore", timeout: 180_000 });
+        break;
+      } catch {
+        if (attempt >= 2) return { id, decision, done: `${done} The library finishes updating when FlowCode restarts.` };
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500);
+      }
+    }
+  }
+  return { id, decision, done };
 }
