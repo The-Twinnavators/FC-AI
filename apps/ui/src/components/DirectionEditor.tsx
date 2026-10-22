@@ -78,7 +78,7 @@ const NEUTRALS: Array<{ id: Appearance["neutral"]; label: string }> = [
   { id: "cool", label: "Cool" },
   { id: "pure", label: "Pure gray" },
 ];
-const SOURCE_LABEL = (s?: string) => (!s ? "" : s === "you" ? "you" : s === "prd" ? "your PRD" : s.startsWith("theme:") ? `the ${APPEARANCE_THEMES.find((t) => `theme:${t.id}` === s)?.name ?? "theme"} theme` : s === "suggested" ? "FlowCode's suggestion" : s);
+const SOURCE_LABEL = (s?: string) => (!s ? "" : s === "you" ? "you" : s === "prd" ? "your PRD" : s.startsWith("theme:") ? `the ${APPEARANCE_THEMES.find((t) => `theme:${t.id}` === s)?.name ?? "theme"} theme` : s === "suggested" ? "FlowCode's suggestion" : s === "concept" ? "the approved design" : s);
 
 /** A small sample of the look: heading, text, a card, the primary action and the status colours (with their words). */
 export function StyleSample({ appearance, label }: { appearance: Appearance; label: string }) {

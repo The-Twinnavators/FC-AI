@@ -3,6 +3,7 @@
  * are rewritten) → the layout step writes the home page from it and the style step its tokens → the approved-design
  * check passes; and a page that drifts from it (order, words, tokens) is caught.
  */
+import { getDesignState } from "../src/workspace/designState.js";
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -119,6 +120,10 @@ describe("an approved design proof becomes the home page", () => {
     expect(saved.sections.map((x) => x.component)).toEqual(["TopNav", "HeroSplit", "FeaturesGrid", "TestimonialsCards", "CtaBanner", "FooterSimple"]);
     expect(saved.sections[1]!.props.title).toBe("Start the day on the mat");
     expect(saved.tokens["--color-accent"]).toBe("#9a3412");
+    // The Look shows the approved concept: its accent, fonts and surface, as a new selected version marked as the concept's.
+    const look = getDesignState(app.store, project.id).selected!;
+    expect(look.appearance).toMatchObject({ primary: PROOF.spec.palette.accent, fonts: { display: PROOF.spec.typography.display, body: PROOF.spec.typography.body }, surface: PROOF.spec.surface.vibe, mode: "light" });
+    expect(look.sources.primary).toBe("concept");
 
     // Replan / reload: the planner writes its generic briefs again, and planning puts the contract back on Home only.
     app.store.setSetting(screenBriefKey(run.id), plannerBriefs());

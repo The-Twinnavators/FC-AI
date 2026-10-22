@@ -11,6 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { DEFAULT_SURFACES, LOOK_GROUP_IDS, appearanceChecks, appearanceProblems, appearanceTokens, motionTokens, sameAppearance, withLocks, type Appearance } from "@flowcode/contracts";
+import type { DesignSpec } from "./designSpec.js";
 
 /** The appearance's tokens this app takes: without the motion tokens where the app has no motion foundation. */
 function tokensFor(jail: PathJail, a: Appearance): Record<string, string> {
@@ -172,6 +173,48 @@ export function selectDraft(store: Store, projectId: string, jail?: PathJail): D
   versions.push({ version, appearance: draft.appearance, sources: draft.sources, selectedAt, ...notes });
   versions.splice(0, Math.max(0, versions.length - 30));
   const next: DesignState = { ...rest, selected: { appearance: draft.appearance, sources: draft.sources, version, selectedAt, by: "you", ...notes }, versions };
+  save(store, projectId, next);
+  return next;
+}
+
+/**
+ * An approved design concept becomes the Look's selected direction (a new version; the one before stays in the
+ * history), so the Look shows what was approved and what the app is built with. ShelfSure's Look still showed its
+ * starting theme (Ocean Breeze blue, Roboto) after concept C (green, Playfair Display + Inter) was approved. Locked
+ * groups keep the person's values, and the motion level and status colors, which a concept doesn't set, are kept.
+ */
+export function selectConcept(store: Store, projectId: string, spec: DesignSpec, jail?: PathJail): DesignState {
+  const s = getDesignState(store, projectId, jail);
+  const prev = s.selected?.appearance ?? s.applied?.appearance;
+  const n = parseInt(spec.palette.bg.slice(1), 16);
+  const tint = ((n >> 16) & 255) - (n & 255);
+  const radius = Math.min(12, spec.surface.radii[2] ?? spec.surface.radii[spec.surface.radii.length - 1] ?? 8);
+  const density = spec.density === "compact" ? "compact" : spec.density === "airy" ? "spacious" : "comfortable";
+  const concept: Appearance = {
+    mode: "light",
+    surface: spec.surface.vibe,
+    primary: spec.palette.accent,
+    secondary: spec.palette.secondary,
+    neutral: Math.abs(tint) < 6 ? "pure" : tint > 0 ? "warm" : "cool",
+    fonts: { display: spec.typography.display, body: spec.typography.body },
+    shape: { radius, density, borders: spec.surface.borderWidth >= 2 ? "strong" : "fine" },
+    ...(prev?.motion ? { motion: prev.motion } : {}),
+    ...(prev?.status ? { status: prev.status } : {}),
+  };
+  const appearance = withLocks(concept, prev, s.locks ?? []);
+  if (prev && sameAppearance(prev, appearance)) return s;
+  const keys = ["mode", "surface", "primary", "secondary", "neutral", "fonts", "shape"] as const;
+  // It no longer starts from a theme, so the theme's source goes too.
+  const { theme: _theme, ...kept } = s.selected?.sources ?? {};
+  const sources = { ...kept, ...Object.fromEntries(keys.map((k) => [k, "concept" as const])) };
+  const version = Math.max(s.selected?.version ?? 0, s.applied?.version ?? 0, ...(s.versions ?? []).map((v) => v.version)) + 1;
+  const selectedAt = now();
+  const notes = [`The approved design concept "${spec.name}".`];
+  const versions = [...(s.versions ?? [])];
+  if (s.selected && !versions.some((v) => v.version === s.selected!.version)) versions.push({ version: s.selected.version, appearance: s.selected.appearance, sources: s.selected.sources, selectedAt: s.selected.selectedAt });
+  versions.push({ version, appearance, sources, selectedAt, notes });
+  versions.splice(0, Math.max(0, versions.length - 30));
+  const next: DesignState = { ...s, selected: { appearance, sources, version, selectedAt, by: "you", notes }, versions };
   save(store, projectId, next);
   return next;
 }

@@ -32,7 +32,7 @@ import type { Store } from "../db/store.js";
 import type { EventBus } from "../events/bus.js";
 import type { ModelRouter } from "../models/router.js";
 import { expectedTokens, specProblems, type DesignSpec } from "../workspace/designSpec.js";
-import { getDesignState } from "../workspace/designState.js";
+import { getDesignState, selectConcept } from "../workspace/designState.js";
 import { findOpenImage } from "../workspace/openImages.js";
 import type { PathJail } from "../security/pathJail.js";
 import { designSkillIds, renderSkills, selectSkills } from "../knowledge/skills.js";
@@ -189,6 +189,8 @@ export function approveProof(d: Deps, runId: string): DesignProofs {
   save(d.store, p);
   d.store.setSetting(designSpecKey(runId), x.spec);
   const run0 = d.store.runs.require(runId);
+  // The Look shows the approved concept: its accent as the primary (the palette builder keeps contrast), light first.
+  selectConcept(d.store, run0.projectId, x.spec as DesignSpec);
   d.store.setSetting(designContractKey(runId), buildContract(runId, x, getDesignState(d.store, run0.projectId).locks ?? [], getContract(d.store, runId), p.approved.at));
   const contract = applyDesignContract(d.store, runId);
   const brief = `Approved design proof "${x.name}" (${x.label}): ${x.rationale ?? ""} ${contract && contract.target.screen ? contractNote(contract) : `The home page is composed from these library sections, in this order, with this content: ${describePage(x.page)}.`} Its design specification is applied to the app's tokens; keep it, and carry the same direction to the other screens.`;
