@@ -76,7 +76,14 @@
 .fl-alr-toast__undo:hover { text-decoration: underline; text-underline-offset: 3px; }
 .fl-alr-toast__bar { position: absolute; left: 0; bottom: 0; height: 0.2rem; width: 100%; background: var(--fl-alr-tone); transform-origin: left; animation: fl-alr-bar linear forwards; }
 .fl-alr-toast[data-paused="true"] .fl-alr-toast__bar { animation-play-state: paused; }
-@keyframes fl-alr-in { from { opacity: 0; transform: translateY(0.75rem); } to { opacity: 1; transform: none; } }
+.fl-alr-toast.is-leaving { pointer-events: none; animation: fl-alr-out var(--duration-base) var(--ease-out, var(--easing)) forwards; }
+.fl-alr-toast .fl-alr__close { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-alr-toast .fl-alr__close:active { scale: 0.92; }
+.fl-alr-toast__undo { transition: color var(--duration-fast) var(--easing), translate var(--duration-fast) var(--easing); }
+.fl-alr-toast__undo:active { translate: 0 1px; }
+@keyframes fl-alr-in { from { opacity: 0; transform: translateY(var(--enter-distance, 0.75rem)) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes fl-alr-out { to { opacity: 0; transform: translateX(calc(var(--enter-distance, 8px) * 3)) scale(0.98); } }
+@keyframes fl-alr-fade-out { to { opacity: 0; } }
 @keyframes fl-alr-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .fl-alr-log { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 .fl-alr-log li { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-sunken); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
@@ -117,10 +124,15 @@
 
 /* ── Motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .fl-alr-toast { animation: none; }
+  .fl-alr-toast { animation: fl-alr-fade-in 120ms linear; }
+  .fl-alr-toast.is-leaving { animation: fl-alr-fade-out 120ms linear forwards; }
+  .fl-alr-toast .fl-alr__close:active, .fl-alr-toast__undo:active { scale: none; translate: none; }
   .fl-alr-toast__bar { display: none; }
   .fl-alr__action, .fl-alr__close, .fl-alr-404__results a, .fl-alr-404__links a { transition: none; }
 }
+
+@keyframes fl-alr-fade-in { from { opacity: 0; } }
+:root[data-motion="off"] .fl-alr-toast, :root[data-motion="off"] .fl-alr-toast * { animation: none !important; transition: none !important; }
 
 /* ── Phones ── */
 @media (max-width: 480px) {

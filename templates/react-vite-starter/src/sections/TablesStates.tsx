@@ -31,7 +31,7 @@
  * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
  * built app exactly as it runs here.
  */
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./ButtonsVariants";
 import { Badge, type BadgeTone } from "./BadgesStatus";
@@ -106,6 +106,48 @@ type TableProps<R extends TableRow> = {
 };
 
 const sortValue = (v: unknown) => (typeof v === "number" ? v : String(v ?? ""));
+
+// Rows glide to their new places when the order changes (a sort, a removal): FLIP with Web Animations, so the new
+// order paints first and the movement is only decoration. Animation off or reduced motion: the rows are simply there.
+const stillMotion = () =>
+  typeof window === "undefined" ||
+  document.documentElement.dataset.motion === "off" ||
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+const tokenMs = (el: Element, name: string, fallback: number) => {
+  const v = getComputedStyle(el).getPropertyValue(name).trim();
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? (v.endsWith("ms") ? n : v.endsWith("s") ? n * 1000 : n) : fallback;
+};
+function useRowGlide(order: string) {
+  const body = useRef<HTMLTableSectionElement>(null);
+  const tops = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const el = body.current;
+    if (!el) return;
+    const base = el.getBoundingClientRect().top;
+    const rows = [...el.querySelectorAll<HTMLElement>(":scope > tr[data-row]")];
+    const now = new Map(rows.map((r) => [r.dataset.row!, r.getBoundingClientRect().top - base]));
+    const before = tops.current;
+    tops.current = now;
+    if (!before.size || stillMotion()) return;
+    const duration = tokenMs(el, "--duration-slow", 320);
+    const easing = getComputedStyle(el).getPropertyValue("--ease-out").trim() || "ease-out";
+    // While rows glide, the scroll box doesn't grow a scrollbar for a row passing below the last one.
+    const box = el.closest<HTMLElement>(".fl-tbl-scroll");
+    const moves: Animation[] = [];
+    for (const r of rows) {
+      const was = before.get(r.dataset.row!);
+      if (was === undefined) continue;
+      const dy = was - now.get(r.dataset.row!)!;
+      if (Math.abs(dy) > 1) moves.push(r.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration, easing }));
+    }
+    if (box && moves.length) {
+      box.style.overflowY = "hidden";
+      Promise.allSettled(moves.map((m) => m.finished)).then(() => box.style.removeProperty("overflow-y"));
+    }
+  }, [order]);
+  return body;
+}
 
 function SortIcon() {
   return (
@@ -192,6 +234,7 @@ export function DataTable<R extends TableRow>({
     pick((v) => (pickedHere === visible.length ? v.filter((x) => !ids.includes(x)) : [...new Set([...v, ...ids])]));
   };
   const hasTotals = columns.some((c) => c.total);
+  const glide = useRowGlide(visible.map((r) => r.id).join("|"));
   const notify = useRef(onSelectionChange);
   notify.current = onSelectionChange;
   const key = chosen.join("|");
@@ -232,7 +275,7 @@ export function DataTable<R extends TableRow>({
                   })}
                 </tr>
               </thead>
-              <tbody>
+              <tbody ref={glide}>
                 {rows.length === 0 ? (
                   <tr>
                     <td colSpan={columns.length} className="fl-tbl-empty-cell">
@@ -244,7 +287,7 @@ export function DataTable<R extends TableRow>({
                   </tr>
                 ) : null}
                 {rows.map((r) => (
-                  <tr key={r.id}>
+                  <tr key={r.id} data-row={r.id}>
                     {columns.map((c, i) => {
                       const cell = c.render ? c.render(r) : (r[c.id] as ReactNode);
                       const cls = [c.num ? "fl-tbl-num" : "", c.nowrap ? "fl-tbl-nowrap" : ""].filter(Boolean).join(" ") || undefined;
@@ -329,11 +372,11 @@ export function DataTable<R extends TableRow>({
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody ref={glide}>
                   {visible.map((r) => {
                     const isOn = chosen.includes(r.id);
                     return (
-                      <tr key={r.id} aria-selected={isOn} onClick={(e) => !(e.target as HTMLElement).closest("input, button, a, label") && toggle(r.id)} style={{ cursor: "pointer" }}>
+                      <tr key={r.id} data-row={r.id} aria-selected={isOn} onClick={(e) => !(e.target as HTMLElement).closest("input, button, a, label") && toggle(r.id)} style={{ cursor: "pointer" }}>
                         <td className="fl-tbl-check-cell">
                           <input id={`${uid}-${r.id}`} type="checkbox" className="fl-tbl-check" checked={isOn} onChange={() => toggle(r.id)} />
                           <label htmlFor={`${uid}-${r.id}`} className="fl-sr">

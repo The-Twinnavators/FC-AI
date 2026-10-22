@@ -18,7 +18,7 @@
  * code from either).
  * Make it the app's own: replace SAMPLE with your suggestions (from your data) and send the search where it belongs.
  */
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
 
 export type SearchVariant = "bar" | "inline";
@@ -191,6 +191,40 @@ export function SearchField({
   );
 }
 
+/** When the filter changes, the chips that stay glide to their new places and the ones that come back fade in (FLIP with Web Animations). */
+function useChipGlide(order: string) {
+  const list = useRef<HTMLUListElement>(null);
+  const places = useRef(new Map<string, { x: number; y: number }>());
+  useLayoutEffect(() => {
+    const el = list.current;
+    if (!el) return;
+    const box = el.getBoundingClientRect();
+    const chips = [...el.querySelectorAll<HTMLElement>(":scope > [data-chip]")];
+    const now = new Map(chips.map((c) => {
+      const r = c.getBoundingClientRect();
+      return [c.dataset.chip!, { x: r.left - box.left, y: r.top - box.top }] as const;
+    }));
+    const before = places.current;
+    places.current = now;
+    const still = document.documentElement.dataset.motion === "off" || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (!before.size || still) return;
+    const css = getComputedStyle(el);
+    const duration = parseFloat(css.getPropertyValue("--duration-base")) || 200;
+    const easing = css.getPropertyValue("--ease-out").trim() || "ease-out";
+    for (const c of chips) {
+      const a = before.get(c.dataset.chip!);
+      const b = now.get(c.dataset.chip!)!;
+      if (!a) {
+        c.animate([{ opacity: 0, transform: "scale(0.94)" }, { opacity: 1, transform: "none" }], { duration, easing });
+        continue;
+      }
+      if (Math.abs(a.x - b.x) < 1 && Math.abs(a.y - b.y) < 1) continue;
+      c.animate([{ transform: `translate(${a.x - b.x}px, ${a.y - b.y}px)` }, { transform: "none" }], { duration, easing });
+    }
+  }, [order]);
+  return list;
+}
+
 // flowcode:sample
 const SAMPLE = {
   bar: { label: "Search recipes", placeholder: "Search recipes, ingredients or cuisines" },
@@ -207,6 +241,7 @@ export default function SearchFieldSheet() {
   const [searched, setSearched] = useState("");
   const [filter, setFilter] = useState("");
   const matches = d.ingredients.filter((i) => i.toLowerCase().includes(filter.trim().toLowerCase()));
+  const chips = useChipGlide(matches.join("|"));
   return (
     <section className="fl-section fl-section--specimen">
       <div className="fl-ctl-spec fl-ctl-spec--wide">
@@ -234,9 +269,9 @@ export default function SearchFieldSheet() {
         <h3>Inline: filters a list as you type</h3>
         <p className="fl-ctl-btn-what">For a list already on the screen. No suggestions; it says how many match.</p>
         <SearchField variant="inline" label={d.inline.label} placeholder={d.inline.placeholder} value={filter} onChange={setFilter} count={matches.length} />
-        <ul className="fl-srch-results">
+        <ul ref={chips} className="fl-srch-results">
           {matches.map((m) => (
-            <li key={m}>
+            <li key={m} data-chip={m}>
               <Marked text={m} query={filter.trim()} />
             </li>
           ))}

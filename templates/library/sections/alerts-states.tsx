@@ -34,7 +34,7 @@
  * are the library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a
  * built app exactly as it runs here.
  */
-import { useEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 
@@ -323,21 +323,42 @@ export type ToastItem = {
 // Written out in full so a build finds every class.
 const TOAST_TONE: Record<AlertVariant, string> = { info: "fl-alr-tone-info", success: "fl-alr-tone-success", warning: "fl-alr-tone-warning", danger: "fl-alr-tone-error" };
 
-function ToastRow({ toast, duration, onClose }: { toast: ToastItem; duration: number; onClose: (id: number) => void }) {
+// Motion is skipped when the page says so (animation off) or the person asked for less (reduced motion).
+const motionOff = () => typeof document === "undefined" || document.documentElement.dataset.motion === "off";
+const motionReduced = () => motionOff() || !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+/** A motion token in milliseconds, read from the page (so the app's motion level sizes it). */
+const tokenMs = (el: Element, name: string, fallback: number) => {
+  const v = getComputedStyle(el).getPropertyValue(name).trim();
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? (v.endsWith("ms") ? n : v.endsWith("s") ? n * 1000 : n) : fallback;
+};
+
+function ToastRow({ toast, duration, onClose, leaving, onGone }: { toast: ToastItem; duration: number; onClose: (id: number) => void; leaving?: boolean; onGone?: (id: number) => void }) {
   const [paused, setPaused] = useState(false);
   const remaining = useRef(duration);
   const startedAt = useRef(0);
   const variant = toast.variant ?? "info";
 
+  // A leaving toast plays its exit, then is dropped; the fallback drops it even if no animation ends.
   useEffect(() => {
-    if (paused) return;
+    if (!leaving) return;
+    if (motionOff()) {
+      onGone?.(toast.id);
+      return;
+    }
+    const t = window.setTimeout(() => onGone?.(toast.id), 600);
+    return () => window.clearTimeout(t);
+  }, [leaving, toast.id, onGone]);
+
+  useEffect(() => {
+    if (paused || leaving) return;
     startedAt.current = Date.now();
     const timer = window.setTimeout(() => onClose(toast.id), remaining.current);
     return () => {
       window.clearTimeout(timer);
       remaining.current = Math.max(0, remaining.current - (Date.now() - startedAt.current));
     };
-  }, [paused, toast.id, onClose]);
+  }, [paused, leaving, toast.id, onClose]);
 
   const onKey = (e: KeyboardEvent<HTMLLIElement>) => {
     if (e.key === "Escape") onClose(toast.id);
@@ -345,9 +366,15 @@ function ToastRow({ toast, duration, onClose }: { toast: ToastItem; duration: nu
 
   return (
     <li
-      className={`fl-alr-toast ${TOAST_TONE[variant]}`}
+      className={`fl-alr-toast ${TOAST_TONE[variant]}${leaving ? " is-leaving" : ""}`}
       data-fl={`c.toast-stack.${variant}`}
+      data-toast={toast.id}
       data-paused={paused}
+      aria-hidden={leaving || undefined}
+      inert={leaving || undefined}
+      onAnimationEnd={(e) => {
+        if (leaving && e.target === e.currentTarget) onGone?.(toast.id);
+      }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -400,11 +427,42 @@ export function ToastStack({ toasts, onDismiss, max = 4, duration = 5000, contai
   label?: string;
 }) {
   const style = contained ? { position: "absolute" as const, right: "var(--space-4)", bottom: "var(--space-4)", width: "min(24rem, calc(100% - 2 * var(--space-4)))" } : undefined;
+  // Toasts that left the list stay a moment, marked leaving, so they can slide out where they were.
+  const visible = toasts.slice(-max);
+  const [shown, setShown] = useState<(ToastItem & { leaving?: boolean })[]>(visible);
+  const [seen, setSeen] = useState(visible);
+  if (seen !== visible && visible.map((t) => t.id).join() !== seen.map((t) => t.id).join()) {
+    const ids = new Map(visible.map((t) => [t.id, t]));
+    const next: (ToastItem & { leaving?: boolean })[] = shown.map((o) => (ids.has(o.id) ? ids.get(o.id)! : { ...o, leaving: true }));
+    for (const t of visible) if (!shown.some((o) => o.id === t.id)) next.push(t);
+    setSeen(visible);
+    setShown(next);
+  }
+  const gone = useRef((id: number) => setShown((all) => all.filter((t) => t.id !== id || !t.leaving))).current;
+
+  // Restack: the toasts that stay glide from where they were to where they are now (FLIP), instead of jumping.
+  const list = useRef<HTMLOListElement>(null);
+  const places = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const el = list.current;
+    if (!el) return;
+    const rows = [...el.querySelectorAll<HTMLElement>(":scope > [data-toast]")];
+    const now = new Map(rows.map((r) => [r.dataset.toast!, r.getBoundingClientRect().top]));
+    if (!motionReduced()) {
+      for (const r of rows) {
+        const before = places.current.get(r.dataset.toast!);
+        const dy = before === undefined ? 0 : before - now.get(r.dataset.toast!)!;
+        if (Math.abs(dy) > 1) r.animate([{ translate: `0 ${dy}px` }, { translate: "0 0" }], { duration: tokenMs(el, "--duration-base", 200), easing: getComputedStyle(el).getPropertyValue("--ease-out").trim() || "ease-out" });
+      }
+    }
+    places.current = now;
+  }, [shown]);
+
   return (
     <div role="region" aria-label={label} data-fl={version === "cards" ? "c.toast-stack@cards" : undefined}>
-      <ol className="fl-alr-toasts" style={style} aria-live="polite" aria-relevant="additions">
-        {toasts.slice(-max).map((t) => (
-          <ToastRow key={t.id} toast={t} duration={duration} onClose={onDismiss} />
+      <ol ref={list} className="fl-alr-toasts" style={style} aria-live="polite" aria-relevant="additions">
+        {shown.map((t) => (
+          <ToastRow key={t.id} toast={t} duration={duration} onClose={onDismiss} leaving={t.leaving} onGone={gone} />
         ))}
       </ol>
     </div>

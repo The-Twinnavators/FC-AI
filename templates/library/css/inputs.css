@@ -295,6 +295,31 @@ select.fl-in-trigger option { color: var(--color-text); }
 .fl-in-search { position: relative; }
 .fl-in-search > svg:first-child { position: absolute; left: var(--space-3); top: 50%; width: 1.125rem; height: 1.125rem; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none; }
 .fl-in-search .fl-input { padding-left: 2.5rem; padding-right: 2.25rem; }
+/* Select motion: the list opens with a short fade and scale from the field; the chevron turns (on a native select too,
+   where the browser reports it open); the highlight eases between options and a chosen tick pops in; errors and the
+   saved line fade in. */
+.fl-in-listbox { transform-origin: top center; animation: fl-in-list-open var(--duration-base) var(--ease-out, var(--easing)); }
+@keyframes fl-in-list-open { from { opacity: 0; transform: translateY(calc(var(--space-1) * -1)) scale(0.97); } }
+.fl-in-trigger { transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing); }
+.fl-in-trigger:active:not(:disabled) { background: color-mix(in srgb, var(--color-text) 4%, var(--control-bg, var(--color-surface))); }
+.fl-in-chev { transition: transform var(--duration-base) var(--ease-out, var(--easing)), color var(--duration-fast) var(--easing); }
+.fl-in-native:hover .fl-in-chev, .fl-in-select:hover .fl-in-chev { color: var(--color-text); }
+@supports selector(:open) {
+  .fl-in-native:has(select:open) .fl-in-chev { transform: translateY(-50%) rotate(180deg); }
+}
+.fl-in-option { transition: background-color var(--duration-fast) var(--easing); }
+.fl-in-option__check { animation: fl-in-tick var(--duration-base) var(--ease-spring, var(--easing)); }
+@keyframes fl-in-tick { from { opacity: 0; scale: 0.5; } }
+.fl-in-search .fl-input { transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing); }
+.fl-in-panel .fl-in-error, .fl-in-panel .fl-done { animation: fl-in-note var(--duration-base) var(--ease-out, var(--easing)); }
+@keyframes fl-in-note { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); } }
+@media (prefers-reduced-motion: reduce) {
+  .fl-in-listbox, .fl-in-panel .fl-in-error, .fl-in-panel .fl-done { animation: fl-in-fade 100ms linear; }
+  .fl-in-option, .fl-in-search .fl-input { transition: none; }
+  .fl-in-option__check { animation: none; }
+}
+@keyframes fl-in-fade { from { opacity: 0; } }
+:root[data-motion="off"] :is(.fl-in-listbox, .fl-in-option, .fl-in-option__check, .fl-in-trigger, .fl-in-chev, .fl-in-search .fl-input, .fl-in-panel .fl-in-error, .fl-in-panel .fl-done) { transition: none !important; animation: none !important; }
 
 /* ── Motion ── */
 @media (prefers-reduced-motion: reduce) {

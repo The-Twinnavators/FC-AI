@@ -167,6 +167,37 @@
 .fl-snv-panel__head h2 { margin: 0; flex: 1; font: var(--weight-bold) max(11px, calc(var(--text-md) - var(--fs-shrink, 0px))) / 1.2 var(--font-display); }
 .fl-snv-panel__text { margin: 0; padding-inline: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); line-height: var(--leading-normal); color: var(--color-text-muted); }
 
+/* Rail motion: one indicator slides behind the icons to the chosen section; icons press in; the tooltip slides out
+   from the rail; the panel's words and pages change with a short fade (pages one after another, capped at six). */
+.fl-snv-rail { position: relative; isolation: isolate; }
+.fl-snv-railind { display: none; }
+.fl-snv-rail.is-sliding .fl-snv-railind {
+  display: block; position: absolute; z-index: -1; left: 0; top: 0; width: var(--ind-w, 2.5rem); height: var(--ind-h, 2.5rem);
+  translate: var(--ind-x, 0) var(--ind-y, 0); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-border);
+  transition: translate var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-snv-rail.is-sliding .fl-snv-railbtn[aria-pressed="true"] { background: transparent; box-shadow: none; }
+.fl-snv-rail.is-sliding .fl-snv-railbtn[aria-pressed="true"]:focus-visible { box-shadow: var(--focus-ring); }
+.fl-snv-railbtn { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-snv-railbtn:active { scale: 0.94; }
+.fl-snv-railbtn > svg { transition: scale var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-snv-railbtn[aria-pressed="true"] > svg { scale: 1.08; }
+.fl-snv-railbtn__dot { animation: fl-snv-pop var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-snv-railbtn .fl-snv-tip { translate: calc(var(--space-1) * -1) 0; transition: opacity var(--duration-fast) var(--easing), translate var(--duration-fast) var(--ease-out, var(--easing)); }
+.fl-snv-railbtn:hover > .fl-snv-tip, .fl-snv-railbtn:focus-visible > .fl-snv-tip { translate: 0 0; }
+.fl-snv-railside .fl-snv-item:active { scale: 0.98; }
+.fl-snv-railside .fl-snv-item { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-snv-swap { animation: fl-snv-in var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-snv-pages > li { animation: fl-snv-in var(--duration-base) var(--ease-out, var(--easing)) backwards; }
+.fl-snv-pages > li:nth-child(2) { animation-delay: calc(var(--stagger, 40ms) * 1); }
+.fl-snv-pages > li:nth-child(3) { animation-delay: calc(var(--stagger, 40ms) * 2); }
+.fl-snv-pages > li:nth-child(4) { animation-delay: calc(var(--stagger, 40ms) * 3); }
+.fl-snv-pages > li:nth-child(5) { animation-delay: calc(var(--stagger, 40ms) * 4); }
+.fl-snv-pages > li:nth-child(n + 6) { animation-delay: calc(var(--stagger, 40ms) * 5); }
+@keyframes fl-snv-in { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) / 2); } }
+@keyframes fl-snv-pop { from { scale: 0; } }
+@keyframes fl-snv-fade { from { opacity: 0; } }
+
 /* ── 3. Nested tree with pins ── */
 .fl-snv-tree { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .fl-snv-tree[hidden] { display: none; }
@@ -211,5 +242,10 @@
 
 /* ── Less motion: nothing slides, fades or spins ── */
 @media (prefers-reduced-motion: reduce) {
-  .fl-snv-side, .fl-snv-side.is-open, .fl-snv-tip, .fl-snv-label, .fl-snv-chev, .fl-snv-item, .fl-snv-iconbtn, .fl-snv-railbtn { transition: none !important; }
+  .fl-snv-side, .fl-snv-side.is-open, .fl-snv-tip, .fl-snv-label, .fl-snv-chev, .fl-snv-item, .fl-snv-iconbtn, .fl-snv-railbtn, .fl-snv-railbtn > svg, .fl-snv-rail.is-sliding .fl-snv-railind { transition: none !important; }
+  .fl-snv-railbtn:active, .fl-snv-railside .fl-snv-item:active, .fl-snv-railbtn[aria-pressed="true"] > svg { scale: none; }
+  .fl-snv-railbtn .fl-snv-tip { translate: none; }
+  .fl-snv-railbtn__dot { animation: none; }
+  .fl-snv-swap, .fl-snv-pages > li { animation: fl-snv-fade 120ms linear; animation-delay: 0s; }
 }
+:root[data-motion="off"] .fl-snv-frame, :root[data-motion="off"] .fl-snv-frame * { transition: none !important; animation: none !important; }

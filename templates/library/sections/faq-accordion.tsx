@@ -11,8 +11,44 @@
  */
 /**
  * FAQ: accordion. Questions that open in place (the catalog accordion, so arrow keys and screen readers work). Make it the app's own: replace SAMPLE with the questions people really ask (5 to 8).
+ * Motion: the heading and then the questions rise in once, one after another (capped), when the section first comes
+ * into view; answers grow open and closed. With reduced motion or animation off everything is simply there.
  */
+import { useEffect, useRef, useState } from "react";
 import { Accordion } from "./accordion-variants";
+
+const still = () =>
+  typeof window === "undefined" ||
+  document.documentElement.dataset.motion === "off" ||
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** Entrance once: plays at once when already on screen, else when scrolled to; never left hidden (1.2s fallback). */
+function useEnterOnce<T extends Element>() {
+  const ref = useRef<T>(null);
+  const [state, setState] = useState<"idle" | "wait" | "in">("idle");
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window) || still()) return;
+    const box = el.getBoundingClientRect();
+    if (box.top < innerHeight && box.bottom > 0) {
+      setState("in");
+      return;
+    }
+    setState("wait");
+    const show = () => {
+      setState("in");
+      io.disconnect();
+    };
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && show(), { threshold: 0.15 });
+    io.observe(el);
+    const t = setTimeout(show, 1200);
+    return () => {
+      io.disconnect();
+      clearTimeout(t);
+    };
+  }, []);
+  return [ref, state] as const;
+}
 
 export type FaqAccordionProps = {
   title: string;
@@ -34,8 +70,10 @@ export type FaqAccordionProps = {
 
 export function FaqAccordion({ title, eyebrow, lede, align = "start", tint, defaultOpen = [0], id = "help", items }: FaqAccordionProps) {
   const titleId = `${id}-title`;
+  const [ref, enter] = useEnterOnce<HTMLElement>();
+  const motion = enter === "wait" ? " fl-acc-enter is-waiting" : enter === "in" ? " fl-acc-enter is-entering" : "";
   return (
-    <section className={tint ? "fl-section fl-section--tint" : "fl-section"} id={id} aria-labelledby={titleId} data-fl="b.faq-accordion">
+    <section ref={ref} className={(tint ? "fl-section fl-section--tint" : "fl-section") + motion} id={id} aria-labelledby={titleId} data-fl="b.faq-accordion">
       <div className="fl-wrap fl-wrap--narrow">
         <div className={align === "center" ? "fl-head fl-head--center" : "fl-head"}>
           {eyebrow ? <span className="fl-eyebrow">{eyebrow}</span> : null}

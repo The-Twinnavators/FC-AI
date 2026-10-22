@@ -292,6 +292,38 @@
 .fl-ctl-tabset--40 .fl-spec-tab { min-height: 40px; }
 .fl-ctl-tabset--44 .fl-spec-tab { min-height: 44px; }
 .fl-ctl-tabpanel { padding: var(--space-4); border: var(--surface-border, 1px solid var(--color-border)); border-top: 0; border-radius: 0 0 min(var(--surface-radius-sm, var(--radius-md)), 12px) min(var(--surface-radius-sm, var(--radius-md)), 12px); box-shadow: var(--surface-shadow, none); }
+/* Tabs motion: one indicator glides to the open tab (underline and pill looks); tabs answer hover and press. Without
+   script the open tab keeps its own mark; the indicator takes over only once it has been measured (.is-sliding). */
+.fl-ctl-tabset { position: relative; }
+.fl-spec-tab { transition: color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-spec-tab:active:not(:disabled) { scale: 0.98; }
+.fl-ctl-tabset--underline .fl-spec-tab:hover:not(:disabled):not(.is-on) { color: var(--color-text); }
+.fl-ctl-tabset--pills .fl-spec-tab:hover:not(:disabled):not(.is-on) { background: var(--color-surface-sunken); color: var(--color-text); }
+.fl-ctl-tabset--enclosed .fl-spec-tab:hover:not(:disabled):not(.is-on) { color: var(--color-text); background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+.fl-ctl-tab-count { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing); }
+.fl-ctl-tabset__ind { position: absolute; left: 0; top: 0; z-index: 0; display: none; pointer-events: none; }
+.fl-ctl-tabset.is-sliding .fl-ctl-tabset__ind { display: block; }
+.fl-ctl-tabset.is-sliding.is-ready .fl-ctl-tabset__ind { transition: transform var(--duration-base) var(--ease-out, var(--easing)), width var(--duration-base) var(--ease-out, var(--easing)), height var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-ctl-tabset.is-sliding .fl-spec-tab { position: relative; z-index: 1; }
+.fl-ctl-tabset--underline .fl-ctl-tabset__ind { box-shadow: inset 0 -2px 0 var(--color-accent); }
+.fl-ctl-tabset--underline.is-sliding .fl-spec-tab.is-on { border-bottom-color: transparent; }
+.fl-ctl-tabset--pills .fl-ctl-tabset__ind { border-radius: var(--pill-radius, 999px); background: var(--color-accent); }
+.fl-ctl-tabset--pills.is-sliding .fl-spec-tab.is-on { background: transparent; }
+/* underline-slide: the bar only glides once it has been placed, so it never grows in from the left on first paint. */
+.fl-ctl-tablist:not(.is-ready) .fl-ctl-tabs__bar { transition: none; }
+.fl-ctl-tab { transition: color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-ctl-tab:active:not(:disabled) { scale: 0.98; }
+.fl-ctl-tab__count { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing); }
+/* c.tabs@folder: a tab rises a pixel under the pointer and settles when pressed. */
+.fl-tabs-folder__tab { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), translate var(--duration-fast) var(--easing); }
+.fl-tabs-folder__tab:hover:not(:disabled):not([aria-selected="true"]) { translate: 0 -1px; }
+.fl-tabs-folder__tab:active:not(:disabled) { translate: 0 1px; }
+@media (prefers-reduced-motion: reduce) {
+  .fl-spec-tab, .fl-ctl-tab, .fl-ctl-tab-count, .fl-ctl-tab__count, .fl-tabs-folder__tab, .fl-ctl-tabset.is-sliding.is-ready .fl-ctl-tabset__ind { transition: none; }
+  .fl-spec-tab:active, .fl-ctl-tab:active { scale: none; }
+  .fl-tabs-folder__tab:hover, .fl-tabs-folder__tab:active { translate: none; }
+}
+:root[data-motion="off"] :is(.fl-spec-tab, .fl-ctl-tab, .fl-ctl-tab-count, .fl-ctl-tab__count, .fl-tabs-folder__tab, .fl-ctl-tabset__ind, .fl-ctl-tabs__bar) { transition: none !important; animation: none !important; }
 
 /* ── Breadcrumbs ── */
 .fl-ctl-crumb-list { display: grid; gap: var(--space-5); margin: 0 0 var(--space-6); padding: 0; list-style: none; }
@@ -476,13 +508,30 @@
 .fl-card-sticker__list svg { width: 1.1rem; height: 1.1rem; flex: none; color: var(--color-success); }
 .fl-card--sticker .fl-card-sticker__status { min-height: 1.5em; font-weight: var(--weight-semibold); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text); }
 .fl-card-sticker__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; justify-content: space-between; }
+/* Sticker motion: the tint and edge fade when a card is chosen, the tag settles a little further on hover, a chosen
+   plan's ticks pop in one after another, and the status line fades in. */
+.fl-card--sticker { transition: transform var(--duration-fast) var(--easing), translate var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), background-color var(--duration-base) var(--easing), border-color var(--duration-base) var(--easing); }
+.fl-card-sticker__tag { transition: transform var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-card--sticker:hover .fl-card-sticker__tag { transform: rotate(calc(var(--tag-tilt, 6deg) * 1.5)) translateY(-2px); }
+.fl-card-sticker--selected .fl-card-sticker__list svg { animation: fl-card-sticker-pop var(--duration-base) var(--ease-spring, var(--easing)) both; }
+.fl-card-sticker--selected .fl-card-sticker__list li:nth-child(2) svg { animation-delay: var(--stagger, 40ms); }
+.fl-card-sticker--selected .fl-card-sticker__list li:nth-child(3) svg { animation-delay: calc(var(--stagger, 40ms) * 2); }
+.fl-card-sticker--selected .fl-card-sticker__list li:nth-child(n + 4) svg { animation-delay: calc(var(--stagger, 40ms) * 3); }
+.fl-card--sticker .fl-card-sticker__status:not(:empty) { animation: fl-card-sticker-fade var(--duration-base) var(--ease-out, var(--easing)); }
+@keyframes fl-card-sticker-pop { 0% { scale: 0.6; } 60% { scale: 1.2; } 100% { scale: 1; } }
+@keyframes fl-card-sticker-fade { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 0.5); } }
+:root[data-motion="off"] .fl-card--sticker, :root[data-motion="off"] .fl-card--sticker * { transition: none !important; animation: none !important; }
 @media (max-width: 40rem) {
   .fl-card--sticker, .fl-tabs-folder__panel { padding: var(--space-5); }
 }
 @media (prefers-reduced-motion: reduce) {
   .fl-card--sticker, .fl-tabs-folder__tab { transition: none; }
   .fl-card--sticker:hover { transform: none; translate: none; }
+  .fl-card--sticker:hover .fl-card-sticker__tag { transform: rotate(var(--tag-tilt, 6deg)); }
+  .fl-card-sticker--selected .fl-card-sticker__list svg { animation: none; }
+  .fl-card--sticker .fl-card-sticker__status:not(:empty) { animation: fl-card-sticker-fade-only 120ms linear; }
 }
+@keyframes fl-card-sticker-fade-only { from { opacity: 0; } }
 
 /* A selectable card holding a title, a line of text and a price (a plan or box-size picker): words on the left, the
    price on the right, clear of the radio in the top-right corner. */

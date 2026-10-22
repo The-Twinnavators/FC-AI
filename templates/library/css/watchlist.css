@@ -41,6 +41,24 @@
 .fl-wl-status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-wl-status:empty { display: none; }
 
+/* Motion: rows glide when the order changes (script), a hovered row tints, a new range draws its lines in and flashes
+   the changes, and the Undo line fades in. Reduced motion keeps short fades; animation off keeps nothing. */
+.fl-wl-row { margin-inline: calc(-1 * var(--space-2)); padding-inline: var(--space-2); transition: background-color var(--duration-fast) var(--easing); }
+.fl-wl-row:hover { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+.fl-wl-spark polyline { stroke-dasharray: 1; animation: fl-wl-draw var(--duration-slow) var(--ease-out, var(--easing)) both; }
+.fl-wl-move { animation: fl-wl-flash var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-wl-status:not(:empty) { animation: fl-wl-fade var(--duration-base) var(--ease-out, var(--easing)); }
+@keyframes fl-wl-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes fl-wl-flash { from { scale: 0.92; filter: brightness(1.25); } }
+@keyframes fl-wl-fade { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * 0.5); } }
+@keyframes fl-wl-fade-only { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .fl-wl-row { transition: none; }
+  .fl-wl-spark polyline, .fl-wl-move { animation: none; }
+  .fl-wl-status:not(:empty) { animation: fl-wl-fade-only 120ms linear; }
+}
+:root[data-motion="off"] .fl-wl *, :root[data-motion="off"] .fl-wl { transition: none !important; animation: none !important; }
+
 /* Narrow: the price line steps aside so the symbol and price keep their room. */
 @container (max-width: 30rem) {
   .fl-wl-row { grid-template-columns: auto minmax(0, 1fr) auto auto; }

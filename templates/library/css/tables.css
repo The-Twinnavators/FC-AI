@@ -35,9 +35,12 @@
   border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; font: inherit; letter-spacing: inherit;
   text-transform: inherit; cursor: pointer;
 }
-.fl-tbl-sort:hover { color: var(--color-text); }
+.fl-tbl-sort { transition: color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing), translate var(--duration-fast) var(--easing); }
+.fl-tbl-sort:hover { color: var(--color-text); background: color-mix(in srgb, var(--color-text) 6%, transparent); }
+.fl-tbl-sort:active { translate: 0 1px; }
+.fl-tbl-sort:hover svg { opacity: 0.8; }
 .fl-tbl-sort:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-.fl-tbl-sort svg { width: 0.9rem; height: 0.9rem; opacity: 0.45; transition: transform var(--duration-fast) var(--easing), opacity var(--duration-fast) var(--easing); }
+.fl-tbl-sort svg { width: 0.9rem; height: 0.9rem; opacity: 0.45; transition: transform var(--duration-base) var(--ease-spring, var(--easing)), opacity var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing); }
 th[aria-sort="ascending"] .fl-tbl-sort, th[aria-sort="descending"] .fl-tbl-sort { color: var(--color-text); }
 th[aria-sort="ascending"] .fl-tbl-sort svg, th[aria-sort="descending"] .fl-tbl-sort svg { opacity: 1; color: var(--color-accent); }
 th[aria-sort="descending"] .fl-tbl-sort svg { transform: rotate(180deg); }
@@ -121,6 +124,11 @@ th[aria-sort="descending"] .fl-tbl-sort svg { transform: rotate(180deg); }
 .fl-tbl-check { width: 1.1rem; height: 1.1rem; margin: 0; accent-color: var(--color-accent); cursor: pointer; vertical-align: middle; }
 .fl-tbl-check:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
 .fl-tbl-table tbody tr[aria-selected="true"] { background: color-mix(in srgb, var(--color-accent) 9%, transparent); }
+.fl-tbl-check { transition: scale var(--duration-fast) var(--easing); }
+.fl-tbl-check:active { scale: 0.9; }
+.fl-tbl-check:checked { animation: fl-tbl-pop var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-tbl-done-text { transition: color var(--duration-base) var(--easing); }
+@keyframes fl-tbl-pop { 0% { scale: 0.8; } 60% { scale: 1.12; } 100% { scale: 1; } }
 .fl-tbl-done-text { color: var(--color-text-muted); text-decoration: line-through; }
 .fl-tbl-bulk {
   display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4);
@@ -168,7 +176,10 @@ th[aria-sort="descending"] .fl-tbl-sort svg { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {
   .fl-tbl-table tbody tr, .fl-tbl-sort svg, .fl-tbl-icon-btn, .fl-tbl-row { transition: none; }
   .fl-tbl-bulk, .fl-tbl-toast { animation: none; }
+  .fl-tbl-check, .fl-tbl-check:checked { animation: none; transition: none; scale: none; }
+  .fl-tbl-sort:active { translate: none; }
 }
+:root[data-motion="off"] :is(.fl-tbl-table, .fl-tbl-bulk, .fl-tbl-toast), :root[data-motion="off"] :is(.fl-tbl-table, .fl-tbl-bulk, .fl-tbl-toast) * { transition: none !important; animation: none !important; }
 
 /* A table with a per-row menu: the menu opens past the table's edge, so the frame must not clip it (phones scroll again). */
 .fl-tbl-resource .fl-ctl-tbl-wrap { overflow: visible; }

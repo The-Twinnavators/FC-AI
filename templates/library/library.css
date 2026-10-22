@@ -182,6 +182,78 @@ input.fl-input:where(:not([type="checkbox"], [type="radio"], [type="range"])), s
 .fl-footer a:hover { color: var(--color-accent); }
 .fl-footer__base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-7); padding-top: var(--space-5); border-top: 1px solid var(--color-border); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 
+/* ── Hero, call-to-action, newsletter and simple footer entrances (fl-hx) ──
+   One entrance per section, once: the words rise in order (stagger capped by --stagger-max), then the picture, form or
+   numbers. The piece's script adds is-waiting / is-entering; without it, with reduced motion or animation off, nothing
+   is ever hidden. */
+.fl-hx-seq > * { --fl-hx-i: 5; }
+.fl-hx-seq > :nth-child(1) { --fl-hx-i: 0; }
+.fl-hx-seq > :nth-child(2) { --fl-hx-i: 1; }
+.fl-hx-seq > :nth-child(3) { --fl-hx-i: 2; }
+.fl-hx-seq > :nth-child(4) { --fl-hx-i: 3; }
+.fl-hx-seq > :nth-child(5) { --fl-hx-i: 4; }
+.fl-hx-seq--after { --fl-hx-base: 2; }
+.fl-hx .fl-split > :not(.fl-hx-seq) { --fl-hx-i: 2; }
+.fl-hx.is-waiting :is(.fl-hx-seq > *, .fl-split > :not(.fl-hx-seq)) { opacity: 0; }
+.fl-hx.is-entering :is(.fl-hx-seq > *, .fl-split > :not(.fl-hx-seq)) {
+  animation: fl-hx-rise var(--duration-slow, 320ms) var(--ease-out, ease-out) backwards;
+  animation-delay: min(calc((var(--fl-hx-i, 0) + var(--fl-hx-base, 0)) * var(--stagger, 40ms)), var(--stagger-max, 200ms));
+}
+/* The picture or form beside the words settles from slightly smaller instead of rising. */
+.fl-hx.is-entering .fl-split > :not(.fl-hx-seq) { animation-name: fl-hx-settle; }
+@keyframes fl-hx-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+@keyframes fl-hx-settle { from { opacity: 0; scale: 0.98; } }
+/* Proof numbers lift a little under the pointer. */
+.fl-hx .fl-card.fl-stat { transition: translate var(--duration-fast, 120ms) var(--ease-out, ease-out), box-shadow var(--duration-fast, 120ms) var(--ease-out, ease-out); }
+.fl-hx .fl-card.fl-stat:hover { translate: 0 calc(var(--hover-lift, -1px) * 2); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none)); }
+/* The newsletter's thank-you settles in where the form was. */
+.fl-hx .fl-split > .fl-hx-done { animation: fl-hx-pop var(--duration-base, 200ms) var(--ease-spring, ease-out) backwards; }
+@keyframes fl-hx-pop { from { scale: 0.96; } }
+/* Simple footer: links get a straight underline that draws from the left; the brand warms to the accent. */
+.fl-hx-foot :is(nav a, .fl-footer__base a, .fl-nav__brand) { position: relative; transition: color var(--duration-fast, 120ms) var(--ease-out, ease-out); }
+.fl-hx-foot :is(nav a, .fl-footer__base a)::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px; background: currentColor; scale: 0 1; transform-origin: left center; transition: scale var(--duration-fast, 120ms) var(--ease-out, ease-out); }
+.fl-hx-foot :is(nav a, .fl-footer__base a):is(:hover, :focus-visible)::after { scale: 1 1; }
+.fl-hx-foot .fl-nav__brand:hover { color: var(--color-accent); }
+@media (prefers-reduced-motion: reduce) {
+  .fl-hx.is-entering :is(.fl-hx-seq > *, .fl-split > :not(.fl-hx-seq)) { animation: fl-hx-fade 120ms var(--ease-out, ease-out) backwards; }
+  .fl-hx .fl-split > .fl-hx-done { animation: none; }
+  .fl-hx .fl-card.fl-stat:hover { translate: none; }
+  .fl-hx-foot :is(nav a, .fl-footer__base a)::after { transition: none; }
+}
+@keyframes fl-hx-fade { from { opacity: 0; } }
+:root[data-motion="off"] .fl-hx.is-waiting :is(.fl-hx-seq > *, .fl-split > :not(.fl-hx-seq)) { opacity: 1; }
+:root[data-motion="off"] .fl-hx, :root[data-motion="off"] .fl-hx * , :root[data-motion="off"] .fl-hx *::after { animation: none !important; transition: none !important; }
+@media print { .fl-hx.is-waiting :is(.fl-hx-seq > *, .fl-split > :not(.fl-hx-seq)) { opacity: 1; } }
+/* Grids of cards, numbers, people or footer columns (fl-hx-items) follow the heading in the same entrance, one after
+   another, never more than six steps; fl-hx-last (a footer's small print) comes at the end. */
+.fl-hx-items { --fl-hx-base: 1; }
+.fl-hx-items > * { --fl-hx-i: 5; }
+.fl-hx-items > :nth-child(1) { --fl-hx-i: 0; }
+.fl-hx-items > :nth-child(2) { --fl-hx-i: 1; }
+.fl-hx-items > :nth-child(3) { --fl-hx-i: 2; }
+.fl-hx-items > :nth-child(4) { --fl-hx-i: 3; }
+.fl-hx-items > :nth-child(5) { --fl-hx-i: 4; }
+.fl-hx-last { --fl-hx-i: 6; }
+.fl-footer__cols.fl-hx-items { --fl-hx-base: 0; }
+.fl-hx.is-waiting :is(.fl-hx-items > *, .fl-hx-last) { opacity: 0; }
+.fl-hx.is-entering :is(.fl-hx-items > *, .fl-hx-last) {
+  animation: fl-hx-rise var(--duration-slow, 320ms) var(--ease-out, ease-out) backwards;
+  animation-delay: min(calc((var(--fl-hx-i, 0) + var(--fl-hx-base, 0)) * var(--stagger, 40ms)), var(--stagger-max, 200ms));
+}
+/* Cards in such a grid lift a little under the pointer. */
+.fl-hx-lift > .fl-card { transition: translate var(--duration-fast, 120ms) var(--ease-out, ease-out), box-shadow var(--duration-fast, 120ms) var(--ease-out, ease-out), border-color var(--duration-fast, 120ms) var(--ease-out, ease-out); }
+.fl-hx-lift > .fl-card:hover { translate: 0 calc(var(--hover-lift, -1px) * 2); box-shadow: var(--surface-shadow-hover, var(--surface-shadow, none)); }
+/* Counted numbers keep their width while they count. */
+.fl-hx .fl-stat strong { font-variant-numeric: tabular-nums; }
+/* The counted number keeps the number's own color, not the muted label color meant for the stat's words. */
+.fl-hx .fl-stat strong span { color: inherit; opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .fl-hx.is-entering :is(.fl-hx-items > *, .fl-hx-last) { animation: fl-hx-fade 120ms var(--ease-out, ease-out) backwards; }
+  .fl-hx-lift > .fl-card:hover { translate: none; }
+}
+:root[data-motion="off"] .fl-hx.is-waiting :is(.fl-hx-items > *, .fl-hx-last) { opacity: 1; }
+@media print { .fl-hx.is-waiting :is(.fl-hx-items > *, .fl-hx-last) { opacity: 1; } }
+
 /* ── Motion: sections settle in; nothing moves for people who ask for less motion ── */
 @media (prefers-reduced-motion: reduce) {
   .fl-btn, .fl-faq summary::after { transition: none; }

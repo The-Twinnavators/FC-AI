@@ -14,6 +14,8 @@
  * they do not; load more when the list is a feed. Each says how much there is, because a page number alone does not.
  *
  * Make it the app's own: keep the count. "Page 3" means nothing without "of 48".
+ * Motion (classic): one accent marker glides to the current page instead of jumping, page buttons press in, and the
+ * Previous/Next chevrons nudge toward where they go. Reduced motion or animation off: the marker moves at once.
  */
 /**
  * How to try it
@@ -26,7 +28,7 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useId, useState, type HTMLAttributes } from "react";
+import { useId, useLayoutEffect, useRef, useState, type HTMLAttributes } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 
@@ -109,6 +111,31 @@ function ClassicPager({ page: controlled, defaultPage = 1, pageCount, total = 0,
     if (controlled === undefined) setOwnPage(next);
     onPageChange?.(next);
   };
+  // One marker for the current page: measured from its button, it glides when the page changes (once placed).
+  const list = useRef<HTMLUListElement>(null);
+  const [mark, setMark] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [ready, setReady] = useState(false);
+  useLayoutEffect(() => {
+    const ul = list.current;
+    if (!ul) return;
+    const place = () => {
+      const b = ul.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!b || !b.offsetParent) return setMark(null);
+      // The list is the positioned parent (fl-way-pages), so offsets are measured from it.
+      const next = { x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight };
+      setMark((m) => (m && m.x === next.x && m.y === next.y && m.w === next.w && m.h === next.h ? m : next));
+    };
+    place();
+    const ro = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(place);
+    ro?.observe(ul);
+    return () => ro?.disconnect();
+  }, [safePage, pages]);
+  // Once the first placement is committed, let the browser take it in (a style read), then allow gliding.
+  useLayoutEffect(() => {
+    if (!mark || ready) return;
+    void list.current?.offsetWidth;
+    setReady(true);
+  }, [mark, ready]);
   const changeSize = (n: number) => {
     // Keep the first row you were looking at on screen.
     if (fixedSize === undefined) setOwnSize(n);
@@ -124,7 +151,10 @@ function ClassicPager({ page: controlled, defaultPage = 1, pageCount, total = 0,
       ) : null}
       <div className="fl-way-pager">
         <nav aria-label="Pages">
-          <ul className="fl-way-pages">
+          <ul ref={list} className={`fl-way-pages${mark ? ` is-sliding${ready ? " is-ready" : ""}` : ""}`}>
+            {mark ? (
+              <li className="fl-way-pages__mark" aria-hidden="true" style={{ transform: `translate(${mark.x}px, ${mark.y}px)`, width: mark.w, height: mark.h }} />
+            ) : null}
             <li>
               <button type="button" className="fl-way-page fl-way-page--step" disabled={safePage === 1} onClick={() => setPage(safePage - 1)} aria-label="Previous page">
                 <Chevron dir="left" />

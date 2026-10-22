@@ -51,6 +51,27 @@
 .fl-ctl-vtabs-panel { min-width: 0; border-radius: min(var(--surface-radius, var(--radius-lg)), 12px); background: var(--color-surface-sunken); padding: var(--space-4); }
 .fl-ctl-vtabs-panel h4 { margin: 0 0 var(--space-2); }
 .fl-ctl-vtabs-panel:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Vertical tabs motion: one indicator (the side line, or the filled row) glides to the open section. It takes over from
+   the open row's own mark only once measured (.is-sliding); the line stays straight and square. */
+.fl-ctl-vtabs-rail { position: relative; }
+.fl-ctl-vtabs__ind { position: absolute; left: 0; top: 0; z-index: 0; display: none; border-radius: 0; pointer-events: none; }
+.fl-ctl-vtabs-rail.is-sliding .fl-ctl-vtabs__ind { display: block; }
+.fl-ctl-vtabs-rail.is-sliding.is-ready .fl-ctl-vtabs__ind { transition: transform var(--duration-base) var(--ease-out, var(--easing)), width var(--duration-base) var(--ease-out, var(--easing)), height var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-ctl-vtabs-rail.is-sliding .fl-ctl-vtab { position: relative; z-index: 1; }
+.fl-ctl-vtabs--plain .fl-ctl-vtabs__ind { box-shadow: inset 2px 0 0 var(--color-accent); }
+.fl-ctl-vtabs--plain .fl-ctl-vtabs-rail.is-sliding .fl-ctl-vtab.is-on:not(:focus-visible) { box-shadow: none; }
+.fl-ctl-vtabs--filled .fl-ctl-vtabs__ind { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.fl-ctl-vtabs--filled .fl-ctl-vtabs-rail.is-sliding .fl-ctl-vtab.is-on { background: transparent; }
+.fl-ctl-vtab { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), padding var(--duration-fast) var(--easing); }
+.fl-ctl-vtab:active:not(.is-off) { background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+.fl-ctl-vtab-count { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing); }
+@container specimen (max-width: 760px) {
+  .fl-ctl-vtabs--plain .fl-ctl-vtabs__ind { box-shadow: inset 0 -2px 0 var(--color-accent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-ctl-vtabs-rail.is-sliding.is-ready .fl-ctl-vtabs__ind, .fl-ctl-vtab-count { transition: none; }
+}
+:root[data-motion="off"] :is(.fl-ctl-vtab, .fl-ctl-vtab-count, .fl-ctl-vtabs__ind) { transition: none !important; animation: none !important; }
 
 /* ── Top nav ────────────────────────────────────────────────────────────────── */
 .fl-ctl-nav-list { display: grid; gap: var(--space-6); margin: 0 0 var(--space-5); padding: 0; list-style: none; }
@@ -107,6 +128,37 @@
 .fl-ctl-nav-sheet ul { display: grid; gap: var(--space-1, 0.25rem); margin: 0; padding: 0; list-style: none; }
 .fl-ctl-nav-sheet a { display: block; border-radius: var(--radius-md); padding: var(--space-3); color: inherit; text-decoration: none; }
 .fl-ctl-nav-sheet a:hover { background: var(--color-surface-sunken); }
+/* ── Top nav motion: one pill slides to the current link, links answer hover and press, the marketing and centered
+   bars come in once (brand, links, actions in order), and the folded links drop open. Nothing is hidden without the
+   script, with reduced motion or with animation off. */
+.fl-ctl-nav nav { position: relative; }
+.fl-ctl-nav nav a { position: relative; z-index: 1; transition: background-color var(--duration-fast, 120ms) var(--ease-out, ease-out), color var(--duration-fast, 120ms) var(--ease-out, ease-out), scale var(--duration-fast, 120ms) var(--ease-out, ease-out); }
+.fl-ctl-nav nav a:active { scale: 0.98; }
+.fl-ctl-nav nav a:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.fl-ctl-nav-pill { position: absolute; left: 0; top: 0; z-index: 0; width: var(--fl-nav-pill-w, 0px); height: var(--fl-nav-pill-h, 0px); translate: var(--fl-nav-pill-x, 0px) var(--fl-nav-pill-y, 0px); border-radius: var(--radius-md); background: var(--color-surface-sunken); opacity: 0; pointer-events: none; }
+.fl-ctl-nav nav[data-pill] .fl-ctl-nav-pill { opacity: 1; }
+.fl-ctl-nav nav[data-pill="on"] .fl-ctl-nav-pill { transition: translate var(--duration-base, 200ms) var(--ease-out, ease-out), width var(--duration-base, 200ms) var(--ease-out, ease-out), height var(--duration-base, 200ms) var(--ease-out, ease-out); }
+.fl-ctl-nav nav[data-pill] a.is-on { background: transparent; }
+.fl-ctl-nav-enter .fl-ctl-nav-acts { --fl-nav-i: 5; }
+.fl-ctl-nav-enter.is-waiting :is(.fl-ctl-nav-brand, nav li, .fl-ctl-nav-acts, .fl-ctl-nav-pill) { opacity: 0; }
+.fl-ctl-nav-enter.is-entering :is(.fl-ctl-nav-brand, nav li, .fl-ctl-nav-acts) {
+  animation: fl-ctl-nav-in var(--duration-slow, 320ms) var(--ease-out, ease-out) backwards;
+  animation-delay: min(calc(var(--fl-nav-i, 0) * var(--stagger, 40ms)), var(--stagger-max, 200ms));
+}
+.fl-ctl-nav-enter.is-entering .fl-ctl-nav-pill { animation: fl-ctl-nav-fade var(--duration-slow, 320ms) var(--ease-out, ease-out) backwards; animation-delay: var(--stagger, 40ms); }
+.fl-ctl-nav-wrap.is-open :is(.fl-ctl-nav-links, .fl-ctl-nav-acts) { animation: fl-ctl-nav-drop var(--duration-base, 200ms) var(--ease-out, ease-out) backwards; }
+.fl-ctl-nav-wrap.is-open .fl-ctl-nav-acts { animation-delay: var(--stagger, 40ms); }
+@keyframes fl-ctl-nav-in { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); } }
+@keyframes fl-ctl-nav-drop { from { opacity: 0; translate: 0 calc(var(--enter-distance, 8px) * -0.5); } }
+@keyframes fl-ctl-nav-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .fl-ctl-nav nav a, .fl-ctl-nav nav[data-pill="on"] .fl-ctl-nav-pill { transition: none; }
+  .fl-ctl-nav nav a:active { scale: none; }
+  .fl-ctl-nav-enter.is-entering :is(.fl-ctl-nav-brand, nav li, .fl-ctl-nav-acts, .fl-ctl-nav-pill), .fl-ctl-nav-wrap.is-open :is(.fl-ctl-nav-links, .fl-ctl-nav-acts) { animation: fl-ctl-nav-fade 120ms var(--ease-out, ease-out) backwards; }
+}
+:root[data-motion="off"] .fl-ctl-nav-enter.is-waiting :is(.fl-ctl-nav-brand, nav li, .fl-ctl-nav-acts, .fl-ctl-nav-pill) { opacity: 1; }
+:root[data-motion="off"] .fl-ctl-nav-wrap, :root[data-motion="off"] .fl-ctl-nav-wrap * { animation: none !important; transition: none !important; }
+@media print { .fl-ctl-nav-enter.is-waiting :is(.fl-ctl-nav-brand, nav li, .fl-ctl-nav-acts, .fl-ctl-nav-pill) { opacity: 1; } }
 
 /* ── Sidebar ────────────────────────────────────────────────────────────────── */
 .fl-ctl-side-stage { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-5); margin-bottom: var(--space-4); }
@@ -579,6 +631,29 @@ button.fl-spec-row:focus-visible { outline: none; box-shadow: var(--focus-ring);
 .fl-ctl-bubble--typing > span { width: 6px; height: 6px; border-radius: 999px; background: var(--color-text-muted); animation: fl-ctl-blink 1.2s var(--easing, ease) infinite; }
 .fl-ctl-bubble--typing > span:nth-child(2) { animation-delay: 0.15s; }
 .fl-ctl-bubble--typing > span:nth-child(3) { animation-delay: 0.3s; }
+/* Chat motion: a new message (or the typing bubble) rises in from its own side; a delivery line that changes fades
+   in; the typing dots hop; Try again presses in. Messages already there on load don't animate. */
+.fl-ctl-msg.is-new { animation: fl-ctl-msg-in var(--duration-base, 200ms) var(--ease-out, var(--easing, ease)) both; transform-origin: left bottom; }
+.fl-ctl-msg--me.is-new { transform-origin: right bottom; }
+.fl-ctl-msg-state.is-changed { animation: fl-ctl-msg-fade var(--duration-base, 200ms) var(--ease-out, var(--easing, ease)); }
+.fl-ctl-bubble--typing > span[aria-hidden] { animation-name: fl-ctl-typing; }
+.fl-ctl-msg-retry { border-radius: var(--radius-sm); transition: color var(--duration-fast, 120ms) var(--easing, ease), translate var(--duration-fast, 120ms) var(--easing, ease); }
+.fl-ctl-msg-retry:hover { color: var(--color-text); }
+.fl-ctl-msg-retry:hover svg { rotate: -90deg; }
+.fl-ctl-msg-retry svg { transition: rotate var(--duration-base, 200ms) var(--ease-spring, var(--easing, ease)); }
+.fl-ctl-msg-retry:active { translate: 0 1px; }
+.fl-ctl-msg-retry:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+@keyframes fl-ctl-msg-in { from { opacity: 0; transform: translateY(var(--enter-distance, 8px)) scale(0.96); } }
+@keyframes fl-ctl-msg-fade { from { opacity: 0; } }
+@keyframes fl-ctl-typing { 0%, 60%, 100% { opacity: 0.35; translate: 0 0; } 30% { opacity: 1; translate: 0 -3px; } }
+@media (prefers-reduced-motion: reduce) {
+  .fl-ctl-msg.is-new { animation: fl-ctl-msg-fade 120ms linear both; }
+  .fl-ctl-bubble--typing > span[aria-hidden] { animation: none; opacity: 0.6; }
+  .fl-ctl-msg-retry, .fl-ctl-msg-retry svg { transition: none; }
+  .fl-ctl-msg-retry:hover svg { rotate: none; }
+  .fl-ctl-msg-retry:active { translate: none; }
+}
+:root[data-motion="off"] :is(.fl-ctl-msg, .fl-ctl-msg *) { animation: none !important; transition: none !important; }
 .fl-ctl-msg--ai { display: block; }
 .fl-ctl-msg--ai .fl-ctl-msg-col { max-width: none; justify-items: stretch; }
 .fl-ctl-msg--ai .fl-ctl-bubble { display: block; background: none; padding: 0; border-radius: 0; color: var(--color-text); line-height: 1.65; }

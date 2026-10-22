@@ -33,7 +33,7 @@
  * library's own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app
  * exactly as it runs here.
  */
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, type CSSProperties } from "react";
 import { Button } from "./ButtonsVariants";
 
 // flowcode:sample
@@ -183,13 +183,13 @@ export function AvatarStack({ version = "default", showStatus, statusKey, people
     return (
       <div className={className} data-fl="c.avatar-stack@classic">
         <ul className="fl-way-stack" aria-label={label ? `${label}: ${people.length} people` : `${people.length} people`}>
-          {shown.map((p) => (
-            <li key={p.name}>
+          {shown.map((p, i) => (
+            <li key={p.name} style={{ "--i": i } as CSSProperties}>
               <WayAvatar name={p.name} tone={p.tone} size={way} status={showStatus ? p.status : undefined} statusLabel={showStatus ? word(p.status) : undefined} />
             </li>
           ))}
           {rest > 0 ? (
-            <li>
+            <li style={{ "--i": shown.length } as CSSProperties}>
               {onMore ? (
                 <button type="button" className={`fl-way-av ${WAY_SIZE[way]} fl-way-av--more`} aria-expanded={expanded} aria-label={expanded ? "Show fewer people" : `Show ${rest} more people`} onClick={onMore}>
                   {expanded ? "–" : `+${rest}`}
@@ -322,8 +322,8 @@ export function ClassicAvatarGroup(d: ClassicAvatarGroupProps) {
             </div>
           ) : (
             <ul className="fl-way-list" id={`${uid}-people`} aria-labelledby={`${uid}-list-title`}>
-              {list.map((p) => (
-                <li key={p.name}>
+              {list.map((p, i) => (
+                <li key={p.name} className={expanded && i >= d.stackShown ? "fl-way-list__new" : undefined} style={{ "--i": Math.min(5, Math.max(0, i - d.stackShown)) } as CSSProperties}>
                   <WayAvatar name={p.name} tone={p.tone} status={p.status} />
                   <div className="fl-way-list__main">
                     <p className="fl-way-list__title">{p.name}</p>

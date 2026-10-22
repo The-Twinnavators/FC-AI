@@ -14,6 +14,8 @@
  * with an icon each. Switch between "one at a time" and "open several". Built from buttons with aria-expanded, so
  * keyboards and screen readers work; arrow keys move between questions. Use it for help, policies or details people
  * scan. Make it the app's own: replace SAMPLE and keep the one look that suits the page.
+ * Motion: an answer opens and closes by growing its row (grid rows 0fr to 1fr) while the chevron or plus turns; a closed
+ * answer is inert, so Tab and screen readers skip it. Reduced motion or animation off: it simply appears.
  */
 import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
@@ -108,8 +110,10 @@ export function Accordion({ variant = "bordered", items, multiple, defaultOpen =
                   </span>
                 </button>
               </h4>
-              <div id={`${key}-panel`} role="region" aria-labelledby={`${key}-btn`} className="fl-acc-plus__panel" hidden={!isOpen}>
-                {typeof it.a === "string" ? <p>{it.a}</p> : it.a}
+              <div id={`${key}-panel`} role="region" aria-labelledby={`${key}-btn`} className={`fl-acc-fold${isOpen ? " is-open" : ""}`} inert={!isOpen}>
+                <div className="fl-acc-fold__in">
+                  <div className="fl-acc-plus__panel">{typeof it.a === "string" ? <p>{it.a}</p> : it.a}</div>
+                </div>
               </div>
             </li>
           );
@@ -147,8 +151,10 @@ export function Accordion({ variant = "bordered", items, multiple, defaultOpen =
                 <Chevron />
               </button>
             </h4>
-            <div id={`${key}-panel`} role="region" aria-labelledby={`${key}-btn`} className="fl-dsp-acc__panel" hidden={!isOpen}>
-              {typeof it.a === "string" ? <p>{it.a}</p> : it.a}
+            <div id={`${key}-panel`} role="region" aria-labelledby={`${key}-btn`} className={`fl-acc-fold${isOpen ? " is-open" : ""}`} inert={!isOpen}>
+              <div className="fl-acc-fold__in">
+                <div className="fl-dsp-acc__panel">{typeof it.a === "string" ? <p>{it.a}</p> : it.a}</div>
+              </div>
             </div>
           </div>
         );

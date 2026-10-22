@@ -303,6 +303,46 @@
 .fl-acc-plus__btn[aria-expanded="true"] .fl-acc-plus__sign { transform: rotate(45deg); }
 .fl-acc-plus__panel { padding: var(--space-4) var(--space-5) var(--space-5); line-height: var(--leading-relaxed); }
 .fl-acc-plus__panel p { margin: 0; }
+/* Open and close (both looks): the answer's row grows from 0fr to 1fr, its words fade in as it opens, and the chevron or
+   plus turns with it. A closed answer is inert (set by the component) and hidden once folded, so nothing reaches it. */
+.fl-acc-fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-acc-fold.is-open { grid-template-rows: 1fr; }
+.fl-acc-fold__in { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s linear var(--duration-base); }
+.fl-acc-fold.is-open > .fl-acc-fold__in { visibility: visible; transition-delay: 0s; }
+.fl-acc-fold__in > * { opacity: 0; transition: opacity var(--duration-fast) var(--easing); }
+.fl-acc-fold.is-open > .fl-acc-fold__in > * { opacity: 1; transition: opacity var(--duration-base) var(--ease-out, var(--easing)) calc(var(--duration-fast) / 2); }
+.fl-dsp-acc__chev { transition: transform var(--duration-base) var(--ease-out, var(--easing)), color var(--duration-fast) var(--easing); }
+.fl-dsp-acc__trigger:active { background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+.fl-acc-plus__sign { transition: transform var(--duration-base) var(--ease-spring, var(--easing)), scale var(--duration-fast) var(--easing); }
+.fl-acc-plus__btn:active .fl-acc-plus__sign { scale: 0.9; }
+@media (prefers-reduced-motion: reduce) {
+  .fl-acc-fold, .fl-acc-fold__in, .fl-dsp-acc__chev, .fl-acc-plus__sign { transition: none; }
+  .fl-acc-fold__in > *, .fl-acc-fold.is-open > .fl-acc-fold__in > * { transition: opacity 100ms linear; }
+  .fl-acc-plus__btn:active .fl-acc-plus__sign { scale: none; }
+}
+/* b.faq-accordion's entrance, once: the heading, then each question (stagger capped at six). Hidden only while the
+   component says it is waiting (.is-waiting), which its timeout always ends. */
+.fl-acc-enter.is-waiting :is(.fl-head > *, .fl-dsp-acc, .fl-dsp-acc__item) { opacity: 0; }
+.fl-acc-enter.is-entering :is(.fl-head > *, .fl-dsp-acc) { animation: fl-acc-rise var(--duration-slow) var(--ease-out, var(--easing)) both; }
+.fl-acc-enter.is-entering .fl-dsp-acc__item { animation: fl-acc-show var(--duration-slow) var(--ease-out, var(--easing)) both; }
+.fl-acc-enter.is-entering .fl-head > :nth-child(2) { animation-delay: var(--stagger, 40ms); }
+.fl-acc-enter.is-entering .fl-head > :nth-child(n+3) { animation-delay: calc(var(--stagger, 40ms) * 2); }
+.fl-acc-enter.is-entering .fl-dsp-acc { animation-delay: calc(var(--stagger, 40ms) * 2); }
+.fl-acc-enter.is-entering .fl-dsp-acc__item:nth-child(1) { animation-delay: calc(var(--stagger, 40ms) * 2); }
+.fl-acc-enter.is-entering .fl-dsp-acc__item:nth-child(2) { animation-delay: calc(var(--stagger, 40ms) * 3); }
+.fl-acc-enter.is-entering .fl-dsp-acc__item:nth-child(3) { animation-delay: calc(var(--stagger, 40ms) * 4); }
+.fl-acc-enter.is-entering .fl-dsp-acc__item:nth-child(4) { animation-delay: calc(var(--stagger, 40ms) * 5); }
+.fl-acc-enter.is-entering .fl-dsp-acc__item:nth-child(n+5) { animation-delay: calc(var(--stagger, 40ms) * 6); }
+@keyframes fl-acc-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+@keyframes fl-acc-show { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .fl-acc-enter.is-waiting :is(.fl-head > *, .fl-dsp-acc, .fl-dsp-acc__item) { opacity: 1; }
+  .fl-acc-enter.is-entering :is(.fl-head > *, .fl-dsp-acc, .fl-dsp-acc__item) { animation: none; }
+}
+@media print { .fl-acc-enter.is-waiting :is(.fl-head > *, .fl-dsp-acc, .fl-dsp-acc__item) { opacity: 1; } }
+:root[data-motion="off"] .fl-acc-enter.is-waiting :is(.fl-head > *, .fl-dsp-acc, .fl-dsp-acc__item) { opacity: 1; }
+:root[data-motion="off"] .fl-acc-enter :is(.fl-head > *, .fl-dsp-acc, .fl-dsp-acc__item) { animation: none !important; }
+:root[data-motion="off"] :is(.fl-acc-fold,.fl-acc-fold__in, .fl-acc-fold__in > *, .fl-dsp-acc__trigger, .fl-dsp-acc__chev, .fl-dsp-acc__item, .fl-acc-plus__btn, .fl-acc-plus__sign) { transition: none !important; animation: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .fl-acc-plus__btn, .fl-acc-plus__sign { transition: none; }
 }

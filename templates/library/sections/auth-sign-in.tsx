@@ -20,7 +20,7 @@
  * auth-verify-code are thin wrappers over this file. Nothing is sent: the sample account is checked in memory. Make it
  * the app's own: replace SAMPLE with the app's name and copy, and swap each in-memory check for the real call.
  */
-import { useEffect, useId, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import { Alert } from "./alerts-states";
 import { Button } from "./buttons-variants";
 import { Card } from "./cards-variants";
@@ -133,6 +133,7 @@ export function AuthForm(props: AuthFormProps) {
   const shell = SHELL[layout];
   // sign-up is a little wider as a card
   const width = layout === "card" && variant === "sign-up" ? { maxWidth: "30rem" } : undefined;
+  const entering = useEnterOnMount();
   const body = (
     <>
       {variant === "sign-in" && <SignIn {...props} id={id} />}
@@ -142,9 +143,9 @@ export function AuthForm(props: AuthFormProps) {
     </>
   );
   return (
-    <section className={[shell.section, className ?? ""].filter(Boolean).join(" ")} data-fl={`p.auth-form.${variant}`} aria-labelledby={`${id}-title`}>
+    <section className={[shell.section, className ?? "", layout === "card" && entering ? "is-entering" : ""].filter(Boolean).join(" ")} data-fl={`p.auth-form.${variant}`} aria-labelledby={`${id}-title`}>
       {layout === "split" ? (
-        <div className="fl-wrap fl-auth-split">
+        <div className={entering ? "fl-wrap fl-auth-split is-entering" : "fl-wrap fl-auth-split"}>
           <div className={shell.inner}>{body}</div>
           {side && (
             <figure className="fl-auth-split__picture" style={{ margin: 0 }}>
@@ -171,6 +172,21 @@ export function AuthForm(props: AuthFormProps) {
       )}
     </section>
   );
+}
+
+/** One quiet entrance when the screen opens: true for a moment after mount (never with reduced motion or animation
+ * off), then false for good, so nothing waits on it and nothing stays hidden. */
+function useEnterOnMount() {
+  const [on, setOn] = useState(false);
+  useLayoutEffect(() => {
+    const still =
+      document.documentElement.dataset.motion === "off" || !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (still) return;
+    setOn(true);
+    const t = setTimeout(() => setOn(false), 1200);
+    return () => clearTimeout(t);
+  }, []);
+  return on;
 }
 
 // ── Pieces the four screens share ──
@@ -234,11 +250,15 @@ function PasswordInput({ id, value, onChange, autoComplete, disabled, invalid, d
       {icon ? (
         // One fixed name and a pressed state, so a screen reader hears "Show password, toggle button, pressed".
         <button type="button" className="fl-auth-reveal fl-auth-reveal--icon" onClick={() => setShow((s) => !s)} aria-pressed={show} aria-controls={id} aria-label="Show password" title={show ? "Hide password" : "Show password"} disabled={disabled}>
-          <Icon name={show ? "eye-off" : "eye"} />
+          <span key={show ? "off" : "on"} className="fl-auth-reveal__face">
+            <Icon name={show ? "eye-off" : "eye"} />
+          </span>
         </button>
       ) : (
         <button type="button" className="fl-auth-reveal" onClick={() => setShow((s) => !s)} aria-pressed={show} aria-controls={id}>
-          {show ? "Hide" : "Show"}
+          <span key={show ? "hide" : "show"} className="fl-auth-reveal__face">
+            {show ? "Hide" : "Show"}
+          </span>
           <span className="fl-sr"> password</span>
         </button>
       )}

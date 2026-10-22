@@ -3,6 +3,7 @@
 /* ── Shared frame ── */
 .fl-err { display: grid; gap: var(--space-6); justify-items: center; text-align: center; }
 .fl-err-badge {
+  transition: background-color var(--duration-base) var(--easing), color var(--duration-base) var(--easing), border-color var(--duration-base) var(--easing);
   display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border-radius: 999px;
   font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1.4 var(--font-mono); letter-spacing: var(--tracking-wide);
   background: var(--color-danger-surface); color: var(--color-danger);
@@ -35,6 +36,11 @@
 .fl-err-ref { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); align-items: center; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-err-ref code { padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); background: var(--color-surface-sunken); border: 1px solid var(--color-border); font: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1.4 var(--font-mono); color: var(--color-text); }
 .fl-err-copy { min-height: var(--control-sm); padding-inline: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); font: var(--weight-semibold) max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))) / 1 var(--font-sans); cursor: pointer; }
+.fl-err-copy { transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-err-copy:hover { border-color: var(--color-border-strong); background: var(--color-surface-sunken); }
+.fl-err-copy:active { scale: 0.96; }
+.fl-err-copy[data-copied] { border-color: var(--color-success); color: var(--color-success); }
+.fl-err-copy__face { display: inline-block; animation: fl-err-swap var(--duration-base) var(--ease-out, var(--easing)); }
 .fl-err-copy:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .fl-err-progress { width: 100%; max-width: 20rem; height: 0.35rem; border-radius: 999px; background: var(--color-border); overflow: hidden; }
 .fl-err-progress span { display: block; height: 100%; border-radius: inherit; background: var(--color-accent); transition: width var(--duration-base) var(--easing); }
@@ -65,7 +71,8 @@
 .fl-err-meta svg { width: 1rem; height: 1rem; flex: none; }
 
 /* ── Offline: a cloud with a gap, a connection check and what still works ── */
-.fl-err-cloud { display: grid; place-items: center; width: 6rem; height: 6rem; border-radius: 50%; background: var(--color-surface-sunken); border: 1px dashed var(--color-border-strong); color: var(--color-text-muted); }
+.fl-err-cloud { display: grid; place-items: center; width: 6rem; height: 6rem; border-radius: 50%; background: var(--color-surface-sunken); border: 1px dashed var(--color-border-strong); color: var(--color-text-muted); transition: background-color var(--duration-base) var(--easing), border-color var(--duration-base) var(--easing), color var(--duration-base) var(--easing); }
+.fl-err-cloud__face { display: grid; place-items: center; animation: fl-err-swap var(--duration-slow) var(--ease-spring, var(--easing)); }
 .fl-err-cloud svg { width: 2.75rem; height: 2.75rem; }
 .fl-err-cloud[data-online="true"] { border-style: solid; border-color: var(--color-success); color: var(--color-success); background: color-mix(in srgb, var(--color-success) 10%, transparent); }
 .fl-err-works { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); width: 100%; text-align: left; }
@@ -80,11 +87,53 @@
 .fl-err-queue li { display: flex; justify-content: space-between; gap: var(--space-3); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 
 /* ── Motion ── */
+/* One entrance per page, once: the parts rise in order (capped at six steps). The class is added by script for a
+   moment and then removed, so without it everything is simply there. */
+.fl-err.is-entering > *, .fl-err-layout.is-entering > * > *, .fl-err-layout.is-entering > :last-child {
+  animation: fl-err-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards;
+}
+.fl-err-layout.is-entering > :last-child > * { animation: none; }
+.fl-err.is-entering > :nth-child(2), .fl-err-layout.is-entering > * > :nth-child(2) { animation-delay: var(--stagger, 40ms); }
+.fl-err.is-entering > :nth-child(3), .fl-err-layout.is-entering > * > :nth-child(3) { animation-delay: calc(var(--stagger, 40ms) * 2); }
+.fl-err.is-entering > :nth-child(4), .fl-err-layout.is-entering > :last-child { animation-delay: calc(var(--stagger, 40ms) * 3); }
+.fl-err.is-entering > :nth-child(5) { animation-delay: calc(var(--stagger, 40ms) * 4); }
+.fl-err.is-entering > :nth-child(n + 6) { animation-delay: calc(var(--stagger, 40ms) * 5); }
+/* The error tag lands at its tilt. */
+.fl-err.is-entering .fl-err-rack__code { animation: fl-err-tag var(--duration-slow) var(--ease-spring, var(--easing)) calc(var(--stagger, 40ms) * 2) backwards; }
+/* Messages that appear arrive with a short fade and drop. */
+.fl-err-status, .fl-err-field-error, .fl-err-subscribe .fl-done, .fl-err-arrive, .fl-err-list li, .fl-err-queue__item { animation: fl-err-arrive var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-err-tick { display: inline-block; animation: fl-err-arrive var(--duration-base) var(--ease-out, var(--easing)); }
+/* Status filter: one indicator slides to the pressed button. */
+.fl-err-toggle { position: relative; isolation: isolate; }
+.fl-err-toggle button { transition: color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing); }
+.fl-err-toggle button:hover:not([aria-pressed="true"]) { color: var(--color-text); }
+.fl-err-toggle button:active { scale: 0.98; }
+.fl-err-toggle__ind { display: none; }
+.fl-err-toggle.is-sliding .fl-err-toggle__ind {
+  display: block; position: absolute; z-index: -1; left: 0; top: var(--space-1); bottom: var(--space-1);
+  width: var(--ind-w, 0); translate: var(--ind-x, 0) 0; border-radius: var(--pill-radius, 999px);
+  background: var(--color-surface); box-shadow: var(--surface-shadow, none);
+  transition: translate var(--duration-base) var(--ease-out, var(--easing)), width var(--duration-base) var(--ease-out, var(--easing));
+}
+.fl-err-toggle.is-sliding button[aria-pressed="true"] { background: transparent; box-shadow: none; }
+.fl-err-toggle.is-sliding button[aria-pressed="true"]:focus-visible { box-shadow: var(--focus-ring); }
+@keyframes fl-err-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+@keyframes fl-err-arrive { from { opacity: 0; translate: 0 -2px; } }
+@keyframes fl-err-swap { from { opacity: 0; scale: 0.8; } }
+@keyframes fl-err-tag { from { opacity: 0; transform: rotate(-8deg) scale(0.8); } }
+@keyframes fl-err-fade { from { opacity: 0; } }
+
 @media (prefers-reduced-motion: reduce) {
   .fl-err-dot--pulse, .fl-err-rack span:nth-child(2)::before { animation: none; }
   .fl-err-spin { animation-duration: 2.4s; }
   .fl-err-progress span { transition: none; }
+  .fl-err.is-entering > *, .fl-err-layout.is-entering > * > *, .fl-err-layout.is-entering > :last-child, .fl-err.is-entering .fl-err-rack__code { animation: none; }
+  .fl-err-copy__face, .fl-err-cloud__face, .fl-err-tick, .fl-err-status, .fl-err-field-error, .fl-err-subscribe .fl-done, .fl-err-arrive, .fl-err-list li, .fl-err-queue__item { animation: fl-err-fade 120ms linear; }
+  .fl-err-copy:active, .fl-err-toggle button:active { scale: none; }
+  .fl-err-toggle.is-sliding .fl-err-toggle__ind { transition: none; }
 }
+:root[data-motion="off"] :is(.fl-err, .fl-err-layout), :root[data-motion="off"] :is(.fl-err, .fl-err-layout) * { transition: none !important; animation: none !important; }
+:root[data-motion="off"] :is(.fl-err, .fl-err-layout) .fl-err-spin { animation: fl-err-spin 0.8s linear infinite !important; }
 
 /* ── Phones ── */
 @media (max-width: 860px) {

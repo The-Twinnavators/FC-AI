@@ -68,6 +68,11 @@ export function ChatBubble({ variant = "theirs", name, at, first, status, typing
   className?: string;
   children?: ReactNode;
 }) {
+  // The delivery line fades in when it changes (sending, then sent, then read), not when the message first shows.
+  const seen = useRef(status);
+  useEffect(() => {
+    seen.current = status;
+  });
   const cls = ["fl-ctl-msg", SIDE[variant], first || typing ? "is-first" : "", status === "failed" ? "is-failed" : "", className ?? ""].filter(Boolean).join(" ");
   return (
     <li className={cls} data-fl={`c.chat-bubble.${variant}`}>
@@ -100,7 +105,7 @@ export function ChatBubble({ variant = "theirs", name, at, first, status, typing
         ) : null}
         {variant === "assistant" && streaming ? <AiIndicator variant="working" label="Writing" /> : null}
         {variant === "mine" && status ? (
-          <span className="fl-ctl-msg-state">
+          <span key={status} className={`fl-ctl-msg-state${seen.current !== status ? " is-changed" : ""}`}>
             {status === "failed" ? (
               <>
                 Not sent
@@ -144,6 +149,15 @@ export default function ChatBubbles() {
   const [typing, setTyping] = useState(false);
   const seq = useRef(100);
   const reply = useRef(0);
+  const log = useRef<HTMLOListElement>(null);
+  // Messages there on load stay still; ones that arrive after rise in. The log follows the newest message.
+  const firstIds = useRef(new Set(d.start.map((m) => m.id)));
+  useEffect(() => {
+    const el = log.current;
+    if (!el) return;
+    const still = document.documentElement.dataset.motion === "off" || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    el.scrollTo({ top: el.scrollHeight, behavior: still ? "auto" : "smooth" });
+  }, [msgs.length, typing]);
 
   // Sending settles, then the other side answers: the whole round trip, so the states are seen rather than listed.
   useEffect(() => {
@@ -190,7 +204,7 @@ export default function ChatBubbles() {
             </span>
           </div>
 
-          <ol className="fl-ctl-chat-log" role="log" aria-live="polite" aria-label={`Conversation with ${d.them.name}`}>
+          <ol ref={log} className="fl-ctl-chat-log" role="log" aria-live="polite" aria-label={`Conversation with ${d.them.name}`}>
             {msgs.map((m, n) => (
               <ChatBubble
                 key={m.id}
@@ -199,12 +213,13 @@ export default function ChatBubbles() {
                 at={m.at}
                 first={n === 0 || msgs[n - 1].who !== m.who}
                 status={m.state}
+                className={firstIds.current.has(m.id) ? undefined : "is-new"}
                 onRetry={() => setMsgs((v) => v.map((x) => (x.id === m.id ? { ...x, state: "sending" } : x)))}
               >
                 {m.text}
               </ChatBubble>
             ))}
-            {typing ? <ChatBubble name={d.them.name} typing /> : null}
+            {typing ? <ChatBubble name={d.them.name} typing className="is-new" /> : null}
           </ol>
 
           <form

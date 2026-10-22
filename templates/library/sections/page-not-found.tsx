@@ -19,7 +19,7 @@
  * them. Use it as the catch-all route. Make it the app's own: replace SAMPLE with the app's real pages and their
  * addresses; the search only looks through that list, so nothing is sent anywhere.
  */
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "./buttons-variants";
 import { Card } from "./cards-variants";
 import { EmptyState } from "./empty-states";
@@ -104,6 +104,71 @@ export function PageState(props: PageStateProps) {
     default:
       return <NotFound {...props} />;
   }
+}
+
+// ── Motion helpers (server-error, maintenance, offline) ──
+
+const still = () =>
+  typeof window === "undefined" ||
+  document.documentElement.dataset.motion === "off" ||
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+const ms = (el: Element, name: string, fallback: number) => {
+  const v = getComputedStyle(el).getPropertyValue(name).trim();
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? (v.endsWith("ms") ? n : v.endsWith("s") ? n * 1000 : n) : fallback;
+};
+
+/** One quiet entrance when the page opens: "is-entering" for a moment after mount, never with reduced motion or
+ * animation off, then gone for good (the timeout also covers a tab that isn't painting), so nothing stays hidden. */
+function useEnterOnMount() {
+  const [on, setOn] = useState(false);
+  useLayoutEffect(() => {
+    if (still()) return;
+    setOn(true);
+    const t = window.setTimeout(() => setOn(false), 1200);
+    return () => window.clearTimeout(t);
+  }, []);
+  return on ? " is-entering" : "";
+}
+
+/** Rows that stay glide to their new place when a filter changes (FLIP); new rows fade in by CSS. */
+function useGlide<T extends HTMLElement>(dep: unknown) {
+  const ref = useRef<T>(null);
+  const tops = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const box = ref.current;
+    const next = new Map<string, number>();
+    if (box) {
+      const quiet = still();
+      const dur = ms(box, "--duration-base", 200);
+      for (const el of Array.from(box.children) as HTMLElement[]) {
+        const key = el.dataset.key ?? "";
+        const top = el.getBoundingClientRect().top;
+        next.set(key, top);
+        const before = tops.current.get(key);
+        if (!quiet && before !== undefined && before !== top && el.animate)
+          el.animate([{ translate: `0 ${before - top}px` }, { translate: "0 0" }], { duration: dur, easing: "cubic-bezier(0.2, 0, 0, 1)" });
+      }
+    }
+    tops.current = next;
+  }, [dep]);
+  return ref;
+}
+
+/** One indicator under a two-way toggle that slides to the pressed button (measured, so labels can differ in width). */
+function useToggleIndicator<T extends HTMLElement>(dep: unknown) {
+  const ref = useRef<T>(null);
+  const [ready, setReady] = useState(false);
+  useLayoutEffect(() => {
+    const box = ref.current;
+    const on = box?.querySelector<HTMLElement>('button[aria-pressed="true"]');
+    if (!box || !on) return;
+    box.style.setProperty("--ind-x", `${on.offsetLeft}px`);
+    box.style.setProperty("--ind-w", `${on.offsetWidth}px`);
+    setReady(true);
+  }, [dep]);
+  return [ref, ready] as const;
 }
 
 function NotFound(d: NotFoundProps) {
@@ -256,10 +321,11 @@ function ServerError(d: ServerErrorProps) {
   };
 
   const busy = state === "busy";
+  const enter = useEnterOnMount();
 
   return (
     <section className="fl-section" aria-labelledby={`${id}-title`} data-fl="b.page-state.server-error">
-      <div className="fl-wrap fl-wrap--narrow fl-err">
+      <div className={`fl-wrap fl-wrap--narrow fl-err${enter}`}>
         <div className="fl-err-rack" aria-hidden="true">
           <span />
           <span />
@@ -268,7 +334,7 @@ function ServerError(d: ServerErrorProps) {
         </div>
 
         {state === "ok" ? (
-          <div className="fl-head fl-head--center" style={{ marginBottom: 0 }} role="status">
+          <div className="fl-head fl-head--center fl-err-arrive" style={{ marginBottom: 0 }} role="status">
             <span className="fl-err-badge fl-err-badge--info">Back up</span>
             <h1 id={`${id}-title`} className="fl-title">
               That worked
@@ -320,8 +386,10 @@ function ServerError(d: ServerErrorProps) {
             <div className="fl-err-ref">
               <span>Reference</span>
               <code>{d.reference}</code>
-              <button type="button" className="fl-err-copy" onClick={copy}>
-                {copied ? "Copied" : "Copy"}
+              <button type="button" className="fl-err-copy" data-copied={copied || undefined} onClick={copy}>
+                <span key={copied ? "y" : "n"} className="fl-err-copy__face">
+                  {copied ? "Copied" : "Copy"}
+                </span>
                 <span className="fl-sr"> reference code</span>
               </button>
               <span className="fl-sr" aria-live="polite">
@@ -356,6 +424,9 @@ function Maintenance(d: MaintenanceProps) {
   const leftLabel = left === 0 ? "Any minute" : left >= 60 ? `${Math.floor(left / 60)} h ${left % 60} min` : `${left} min`;
   const shown = d.services.filter((s) => filter === "all" || s.state !== "up");
   const affected = d.services.filter((s) => s.state !== "up").length;
+  const enter = useEnterOnMount();
+  const list = useGlide<HTMLUListElement>(filter);
+  const [toggle, slid] = useToggleIndicator<HTMLDivElement>(filter);
 
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -374,7 +445,7 @@ function Maintenance(d: MaintenanceProps) {
 
   return (
     <section className="fl-section fl-section--tint" aria-labelledby={`${id}-title`} data-fl="b.page-state.maintenance">
-      <div className="fl-wrap fl-err-layout">
+      <div className={`fl-wrap fl-err-layout${enter}`}>
         <div style={{ display: "grid", gap: "var(--space-6)" }}>
           <div className="fl-head">
             <span className="fl-err-badge fl-err-badge--info" style={{ justifySelf: "start" }}>
@@ -398,7 +469,11 @@ function Maintenance(d: MaintenanceProps) {
             </div>
             <div>
               <dt>Time left</dt>
-              <dd aria-live="polite">{leftLabel}</dd>
+              <dd aria-live="polite">
+                <span key={leftLabel} className="fl-err-tick">
+                  {leftLabel}
+                </span>
+              </dd>
             </div>
           </dl>
 
@@ -454,7 +529,8 @@ function Maintenance(d: MaintenanceProps) {
             <h2 className="fl-title fl-title--md" style={{ fontSize: "var(--text-lg)" }} id={`${id}-status`}>
               Service status
             </h2>
-            <div className="fl-toggle" role="group" aria-label="Show services">
+            <div ref={toggle} className={slid ? "fl-toggle fl-err-toggle is-sliding" : "fl-toggle fl-err-toggle"} role="group" aria-label="Show services">
+              <span className="fl-err-toggle__ind" aria-hidden="true" />
               <button type="button" aria-pressed={filter === "all"} onClick={() => setFilter("all")}>
                 All {d.services.length}
               </button>
@@ -466,9 +542,9 @@ function Maintenance(d: MaintenanceProps) {
           {shown.length === 0 ? (
             <p className="fl-err-status fl-err-status--good">Everything is working.</p>
           ) : (
-            <ul className="fl-err-list" aria-labelledby={`${id}-status`}>
+            <ul ref={list} className="fl-err-list" aria-labelledby={`${id}-status`}>
               {shown.map((s) => (
-                <li key={s.name}>
+                <li key={s.name} data-key={s.name}>
                   <span>
                     <strong>{s.name}</strong>
                     <small>{s.detail}</small>
@@ -551,12 +627,15 @@ function Offline(d: OfflineProps) {
 
   const online = state === "online";
   const checking = state === "checking";
+  const enter = useEnterOnMount();
 
   return (
     <section className="fl-section" aria-labelledby={`${id}-title`} data-fl="b.page-state.offline">
-      <div className="fl-wrap fl-wrap--narrow fl-err">
+      <div className={`fl-wrap fl-wrap--narrow fl-err${enter}`}>
         <span className="fl-err-cloud" data-online={online}>
-          {online ? <Wifi /> : <WifiOff />}
+          <span key={online ? "on" : "off"} className="fl-err-cloud__face">
+            {online ? <Wifi /> : <WifiOff />}
+          </span>
         </span>
 
         <div className="fl-head fl-head--center" style={{ marginBottom: 0 }}>
@@ -645,7 +724,7 @@ function Offline(d: OfflineProps) {
           ) : (
             <ul style={{ display: "grid", gap: "var(--space-2)", margin: 0, padding: 0, listStyle: "none" }}>
               {queue.map((q) => (
-                <li key={q.label}>
+                <li key={q.label} className="fl-err-queue__item">
                   <span>{q.label}</span>
                   <span className="fl-meta">{q.when}</span>
                 </li>

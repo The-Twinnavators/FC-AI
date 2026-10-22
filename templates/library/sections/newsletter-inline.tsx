@@ -12,10 +12,54 @@
 /**
  * Newsletter: inline sign-up. One field and a button. A prototype: it checks the email, shows a confirmation and
  * keeps the address in local storage. Make it the app's own: replace SAMPLE with what people get and how often.
+ * Motion: the words and then the form rise in once; the thank-you settles in with a small spring. With reduced motion or animation off they are simply there.
  */
-import { useState, type FormEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "./buttons-variants";
 import { TextField } from "./text-fields-states";
+
+const still = () =>
+  typeof window === "undefined" ||
+  document.documentElement.dataset.motion === "off" ||
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** Entrance once: "wait" until the section is in view, then "in". Already on screen plays at once; without an observer,
+ * or with motion off, it is simply shown; a timeout never leaves it hidden. */
+function useEnterOnce<T extends Element>() {
+  const ref = useRef<T>(null);
+  const [state, setState] = useState<"idle" | "wait" | "in" | "done">("idle");
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window) || still()) return;
+    const box = el.getBoundingClientRect();
+    if (box.top < innerHeight && box.bottom > 0) {
+      setState("in");
+      return;
+    }
+    setState("wait");
+    const show = () => {
+      setState("in");
+      io.disconnect();
+    };
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && show(), { threshold: 0.15 });
+    io.observe(el);
+    const t = setTimeout(show, 1200);
+    return () => {
+      io.disconnect();
+      clearTimeout(t);
+    };
+  }, []);
+  // Once it has played, drop the entrance classes, so content never depends on an animation finishing (a page that
+  // isn't painting freezes animations).
+  useEffect(() => {
+    if (state !== "in") return;
+    const t = setTimeout(() => setState("done"), 1200);
+    return () => clearTimeout(t);
+  }, [state]);
+  return [ref, state] as const;
+}
+
+const enterClass = (state: "idle" | "wait" | "in" | "done") => (state === "wait" ? " is-waiting" : state === "in" ? " is-entering" : "");
 
 export type NewsletterInlineProps = {
   title: string;
@@ -28,6 +72,7 @@ export type NewsletterInlineProps = {
 
 export function NewsletterInline({ title, lede, action = "Subscribe", doneText = "You're subscribed. See you next month." }: NewsletterInlineProps) {
   const [done, setDone] = useState(false);
+  const [ref, enter] = useEnterOnce<HTMLElement>();
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -38,20 +83,20 @@ export function NewsletterInline({ title, lede, action = "Subscribe", doneText =
     setDone(true);
   };
   return (
-    <section className="fl-section fl-section--tint" aria-labelledby="newsletter-title" data-fl="b.newsletter-inline">
+    <section ref={ref} className={`fl-section fl-section--tint fl-hx${enterClass(enter)}`} aria-labelledby="newsletter-title" data-fl="b.newsletter-inline">
       <div className="fl-wrap fl-split">
-        <div className="fl-head" style={{ marginBottom: 0 }}>
+        <div className="fl-head fl-hx-seq" style={{ marginBottom: 0 }}>
           <h2 id="newsletter-title" className="fl-title fl-title--md">
             {title}
           </h2>
           <p className="fl-text">{lede}</p>
         </div>
         {done ? (
-          <p className="fl-done" role="status">
+          <p className="fl-done fl-hx-done" role="status">
             {doneText}
           </p>
         ) : (
-          <form className="fl-inline-form" onSubmit={submit}>
+          <form className="fl-inline-form fl-hx-form" onSubmit={submit}>
             <label htmlFor="newsletter-email" className="fl-sr">
               Email address
             </label>

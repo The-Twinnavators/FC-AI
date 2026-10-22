@@ -65,6 +65,23 @@
   font: var(--weight-bold) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-sans); letter-spacing: var(--tracking-wide); cursor: pointer;
 }
 .fl-way-more:hover { background: var(--color-surface-sunken); }
+/* Trail motion: links ease their color, wash and underline in on hover and press in; the page you land on (going up a
+   level) settles in from the left; on phones the folded levels fade in when "…" is pressed. */
+.fl-way-crumb a {
+  text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; text-decoration-thickness: 1px;
+  transition: color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing), text-decoration-color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing);
+}
+.fl-way-crumb a:hover { text-decoration-color: currentColor; }
+.fl-way-crumb a:active { scale: 0.97; }
+.fl-way-crumb [aria-current="page"] { animation: fl-way-crumb-now var(--duration-base) var(--ease-out, var(--easing)); }
+@keyframes fl-way-crumb-now { from { opacity: 0; translate: calc(var(--enter-distance, 8px) * -0.5) 0; } }
+.fl-way-more { transition: background-color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-way-more:hover { border-color: var(--color-border-strong); }
+.fl-way-more:active { scale: 0.94; }
+@media (max-width: 640px) {
+  .fl-way-crumbs[data-expanded="true"] .fl-way-crumb--mid { animation: fl-way-crumb-show var(--duration-base) var(--ease-out, var(--easing)) both; }
+}
+@keyframes fl-way-crumb-show { from { opacity: 0; } }
 .fl-way-crumbs-page { display: grid; gap: var(--space-2); padding: var(--space-6); margin-top: var(--space-4); }
 
 /* ── Pagination ── */
@@ -87,6 +104,21 @@
 .fl-way-range { margin: 0; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
 .fl-way-range strong { color: var(--color-text); }
 .fl-way-toolbar-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+/* Pager motion: one accent marker glides to the current page once measured (.is-sliding); pages press in; the
+   Previous/Next chevrons nudge toward where they go. */
+.fl-way-pages { position: relative; }
+.fl-way-pages__mark { position: absolute; left: 0; top: 0; z-index: 0; border-radius: var(--radius-md); background: var(--color-accent); pointer-events: none; }
+.fl-way-pages.is-ready .fl-way-pages__mark { transition: transform var(--duration-base) var(--ease-out, var(--easing)), width var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-way-pages.is-sliding .fl-way-page { position: relative; z-index: 1; }
+.fl-way-pages.is-sliding .fl-way-page[aria-current="page"], .fl-way-pages.is-sliding .fl-way-page[aria-current="page"]:hover { background: transparent; }
+.fl-way-page { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-way-page:active:not(:disabled) { scale: 0.96; }
+.fl-way-page--step:hover:not(:disabled) { border-color: var(--color-border-strong); }
+.fl-way-page--step svg { transition: translate var(--duration-fast) var(--ease-out, var(--easing)); }
+.fl-way-page--step:hover:not(:disabled) svg:first-child { translate: -2px 0; }
+.fl-way-page--step:hover:not(:disabled) svg:last-child:not(:first-child) { translate: 2px 0; }
+.fl-way-select select { transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing); }
+.fl-way-select select:hover { border-color: var(--color-text-muted); }
 .fl-way-num { font-family: var(--font-mono); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 
 /* ── Pill tabs ── */
@@ -105,6 +137,16 @@
 }
 .fl-way-pill[aria-selected="true"] .fl-way-pill__count { background: color-mix(in srgb, var(--color-on-accent) 22%, transparent); color: var(--color-on-accent); }
 .fl-way-panel { margin-top: var(--space-5); border-radius: min(var(--radius-lg), 12px); }
+/* Pill tabs motion: one accent pill glides to the open tab once measured (.is-sliding); pills press in slightly. */
+.fl-way-pills { position: relative; }
+.fl-way-pills__ind { position: absolute; left: 0; top: 0; z-index: 0; display: none; border-radius: 999px; background: var(--color-accent); pointer-events: none; }
+.fl-way-pills.is-sliding .fl-way-pills__ind { display: block; }
+.fl-way-pills.is-sliding.is-ready .fl-way-pills__ind { transition: transform var(--duration-base) var(--ease-out, var(--easing)), width var(--duration-base) var(--ease-out, var(--easing)), height var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-way-pills.is-sliding .fl-way-pill { position: relative; z-index: 1; }
+.fl-way-pills.is-sliding .fl-way-pill[aria-selected="true"] { background: transparent; border-color: transparent; }
+.fl-way-pill { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-way-pill:active:not(:disabled) { scale: 0.98; }
+.fl-way-pill__count { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing); }
 
 /* ── Actions menu ── */
 .fl-way-menu-wrap { position: relative; display: inline-flex; flex: none; }
@@ -159,6 +201,35 @@
 .fl-way-step[data-state="done"] .fl-way-step__label, .fl-way-step[data-state="current"] .fl-way-step__label { color: var(--color-text); }
 .fl-way-step__btn:hover .fl-way-step__label { text-decoration: underline; text-underline-offset: 3px; }
 .fl-way-step__hint { font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
+/* Steps motion: the line between steps fills with the accent as a step is finished (and drains when you go back), the
+   current dot's ring grows in, a finished step's check pops, and a finished step you can go back to answers hover and press. */
+.fl-way-step + .fl-way-step::before {
+  background: linear-gradient(var(--color-accent), var(--color-accent)) no-repeat 0 0 / 0% 100%, var(--color-border);
+  transition: background-size var(--duration-slow) var(--ease-out, var(--easing));
+}
+.fl-way-step[data-state="done"]::before, .fl-way-step[data-state="current"]::before {
+  background: linear-gradient(var(--color-accent), var(--color-accent)) no-repeat 0 0 / 100% 100%, var(--color-border);
+}
+.fl-way-step__dot { transition: background-color var(--duration-base) var(--easing), border-color var(--duration-base) var(--easing), color var(--duration-base) var(--easing), box-shadow var(--duration-base) var(--ease-out, var(--easing)), scale var(--duration-fast) var(--easing); }
+.fl-way-step[data-state="done"] .fl-way-step__dot svg { animation: fl-way-check-pop var(--duration-base) var(--ease-spring, var(--easing)); }
+@keyframes fl-way-check-pop { from { opacity: 0; scale: 0.4; } }
+.fl-way-step__btn:hover .fl-way-step__dot { box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--color-accent) 14%, transparent); }
+.fl-way-step__btn:active .fl-way-step__dot { scale: 0.92; }
+.fl-way-step[data-state="current"] .fl-way-step__label { animation: fl-way-step-here var(--duration-base) var(--ease-out, var(--easing)); }
+@keyframes fl-way-step-here { from { opacity: 0.4; } }
+@media (max-width: 640px) {
+  .fl-way-step + .fl-way-step::before { background-size: 100% 0%, auto; }
+  .fl-way-step[data-state="done"]::before, .fl-way-step[data-state="current"]::before { background-size: 100% 100%, auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-way-pills.is-sliding.is-ready .fl-way-pills__ind, .fl-way-pages.is-ready .fl-way-pages__mark, .fl-way-page--step svg, .fl-way-crumb a, .fl-way-more { transition: none; }
+  .fl-way-pill:active, .fl-way-page:active, .fl-way-crumb a:active, .fl-way-more:active, .fl-way-step__btn:active .fl-way-step__dot { scale: none; }
+  .fl-way-page--step:hover svg { translate: none !important; }
+  .fl-way-crumb [aria-current="page"], .fl-way-crumbs .fl-way-crumb--mid, .fl-way-step[data-state="done"] .fl-way-step__dot svg, .fl-way-step[data-state="current"] .fl-way-step__label { animation: none !important; }
+  .fl-way-step + .fl-way-step::before { transition: none; }
+}
+:root[data-motion="off"] :is(.fl-way-pills, .fl-way-pages, .fl-way-crumbs, .fl-way-steps, .fl-way-select) *,
+:root[data-motion="off"] :is(.fl-way-steps) *::before { transition: none !important; animation: none !important; }
 .fl-way-step-panel { margin-top: var(--space-6); gap: var(--space-4); }
 .fl-way-step-nav { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-3); }
 
@@ -213,6 +284,23 @@
 .fl-way-av--more:hover { background: var(--color-border); }
 .fl-way-stack { display: flex; align-items: center; margin: 0; padding: 0 0 0 var(--space-1); list-style: none; }
 .fl-way-stack > li + li { margin-left: calc(-1 * var(--space-3)); }
+/* Stack motion: on hover the faces fan out a little (translate only), the one under the pointer lifts above the rest,
+   and the +N button presses in. */
+.fl-way-stack > li { position: relative; transition: translate var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-way-stack:hover > li { translate: calc(var(--i, 0) * var(--space-1)) 0; }
+.fl-way-stack > li:hover { z-index: 1; }
+.fl-way-stack .fl-way-av { transition: translate var(--duration-fast) var(--ease-out, var(--easing)), box-shadow var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-way-stack > li:hover .fl-way-av { translate: 0 -2px; box-shadow: 0 0 0 2px var(--color-surface), var(--surface-shadow-hover, var(--surface-shadow, none)); }
+.fl-way-stack .fl-way-av--more:active { scale: 0.94; }
+.fl-way-list > li.fl-way-list__new { animation: fl-way-list-in var(--duration-slow) var(--ease-out, var(--easing)) both; animation-delay: calc(var(--i, 0) * var(--stagger, 40ms)); }
+@keyframes fl-way-list-in { from { opacity: 0; translate: 0 calc(-1 * var(--enter-distance, 8px)); } }
+@media (prefers-reduced-motion: reduce) {
+  .fl-way-stack:hover > li, .fl-way-stack > li:hover .fl-way-av { translate: none; }
+  .fl-way-stack .fl-way-av--more:active { scale: none; }
+  .fl-way-list > li.fl-way-list__new { animation: fl-way-list-fade 120ms linear both; animation-delay: 0ms; }
+}
+@keyframes fl-way-list-fade { from { opacity: 0; } }
+:root[data-motion="off"] :is(.fl-way-stack, .fl-way-list) *, :root[data-motion="off"] :is(.fl-way-stack, .fl-way-list) > li { transition: none !important; animation: none !important; }
 .fl-way-sizes { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
 .fl-way-legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-way-legend li { display: inline-flex; align-items: center; gap: var(--space-2); }

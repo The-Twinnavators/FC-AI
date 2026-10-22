@@ -31,7 +31,11 @@
   min-height: var(--control-sm); padding-inline: var(--space-3); border: 0; border-radius: var(--radius-sm);
   background: transparent; color: var(--color-accent); font: var(--weight-semibold) max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))) / 1 var(--font-sans); cursor: pointer;
 }
+.fl-auth-reveal { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
 .fl-auth-reveal:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.fl-auth-reveal:active:not(:disabled) { scale: 0.96; }
+/* The label or eye swaps with a short fade and turn, so the change of state is seen, not just read. */
+.fl-auth-reveal__face { display: inline-grid; place-items: center; animation: fl-auth-swap var(--duration-base) var(--ease-out, var(--easing)); }
 .fl-auth-reveal:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 /* p.auth-form.icon-reveal: the eye alone, a square target at the field's right edge. */
 .fl-auth-pass--icon .fl-input { padding-right: calc(var(--control-sm) + var(--space-3)); }
@@ -67,15 +71,24 @@
 /* ── Sign up: strength and rules ── */
 .fl-auth-meter { display: grid; gap: var(--space-2); }
 .fl-auth-meter__bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-1); }
-.fl-auth-meter__bars span { height: 0.3rem; border-radius: 999px; background: var(--color-border); transition: background-color var(--duration-base) var(--easing); }
-.fl-auth-meter[data-level="1"] .fl-auth-meter__bars span:nth-child(-n + 1) { background: var(--color-danger); }
-.fl-auth-meter[data-level="2"] .fl-auth-meter__bars span:nth-child(-n + 2) { background: color-mix(in srgb, var(--color-danger) 50%, var(--color-success)); }
-.fl-auth-meter[data-level="3"] .fl-auth-meter__bars span:nth-child(-n + 3) { background: color-mix(in srgb, var(--color-success) 75%, var(--color-accent)); }
-.fl-auth-meter[data-level="4"] .fl-auth-meter__bars span { background: var(--color-success); }
+.fl-auth-meter__bars span { position: relative; overflow: hidden; height: 0.3rem; border-radius: 999px; background: var(--color-border); }
+/* The level's color sweeps into each bar from the left (and back out when the password gets weaker). */
+.fl-auth-meter__bars span::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--color-border);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform var(--duration-base) var(--ease-out, var(--easing)), background-color var(--duration-base) var(--easing);
+}
+.fl-auth-meter__bars span:nth-child(2)::after { transition-delay: calc(var(--stagger, 40ms) * 0.5); }
+.fl-auth-meter__bars span:nth-child(3)::after { transition-delay: var(--stagger, 40ms); }
+.fl-auth-meter__bars span:nth-child(4)::after { transition-delay: calc(var(--stagger, 40ms) * 1.5); }
+.fl-auth-meter[data-level="1"] .fl-auth-meter__bars span:nth-child(-n + 1)::after { transform: none; background: var(--color-danger); }
+.fl-auth-meter[data-level="2"] .fl-auth-meter__bars span:nth-child(-n + 2)::after { transform: none; background: color-mix(in srgb, var(--color-danger) 50%, var(--color-success)); }
+.fl-auth-meter[data-level="3"] .fl-auth-meter__bars span:nth-child(-n + 3)::after { transform: none; background: color-mix(in srgb, var(--color-success) 75%, var(--color-accent)); }
+.fl-auth-meter[data-level="4"] .fl-auth-meter__bars span::after { transform: none; background: var(--color-success); }
 .fl-auth-meter__label { margin: 0; font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-auth-meter__label strong { color: var(--color-text); }
 .fl-auth-rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
-.fl-auth-rules li { display: flex; gap: var(--space-2); align-items: center; color: var(--color-text-muted); }
+.fl-auth-rules li { display: flex; gap: var(--space-2); align-items: center; color: var(--color-text-muted); transition: color var(--duration-base) var(--easing); }
 .fl-auth-rules li svg { flex: none; width: 1rem; height: 1rem; }
 .fl-auth-rules li[data-met="true"] { color: var(--color-success); }
 
@@ -120,22 +133,51 @@
   flex: 1 1 0; width: 100%; min-width: 0; aspect-ratio: 5 / 6; max-height: 4rem; padding: 0; text-align: center;
   border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text);
   font: var(--weight-bold) max(11px, calc(var(--text-xl) - var(--fs-shrink, 0px))) / 1 var(--font-mono); caret-color: var(--color-accent);
-  transition: border-color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing);
+  transition: border-color var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing);
 }
 .fl-auth-otp__box:focus-visible { outline: none; border-color: var(--color-accent); box-shadow: var(--focus-ring); }
-.fl-auth-otp__box:not(:placeholder-shown) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface)); }
-.fl-auth-otp[data-state="error"] .fl-auth-otp__box { border-color: var(--color-danger); background: color-mix(in srgb, var(--color-danger-surface) 60%, var(--color-surface)); animation: fl-auth-shake 0.32s var(--easing); }
+.fl-auth-otp__box:not(:placeholder-shown) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface)); animation: fl-auth-pop var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-auth-otp[data-state="error"] .fl-auth-otp__box { border-color: var(--color-danger); background: color-mix(in srgb, var(--color-danger-surface) 60%, var(--color-surface)); animation: fl-auth-flag var(--duration-slow, 320ms) var(--ease-out, var(--easing)); }
 .fl-auth-otp[data-state="ok"] .fl-auth-otp__box { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface)); }
-@keyframes fl-auth-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@keyframes fl-auth-flag { from { background: color-mix(in srgb, var(--color-danger) 22%, var(--color-surface)); } }
 .fl-auth-hint { margin: 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); border: 1px dashed var(--color-border); font-size: max(11px, calc(var(--text-xs) - var(--fs-shrink, 0px))); color: var(--color-text-muted); }
 .fl-auth-hint code { font-family: var(--font-mono); color: var(--color-text); }
 
 /* ── Motion ── */
+/* Fields: border, ring and fill ease in rather than snapping. */
+:is(.fl-auth, .fl-auth-split) .fl-ctl-field { transition: border-color var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), background-color var(--duration-fast) var(--easing); }
+:is(.fl-auth, .fl-auth-split) .fl-ctl-field:hover:not(:disabled, :focus, [aria-invalid="true"]) { border-color: var(--color-text-muted); }
+:is(.fl-auth, .fl-auth-split) .fl-ctl-check { transition: box-shadow var(--duration-fast) var(--easing); }
+:is(.fl-auth, .fl-auth-split) .fl-ctl-check:checked, .fl-auth-check input:checked { animation: fl-auth-pop var(--duration-base) var(--ease-spring, var(--easing)); }
+/* Errors and alerts arrive with a short fade and drop; a met rule's tick pops. */
+.fl-auth-error, .fl-auth-alert, :is(.fl-auth, .fl-auth-split) .fl-form > [role="alert"] { animation: fl-auth-arrive var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-auth-rules li[data-met="true"] svg { animation: fl-auth-pop var(--duration-base) var(--ease-spring, var(--easing)); }
+/* The confirmation: its badge springs in, then the words follow. */
+.fl-auth-done { animation: fl-auth-arrive var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-auth-done__icon { animation: fl-auth-badge var(--duration-slow) var(--ease-spring, var(--easing)) both; }
+/* One quiet entrance when the screen opens (the class is added by script and removed after; without it all is shown). */
+.fl-auth.is-entering .fl-auth-card, .fl-auth-split.is-entering { animation: fl-auth-rise var(--duration-slow) var(--ease-out, var(--easing)); }
+.fl-auth-split.is-entering .fl-auth-split__picture > * { animation: fl-auth-rise var(--duration-slow) var(--ease-out, var(--easing)) backwards; }
+.fl-auth-split.is-entering .fl-auth-split__picture > :nth-child(2) { animation-delay: var(--stagger, 40ms); }
+.fl-auth-split.is-entering .fl-auth-split__picture > :nth-child(3) { animation-delay: calc(var(--stagger, 40ms) * 2); }
+@keyframes fl-auth-rise { from { opacity: 0; translate: 0 var(--enter-distance, 8px); } }
+@keyframes fl-auth-arrive { from { opacity: 0; translate: 0 -2px; } }
+@keyframes fl-auth-swap { from { opacity: 0; rotate: -12deg; scale: 0.85; } }
+@keyframes fl-auth-pop { 50% { scale: 1.08; } }
+@keyframes fl-auth-badge { from { opacity: 0; scale: 0.6; } }
+@keyframes fl-auth-fade { from { opacity: 0; } }
+
 @media (prefers-reduced-motion: reduce) {
   .fl-auth-spin { animation-duration: 2.4s; }
-  .fl-auth-otp[data-state="error"] .fl-auth-otp__box { animation: none; }
-  .fl-auth-otp__box, .fl-auth-meter__bars span { transition: none; }
+  .fl-auth-otp__box, .fl-auth-meter__bars span::after, .fl-auth-reveal, .fl-auth-rules li, :is(.fl-auth, .fl-auth-split) .fl-ctl-field { transition-duration: 1ms; transition-delay: 0s; }
+  .fl-auth-reveal:active:not(:disabled) { scale: none; }
+  .fl-auth-otp__box, .fl-auth-otp[data-state="error"] .fl-auth-otp__box, .fl-auth-reveal__face, .fl-auth-rules li[data-met="true"] svg, .fl-auth-done__icon,
+  :is(.fl-auth, .fl-auth-split) .fl-ctl-check:checked, .fl-auth-check input:checked,
+  .fl-auth-split.is-entering .fl-auth-split__picture > * { animation: none; }
+  .fl-auth-error, .fl-auth-alert, .fl-auth-done, .fl-auth.is-entering .fl-auth-card, .fl-auth-split.is-entering { animation: fl-auth-fade 120ms linear; }
 }
+:root[data-motion="off"] :is(.fl-auth, .fl-auth-split), :root[data-motion="off"] :is(.fl-auth, .fl-auth-split) * { transition: none !important; animation: none !important; }
+:root[data-motion="off"] :is(.fl-auth, .fl-auth-split) .fl-auth-spin { animation: fl-auth-spin 0.8s linear infinite !important; }
 
 /* ── Phones ── */
 @media (max-width: 860px) {

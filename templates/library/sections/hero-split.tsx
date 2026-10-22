@@ -13,8 +13,9 @@
  * Hero: split. Promise and actions on the left, a picture of the product on the right. The default for products and
  * services. Make it the app's own: replace SAMPLE; give media a real screenshot or photo (src, with alt text); keep
  * one primary action.
+ * Motion: the words rise in once, in order, and the picture or form settles beside them; with reduced motion or animation off they are simply there.
  */
-import type { ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "./buttons-variants";
 import { MediaFrame } from "./media-frames";
 import { Badge } from "./badges-status";
@@ -23,6 +24,50 @@ import { TextField } from "./text-fields-states";
 import { Tick } from "./icons";
 
 type Link = { label: string; href: string };
+
+const still = () =>
+  typeof window === "undefined" ||
+  document.documentElement.dataset.motion === "off" ||
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** Entrance once: "wait" until the section is in view, then "in". Already on screen plays at once; without an observer,
+ * or with motion off, it is simply shown; a timeout never leaves it hidden. */
+function useEnterOnce<T extends Element>() {
+  const ref = useRef<T>(null);
+  const [state, setState] = useState<"idle" | "wait" | "in" | "done">("idle");
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window) || still()) return;
+    const box = el.getBoundingClientRect();
+    if (box.top < innerHeight && box.bottom > 0) {
+      setState("in");
+      return;
+    }
+    setState("wait");
+    const show = () => {
+      setState("in");
+      io.disconnect();
+    };
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && show(), { threshold: 0.15 });
+    io.observe(el);
+    const t = setTimeout(show, 1200);
+    return () => {
+      io.disconnect();
+      clearTimeout(t);
+    };
+  }, []);
+  // Once it has played, drop the entrance classes, so content never depends on an animation finishing (a page that
+  // isn't painting freezes animations).
+  useEffect(() => {
+    if (state !== "in") return;
+    const t = setTimeout(() => setState("done"), 1200);
+    return () => clearTimeout(t);
+  }, [state]);
+  return [ref, state] as const;
+}
+
+const enterClass = (state: "idle" | "wait" | "in" | "done") => (state === "wait" ? " is-waiting" : state === "in" ? " is-entering" : "");
+
 
 export type HeroSplitProps = {
   /** Used for the heading's id, so the section can be labelled by it. */
@@ -47,10 +92,11 @@ export type HeroSplitProps = {
 };
 
 export function HeroSplit({ id, title, lede, primary, secondary, eyebrow, note, media, aside, list, actionsExtra }: HeroSplitProps) {
+  const [ref, enter] = useEnterOnce<HTMLElement>();
   return (
-    <section className="fl-section" aria-labelledby={`${id}-title`} data-fl="b.hero-split">
+    <section ref={ref} className={`fl-section fl-hx${enterClass(enter)}`} aria-labelledby={`${id}-title`} data-fl="b.hero-split">
       <div className="fl-wrap fl-split">
-        <div className="fl-head" style={{ marginBottom: 0 }}>
+        <div className="fl-head fl-hx-seq" style={{ marginBottom: 0 }}>
           {eyebrow ? <span className="fl-eyebrow">{eyebrow}</span> : null}
           <h1 id={`${id}-title`} className="fl-title fl-title--xl">
             {title}

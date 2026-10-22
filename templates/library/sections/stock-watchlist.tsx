@@ -20,7 +20,7 @@
  * Built from c.kpi, c.segmented.toggle, c.avatar.organization and c.button.tertiary.
  * Adapted from TailAdmin (MIT License, Copyright (c) 2023 TailAdmin), its watchlist and top card group.
  */
-import { useId, useMemo, useState } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "./avatars-variants";
 import { Button } from "./buttons-variants";
 import { Kpi } from "./card-kpi";
@@ -57,6 +57,37 @@ const changeOf = (s: WatchSymbol, range: string) => {
   return first ? ((s.price - first) / first) * 100 : 0;
 };
 
+const stillMotion = () =>
+  typeof window === "undefined" ||
+  document.documentElement.dataset.motion === "off" ||
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** Rows glide to their new places when the order changes (sort, range, remove): FLIP with Web Animations, after the new order paints. */
+function useRowGlide(order: string) {
+  const list = useRef<HTMLUListElement>(null);
+  const tops = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const el = list.current;
+    if (!el) return;
+    const base = el.getBoundingClientRect().top;
+    const rows = [...el.querySelectorAll<HTMLElement>(":scope > [data-row]")];
+    const now = new Map(rows.map((r) => [r.dataset.row!, r.getBoundingClientRect().top - base]));
+    const before = tops.current;
+    tops.current = now;
+    if (!before.size || stillMotion()) return;
+    const css = getComputedStyle(el);
+    const ms = parseFloat(css.getPropertyValue("--duration-slow")) || 320;
+    const easing = css.getPropertyValue("--ease-out").trim() || "ease-out";
+    for (const r of rows) {
+      const was = before.get(r.dataset.row!);
+      if (was === undefined) continue;
+      const dy = was - now.get(r.dataset.row!)!;
+      if (Math.abs(dy) > 1) r.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: ms, easing });
+    }
+  }, [order]);
+  return list;
+}
+
 /** A tiny line of the price across a 100 by 28 box; decoration, since the change is written beside it. */
 function Spark({ points }: { points: number[] }) {
   const min = Math.min(...points);
@@ -64,7 +95,7 @@ function Spark({ points }: { points: number[] }) {
   const pts = points.map((n, i) => `${((i / Math.max(points.length - 1, 1)) * 100).toFixed(2)},${(26 - ((n - min) / span) * 24).toFixed(2)}`).join(" ");
   return (
     <svg className="fl-wl-spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-      <polyline points={pts} />
+      <polyline points={pts} pathLength={1} />
     </svg>
   );
 }
@@ -102,6 +133,7 @@ export function StockWatchlist({ title, symbols, ranges, currency = "USD", local
     return withMove.sort((a, b) => Math.abs(b.move) - Math.abs(a.move));
   }, [list, range, sort]);
 
+  const glide = useRowGlide(rows.map((r) => r.s.symbol).join("|"));
   const byMove = [...rows].sort((a, b) => b.move - a.move);
   const best = byMove[0];
   const worst = byMove[byMove.length - 1];
@@ -156,22 +188,23 @@ export function StockWatchlist({ title, symbols, ranges, currency = "USD", local
         {rows.length === 0 ? (
           <p className="fl-wl-empty">{l.empty}</p>
         ) : (
-          <ul className="fl-wl-list">
+          <ul ref={glide} className="fl-wl-list">
             {rows.map(({ s, move }) => {
               const dir = move > 0 ? "up" : move < 0 ? "down" : "flat";
               return (
-                <li key={s.symbol} className="fl-wl-row">
+                <li key={s.symbol} className="fl-wl-row" data-row={s.symbol}>
                   <Avatar variant="organization" name={s.name} label={s.symbol.slice(0, 2)} decorative />
                   <span className="fl-wl-name">
                     <strong>{s.symbol}</strong>
                     <span>{s.name}</span>
                   </span>
                   <span className={`fl-wl-trend fl-wl-trend--${dir}`}>
-                    <Spark points={[...(s.series[range] ?? []), s.price]} />
+                    {/* Keyed by range: a new range draws its line in again. */}
+                    <Spark key={range} points={[...(s.series[range] ?? []), s.price]} />
                   </span>
                   <span className="fl-wl-price">
                     <strong>{money.format(s.price)}</strong>
-                    <span className={`fl-wl-move fl-wl-move--${dir}`}>
+                    <span key={range} className={`fl-wl-move fl-wl-move--${dir}`}>
                       <span aria-hidden="true">{dir === "up" ? "▲" : dir === "down" ? "▼" : "–"}</span>
                       <span className="fl-sr">{dir === "up" ? "Up" : dir === "down" ? "Down" : "No change"} </span>
                       {pct(move)}

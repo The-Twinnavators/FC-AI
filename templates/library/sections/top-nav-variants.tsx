@@ -34,11 +34,85 @@
  * install and nothing fetched at run time. The styles are the library's own fl- classes in templates/library/css, and the
  * sample data is in the file, so the piece runs in a built app exactly as it runs here.
  */
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { Icon } from "./icons";
 import { Button, type ButtonVariant } from "./buttons-variants";
 
 // ── p.top-nav: the bar across the top. Built from c.button; the menu, fold and account popover live inside it. ──
+
+const still = () =>
+  typeof window === "undefined" ||
+  document.documentElement.dataset.motion === "off" ||
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** Entrance once: "wait" until the bar is in view, then "in". Already on screen plays at once; without an observer,
+ * or with motion off, it is simply shown; a timeout never leaves it hidden. */
+function useEnterOnce<T extends Element>() {
+  const ref = useRef<T>(null);
+  const [state, setState] = useState<"idle" | "wait" | "in" | "done">("idle");
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window) || still()) return;
+    const box = el.getBoundingClientRect();
+    if (box.top < innerHeight && box.bottom > 0) {
+      setState("in");
+      return;
+    }
+    setState("wait");
+    const show = () => {
+      setState("in");
+      io.disconnect();
+    };
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && show(), { threshold: 0.15 });
+    io.observe(el);
+    const t = setTimeout(show, 1200);
+    return () => {
+      io.disconnect();
+      clearTimeout(t);
+    };
+  }, []);
+  // Once it has played, drop the entrance classes, so content never depends on an animation finishing (a page that
+  // isn't painting freezes animations).
+  useEffect(() => {
+    if (state !== "in") return;
+    const t = setTimeout(() => setState("done"), 1200);
+    return () => clearTimeout(t);
+  }, [state]);
+  return [ref, state] as const;
+}
+
+const enterClass = (state: "idle" | "wait" | "in" | "done") => (state === "wait" ? " is-waiting" : state === "in" ? " is-entering" : "");
+
+/** One pill behind the current link that slides to the next one, instead of the highlight jumping. It is placed from the
+ * link's own box (and again when the bar changes size or folds); until it is placed the current link keeps its own fill. */
+function useLinkPill(nav: { current: HTMLElement | null }, here: string | undefined, folded: boolean) {
+  useLayoutEffect(() => {
+    const el = nav.current;
+    if (!el) return;
+    const place = () => {
+      const on = el.querySelector<HTMLElement>("a.is-on");
+      if (!on || !on.offsetWidth) {
+        delete el.dataset.pill;
+        return;
+      }
+      const first = el.dataset.pill !== "on";
+      el.style.setProperty("--fl-nav-pill-x", `${on.offsetLeft}px`);
+      el.style.setProperty("--fl-nav-pill-y", `${on.offsetTop}px`);
+      el.style.setProperty("--fl-nav-pill-w", `${on.offsetWidth}px`);
+      el.style.setProperty("--fl-nav-pill-h", `${on.offsetHeight}px`);
+      // Appearing (first placement, or after folding open) puts it in place without sliding from the corner.
+      if (first) {
+        el.dataset.pill = "set";
+        requestAnimationFrame(() => el.dataset.pill === "set" && (el.dataset.pill = "on"));
+      }
+    };
+    place();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(place);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [nav, here, folded]);
+}
 
 export type TopNavVariant = "marketing" | "centered" | "app" | "phone";
 /** A link: with an href the browser follows it; without one the bar just marks it current. */
@@ -72,6 +146,9 @@ export function TopNav({ variant = "marketing", brand, mark = true, links, curre
   const [folded, setFolded] = useState(false);
   const [menu, setMenu] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const [wrapRef, enter] = useEnterOnce<HTMLDivElement>();
+  useLinkPill(navRef, here, folded);
   const say = (s: string) => onSelect?.(s);
   const extra = className ? ` ${className}` : "";
   const fl = `p.top-nav.${variant}`;
@@ -140,7 +217,7 @@ export function TopNav({ variant = "marketing", brand, mark = true, links, curre
 
   const isApp = variant === "app";
   return (
-    <div className={`fl-ctl-nav-wrap${folded ? " is-open" : ""}${extra}`} data-fl={fl}>
+    <div ref={wrapRef} className={`fl-ctl-nav-wrap${folded ? " is-open" : ""}${isApp ? "" : ` fl-ctl-nav-enter${enterClass(enter)}`}${extra}`} data-fl={fl}>
       <header className={`fl-ctl-nav fl-ctl-nav--${isApp ? "app" : "marketing"}`}>
         {isApp ? null : (
           <a className="fl-ctl-nav-skip" href="#top">
@@ -149,10 +226,11 @@ export function TopNav({ variant = "marketing", brand, mark = true, links, curre
         )}
         {brandEl}
         {variant === "centered" ? <span className="fl-ctl-nav-spacer" /> : null}
-        <nav aria-label={isApp ? "Sections" : "Site"} className="fl-ctl-nav-links" id={linksId}>
+        <nav ref={navRef} aria-label={isApp ? "Sections" : "Site"} className="fl-ctl-nav-links" id={linksId}>
+          <span className="fl-ctl-nav-pill" aria-hidden="true" />
           <ul>
-            {links.map((l) => (
-              <li key={l.label}>
+            {links.map((l, n) => (
+              <li key={l.label} style={{ "--fl-nav-i": Math.min(n + 1, 5) } as CSSProperties}>
                 <a href={l.href ?? "#top"} aria-current={l.label === here ? "page" : undefined} className={l.label === here ? "is-on" : undefined} onClick={go(l)}>
                   {l.icon ? <Icon name={l.icon} /> : null}
                   {l.label}

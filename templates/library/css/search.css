@@ -41,4 +41,25 @@
 .fl-srch__count { margin: 0; color: var(--color-text-muted); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
 .fl-srch-results { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 .fl-srch-results li { padding: var(--space-1) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--pill-radius, 999px); font-size: max(11px, calc(var(--text-sm) - var(--fs-shrink, 0px))); }
-@media (prefers-reduced-motion: reduce) { .fl-srch__pop { animation: none; } .fl-srch__field { transition: none; } }
+/* Motion: the edge and ring ease in on focus and the magnifier takes the accent; the clear button pops in when there is
+   text; options tint as the pointer or arrows reach them; filtered chips glide to their new places and returning
+   ones fade in (script). */
+.fl-srch__field { transition: background var(--duration-fast) var(--easing), box-shadow var(--duration-fast) var(--easing), border-color var(--duration-fast) var(--easing), border-radius var(--duration-base) var(--ease-out, var(--easing)); }
+.fl-srch__icon { transition: color var(--duration-fast) var(--easing), scale var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-srch__field:focus-within .fl-srch__icon { color: var(--color-accent); scale: 1.08; }
+.fl-srch__clear { animation: fl-srch-pop var(--duration-base) var(--ease-spring, var(--easing)); }
+.fl-srch__clear, .fl-srch__remove { transition: background-color var(--duration-fast) var(--easing), color var(--duration-fast) var(--easing), scale var(--duration-fast) var(--easing); }
+.fl-srch__clear:active, .fl-srch__remove:active { scale: 0.9; }
+.fl-srch__opt { transition: background-color var(--duration-fast) var(--easing); }
+.fl-srch__opt .fl-srch__opt-icon { transition: color var(--duration-fast) var(--easing), translate var(--duration-fast) var(--ease-out, var(--easing)); }
+.fl-srch__opt.is-active .fl-srch__opt-icon { color: var(--color-accent); translate: 2px 0; }
+.fl-srch__count { transition: color var(--duration-fast) var(--easing); }
+@keyframes fl-srch-pop { from { opacity: 0; scale: 0.6; } }
+@media (prefers-reduced-motion: reduce) {
+  .fl-srch__pop { animation: none; } .fl-srch__field { transition: none; }
+  .fl-srch__clear { animation: none; }
+  .fl-srch__field:focus-within .fl-srch__icon { scale: none; }
+  .fl-srch__opt.is-active .fl-srch__opt-icon { translate: none; }
+  .fl-srch__clear:active, .fl-srch__remove:active { scale: none; }
+}
+:root[data-motion="off"] :is(.fl-srch, .fl-srch-results), :root[data-motion="off"] :is(.fl-srch, .fl-srch-results) * { transition: none !important; animation: none !important; }

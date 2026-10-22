@@ -14,6 +14,9 @@
  * Tabs switch between parts of one thing. If the parts are separate pages, that is navigation, not tabs.
  *
  * Make it the app's own: keep one look across the app, and keep the counts only on tabs that filter a list.
+ * Motion: one indicator (the underline, the pill, the side line or the filled row) glides to the open tab rather than
+ * jumping, and the panel's new content fades up a few pixels. With reduced motion it fades only; with animation off
+ * (html[data-motion="off"]) it is instant, and without script the open tab carries its own mark.
  */
 /**
  * How to try it
@@ -28,6 +31,46 @@
 import { useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./ButtonsVariants";
+
+const still = () =>
+  typeof window === "undefined" ||
+  document.documentElement.dataset.motion === "off" ||
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+type Box = { x: number; y: number; w: number; h: number };
+
+/** One indicator for the open tab: measured from the tab (relative to its list), kept there when the layout changes.
+ *  `ready` turns on only after the first placement has been styled, so the indicator never slides in from the corner. */
+function useIndicator(tab: () => HTMLElement | null | undefined, on: boolean, deps: unknown[]) {
+  const [box, setBox] = useState<Box | null>(null);
+  const [ready, setReady] = useState(false);
+  useLayoutEffect(() => {
+    if (!on) return;
+    const place = () => {
+      const el = tab();
+      if (!el) return;
+      const next = { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight };
+      setBox((b) => (b && b.x === next.x && b.y === next.y && b.w === next.w && b.h === next.h ? b : next));
+    };
+    place();
+    let ro: ResizeObserver | undefined;
+    const el = tab();
+    if (typeof ResizeObserver !== "undefined" && el?.parentElement) {
+      ro = new ResizeObserver(place);
+      ro.observe(el.parentElement);
+      el.parentElement.querySelectorAll(":scope > [role='tab']").forEach((c) => ro!.observe(c));
+    }
+    return () => ro?.disconnect();
+  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+  // Once the first placement is committed, let the browser take it in (a style read), then allow gliding.
+  useLayoutEffect(() => {
+    if (!box || ready) return;
+    void tab()?.parentElement?.offsetWidth;
+    setReady(true);
+  }, [box]); // eslint-disable-line react-hooks/exhaustive-deps
+  const style = box ? { transform: `translate(${box.x}px, ${box.y}px)`, width: box.w, height: box.h } : undefined;
+  return { box, ready, style };
+}
 
 // ── c.tabs: the one tabs control, horizontal or vertical. The sheet below shows the horizontal looks. ──
 
@@ -120,26 +163,37 @@ export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 
     if (version) refs.current[next.id]?.scrollIntoView({ block: "nearest", inline: "nearest" });
   };
 
-  // underline-slide: move the underline under the open tab, and keep it there when the layout changes.
-  const [bar, setBar] = useState({ x: 0, w: 0 });
+  // One indicator moves to the open tab: the underline-slide bar, the pill version's pill, the underline and pill looks'
+  // mark, and the vertical rail's line or filled row. Enclosed and folder tabs join their panel, so they keep their own.
   const slide = version === "underline-slide" && !vertical;
   const openId = (tabs.find((t) => t.id === on) ?? tabs[0])?.id;
+  const glides = version ? version !== "folder" : vertical || look !== "enclosed";
+  const ind = useIndicator(() => (openId ? refs.current[openId] : null), glides, [glides, openId, tabs, look, size, vertical, version]);
+  const indCls = ind.box ? ` is-sliding${ind.ready ? " is-ready" : ""}` : "";
+
+  // The panel's new content fades up when the open tab changes (not on first paint).
+  const panelRef = useRef<HTMLDivElement>(null);
+  const firstPanel = useRef(true);
   useLayoutEffect(() => {
-    if (!slide) return;
-    const place = () => {
-      const el = openId ? refs.current[openId] : null;
-      if (el) setBar({ x: el.offsetLeft, w: el.offsetWidth });
-    };
-    place();
-    if (typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(place);
-    Object.values(refs.current).forEach((el) => el && ro.observe(el));
-    return () => ro.disconnect();
-  }, [slide, openId, tabs]);
+    if (firstPanel.current) {
+      firstPanel.current = false;
+      return;
+    }
+    const el = panelRef.current;
+    if (!el?.animate || document.documentElement.dataset.motion === "off") return;
+    const css = getComputedStyle(el);
+    const ms = parseFloat(css.getPropertyValue("--duration-base")) || 200;
+    const reduced = still();
+    const lift = css.getPropertyValue("--enter-distance").trim() || "8px";
+    el.animate(
+      reduced ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: `translateY(calc(${lift} / 2))` }, { opacity: 1, transform: "none" }],
+      { duration: reduced ? 100 : ms, easing: css.getPropertyValue("--ease-out").trim() || "ease-out" },
+    );
+  }, [openId]);
 
   const list = (
     <div
-      className={vertical ? "fl-ctl-vtabs-rail" : `fl-ctl-tabset ${LOOK[look]} ${SIZE[size]}`}
+      className={(vertical ? "fl-ctl-vtabs-rail" : `fl-ctl-tabset ${LOOK[look]} ${SIZE[size]}`) + (glides ? indCls : "")}
       role="tablist"
       aria-orientation={vertical ? "vertical" : undefined}
       aria-label={label}
@@ -174,13 +228,14 @@ export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 
           </button>
         );
       })}
+      {glides && !version ? <span className={vertical ? "fl-ctl-vtabs__ind" : "fl-ctl-tabset__ind"} aria-hidden="true" style={ind.style} /> : null}
     </div>
   );
 
   if (version && !vertical) {
     const V = VERSION[version];
     const tablist = (
-      <div className={V.list} role="tablist" aria-label={label} onKeyDown={onKey}>
+      <div className={V.list + (glides ? indCls : "")} role="tablist" aria-label={label} onKeyDown={onKey}>
         {tabs.map((t) => {
           const sel = t.id === here?.id;
           return (
@@ -209,13 +264,14 @@ export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 
             </button>
           );
         })}
-        {slide ? <span className="fl-ctl-tabs__bar" aria-hidden="true" style={{ transform: `translateX(${bar.x}px)`, width: bar.w }} /> : null}
+        {slide ? <span className="fl-ctl-tabs__bar" aria-hidden="true" style={{ transform: `translateX(${ind.box?.x ?? 0}px)`, width: ind.box?.w ?? 0 }} /> : null}
+        {glides && !slide ? <span className="fl-way-pills__ind" aria-hidden="true" style={ind.style} /> : null}
       </div>
     );
     return (
       <div className={[V.root, className ?? ""].filter(Boolean).join(" ") || undefined} data-fl={`c.tabs@${version}`}>
         {V.wrap ? <div className={V.wrap}>{tablist}</div> : tablist}
-        <div className={V.panel} role="tabpanel" id={panelId} aria-labelledby={here ? tabId(here.id) : undefined} tabIndex={0}>
+        <div ref={panelRef} className={V.panel} role="tabpanel" id={panelId} aria-labelledby={here ? tabId(here.id) : undefined} tabIndex={0}>
           {typeof here?.panel === "string" ? <p>{here.panel}</p> : here?.panel}
         </div>
       </div>
@@ -226,7 +282,7 @@ export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 
     return (
       <div className={["fl-ctl-vtabs", LOOK[look], className ?? ""].filter(Boolean).join(" ")} data-fl={`c.tabs.${look}`}>
         {list}
-        <div className="fl-ctl-vtabs-panel" role="tabpanel" id={panelId} aria-labelledby={here ? tabId(here.id) : undefined} tabIndex={0}>
+        <div ref={panelRef} className="fl-ctl-vtabs-panel" role="tabpanel" id={panelId} aria-labelledby={here ? tabId(here.id) : undefined} tabIndex={0}>
           {here ? <h4>{here.label}</h4> : null}
           {typeof here?.panel === "string" ? <p className="fl-ctl-matrix-what">{here.panel}</p> : here?.panel}
         </div>
@@ -243,7 +299,7 @@ export function Tabs({ tabs, label, orientation = "horizontal", variant, size = 
       ) : (
         list
       )}
-      <div className="fl-ctl-tabpanel" role="tabpanel" id={panelId} aria-labelledby={here ? tabId(here.id) : undefined} tabIndex={0}>
+      <div ref={panelRef} className="fl-ctl-tabpanel" role="tabpanel" id={panelId} aria-labelledby={here ? tabId(here.id) : undefined} tabIndex={0}>
         {typeof here?.panel === "string" ? <span className="fl-ctl-matrix-what">{here.panel}</span> : here?.panel}
       </div>
     </div>

@@ -31,7 +31,7 @@
  * own fl- classes in templates/library/css, and the sample data is in the file, so the piece runs in a built app exactly as
  * it runs here.
  */
-import { useEffect, useId, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Icon } from "./icons";
 import { Button } from "./buttons-variants";
 
@@ -627,6 +627,8 @@ function RailSideNav({ title, mark, sections, current, person, onSelect, main, c
   const [key, setKey] = useState(current ?? firstKey);
   const [shown, setShown] = useState((current ?? firstKey).split("/")[0]);
   const drawer = useNavDrawer();
+  const railRef = useRef<HTMLDivElement>(null);
+  const [slid, setSlid] = useState(false);
 
   useEffect(() => {
     if (current) {
@@ -634,6 +636,27 @@ function RailSideNav({ title, mark, sections, current, person, onSelect, main, c
       setShown(current.split("/")[0]);
     }
   }, [current]);
+
+  // One indicator behind the rail's icons slides to the chosen section (measured, so it follows any layout).
+  useLayoutEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const place = () => {
+      const on = rail.querySelector<HTMLElement>('.fl-snv-railbtn[aria-pressed="true"]');
+      if (!on) return;
+      const a = rail.getBoundingClientRect();
+      const b = on.getBoundingClientRect();
+      rail.style.setProperty("--ind-x", `${b.left - a.left}px`);
+      rail.style.setProperty("--ind-y", `${b.top - a.top}px`);
+      rail.style.setProperty("--ind-w", `${b.width}px`);
+      rail.style.setProperty("--ind-h", `${b.height}px`);
+      setSlid(true);
+    };
+    place();
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(place);
+    ro?.observe(rail);
+    return () => ro?.disconnect();
+  }, [shown]);
 
   const [curSection, curPage] = key.split("/");
   const shownSection = sections.find((s) => s.id === shown) ?? sections[0];
@@ -663,7 +686,8 @@ function RailSideNav({ title, mark, sections, current, person, onSelect, main, c
       className={className}
     >
       <nav aria-label="Main" className="fl-snv-railnav">
-        <div className="fl-snv-rail">
+        <div ref={railRef} className={slid ? "fl-snv-rail is-sliding" : "fl-snv-rail"}>
+          <span className="fl-snv-railind" aria-hidden="true" />
           <span className="fl-snv-mark" role="img" aria-label={title}>
             {markText}
           </span>
@@ -696,11 +720,17 @@ function RailSideNav({ title, mark, sections, current, person, onSelect, main, c
 
         <div id={`${uid}-panel`} className="fl-snv-panel">
           <div className="fl-snv-panel__head">
-            <h2 id={`${uid}-panel-title`}>{shownSection?.label}</h2>
+            <h2 id={`${uid}-panel-title`} key={shownSection?.id} className="fl-snv-swap">
+              {shownSection?.label}
+            </h2>
             <CloseButton drawer={drawer} />
           </div>
-          {shownSection?.text ? <p className="fl-snv-panel__text">{shownSection.text}</p> : null}
-          <ul className="fl-snv-list" aria-labelledby={`${uid}-panel-title`}>
+          {shownSection?.text ? (
+            <p key={`text-${shownSection.id}`} className="fl-snv-panel__text fl-snv-swap">
+              {shownSection.text}
+            </p>
+          ) : null}
+          <ul key={`pages-${shownSection?.id}`} className="fl-snv-list fl-snv-pages" aria-labelledby={`${uid}-panel-title`}>
             {shownSection?.pages.map((p) => (
               <li key={p.id}>
                 <a
