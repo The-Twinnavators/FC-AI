@@ -9,3 +9,29 @@
 @media (prefers-reduced-motion: reduce) {
   .cl-detail__toggle svg, .cl-detail__more { transition: none; }
 }
+
+/* External components shelf: outside sources grouped by the owner's license decision. */
+.xs { display: grid; gap: 18px; min-width: 0; }
+.xs__head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.xs__intro { margin: 0; max-width: 62ch; }
+.xs__form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 10px 12px; align-items: end; padding: 14px; border: 1px solid var(--line, rgba(255, 255, 255, 0.12)); border-radius: 12px; }
+.xs__form-actions { grid-column: 1 / -1; display: flex; gap: 8px; }
+.xs__group { display: grid; gap: 6px; }
+.xs__group-title { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.xs__group-what { margin: 0 0 4px; font-size: 13px; }
+.xs__dot { width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+.xs__dot--allowed { color: #34d399; }
+.xs__dot--inspiration { color: #60a5fa; }
+.xs__dot--check { color: #fbbf24; }
+.xs__dot--not-allowed { color: #f87171; }
+.xs__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.xs__row { display: flex; gap: 16px; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid var(--line, rgba(255, 255, 255, 0.12)); border-radius: 12px; transition: border-color 160ms ease, background-color 160ms ease; }
+.xs__row:hover { border-color: rgba(255, 255, 255, 0.24); background: rgba(255, 255, 255, 0.03); }
+.xs__main { display: grid; gap: 2px; min-width: 0; }
+.xs__name { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: inherit; text-decoration: none; }
+.xs__name:hover, .xs__name:focus-visible { text-decoration: underline; }
+.xs__terms, .xs__use { font-size: 13px; overflow-wrap: anywhere; }
+.xs__actions { display: flex; gap: 8px; align-items: center; flex: none; }
+.xs__select { min-width: 190px; }
+@media (max-width: 720px) { .xs__row { flex-direction: column; align-items: stretch; } .xs__form { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .xs__row { transition: none; } }

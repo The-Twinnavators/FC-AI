@@ -3,6 +3,7 @@
  * §8). Every body is validated with runtime schemas; errors never leak absolute paths or secrets.
  */
 import { runModels } from "./runModels.js";
+import { addExternalSource, externalSources, removeExternalSource, updateExternalSource } from "../knowledge/externalSources.js";
 import { copilotDraft, DraftKind } from "./copilotDraft.js";
 import { changeImpact } from "./changeImpact.js";
 import { blockerAdvice } from "./blockerAdvice.js";
@@ -457,6 +458,25 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
   });
   // Restart/stop are executed by the parent shell: the daemon cleans up owned processes and exits with a
   // code the desktop shell understands (75 = restart me, 76 = stopped by user).
+  // External component sources (knowledge/externalSources.ts): the owner's links and their license decisions.
+  add("GET /library/external", () => ({ sources: externalSources(app.store) }));
+  add("POST /library/external", ({ body }) => {
+    const b = parse(z.object({ name: z.string().max(80).default(""), url: z.string().max(500), terms: z.string().max(300).optional(), use: z.string().max(300).optional() }), body);
+    try {
+      return { sources: addExternalSource(app.store, b) };
+    } catch (err) {
+      throw new HttpError(409, (err as Error).message);
+    }
+  });
+  add("POST /library/external/:id", ({ params, body }) => {
+    const b = parse(z.object({ license: z.enum(["allowed", "inspiration", "not-allowed", "check"]).optional(), terms: z.string().max(300).optional(), use: z.string().max(300).optional(), name: z.string().max(80).optional() }), body);
+    try {
+      return { sources: updateExternalSource(app.store, params.id, b) };
+    } catch (err) {
+      throw new HttpError(404, (err as Error).message);
+    }
+  });
+  add("POST /library/external/:id/remove", ({ params }) => ({ sources: removeExternalSource(app.store, params.id) }));
   // The owner's Accept or Decline on a piece waiting on the Component library's approval shelf (workspace/libraryDecisions.ts).
   add("POST /library/proposed/:id", ({ params, body }) => {
     const b = parse(z.object({ decision: z.enum(["accept", "decline"]) }), body);

@@ -39,6 +39,7 @@ import { designSkillIds, renderSkills, selectSkills } from "../knowledge/skills.
 import { designSpecKey } from "./homeConceptOffer.js";
 import { DESIGN_POLISH, DESIGN_SCREENS } from "./templates.js";
 import { sectionsDir } from "./sectionRecipes.js";
+import { externalSourcesNote } from "../knowledge/externalSources.js";
 import { applyDesignContract, buildContract, contractNote, designContractKey, getContract } from "./designContract.js";
 import fs from "node:fs";
 import path from "node:path";
@@ -341,6 +342,7 @@ async function makeProof(d: Deps, p: DesignProofs, proof: DesignProof): Promise<
     p.brief?.avoid ? `Avoid: ${p.brief.avoid}` : "",
     p.brief?.inspiration?.length ? `Inspiration they attached: ${p.brief.inspiration.join("; ")}` : "",
     `The Component library sections you can use, with their props contracts:\n\n${catalog}`,
+    externalSourcesNote(d.store),
     base?.page ? `Revise this proof: ${base.name}: ${base.rationale}\nIts page: ${describePage(base.page)}\nKeep what works; change what the person asks.` : "",
     proof.feedback ? `The person's feedback: ${proof.feedback}` : "",
     !base ? DIRECTIONS[index % 3] : "",

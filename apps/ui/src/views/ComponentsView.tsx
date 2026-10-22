@@ -10,6 +10,7 @@ import { PreviewSizes, deviceWidth, type Device } from "../components/PreviewSiz
 import { ChevronDown, Search, Sparkles } from "lucide-react";
 import "../styles/cl-details.css";
 import { post } from "../api";
+import { ExternalSources } from "../components/ExternalSources";
 
 
 const sources = import.meta.glob<string>("../../../../templates/library/sections/*.tsx", { query: "?raw", import: "default" });
@@ -143,7 +144,7 @@ export function ComponentsView() {
     if (PROPOSED_SECTIONS.length) return "proposed";
     try {
       const saved = localStorage.getItem("flowcode.componentsShelf") ?? "";
-      return ALL_ITEMS.some((s) => shelfOf(s) === saved) ? saved : "all";
+      return saved === "external" || ALL_ITEMS.some((s) => shelfOf(s) === saved) ? saved : "all";
     } catch {
       return "all";
     }
@@ -310,6 +311,9 @@ export function ComponentsView() {
             </span>
             <span className="lib-shelf__count">{ALL_ITEMS.length}</span>
           </button>
+          <button type="button" className="lib-shelf" aria-current={cat === "external"} onClick={() => pick("external")}>
+            <span className="lib-shelf__label">External components</span>
+          </button>
           {LEVELS.map(([l, heading]) => {
             const shelves = l === "component" ? componentShelves : SECTION_CATEGORIES.map((c) => `${l}:${c.id}`).filter((k) => counts.get(k));
             return shelves.length ? (
@@ -328,7 +332,10 @@ export function ComponentsView() {
             ) : null;
           })}
         </nav>
-        {!shown.length ? (
+        {cat === "external" ? (
+          <ExternalSources query={q} />
+        ) : null}
+        {cat !== "external" && !shown.length ? (
           <div className="cl-none" role="status">
             <p>
               Nothing matches “{q}”{cat === "proposed" ? " in the pieces waiting for approval" : cat !== "all" ? ` in ${label(cat)}` : ""}.
@@ -345,7 +352,7 @@ export function ComponentsView() {
             </div>
           </div>
         ) : null}
-        <ul className="cl-grid">
+        {cat !== "external" ? <ul className="cl-grid">
           {cat === "proposed" ? (
             <li className="cl-proposed-note" role="note">
               New pieces, not in the library yet: builds don't use them until you accept them. Open one to try it, then Accept or Decline it.
@@ -368,7 +375,7 @@ export function ComponentsView() {
               {cat === "proposed" ? <ShelfDecision piece={s} /> : null}
             </li>
           ))}
-        </ul>
+        </ul> : null}
       </div>
 
       {open ? (

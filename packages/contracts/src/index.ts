@@ -26,3 +26,4 @@ export * from "./fonts.js";
 export * from "./sectionLibrary.js";
 export * from "./libraryMeta.js";
 export * from "./catalogRelations.js";
+export * from "./externalSources.js";
