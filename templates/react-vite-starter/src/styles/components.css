@@ -242,8 +242,10 @@ textarea.ui-input {
 
 /* ── Small screens ── */
 @media (max-width: 640px) {
+  /* The top bar stays pinned on phones too: un-pinned, the navigation scrolled away with the page. */
   .ui-shell__header {
-    position: static;
+    gap: var(--space-2) var(--space-4);
+    padding-block: var(--space-2);
   }
   .ui-shell__nav {
     width: 100%;

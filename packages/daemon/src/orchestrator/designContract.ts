@@ -16,7 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { LIBRARY_SECTIONS, PROOF_BLOCKS, PROOF_IMAGE, type DesignProof, type ProofBlockId } from "@flowcode/contracts";
 import type { Store } from "../db/store.js";
-import { specTokens, type DesignSpec } from "../workspace/designSpec.js";
+import { lightFirst, specTokens, type DesignSpec } from "../workspace/designSpec.js";
 import { compositionKey, manifestFromBriefs, type CompositionManifest } from "./compositionManifest.js";
 import { screenBriefKey, type ScreenBrief, type ScreenBriefSection } from "./screenBrief.js";
 import { screenPlanKey, type PlannedScreen, type ScreenPlan } from "./screenPlan.js";
@@ -84,7 +84,7 @@ export function blockPropNames(block: string): string[] {
 
 /** The contract for an approved proof (its sections, content, specification and locks). */
 export function buildContract(runId: string, proof: DesignProof, locks: string[], previous: DesignContract | null, at: string): DesignContract {
-  const spec = proof.spec as DesignSpec;
+  const spec = lightFirst(proof.spec as DesignSpec);
   const sections: ContractSection[] = (proof.page?.sections ?? []).map((x) => {
     const b = PROOF_BLOCKS.find((p) => p.id === x.block)!;
     const piece = LIBRARY_SECTIONS.find((s) => s.id === x.block);
@@ -249,7 +249,8 @@ export function designContractProblems(root: string, c: DesignContract, check: {
   const start = tokens.search(/(^|\n):root\s*\{/);
   const base = start < 0 ? tokens : tokens.slice(start, tokens.indexOf("}", start) + 1);
   for (const name of ["--color-bg", "--color-text", "--color-accent", "--font-display", "--font-sans"]) {
-    const want = c.tokens[name];
+    // The light theme as the build writes it (a dark design is made light-first; older contracts kept its dark colors).
+    const want = specTokens(lightFirst(c.spec))[name] ?? c.tokens[name];
     if (!want) continue;
     const got = new RegExp(`${name.replace(/-/g, "\\-")}\\s*:\\s*([^;]+);`).exec(base)?.[1]?.trim();
     if (!got || norm(got) !== norm(want)) out.push(`Design token ${name} is ${got ?? "missing"}, the approved design has ${want}.`);

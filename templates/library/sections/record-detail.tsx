@@ -528,11 +528,12 @@ function RecordView({ store, e, rec, onBack, backLabel, onOpenDraft }: { store: 
             {g.fields.map((k) => {
               const f = fieldOf(e, k)!;
               const v = rec[k];
-              const empty = v === undefined || v === null || v === "";
+              // A detail left empty is left out, not listed as "Not given" (the edit form still shows every field).
+              if (v === undefined || v === null || v === "") return null;
               return (
                 <div key={k} className={`fl-rd-pair${f.type === "longtext" ? " fl-rd-pair--wide" : ""}`}>
                   <dt>{f.label}</dt>
-                  <dd className={empty ? "fl-rd-empty" : f.type === "longtext" ? "fl-rd-long" : undefined}>{empty ? "Not given" : formatValue(f, v)}</dd>
+                  <dd className={f.type === "longtext" ? "fl-rd-long" : undefined}>{formatValue(f, v)}</dd>
                 </div>
               );
             })}
@@ -586,15 +587,16 @@ function RecordView({ store, e, rec, onBack, backLabel, onOpenDraft }: { store: 
               {title}
             </h2>
             <p className="fl-rd-meta">
-              <span className="fl-rd-id">{rec.id}</span>
               <StatusChip entity={e} record={rec} />
               {subtitle !== undefined && subtitle !== "" ? <span>{formatValue(e.subtitleField ? fieldOf(e, e.subtitleField) : undefined, subtitle)}</span> : null}
-              <span className="fl-rd-updated">
-                Updated{" "}
-                <time dateTime={String(rec.updatedAt ?? "")} title={stamp(rec.updatedAt)}>
-                  {relative(rec.updatedAt)}
-                </time>
-              </span>
+              {rec.updatedAt ? (
+                <span className="fl-rd-updated">
+                  Updated{" "}
+                  <time dateTime={String(rec.updatedAt)} title={stamp(rec.updatedAt)}>
+                    {relative(rec.updatedAt)}
+                  </time>
+                </span>
+              ) : null}
             </p>
           </div>
           <div className="fl-rd-actions" role="group" aria-label={`Actions for ${title}`}>
@@ -680,7 +682,7 @@ function RecordView({ store, e, rec, onBack, backLabel, onOpenDraft }: { store: 
             value={tab}
             onChange={(t) => setTab(t)}
             tabs={[
-              { id: "overview", label: editing ? "Overview (editing)" : "Overview", panel: overview },
+              { id: "overview", label: "Overview", panel: overview },
               { id: "activity", label: "Activity", count: activity.length, panel: feed },
             ]}
           />
@@ -690,10 +692,6 @@ function RecordView({ store, e, rec, onBack, backLabel, onOpenDraft }: { store: 
             Details
           </h3>
           <dl className="fl-rd-side-dl">
-            <div>
-              <dt>{e.label} id</dt>
-              <dd className="fl-rd-id">{rec.id}</dd>
-            </div>
             {status ? (
               <div>
                 <dt>Status</dt>
@@ -706,14 +704,18 @@ function RecordView({ store, e, rec, onBack, backLabel, onOpenDraft }: { store: 
                 <dd>{formatValue(f, rec[f.key])}</dd>
               </div>
             ))}
-            <div>
-              <dt>Created</dt>
-              <dd>{rec.createdAt ? <time dateTime={String(rec.createdAt)}>{stamp(rec.createdAt)}</time> : "Before records were tracked"}</dd>
-            </div>
-            <div>
-              <dt>Updated</dt>
-              <dd>{rec.updatedAt ? <time dateTime={String(rec.updatedAt)}>{stamp(rec.updatedAt)}</time> : "—"}</dd>
-            </div>
+            {rec.createdAt ? (
+              <div>
+                <dt>Created</dt>
+                <dd><time dateTime={String(rec.createdAt)}>{stamp(rec.createdAt)}</time></dd>
+              </div>
+            ) : null}
+            {rec.updatedAt ? (
+              <div>
+                <dt>Updated</dt>
+                <dd><time dateTime={String(rec.updatedAt)}>{stamp(rec.updatedAt)}</time></dd>
+              </div>
+            ) : null}
           </dl>
         </aside>
       </div>
@@ -747,7 +749,7 @@ function RecordView({ store, e, rec, onBack, backLabel, onOpenDraft }: { store: 
         </Dialog>
       ) : null}
       {pending?.kind === "delete" ? (
-        <Dialog title={`Delete ${title}?`} lede={`${e.label} ${rec.id} goes for everyone, with its details. The activity trail keeps a note that it was deleted.`} onClose={() => setPending(null)} fallbackFocus={heading}>
+        <Dialog title={`Delete ${title}?`} lede={`${title} goes for everyone, with its details. The activity trail keeps a note that it was deleted.`} onClose={() => setPending(null)} fallbackFocus={heading}>
           <div className="fl-rd-dialog-bar">
             <Button type="button" variant="secondary" size={40} data-autofocus onClick={() => setPending(null)}>
               Keep it

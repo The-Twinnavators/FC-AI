@@ -36,6 +36,20 @@ export function darkThemeFollows(css: string): boolean {
   return own !== undefined && own === managedBlock(withDarkTheme(css));
 }
 
+/** tokens.css with its managed dark theme set to exact values (an approved dark design), over the derived roles. */
+export function withDarkValues(css: string, values: Record<string, string>): string {
+  const base = withDarkTheme(css);
+  const a = base.indexOf(START);
+  const b = base.indexOf(END);
+  if (a < 0 || b < a) return base;
+  let block = base.slice(a, b);
+  for (const [k, v] of Object.entries(values)) {
+    const re = new RegExp(`(\\n\\s*${k.replace(/-/g, "\\-")}\\s*:\\s*)[^;]+;`);
+    block = re.test(block) ? block.replace(re, `$1${v};`) : block.replace(/\n\}\n?$/, `\n  ${k}: ${v};\n}\n`);
+  }
+  return base.slice(0, a) + block + base.slice(b);
+}
+
 /** tokens.css with its dark theme written (or rewritten) from a palette, or from its current light colours. */
 export function withDarkTheme(css: string, palette?: Palette): string {
   if (!css.includes(":root")) return css;

@@ -2,6 +2,8 @@
    Classes start with fl-af-; only the library's tokens. Below 48rem of its own width the rail becomes a drawer. */
 
 .fl-af-stage { height: 40rem; min-width: 0; }
+/* As the app itself (not a specimen on a stage): the window's height, so the top bar stays and only the content scrolls. */
+#root > .fl-af-frame { height: 100vh; height: 100dvh; }
 
 .fl-af-frame {
   container-type: inline-size; container-name: fl-af;

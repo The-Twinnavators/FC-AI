@@ -11,10 +11,11 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { BUNDLED_FONTS, DEFAULT_SURFACES, STYLE_VIBES, contrastRatio, vibeTokens } from "@flowcode/contracts";
+import { BUNDLED_FONTS, DEFAULT_SURFACES, STYLE_VIBES, buildPalette, contrastRatio, luminance, paletteFromTokens, roleTokens, vibeTokens } from "@flowcode/contracts";
 import type { PathJail } from "../security/pathJail.js";
 import type { FileOperations } from "./operations.js";
 import { applyDesign } from "./designStudio.js";
+import { withDarkValues } from "./darkTheme.js";
 import { setSurfaceStyle } from "./surfaceStyle.js";
 import { parseCustomProperties } from "./styleTokens.js";
 import type { AppModel } from "../orchestrator/appModel.js";
@@ -55,6 +56,8 @@ export interface DesignSpec {
     secondary: string;
   };
   density: Density;
+  /** The approved dark palette, when the design was dark: the app's dark theme (its light theme is derived). */
+  darkPalette?: DesignSpec["palette"];
   surface: {
     /** A surface style (STYLE_VIBES id): how cards, panels and controls are drawn. */
     vibe: string;
@@ -164,6 +167,52 @@ export function specTokens(s: DesignSpec): Record<string, string> {
   return t;
 }
 
+/** The palette roles as their tokens. */
+export function paletteTokens(p: DesignSpec["palette"]): Record<string, string> {
+  return {
+    "--color-bg": p.bg,
+    "--color-surface": p.surface,
+    "--color-surface-sunken": p.surfaceSunken,
+    "--color-text": p.text,
+    "--color-text-muted": p.textMuted,
+    "--color-border": p.border,
+    "--color-border-strong": p.borderStrong,
+    "--color-accent": p.accent,
+    "--color-accent-hover": p.accentHover,
+    "--color-on-accent": p.onAccent,
+    "--color-focus": p.accent,
+    "--color-secondary": p.secondary,
+  };
+}
+
+/**
+ * Apps are light by default with a dark theme behind the light/dark toggle, so a design whose palette is dark is made
+ * light-first: its own colors become the dark theme, and the light theme is derived from its accent and secondary
+ * (FlowCode's palette builder, contrast checked). ShelfSure's approved design was dark, was written in as the light
+ * theme, and "light mode felt like dark mode".
+ */
+export function lightFirst(s: DesignSpec): DesignSpec {
+  if (s.darkPalette || luminance(s.palette.bg) > 0.35) return s;
+  const l = roleTokens(buildPalette(paletteFromTokens({ "--color-accent": s.palette.accent, "--color-secondary": s.palette.secondary })), false);
+  return {
+    ...s,
+    darkPalette: s.palette,
+    palette: {
+      bg: l["--color-bg"]!,
+      surface: l["--color-surface"]!,
+      surfaceSunken: l["--color-surface-sunken"]!,
+      text: l["--color-text"]!,
+      textMuted: l["--color-text-muted"]!,
+      border: l["--color-border"]!,
+      borderStrong: l["--color-border-strong"]!,
+      accent: l["--color-accent"]!,
+      accentHover: l["--color-accent-hover"]!,
+      onAccent: l["--color-on-accent"]!,
+      secondary: l["--color-secondary"]!,
+    },
+  };
+}
+
 /** Every token value the app should have once the spec is applied: the surface style's, then the spec's on top. */
 export function expectedTokens(s: DesignSpec): Record<string, string> {
   return { ...vibeTokens(s.surface.vibe), ...specTokens(s) };
@@ -218,6 +267,7 @@ export function applyDesignSpec(
   s: DesignSpec,
   targets: { frameCss: string; screens: string[]; model?: AppModel; allowedSurfaces?: readonly string[]; layoutOnly?: boolean } = { frameCss: "src/styles/components.css", screens: [] },
 ): SpecApplication {
+  s = lightFirst(s);
   const problems = specProblems(s, targets.allowedSurfaces);
   if (problems.length) throw new Error(`The design spec "${s.name}" can't be applied: ${problems.join("; ")}`);
   const tokens = specTokens(s);
@@ -230,6 +280,12 @@ export function applyDesignSpec(
     applied.push(`surface style: ${s.surface.vibe}`);
     const res = applyDesign(jail, ops, ctx, { theme: "default", values: tokens });
     if (res.changed.length) applied.push(`tokens: ${res.changed.length} changed`);
+    // A dark design is the dark theme, exactly as approved (lightFirst derived the light one).
+    if (s.darkPalette) {
+      const css = fs.readFileSync(path.join(jail.root, "src/styles/tokens.css"), "utf8");
+      const next = withDarkValues(css, paletteTokens(s.darkPalette));
+      if (next !== css && ops.replaceContent({ jail, projectId: ctx.projectId, runId: ctx.runId, approved: false }, "src/styles/tokens.css", next).ok) applied.push("dark theme: the approved dark palette (light theme derived from its accent)");
+    }
   } else applied.push("look: kept (your selected direction)");
   // A token this app doesn't declare can't be set (the token writer only changes existing ones): unsupported here.
   const declared = new Set(parseCustomProperties(fs.readFileSync(path.join(jail.root, "src/styles/tokens.css"), "utf8")).map((d) => d.name));

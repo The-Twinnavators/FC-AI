@@ -295,7 +295,10 @@ export function AppFrame({ product, logo, nav, current, onNavigate, crumbs, stor
               ) : null}
             </div>
           ) : (
-            children
+            // Each destination enters (the starter's ui-screen motion; at rest when animation is off or reduced).
+            <div className="ui-screen" key={current}>
+              {children}
+            </div>
           )}
         </main>
       </div>

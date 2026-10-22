@@ -179,7 +179,7 @@ ${facetControls.join("\n")}
         </p>
       </div>
 ${sel ? `      <p className="cmp-notice" role="status" aria-live="polite">\n        {notice}\n      </p>\n` : ""}      {shown.length ? (
-        <ul className="cmp-grid">
+        <ul className="cmp-grid ui-stagger">
           {shown.map((r) => {
             const title = String(r[${js(e.titleField)}] ?? r.id);
             const src = String(r[${js(img.key)}] ?? "");

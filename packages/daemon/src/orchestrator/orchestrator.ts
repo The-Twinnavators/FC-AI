@@ -78,7 +78,7 @@ import { UNSUITABLE, findOpenImage } from "../workspace/openImages.js";
 const PICTURE_RULES = "3";
 import { FRAME_SHEET, frameCss, frameKind, refreshedFrameCss, withFrameImport } from "./frameComposer.js";
 import { CALC_ENGINE, CALC_SCREEN, CALC_SHEET, CALC_VERSION, COMPOSED_CALC, engineFile, isCalculatorPrd, outdatedCalculator, screenFile, sheetFile, testsFile } from "./calculatorComposer.js";
-import { buildRequiredPlaceholders, completenessProblems, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
+import { buildRequiredPlaceholders, completenessProblems, withoutInventedImages, withReadableReferences, prdNamedRecords, prdSampleSection, resolveScreenAliases } from "./appModel.js";
 import { enforceRecords, prdRecordTables, recordProblems, tableFor, tableRows } from "./prdRecords.js";
 import { APP_MODEL_SCHEMA, APP_MODEL_SYSTEM, APP_PARTS_NOTE, APP_STRUCTURE_SCHEMA, AREAS_SCHEMA, AREAS_SYSTEM, areasRequest, usableAreas, SEED_SCHEMA, SEED_SYSTEM, SOCIAL_SCHEMA, SOCIAL_SYSTEM, seedRequest, socialRequest, appModelBudget, appModelKey, appModelNote, appModelRequest, parseAppModel, type AppModel } from "./appModel.js";
 import { ADD_SECTIONS, SECTION_STEPS, catalogBrief, dropFunnel, keptSection, pickSections, picksIn, pieceFiles, sectionFile, sectionsObjective } from "./sectionRecipes.js";
@@ -1212,7 +1212,7 @@ ${brief.text}` : objective, expectedPaths });
         }
         if (model) {
           // A screen the PRD names, covered only by a working page of its kind, becomes an explicit alias first.
-          model = resolveScreenAliases(buildRequiredPlaceholders(model, declaredScreens(prd)), declaredScreens(prd));
+          model = resolveScreenAliases(buildRequiredPlaceholders(withReadableReferences(withoutInventedImages(model, prd)), declaredScreens(prd)), declaredScreens(prd));
           if (model.aliases?.length) this.d.bus.emit({ ...ev, type: "plan.proposed", message: `Required screens made explicit: ${model.aliases.map((a) => `${a.screen} is the ${a.kind} page (${a.view})${a.replaced ? `, replacing the placeholder link "${a.replaced}"` : ""}`).join("; ")}. Each is checked in the browser as that screen`, data: { aliases: model.aliases } });
           // The PRD's own records (prdRecords.ts) are part of complete: an exact table's records, as given.
           const missing = [...completenessProblems(model, declaredScreens(prd), prdNamedRecords(prdSampleSection(prd))), ...recordProblems(model, prdRecordTables(prd))];

@@ -571,6 +571,59 @@ const screenWords = (name: string) =>
 const namedBy = (v: ModelView, name: string) => screenWords(name).some((w) => `${v.label} ${v.id}`.toLowerCase().includes(w));
 
 /**
+ * A field the planner filled with other records' codes ("Items: REG-1003", "Product: PROD-1002") shows those records'
+ * names instead: people pick and read "Whole milk", not a code. Codes that name a record whose own title is a code are
+ * followed through (a regular item titled by its product).
+ */
+export function withReadableReferences(m: AppModel): AppModel {
+  const title = new Map<string, string>();
+  for (const e of m.entities) for (const r of m.seed[e.key] ?? []) if (typeof r.id === "string" && typeof r[e.titleField] === "string") title.set(r.id, r[e.titleField] as string);
+  const name = (v: string) => {
+    let t = v;
+    for (let i = 0; i < 3 && title.has(t); i++) t = title.get(t)!;
+    return t;
+  };
+  const isCode = (v: unknown) => typeof v === "string" && title.has(v);
+  // A code in the app's own pattern that names no record (REG-1004 with three regulars) is left out, not shown.
+  const looksLikeCode = (v: unknown) => typeof v === "string" && /^[A-Z]{2,}-\d+$/.test(v);
+  const mostlyCodes = (vs: unknown[]) => vs.length > 0 && vs.every(looksLikeCode) && vs.filter(isCode).length * 2 >= vs.length;
+  const entities = m.entities.map((e) => {
+    const rows = m.seed[e.key] ?? [];
+    return {
+      ...e,
+      fields: e.fields.map((fl) => {
+        const values = rows.map((r) => r[fl.key]).filter((v) => v !== undefined && v !== "");
+        if (!mostlyCodes(fl.options ?? []) && !mostlyCodes(values)) return fl;
+        return { ...fl, ...(fl.options?.length ? { options: [...new Set(fl.options.filter(isCode).map(name))] } : {}) };
+      }),
+    };
+  });
+  const seed: AppModel["seed"] = {};
+  for (const e of entities) {
+    const keys = e.fields.filter((fl, i) => fl !== m.entities.find((x) => x.key === e.key)!.fields[i]).map((fl) => fl.key);
+    seed[e.key] = (m.seed[e.key] ?? []).map((r) => (keys.length ? Object.fromEntries(Object.entries(r).map(([k, v]) => [k, keys.includes(k) && typeof v === "string" ? (isCode(v) ? name(v) : looksLikeCode(v) ? "" : v) : v])) : r));
+  }
+  for (const [k, rows] of Object.entries(m.seed)) if (!(k in seed)) seed[k] = rows;
+  return { ...m, entities, seed };
+}
+
+/**
+ * Picture addresses the planner made up are dropped from the sample records: it can't know a real one, and
+ * "https://shelfsure.com/images/milk.jpg" showed a broken image on every card. An address the PRD itself gives is
+ * kept, as are the app's own files (/images/...). The pages draw their initials tile for a record without a picture.
+ */
+export function withoutInventedImages(m: AppModel, prd: string): AppModel {
+  const picture = /image|photo|picture|logo|thumbnail|avatar|cover/i;
+  const seed: AppModel["seed"] = {};
+  for (const [k, rows] of Object.entries(m.seed)) {
+    const e = m.entities.find((x) => x.key === k);
+    const keys = (e?.fields ?? []).filter((f) => picture.test(f.key) || picture.test(f.label)).map((f) => f.key);
+    seed[k] = keys.length ? rows.map((r) => Object.fromEntries(Object.entries(r).map(([fk, v]) => [fk, keys.includes(fk) && typeof v === "string" && /^https?:\/\//i.test(v) && !prd.includes(v) ? "" : v]))) : rows;
+  }
+  return { ...m, seed };
+}
+
+/**
  * At planning only: a screen the PRD requires that the planner left a placeholder ("not in this prototype") and that no
  * working page stands for is built, as a custom page with the PRD's purpose. Strict: every word of the placeholder's
  * label is in the screen's name, or the other way round ("Compare" for "Swap & Compare"). A small planner kept making
