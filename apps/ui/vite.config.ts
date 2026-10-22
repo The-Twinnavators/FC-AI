@@ -47,6 +47,33 @@ const appBuild = (() => {
  * launcher as `npm run dev:daemon`) when nothing answers on its port, at startup and again on a page load if it has
  * gone down since. A daemon started some other way is left alone; one started here stops with the dev server.
  */
+/**
+ * Dev only: the Component library's pieces and styles live outside this app (templates/library), so Vite doesn't watch
+ * that folder for new files and its import.meta.glob lists stay stale ("No section called …") until a restart. Watch it,
+ * and when a piece or stylesheet is added or removed, drop the modules that list them and reload the page.
+ */
+function libraryWatch(): Plugin {
+  const lib = path.join(root, "templates/library");
+  return {
+    name: "flowcode-library-watch",
+    apply: "serve",
+    configureServer(server) {
+      server.watcher.add([path.join(lib, "sections"), path.join(lib, "css")]);
+      const changed = (file: string) => {
+        const f = file.split(path.sep).join("/");
+        if (!f.includes("/templates/library/") || !/\.(tsx|css)$/.test(f)) return;
+        for (const id of ["src/sectionPreview.tsx", "src/proofPreview.tsx", "src/views/ComponentsView.tsx"]) {
+          const mod = server.moduleGraph.getModuleById(path.join(server.config.root, id).split(path.sep).join("/"));
+          if (mod) server.moduleGraph.invalidateModule(mod);
+        }
+        server.ws.send({ type: "full-reload" });
+      };
+      server.watcher.on("add", changed);
+      server.watcher.on("unlink", changed);
+    },
+  };
+}
+
 function autoDaemon(): Plugin {
   let child: ChildProcess | undefined;
   let starting: Promise<void> | undefined;
@@ -95,7 +122,7 @@ const uiPort = Number(process.env.PORT) || 5199;
 export default defineConfig({
   base: "./",
   define: { __APP_VERSION__: JSON.stringify(appVersion), __APP_BUILD__: JSON.stringify(appBuild) },
-  plugins: [react(), autoDaemon()],
+  plugins: [react(), autoDaemon(), libraryWatch()],
   server: { port: uiPort, strictPort: true, host: "127.0.0.1", fs: { allow: [...new Set([root, deps])] } },
   // section-preview.html: the Component library shows each section in a page of its own.
   build: { outDir: "dist", sourcemap: true, rollupOptions: { input: { main: path.resolve(root, "apps/ui/index.html"), sectionPreview: path.resolve(root, "apps/ui/section-preview.html"), conceptPreview: path.resolve(root, "apps/ui/concept-preview.html"), proofPreview: path.resolve(root, "apps/ui/proof-preview.html") } } },
