@@ -725,6 +725,10 @@ ${brief.text}` : objective, expectedPaths });
     // FR-A2: medium/high-risk plans need approval unless the project's autonomy level covers them.
     const level = project.settings.autonomy;
     const autoReason = plan.scopeDecisions?.length || plan.compliance?.some((c) => c.hard && !c.ok) ? undefined : autoApprovalReason(level, { kind: "plan", risk: plan.risk, action: plan.goal, affected: plan.expectedChanges });
+    // The conversation-led builder has no plan approval: the plan is described in the chat and built (only a hard
+    // compliance failure still stops it for the person).
+    const conversation = this.d.store.getSetting<{ conversation?: boolean } | null>(`runLook:${runId}`, null)?.conversation;
+    if (conversation && !plan.compliance?.some((c) => c.hard && !c.ok)) return this.approvePlan(runId, "conversation build: the plan is described in the chat, not approved");
     // A design still to approve (agent-led design proofs) keeps the plan waiting for the person, whatever the level.
     if (autoReason && !designPending(this.d.store, runId)) {
       return this.approvePlan(runId, `auto-approved by ${level} policy: ${autoReason}`);

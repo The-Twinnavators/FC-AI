@@ -19,6 +19,7 @@ import "./styles/new-build.css";
 import "./styles/home.css";
 import "./styles/look-studio.css";
 import "./styles/component-tokens.css";
+import "./styles/builder.css";
 import { App } from "./App";
 import { loadThemeOverrides } from "./theme";
 import { themeFor, toneFor } from "./appearance";

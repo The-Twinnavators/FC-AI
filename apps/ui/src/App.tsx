@@ -17,7 +17,7 @@ import { navigate, useRoute } from "./router";
 import { NAV_GROUPS } from "./nav";
 import { ProjectsView } from "./views/ProjectsView";
 import { HomeView } from "./views/HomeView";
-import { SetupView } from "./views/SetupView";
+import { BuilderView } from "./views/BuilderView";
 import { WorkspaceView } from "./views/WorkspaceView";
 import { Copilot } from "./components/Copilot";
 import { ContextMenu } from "./components/ContextMenu";
@@ -169,6 +169,8 @@ export function App() {
   }, [section]);
   // Launch readiness now lives in My Projects; old links (/launch, /launch/:id) redirect there.
   useEffect(() => {
+    // The old setup steps (Describe → Look and Feel → Build) are gone: a draft opens in the builder's chat.
+    if (section === "new" && route.parts[1]) location.replace(`#/build/${route.parts[1]}`);
     if (section === "launch") location.replace(`#/quality${route.parts[1] ? `/${route.parts[1]}/launch` : ""}`);
   }, [section, route.parts]);
   const projectId = section === "projects" ? route.parts[1] : undefined;
@@ -343,10 +345,10 @@ export function App() {
             <DotField />
           </div>
         ) : null}
-        <div key={section || "home"} className={`page-enter${section !== "projects" ? " page-enter--footer" : ""}`} style={{ minHeight: "100%" }}>
+        <div key={section || "home"} className={`page-enter${section !== "projects" && section !== "build" ? " page-enter--footer" : ""}`} style={{ minHeight: "100%" }}>
         {section === "" && <HomeView />}
         {section === "dashboard" && <ProjectsView projects={projects.data} reload={projects.reload} />}
-        {section === "new" && route.parts[1] ? <SetupView key={route.parts[1]} projectId={route.parts[1]} step={route.parts[2] ?? "describe"} /> : null}
+        {section === "build" && route.parts[1] ? <BuilderView key={route.parts[1]} projectId={route.parts[1]} /> : null}
         {section === "projects" && projectId && route.parts[2] === "design" && <DesignDirectionView key={projectId} projectId={projectId} />}
         {section === "projects" && projectId && route.parts[2] !== "design" && <WorkspaceView key={projectId} projectId={projectId} runId={runId ?? lastRun.current[projectId]} announce={announce} />}
         {projectSettings && projectId ? (
@@ -379,7 +381,7 @@ export function App() {
         {section === "primitives" && <PrimitivesView />}
         {section === "discover" && <DiscoverView id={route.parts[1]} />}
         {section === "flowreport" && <FlowReportView projectId={route.parts[1]} />}
-        {section !== "projects" ? <AppFooter /> : null}
+        {section !== "projects" && section !== "build" ? <AppFooter /> : null}
         </div>
         </Suspense>
       </main>

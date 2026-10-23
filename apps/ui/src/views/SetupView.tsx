@@ -47,7 +47,7 @@ export function SetupView({ projectId, step }: { projectId: string; step: string
       </div>
     );
   // Describe is Home again, for this draft: the same page, background and composer.
-  if (at === "describe") return <HomeView draft={{ projectId, name: project.name, setup }} />;
+  if (at === "describe") return <HomeView />;
   return (
     // The same moving background on every step (Home's), behind the page.
     <div className="home psetup-bg">

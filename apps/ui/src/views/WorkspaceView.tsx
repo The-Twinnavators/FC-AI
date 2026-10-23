@@ -1247,7 +1247,7 @@ function MonitorPointer() {
   );
 }
 
-function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: RunView["artifacts"] }) {
+export function PreviewPanel({ projectId, artifacts }: { projectId: string; artifacts: Array<{ id: string; kind: string; label: string; mime: string; createdAt: string; meta?: Record<string, unknown> }> }) {
   // The chosen size is kept per project.
   const deviceKey = `flowcode.previewDevice.${projectId}`;
   const [device, setDeviceState] = useState<Device>(() => {

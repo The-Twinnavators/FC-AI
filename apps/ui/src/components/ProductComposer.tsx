@@ -1,8 +1,7 @@
 /**
- * "What would you like to build?": the first step of a project's setup, on Home and again when you come Back to it.
- * A project name, the description, attachments (dropped anywhere on the composer or chosen) and a product type. Next
- * saves it as a draft project (POST /setups) or updates the draft it came from, then opens Look and Feel. Nothing is
- * lost on an error: the fields keep what was typed and attached.
+ * "What would you like to build?" on Home: a project name, the description, attachments (dropped anywhere on the
+ * composer or chosen) and a product type. Start makes the project (POST /conversations) and opens the builder's chat,
+ * where FlowCode clarifies what matters and builds. Nothing is lost on an error: the fields keep what was typed.
  */
 import { useEffect, useRef, useState, type DragEvent } from "react";
 import { PRODUCT_TYPES, suggestName, type ProductType, type ProjectSetup } from "@flowcode/contracts";
@@ -75,9 +74,10 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
       references: files.map(({ name: n, role, content }) => ({ name: n, role, content })),
     };
     try {
-      const id = projectId ?? (await post<{ project: { id: string } }>("/setups", body)).project.id;
+      // Straight to the builder's chat: FlowCode clarifies what matters there, then plans and builds.
+      const id = projectId ?? (await post<{ project: { id: string } }>("/conversations", body)).project.id;
       if (projectId) await post(`/projects/${projectId}/setup`, body);
-      navigate(`/new/${id}/look`);
+      navigate(`/build/${id}`);
     } catch (e) {
       setError((e as Error).message);
       setBusy(false);
@@ -175,7 +175,7 @@ export function ProductComposer({ projectId, initial }: { projectId?: string; in
         </div>
         <input ref={input} type="file" multiple accept={ACCEPT} hidden onChange={(e) => e.target.files && void add(e.target.files)} />
         <button type="submit" className="btn btn--primary composer__next" data-cp="nb-next" disabled={!described || busy}>
-          {busy ? "Saving…" : "Next: Look and Feel"} <Icon name="chevron" size={13} />
+          {busy ? "Starting…" : "Start"} <Icon name="chevron" size={13} />
         </button>
       </div>
       {error ? (

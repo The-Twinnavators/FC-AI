@@ -1,0 +1,148 @@
+/* The builder (BuilderView): the conversation beside the working app. */
+.bld {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  /* The view below the top bar, whole: the chat scrolls inside, its box stays at the bottom. */
+  height: calc(100vh - var(--topbar-h, 0px));
+  height: calc(100dvh - var(--topbar-h, 0px));
+  min-height: 0;
+  background: var(--bg-0);
+}
+.bld--preview { grid-template-columns: minmax(340px, 440px) minmax(0, 1fr); }
+.bld__bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 48px;
+  padding: 0 var(--s-4);
+  border-bottom: 1px solid var(--line);
+}
+.bld__name { margin: 0; font-size: var(--fs-md); font-weight: 600; color: var(--text-0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bld__tools { display: flex; gap: var(--s-2); margin-left: auto; }
+.bld__chat { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; border-right: 1px solid var(--line); }
+.bld:not(.bld--preview) .bld__chat { width: min(760px, 100%); justify-self: center; border-right: 0; }
+.bld__list { display: flex; flex-direction: column; gap: var(--s-4); min-height: 0; overflow-y: auto; padding: var(--s-5) var(--s-4); scroll-padding-bottom: var(--s-4); }
+.bld__preview { min-width: 0; min-height: 0; overflow: auto; }
+.bld__go { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; padding-left: 36px; font-size: var(--fs-sm); }
+
+/* Messages */
+.bld-msg { display: flex; gap: var(--s-3); align-items: flex-start; animation: bld-in var(--t-med, 200ms) var(--ease, ease-out) both; }
+.bld-msg--you { justify-content: flex-end; }
+.bld-msg--you .bld-msg__text {
+  max-width: 85%;
+  margin: 0;
+  padding: var(--s-2) var(--s-3);
+  border-radius: 12px;
+  background: var(--bg-2);
+  color: var(--text-0);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.bld-msg__body { display: grid; gap: var(--s-2); min-width: 0; flex: 1; }
+.bld-msg__who { font-size: var(--fs-xs); color: var(--text-2); }
+.bld-msg--agent .bld-msg__text { margin: 0; color: var(--text-0); white-space: pre-wrap; line-height: 1.55; }
+
+/* Quick-choice questions */
+.bld-q { display: grid; gap: var(--s-2); margin: 0; padding: var(--s-3); border: 1px solid var(--line); border-radius: 10px; background: var(--bg-1); min-width: 0; }
+.bld-q__text { padding: 0; font-weight: 600; color: var(--text-0); }
+.bld-q__why { margin: 0; font-size: var(--fs-sm); }
+.bld-q__chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.bld-chip {
+  min-height: 36px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--bg-0);
+  color: var(--text-0);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: background-color var(--t-fast, 120ms) var(--ease, ease-out), border-color var(--t-fast, 120ms) var(--ease, ease-out), transform 80ms var(--ease, ease-out);
+}
+.bld-chip:hover { background: var(--bg-hover); }
+.bld-chip:active { transform: scale(0.97); }
+.bld-chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.bld-chip[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand-1); color: var(--text-0); font-weight: 600; }
+.bld-chip--quiet { border-style: dashed; color: var(--text-1); }
+.bld-q:disabled .bld-chip { cursor: default; opacity: 0.75; }
+.bld-q:disabled .bld-chip[aria-pressed="true"] { opacity: 1; }
+.bld-q__own { display: flex; gap: var(--s-2); }
+.bld-q__own .input { flex: 1; min-width: 0; }
+
+/* The live status card */
+.bld-card {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-1);
+  animation: bld-in var(--t-med, 200ms) var(--ease, ease-out) both;
+}
+.bld-card--input { border-color: var(--sig-warn); }
+.bld-card--failed { border-color: var(--sig-bad); }
+.bld-card__head { display: flex; align-items: center; gap: var(--s-2); }
+.bld-card__mark { display: inline-grid; place-items: center; width: 20px; color: var(--brand-1); }
+.bld-card--complete .bld-card__mark { color: var(--sig-ok); }
+.bld-card--failed .bld-card__mark, .bld-card--stopped .bld-card__mark { color: var(--text-2); }
+.bld-card__mark.is-working { animation: bld-pulse 1.6s ease-in-out infinite; }
+.bld-card__title { margin: 0; font-size: var(--fs-md); font-weight: 600; color: var(--text-0); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bld-card__time { margin-left: auto; font-size: var(--fs-xs); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bld-card__line { margin: 0; color: var(--text-0); }
+.bld-card__steps { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: var(--fs-sm); color: var(--text-1); }
+.bld-card__steps li span { display: inline-block; width: 18px; color: var(--sig-ok); }
+.bld-card__steps li.is-now { color: var(--text-0); }
+.bld-card__steps li.is-now span { color: var(--brand-1); }
+.bld-card__note { margin: 0; font-size: var(--fs-sm); }
+.bld-card__actions { display: flex; gap: var(--s-2); justify-content: flex-end; }
+.bld-card__actions:empty { display: none; }
+.bld-card__approvals { display: grid; gap: var(--s-2); }
+
+/* Composer */
+.bld-composer { position: relative; display: flex; gap: var(--s-2); align-items: flex-end; padding: var(--s-3) var(--s-4) var(--s-4); border-top: 1px solid var(--line); }
+.bld-composer__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  max-height: 200px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--bg-1);
+  color: var(--text-0);
+  font: inherit;
+  resize: vertical;
+}
+.bld-composer__input:focus { outline: none; border-color: var(--brand-1); box-shadow: 0 0 0 3px var(--brand-soft); }
+.bld-composer__send { flex: none; width: 40px; height: 40px; }
+
+@keyframes bld-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes bld-pulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) {
+  .bld-msg, .bld-card { animation: none; }
+  .bld-card__mark.is-working { animation: none; }
+}
+
+/* Phones and narrow windows: the preview takes the screen when it's open; the chat comes back with Preview. */
+@media (max-width: 860px) {
+  .bld--preview { grid-template-columns: minmax(0, 1fr); }
+  .bld--preview .bld__chat { display: none; }
+}
+
+/* Home's recent builds: back into a build's chat. */
+.home__recent { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2); margin-top: var(--s-4); }
+.home__recent-item {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 var(--s-3); border: 1px solid var(--line); border-radius: 999px;
+  color: var(--text-1); font-size: var(--fs-sm); text-decoration: none; background: color-mix(in srgb, var(--bg-0) 70%, transparent);
+  transition: color var(--t-fast, 120ms) var(--ease, ease-out), border-color var(--t-fast, 120ms) var(--ease, ease-out);
+}
+.home__recent-item:hover { color: var(--text-0); border-color: var(--line-strong); }
+.home__recent-item:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* A long message (a pasted PRD) is shown short until Show all. */
+.bld-msg--you .bld-msg__text.is-clamped { position: relative; max-height: 11.5em; overflow: hidden; }
+.bld-msg--you .bld-msg__text.is-clamped::after { content: ""; position: absolute; inset: auto 0 0; height: 4em; background: linear-gradient(transparent, var(--bg-2)); pointer-events: none; }
+.bld-msg__more { position: relative; z-index: 1; display: block; margin-top: var(--s-1); font-size: var(--fs-sm); }
+.bld-msg--you .bld-msg__text.is-clamped .bld-msg__more { position: absolute; right: var(--s-3); bottom: var(--s-2); }

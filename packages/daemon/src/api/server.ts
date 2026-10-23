@@ -12,6 +12,7 @@ import { compareRuns } from "./runCompare.js";
 import { pointAt } from "./pointAt.js";
 import { exportSite } from "./exportSite.js";
 import { watchFirstLook } from "./firstLook.js";
+import * as Conv from "./conversation.js";
 import { setupStatus, testAndUse, useAsCoder } from "./setup.js";
 import { externalChanges, watchStops } from "../workspace/stamp.js";
 import { briefIdea } from "../orchestrator/ideaScout.js";
@@ -986,6 +987,77 @@ export async function startServer(app: App, opts: { port?: number; token?: strin
       });
     app.store.setSetting(setupKey(params.id), { ...s, status: "started", runId: run.id, updatedAt: new Date().toISOString() } satisfies C.ProjectSetup);
     return { project: app.store.projects.require(params.id), run };
+  });
+  // ── The conversation-led builder (conversation.ts): describe → clarify in the chat → plan and build. No Look step,
+  // design concepts or plan approval; later messages are changes, queued behind a running one.
+  const DEFAULT_EXTRAS = ["micro-animations", "page-transitions", "theme-toggle", "toasts", "empty-states", "sticky-header", "skeleton-loading"];
+  /** A change from the chat: a follow-up of the project's latest run, built without a plan approval. */
+  const startChange = (projectId: string, text: string) => {
+    const latest = app.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 1", projectId)[0];
+    const run = app.orchestrator.createRun({ projectId, objective: redact(text), constraints: [], attachedKnowledgeIds: [], ...(latest ? { parentRunId: latest.id, kind: "iterate" as const } : {}) });
+    app.store.setSetting(`runLook:${run.id}`, { extras: DEFAULT_EXTRAS, conversation: true });
+    void app.orchestrator.plan(run.id).catch(() => undefined);
+    return run.id;
+  };
+  Conv.watchConversationQueue(app, startChange);
+  /** Home's composer: a new project from the description (and any PRD), straight to the builder's chat. */
+  add("POST /conversations", ({ body }) => {
+    const b = parse(SetupCreate, body);
+    checkReferences(b.references);
+    const project = app.projects.create({ name: b.name || C.suggestName(b.description) || "New build", createWorkspace: true });
+    const setup: C.ProjectSetup = { status: "draft", description: b.description, productType: b.productType, references: b.references, extras: DEFAULT_EXTRAS, autonomy: "assisted", coder: "local", threeDrafts: false, designMode: "mine", inspiration: [], updatedAt: new Date().toISOString() };
+    app.store.setSetting(setupKey(project.id), setup);
+    return { project, conversation: Conv.getConversation(app, project.id, b.description) };
+  });
+  const conversationOf = (projectId: string) => {
+    app.store.projects.require(projectId);
+    const s = app.store.getSetting<C.ProjectSetup | null>(setupKey(projectId), null);
+    const c = Conv.getConversation(app, projectId, s?.description);
+    // A project built before the builder: its latest build is the conversation so far, and messages are changes.
+    const latest = app.store.runs.where("project_id = ? ORDER BY created_at DESC LIMIT 1", projectId)[0];
+    if (latest && c.stage === "clarifying" && !c.messages.some((m) => m.role === "assistant"))
+      return { ...c, stage: "building" as const, messages: [{ id: "first", at: latest.createdAt, role: "user" as const, kind: "text" as const, text: s?.description ?? latest.objective.slice(0, 1200) }, { id: "latest", at: latest.createdAt, role: "assistant" as const, kind: "build" as const, runId: latest.id, state: "started" as const }] };
+    return c;
+  };
+  add("GET /projects/:id/conversation", ({ params }) => conversationOf(params.id));
+  add("POST /projects/:id/conversation/clarify", async ({ params }) => {
+    const s = setupOf(params.id);
+    return Conv.clarify(app, params.id, [s.description, ...s.references.filter((r) => r.role !== "image").map((r) => `${r.name}:\n${r.content.slice(0, 6000)}`)].join("\n\n"));
+  });
+  add("POST /projects/:id/conversation/answer", ({ params, body }) => {
+    const b = parse(z.object({ questionId: z.string().max(40), answer: z.string().max(500).nullable() }), body);
+    try {
+      return Conv.answer(app, params.id, b.questionId, b.answer);
+    } catch (err) {
+      throw new HttpError(409, (err as Error).message);
+    }
+  });
+  add("POST /projects/:id/conversation/build", ({ params }) => {
+    const s = setupOf(params.id);
+    const c = conversationOf(params.id);
+    if (c.stage === "building") return c;
+    const brief = Conv.buildBrief(c) || s.description;
+    Conv.ensureLook(app, params.id, brief);
+    const run = startSpecRun(params.id, { description: brief, references: s.references, autonomy: "assisted", ...(s.buildMode ? { buildMode: s.buildMode } : {}), look: { extras: s.extras.length ? s.extras : DEFAULT_EXTRAS, conversation: true }, cloud: readyCloud(s.coder) });
+    app.store.setSetting(setupKey(params.id), { ...s, status: "started", runId: run.id, updatedAt: new Date().toISOString() } satisfies C.ProjectSetup);
+    return Conv.recordBuild(app, params.id, run.id);
+  });
+  add("POST /projects/:id/conversation/message", ({ params, body }) => {
+    const b = parse(z.object({ text: z.string().trim().min(1).max(4000) }), body);
+    // A project from before the builder starts its saved conversation from its latest build, so this is a change.
+    if (!app.store.getSetting(`conversation:${params.id}`, null)) app.store.setSetting(`conversation:${params.id}`, conversationOf(params.id));
+    // A step that needs the person (blocked) is retried with the message as its guidance.
+    const guide = (runId: string, text: string) => {
+      const task = app.store.tasks.where("run_id = ?", runId).find((t) => t.status === "blocked");
+      if (!task) return undefined;
+      try {
+        app.orchestrator.retryTask(runId, task.id, text);
+        return task.title;
+      } catch {
+        return undefined;
+      }
+    };
+    return Conv.message(app, params.id, b.text, (text) => startChange(params.id, text), guide);
   });
   add("POST /requests/score", ({ body }) => {
     const b = parse(z.object({ description: z.string().max(20_000), roles: z.array(z.string()).default([]) }), body);
